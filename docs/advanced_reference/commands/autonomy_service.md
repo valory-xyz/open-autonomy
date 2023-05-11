@@ -1,6 +1,6 @@
 Tools to manage services minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
 
-This command group consists of a number of functionalities to manage the life cycle of services that have been minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/). To understand about the life cycle of a service read [here](https://docs.autonolas.network/protocol/life_cycle_of_a_service/#terminated-bonded).
+This command group consists of a number of functionalities to manage [the life cycle of services](https://docs.autonolas.network/protocol/life_cycle_of_a_service/) that have been minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
 
 !!! info
 
@@ -48,7 +48,7 @@ Print service information.
 ### Usage
 
 ```bash
-autonomy service info [OPTIONS] SERVICE_ID
+autonomy service info SERVICE_ID
 ```
 
 ### Examples
@@ -82,7 +82,8 @@ $ autonomy service info 3
 
 ## `autonomy service register`
 
-Register an agent instance in a service minted and activated in the Autonolas Protocol.
+Register an agent instance in a service minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/). The service must be in the *Active Registration* state.
+
 ### Usage
 
 ```bash
