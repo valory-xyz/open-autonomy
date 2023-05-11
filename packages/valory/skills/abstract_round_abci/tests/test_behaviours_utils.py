@@ -2364,14 +2364,11 @@ class TestTmManager:
             side_effect=yield_and_return_int_wrapper(num_active_peers),
         ), mock.patch.object(
             self.tm_manager, "sleep", side_effect=mock_sleep
-        ), mock.patch(
-            "sys.exit"
-        ) as mock_sys_exit, mock.patch.object(
+        ), mock.patch.object(
             BaseBehaviour,
             "request_recovery_params",
             side_effect=dummy_generator_wrapper(acn_communication_success),
         ):
-            next(gen)
             next(gen)
 
             if not acn_communication_success:
@@ -2382,12 +2379,6 @@ class TestTmManager:
             next(gen)
             with pytest.raises(StopIteration):
                 next(gen)
-
-            if (
-                num_active_peers is not None
-                and num_active_peers < self._DUMMY_CONSENSUS_THRESHOLD
-            ):
-                mock_sys_exit.assert_called()
 
     @pytest.mark.parametrize(
         "expected_reset_params",
