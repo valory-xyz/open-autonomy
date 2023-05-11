@@ -15,7 +15,7 @@ No backwards incompatible changes
 
 ## `v0.10.0.post2` to `v0.10.1`
 
-No backwards incompatible changes
+This version fixes a bug on the build tools which will introduce a change on the expected output of the deployment builds. Before this bug fix the deployment tools did not index the agents on the manual builds, which lead to the behaviour where if you built the deployment using just one key or `--n` flag the agents were indexed from `0` instead. With this bug fix the deployment tools will use the `all_participants` list to index the agents before building the deployments.
 
 ## `v0.10.0.post1` to `v0.10.0.post2`
 
