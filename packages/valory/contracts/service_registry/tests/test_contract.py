@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/service_registry contract."""
+
 from pathlib import Path
 from typing import Any, List, Optional, Set
 from unittest import mock
