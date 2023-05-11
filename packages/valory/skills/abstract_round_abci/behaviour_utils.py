@@ -2129,35 +2129,12 @@ class TmManager(BaseBehaviour):
         """
         return self._hard_reset_sleep
 
-    def _kill_if_no_majority_peers(self) -> Generator[None, None, None]:
-        """This method checks whether there are enough peers in the network to reach majority. If not, the agent is shut down."""
-        # We assign a timeout to the num_active_peers request because we are trying to check whether the unhealthy
-        # tm communication, i.e. tm not sending blocks to the abci (agent), is caused by not having enough peers
-        # in the network. If that's the case, the node that is being queried has to be healthy, and respond in a
-        # timely fashion. If the tm node doesn't respond in the specified timeout, we assume the problem is not
-        # the lack of peers in the service.
-        num_active_peers = yield from self.num_active_peers(timeout=TM_REQ_TIMEOUT)
-        if (
-            num_active_peers is not None
-            and num_active_peers < self.synchronized_data.consensus_threshold
-        ):
-            self.context.logger.error(
-                f"There should be at least {self.synchronized_data.consensus_threshold} peers in the service,"
-                f" only {num_active_peers} are currently active. Shutting down the agent."
-            )
-            not_ok_code = 1
-            sys.exit(not_ok_code)
-
     def _handle_unhealthy_tm(self) -> Generator:
         """This method handles the case when the tendermint node is unhealthy."""
         self.context.logger.warning(
             "The local deadline for the next `begin_block` request from the Tendermint node has expired! "
             "Trying to reset local Tendermint node as there could be something wrong with the communication."
         )
-
-        # we first check whether the reason why we haven't received blocks for more than we allow is because
-        # there are not enough peers in the network to reach majority.
-        yield from self._kill_if_no_majority_peers()
 
         # since we have reached this point that means that the cause of blocks not being received
         # cannot be attributed to a lack of peers in the network

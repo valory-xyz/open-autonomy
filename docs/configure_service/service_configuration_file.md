@@ -87,7 +87,7 @@ There are a number of mandatory attributes that define the service, which are su
 | `fingerprint_ignore_patterns` | Filename patterns to be ignored.                                                                                                                                                                      |
 | `agent`                       | Canonical agent, in the form `<agent_public_id>:<version>:<hash>`.                                                                                                                                    |
 | `number_of_agents`            | Number of agent instances that the service is composed of.                                                                                                                                            |                                                                                                                                         |
-| `deployment`            | External deployment configuration for [publishing agent container ports](#publish-agent-container-ports).                                                                                                                                            |                                                                                                                                         |
+| `deployment`            | External deployment configuration for [publishing container ports](#publish-container-ports).                                                                                                                                            |                                                                                                                                         |
 
 ## Service-level overrides
 
@@ -364,7 +364,7 @@ models:
         - key: ${<env_var_name>:<type>:<default_value>}
 ```
 
-## Publish agent container ports
+## Publish container ports
 
 We use a syntax similar to Docker for [port publishing](https://docs.docker.com/config/containers/container-networking/#published-ports). To expose agent container ports to host machine ports use the following configuration:
 
@@ -375,6 +375,10 @@ deployment:
     ports:
       <agent_id>:
         <host_machine_port>: <agent_container_port>
+  tendermint:
+    ports:
+      <node_id>:
+        <host_machine_port>: <node_container_port>
 ```
 
 Port publishing also works with [multiple overrides](#multiple-overrides). For example if you want to map port `8080` of agent 0 to port `8081` of the host machine, use:
@@ -386,6 +390,10 @@ deployment:
     ports:
       0:
         8081: 8080
+  tendermint:
+    ports:
+      0:
+        26656: 26656
 ```
 
 You can also configure these mappings using environment variables:
@@ -397,4 +405,8 @@ deployment:
     ports:
       0:
         8081: ${AGENT_0_HTTP_PORT:int:8080}
+  tendermint:
+    ports:
+      0:
+        26656: ${TM_NODE_0_P2P_PORT:int:26656}
 ```
