@@ -34,7 +34,7 @@ def load_json(file: Path, serialize: bool = False) -> None:
     if serialize:
         for key, val in env_vars.items():
             if isinstance(val, str):
-                continue
+                continue  # pragma: nocover
             env_vars[key] = json.dumps(val)
     os.environ.update(env_vars)
 
