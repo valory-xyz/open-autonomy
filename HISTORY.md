@@ -5,6 +5,7 @@
 Packages:
 - Removes the kill logic in case the active Tendermint peers are less than the majority of the participants #1958
 - Adds support for verifying the service registry on Polygon #1959
+- Improves error logging during registration #1961
 
 
 # 0.10.3 (2023-05-03)
