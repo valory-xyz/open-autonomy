@@ -21,7 +21,7 @@ contracts:
 - valory/gnosis_safe:0.1.0:bafybeigfnb6hdixmdwoxingxrevx7beawm2voudgtexo6vazzfa4vhyx5m
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeib2rat7ht33l6r6ix45x5yifotq7l6oqczmqe5edxh2ackv4i72jq
 - valory/multisend:0.1.0:bafybeigjywkl7hydjsrkogob3xebj2ifhqwmfhhxoeyrndzhhxi5u6amey
-- valory/service_registry:0.1.0:bafybeidutcg64sih4syvaetggyswynfs4jlswaj63itoh4tqnwqz3ydywi
+- valory/service_registry:0.1.0:bafybeidomvwytw4tohw4dcj7spyrdlj7hgdzy6qiba6biodirog3txhqoi
 protocols:
 - open_aea/signing:1.0.0:bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4
 - valory/abci:0.1.0:bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4
@@ -33,12 +33,12 @@ protocols:
 - valory/tendermint:0.1.0:bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54
 skills:
 - valory/abstract_abci:0.1.0:bafybeihgerjeq4u4apuue7zzhpb3wmntuju34dbdijbbvl4wclww2gy7di
-- valory/abstract_round_abci:0.1.0:bafybeib4plh2srkqjoeydbot4e65dju7ynknrpynuwidnempyqgykjencm
-- valory/register_termination_abci:0.1.0:bafybeibdwf4caxlgastx35uc6ojcsgthspjwnqvsuz3hmlbr3pg6davrba
-- valory/registration_abci:0.1.0:bafybeieouvws5u53kdavfkg7xsshpwapvuurdrncykuzndjf2xhavf563y
-- valory/reset_pause_abci:0.1.0:bafybeicla2v6g2y72iifmbsyehdm3fbqeqw4xkwd5vtuk2w6ctnewbcqq4
-- valory/termination_abci:0.1.0:bafybeihqvevgcbwaie2wo6w346amrr3daiwwfhwubcp4afb6prleljmdqe
-- valory/transaction_settlement_abci:0.1.0:bafybeibwp4pq62tc6dm4y5h76e2cp7ryfkavsyr56zfra7rfuokwfxqpsu
+- valory/abstract_round_abci:0.1.0:bafybeiacm6annrvrcqogdl36w6ha2evmatxee6fs7yacit664hlpdaitia
+- valory/register_termination_abci:0.1.0:bafybeieuegd6mn4aa2qittdrlgyyenyxi5aw5r5xxdmfenm4q37wd4jrsq
+- valory/registration_abci:0.1.0:bafybeibbperue4iwadzu7anpfqm4gortwnw3xerzewj5tgpfbirtbym25i
+- valory/reset_pause_abci:0.1.0:bafybeids6npmg2nmfeso2enmtbip5zfju3q5rwrj6bf3tsnwp76o35vc2u
+- valory/termination_abci:0.1.0:bafybeidqqliorigj45rowlwu4l76j4eyesm2uch2qz43grczuwnd6kh3ry
+- valory/transaction_settlement_abci:0.1.0:bafybeifg23i7i2jjei5gs4eropqsw5ue3r6xqvckccvciraqmr6j5mg6wi
 default_ledger: ethereum
 required_ledgers:
 - ethereum
