@@ -43,7 +43,7 @@ class TestLoadEnvFile:
     @staticmethod
     def generate_random_value(n: int = 6) -> str:
         """Generate random string."""
-        return "".join([random.choice(string.ascii_letters) for i in range(n)])
+        return "".join([random.choice(string.ascii_letters) for i in range(n)])  # nosec
 
     def setup(self) -> None:
         """Setup test"""
