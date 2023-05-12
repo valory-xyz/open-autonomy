@@ -21,7 +21,7 @@
 from pathlib import Path
 from typing import Dict, Optional
 
-from aea.configurations.constants import DEFAULT_PRIVATE_KEY_FILE
+from aea.configurations.constants import DEFAULT_LEDGER, PRIVATE_KEY_PATH_SCHEMA
 from docker import from_env
 
 from autonomy.constants import (
@@ -41,6 +41,7 @@ from autonomy.deploy.constants import (
     DEPLOYMENT_KEY_DIRECTORY,
     INFO,
     KEY_SCHEMA_PRIVATE_KEY,
+    KEY_SCHEMA_TYPE,
 )
 from autonomy.deploy.generators.docker_compose.templates import (
     ABCI_NODE_TEMPLATE,
@@ -260,9 +261,9 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         keys_dir = self.build_dir / DEPLOYMENT_KEY_DIRECTORY
         for x in range(self.service_builder.service.number_of_agents):
             path = keys_dir / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=x)
-            keys_file = path / DEFAULT_PRIVATE_KEY_FILE
+            ledger = self.service_builder.keys[x].get(KEY_SCHEMA_TYPE, DEFAULT_LEDGER)
             key = self.service_builder.keys[x][KEY_SCHEMA_PRIVATE_KEY]
-
+            keys_file = path / PRIVATE_KEY_PATH_SCHEMA.format(ledger)
             path.mkdir()
             with keys_file.open(mode="w", encoding=DEFAULT_ENCODING) as f:
                 f.write(key)
