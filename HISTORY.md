@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# (TBD)
+
+Docs:
+- Adds information on required agent components  #1967
+
 # 0.10.4 (2023-05-11)
 
 Autonomy:
