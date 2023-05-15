@@ -12,6 +12,7 @@ theme:
     - navigation.indexes
     - content.code.copy
     - content.code.annotate
+    - content.tabs.link    
 
 extra_css:
   - stylesheets/extra.css
@@ -65,6 +66,7 @@ nav:
     - Analise and test: 'configure_service/analise_test.md'
   - Advanced reference:
     - 'advanced_reference/index.md'
+    - publish fetch: 'guides/publish_fetch_packages.md'
     - Commands:
       - autonomy deploy: 'advanced_reference/commands/autonomy_deploy.md'
       - autonomy build-image: 'advanced_reference/commands/autonomy_build-image.md'
@@ -81,8 +83,6 @@ nav:
       - Debugging in the cluster: 'advanced_reference/developer_tooling/debugging_in_the_cluster.md'
     - Deployment:
       - Container Control Flow: 'control_flow.md'
-      - Local Deployment: 'application_deployment.md'
-      - Cloud Deployment: 'using_stack_deployment.md'
     - Using custom images in a deployment: 'advanced_reference/use_custom_images.md'
     - API:
       - Library:
@@ -257,6 +257,7 @@ plugins:
 markdown_extensions:
   - pymdownx.details
   - pymdownx.superfences
+  - pymdownx.keys
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.highlight
