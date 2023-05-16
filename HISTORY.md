@@ -1,5 +1,9 @@
 # Release History - `open-autonomy`
 
+# 0.10.5 (TBD)
+
+- Implement support for `terminate` and `unbond` actions on `autonomy service` command group #1956
+
 # 0.10.4 (2023-05-11)
 
 Autonomy:
