@@ -25,6 +25,7 @@ import random
 import string
 import tempfile
 from pathlib import Path
+from unittest import mock
 
 from aea.configurations.constants import DEFAULT_ENV_DOTFILE
 
@@ -56,36 +57,33 @@ class TestLoadEnvFile:
 
     def test_load_dot_env(self) -> None:
         """Test `.env` file."""
-
         env_var_value = self.generate_random_value()
-
         dotenv_file = self.t / DEFAULT_ENV_DOTFILE
         dotenv_file.write_text(f"{self.env_var}={env_var_value}")
-        load_env_file(file=dotenv_file)
-
-        assert os.environ[self.env_var] == env_var_value
+        with mock.patch.dict(os.environ):
+            load_env_file(file=dotenv_file)
+            assert os.environ[self.env_var] == env_var_value
 
     def test_load_json(self) -> None:
         """Test `.json` file."""
 
         env_var_value = self.generate_random_value()
-
         json_file = self.t / "env.json"
         json_file.write_text(json.dumps({self.env_var: env_var_value}))
-        load_env_file(file=json_file)
-
-        assert os.environ[self.env_var] == env_var_value
+        with mock.patch.dict(os.environ):
+            load_env_file(file=json_file)
+            assert os.environ[self.env_var] == env_var_value
 
     def test_load_json_serialize(self) -> None:
         """Test `.json` file with serialize values."""
 
         env_var_value = [self.generate_random_value(), self.generate_random_value()]
-
         json_file = self.t / "env.json"
         json_file.write_text(json.dumps({self.env_var: env_var_value}))
-        load_env_file(file=json_file, serialize_json=True)
 
-        assert json.loads(os.environ[self.env_var]) == env_var_value
+        with mock.patch.dict(os.environ):
+            load_env_file(file=json_file, serialize_json=True)
+            assert json.loads(os.environ[self.env_var]) == env_var_value
 
     def teardown(self) -> None:
         """Test teardown"""

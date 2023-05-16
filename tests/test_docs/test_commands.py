@@ -55,9 +55,7 @@ def get_group_tree(cmd: Union[click.Group, click.Command]) -> Dict:
     ctx = click.Context(command=cmd)
 
     if isinstance(cmd, click.Group):
-
         for sub_cmd_name in cast(click.Group, cmd).list_commands(ctx=ctx):
-
             # Get the sub-command
             sub_cmd = cast(click.Command, cmd.get_command(ctx, sub_cmd_name))
 
@@ -93,7 +91,6 @@ class CommandValidator:
 
         # Iterate the command parts
         for cmd_part in cmd_parts:
-
             # Subcommands
             if cmd_part in tree["commands"].keys():
                 latest_subcmd = cmd_part
@@ -152,8 +149,12 @@ def test_validate_doc_commands() -> None:
     # Ends just before one of the following characters/strings: &, ', (, [, \n, ;, `, |, #, </code>, =, "
     COMMAND_REGEX = r"""(^|\s|`|>)(?P<full_cmd>(?P<cli>aea|autonomy) ((?!(&|'|\(|\[|\n|;|`|\||#|<\/code>|=|")).)*)"""
 
-    skips = ["autonomy tests/ --cov", "aea -- /bin/sh"]
-
+    skips = [
+        "autonomy tests/ --cov",
+        "aea -- /bin/sh",
+        "autonomy deploy --env-file <path_to_dotenv> COMMAND",
+        "autonomy deploy --env-file <path_to_json> COMMAND",
+    ]
     # Validate all matches
     for file_ in target_files:
         if file_.name == "upgrading.md":
