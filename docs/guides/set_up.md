@@ -10,6 +10,14 @@ Ensure that your machine satisfies the following requirements:
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
+Additionally, if you wish to deploy your service in a Kubernetes cluster:
+
+- [Kubernetes CLI](https://kubernetes.io/docs/tasks/tools/)
+- [minikube](https://minikube.sigs.k8s.io/docs/)
+
+!!! tip
+	Although we will use these tools for demonstration purposes only, you might as well consider other local Kubernetes cluster options like [kind](https://kind.sigs.k8s.io/docs/user/quick-start/), or even additional tools like [Skaffold](https://skaffold.dev/) or [Helm](https://helm.sh/) to help you with your cluster deployments.
+
 ## Set up the framework
 
 1. **Create a workspace folder:**
@@ -67,7 +75,7 @@ This is roughly how your workspace should look like:
     You can override the default registry in use (set up with `autonomy init`) for a particular command through the flags `--registry-path` and `--local`. For example, if the framework was initialized with the remote registry, the following command will fetch a runtime folder for the `hello_world` agent from the remote registry:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeihxqw2ckohiafag3qipck5o2ewkn4zi6cozdqajjo7o53knfygdae
+    autonomy fetch valory/hello_world:0.1.0:bafybeihvsx5eollo6vt3ht5wod6k75jzsgpdt7hlqfsqxle5cwvvwotwhe
     ```
 
     On the other hand, if you want to fetch the copy stored in your local registry, then you can use:
@@ -98,13 +106,13 @@ If you plan to follow the guides in the next sections, you need to populate the 
     "dev": {
     },
     "third_party": {
-        "service/valory/hello_world/0.1.0": "bafybeids7tj2uhb23xodzvky3flb2zq4f7kvdrrd26j7dqsitir7k272c4",
-        "agent/valory/hello_world/0.1.0": "bafybeihxqw2ckohiafag3qipck5o2ewkn4zi6cozdqajjo7o53knfygdae",
-        "connection/valory/abci/0.1.0": "bafybeih2l6ssf5ebkvgbag3hx2pd22shytszqavveib2e2s6rv4va5khv4",
+        "service/valory/hello_world/0.1.0": "bafybeih6xsa5e5brhdeuwulnxyb6ea6tmi325brsn54xhfbsdpgqbb5lh4",
+        "agent/valory/hello_world/0.1.0": "bafybeihvsx5eollo6vt3ht5wod6k75jzsgpdt7hlqfsqxle5cwvvwotwhe",
+        "connection/valory/abci/0.1.0": "bafybeihkimb5kmtrhapmvix2od3u3qocqz4zfcjvaphj4t4sardtjgsfqy",
         "connection/valory/http_client/0.23.0": "bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi",
-        "connection/valory/ipfs/0.1.0": "bafybeihubpyw2t3bwncz3l7jt4gf5xvfydwmob463vvgf3ikkhlwxakm3m",
+        "connection/valory/ipfs/0.1.0": "bafybeigr2cipad23aebjpnqtzpgymiwrwgmnior2fk4inbscdnqyl5epla",
         "connection/valory/ledger/0.19.0": "bafybeicgfupeudtmvehbwziqfxiz6ztsxr5rxzvalzvsdsspzz73o5fzfi",
-        "contract/valory/service_registry/0.1.0": "bafybeiatzikdgcjteti6xeid4bvofszuavxb4fnczx33lcsvlaui4wpwua",
+        "contract/valory/service_registry/0.1.0": "bafybeibrxwcd4escluc5fncpsn4a5ucosjoxmspjs3oypi64lj63njk3dm",
         "protocol/open_aea/signing/1.0.0": "bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4",
         "protocol/valory/abci/0.1.0": "bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4",
         "protocol/valory/acn/1.1.0": "bafybeignmc5uh3vgpuckljcj2tgg7hdqyytkm6m5b6v6mxtazdcvubibva",
@@ -113,9 +121,9 @@ If you plan to follow the guides in the next sections, you need to populate the 
         "protocol/valory/ipfs/0.1.0": "bafybeic72ncgqbzoz2guj4p4yjqulid7mv6yroeh65hxznloamoveeg7hq",
         "protocol/valory/ledger_api/1.0.0": "bafybeibo4bdtcrxi2suyzldwoetjar6pqfzm6vt5xal22ravkkcvdmtksi",
         "protocol/valory/tendermint/0.1.0": "bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54",
-        "agent/valory/abstract_abci/0.1.0": "bafybeibqmgh6v5bfe7covmznjirpaf4r2cw4x7rqmt6toxhqjmuzpan7he",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeigiolzp3i6b3wwuau3yv2h5udqape3i7of73mlm2d6ud22irlkbme",
-        "skill/valory/hello_world_abci/0.1.0": "bafybeiccrdfvkbrwawroglielcn2pf6vhhz7hoba2ya46ryd5zpmk4al5u",
+        "agent/valory/abstract_abci/0.1.0": "bafybeie3xcbvcjqitehrhcbnbixoeeyq5pztzn23xrrzl2kun7plulcsty",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeiczyvbjawlmqob4ktvs7yww53bvebiwbsckuirhcf73763r5ljoeq",
+        "skill/valory/hello_world_abci/0.1.0": "bafybeia2q3oqsyrthcb7i7kky2si5kjfzhretjvql6vz5zspagm7yrjate",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva"
     }
 }

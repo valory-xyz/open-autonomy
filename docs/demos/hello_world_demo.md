@@ -22,14 +22,14 @@ You can find the instructions on how to run the Hello World service in the [quic
 If you have [set up the framework](../guides/set_up.md#set-up-the-framework), you can fetch the source code of the Hello World agent:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeihxqw2ckohiafag3qipck5o2ewkn4zi6cozdqajjo7o53knfygdae
+autonomy fetch valory/hello_world:0.1.0:bafybeihvsx5eollo6vt3ht5wod6k75jzsgpdt7hlqfsqxle5cwvvwotwhe
 mv hello_world hello_world_agent
 ```
 
 and the Hello World service:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeids7tj2uhb23xodzvky3flb2zq4f7kvdrrd26j7dqsitir7k272c4 --service
+autonomy fetch valory/hello_world:0.1.0:bafybeih6xsa5e5brhdeuwulnxyb6ea6tmi325brsn54xhfbsdpgqbb5lh4 --service
 mv hello_world hello_world_service
 ```
 
@@ -508,9 +508,9 @@ This is an excerpt of the `aea-config.yaml` file:
 ```yaml
 # ...
 connections:
-- valory/abci:0.1.0:bafybeih2l6ssf5ebkvgbag3hx2pd22shytszqavveib2e2s6rv4va5khv4
+- valory/abci:0.1.0:bafybeihkimb5kmtrhapmvix2od3u3qocqz4zfcjvaphj4t4sardtjgsfqy
 - valory/http_client:0.23.0:bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi
-- valory/ipfs:0.1.0:bafybeihubpyw2t3bwncz3l7jt4gf5xvfydwmob463vvgf3ikkhlwxakm3m
+- valory/ipfs:0.1.0:bafybeifkzgdzuoxqovcjswsnzsehjh7bjwbska26ufmcrk7hbufk4c4dae
 - valory/ledger:0.19.0:bafybeicgfupeudtmvehbwziqfxiz6ztsxr5rxzvalzvsdsspzz73o5fzfi
 - valory/p2p_libp2p_client:0.1.0:bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva
 contracts: []
@@ -520,9 +520,9 @@ protocols:
 - valory/http:1.0.0:bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty
 - valory/ipfs:0.1.0:bafybeic72ncgqbzoz2guj4p4yjqulid7mv6yroeh65hxznloamoveeg7hq
 skills:
-- valory/abstract_abci:0.1.0:bafybeifuclb6cikagtg2zn7dkjnnv3f7re2tfgzk6c4h3scgyzaaqeg55m
-- valory/abstract_round_abci:0.1.0:bafybeigiolzp3i6b3wwuau3yv2h5udqape3i7of73mlm2d6ud22irlkbme
-- valory/hello_world_abci:0.1.0:bafybeiccrdfvkbrwawroglielcn2pf6vhhz7hoba2ya46ryd5zpmk4al5u
+- valory/abstract_abci:0.1.0:bafybeigqr6dzr23r6oxbnpxqyae7g5ndjy75oatjk6liyrvmpb2jxehirq
+- valory/abstract_round_abci:0.1.0:bafybeich3i7gwcyuqg6t3zrvsapoxrkvadpjcs4klaf7ngsmzqdshhpadm
+- valory/hello_world_abci:0.1.0:bafybeidt6bgo7mzc7mb7flwwd6wacr24paxtvtvgodbzxaaewtcmkbt6ly
 # ...
 ```
 

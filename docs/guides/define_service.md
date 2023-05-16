@@ -127,4 +127,4 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
     Service is ready to be deployed.
     ```
 
-5. **Use a local deployment to test the service.** This is the recommended approach in order to test your agent service before you publish it to a remote registry. Follow the instructions in the [local deployment guide](./deploy_service.md#local-deployment). Note that this process should be somewhat familiar to you if you have followed the [quick start guide](./quick_start.md).
+5. **Use a local deployment to test the service.** This is the recommended approach in order to test your agent service before you publish it to a remote registry. Follow the instructions in the [local deployment guide](./deploy_service.md#local-deployment-full-workflow). Note that this process should be somewhat familiar to you if you have followed the [quick start guide](./quick_start.md).

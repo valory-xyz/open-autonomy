@@ -698,7 +698,10 @@ class TestExposePorts(BaseDeployBuildTest):
         super().setup()
 
         service_data = get_dummy_service_config(file_number=1)
-        service_data[0]["deployment"] = {"agent": {"ports": {0: {8080: 8081}}}}
+        service_data[0]["deployment"] = {
+            "agent": {"ports": {0: {8080: 8081}}},
+            "tendermint": {"ports": {0: {26656: 26666}}},
+        }
 
         with open("./service.yaml", "w+") as fp:
             yaml.dump_all(service_data, fp)
@@ -728,6 +731,7 @@ class TestExposePorts(BaseDeployBuildTest):
         )
 
         assert docker_compose["services"]["abci0"]["ports"] == ["8080:8081"]
+        assert docker_compose["services"]["node0"]["ports"] == ["26656:26666"]
 
     def test_expose_agent_ports_kubernetes(self) -> None:
         """Test expose agent ports"""

@@ -236,7 +236,10 @@ class TestJsonSnippets(BaseTestDocCode):
             "code_files": ["by_line::packages/packages.json"],
         },
         "docs/guides/deploy_service.md": {
-            "code_files": ["by_line::deployments/keys/hardhat_keys.json"],
+            "code_files": [
+                "by_line::deployments/keys/hardhat_keys.json",
+                "by_line::deployments/keys/hardhat_keys.json",
+            ],
         },
         "docs/guides/quick_start.md": {
             "code_files": ["by_line::deployments/keys/hardhat_keys.json"],

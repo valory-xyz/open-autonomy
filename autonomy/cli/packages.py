@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ from typing import List, Tuple, cast
 from warnings import warn
 
 import click
-from aea.cli.packages import package_manager
+from aea.cli.packages import package_manager, package_type_selector_prompt
 from aea.cli.utils.click_utils import reraise_as_click_exception
 from aea.cli.utils.context import Context
 from aea.cli.utils.decorators import pass_ctx
@@ -51,8 +51,13 @@ from autonomy.configurations.base import Service
     is_flag=True,
     help="Check that fingerprints in packages.json match the local packages",
 )
+@click.option(
+    "--skip-missing",
+    is_flag=True,
+    help="Skip packages missing from the `packages.json` file.",
+)
 @pass_ctx
-def lock_packages(ctx: Context, check: bool) -> None:
+def lock_packages(ctx: Context, check: bool, skip_missing: bool) -> None:
     """Lock local packages."""
 
     packages_dir = Path(ctx.registry_path)
@@ -70,7 +75,10 @@ def lock_packages(ctx: Context, check: bool) -> None:
             sys.exit(return_code)
 
         click.echo("Updating hashes...")
-        get_package_manager(packages_dir).update_package_hashes().dump()
+        get_package_manager(packages_dir).update_package_hashes(
+            selector_prompt=package_type_selector_prompt,
+            skip_missing=skip_missing,
+        ).dump()
         click.echo("Done")
 
 
