@@ -15,8 +15,13 @@ Override for packages command.
     is_flag=True,
     help="Check that fingerprints in packages.json match the local packages",
 )
+@click.option(
+    "--skip-missing",
+    is_flag=True,
+    help="Skip packages missing from the `packages.json` file.",
+)
 @pass_ctx
-def lock_packages(ctx: Context, check: bool) -> None
+def lock_packages(ctx: Context, check: bool, skip_missing: bool) -> None
 ```
 
 Lock local packages.

@@ -1,46 +1,61 @@
-Deploying a service with the {{open_autonomy}} framework requires that you have a service configuration file available, which you could be a service created from scratch, fetched from the remote registry, or already registered in the on-chain protocol.
+# Deploy the service
+
+The final step in the development process is [deploying the service](./overview_of_the_development_process.md). There are multiple deployment options to consider, such as deploying on your local machine for testing, deploying on a cluster within your own infrastructure, or deploying on a cloud provider.
 
 <figure markdown>
 ![](../images/development_process_deploy_service.svg)
 <figcaption>Part of the development process covered in this guide</figcaption>
 </figure>
 
+The framework supports Docker Compose and Kubernetes cluster deployments. Additionally, the framework automates several steps in the deployment process for services registered in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
+
+!!! tip
+
+    Local service deployments are commonly used for testing services during active development. These deployments allow you to test and validate your service before minting it in the [Autonolas Protocol](https://docs.autonolas.network/protocol/), ensuring its readiness for production use.
+
 ## What you will learn
 
-This guide covers step 6 of the [development process](./overview_of_the_development_process.md). You will learn how to create and run deployments for local services (testing) and minted services.
+This guide covers step 6 of the [development process](./overview_of_the_development_process.md). You will learn the different types of service deployments offered by the framework.
 
 You must ensure that your machine satisfies the [framework requirements](./set_up.md#requirements), you have [set up the framework](./set_up.md#set-up-the-framework), and you have a local registry [populated with some default components](./set_up.md#populate-the-local-registry-for-the-guides). As a result you should have a Pipenv workspace folder with an initialized local registry (`./packages`) in it.
 
-## Local deployment
+## Local deployment - full workflow
 
-This section covers the deployment of services being developed in the local registry. You can use such deployments to test your service before you mint it in the Autonolas Protocol.
+We illustrate the full local deployment workflow using the `hello_world` service as an example, both for Docker Compose and a simple Kubernetes cluster.
 
-1. **Fetch the service.** In the workspace folder, fetch the service from the local registry:
-    <!-- TODO: packages lock + push all should not be necessary here, but otherwise it cannot build the image. -->
+1. **Fetch the service.** In the workspace folder, fetch the service from the corresponding registry:
+
+    === "Local registry"
+        <!-- TODO FIXME: packages lock + push all should not be necessary here, but otherwise it cannot build the image. -->
+        ```bash
+        autonomy packages lock
+        autonomy push-all
+        autonomy fetch valory/hello_world:0.1.0 --service --local
+        ```
+
+    === "Remote registry"
+        ```bash
+        autonomy fetch valory/hello_world:0.1.0:bafybeih6xsa5e5brhdeuwulnxyb6ea6tmi325brsn54xhfbsdpgqbb5lh4 --service
+        ```
+
+2. **Build the agents' image.** Navigate to the service runtime folder that you have just created and build the Docker image of the agents of the service:
+
     ```bash
-    autonomy packages lock
-    autonomy push-all
-    autonomy fetch your_name/your_service:0.1.0 --service --local
-    ```
-
-    This step is required to have a separate runtime folder (`./your_service`), outside of the local registry.
-
-2. **Build the service agents' image.** Navigate to the service folder and build the Docker image of the service agents:
-
-    ```bash
-    cd your_service
+    cd hello_world
     autonomy build-image #(1)!
     ```
-    
-    1. Check out the [`autonomy build-image`](../../advanced_reference/commands/autonomy_build-image) command documentation to learn more about its parameters and options.
 
-    After the command finishes building the image, you can see that it has been created by executing:
+    1. Check out the [`autonomy build-image`](../../../advanced_reference/commands/autonomy_build-image) command documentation to learn more about its parameters and options.
+
+    After the command finishes, you can check that the image has been created by executing:
 
     ```bash
-    docker image ls | grep <service_agent_name>
+    docker image ls | grep <agent_name>
     ```
 
-3. **Prepare the keys file.** Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that make up the service.
+    You can find the `agent_name` within the service configuration file `service.yaml`.
+
+3. **Prepare the keys file.** Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that you wish to deploy in the local machine.
 
     ???+ example "Example of a `keys.json` file"
 
@@ -67,7 +82,7 @@ This section covers the deployment of services being developed in the local regi
         ]
         ```
 
-    Export the environment variable `ALL_PARTICIPANTS` with all the agents' addresses:
+    You also need to export the environment variable `ALL_PARTICIPANTS` with the addresses of **all** the agents in the service. In other words, the addresses of the agents you are deploying (in the `keys.json` file) must be a subset of  the addresses in `ALL_PARTICIPANTS`, which might contain additional addresses:
 
     ```bash
     export ALL_PARTICIPANTS='[
@@ -76,89 +91,226 @@ This section covers the deployment of services being developed in the local regi
         "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
         "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955"
     ]'
-    ```
+    ```        
+
+4. **Build the deployment.** Within the service runtime folder, execute the command below to build the service deployment:
+
+    === "Docker Compose"
+
+        ```bash
+        rm -rf abci_build #(1)!
+        autonomy deploy build keys.json -ltm #(2)!
+        ```
+
+        1. Delete previous deployments, if necessary.
+        2. `-ltm` stands for "use local Tendermint node". Check out the [`autonomy deploy build`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-build) command documentation to learn more about its parameters and options.
+
+        This will create a deployment environment within the `./abci_build` folder with the following structure:
+
+        ```bash
+        abci_build/
+        ├── agent_keys
+        │   ├── agent_0
+        │   ├── agent_1
+        │   |   ...
+        │   └── agent_<N-1>
+        ├── nodes
+        │   ├── node0
+        │   ├── node1
+        │   |   ...
+        │   └── node<N-1>
+        ├── persistent_data
+        │   ├── benchmarks
+        │   ├── logs
+        │   ├── tm_state
+        │   └── venvs
+        └── docker-compose.yaml
+        ```
+
+    === "Kubernetes"
+
+        ```bash
+        rm -rf abci_build #(1)!
+        autonomy deploy build keys.json -ltm --kubernetes #(2)!
+        ```
+
+        1. Delete previous deployments, if necessary.
+        2. `-ltm` stands for "use local Tendermint node". Check out the [`autonomy deploy build`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-build) command documentation to learn more about its parameters and options.
+
+        This will create a deployment environment within the `./abci_build` folder with the following structure:
+
+        ```
+        abci_build/
+        ├── agent_keys
+        │   ├── agent_0_private_key.yaml
+        │   ├── agent_1_private_key.yaml
+        │   |   ...
+        │   └── agent_<N-1>_private_key.yaml
+        ├── build.yaml
+        └── persistent_data
+            ├── benchmarks
+            ├── logs
+            ├── tm_state
+            └── venvs
+        ```
+
+5. **Execute the deployment.** Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally.
+
+    === "Docker Compose"
+
+        ```bash
+        cd abci_build
+        autonomy deploy run #(1)!
+        ```
+
+        1. Check out the [`autonomy deploy run`](../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-run) command documentation to learn more about its parameters and options.
+
+        This will spawn in the local machine:
+
+        * $N$ agents containers, each one running an instance of the corresponding {{fsm_app}}.
+        * a network of $N$ Tendermint nodes, one per agent.
+
+    === "Kubernetes"
+
+        We show how to run the service deployment using a local [minikube](https://minikube.sigs.k8s.io/docs/start/) cluster. You might want to consider other local cluster options such as [kind](https://kind.sigs.k8s.io/).
+
+        1. Create the minikube Kubernetes cluster.
+            ```bash
+            cd abci_build
+            minikube start --driver=docker
+            ```
+
+        2. Make sure your image is pushed to Docker Hub (`docker push`).
+            If this is not the case, you need to provision the cluster with the agent image so that it is available for the cluster pods.
+            This step might take a while, depending on the size of the image.
+            ```bash
+            minikube image load <repository>:<tag> # (1)!
+            ```
+
+            1. You can get the `<repository>` and `<tag>` by inspecting the output of `docker image ls`.
+
+            In this case, you also might need to change all the instances of `imagePullPolicy: Always` to `imagePullPolicy: IfNotPresent` in the deployment file `build.yaml`.
 
 
-4. **Build the deployment.** Within the service folder, execute the command below to build the service deployment.
+        3. Define the StorageClass. Replace with your NFS provisioner and adjust per your requirements. We use `minikube-hostpath` as an example.
+            ```bash 
+            cat <<EOF > storageclass.yaml
+            apiVersion: storage.k8s.io/v1
+            kind: StorageClass
+            metadata:
+              name: nfs-ephemeral
+            provisioner: k8s.io/minikube-hostpath 
+            reclaimPolicy: Retain
+            EOF
+            ```
 
-    ```bash
-    rm -rf abci_build #(1)!
-    autonomy deploy build keys.json -ltm #(2)!
-    ```
+        4. Apply all the deployment files to the cluster
+           ```bash 
+           kubectl apply --recursive -f .
+           ```
 
-    1. Delete previous deployments, if necessary.
-    2. Check out the [`autonomy deploy build`](../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-build) command documentation to learn more about its parameters and options.
+        After executing these commands, the minikube cluster will start provisioning and starting $N$ pods in the cluster. Each pod contains:
 
-    This will create a deployment environment within the `./abci_build` folder with the following structure:
+        * one agent container, running an instance of the corresponding {{fsm_app}}.
+        * one Tendermint node associated to the agent.
 
-    ```bash
-    abci_build/
-    ├── agent_keys
-    │   ├── agent_0
-    │   ├── agent_1
-    │   |   ...
-    │   └── agent_N
-    ├── nodes
-    │   ├── node0
-    │   ├── node1
-    │   |   ...
-    │   └── nodeN
-    ├── persistent_data
-    │   ├── benchmarks
-    │   ├── logs
-    │   ├── tm_state
-    │   └── venvs
-    └── docker-compose.yaml
-    ```
+6. **Examine the deployment.**
 
-5. **Run the service.** Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally.
+    === "Docker Compose"
 
-    ```bash
-    cd abci_build
-    autonomy deploy run #(1)!
-    ```
-    
-    1. Check out the [`autonomy deploy run`](../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-run) command documentation to learn more about its parameters and options.
+        To inspect the logs of a single agent or Tendermint node you can execute `docker logs <container_id> --follow` in a separate terminal.
 
-    This will spawn:
-    
-    * $N$ agents, each one running an instance of the {{fsm_app}}.
-    * a network of $N$ Tendermint nodes, one per agent.
+        You can cancel the local execution at any time by pressing ++ctrl+c++.   
 
-    The logs of a single agent or Tendermint node can be inspected in a separate terminal using `docker logs <container_id> --follow`.
+    === "Kubernetes"
 
-    You can cancel the local execution at any time by pressing ++ctrl+c++.
+        You can access the cluster dashboard by executing `minikube dashboard` in a separate terminal. To examine the logs of a single agent or Tendermint node you can execute:
 
-## On-chain deployment
+        1. Get the Kubernetes pod names.
+            ```bash
+            kubectl get pod
+            ```
 
-The {{open_autonomy}} framework provides a convenient interface for [services that are minted](./publish_mint_packages.md).
+        2. Access the logs of the agent in pod `<pod-name>`.
+            ```bash 
+            kubectl exec -it <pod-name> -c aea -- /bin/sh
+            ```
 
-  1. **Find the service ID.** Explore the [services section](https://protocol.autonolas.network/agents) of the protocol frontend, and note the ID of the service that you want to deploy. The service must be in [Deployed state](https://docs.autonolas.network/protocol/life_cycle_of_a_service/#deployed).
+        3. Access the logs of the Tendermint node in pod `<pod-name>`.
+            ```bash 
+            kubectl exec -it <pod-name> -c node0 -- /bin/sh
+            ```
 
-  2. **Execute the service deployment.** Execute the following command
+        You can delete the local cluster by executing `minikube delete`.
 
-    ```bash
-    autonomy deploy from-token <ID> keys.json --use-goerli
-    ```
-    where `keys.json` contains the addresses and keys of (some of) the registered agents in the service.
+## Local deployment of minted services
 
-!!! warning "Important"
-    When deploying a service registered on-chain, the framework automatically overrides a number of configuration arguments (under `setup`) in the agent containers with the values registered in the on-chain protocol:
+The framework provides a convenient method to deploy agent services minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/). This has the benefit that some configuration parameters of the {{fsm_app}} skill will be overridden automatically with values obtained on-chain. Namely:
 
-    === "skill.yaml"
+```yaml title="skill.yaml"
+(...)
+models:
+    params:
+    args:
+        setup:
+        all_participants:      # Overridden with the registered values in the Autonolas protocol
+        safe_contract_address: # Overridden with the registered values in the Autonolas protocol
+        consensus_threshold:   # Overridden with the registered values in the Autonolas protocol
+```
 
-    ```yaml
-    (...)
-    models:
-      params:
-        args:
-          setup:
-            all_participants: # Overridden with the registered values
-            safe_contract_address: # Overridden with the registered values
-            consensus_threshold: # Overridden with the registered values
-    ```
+This means, in particular, that there is no need to define the `ALL_PARTICIPANTS` environment variable.
+
+1. **Find the service ID.** Explore the [services section](https://protocol.autonolas.network/agents) of the protocol frontend, and note the token ID of the service that you want to deploy. The service must be in [Deployed state](https://docs.autonolas.network/protocol/life_cycle_of_a_service/#deployed).
+
+2. **Prepare the keys file.** Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that you wish to deploy in the local machine.
+
+    ???+ example "Example of a `keys.json` file"
+
+        <span style="color:red">**WARNING: Use this file for testing purposes only. Never use the keys or addresses provided in this example in a production environment or for personal use.**</span>
+
+        ```json title="keys.json"
+        [
+          {
+              "address": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+              "private_key": "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a"
+          },
+          {
+              "address": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+              "private_key": "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba"
+          },
+          {
+              "address": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+              "private_key": "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e"
+          },
+          {
+              "address": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+              "private_key": "0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356"
+          }
+        ]
+        ```
+
+3. **Deploy the service.** Execute the following command:
+
+    === "Docker Compose"
+
+        ```bash
+        autonomy deploy from-token <ID> keys.json --use-goerli # (1)!
+        ```
+
+        1. `--use-goerli` indicates that the service is registered in the Görli testnet. Check out the [`autonomy deploy from-token`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-from-token) command documentation to learn more about its parameters and options.
+
+        The Docker Compose deployment will be built and run for the agents whose keys are defined in the `keys.json` file. If you just want to build the deployment without running it, simply add the flag `--no-deploy`.
+
+    === "Kubernetes"
+
+        ```bash
+        autonomy deploy from-token <ID> keys.json --use-goerli --kubernetes # (1)!
+        ```
+
+        2. `--use-goerli` indicates that the service is registered in the Görli testnet. Check out the [`autonomy deploy from-token`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-from-token) command documentation to learn more about its parameters and options.
+
+        The Kubernetes deployment will be built for the agents whose keys are defined in the `keys.json` file. You need to deploy the service in the local cluster manually. Follow the instructions in Step 5 of the [local deployment - full workflow](#local-deployment-full-workflow) section.
 
 ## Cloud deployment
 
-!!! info
-    This section will be added soon.
+The sections above for local deployments provide a fundamental understanding of how to deploy agent services in general. The [Open Operator](https://github.com/valory-xyz/open-operator) repository provides the necessary resources and guidelines for seamless cloud deployments of agent services based on the Open Autonomy framework.
