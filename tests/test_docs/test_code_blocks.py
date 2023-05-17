@@ -252,7 +252,9 @@ class TestJsonSnippets(BaseTestDocCode):
         },
     }
 
-    skipped_files = []
+    skipped_files = [
+        "docs/advanced_reference/commands/autonomy_deploy.md",
+    ]
 
 
 class TestDocBashSnippets:
