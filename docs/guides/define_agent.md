@@ -51,9 +51,11 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
 
             There are a number of components which are mandatory for agents that are part of a service:
 
-            * Connections: `valory/abci`, `valory/ipfs`.
-            * Protocols: `open_aea/signing`, `valory/abci`, `valory/ipfs`.
-            * Skills: `valory/abstract_abci`, `valory/abstract_round_abci`, `valory/termination_abci` (this latter skill is required only if your service is minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/)).
+            * Connections: `valory/abci`.
+            * Protocols: `open_aea/signing`, `valory/abci`, `valory/acn`(*).
+            * Skills: `valory/abstract_abci`, `valory/abstract_round_abci`, `valory/termination_abci`(*).
+
+            (*) Components required only if the service is minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
 
       * Configuration overrides that specify values for component parameters. These overrides are separated by YAML document separators `---` and will be discussed in a further section.
 
