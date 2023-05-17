@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+# 0.10.5 (TBD)
+
+Autonomy:
+- Updates the agent runtime docker image to execute aea build when building the runtime image #1954
+- Make sure the alias gets used when fetching service packages #1947
+
 # 0.10.4 (2023-05-11)
 
 Autonomy:
