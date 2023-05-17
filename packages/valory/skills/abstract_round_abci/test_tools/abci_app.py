@@ -95,10 +95,19 @@ class ConcreteTerminationRoundC(_ConcreteRound):
     payload_class = BaseTxPayload
 
 
+class ConcreteSlashingRound(_ConcreteRound):
+    """Dummy instantiation of the AbstractRound class."""
+
+    payload_class = BaseTxPayload
+
+
 class ConcreteEvents(Enum):
     """Defines dummy events to be used for testing purposes."""
 
     TERMINATE = "terminate"
+    PENDING_OFFENCE = "pending_offence"
+    SLASH_START = "slash_start"
+    SLASH_END = "slash_end"
     A = "a"
     B = "b"
     C = "c"
@@ -154,6 +163,20 @@ class AbciAppTest(AbciApp[ConcreteEvents]):
         },
     }
     termination_event = ConcreteEvents.TERMINATE
+    pending_offences_round_cls = ConcreteBackgroundRound
+    slashing_round_cls = ConcreteBackgroundRound
+    slashing_transition_function: Dict[
+        Type[AbstractRound], Dict[ConcreteEvents, Type[AbstractRound]]
+    ] = {
+        ConcreteBackgroundRound: {
+            ConcreteEvents.SLASH_START: ConcreteSlashingRound,
+        },
+        ConcreteSlashingRound: {
+            ConcreteEvents.SLASH_END: ConcreteRoundA,
+        },
+    }
+    slashing_start_event = ConcreteEvents.SLASH_START
+    slashing_end_event = ConcreteEvents.SLASH_END
     event_to_timeout: Dict[ConcreteEvents, float] = {
         ConcreteEvents.TIMEOUT: TIMEOUT,
     }
