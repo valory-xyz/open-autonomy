@@ -2,6 +2,40 @@ Build or run agent service deployments.
 
 This command group consists of a number of functionalities for building service deployments, run locally stored service deployments, and run service deployments defined in the on-chain protocol. See the appropriate subcommands for more information.
 
+### Options
+  
+`--env-file FILE`
+:   File containing environment variable mappings
+
+### Examples
+
+If you have an `.env` file in the working directory, `autonomy deploy` will load the `.env` file automatically. If the file is not present in the working directory you can provide the path to the file using `--env-file` flag
+
+```bash
+autonomy deploy --env-file <path_to_dotenv> COMMAND [ARGS]
+```
+
+For loading the environment variables you can use a `json` file as well. While using a `json` file you can either use `json` serialized strings like 
+
+```json title="env.json"
+{
+    "ALL_PARTICIPANTS": "[\"0x0000000000000000000000000000000000000000\"]"
+}
+```
+
+Or the `json` objects
+
+```json title="env.json"
+{
+    "ALL_PARTICIPANTS": ["0x0000000000000000000000000000000000000000"]
+}
+```
+
+The framework will handle both of these cases automatically.
+
+```bash
+autonomy deploy --env-file <path_to_json> COMMAND [ARGS]
+```
 
 ## `autonomy deploy build`
 
@@ -76,6 +110,7 @@ autonomy deploy build [OPTIONS] [KEYS_FILE]
 
 
 ### Examples
+
 ```bash
 autonomy deploy build keys.json -ltm
 ```

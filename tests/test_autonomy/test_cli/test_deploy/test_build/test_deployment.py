@@ -19,6 +19,7 @@
 
 """Test deployment command."""
 
+import json
 import os
 import shutil
 from pathlib import Path
@@ -27,7 +28,7 @@ from unittest import mock
 
 import yaml
 from aea.cli.utils.config import get_default_author_from_cli_config
-from aea.configurations.constants import PACKAGES
+from aea.configurations.constants import DEFAULT_ENV_DOTFILE, PACKAGES
 from aea_test_autonomy.configurations import (
     ETHEREUM_ENCRYPTED_KEYS,
     ETHEREUM_ENCRYPTION_PASSWORD,
@@ -57,8 +58,6 @@ class BaseDeployBuildTest(BaseCliTest):
     """Test `autonomy deply build deployment` command."""
 
     cli_options: Tuple[str, ...] = ("deploy", "build")
-    service_id: str = "valory/oracle_hardhat"
-
     keys_file: Path
 
     def setup(self) -> None:
@@ -758,3 +757,64 @@ class TestExposePorts(BaseDeployBuildTest):
         assert build_config[1]["spec"]["template"]["spec"]["containers"][1][
             "ports"
         ] == [{"containerPort": 8080}]
+
+
+class TestLoadEnvVars(BaseDeployBuildTest):
+    """Test expose ports from service config."""
+
+    env_var = "SERVICE_HELLO_WORLD_HELLO_WORLD_STRING"
+    env_var_path = "SKILL_DUMMY_SKILL_MODELS_PARAMS_ARGS_HELLO_WORLD_MESSAGE"
+    env_var_value = "ENV_VAR_VALUE"
+
+    def setup(self) -> None:
+        """Setup test."""
+        super().setup()
+        service_data = get_dummy_service_config(file_number=4)
+        with open("./service.yaml", "w+") as fp:
+            yaml.dump_all(service_data, fp)
+
+    def _run_test(self) -> None:
+        """Run test."""
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"), OS_ENV_PATCH:
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_docker_compose_build(
+            build_dir=build_dir,
+        )
+
+        docker_compose = self.load_and_check_docker_compose_file(
+            path=build_dir / DockerComposeGenerator.output_name
+        )
+
+        assert (
+            f"{self.env_var_path}={self.env_var_value}"
+            in docker_compose["services"]["abci0"]["environment"]
+        )
+
+    def test_load_dot_env(self) -> None:
+        """Test load `.env` file"""
+
+        (self.t / "hello_world" / DEFAULT_ENV_DOTFILE).write_text(
+            f"{self.env_var}={self.env_var_value}"
+        )
+        self._run_test()
+
+    def test_load_json(self) -> None:
+        """Test load `.json` file"""
+
+        env_var_value = "ENV_VAR_VALUE"
+        env_file = self.t / "hello_world" / "env.json"
+        env_file.write_text(json.dumps({self.env_var: env_var_value}))
+        self.cli_options = ("deploy", "--env-file", str(env_file.resolve()), "build")
+
+        self._run_test()
