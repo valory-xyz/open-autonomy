@@ -2,7 +2,10 @@
 
 # 0.10.5 (TBD)
 
-- Implement support for `terminate` and `unbond` actions on `autonomy service` command group #1956
+Autonomy:
+- Adds support for `terminate` and `unbond` actions on `autonomy service` command group #1956
+- Updates the agent runtime docker image to execute aea build when building the runtime image #1954
+- Make sure the alias gets used when fetching service packages #1947
 
 # 0.10.4 (2023-05-11)
 

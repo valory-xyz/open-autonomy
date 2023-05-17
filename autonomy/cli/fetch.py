@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ def fetch(
         if package_type == AGENT:
             do_fetch(ctx, public_id, alias)
         else:
-            fetch_service(ctx, public_id)
+            fetch_service(ctx, public_id, alias)
     except NotAnAgentPackage as e:
         raise click.ClickException(
             "Downloaded packages is not an agent package, "
