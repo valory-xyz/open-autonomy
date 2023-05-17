@@ -46,6 +46,17 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
 
       * A reference to the {{fsm_app}} skill.
       * References to other components required by the agent (or dependencies of the {{fsm_app}} skill), under the relevant sections.
+
+        !!! warning "Important"
+
+            There are a number of components which are mandatory for agents that are part of a service:
+
+            * Connections: `valory/abci`.
+            * Protocols: `open_aea/signing`, `valory/abci`, `valory/acn`(*).
+            * Skills: `valory/abstract_abci`, `valory/abstract_round_abci`, `valory/termination_abci`(*).
+
+            (*) Components required only if the service is minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
+
       * Configuration overrides that specify values for component parameters. These overrides are separated by YAML document separators `---` and will be discussed in a further section.
 
     ???+ example "Example of an `aea-config.yaml` file"
