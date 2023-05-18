@@ -57,6 +57,8 @@ TransitionFunction = Dict[BehaviourType, Dict[Action, BehaviourType]]
 class _MetaRoundBehaviour(ABCMeta):
     """A metaclass that validates AbstractRoundBehaviour's attributes."""
 
+    is_termination_set: bool = False
+
     def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type:  # type: ignore
         """Initialize the class."""
         new_cls = super().__new__(mcs, name, bases, namespace, **kwargs)
@@ -68,6 +70,7 @@ class _MetaRoundBehaviour(ABCMeta):
             # the check only applies to AbstractRoundBehaviour subclasses
             return new_cls
 
+        mcs.is_termination_set = new_cls.termination_behaviour_cls is not None
         mcs._check_consistency(cast(AbstractRoundBehaviour, new_cls))
         return new_cls
 
@@ -120,7 +123,7 @@ class _MetaRoundBehaviour(ABCMeta):
         round_to_behaviour: Dict[Type[AbstractRound], List[BehaviourType]] = {
             round_cls: []
             for round_cls in behaviour_cls.abci_app_cls.get_all_round_classes(
-                behaviour_cls.is_termination_set
+                mcs.is_termination_set
             )
         }
 
