@@ -327,6 +327,46 @@ class TestAbstractRoundBehaviour:
                 behaviours = mock_behaviours  # type: ignore
                 initial_behaviour_cls = MagicMock()
 
+    @pytest.mark.parametrize("behaviour_cls", (None, MagicMock()))
+    def test_check_matching_round_consistency_with_termination(
+        self, behaviour_cls: Optional[MagicMock]
+    ) -> None:
+        """Test classmethod '_check_matching_round_consistency' when the termination behaviour class is set."""
+        rounds = [
+            MagicMock(**{"auto_round_id.return_value": f"round_{i}"}) for i in range(3)
+        ]
+        mock_behaviours = (
+            [
+                MagicMock(matching_round=round_, behaviour_id=f"behaviour_{i}")
+                for i, round_ in enumerate(rounds[1:])
+            ]
+            if behaviour_cls
+            else []
+        )
+
+        with mock.patch.object(
+            _MetaRoundBehaviour, "_check_all_required_classattributes_are_set"
+        ), mock.patch.object(
+            _MetaRoundBehaviour, "_check_behaviour_id_uniqueness"
+        ), mock.patch.object(
+            _MetaRoundBehaviour, "_check_initial_behaviour_in_set_of_behaviours"
+        ):
+
+            class MyRoundBehaviour(AbstractRoundBehaviour):
+                abci_app_cls = MagicMock(
+                    get_all_round_classes=lambda include_termination_rounds: rounds
+                    if include_termination_rounds
+                    else [],
+                    final_states={
+                        rounds[0],
+                    }
+                    if behaviour_cls is not None
+                    else {},
+                )
+                behaviours = mock_behaviours  # type: ignore
+                initial_behaviour_cls = MagicMock()
+                termination_behaviour_cls = behaviour_cls
+
     def test_get_behaviour_id_to_behaviour_mapping_negative(self) -> None:
         """Test classmethod '_get_behaviour_id_to_behaviour_mapping', negative case."""
         behaviour_id = "behaviour_id"
