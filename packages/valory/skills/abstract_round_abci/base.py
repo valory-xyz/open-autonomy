@@ -3468,24 +3468,41 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             )
         self._blockchain = Blockchain(is_init=is_init)
 
-    @staticmethod
-    def _get_result(
-        round_: AbstractRound, results: List[Tuple[BaseSynchronizedData, Any]]
-    ) -> None:
-        """Add the result of the given round to the results."""
-        result = round_.end_block()
-        if result is not None:
-            results.append(result)
-
-    def _get_background_results(
-        self, results: List[Tuple[BaseSynchronizedData, Any]]
-    ) -> None:
+    def _get_background_result(
+        self,
+    ) -> Optional[Tuple[BaseSynchronizedData, Any]]:
         """Update the `results` with the background apps' results."""
         for background_app_name in ("pending_offences", "slashing"):
             is_set = getattr(self.abci_app, f"is_{background_app_name}_set")
             if is_set:
                 round_ = getattr(self.abci_app, f"{background_app_name}_round")
-                self._get_result(round_, results)
+                result = round_.end_block()
+                if result is not None:
+                    return result
+        return None
+
+    def _get_round_result(self) -> Optional[Tuple[BaseSynchronizedData, Any]]:
+        """
+        Get the round's result.
+
+        Give priority to termination, then the rest of the bg rounds, and then the normal rounds.
+
+        :return: the round result.
+        """
+        termination_result = None
+        if self.abci_app.is_termination_set:
+            termination_result = self.abci_app.termination_round.end_block()
+
+        if termination_result is not None and not self._termination_called:
+            # when the background round returns, it takes priority over normal rounds.
+            # the BackgroundRound never ends, therefore, we should take its response into account only once
+            self._termination_called = True
+            return termination_result
+
+        bg_result = self._get_background_result()
+        if bg_result is None:
+            return self.abci_app.current_round.end_block()
+        return bg_result
 
     def _update_round(self) -> None:
         """
@@ -3495,21 +3512,9 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         If the termination app's round has returned a result, then the other apps' rounds are ignored.
         Otherwise, all results are added to a list and processed serially, giving priority to the background results.
         """
-        results: List[Tuple[BaseSynchronizedData, Any]] = []
-        termination_result: Optional[Tuple[BaseSynchronizedData, Any]] = None
-        if self.abci_app.is_termination_set:
-            termination_result = self.abci_app.termination_round.end_block()
+        result = self._get_round_result()
 
-        if termination_result is not None and not self._termination_called:
-            # when the background round returns, it takes priority over normal rounds.
-            # the BackgroundRound never ends, therefore, we should take its response into account only once
-            self._termination_called = True
-            results.append(termination_result)
-        else:
-            self._get_background_results(results)
-            self._get_result(self.abci_app.current_round, results)
-
-        if len(results) == 0:
+        if result is None:
             # neither the background rounds, nor the current round returned, so no update needs to be made
             return
 
@@ -3521,13 +3526,12 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._last_round_transition_root_hash = self.root_hash
         self._last_round_transition_tm_height = self.tm_height
 
-        for result in results:
-            round_result, event = result
-            _logger.debug(
-                f"updating round, current_round {self.current_round.round_id}, event: {event}, "
-                f"round result {round_result}"
-            )
-            self.abci_app.process_event(event, result=round_result)
+        round_result, event = result
+        _logger.debug(
+            f"updating round, current_round {self.current_round.round_id}, event: {event}, "
+            f"round result {round_result}"
+        )
+        self.abci_app.process_event(event, result=round_result)
 
     def _reset_to_default_params(self) -> None:
         """Resets the instance params to their default value."""
