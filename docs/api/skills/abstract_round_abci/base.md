@@ -2133,7 +2133,34 @@ def add_termination(cls, termination_round_cls: AppState,
                     termination_abci_app: Type["AbciApp"]) -> Type["AbciApp"]
 ```
 
-Sets the termination related class variables.
+Sets the termination-related class variables.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.add_slashing"></a>
+
+#### add`_`slashing
+
+```python
+@classmethod
+def add_slashing(cls, slashing_round_cls: AppState,
+                 slashing_start_event: EventType,
+                 slashing_end_event: EventType,
+                 slashing_abci_app: Type["AbciApp"]) -> Type["AbciApp"]
+```
+
+Sets the slashing-related class variables.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.add_pending_offences"></a>
+
+#### add`_`pending`_`offences
+
+```python
+@classmethod
+def add_pending_offences(
+        cls, pending_offences_round_cls: AppState,
+        pending_offences_abci_app: Type["AbciApp"]) -> Type["AbciApp"]
+```
+
+Sets the pending offences-related class variables.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.synchronized_data"></a>
 
@@ -2174,9 +2201,11 @@ Get all the events.
 
 ```python
 @classmethod
-def get_all_round_classes(cls,
-                          include_termination_rounds: bool = False
-                          ) -> Set[AppState]
+def get_all_round_classes(
+        cls,
+        include_termination_rounds: bool = False,
+        include_pending_offences_rounds: bool = False,
+        include_slashing_rounds: bool = False) -> Set[AppState]
 ```
 
 Get all round classes.
@@ -2242,7 +2271,29 @@ Get the current round.
 def termination_round() -> AbstractRound
 ```
 
-Get the background round.
+Get the termination round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.pending_offences_round"></a>
+
+#### pending`_`offences`_`round
+
+```python
+@property
+def pending_offences_round() -> AbstractRound
+```
+
+Get the pending_offences round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.slashing_round"></a>
+
+#### slashing`_`round
+
+```python
+@property
+def slashing_round() -> AbstractRound
+```
+
+Get the slashing round.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.is_termination_set"></a>
 
@@ -2254,6 +2305,28 @@ def is_termination_set() -> bool
 ```
 
 Get whether termination is set.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.is_pending_offences_set"></a>
+
+#### is`_`pending`_`offences`_`set
+
+```python
+@property
+def is_pending_offences_set() -> bool
+```
+
+Get whether pending offences is set.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.is_slashing_set"></a>
+
+#### is`_`slashing`_`set
+
+```python
+@property
+def is_slashing_set() -> bool
+```
+
+Get whether slashing is set.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.current_round_id"></a>
 
@@ -2897,6 +2970,28 @@ def termination_round() -> AbstractRound
 ```
 
 Get the termination round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.pending_offences_round"></a>
+
+#### pending`_`offences`_`round
+
+```python
+@property
+def pending_offences_round() -> AbstractRound
+```
+
+Get the pending_offences round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.slashing_round"></a>
+
+#### slashing`_`round
+
+```python
+@property
+def slashing_round() -> AbstractRound
+```
+
+Get the slashing round.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.current_round_id"></a>
 

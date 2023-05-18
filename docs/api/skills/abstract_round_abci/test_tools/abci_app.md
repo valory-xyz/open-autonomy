@@ -124,6 +124,16 @@ class ConcreteTerminationRoundC(_ConcreteRound)
 
 Dummy instantiation of the AbstractRound class.
 
+<a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.ConcreteSlashingRound"></a>
+
+## ConcreteSlashingRound Objects
+
+```python
+class ConcreteSlashingRound(_ConcreteRound)
+```
+
+Dummy instantiation of the AbstractRound class.
+
 <a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.ConcreteEvents"></a>
 
 ## ConcreteEvents Objects
