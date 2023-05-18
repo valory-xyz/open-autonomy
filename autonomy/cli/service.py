@@ -30,7 +30,10 @@ from autonomy.chain.config import ChainType
 from autonomy.cli.helpers.chain import (
     activate_service,
     deploy_service,
+    print_service_info,
     register_instance,
+    terminate_service,
+    unbond_service,
 )
 from autonomy.cli.mint import (
     hwi_flag,
@@ -144,7 +147,7 @@ def deploy(
     password: Optional[str],
     deployment_payload: Optional[str],
 ) -> None:
-    """Activate service."""
+    """Deploy a service."""
 
     deploy_service(
         service_id=service_id,
@@ -153,4 +156,67 @@ def deploy(
         chain_type=ctx.config["chain_type"],
         password=password,
         deployment_payload=deployment_payload,
+    )
+
+
+@service.command(name="terminate")
+@pass_ctx
+@click.argument("service_id", type=int)
+@key_path_decorator
+@hwi_flag
+@password_decorator
+def _terminate(
+    ctx: Context,
+    service_id: int,
+    key: Path,
+    hwi: bool,
+    password: Optional[str],
+) -> None:
+    """Terminate a service."""
+
+    terminate_service(
+        service_id=service_id,
+        key=key,
+        hwi=hwi,
+        chain_type=ctx.config["chain_type"],
+        password=password,
+    )
+
+
+@service.command(name="unbond")
+@pass_ctx
+@click.argument("service_id", type=int)
+@key_path_decorator
+@hwi_flag
+@password_decorator
+def _unbond(
+    ctx: Context,
+    service_id: int,
+    key: Path,
+    hwi: bool,
+    password: Optional[str],
+) -> None:
+    """Unbond a service."""
+
+    unbond_service(
+        service_id=service_id,
+        key=key,
+        hwi=hwi,
+        chain_type=ctx.config["chain_type"],
+        password=password,
+    )
+
+
+@service.command(name="info")
+@pass_ctx
+@click.argument("service_id", type=int)
+def _info(
+    ctx: Context,
+    service_id: int,
+) -> None:
+    """Print service information."""
+
+    print_service_info(
+        service_id=service_id,
+        chain_type=ctx.config["chain_type"],
     )

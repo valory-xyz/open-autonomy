@@ -179,3 +179,53 @@ class ServiceManagerContract(Contract):
         )
 
         return tx_params
+
+    @classmethod
+    def get_terminate_service_transaction(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        owner: str,
+        service_id: int,
+        raise_on_try: bool = False,
+    ) -> Dict[str, Any]:
+        """Retrieve the service owner."""
+
+        tx_params = ledger_api.build_transaction(
+            contract_instance=cls.get_instance(
+                ledger_api=ledger_api, contract_address=contract_address
+            ),
+            method_name="terminate",
+            method_args={
+                "serviceId": service_id,
+            },
+            tx_args={"sender_address": owner},
+            raise_on_try=raise_on_try,
+        )
+
+        return tx_params
+
+    @classmethod
+    def get_unbond_service_transaction(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        owner: str,
+        service_id: int,
+        raise_on_try: bool = False,
+    ) -> Dict[str, Any]:
+        """Retrieve the service owner."""
+
+        tx_params = ledger_api.build_transaction(
+            contract_instance=cls.get_instance(
+                ledger_api=ledger_api, contract_address=contract_address
+            ),
+            method_name="unbond",
+            method_args={
+                "serviceId": service_id,
+            },
+            tx_args={"sender_address": owner},
+            raise_on_try=raise_on_try,
+        )
+
+        return tx_params

@@ -26,6 +26,7 @@ import pytest
 from aea.configurations.data_types import PackageType
 from aea_ledger_ethereum_hwi.hwi import EthereumHWIApi, EthereumHWICrypto
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
+from web3.exceptions import ContractLogicError
 
 from autonomy.chain.base import ServiceState
 from autonomy.chain.config import ChainConfigs, ChainType
@@ -37,6 +38,8 @@ from autonomy.cli.helpers.chain import (
     mint_component,
     mint_service,
     register_instance,
+    terminate_service,
+    unbond_service,
 )
 
 from tests.conftest import ROOT_DIR
@@ -318,6 +321,104 @@ def test_deploy_service_timeout_failure() -> None:
                 key=ETHEREUM_KEY_DEPLOYER,
                 chain_type=ChainType.LOCAL,
                 timeout=1.0,
+            )
+
+
+@pytest.mark.parametrize(
+    argnames=("state", "error"),
+    argvalues=(
+        (ServiceState.NON_EXISTENT, "Service does not exist"),
+        (ServiceState.PRE_REGISTRATION, "Service not active"),
+        (ServiceState.TERMINATED_BONDED, "Service already terminated"),
+    ),
+)
+def test_terminate_service_failures(state: ServiceState, error: str) -> None:
+    """Test `terminate_service` method"""
+
+    with pytest.raises(
+        click.ClickException,
+        match=error,
+    ):
+        with mock.patch(
+            "autonomy.chain.service.get_service_info",
+            return_value=(1, None, state.value, None),
+        ):
+            terminate_service(
+                service_id=0,
+                key=ETHEREUM_KEY_DEPLOYER,
+                chain_type=ChainType.LOCAL,
+            )
+
+
+def test_terminate_service_contract_failure() -> None:
+    """Test `terminate_service` method"""
+
+    with pytest.raises(
+        click.ClickException,
+        match="Service termination failed",
+    ), mock.patch.object(
+        registry_contracts._service_manager,
+        "get_terminate_service_transaction",
+        side_effect=ContractLogicError,
+    ):
+        with mock.patch(
+            "autonomy.chain.service.get_service_info",
+            return_value=(1, None, ServiceState.FINISHED_REGISTRATION.value, None),
+        ):
+            terminate_service(
+                service_id=0,
+                key=ETHEREUM_KEY_DEPLOYER,
+                chain_type=ChainType.LOCAL,
+            )
+
+
+@pytest.mark.parametrize(
+    argnames=("state", "error"),
+    argvalues=(
+        (ServiceState.NON_EXISTENT, "Service does not exist"),
+        (
+            ServiceState.PRE_REGISTRATION,
+            "Service needs to be in terminated-bonded state",
+        ),
+    ),
+)
+def test_unbond_service_failures(state: ServiceState, error: str) -> None:
+    """Test `terminate_service` method"""
+
+    with pytest.raises(
+        click.ClickException,
+        match=error,
+    ):
+        with mock.patch(
+            "autonomy.chain.service.get_service_info",
+            return_value=(1, None, state.value, None),
+        ):
+            unbond_service(
+                service_id=0,
+                key=ETHEREUM_KEY_DEPLOYER,
+                chain_type=ChainType.LOCAL,
+            )
+
+
+def test_unbond_service_contract_failure() -> None:
+    """Test `unbond_service` method"""
+
+    with pytest.raises(
+        click.ClickException,
+        match="Service unbond failed",
+    ), mock.patch.object(
+        registry_contracts._service_manager,
+        "get_unbond_service_transaction",
+        side_effect=ContractLogicError,
+    ):
+        with mock.patch(
+            "autonomy.chain.service.get_service_info",
+            return_value=(1, None, ServiceState.TERMINATED_BONDED.value, None),
+        ):
+            unbond_service(
+                service_id=0,
+                key=ETHEREUM_KEY_DEPLOYER,
+                chain_type=ChainType.LOCAL,
             )
 
 

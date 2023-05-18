@@ -35,6 +35,7 @@ def get_all_extras() -> Dict:
         "click==8.0.2",
         "open-aea-cli-ipfs==1.34.0",
         "open-aea-ledger-ethereum-hwi==1.34.0",
+        "texttable==1.6.7",
         "python-dotenv>=0.14.0,<0.18.0",
     ]
 
