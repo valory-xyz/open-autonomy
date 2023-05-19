@@ -31,6 +31,7 @@ from aea.cli.utils.click_utils import (
     reraise_as_click_exception,
 )
 from aea.cli.utils.context import Context
+from aea.configurations.constants import DEFAULT_ENV_DOTFILE
 
 from autonomy.chain.config import ChainType
 from autonomy.cli.helpers.deployment import (
@@ -38,7 +39,12 @@ from autonomy.cli.helpers.deployment import (
     build_deployment,
     run_deployment,
 )
-from autonomy.cli.utils.click_utils import chain_selection_flag, image_author_option
+from autonomy.cli.helpers.env import load_env_file
+from autonomy.cli.utils.click_utils import (
+    PathArgument,
+    chain_selection_flag,
+    image_author_option,
+)
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_KEYS_FILE
 from autonomy.deploy.base import NotValidKeysFile
 from autonomy.deploy.constants import INFO, LOGGING_LEVELS
@@ -52,11 +58,26 @@ OPEN_AUTONOMY_DIR = "open_autonomy_dir"
 
 
 @click.group(name="deploy")
+@click.option(
+    "--env-file",
+    type=PathArgument(
+        exists=True,
+        dir_okay=False,
+        file_okay=True,
+    ),
+    help="File containing environment variable mappings",
+)
 @click.pass_context
 def deploy_group(
     click_context: click.Context,  # pylint: disable=unused-argument
+    env_file: Optional[Path],
 ) -> None:
     """Deploy an agent service."""
+    dot_env_file = Path.cwd() / DEFAULT_ENV_DOTFILE
+    if dot_env_file.exists():
+        load_env_file(file=dot_env_file)
+    if env_file is not None:
+        load_env_file(file=env_file, serialize_json=True)
 
 
 @deploy_group.command(name="build")

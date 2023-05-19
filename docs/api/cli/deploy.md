@@ -10,8 +10,18 @@ Deploy CLI module.
 
 ```python
 @click.group(name="deploy")
+@click.option(
+    "--env-file",
+    type=PathArgument(
+        exists=True,
+        dir_okay=False,
+        file_okay=True,
+    ),
+    help="File containing environment variable mappings",
+)
 @click.pass_context
-def deploy_group(click_context: click.Context) -> None
+def deploy_group(click_context: click.Context,
+                 env_file: Optional[Path]) -> None
 ```
 
 Deploy an agent service.

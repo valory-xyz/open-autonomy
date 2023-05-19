@@ -29,8 +29,9 @@ from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import crypto_registry, ledger_apis_registry
 from aea.helpers.base import IPFSHash
 from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
+from texttable import Texttable
 
-from autonomy.chain.base import UnitType
+from autonomy.chain.base import ServiceState, UnitType
 from autonomy.chain.config import ChainConfigs, ChainType, ContractConfigs
 from autonomy.chain.constants import (
     AGENT_REGISTRY_CONTRACT,
@@ -45,6 +46,8 @@ from autonomy.chain.exceptions import (
     InvalidMintParameter,
     ServiceDeployFailed,
     ServiceRegistrationFailed,
+    TerminateServiceFailed,
+    UnbondServiceFailed,
 )
 from autonomy.chain.metadata import NFTHashOrPath, publish_metadata
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH
@@ -52,7 +55,10 @@ from autonomy.chain.mint import mint_component as _mint_component
 from autonomy.chain.mint import mint_service as _mint_service
 from autonomy.chain.service import activate_service as _activate_service
 from autonomy.chain.service import deploy_service as _deploy_service
+from autonomy.chain.service import get_agent_instances, get_service_info
 from autonomy.chain.service import register_instance as _register_instance
+from autonomy.chain.service import terminate_service as _terminate_service
+from autonomy.chain.service import unbond_service as _unbond_service
 from autonomy.chain.utils import (
     verify_component_dependencies,
     verify_service_dependencies,
@@ -445,3 +451,125 @@ def deploy_service(  # pylint: disable=too-many-arguments
         raise click.ClickException(str(e)) from e
 
     click.echo("Service deployed succesfully")
+
+
+def terminate_service(
+    service_id: int,
+    key: Path,
+    chain_type: ChainType,
+    password: Optional[str] = None,
+    hwi: bool = False,
+) -> None:
+    """Terminate a service"""
+
+    if key is None and not hwi:  # pragma: nocover
+        raise click.ClickException(
+            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
+        )
+
+    ledger_api, crypto = get_ledger_and_crypto_objects(
+        chain_type=chain_type,
+        key=key,
+        password=password,
+        hwi=hwi,
+    )
+
+    try:
+        _terminate_service(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            chain_type=chain_type,
+            service_id=service_id,
+        )
+    except TerminateServiceFailed as e:
+        raise click.ClickException(str(e)) from e
+
+    click.echo("Service terminated succesfully")
+
+
+def unbond_service(
+    service_id: int,
+    key: Path,
+    chain_type: ChainType,
+    password: Optional[str] = None,
+    hwi: bool = False,
+) -> None:
+    """Terminate a service"""
+
+    if key is None and not hwi:  # pragma: nocover
+        raise click.ClickException(
+            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
+        )
+
+    ledger_api, crypto = get_ledger_and_crypto_objects(
+        chain_type=chain_type,
+        key=key,
+        password=password,
+        hwi=hwi,
+    )
+
+    try:
+        _unbond_service(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            chain_type=chain_type,
+            service_id=service_id,
+        )
+    except UnbondServiceFailed as e:
+        raise click.ClickException(str(e)) from e
+
+    click.echo("Service unbonded succesfully")
+
+
+def print_service_info(
+    service_id: int,
+    chain_type: ChainType,
+) -> None:
+    """Terminate a service"""
+
+    ledger_api, _ = get_ledger_and_crypto_objects(
+        chain_type=chain_type,
+    )
+    (
+        security_deposit,
+        multisig_address,
+        _,
+        threshold,
+        max_agents,
+        number_of_agent_instances,
+        _service_state,
+        cannonical_agents,
+    ) = get_service_info(
+        ledger_api=ledger_api,
+        chain_type=chain_type,
+        token_id=service_id,
+    )
+    service_state = ServiceState(_service_state)
+    rows = [
+        ("Property", "Value"),
+        ("Service State", service_state.name),
+        ("Security Deposit", security_deposit),
+        ("Multisig Address", multisig_address),
+        ("Cannonical Agents", ", ".join(map(str, cannonical_agents))),
+        ("Max Agents", max_agents),
+        ("Threshold", threshold),
+        ("Number Of Agent Instances", number_of_agent_instances),
+    ]
+
+    if service_state.value >= ServiceState.ACTIVE_REGISTRATION.value:
+        rows.append(
+            (
+                "Registered Instances",
+                "\n".join(
+                    map(
+                        lambda x: f"- {x}",
+                        get_agent_instances(
+                            ledger_api=ledger_api,
+                            chain_type=chain_type,
+                            token_id=service_id,
+                        ).get("agentInstances", []),
+                    ),
+                ),
+            ),
+        )
+    click.echo(Texttable().add_rows(rows=rows).draw())

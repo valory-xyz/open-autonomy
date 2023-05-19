@@ -8,9 +8,9 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeiao4aiyvkvg75zfi2nf34hidx2uzcbqibc2bukyutisg5zhxskhlq
   build/ServiceManager.json: bafybeiaykphmrdujhb7knvivig2qhm7ksj7sa4cppqrgbh3efq4z5yv4jm
-  contract.py: bafybeic2eqeygvxg45ocz3tcabam4qsulqosnkb5hi35zurght2r47aq5m
+  contract.py: bafybeicqyj737jytcxsgsvw7eap4mjfpg3izyjhtpj3cdkbelylvhvzfmm
   tests/__init__.py: bafybeifehip3omosjvpq3uqvxomtgrmqjoqdttyzhvu2qysybjf6btwkpi
-  tests/test_contract.py: bafybeifpacyxye3woxhimstciwhhqh2x357jqc3u5ex5dbyxfwoelludam
+  tests/test_contract.py: bafybeibi5omdp6tk3s2ea46uw2tgg6mqjdxbts4ppctrhed7srz6odiwoq
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: ServiceManagerContract

@@ -31,11 +31,12 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 
 def get_all_extras() -> Dict:
-
     cli_deps = [
         "click==8.0.2",
         "open-aea-cli-ipfs==1.34.0",
         "open-aea-ledger-ethereum-hwi==1.34.0",
+        "texttable==1.6.7",
+        "python-dotenv>=0.14.0,<0.18.0",
     ]
 
     extras = {
