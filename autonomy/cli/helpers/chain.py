@@ -28,7 +28,6 @@ from aea.configurations.loader import load_configuration_object
 from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import crypto_registry, ledger_apis_registry
 from aea.helpers.base import IPFSHash
-from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 from texttable import Texttable
 
 from autonomy.chain.base import ServiceState, UnitType
@@ -67,6 +66,13 @@ from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS, Service
 
 
 try:
+    from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
+
+    ETHEREUM_PLUGIN_INSTALLED = True
+except ImportError:
+    ETHEREUM_PLUGIN_INSTALLED = False
+
+try:
     from aea_ledger_ethereum_hwi.exceptions import HWIError
     from aea_ledger_ethereum_hwi.hwi import EthereumHWIApi
 
@@ -95,6 +101,12 @@ def get_ledger_and_crypto_objects(
         raise click.ClickException(
             "Hardware wallet plugin not installed, "
             "Run `pip3 install open-aea-ledger-ethereum-hwi` to install the plugin"
+        )
+
+    if not hwi and not ETHEREUM_PLUGIN_INSTALLED:
+        raise click.ClickException(
+            "Ethereum ledger plugin not installed, "
+            "Run `pip3 install open-aea-ledger-ethereum` to install the plugin"
         )
 
     identifier = EthereumHWIApi.identifier if hwi else EthereumApi.identifier
