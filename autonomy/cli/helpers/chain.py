@@ -90,6 +90,8 @@ def get_ledger_and_crypto_objects(
     """Create ledger_api and crypto objects"""
 
     chain_config = ChainConfigs.get(chain_type=chain_type)
+    identifier = EthereumApi.identifier
+
     if chain_config.rpc is None:
         raise click.ClickException(
             f"RPC URL cannot be `None`, "
@@ -103,13 +105,14 @@ def get_ledger_and_crypto_objects(
             "Run `pip3 install open-aea-ledger-ethereum-hwi` to install the plugin"
         )
 
+    if hwi:
+        identifier = EthereumHWIApi.identifier
+
     if not hwi and not ETHEREUM_PLUGIN_INSTALLED:
         raise click.ClickException(
             "Ethereum ledger plugin not installed, "
             "Run `pip3 install open-aea-ledger-ethereum` to install the plugin"
         )
-
-    identifier = EthereumHWIApi.identifier if hwi else EthereumApi.identifier
 
     if key is None:
         crypto = crypto_registry.make(identifier)
@@ -129,6 +132,7 @@ def get_ledger_and_crypto_objects(
     )
 
     try:
+        ledger_api.identifier = EthereumApi.identifier
         ledger_api.api.eth.default_account = crypto.address
     except HWIError as e:
         raise click.ClickException(e.message)
