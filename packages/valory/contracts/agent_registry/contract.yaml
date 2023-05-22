@@ -16,5 +16,4 @@ contracts: []
 class_name: AgentRegistryContract
 contract_interface_paths:
   ethereum: build/AgentRegistry.json
-  ethereum_hwi: build/AgentRegistry.json
 dependencies: {}
