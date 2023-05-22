@@ -7,6 +7,9 @@ Autonomy:
 - Updates the agent runtime docker image to execute aea build when building the runtime image #1954
 - Make sure the alias gets used when fetching service packages #1947
 
+Chores:
+- Bumps docker to `v6.1.2`
+
 Docs:
 - Adds information on required agent components  #1967
 
