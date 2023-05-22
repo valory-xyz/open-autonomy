@@ -131,8 +131,17 @@ def get_ledger_and_crypto_objects(
         },
     )
 
-    try:
+    if hwi:
+        # Setting the `LedgerApi.identifier` to `ethereum` for both ledger and
+        # hardware plugin to interact with the contract. If we use `ethereum_hwi`
+        # as the ledger identifier the contracts will need ABI configuration for
+        # the `ethereum_hwi` identifier which means we will have to define hardware
+        # wallet as the dependency for contract but the hardware wallet plugin
+        # is meant to be used for CLI tools only so we set the identifier to
+        # `ethereum` for both ledger and hardware wallet plugin
         ledger_api.identifier = EthereumApi.identifier
+
+    try:
         ledger_api.api.eth.default_account = crypto.address
     except HWIError as e:
         raise click.ClickException(e.message)
