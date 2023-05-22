@@ -118,6 +118,7 @@ INITIAL_APP_HASH = ""
 INITIAL_HEIGHT = "0"
 TM_REQ_TIMEOUT = 5  # 5 seconds
 FLASHBOTS_LEDGER_ID = "ethereum_flashbots"
+GENTLE_RESET_WAIT = 30
 
 
 class SendException(Exception):
@@ -574,6 +575,7 @@ class BaseBehaviour(
         self._timeout: float = 0
         self._is_healthy: bool = False
         self._non_200_return_code_count: int = 0
+        self.gentle_reset_attempted: bool = False
 
     @classmethod
     def auto_behaviour_id(cls) -> str:
@@ -765,6 +767,7 @@ class BaseBehaviour(
                         f"local height == remote == {local_height}; Sync complete..."
                     )
                     self.context.state.round_sequence.end_sync()
+                    self.gentle_reset_attempted = False
                     return
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
             except (json.JSONDecodeError, KeyError):  # pragma: nocover
@@ -2129,6 +2132,15 @@ class TmManager(BaseBehaviour):
         """
         return self._hard_reset_sleep
 
+    def _gentle_reset(self) -> Generator[None, None, None]:
+        """Perform a gentle reset of the Tendermint node."""
+        self.context.logger.info("Performing a gentle reset.")
+        request_message, http_dialogue = self._build_http_request_message(
+            "GET",
+            self.params.tendermint_com_url + "/gentle_reset",
+        )
+        yield from self._do_request(request_message, http_dialogue)
+
     def _handle_unhealthy_tm(self) -> Generator:
         """This method handles the case when the tendermint node is unhealthy."""
         self.context.logger.warning(
@@ -2136,8 +2148,14 @@ class TmManager(BaseBehaviour):
             "Trying to reset local Tendermint node as there could be something wrong with the communication."
         )
 
-        # since we have reached this point that means that the cause of blocks not being received
-        # cannot be attributed to a lack of peers in the network
+        if not self.gentle_reset_attempted:
+            self.gentle_reset_attempted = True
+            yield from self._gentle_reset()
+            yield from self.sleep(GENTLE_RESET_WAIT)
+            return
+
+        # since we have reached this point, that means that the cause of blocks not being received
+        # cannot be fixed with a simple gentle reset,
         # therefore, we request the recovery parameters via the ACN, and if we succeed, we use them to recover
         acn_communication_success = yield from self.request_recovery_params()
         if not acn_communication_success:
@@ -2160,9 +2178,7 @@ class TmManager(BaseBehaviour):
                 is_recovery=True,
             )
             if reset_successfully:
-                self.context.logger.info(
-                    "Tendermint reset was successfully performed. "
-                )
+                self.context.logger.info("Tendermint reset was successfully performed.")
                 # we sleep to give some time for tendermint to start sending us blocks
                 # otherwise we might end-up assuming that tendermint is still not working.
                 # Note that the wait_from_last_timestamp() in reset_tendermint_with_wait()
