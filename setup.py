@@ -60,7 +60,7 @@ base_deps = [
     "open-aea-ledger-ethereum==1.34.0",
     "docker-compose==1.29.2",
     "werkzeug==2.0.3",
-    "docker==6.0.0",
+    "docker==6.1.2",
 ]
 base_deps.extend(all_extras["cli"])
 
