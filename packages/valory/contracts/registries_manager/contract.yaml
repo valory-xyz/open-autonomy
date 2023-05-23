@@ -16,5 +16,4 @@ contracts: []
 class_name: RegistriesManagerContract
 contract_interface_paths:
   ethereum: build/RegistriesManager.json
-  ethereum_hwi: build/RegistriesManager.json
 dependencies: {}
