@@ -117,7 +117,7 @@ class TestMintComponents(BaseChainInteractionTest):
 
         result = self.run_cli(commands=tuple(commands))
 
-        assert result.exit_code == 0, result.output
+        assert result.exit_code == 0, result.stderr
         assert "Component minted with:" in result.output
         assert "Metadata Hash:" in result.output
         assert "Token ID:" in result.output
@@ -401,7 +401,6 @@ class TestMintComponents(BaseChainInteractionTest):
         with mock.patch.object(
             registry_contracts, "_component_registry", DummyContract()
         ), mock.patch("autonomy.chain.mint.transact"):
-
             result = self.run_cli(
                 commands=(
                     DUMMY_PROTOCOL.package_type.value,
@@ -432,7 +431,6 @@ class TestMintComponents(BaseChainInteractionTest):
         ), mock.patch("autonomy.chain.mint.transact"), mock.patch(
             "autonomy.cli.helpers.chain.verify_service_dependencies"
         ):
-
             result = self.run_cli(
                 commands=(
                     DUMMY_SERVICE.package_type.value,
