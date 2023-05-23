@@ -31,9 +31,9 @@ pytz = "==2022.2.1"
 py-ecc = "==5.2.0"
 py-eth-sig-utils = "==0.4.0"
 python-dotenv = ">=0.14.0,<0.18.0"
-requests = "==2.28.1"
+requests = "==2.28.2"
 ### tests deps
-tomte = {version = "==0.2.4", extras = ["tox", "tests"]}
+tomte = {version = "==0.2.10", extras = ["tests", "cli", "tests"]}
 texttable = "==1.6.7"
 
 [requires]
