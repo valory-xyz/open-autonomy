@@ -69,7 +69,7 @@ try:
     from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 
     ETHEREUM_PLUGIN_INSTALLED = True
-except ImportError:
+except ImportError:  # pragma: nocover
     ETHEREUM_PLUGIN_INSTALLED = False
 
 try:
@@ -77,7 +77,7 @@ try:
     from aea_ledger_ethereum_hwi.hwi import EthereumHWIApi
 
     HWI_PLUGIN_INSTALLED = True
-except ImportError:
+except ImportError:  # pragma: nocover
     HWI_PLUGIN_INSTALLED = False
 
 
