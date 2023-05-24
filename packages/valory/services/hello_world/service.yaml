@@ -6,8 +6,44 @@ aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
 fingerprint:
   README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
+  abci_build/docker-compose.yaml: bafybeifwijwxl3roxr64sfb6pxalktt72xxq3optywakpvqc53k7myi524
+  abci_build/nodes/node0/config/config.toml: bafybeidvaq3ommakg6oaeelqr3zrnfahsr4li7peebausbwfgetxeze32m
+  abci_build/nodes/node0/config/genesis.json: bafybeib6iiuy5r4ef5j46hsjqx72urzggnosvonz7mt4nrn6ncbnu4lpvi
+  abci_build/nodes/node0/config/node_key.json: bafybeidhxjvf7pifunk6hkxl4mijvzjpubbltgohwqxoqpzu22zzqqdfx4
+  abci_build/nodes/node0/config/priv_validator_key.json: bafybeibqybneoaqqcucrn7isuzm6ygynce6tyn4tmsgv4h5bh3v6i6ta5m
+  abci_build/nodes/node0/data/blockstore.db/000001.log: bafybeiftu27piztiu5bfxbvhqsbppgtseykyfot6wtlrrzeuzya6zrgpky
+  abci_build/nodes/node0/data/blockstore.db/CURRENT: bafybeienxneq4reco7n7w42bw7eykrtfgk46tfwkrmvp52afftaet72egq
+  abci_build/nodes/node0/data/blockstore.db/LOCK: bafybeiftu27piztiu5bfxbvhqsbppgtseykyfot6wtlrrzeuzya6zrgpky
+  abci_build/nodes/node0/data/blockstore.db/LOG: bafybeib7bt2dnwvmkrfi62ciw2smsfjxrfnxlrcte7jxyrhd5lraes3zp4
+  abci_build/nodes/node0/data/blockstore.db/MANIFEST-000000: bafybeia6gngt5yxv2x43hmtzfzjbkza7ibxrwhjmou3ac37lxtef7fkx3y
+  abci_build/nodes/node0/data/priv_validator_state.json: bafybeig7rucgmcn3fb5dswfbq54esqv7drpob5px2uyxcjpblpfcnjgaty
+  abci_build/nodes/node0/data/state.db/000001.log: bafybeicrizmzmed42qc7a5wtwfhb547extzrvogikgaauuwbajv73mjgky
+  abci_build/nodes/node0/data/state.db/CURRENT: bafybeienxneq4reco7n7w42bw7eykrtfgk46tfwkrmvp52afftaet72egq
+  abci_build/nodes/node0/data/state.db/LOCK: bafybeiftu27piztiu5bfxbvhqsbppgtseykyfot6wtlrrzeuzya6zrgpky
+  abci_build/nodes/node0/data/state.db/LOG: bafybeigl4aunbhd56ekmvnhlts7anrhknovktiesjhno7kx3fnlcs2rova
+  abci_build/nodes/node0/data/state.db/MANIFEST-000000: bafybeia6gngt5yxv2x43hmtzfzjbkza7ibxrwhjmou3ac37lxtef7fkx3y
+  abci_build/nodes/node1/config/config.toml: bafybeihcn3hwopbficzqjgovxiabhlvyhyn6sonb27sjfhvjvyqfabqpry
+  abci_build/nodes/node1/config/genesis.json: bafybeib6iiuy5r4ef5j46hsjqx72urzggnosvonz7mt4nrn6ncbnu4lpvi
+  abci_build/nodes/node1/config/node_key.json: bafybeidp5bhdz6dxgpulfxzketpguhh3syt6ephmpvwneqb2l3kdf67nfy
+  abci_build/nodes/node1/config/priv_validator_key.json: bafybeicsg4wudo7pefraqytgsm73zi4rhaqrtlcnujufzfx6wn6wlcqvky
+  abci_build/nodes/node1/data/priv_validator_state.json: bafybeig7rucgmcn3fb5dswfbq54esqv7drpob5px2uyxcjpblpfcnjgaty
+  abci_build/nodes/node2/config/config.toml: bafybeibpx6ourcbrjv7rtfsxmx2qvslhrgfv6awqzwh7h5atfvwqfh34km
+  abci_build/nodes/node2/config/genesis.json: bafybeib6iiuy5r4ef5j46hsjqx72urzggnosvonz7mt4nrn6ncbnu4lpvi
+  abci_build/nodes/node2/config/node_key.json: bafybeif7ionzkxptlnugtkptot2vbjivqmmypr4ffimxjcjzkyrmlsltem
+  abci_build/nodes/node2/config/priv_validator_key.json: bafybeiawfdd5iuia3ukw4i6bjwzf22itjjny6fqxwqmfjeh5sbpptaq4oe
+  abci_build/nodes/node2/data/priv_validator_state.json: bafybeig7rucgmcn3fb5dswfbq54esqv7drpob5px2uyxcjpblpfcnjgaty
+  abci_build/nodes/node3/config/config.toml: bafybeiddd4fuo3aybmjmrgaarmlfn66b56rcedsvcoy5y7a7gupg4pu73q
+  abci_build/nodes/node3/config/genesis.json: bafybeib6iiuy5r4ef5j46hsjqx72urzggnosvonz7mt4nrn6ncbnu4lpvi
+  abci_build/nodes/node3/config/node_key.json: bafybeidfufbcfc6eqwa5ltz5qfno3umphvyilcse4innzyxwwg56xrvxf4
+  abci_build/nodes/node3/config/priv_validator_key.json: bafybeibd6dlxck5yw7zgyx44l4532thinqvfuooim5rgqfg6wlndibe7rm
+  abci_build/nodes/node3/data/priv_validator_state.json: bafybeig7rucgmcn3fb5dswfbq54esqv7drpob5px2uyxcjpblpfcnjgaty
+  abci_build/persistent_data/logs/aea_0.txt: bafybeienr6kujywim2mvihok3wrtpjku4acvn7m7j7lv36t5iww2u4chuq
+  abci_build/persistent_data/logs/aea_1.txt: bafybeigi4mguxzrenujdkbdfcym4pmor6aaejoqniopjkgorrqbt6dr7yu
+  abci_build/persistent_data/logs/aea_2.txt: bafybeiee56oay4ij4iu5ewwnilerr6fwfklqsyynjdiq3meptyco4kzig4
+  abci_build/persistent_data/logs/aea_3.txt: bafybeic4b4p57oscqiix2t5evfjg75sbsjxlg4urjuqrhzwcwlzyykbcya
+  abci_build/persistent_data/logs/node_0.txt: bafybeife7olsufnm5kjbayde3rghnktqjqqgtc6on5cd7kwxcgjfsjpq6y
 fingerprint_ignore_patterns: []
-agent: valory/hello_world:0.1.0:bafybeibne6edcqnlgpjkjcr6iqflmzlw6gc3l6njm3gjf5fhna2ojdnaey
+agent: valory/hello_world:0.1.0:bafybeiexizzwl3dcffa7fxj7z32gxhnbnoetio5uurygbcoqflz7j5zaty
 number_of_agents: 4
 deployment: {}
 ---
