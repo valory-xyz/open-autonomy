@@ -306,7 +306,7 @@ spec:
 AGENT_SECRET_TEMPLATE: str = """
 apiVersion: v1
 stringData:
-    private_key: '{private_key}'
+    {ledger}_private_key.txt: '{private_key}'
 kind: Secret
 metadata:
   annotations:

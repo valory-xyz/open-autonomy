@@ -29,10 +29,10 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional
 
-from aea_ledger_ethereum.test_tools.constants import ETHEREUM_PRIVATE_KEY_FILE
-
 from autonomy.deploy.base import TENDERMINT_COM_URL_PARAM, TENDERMINT_URL_PARAM
 
+
+ETHEREUM_PRIVATE_KEY_FILE = "ethereum_private_key.txt"
 
 CONNECTION_ABCI_CONFIG_HOST = "CONNECTION_ABCI_CONFIG_HOST"
 CONNECTION_ABCI_CONFIG_PORT = "CONNECTION_ABCI_CONFIG_PORT"
