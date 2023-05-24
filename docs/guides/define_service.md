@@ -79,7 +79,7 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
         config:
           ledger_apis:
             ethereum:
-              address: ${SERVICE_HELLO_WORLD_RPC:str:http://host.docker.internal:8545}
+              address: ${SERVICE_HELLO_WORLD_RPC:str:"http://host.docker.internal:8545"}
               chain_id: 31337
               poa_chain: false
               default_gas_price_strategy: eip1559
