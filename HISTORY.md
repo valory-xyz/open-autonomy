@@ -1,6 +1,6 @@
 # Release History - `open-autonomy`
 
-# 0.10.5 (TBD)
+# 0.10.5 (2023-05-24)
 
 Autonomy:
 - Makes sure the alias gets used when fetching service packages #1947
