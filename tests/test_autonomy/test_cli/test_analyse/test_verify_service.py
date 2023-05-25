@@ -392,6 +392,33 @@ class BaseAnalyseServiceTest(BaseCliTest):
         )
 
 
+class TestVerifySkillConfig(BaseAnalyseServiceTest):
+    """Test verify overrides method."""
+
+    def test_missing_params(self, caplog: Any) -> None:
+        """Test run."""
+
+        skill_config = get_dummy_skill_config()
+        del skill_config["models"]["params"]
+
+        with self.patch_loader(
+            service_data=[
+                get_dummy_service_config(),
+                get_dummy_overrides_skill(env_vars_with_name=True),
+            ],
+            agent_data=[get_dummy_agent_config(), get_dummy_overrides_skill()],
+            skill_data=skill_config,
+        ), self.patch_ipfs_tool([]), caplog.at_level(logging.WARNING):
+            result = self.run_cli(commands=self.public_id_option)
+
+        assert "The ABCI skill does not contain `params` model" in caplog.text
+        assert (
+            "`params` model not found in skill configuration aborting skill cross verification"
+            in caplog.text
+        )
+        assert result.exit_code == 0, result.stderr
+
+
 class TestCheckRequiredAgentOverrides(BaseAnalyseServiceTest):
     """Test agent override verification."""
 

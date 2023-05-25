@@ -447,10 +447,17 @@ class ServiceAnalyser:
             agent_config.component_configurations[skill_config.package_id],
             env_variables=os.environ.copy(),
         )
-        skill_config_to_check = {
-            "models": {
-                "params": {"args": skill_config.json["models"]["params"]["args"]},
-            }
+        skill_config_to_check: Dict[str, Dict] = {"models": {}}
+        skill_config_json = copy.deepcopy(skill_config.json)
+
+        if "models" not in skill_config_json["models"]:
+            self.logger.warning(
+                "`params` model not found in skill configuration aborting skill cross verification"
+            )
+            return
+
+        skill_config_to_check["models"]["params"] = {
+            "args": skill_config.json["models"]["params"]["args"]
         }
         if "benchmark_tool" in skill_config.json["models"]:
             skill_config_to_check["models"]["benchmark_tool"] = {
@@ -712,6 +719,10 @@ class ServiceAnalyser:
 
         self.logger.info(f"Validating ABCI skill {skill_config.public_id}")
         model_params = skill_config.models.read("params")
+        if model_params is None:
+            self.logger.warning("The ABCI skill does not contain `params` model")
+            return
+
         self._validate_override(
             validator=ABCI_SKILL_MODEL_PARAMS_VALIDATOR,
             overrides=model_params.args,
