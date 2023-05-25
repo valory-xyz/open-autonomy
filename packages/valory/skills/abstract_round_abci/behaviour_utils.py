@@ -1991,6 +1991,7 @@ class BaseBehaviour(
             # if we are on startup we don't need to wait for the reset pause duration
             # as the reset is being performed to update the tm config.
             yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
+        self._is_healthy = False
         return True
 
     def send_to_ipfs(  # pylint: disable=too-many-arguments
