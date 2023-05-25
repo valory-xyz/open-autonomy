@@ -1,14 +1,21 @@
 # Release History - `open-autonomy`
 
-# 0.10.5 (TBD)
+# 0.10.5 (2023-05-24)
 
 Autonomy:
-- Adds support for `terminate` and `unbond` actions on `autonomy service` command group #1956
+- Makes sure the alias gets used when fetching service packages #1947
 - Updates the agent runtime docker image to execute aea build when building the runtime image #1954
-- Make sure the alias gets used when fetching service packages #1947
+- Adds support for `terminate` and `unbond` actions on `autonomy service` command group #1956
+- Generalises the `star.sh` script on the autonomy runtime docker image to deal with different types of keys #1964
+- Makes ledger plugins optional for CLI tools  #1973
+
+Plugins:
+- Removes the hardware wallet plugin as a dependency from contract packages  #1973
+- Fixes the ledger plugin version specifiers on the test plugin  #197
 
 Chores:
-- Bumps docker to `v6.1.2`
+- Pins `typing_extensions` to `>=3.10.0.2` to avoid dependency conflicts with `solana` plugin #1964
+- Bumps docker to `v6.1.2` #1975
 
 Docs:
 - Adds information on required agent components  #1967

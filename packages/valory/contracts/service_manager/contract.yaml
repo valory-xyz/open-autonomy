@@ -16,5 +16,4 @@ contracts: []
 class_name: ServiceManagerContract
 contract_interface_paths:
   ethereum: build/ServiceManager.json
-  ethereum_hwi: build/ServiceManager.json
 dependencies: {}

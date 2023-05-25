@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
 
 import yaml
+from aea.configurations.constants import DEFAULT_LEDGER
 
 from autonomy.constants import (
     HARDHAT_IMAGE_NAME,
@@ -35,6 +36,7 @@ from autonomy.deploy.base import BaseDeploymentGenerator, ServiceBuilder
 from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
     KEY_SCHEMA_PRIVATE_KEY,
+    KEY_SCHEMA_TYPE,
     KUBERNETES_AGENT_KEY_NAME,
 )
 from autonomy.deploy.generators.kubernetes.templates import (
@@ -217,8 +219,11 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         """Populates private keys into a config map for the kubernetes deployment."""
         path = self.build_dir / "agent_keys"
         for x in range(self.service_builder.service.number_of_agents):
+            ledger = self.service_builder.keys[x].get(KEY_SCHEMA_TYPE, DEFAULT_LEDGER)
             key = self.service_builder.keys[x][KEY_SCHEMA_PRIVATE_KEY]
-            secret = AGENT_SECRET_TEMPLATE.format(private_key=key, validator_ix=x)
+            secret = AGENT_SECRET_TEMPLATE.format(
+                private_key=key, validator_ix=x, ledger=ledger
+            )
             with open(
                 path / KUBERNETES_AGENT_KEY_NAME.format(agent_n=x), "w", encoding="utf8"
             ) as f:
