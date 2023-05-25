@@ -8,6 +8,7 @@ Autonomy:
 - Adds support for `terminate` and `unbond` actions on `autonomy service` command group #1956
 - Generalises the `star.sh` script on the autonomy runtime docker image to deal with different types of keys #1964
 - Makes ledger plugins optional for CLI tools  #1973
+- Adds support for loading environment variables from file on the `autonomy deploy` command group #1960
 
 Plugins:
 - Removes the hardware wallet plugin as a dependency from contract packages  #1973
