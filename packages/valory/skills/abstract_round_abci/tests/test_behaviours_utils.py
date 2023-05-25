@@ -2205,6 +2205,12 @@ class TestBaseBehaviour:
                 self.behaviour.context.params.tendermint_com_url + "/hard_reset",
                 parameters=expected_parameters,
             )
+
+            should_be_healthy = isinstance(reset_response, dict) and reset_response.get(
+                "status", False
+            )
+            assert self.behaviour._is_healthy is should_be_healthy
+
             # perform the last iteration which also returns the result
             try:
                 next(reset)
@@ -2226,6 +2232,7 @@ class TestBaseBehaviour:
                         tm_recovery_params.reset_from_round
                         == self.behaviour.matching_round.auto_round_id()
                     )
+                    assert not self.behaviour._is_healthy
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")
 
