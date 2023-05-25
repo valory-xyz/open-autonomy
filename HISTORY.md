@@ -9,6 +9,9 @@ Autonomy:
 - Generalises the `star.sh` script on the autonomy runtime docker image to deal with different types of keys #1964
 - Makes ledger plugins optional for CLI tools  #1973
 
+Packages:
+- Addresses Tendermint disconnection issues. #1976
+
 Plugins:
 - Removes the hardware wallet plugin as a dependency from contract packages  #1973
 - Fixes the ledger plugin version specifiers on the test plugin  #197
