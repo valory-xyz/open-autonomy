@@ -2205,6 +2205,12 @@ class TestBaseBehaviour:
                 self.behaviour.context.params.tendermint_com_url + "/hard_reset",
                 parameters=expected_parameters,
             )
+
+            should_be_healthy = isinstance(reset_response, dict) and reset_response.get(
+                "status", False
+            )
+            assert self.behaviour._is_healthy is should_be_healthy
+
             # perform the last iteration which also returns the result
             try:
                 next(reset)
@@ -2226,6 +2232,7 @@ class TestBaseBehaviour:
                         tm_recovery_params.reset_from_round
                         == self.behaviour.matching_round.auto_round_id()
                     )
+                    assert not self.behaviour._is_healthy
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")
 
@@ -2332,6 +2339,13 @@ class TestTmManager:
         ),
     )
     @pytest.mark.parametrize(
+        "gentle_reset_attempted",
+        (
+            True,
+            False,
+        ),
+    )
+    @pytest.mark.parametrize(
         ("tm_reset_success", "num_active_peers"),
         [
             (True, 4),
@@ -2343,15 +2357,23 @@ class TestTmManager:
     def test_handle_unhealthy_tm(
         self,
         acn_communication_success: bool,
+        gentle_reset_attempted: bool,
         tm_reset_success: bool,
         num_active_peers: Optional[int],
     ) -> None:
         """Test _handle_unhealthy_tm."""
 
+        self.tm_manager.gentle_reset_attempted = gentle_reset_attempted
+
         def mock_sleep(_seconds: int) -> Generator:
             """A method that mocks sleep."""
             return
             yield
+
+        def dummy_do_request(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_do_request` method."""
+            yield
+            return mock.MagicMock()
 
         gen = self.tm_manager._handle_unhealthy_tm()
         with mock.patch.object(
@@ -2368,10 +2390,17 @@ class TestTmManager:
             BaseBehaviour,
             "request_recovery_params",
             side_effect=dummy_generator_wrapper(acn_communication_success),
+        ), mock.patch.object(
+            BaseBehaviour, "_do_request", new_callable=lambda *_: dummy_do_request
         ):
             next(gen)
 
             if not acn_communication_success:
+                with pytest.raises(StopIteration):
+                    next(gen)
+                return
+
+            if not gentle_reset_attempted:
                 with pytest.raises(StopIteration):
                     next(gen)
                 return
