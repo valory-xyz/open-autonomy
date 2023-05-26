@@ -10,6 +10,9 @@ Autonomy:
 - Makes ledger plugins optional for CLI tools  #1973
 - Adds support for loading environment variables from file on the `autonomy deploy` command group #1960
 
+Packages:
+- Addresses Tendermint disconnection issues. #1976
+
 Plugins:
 - Removes the hardware wallet plugin as a dependency from contract packages  #1973
 - Fixes the ledger plugin version specifiers on the test plugin  #197
