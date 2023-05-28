@@ -284,7 +284,7 @@ def register_instance(  # pylint: disable=too-many-arguments
         raise InstanceRegistrationFailed(
             "Instance registration failed; Error connecting to the RPC"
         ) from e
-    except ValueError as e:
+    except ValueError as e:  # pragma: nocover
         raise InstanceRegistrationFailed(f"Instance registration failed; {e}") from e
 
     try:
@@ -353,7 +353,7 @@ def deploy_service(
         raise ServiceDeployFailed(
             "Service deployment failed; Cannot connect to the RPC"
         ) from e
-    except ValueError as e:
+    except ValueError as e:  # pragma: nocover
         raise ServiceDeployFailed(f"Service deployment failed; {e}") from e
 
     try:
