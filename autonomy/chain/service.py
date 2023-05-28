@@ -25,7 +25,6 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 from aea.crypto.base import Crypto, LedgerApi
 from requests.exceptions import ConnectionError as RequestsConnectionError
-from web3.exceptions import ContractLogicError
 
 from autonomy.chain.base import ServiceState, registry_contracts
 from autonomy.chain.config import ChainType, ContractConfigs
@@ -191,7 +190,7 @@ def activate_service(
         raise ServiceRegistrationFailed(
             "Service activation failed; Error connecting to the RPC"
         ) from e
-    except ContractLogicError as e:
+    except ValueError as e:
         raise ServiceRegistrationFailed(f"Service activation failed; {e}") from e
 
     try:
@@ -285,7 +284,7 @@ def register_instance(  # pylint: disable=too-many-arguments
         raise InstanceRegistrationFailed(
             "Instance registration failed; Error connecting to the RPC"
         ) from e
-    except ContractLogicError as e:
+    except ValueError as e:  # pragma: nocover
         raise InstanceRegistrationFailed(f"Instance registration failed; {e}") from e
 
     try:
@@ -354,7 +353,7 @@ def deploy_service(
         raise ServiceDeployFailed(
             "Service deployment failed; Cannot connect to the RPC"
         ) from e
-    except ContractLogicError as e:
+    except ValueError as e:  # pragma: nocover
         raise ServiceDeployFailed(f"Service deployment failed; {e}") from e
 
     try:
@@ -426,7 +425,7 @@ def terminate_service(
         raise TerminateServiceFailed(
             "Service termination failed; Cannot connect to the RPC"
         ) from e
-    except ContractLogicError as e:
+    except ValueError as e:
         raise TerminateServiceFailed(f"Service termination failed; {e}") from e
 
 
@@ -475,5 +474,5 @@ def unbond_service(
         raise UnbondServiceFailed(
             "Service unbond failed; Cannot connect to the RPC"
         ) from e
-    except ContractLogicError as e:
+    except ValueError as e:
         raise UnbondServiceFailed(f"Service unbond failed; {e}") from e
