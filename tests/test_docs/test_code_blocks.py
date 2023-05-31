@@ -113,11 +113,13 @@ class BaseTestDocCode:
             # This assignment cannot be condensed using the "if" ternary operator.
             doc_process_fn = None
             if self.doc_process_fn is not None:
-                doc_process_fn = lambda s: self.doc_process_fn(s)
+                def doc_process_fn(s):
+                    return self.doc_process_fn(s)
 
             code_process_fn = None
             if self.code_process_fn is not None:
-                code_process_fn = lambda s: self.code_process_fn(s)
+                def code_process_fn(s):
+                    return self.code_process_fn(s)
 
             check_code_blocks_exist(
                 md_file=md_file,
@@ -138,8 +140,13 @@ class TestYamlSnippets(BaseTestDocCode):
     # Preprocessing function:
     # - For Yaml snippets: `doc_process_fn` -> remove tokens like "# (...)\n" from the code
     # - For Yaml snippets: `code_process_fn` -> remove ":bafybei..." hashes after component ID
-    doc_process_fn = lambda self, s: remove_doc_ellipsis(remove_line_comments(s))
-    code_process_fn = lambda self, s: remove_yaml_hashes(s)
+    def doc_process_fn(self, s):
+        """Doc preprocessing function"""
+        return remove_doc_ellipsis(remove_line_comments(s))
+
+    def code_process_fn(self, s):
+        """Code preprocessing function"""
+        return remove_yaml_hashes(s)
 
     # This variable holds a mapping between every doc file and the code files
     # that contains the referenced code. Since a doc file can contain several code
@@ -191,7 +198,9 @@ class TestPythonSnippets(BaseTestDocCode):
 
     # Preprocessing function:
     # - For Python snippets: `doc_process_fn` -> remove tokens like "# (...)\n" from the code
-    doc_process_fn = lambda self, s: remove_doc_ellipsis(remove_line_comments(s))
+    def doc_process_fn(self, s):
+        """Doc preprocessing function"""
+        return remove_doc_ellipsis(remove_line_comments(s))
 
     # This variable holds a mapping between every doc file and the code file
     # that contains the referenced code. Since a doc file can contain several code
