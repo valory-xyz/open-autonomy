@@ -105,7 +105,7 @@ Given the description of the service, it is immediate to obtain the FSM specific
 
 ???+ example "The Hello World service `fsm_specification.yaml` file"
 
-    ```yaml
+    ```yaml title="fsm_specification.yaml"
     alphabet_in:
     - DONE
     - NO_MAJORITY
@@ -505,7 +505,7 @@ Agents are defined through the {{open_aea}} library as YAML files, which specify
 
 This is an excerpt of the `aea-config.yaml` file:
 
-```yaml
+```yaml title="aea-config.yaml"
 # (...)
 connections:
 - valory/abci:0.1.0

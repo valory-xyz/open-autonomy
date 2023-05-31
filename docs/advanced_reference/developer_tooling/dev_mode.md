@@ -93,7 +93,7 @@ By default the command that builds the service deployment (`autonomy deploy buil
 The deployment setup will include a Hardhat node (image `valory/open-autonomy-hardhat`) using `hardhat` as container name. Therefore, in order to use this node, you must set a [service-level override](../../configure_service/service_configuration_file.md#service-level-overrides) so that the `valory/ledger` connection address is set to `http://hardhat:8545`.
 You can achieve this by editing the service configuration file `service.yaml` as follows:
 
-```yaml
+```yaml title="service.yaml"
 # (...)
 ---
 public_id: valory/ledger:0.1.0
@@ -106,7 +106,7 @@ config:
 
 Alternatively, you can leave the default `service.yaml` and export an environment variable:
 
-```yaml
+```yaml title="service.yaml"
 # (...)
 ---
 public_id: valory/ledger:0.1.0
@@ -130,7 +130,7 @@ You can also include an ACN node for agent communication using the `--use-acn` f
 The deployment setup will include an ACN node (image `valory/open-acn-node`) using `acn` as container name. Similarly as above, in order to use this node you must set a [service-level override](../../configure_service/service_configuration_file.md#service-level-overrides) so that the `valory/p2p_libp2p_client` connection parameters are set to the appropriate values.
 You can achieve this by editing the service configuration file `service.yaml` as follows:
 
-```yaml
+```yaml title="service.yaml"
 # (...)
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
