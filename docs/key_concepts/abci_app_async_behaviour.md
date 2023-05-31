@@ -74,7 +74,7 @@ class SimpleBehaviour(Behaviour, ABC):
 
     def act(self) -> None:
         """Do the action."""
-    # ...
+    # (...)
 ```
 
 The `AsyncBehaviour` utility class allows to wrap the execution
@@ -102,7 +102,7 @@ class AsyncBehaviour(ABC):
     @abstractmethod
     def async_act_wrapper(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
-    # ...
+    # (...)
 ```
 
 The abstract methods the developer should implement are called
@@ -321,7 +321,7 @@ class GenericBuyerBehaviour(OneShotBehaviour, AsyncBehaviour):
 
         # here there should be the buyer strategy
         # for the negotiation with the seller...
-        # ...
+        # (...)
 
         # in case both parties accept the negotiation outcome:
         tx = build_tx(...)

@@ -94,7 +94,7 @@ The deployment setup will include a Hardhat node (image `valory/open-autonomy-ha
 You can achieve this by editing the service configuration file `service.yaml` as follows:
 
 ```yaml
-# ...
+# (...)
 ---
 public_id: valory/ledger:0.1.0
 type: connection
@@ -107,7 +107,7 @@ config:
 Alternatively, you can leave the default `service.yaml` and export an environment variable:
 
 ```yaml
-# ...
+# (...)
 ---
 public_id: valory/ledger:0.1.0
 type: connection
@@ -131,7 +131,7 @@ The deployment setup will include an ACN node (image `valory/open-acn-node`) usi
 You can achieve this by editing the service configuration file `service.yaml` as follows:
 
 ```yaml
-# ...
+# (...)
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
 type: connection

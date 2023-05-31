@@ -506,7 +506,7 @@ Agents are defined through the {{open_aea}} library as YAML files, which specify
 This is an excerpt of the `aea-config.yaml` file:
 
 ```yaml
-# ...
+# (...)
 connections:
 - valory/abci:0.1.0
 - valory/http_client:0.23.0
@@ -523,7 +523,7 @@ skills:
 - valory/abstract_abci:0.1.0
 - valory/abstract_round_abci:0.1.0
 - valory/hello_world_abci:0.1.0
-# ...
+# (...)
 ```
 
 It is mandatory that service agents include some of mandatory components: the `abci` connection, the `abci` protocol, the `abstract_abci` skill and the `abstract_round_abci` skill.

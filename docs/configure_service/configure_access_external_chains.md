@@ -30,7 +30,7 @@ At agent level, the agent configuration file `aea-config.yaml` should contain an
 === "Using environment variables (recommended)"
 
     ```yaml
-    (...)
+    # (...)
     ---
     public_id: valory/ledger:0.19.0
     type: connection
@@ -44,7 +44,7 @@ At agent level, the agent configuration file `aea-config.yaml` should contain an
 === "Using hardcoded values"
 
     ```yaml
-    (...)
+    # (...)
     ---
     public_id: valory/ledger:0.19.0
     type: connection
@@ -67,7 +67,7 @@ Similarly, service-level overrides for the `valory/ledger` connection are define
 
 === "Using environment variables"
     ```yaml
-    (...)
+    # (...)
     ---
     public_id: valory/ledger:0.19.0
     type: connection
@@ -82,7 +82,7 @@ Similarly, service-level overrides for the `valory/ledger` connection are define
 === "Using hardcoded values"
 
     ```yaml
-    (...)
+    # (...)
     ---
     public_id: valory/ledger:0.19.0
     type: connection
@@ -189,7 +189,7 @@ The underlying retrial mechanism has a backoff that scales linearly, starting at
     An example configuration in the `skill.yaml` file for the Ethereum mainnet is as follows:
     
     ```yaml
-    (...)
+    # (...)
     models:
       params:
         args:

@@ -17,7 +17,7 @@ You can define custom arguments for the skill, if required.
     from packages.valory.skills.abstract_round_abci.models import BenchmarkTool
     from packages.valory.skills.abstract_round_abci.models import BaseParams
 
-    (...)
+    # (...)
 
     YourBenchmarkTool = BenchmarkTool
     YourSkillParams = BaseParams
@@ -29,7 +29,7 @@ You can define custom arguments for the skill, if required.
     from packages.valory.skills.abstract_round_abci.models import BenchmarkTool
     from packages.valory.skills.abstract_round_abci.models import BaseParams
 
-    (...)
+    # (...)
 
     YourBenchmarkTool = BenchmarkTool
 
@@ -38,7 +38,7 @@ You can define custom arguments for the skill, if required.
             self.your_custom_arg_1: str = self._ensure("your_custom_arg_1", kwargs, str)
             self.your_custom_arg_2: str = self._ensure("your_custom_arg_2", kwargs, str)            
             
-            (...)
+            # (...)
 
             super().__init__(*args, **kwargs)
     ```
@@ -64,7 +64,7 @@ See also the [service level overrides](../configure_service/service_configuratio
     author: <author>
     version: <version>
     type: skill    
-    (...)
+    # (...)
     models:
       benchmark_tool:
         args:
@@ -83,14 +83,14 @@ See also the [service level overrides](../configure_service/service_configuratio
           service_registry_address: null
           share_tm_config_on_startup: false
           on_chain_service_id: null
-          (...)
+          # (...)
         class_name: YourSkillParams
     ```
 
 === "aea-config.yaml"
 
     ``` yaml
-    (...)
+    # (...)
     ---
     public_id: valory/abci:0.1.0
     type: connection
@@ -148,13 +148,13 @@ See also the [service level overrides](../configure_service/service_configuratio
           service_registry_address: ${str:null}
           share_tm_config_on_startup: ${bool:false}
           on_chain_service_id: ${int:null}
-          (...)
+          # (...)
     ```
 
 === "service.yaml"
 
     ``` yaml
-    (...)
+    # (...)
     ---
     public_id: valory/ledger:0.19.0
     type: connection
@@ -185,12 +185,12 @@ See also the [service level overrides](../configure_service/service_configuratio
           service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:0x...}
           share_tm_config_on_startup: ${SHARE_TM_CONFIG_ON_STARTUP:bool:false}
           on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
-          (...)
+          # (...)
     ```
 !!! warning "Important"
     Recall that when [deploying an on-chain service](../guides/deploy_service.md#on-chain-deployment) using `autonomy deploy from-token`, a number of arguments (under `setup`) are overridden with the values registered in the Autonolas Protocol:
     ```yaml
-    # ...
+    # (...)
     models:
       params:
         args:
