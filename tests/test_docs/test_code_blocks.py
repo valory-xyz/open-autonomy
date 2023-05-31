@@ -114,13 +114,13 @@ class BaseTestDocCode:
             doc_process_fn = None
             if self.doc_process_fn is not None:
 
-                def doc_process_fn(s):
+                def doc_process_fn(s):  # type: ignore
                     return self.doc_process_fn(s)
 
             code_process_fn = None
             if self.code_process_fn is not None:
 
-                def code_process_fn(s):
+                def code_process_fn(s):  # type: ignore
                     return self.code_process_fn(s)
 
             check_code_blocks_exist(
@@ -142,11 +142,11 @@ class TestYamlSnippets(BaseTestDocCode):
     # Preprocessing function:
     # - For Yaml snippets: `doc_process_fn` -> remove tokens like "# (...)\n" from the code
     # - For Yaml snippets: `code_process_fn` -> remove ":bafybei..." hashes after component ID
-    def doc_process_fn(self, s):
+    def doc_process_fn(self, s):  # type: ignore
         """Doc preprocessing function"""
         return remove_doc_ellipsis(remove_line_comments(s))
 
-    def code_process_fn(self, s):
+    def code_process_fn(self, s):  # type: ignore
         """Code preprocessing function"""
         return remove_yaml_hashes(s)
 
@@ -200,7 +200,7 @@ class TestPythonSnippets(BaseTestDocCode):
 
     # Preprocessing function:
     # - For Python snippets: `doc_process_fn` -> remove tokens like "# (...)\n" from the code
-    def doc_process_fn(self, s):
+    def doc_process_fn(self, s):  # type: ignore
         """Doc preprocessing function"""
         return remove_doc_ellipsis(remove_line_comments(s))
 
