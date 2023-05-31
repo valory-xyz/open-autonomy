@@ -31,6 +31,7 @@ from tests.test_docs.helper import (  # type: ignore
     extract_make_commands,
     remove_doc_ellipsis,
     remove_line_comments,
+    remove_yaml_hashes
 )
 
 
@@ -40,6 +41,8 @@ class BaseTestDocCode:
     md_to_code: Dict[str, Dict] = {}
     code_type: CodeType = CodeType.NOCODE
     skipped_files: Optional[List[str]] = None
+    doc_process_fn: Optional[Callable] = None
+    code_process_fn: Optional[Callable] = None
 
     def _to_os_path(self, file_path: str) -> str:
         r"""
@@ -105,16 +108,26 @@ class BaseTestDocCode:
                 f"Checking {self.code_type.value} snippets in file {md_file}... ",
                 end="",
             )
+            
+            
+            # Eliminate the "self" dependency of the lambda functions.
+            # This assignment cannot be condensed using the "if" ternary operator.
+            doc_process_fn = None
+            if self.doc_process_fn is not None:
+                doc_process_fn = lambda s: self.doc_process_fn(s)
+            
+            code_process_fn = None
+            if self.code_process_fn is not None:
+                code_process_fn = lambda s: self.code_process_fn(s)
 
-            # Preprocessing functions:
-            # - For doc files: `doc_process_fn` -> remove tokens like "# ...\n" from the code
-            # - For code files: code_process_fn` not required.
             check_code_blocks_exist(
                 md_file=md_file,
                 code_info=code_info,
                 code_type=self.code_type,
-                doc_process_fn=lambda s: remove_doc_ellipsis(remove_line_comments(s)),
+                doc_process_fn=doc_process_fn,
+                code_process_fn=code_process_fn
             )
+            
 
             print("OK")
 
@@ -123,6 +136,12 @@ class TestYamlSnippets(BaseTestDocCode):
     """Test that all the yaml snippets in the documentation exist in the repository"""
 
     code_type = CodeType.YAML
+
+    # Preprocessing function:
+    # - For Yaml snippets: `doc_process_fn` -> remove tokens like "# (...)\n" from the code
+    # - For Yaml snippets: `code_process_fn` -> remove ":bafybei..." hashes after component ID
+    doc_process_fn = lambda self, s: remove_doc_ellipsis(remove_line_comments(s))
+    code_process_fn = lambda self, s: remove_yaml_hashes(s)
 
     # This variable holds a mapping between every doc file and the code files
     # that contains the referenced code. Since a doc file can contain several code
@@ -134,12 +153,12 @@ class TestYamlSnippets(BaseTestDocCode):
     # instead of checking the code block as a whole.
 
     md_to_code = {
-        # "docs/demos/hello_world_demo.md": {
-        #     "code_files": [
-        #         "packages/valory/skills/hello_world_abci/fsm_specification.yaml",
-        #         "packages/valory/agents/hello_world/aea-config.yaml",
-        #     ],
-        # },
+         "docs/demos/hello_world_demo.md": {
+             "code_files": [
+                 "packages/valory/skills/hello_world_abci/fsm_specification.yaml",
+                 "packages/valory/agents/hello_world/aea-config.yaml",
+             ],
+         },
         "docs/demos/price_oracle_fsms.md": {
             "code_files": [
                 "packages/valory/skills/registration_abci/fsm_specification.yaml",
@@ -164,7 +183,6 @@ class TestYamlSnippets(BaseTestDocCode):
         "docs/configure_service/on-chain_deployment_checklist.md",  # just placeholder examples
         "docs/configure_service/configure_access_external_chains.md",  # just placeholder examples
         "docs/advanced_reference/developer_tooling/dev_mode.md",  # just placeholder examples
-        "docs/demos/hello_world_demo.md",  # TODO: Fix the hash update script to update the aea config code snippet
     ]
 
 
@@ -172,6 +190,10 @@ class TestPythonSnippets(BaseTestDocCode):
     """Test that all the python snippets in the documentation exist in the repository"""
 
     code_type = CodeType.PYTHON
+
+    # Preprocessing function:
+    # - For Python snippets: `doc_process_fn` -> remove tokens like "# (...)\n" from the code
+    doc_process_fn = lambda self, s: remove_doc_ellipsis(remove_line_comments(s))
 
     # This variable holds a mapping between every doc file and the code file
     # that contains the referenced code. Since a doc file can contain several code
