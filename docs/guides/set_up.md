@@ -121,7 +121,7 @@ If you plan to follow the guides in the next sections, you need to populate the 
         "protocol/valory/ipfs/0.1.0": "bafybeic72ncgqbzoz2guj4p4yjqulid7mv6yroeh65hxznloamoveeg7hq",
         "protocol/valory/ledger_api/1.0.0": "bafybeibo4bdtcrxi2suyzldwoetjar6pqfzm6vt5xal22ravkkcvdmtksi",
         "protocol/valory/tendermint/0.1.0": "bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54",
-        "agent/valory/abstract_abci/0.1.0": "bafybeif67mbeiboqt4ow7rvx7pbjdoml7ldiznzewdltzk2kmqwf7an5oa",
+        "skill/valory/abstract_abci/0.1.0": "bafybeigte2l4en4otdp2maaoc3uesqdga5z4sqozrybsmcdp26bgfbcy54",
         "skill/valory/abstract_round_abci/0.1.0": "bafybeigsbglflua5vdwmwmo2rjsogp4anxtpqjbtrcwfivuxjiv6xczpba",
         "skill/valory/hello_world_abci/0.1.0": "bafybeih6ze466tq3g7spjyqnp3fkle2da4z2q72cvswttkolb2l23ipcjy",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva"
