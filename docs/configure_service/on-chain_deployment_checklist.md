@@ -190,7 +190,7 @@ See also the [service level overrides](../configure_service/service_configuratio
 !!! warning "Important"
     Recall that when [deploying an on-chain service](../guides/deploy_service.md#on-chain-deployment) using `autonomy deploy from-token`, a number of arguments (under `setup`) are overridden with the values registered in the Autonolas Protocol:
     ```yaml
-    (...)
+    # ...
     models:
       params:
         args:

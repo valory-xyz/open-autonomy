@@ -237,7 +237,7 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
          If your agent is using an {{fsm_app}}, you also need to override the variable `all_participants` in the `aea-config.yaml` file with the wallet address of this private key as follows:
 
          ```yaml title="aea-config.yaml"
-         (...)
+         # ...
          all_participants: ${list:["0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65"]}
          ```
 
