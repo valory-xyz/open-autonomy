@@ -31,7 +31,7 @@ from tests.test_docs.helper import (  # type: ignore
     extract_make_commands,
     remove_doc_ellipsis,
     remove_line_comments,
-    remove_yaml_hashes
+    remove_yaml_hashes,
 )
 
 
