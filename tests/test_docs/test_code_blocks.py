@@ -113,11 +113,13 @@ class BaseTestDocCode:
             # This assignment cannot be condensed using the "if" ternary operator.
             doc_process_fn = None
             if self.doc_process_fn is not None:
+
                 def doc_process_fn(s):
                     return self.doc_process_fn(s)
 
             code_process_fn = None
             if self.code_process_fn is not None:
+
                 def code_process_fn(s):
                     return self.code_process_fn(s)
 
