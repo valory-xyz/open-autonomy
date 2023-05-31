@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# (TBD)
+
+Docs:
+- Fixes code check linter #1986
+
 # 0.10.5.post1 (2023-05-24)
 
 Autonomy:
