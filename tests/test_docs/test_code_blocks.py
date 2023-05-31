@@ -108,14 +108,13 @@ class BaseTestDocCode:
                 f"Checking {self.code_type.value} snippets in file {md_file}... ",
                 end="",
             )
-            
-            
+
             # Eliminate the "self" dependency of the lambda functions.
             # This assignment cannot be condensed using the "if" ternary operator.
             doc_process_fn = None
             if self.doc_process_fn is not None:
                 doc_process_fn = lambda s: self.doc_process_fn(s)
-            
+
             code_process_fn = None
             if self.code_process_fn is not None:
                 code_process_fn = lambda s: self.code_process_fn(s)
@@ -125,9 +124,8 @@ class BaseTestDocCode:
                 code_info=code_info,
                 code_type=self.code_type,
                 doc_process_fn=doc_process_fn,
-                code_process_fn=code_process_fn
+                code_process_fn=code_process_fn,
             )
-            
 
             print("OK")
 
@@ -153,12 +151,12 @@ class TestYamlSnippets(BaseTestDocCode):
     # instead of checking the code block as a whole.
 
     md_to_code = {
-         "docs/demos/hello_world_demo.md": {
-             "code_files": [
-                 "packages/valory/skills/hello_world_abci/fsm_specification.yaml",
-                 "packages/valory/agents/hello_world/aea-config.yaml",
-             ],
-         },
+        "docs/demos/hello_world_demo.md": {
+            "code_files": [
+                "packages/valory/skills/hello_world_abci/fsm_specification.yaml",
+                "packages/valory/agents/hello_world/aea-config.yaml",
+            ],
+        },
         "docs/demos/price_oracle_fsms.md": {
             "code_files": [
                 "packages/valory/skills/registration_abci/fsm_specification.yaml",
