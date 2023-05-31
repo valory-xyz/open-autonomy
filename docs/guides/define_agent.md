@@ -75,21 +75,21 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
         fingerprint: {}
         fingerprint_ignore_patterns: []
         connections:
-        - valory/abci:0.1.0:bafybeienpqzsym3rg7nnomd6mxgbt4didwd4wfj72oadde27trdmcgsu5y
-        - valory/http_client:0.23.0:bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi
-        - valory/ipfs:0.1.0:bafybeie46fu7mv64q72dwzoxg77zbiv3pzsigzjk3rehjpm47cf3y77mha
-        - valory/ledger:0.19.0:bafybeighon6i2qfl2xrg7t3lbdzlkyo4v2a7ayvwso7m5w7pf2hvjfs2ma
-        - valory/p2p_libp2p_client:0.1.0:bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva
+        - valory/abci:0.1.0
+        - valory/http_client:0.23.0
+        - valory/ipfs:0.1.0
+        - valory/ledger:0.19.0
+        - valory/p2p_libp2p_client:0.1.0
         contracts: []
         protocols:
-        - open_aea/signing:1.0.0:bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4
-        - valory/abci:0.1.0:bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4
-        - valory/http:1.0.0:bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty
-        - valory/ipfs:0.1.0:bafybeihlgai5pbmkb6mjhvgy4gkql5uvpwvxbpdowczgz4ovxat6vajrq4
+        - open_aea/signing:1.0.0
+        - valory/abci:0.1.0
+        - valory/http:1.0.0
+        - valory/ipfs:0.1.0
         skills:
-        - valory/abstract_abci:0.1.0:bafybeigg5ofide2gxwgjvljjgpyy6ombby7ph6pg7erj3h6itduwpn6pqu
-        - valory/abstract_round_abci:0.1.0:bafybeicn5utwviq46ubguok5rl5go4hb7oxluj7t6bja2ut4epjw2hevei
-        - valory/hello_world_abci:0.1.0:bafybeigidqcurxh3r3m7vxjfv2d4tvcpzvkhwj7r7owacn6jymzik75k7i
+        - valory/abstract_abci:0.1.0
+        - valory/abstract_round_abci:0.1.0
+        - valory/hello_world_abci:0.1.0
         default_ledger: ethereum
         required_ledgers:
         - ethereum
