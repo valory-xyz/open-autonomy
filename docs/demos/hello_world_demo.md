@@ -105,7 +105,7 @@ Given the description of the service, it is immediate to obtain the FSM specific
 
 ???+ example "The Hello World service `fsm_specification.yaml` file"
 
-    ```yaml
+    ```yaml title="fsm_specification.yaml"
     alphabet_in:
     - DONE
     - NO_MAJORITY
@@ -505,25 +505,25 @@ Agents are defined through the {{open_aea}} library as YAML files, which specify
 
 This is an excerpt of the `aea-config.yaml` file:
 
-```yaml
-# ...
+```yaml title="aea-config.yaml"
+# (...)
 connections:
-- valory/abci:0.1.0:bafybeihkimb5kmtrhapmvix2od3u3qocqz4zfcjvaphj4t4sardtjgsfqy
-- valory/http_client:0.23.0:bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi
-- valory/ipfs:0.1.0:bafybeigr2cipad23aebjpnqtzpgymiwrwgmnior2fk4inbscdnqyl5epla
-- valory/ledger:0.19.0:bafybeicgfupeudtmvehbwziqfxiz6ztsxr5rxzvalzvsdsspzz73o5fzfi
-- valory/p2p_libp2p_client:0.1.0:bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva
+- valory/abci:0.1.0
+- valory/http_client:0.23.0
+- valory/ipfs:0.1.0
+- valory/ledger:0.19.0
+- valory/p2p_libp2p_client:0.1.0
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4
-- valory/abci:0.1.0:bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4
-- valory/http:1.0.0:bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty
-- valory/ipfs:0.1.0:bafybeic72ncgqbzoz2guj4p4yjqulid7mv6yroeh65hxznloamoveeg7hq
+- open_aea/signing:1.0.0
+- valory/abci:0.1.0
+- valory/http:1.0.0
+- valory/ipfs:0.1.0
 skills:
-- valory/abstract_abci:0.1.0:bafybeigqr6dzr23r6oxbnpxqyae7g5ndjy75oatjk6liyrvmpb2jxehirq
-- valory/abstract_round_abci:0.1.0:bafybeiczyvbjawlmqob4ktvs7yww53bvebiwbsckuirhcf73763r5ljoeq
-- valory/hello_world_abci:0.1.0:bafybeia2q3oqsyrthcb7i7kky2si5kjfzhretjvql6vz5zspagm7yrjate
-# ...
+- valory/abstract_abci:0.1.0
+- valory/abstract_round_abci:0.1.0
+- valory/hello_world_abci:0.1.0
+# (...)
 ```
 
 It is mandatory that service agents include some of mandatory components: the `abci` connection, the `abci` protocol, the `abstract_abci` skill and the `abstract_round_abci` skill.

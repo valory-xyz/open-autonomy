@@ -248,7 +248,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
 The framework provides a convenient method to deploy agent services minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/). This has the benefit that some configuration parameters of the {{fsm_app}} skill will be overridden automatically with values obtained on-chain. Namely:
 
 ```yaml title="skill.yaml"
-(...)
+# (...)
 models:
     params:
     args:

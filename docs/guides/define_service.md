@@ -53,7 +53,7 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
         license: Apache-2.0
         fingerprint: {}
         fingerprint_ignore_patterns: []
-        agent: valory/hello_world:0.1.0:bafybeictqwn5cqmistwfoq2h3igmytqyfi5jfbei24bofrnhs7deixoily
+        agent: valory/hello_world:0.1.0
         number_of_agents: 4
         deployment: {}
         ---
