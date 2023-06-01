@@ -1,8 +1,9 @@
 # Release History - `open-autonomy`
 
-# (TBD)
+# 0.10.6 (TBD)
 
 Docs:
+- Fixes the gentle reset logic #1987
 - Fixes code check linter #1986
 
 # 0.10.5.post1 (2023-05-24)
