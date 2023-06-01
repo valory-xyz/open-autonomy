@@ -118,7 +118,6 @@ INITIAL_APP_HASH = ""
 INITIAL_HEIGHT = "0"
 TM_REQ_TIMEOUT = 5  # 5 seconds
 FLASHBOTS_LEDGER_ID = "ethereum_flashbots"
-GENTLE_RESET_WAIT = 30
 
 
 class SendException(Exception):
@@ -2152,7 +2151,7 @@ class TmManager(BaseBehaviour):
         if not self.gentle_reset_attempted:
             self.gentle_reset_attempted = True
             yield from self._gentle_reset()
-            yield from self.sleep(GENTLE_RESET_WAIT)
+            yield from self._check_sync()
             return
 
         # since we have reached this point, that means that the cause of blocks not being received
