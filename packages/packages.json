@@ -39,7 +39,7 @@
         "service/valory/hello_world/0.1.0": "bafybeihccoc7gus5fl5zu7x6vr5f5ipelzrkzrne5rx4im5vapyice4asu",
         "service/valory/register_reset/0.1.0": "bafybeia3pd222rr5y6ubhszrmwiix6vwbjkc43c2q3zutyn5gkwkvurvky",
         "skill/valory/register_reset_recovery_abci/0.1.0": "bafybeienk4bp32clc5fauwyeugztklphbqrsrl3ddacc3rcanfabvtbbsu",
-        "agent/valory/register_reset_recovery/0.1.0": "bafybeif2fo4fdqf24oicshnutqp7r24mvuvu56oy2qywq4uutrvgb4scfi",
+        "agent/valory/register_reset_recovery/0.1.0": "bafybeifzluevo63n2i7vzgvxry5s2xxjhg44evoq27vmsqzl24kjax4k4q",
         "contract/valory/multicall2/0.1.0": "bafybeigywp4gpl6lel2bemehbvevpfflnwnpjaq3wnb7o7rjnwzqrlnijq"
     },
     "third_party": {

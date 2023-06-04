@@ -45,7 +45,7 @@ jobs:
         ptime pipenv run pip install -e .[all]
         ptime pipenv lock
 
-  copyright_doc_and_pipfile_check:
+  copyright_doc_and_dependencies_check:
     continue-on-error: False
     runs-on: ${{ matrix.os }}
 
@@ -80,8 +80,8 @@ jobs:
       run: tomte check-doc-links --http-skips http://host.docker.internal:8545 --http-skips http://www.fipa.org/repository/ips.php3 --url-skips "https://gateway.autonolas.tech/ipfs/<hash>," --url-skips "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure" --url-skips "http://host.docker.internal:8545" --url-skips "https://github.com/valory-xyz/open-operator"
     - name: Check doc IPFS hashes
       run: tox -e check-doc-hashes
-    - name: Check pipfiles
-      run: tox -e check-pipfiles
+    - name: Check dependencies
+      run: tox -e check-dependencies
 
   linter_checks:
     continue-on-error: False
@@ -172,7 +172,7 @@ jobs:
     continue-on-error: True
     needs:
       - lock_check
-      - copyright_doc_and_pipfile_check
+      - copyright_doc_and_dependencies_check
       - linter_checks
     runs-on: ${{ matrix.os }}
 
@@ -359,7 +359,7 @@ jobs:
     continue-on-error: True
     needs:
       - lock_check
-      - copyright_doc_and_pipfile_check
+      - copyright_doc_and_dependencies_check
       - linter_checks
     runs-on: ${{ matrix.os }}
 
