@@ -54,7 +54,7 @@ base_deps = [
     "Flask>=2.0.2,<3.0.0",
     "open-aea[all]==1.34.0",
     "pandas<1.4,>=1.3.4",
-    "watchdog >=2.1.6",
+    "watchdog>=2.1.6",
     "pytest==7.2.1",
     "docker-compose==1.29.2",
     "werkzeug==2.0.3",
