@@ -114,10 +114,7 @@ def update_tox_ini(
     new_package_dependencies: dict, tox_ini_path: str = "./tox.ini"
 ) -> None:
     """Update the tox.ini file with the new package dependencies."""
-    new_package_dependencies.pop("python", None)
     for key, value in new_package_dependencies.items():
-        if isinstance(value, str) and len(value) > 0 and "^" == value[0]:
-            new_package_dependencies[key] = "==" + value[1:]
         if isinstance(value, str) and len(value) == 1 and "*" == value[0]:
             new_package_dependencies[key] = ""
         if isinstance(value, dict):
