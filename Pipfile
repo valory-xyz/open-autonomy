@@ -13,6 +13,9 @@ open-aea-ledger-ethereum-hwi = "==1.34.0"
 open-aea-cli-ipfs = "==1.34.0"
 ipfshttpclient = "==0.8.0a2"
 Werkzeug= "==2.0.3"
+watchdog = ">=2.1.6"
+pytest = "==7.2.1"
+click = "==8.0.2"
 
 [dev-packages]
 ### package deps
