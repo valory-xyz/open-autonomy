@@ -29,7 +29,6 @@ It is assumed the script is run from the repository root.
 import os
 import subprocess  # nosec
 import sys
-from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict
 
@@ -180,9 +179,9 @@ if __name__ == "__main__":
     package_dependencies = get_package_dependencies()
     # temp hack
     package_dependencies["requests"] = "==2.28.2"
-    listed_package_dependencies = load_pipfile()
-    warnings(listed_package_dependencies, package_dependencies)
-    update_tox_ini(listed_package_dependencies)
+    listed_package_dependencies_ = load_pipfile()
+    warnings(listed_package_dependencies_, package_dependencies)
+    update_tox_ini(listed_package_dependencies_)
     if not update and not check_for_no_changes():
         print(
             "There are mismatching package dependencies in the pyproject.toml file and the packages."
