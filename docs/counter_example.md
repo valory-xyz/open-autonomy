@@ -25,7 +25,7 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
 
 2. Use the CLI to download the `valory/counter` service.
     ```bash
-    autonomy fetch valory/counter:0.1.0:bafybeic7yucjopvpyiauw3rqx2k3khdickuacphkhfwzmyknyrjbk74a5q --remote --service
+    autonomy fetch valory/counter:0.1.0:bafybeihojdpcfsj57c44pegokqd6nyxucsd6qlmi5o4gbhwpcuz55dnw7u --remote --service
     cd counter
     ```
 
@@ -318,7 +318,7 @@ value of the counter; this behaviour is implemented in the
 
 The output of the run should be something like:
 
-```
+```text
     _     _____     _
    / \   | ____|   / \
   / _ \  |  _|    / _ \
@@ -349,5 +349,5 @@ info: [counter_client] [2021-08-05T20:00:14.838130] The counter value is: 3
 info: [counter_client] [2021-08-05T20:00:15.826483] The counter value is: 4
 info: [counter_client] [2021-08-05T20:00:15.826825] Update current state: 4
 info: [counter_client] [2021-08-05T20:00:16.831485] The counter value is: 4
-...
+(...)
 ```
