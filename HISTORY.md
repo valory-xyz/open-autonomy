@@ -2,6 +2,9 @@
 
 # 0.10.6 (TBD)
 
+Autonomy:
+- Makes the `params` model optional when verifying the `ABCI` skill
+
 Docs:
 - Fixes the gentle reset logic #1987
 - Fixes code check linter #1986
