@@ -449,19 +449,12 @@ class ServiceAnalyser:
         )
         skill_config_to_check: Dict[str, Dict] = {"models": {}}
         skill_config_json = copy.deepcopy(skill_config.json)
-
-        if "params" not in skill_config_json["models"]:
-            self.logger.warning(
-                "`params` model not found in skill configuration aborting skill cross verification"
-            )
-            return
-
         skill_config_to_check["models"]["params"] = {
-            "args": skill_config.json["models"]["params"]["args"]
+            "args": skill_config_json["models"]["params"]["args"]
         }
-        if "benchmark_tool" in skill_config.json["models"]:
+        if "benchmark_tool" in skill_config_json["models"]:
             skill_config_to_check["models"]["benchmark_tool"] = {
-                "args": skill_config.json["models"]["benchmark_tool"]["args"]
+                "args": skill_config_json["models"]["benchmark_tool"]["args"]
             }
 
         for override in self.service_config.overrides:
@@ -720,8 +713,9 @@ class ServiceAnalyser:
         self.logger.info(f"Validating ABCI skill {skill_config.public_id}")
         model_params = skill_config.models.read("params")
         if model_params is None:
-            self.logger.warning("The ABCI skill does not contain `params` model")
-            return
+            raise ServiceValidationFailed(
+                f"The chained ABCI skill `{skill_config.public_id}` does not contain `params` model"
+            )
 
         self._validate_override(
             validator=ABCI_SKILL_MODEL_PARAMS_VALIDATOR,
