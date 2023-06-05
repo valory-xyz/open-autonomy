@@ -3,7 +3,7 @@
 # 0.10.6 (TBD)
 
 Autonomy:
-- Makes the `params` model optional when verifying the `ABCI` skill
+- Makes the chained `ABCI` skill filter more strict on the service analyser #1982
 
 Docs:
 - Fixes the gentle reset logic #1987
