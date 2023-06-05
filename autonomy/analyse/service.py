@@ -450,7 +450,7 @@ class ServiceAnalyser:
         skill_config_to_check: Dict[str, Dict] = {"models": {}}
         skill_config_json = copy.deepcopy(skill_config.json)
 
-        if "models" not in skill_config_json["models"]:
+        if "params" not in skill_config_json["models"]:
             self.logger.warning(
                 "`params` model not found in skill configuration aborting skill cross verification"
             )
