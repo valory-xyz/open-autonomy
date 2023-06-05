@@ -395,7 +395,25 @@ class BaseAnalyseServiceTest(BaseCliTest):
 class TestVerifySkillConfig(BaseAnalyseServiceTest):
     """Test verify overrides method."""
 
-    def test_missing_params(self, caplog: Any) -> None:
+    def test_abci_skill_not_found(self) -> None:
+        """Test run."""
+
+        skill_config = get_dummy_skill_config()
+        skill_config["skills"] = []
+        with self.patch_loader(
+            service_data=[
+                get_dummy_service_config(),
+                get_dummy_overrides_skill(env_vars_with_name=True),
+            ],
+            agent_data=[get_dummy_agent_config(), get_dummy_overrides_skill()],
+            skill_data=skill_config,
+        ), self.patch_ipfs_tool([]):
+            result = self.run_cli(commands=self.public_id_option)
+
+        assert result.exit_code == 1, result.stdout
+        assert "Chained ABCI skill package not found" in result.stderr
+
+    def test_params_model_not_found(self) -> None:
         """Test run."""
 
         skill_config = get_dummy_skill_config()
@@ -408,15 +426,14 @@ class TestVerifySkillConfig(BaseAnalyseServiceTest):
             ],
             agent_data=[get_dummy_agent_config(), get_dummy_overrides_skill()],
             skill_data=skill_config,
-        ), self.patch_ipfs_tool([]), caplog.at_level(logging.WARNING):
+        ), self.patch_ipfs_tool([]):
             result = self.run_cli(commands=self.public_id_option)
 
-        assert "The ABCI skill does not contain `params` model" in caplog.text
+        assert result.exit_code == 1, result.stdout
         assert (
-            "`params` model not found in skill configuration aborting skill cross verification"
-            in caplog.text
+            "The chained ABCI skill `valory/abci_skill:0.1.0` does not contain `params` model"
+            in result.stderr
         )
-        assert result.exit_code == 0, result.stderr
 
 
 class TestCheckRequiredAgentOverrides(BaseAnalyseServiceTest):
