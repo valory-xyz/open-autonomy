@@ -35,7 +35,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
 
     === "Remote registry"
         ```bash
-        autonomy fetch valory/hello_world:0.1.0:bafybeidrygbxbjwb5ygftiqmnjmt4hd64wfmokk56e56vnpgdw5s3tjyky --service
+        autonomy fetch valory/hello_world:0.1.0:bafybeiboenr2l5pgrov6dtlyx5mjop4odgrr6u4fhasc57a2g2sec5r43a --service
         ```
 
 2. **Build the agents' image.** Navigate to the service runtime folder that you have just created and build the Docker image of the agents of the service:
