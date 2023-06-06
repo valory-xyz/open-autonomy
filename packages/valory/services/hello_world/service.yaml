@@ -6,8 +6,13 @@ aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
 fingerprint:
   README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
+  abci_build/agent_keys/agent_0_private_key.yaml: bafybeigl7xg4kd7nbv2j4gxcnjygfawpcueciax6glxgcs7rcgq264xxiu
+  abci_build/agent_keys/agent_1_private_key.yaml: bafybeietonogypibcsjm3a2uupvxqbw3zuxs65zfituzdyswcmy4gbcnfe
+  abci_build/agent_keys/agent_2_private_key.yaml: bafybeihc7ti3j55triw4uq27am7w2ygiobcjlbsierfcnha3v7icjmv7by
+  abci_build/agent_keys/agent_3_private_key.yaml: bafybeihmsazj7cddxxo27vkhppvmledbztb6jz5wlds43s5x7k7ntxcgli
+  abci_build/build.yaml: bafybeid6grhfr4ynn6mk3mdthjq4qbiymbyh2hjxsr53og7tu3c3g55hae
 fingerprint_ignore_patterns: []
-agent: valory/hello_world:0.1.0:bafybeigxer6v3ujegedzksb3y3kylxg355jsfj26vh7jrs2ovnmpa4axny
+agent: valory/hello_world:0.1.0:bafybeihnkrlyxkqdyn5nyxpg5nqgl6qziksvm7jbdtw4zt2tsnewqpshjy
 number_of_agents: 4
 deployment: {}
 ---
