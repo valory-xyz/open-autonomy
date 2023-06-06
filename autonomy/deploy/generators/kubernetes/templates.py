@@ -274,7 +274,7 @@ spec:
           secret:
             secretName: agent-validator-{validator_ix}-key
             items:
-            - key: private_key
+            - key: {ledger}_private_key.txt
               path: {ledger}_private_key.txt
         - name: persistent-data
           persistentVolumeClaim:
