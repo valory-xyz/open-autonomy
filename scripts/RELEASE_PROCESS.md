@@ -22,7 +22,7 @@
 
 9.  Write release notes and place them in `HISTORY.md`. Add upgrading tips in `upgrading.md`. If necessary, adjust version references in `SECURITY.md`. Commit if satisfied.
 
-10. Run spell checker `./scripts/spell-check.sh`. Run `pylint --disable all --enable spelling ...`. Commit if required.
+10. Run spell checker `tomte check-spelling`. Run `pylint --disable all --enable spelling ...`. Commit if required.
 
 11. Open PRs and merge into develop. Then open develop to main PR and merge it.
 

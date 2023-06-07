@@ -35,7 +35,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
 
     === "Remote registry"
         ```bash
-        autonomy fetch valory/hello_world:0.1.0:bafybeiboenr2l5pgrov6dtlyx5mjop4odgrr6u4fhasc57a2g2sec5r43a --service
+        autonomy fetch valory/hello_world:0.1.0:bafybeihccoc7gus5fl5zu7x6vr5f5ipelzrkzrne5rx4im5vapyice4asu --service
         ```
 
 2. **Build the agents' image.** Navigate to the service runtime folder that you have just created and build the Docker image of the agents of the service:
@@ -248,7 +248,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
 The framework provides a convenient method to deploy agent services minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/). This has the benefit that some configuration parameters of the {{fsm_app}} skill will be overridden automatically with values obtained on-chain. Namely:
 
 ```yaml title="skill.yaml"
-(...)
+# (...)
 models:
     params:
     args:

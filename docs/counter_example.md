@@ -318,7 +318,7 @@ value of the counter; this behaviour is implemented in the
 
 The output of the run should be something like:
 
-```
+```text
     _     _____     _
    / \   | ____|   / \
   / _ \  |  _|    / _ \
@@ -349,5 +349,5 @@ info: [counter_client] [2021-08-05T20:00:14.838130] The counter value is: 3
 info: [counter_client] [2021-08-05T20:00:15.826483] The counter value is: 4
 info: [counter_client] [2021-08-05T20:00:15.826825] Update current state: 4
 info: [counter_client] [2021-08-05T20:00:16.831485] The counter value is: 4
-...
+(...)
 ```

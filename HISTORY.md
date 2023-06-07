@@ -1,10 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.10.6 (TBD)
 
-# 0.10.5.post2 (2023-06-06)
-
-Autonomy:
-- Update agent node template on the kubernetes generator to support different types of private keys from various ledgers #1991
+Docs:
+- Fixes the gentle reset logic #1987
+- Fixes code check linter #1986
 
 # 0.10.5.post1 (2023-05-24)
 
