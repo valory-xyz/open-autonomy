@@ -75,7 +75,7 @@ This is roughly how your workspace should look like:
     You can override the default registry in use (set up with `autonomy init`) for a particular command through the flags `--registry-path` and `--local`. For example, if the framework was initialized with the remote registry, the following command will fetch a runtime folder for the `hello_world` agent from the remote registry:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeigpa3o3vgs57dxplseine4eikrs5sh4y4veewno47fsbdoquboupu
+    autonomy fetch valory/hello_world:0.1.0:bafybeia7uhmmxzjkrgsurbes6gcx7343eckc6zv3uak5d5lvpxikmftudy
     ```
 
     On the other hand, if you want to fetch the copy stored in your local registry, then you can use:
@@ -106,8 +106,8 @@ If you plan to follow the guides in the next sections, you need to populate the 
     "dev": {
     },
     "third_party": {
-        "service/valory/hello_world/0.1.0": "bafybeiajhxa5nxc6qav3bg2tvoqigednrmeluh2bvjghksnr6qa6fwcfei",
-        "agent/valory/hello_world/0.1.0": "bafybeigpa3o3vgs57dxplseine4eikrs5sh4y4veewno47fsbdoquboupu",
+        "service/valory/hello_world/0.1.0": "bafybeigjyxool3nlhyhpuh27uwd7huowg2kjyy6sp3ctr2vuyaklf7xn4a",
+        "agent/valory/hello_world/0.1.0": "bafybeia7uhmmxzjkrgsurbes6gcx7343eckc6zv3uak5d5lvpxikmftudy",
         "connection/valory/abci/0.1.0": "bafybeifzhmuvaqj5mnib65u5cqbmfpixjkow6iuh43ofricdpwdtjwawya",
         "connection/valory/http_client/0.23.0": "bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi",
         "connection/valory/ipfs/0.1.0": "bafybeigr2cipad23aebjpnqtzpgymiwrwgmnior2fk4inbscdnqyl5epla",
