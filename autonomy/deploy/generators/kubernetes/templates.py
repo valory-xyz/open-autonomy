@@ -274,8 +274,8 @@ spec:
           secret:
             secretName: agent-validator-{validator_ix}-key
             items:
-            - key: private_key
-              path: ethereum_private_key.txt
+            - key: {ledger}_private_key.txt
+              path: {ledger}_private_key.txt
         - name: persistent-data
           persistentVolumeClaim:
             claimName: 'logs-pvc'

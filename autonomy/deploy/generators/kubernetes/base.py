@@ -113,6 +113,9 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             tendermint_image_version=TENDERMINT_IMAGE_VERSION,
             log_level=self.service_builder.log_level,
             agent_ports_deployment=agent_ports_deployment,
+            ledger=self.service_builder.keys[agent_ix].get(
+                KEY_SCHEMA_TYPE, DEFAULT_LEDGER
+            ),
         )
         agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
         resources = []

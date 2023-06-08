@@ -338,6 +338,7 @@ serializer
 0.5.0.post1
 0.5.0.post2
 0.10.5.post1
+0.10.5.post2
 shebangs
  - docs/control_flow.md
 EntryPoint
