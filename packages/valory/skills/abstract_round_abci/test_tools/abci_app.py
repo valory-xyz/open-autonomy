@@ -30,6 +30,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
     BaseTxPayload,
+    DegenerateRound,
 )
 
 
@@ -77,6 +78,12 @@ class ConcreteBackgroundRound(_ConcreteRound):
     payload_class = BaseTxPayload
 
 
+class ConcreteBackgroundSlashingRound(_ConcreteRound):
+    """Dummy instantiation of the AbstractRound class."""
+
+    payload_class = BaseTxPayload
+
+
 class ConcreteTerminationRoundA(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
 
@@ -95,7 +102,13 @@ class ConcreteTerminationRoundC(_ConcreteRound):
     payload_class = BaseTxPayload
 
 
-class ConcreteSlashingRound(_ConcreteRound):
+class ConcreteSlashingRoundA(_ConcreteRound):
+    """Dummy instantiation of the AbstractRound class."""
+
+    payload_class = BaseTxPayload
+
+
+class ConcreteSlashingRoundB(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
 
     payload_class = BaseTxPayload
@@ -111,11 +124,55 @@ class ConcreteEvents(Enum):
     A = "a"
     B = "b"
     C = "c"
+    D = "c"
     TIMEOUT = "timeout"
 
     def __str__(self) -> str:
         """Get the string representation of the event."""
         return self.value
+
+
+class TerminationAppTest(AbciApp[ConcreteEvents]):
+    """A dummy Termination abci for testing purposes."""
+
+    initial_round_cls: Type[AbstractRound] = ConcreteBackgroundRound
+    transition_function: Dict[
+        Type[AbstractRound], Dict[ConcreteEvents, Type[AbstractRound]]
+    ] = {
+        ConcreteBackgroundRound: {
+            ConcreteEvents.TERMINATE: ConcreteTerminationRoundA,
+        },
+        ConcreteTerminationRoundA: {
+            ConcreteEvents.A: ConcreteTerminationRoundA,
+            ConcreteEvents.B: ConcreteTerminationRoundB,
+            ConcreteEvents.C: ConcreteTerminationRoundC,
+        },
+        ConcreteTerminationRoundB: {
+            ConcreteEvents.B: ConcreteTerminationRoundB,
+            ConcreteEvents.TIMEOUT: ConcreteTerminationRoundA,
+        },
+        ConcreteTerminationRoundC: {
+            ConcreteEvents.C: ConcreteTerminationRoundA,
+            ConcreteEvents.TIMEOUT: ConcreteTerminationRoundC,
+        },
+    }
+
+
+class SlashingAppTest(AbciApp[ConcreteEvents]):
+    """A dummy Slashing abci for testing purposes."""
+
+    initial_round_cls: Type[AbstractRound] = ConcreteBackgroundSlashingRound
+    transition_function: Dict[
+        Type[AbstractRound], Dict[ConcreteEvents, Type[AbstractRound]]
+    ] = {
+        ConcreteBackgroundSlashingRound: {
+            ConcreteEvents.SLASH_START: ConcreteSlashingRoundA,
+        },
+        ConcreteSlashingRoundA: {ConcreteEvents.D: ConcreteSlashingRoundB},
+        ConcreteSlashingRoundB: {
+            ConcreteEvents.SLASH_END: DegenerateRound,
+        },
+    }
 
 
 class AbciAppTest(AbciApp[ConcreteEvents]):
@@ -141,42 +198,6 @@ class AbciAppTest(AbciApp[ConcreteEvents]):
             ConcreteEvents.TIMEOUT: ConcreteRoundC,
         },
     }
-    termination_round_cls = ConcreteBackgroundRound
-    termination_transition_function: Dict[
-        Type[AbstractRound], Dict[ConcreteEvents, Type[AbstractRound]]
-    ] = {
-        ConcreteBackgroundRound: {
-            ConcreteEvents.TERMINATE: ConcreteTerminationRoundA,
-        },
-        ConcreteTerminationRoundA: {
-            ConcreteEvents.A: ConcreteTerminationRoundA,
-            ConcreteEvents.B: ConcreteTerminationRoundB,
-            ConcreteEvents.C: ConcreteTerminationRoundC,
-        },
-        ConcreteTerminationRoundB: {
-            ConcreteEvents.B: ConcreteTerminationRoundB,
-            ConcreteEvents.TIMEOUT: ConcreteTerminationRoundA,
-        },
-        ConcreteTerminationRoundC: {
-            ConcreteEvents.C: ConcreteTerminationRoundA,
-            ConcreteEvents.TIMEOUT: ConcreteTerminationRoundC,
-        },
-    }
-    termination_event = ConcreteEvents.TERMINATE
-    pending_offences_round_cls = ConcreteBackgroundRound
-    slashing_round_cls = ConcreteBackgroundRound
-    slashing_transition_function: Dict[
-        Type[AbstractRound], Dict[ConcreteEvents, Type[AbstractRound]]
-    ] = {
-        ConcreteBackgroundRound: {
-            ConcreteEvents.SLASH_START: ConcreteSlashingRound,
-        },
-        ConcreteSlashingRound: {
-            ConcreteEvents.SLASH_END: ConcreteRoundA,
-        },
-    }
-    slashing_start_event = ConcreteEvents.SLASH_START
-    slashing_end_event = ConcreteEvents.SLASH_END
     event_to_timeout: Dict[ConcreteEvents, float] = {
         ConcreteEvents.TIMEOUT: TIMEOUT,
     }
