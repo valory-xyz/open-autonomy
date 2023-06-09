@@ -2088,6 +2088,106 @@ def __new__(mcs, name: str, bases: Tuple, namespace: Dict,
 
 Initialize the class.
 
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundAppType"></a>
+
+## BackgroundAppType Objects
+
+```python
+class BackgroundAppType(Enum)
+```
+
+The type of a background app.
+
+Please note that the values correspond to the priority in which the background apps should be processed
+when updating rounds.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundAppType.correct_types"></a>
+
+#### correct`_`types
+
+```python
+@staticmethod
+def correct_types() -> Set[str]
+```
+
+Return the correct types only.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp"></a>
+
+## BackgroundApp Objects
+
+```python
+class BackgroundApp()
+```
+
+A background app.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(round_cls: AppState,
+             transition_function: Optional[AbciAppTransitionFunction] = None,
+             start_event: Optional[EventType] = None,
+             end_event: Optional[EventType] = None) -> None
+```
+
+Initialize the BackgroundApp.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp.specify_type"></a>
+
+#### specify`_`type
+
+```python
+def specify_type() -> BackgroundAppType
+```
+
+Specify the type of the background app.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp.setup"></a>
+
+#### setup
+
+```python
+def setup(initial_synchronized_data: BaseSynchronizedData,
+          context: SkillContext) -> None
+```
+
+Set up the background round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp.background_round"></a>
+
+#### background`_`round
+
+```python
+@property
+def background_round() -> AbstractRound
+```
+
+Get the background round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp.process_transaction"></a>
+
+#### process`_`transaction
+
+```python
+def process_transaction(transaction: Transaction, dry: bool = False) -> bool
+```
+
+Process a transaction.
+
+<a id="packages.valory.skills.abstract_round_abci.base.TransitionBackup"></a>
+
+## TransitionBackup Objects
+
+```python
+@dataclass
+class TransitionBackup()
+```
+
+Holds transition related information as a backup in case we want to transition back from a background app.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp"></a>
 
 ## AbciApp Objects
@@ -2122,45 +2222,39 @@ def is_abstract(cls) -> bool
 
 Return if the abci app is abstract.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.add_termination"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.add_background_app"></a>
 
-#### add`_`termination
-
-```python
-@classmethod
-def add_termination(cls, termination_round_cls: AppState,
-                    termination_event: EventType,
-                    termination_abci_app: Type["AbciApp"]) -> Type["AbciApp"]
-```
-
-Sets the termination-related class variables.
-
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.add_slashing"></a>
-
-#### add`_`slashing
+#### add`_`background`_`app
 
 ```python
 @classmethod
-def add_slashing(cls, slashing_round_cls: AppState,
-                 slashing_start_event: EventType,
-                 slashing_end_event: EventType,
-                 slashing_abci_app: Type["AbciApp"]) -> Type["AbciApp"]
+def add_background_app(
+        cls,
+        round_cls: AppState,
+        start_event: Optional[EventType] = None,
+        end_event: Optional[EventType] = None,
+        abci_app: Optional[Type["AbciApp"]] = None) -> Type["AbciApp"]
 ```
 
-Sets the slashing-related class variables.
+Sets the background related class variables.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.add_pending_offences"></a>
+For a deeper understanding of the various types of background apps and how the inputs of this method influence
+the generated background app's type, please refer to the `BackgroundApp` class.
+The `specify_type` method provides further insight on the subject matter.
 
-#### add`_`pending`_`offences
+**Arguments**:
 
-```python
-@classmethod
-def add_pending_offences(
-        cls, pending_offences_round_cls: AppState,
-        pending_offences_abci_app: Type["AbciApp"]) -> Type["AbciApp"]
-```
+- `round_cls`: the class of the background round.
+- `start_event`: the start event of the background round.
+If no event or transition function is specified, then the round is running in the background forever.
+- `end_event`: the end event of the background round.
+If not specified, then the round is terminating the abci app.
+- `abci_app`: the abci app of the background round.
+The abci app must specify a valid transition function if the round is not of an ever-running type.
 
-Sets the pending offences-related class variables.
+**Returns**:
+
+the `AbciApp` with the new background app contained in the `background_apps` set.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.synchronized_data"></a>
 
@@ -2201,14 +2295,23 @@ Get all the events.
 
 ```python
 @classmethod
-def get_all_round_classes(
-        cls,
-        include_termination_rounds: bool = False,
-        include_pending_offences_rounds: bool = False,
-        include_slashing_rounds: bool = False) -> Set[AppState]
+def get_all_round_classes(cls,
+                          include_background_rounds: bool = False
+                          ) -> Set[AppState]
 ```
 
 Get all round classes.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.bg_apps_prioritized"></a>
+
+#### bg`_`apps`_`prioritized
+
+```python
+@property
+def bg_apps_prioritized() -> Tuple[List[BackgroundApp], ...]
+```
+
+Get the background apps grouped and prioritized by their types.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.last_timestamp"></a>
 
@@ -2261,72 +2364,6 @@ def current_round() -> AbstractRound
 ```
 
 Get the current round.
-
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.termination_round"></a>
-
-#### termination`_`round
-
-```python
-@property
-def termination_round() -> AbstractRound
-```
-
-Get the termination round.
-
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.pending_offences_round"></a>
-
-#### pending`_`offences`_`round
-
-```python
-@property
-def pending_offences_round() -> AbstractRound
-```
-
-Get the pending_offences round.
-
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.slashing_round"></a>
-
-#### slashing`_`round
-
-```python
-@property
-def slashing_round() -> AbstractRound
-```
-
-Get the slashing round.
-
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.is_termination_set"></a>
-
-#### is`_`termination`_`set
-
-```python
-@property
-def is_termination_set() -> bool
-```
-
-Get whether termination is set.
-
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.is_pending_offences_set"></a>
-
-#### is`_`pending`_`offences`_`set
-
-```python
-@property
-def is_pending_offences_set() -> bool
-```
-
-Get whether pending offences is set.
-
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.is_slashing_set"></a>
-
-#### is`_`slashing`_`set
-
-```python
-@property
-def is_slashing_set() -> bool
-```
-
-Get whether slashing is set.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.current_round_id"></a>
 
@@ -2406,31 +2443,24 @@ def check_transaction(transaction: Transaction) -> None
 
 Check a transaction.
 
-The background round runs concurrently with other (normal) rounds.
-First we check if the transaction is meant for the background round,
-if not we forward to the current round object.
-
-**Arguments**:
-
-- `transaction`: the transaction.
-
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.process_transaction"></a>
 
 #### process`_`transaction
 
 ```python
-def process_transaction(transaction: Transaction) -> None
+def process_transaction(transaction: Transaction, dry: bool = False) -> None
 ```
 
 Process a transaction.
 
-The background round runs concurrently with other (normal) rounds.
-First we check if the transaction is meant for the background round,
-if not we forward to the current round object.
+The background rounds run concurrently with other (normal) rounds.
+First we check if the transaction is meant for a background round,
+if not we forward it to the current round object.
 
 **Arguments**:
 
 - `transaction`: the transaction.
+- `dry`: whether the transaction should only be checked and not processed.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.process_event"></a>
 
@@ -2959,39 +2989,6 @@ def current_round() -> AbstractRound
 ```
 
 Get current round.
-
-<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.termination_round"></a>
-
-#### termination`_`round
-
-```python
-@property
-def termination_round() -> AbstractRound
-```
-
-Get the termination round.
-
-<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.pending_offences_round"></a>
-
-#### pending`_`offences`_`round
-
-```python
-@property
-def pending_offences_round() -> AbstractRound
-```
-
-Get the pending_offences round.
-
-<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.slashing_round"></a>
-
-#### slashing`_`round
-
-```python
-@property
-def slashing_round() -> AbstractRound
-```
-
-Get the slashing round.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.current_round_id"></a>
 

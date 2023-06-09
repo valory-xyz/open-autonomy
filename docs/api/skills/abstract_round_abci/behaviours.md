@@ -59,38 +59,16 @@ def instantiate_behaviour_cls(behaviour_cls: BehaviourType) -> BaseBehaviour
 
 Instantiate the behaviours class.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.is_termination_set"></a>
+<a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.are_background_behaviours_set"></a>
 
-#### is`_`termination`_`set
-
-```python
-@property
-def is_termination_set() -> bool
-```
-
-Returns whether the termination behaviour is set.
-
-<a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.is_pending_offences_set"></a>
-
-#### is`_`pending`_`offences`_`set
+#### are`_`background`_`behaviours`_`set
 
 ```python
 @property
-def is_pending_offences_set() -> bool
+def are_background_behaviours_set() -> bool
 ```
 
-Returns whether the pending offences behaviour is set.
-
-<a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.is_slashing_set"></a>
-
-#### is`_`slashing`_`set
-
-```python
-@property
-def is_slashing_set() -> bool
-```
-
-Returns whether the slashing behaviour is set.
+Returns whether any background behaviour is set.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.setup"></a>
 
@@ -101,17 +79,6 @@ def setup() -> None
 ```
 
 Set up the behaviours.
-
-<a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.set_behaviours"></a>
-
-#### set`_`behaviours
-
-```python
-@property
-def set_behaviours() -> Iterator[BaseBehaviour]
-```
-
-Get the behaviours which have been set up.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.teardown"></a>
 
