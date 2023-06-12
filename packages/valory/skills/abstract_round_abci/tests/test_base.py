@@ -1596,8 +1596,6 @@ class TestTimeouts:
 class TestAbciApp:
     """Test the 'AbciApp' class."""
 
-    abci_app: AbciAppTest = AbciAppTest(MagicMock(), MagicMock(), MagicMock())
-
     def setup(self) -> None:
         """Set up the test."""
         self.abci_app = AbciAppTest(MagicMock(), MagicMock(), MagicMock())
