@@ -2178,7 +2178,7 @@ class BackgroundApp:
         self.end_event: Optional[EventType] = end_event
 
         self.type = self.specify_type()
-        if self.type == BackgroundAppType.INCORRECT:
+        if self.type == BackgroundAppType.INCORRECT:  # pragma: nocover
             raise ValueError(
                 f"Background app has not been initialized correctly with {given_args}. "
                 f"Cannot match with any of the possible background apps' types: {BackgroundAppType.correct_types()}"
@@ -2209,7 +2209,7 @@ class BackgroundApp:
             and self.transition_function is not None
         ):
             return BackgroundAppType.NORMAL
-        return BackgroundAppType.INCORRECT
+        return BackgroundAppType.INCORRECT  # pragma: nocover
 
     def setup(
         self, initial_synchronized_data: BaseSynchronizedData, context: SkillContext
@@ -2224,7 +2224,7 @@ class BackgroundApp:
     @property
     def background_round(self) -> AbstractRound:
         """Get the background round."""
-        if self._background_round is None:
+        if self._background_round is None:  # pragma: nocover
             raise ValueError(f"Background round with class `{self.round_cls}` not set!")
         return self._background_round
 
@@ -2601,7 +2601,7 @@ class AbciApp(
             )
             app.round_cls = cast(AppState, app.round_cls)
             next_round_cls = app.transition_function[app.round_cls].get(event, None)
-            if next_round_cls is None:
+            if next_round_cls is None:  # pragma: nocover
                 return True, None
 
             # we backup the current round so we can return back to normal, in case the end event is received later
@@ -3095,7 +3095,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         """Get the mapping of the agents' addresses to their offence status."""
         if self._offence_status:
             return self._offence_status
-        raise SlashingNotConfiguredError(
+        raise SlashingNotConfiguredError(  # pragma: nocover
             "The mapping of the agents' addresses to their offence status has not been set."
         )
 
