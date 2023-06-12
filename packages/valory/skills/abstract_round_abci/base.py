@@ -2999,6 +2999,11 @@ class PendingOffense:
     last_transition_timestamp: float
     time_to_live: float
 
+    def __post_init__(self) -> None:
+        """Post initialization for offence type conversion in case it is given as an `int`."""
+        if isinstance(self.offense_type, int):
+            super().__setattr__("offense_type", OffenseType(self.offense_type))
+
 
 class SlashingNotConfiguredError(Exception):
     """Custom exception raised when slashing configuration is requested but is not available."""
