@@ -1596,6 +1596,8 @@ class TestTimeouts:
 class TestAbciApp:
     """Test the 'AbciApp' class."""
 
+    abci_app: AbciAppTest = AbciAppTest(MagicMock(), MagicMock(), MagicMock())
+
     def setup(self) -> None:
         """Set up the test."""
         self.abci_app = AbciAppTest(MagicMock(), MagicMock(), MagicMock())
@@ -2955,6 +2957,8 @@ class TestRoundSequence:
                 termination_round_result[-1],
                 result=termination_round_result[0],
             )
+
+        self.round_sequence.abci_app.background_apps.clear()
 
     @pytest.mark.parametrize("restart_from_round", (ConcreteRoundA, MagicMock()))
     @pytest.mark.parametrize("serialized_db_state", (None, "serialized state"))
