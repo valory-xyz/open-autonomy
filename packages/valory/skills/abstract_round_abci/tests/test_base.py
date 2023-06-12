@@ -3033,15 +3033,15 @@ class TestRoundSequence:
         assert self.round_sequence._last_round_transition_root_hash == b""
         assert self.round_sequence._last_round_transition_tm_height is None
         assert self.round_sequence._tm_height is None
-        assert self.round_sequence._pending_offences == set()
+        assert self.round_sequence.pending_offences == set()
         assert not self.round_sequence._slashing_enabled
 
     def test_add_pending_offence(self) -> None:
         """Tests add_pending_offence."""
-        assert self.round_sequence._pending_offences == set()
+        assert self.round_sequence.pending_offences == set()
         mock_offence = MagicMock()
         self.round_sequence.add_pending_offence(mock_offence)
-        assert self.round_sequence._pending_offences == {mock_offence}
+        assert self.round_sequence.pending_offences == {mock_offence}
 
 
 def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:

@@ -3064,8 +3064,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._validator_to_agent: Dict[str, str] = {}
         # a mapping of the agents' addresses to their offence status
         self._offence_status: Dict[str, OffenceStatus] = {}
-        self._pending_offences: Set[PendingOffense] = set()
         self._slashing_enabled = False
+        self.pending_offences: Set[PendingOffense] = set()
 
     def enable_slashing(self) -> None:
         """Enable slashing."""
@@ -3117,7 +3117,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         :param pending_offence: the pending offence to add
         :return: None
         """
-        self._pending_offences.add(pending_offence)
+        self.pending_offences.add(pending_offence)
 
     def sync_db_and_slashing(self, serialized_db_state: str) -> None:
         """Sync the database and the slashing configuration."""
@@ -3572,8 +3572,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._last_round_transition_root_hash = b""
         self._last_round_transition_tm_height = None
         self._tm_height = None
-        self._pending_offences = set()
         self._slashing_enabled = False
+        self.pending_offences = set()
 
     def reset_state(
         self,
