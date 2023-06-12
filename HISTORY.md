@@ -2,6 +2,9 @@
 
 # 0.10.6 (TBD)
 
+Autonomy:
+- Makes the chained `ABCI` skill filter more strict on the service analyser #1982
+
 Docs:
 - Fixes the gentle reset logic #1987
 - Fixes code check linter #1986
