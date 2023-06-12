@@ -241,11 +241,6 @@ class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
             name=behaviour_cls.auto_behaviour_id(), skill_context=self.context
         )
 
-    @property
-    def are_background_behaviours_set(self) -> bool:
-        """Returns whether any background behaviour is set."""
-        return bool(self.background_behaviours_cls)
-
     def _setup_background(self, use_termination: bool) -> None:
         """Set up the background behaviours."""
         for background_cls in self.background_behaviours_cls:
