@@ -1951,6 +1951,8 @@ class TestAvailabilityWindow:
         assert availability_window_1 == availability_window_2
         availability_window_2.add(False)
         assert availability_window_1 != availability_window_2
+        # test with a different type
+        assert availability_window_1 != MagicMock()
 
     @staticmethod
     @given(integers(min_value=0, max_value=100), data())
