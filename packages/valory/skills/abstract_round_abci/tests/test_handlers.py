@@ -195,7 +195,7 @@ class TestABCIRoundHandler:
             response = self.handler.deliver_tx(
                 cast(AbciMessage, message), cast(AbciDialogue, dialogue)
             )
-            mock_add_pending_offence.assert_not_called()
+            mock_add_pending_offence.assert_called_once()
 
         assert response.performative == AbciMessage.Performative.RESPONSE_DELIVER_TX
         assert response.code == OK_CODE
@@ -241,7 +241,7 @@ class TestABCIRoundHandler:
             response = self.handler.deliver_tx(
                 cast(AbciMessage, message), cast(AbciDialogue, dialogue)
             )
-            mock_add_pending_offence.assert_called()
+            mock_add_pending_offence.assert_called_once()
 
         assert response.performative == AbciMessage.Performative.RESPONSE_DELIVER_TX
         assert response.code == ERROR_CODE
