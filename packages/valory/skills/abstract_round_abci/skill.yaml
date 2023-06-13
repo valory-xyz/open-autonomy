@@ -14,16 +14,12 @@ fingerprint:
   background/pending_offences/behaviour.py: bafybeigo4lraq5e2pinfqaa2d34n2l2prgjg3vbt74iuzj6w2t3vcdgegi
   background/pending_offences/payloads.py: bafybeifzn6jawfnubhdxwzygqpgcx5pcni5hvneztayuir3tlarqkp7yr4
   background/pending_offences/round.py: bafybeigthrqp2y4iwp7r6hnxni3r4f75lxf74w6v3ebinhcvvagmtmrcve
-  background/pending_offences/tests/__init__.py: bafybeibhu5ofttw4ra6i5bh7qt5clr2okiiod3sshmszpblvt42iqex4n4
-  background/pending_offences/tests/test_behaviours.py: bafybeibdwv4o5d4zl5h3lybrbghprqcwr2z6m2vocnelavvhqq74clwue4
-  background/pending_offences/tests/test_payloads.py: bafybeidbkaliprpty4jgtp3nbgvt5nt3mztytq234q66yehc2sfn3mdinq
-  background/pending_offences/tests/test_rounds.py: bafybeiggsrldo3xgw3igq4qy3rvbofyilrrmqcs7iflimxocyuvcwjjjyu
   base.py: bafybeiacfdgpbpdpo4kanqfcwgqskscpnfjqre4ruxbmzodgurokwohjyi
   behaviour_utils.py: bafybeidan3bdtejaly4almhl5jly5ec2jouwqk4uny2iqqn6umj3et6owu
   behaviours.py: bafybeif5wcr6q6hx5ocgfemkh3g7iv75kjbhhsytqix2ky2fzm3w74xaaa
   common.py: bafybeidzqdfvwf226d5qeqcyzpkqsjy6kiawoz5ldsfvzzhtym3f73giia
   dialogues.py: bafybeid5sgrfa7ghnnjpssltgtey5gzt5kc2jlaitffaukvhhdbhrzcjti
-  handlers.py: bafybeigq7uryubgqemlclo6oljvztwrcwnxyaqi5do6zl4ktwuxxmokx7a
+  handlers.py: bafybeiemycm2zxkdvivruyxovrjjafszq2juqztq2hu7nbo7yk5zceomoq
   io_/__init__.py: bafybeihv6ytxeo5jkbdlqjum4pfo4aaluvw4m7c55k5xncvvs7ubrlokhy
   io_/ipfs.py: bafybeiffdxdt36rcwu5tyfav2umvw3hvlfjwbys3626p2g2gdlfi7djzly
   io_/load.py: bafybeigkywwlsheqvd4gpyfwaxqzkkb2ih2poyicqk7e7n2mrsghxzyns4
@@ -46,6 +42,10 @@ fingerprint:
   tests/data/dummy_abci/models.py: bafybeiear3i45wbaylrkbnm2fbtqorxx56glul36piuah7m7jb56f5rpoq
   tests/data/dummy_abci/payloads.py: bafybeiczldqiumb7prcusb7l5vb575vschwyseyigpupvteldfyz7h6fyi
   tests/data/dummy_abci/rounds.py: bafybeihhheznpcntg4z5cdd7dysnivo2g4x5biv7blriyiyoouqp6xf5aq
+  tests/pending_offences/__init__.py: bafybeibhu5ofttw4ra6i5bh7qt5clr2okiiod3sshmszpblvt42iqex4n4
+  tests/pending_offences/test_behaviours.py: bafybeibdwv4o5d4zl5h3lybrbghprqcwr2z6m2vocnelavvhqq74clwue4
+  tests/pending_offences/test_payloads.py: bafybeidbkaliprpty4jgtp3nbgvt5nt3mztytq234q66yehc2sfn3mdinq
+  tests/pending_offences/test_rounds.py: bafybeih4gkilguskguy27t7zbqa7lapmtm64okoexg7wu4jqg6cg7gbncy
   tests/test_abci_app_chain.py: bafybeihqvjkcwkwxowhb3umtk52us4pd5f6nbppw4ycx76oljw4j3j7xpa
   tests/test_base.py: bafybeigcyb7eckx3knd46rscashhmsixvtgmesdkgfdzxlc6hmeh5tsanu
   tests/test_base_rounds.py: bafybeiadkpwuhz6y5k5ffvoqvyi6nqetf5ov5bmodejge7yvscm6yqzpse

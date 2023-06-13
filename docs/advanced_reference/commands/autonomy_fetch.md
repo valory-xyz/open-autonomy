@@ -55,5 +55,5 @@ autonomy --registry-path=./packages fetch valory/hello_world:0.1.0 --service --l
 
 Fetch the agent service `hello_world` from a remote registry ([IPFS](https://ipfs.io)):
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeig4ief2xncsriqtwgubbadewnifhhfprm5sudrjdvitegqwjb4hv4 --service --remote
+autonomy fetch valory/hello_world:0.1.0:bafybeihg5cpxb22asmd6arzjfeoujeryawjiqndv5a5suxgjnkxecq3iea --service --remote
 ```
