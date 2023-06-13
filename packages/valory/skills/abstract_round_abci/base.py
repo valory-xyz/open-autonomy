@@ -2799,7 +2799,7 @@ def is_light_offence(offence_type: OffenseType) -> bool:
 
 def is_serious_offence(offence_type: OffenseType) -> bool:
     """Check if an offence type is serious."""
-    return not is_light_offence(offence_type)
+    return offence_type.value >= SERIOUS_OFFENCE_ENUM_MIN
 
 
 def light_offences() -> Iterator[OffenseType]:
