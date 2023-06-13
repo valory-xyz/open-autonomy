@@ -192,14 +192,14 @@ class ABCIRoundHandler(ABCIHandler):
     def deliver_tx(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """Handle the 'deliver_tx' request."""
         transaction_bytes = message.tx
-        shared_state = cast(SharedState, self.context.state)
+        round_sequence = cast(SharedState, self.context.state).round_sequence
         payload_sender: Optional[str] = None
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify(self.context.default_ledger_id)
             payload_sender = transaction.payload.sender
-            shared_state.round_sequence.check_is_finished()
-            shared_state.round_sequence.deliver_tx(transaction)
+            round_sequence.check_is_finished()
+            round_sequence.deliver_tx(transaction)
         except (
             SignatureNotValidError,
             TransactionNotValidError,
@@ -214,12 +214,12 @@ class ABCIRoundHandler(ABCIHandler):
                 # which may lead to wrong punishments
                 pending_offense = PendingOffense(
                     payload_sender,
-                    shared_state.round_sequence.current_round_height,
+                    round_sequence.current_round_height,
                     OffenseType.INVALID_PAYLOAD,
-                    shared_state.round_sequence.last_round_transition_timestamp.timestamp(),
+                    round_sequence.last_round_transition_timestamp.timestamp(),
                     DEFAULT_PENDING_OFFENCE_TTL,
                 )
-                shared_state.round_sequence.add_pending_offence(pending_offense)
+                round_sequence.add_pending_offence(pending_offense)
             return self._deliver_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
@@ -229,15 +229,23 @@ class ABCIRoundHandler(ABCIHandler):
                 message, dialogue, exception_to_info_msg(exception)
             )
 
-        # the invalid payloads' availability window needs to be populated with the negative values as well
-        pending_offense = PendingOffense(
-            payload_sender,
-            shared_state.round_sequence.current_round_height,
-            OffenseType.NO_OFFENCE,
-            shared_state.round_sequence.last_round_transition_timestamp.timestamp(),
-            DEFAULT_PENDING_OFFENCE_TTL,
-        )
-        shared_state.round_sequence.add_pending_offence(pending_offense)
+        try:
+            last_round_transition_timestamp = (
+                round_sequence.last_round_transition_timestamp.timestamp()
+            )
+        except ValueError:  # pragma: no cover
+            # no round transition has been completed yet
+            pass
+        else:
+            # the invalid payloads' availability window needs to be populated with the negative values as well
+            pending_offense = PendingOffense(
+                payload_sender,
+                round_sequence.current_round_height,
+                OffenseType.NO_OFFENCE,
+                last_round_transition_timestamp,
+                DEFAULT_PENDING_OFFENCE_TTL,
+            )
+            round_sequence.add_pending_offence(pending_offense)
 
         # return deliver_tx success
         reply = dialogue.reply(
