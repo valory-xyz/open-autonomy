@@ -19,7 +19,6 @@
 
 """Test the pending offences background round."""
 
-import json
 from copy import deepcopy
 from datetime import datetime
 from unittest.mock import MagicMock
@@ -36,7 +35,6 @@ from packages.valory.skills.abstract_round_abci.background.pending_offences.roun
 from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     OffenceStatus,
-    OffenseStatusEncoder,
     OffenseType,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
