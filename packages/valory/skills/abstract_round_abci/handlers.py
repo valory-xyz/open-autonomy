@@ -189,6 +189,37 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
+    def settle_pending_offence(
+        self, accused_agent_address: Optional[str], invalid: bool
+    ) -> None:
+        """Add an invalid pending offence or a no-offence for the given accused agent address, if possible."""
+        if accused_agent_address is None:
+            # only add the offence if we know and can verify the sender,
+            # otherwise someone could pretend to be someone else, which may lead to wrong punishments
+            return
+
+        round_sequence = cast(SharedState, self.context.state).round_sequence
+
+        try:
+            last_round_transition_timestamp = (
+                round_sequence.last_round_transition_timestamp.timestamp()
+            )
+        except ValueError:  # pragma: no cover
+            # do not add an offence if no round transition has been completed yet
+            return
+
+        offence_type = (
+            OffenseType.INVALID_PAYLOAD if invalid else OffenseType.NO_OFFENCE
+        )
+        pending_offense = PendingOffense(
+            accused_agent_address,
+            round_sequence.current_round_height,
+            offence_type,
+            last_round_transition_timestamp,
+            DEFAULT_PENDING_OFFENCE_TTL,
+        )
+        round_sequence.add_pending_offence(pending_offense)
+
     def deliver_tx(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """Handle the 'deliver_tx' request."""
         transaction_bytes = message.tx
@@ -206,20 +237,8 @@ class ABCIRoundHandler(ABCIHandler):
             TransactionTypeNotRecognizedError,
         ) as exception:
             self._log_exception(exception)
-            # the transaction is invalid, it's potentially an offence
-            # so we add it to the list of pending offences
-            if payload_sender is not None:
-                # only add the offence if we know and can verify the sender
-                # otherwise someone could pretend to be someone else,
-                # which may lead to wrong punishments
-                pending_offense = PendingOffense(
-                    payload_sender,
-                    round_sequence.current_round_height,
-                    OffenseType.INVALID_PAYLOAD,
-                    round_sequence.last_round_transition_timestamp.timestamp(),
-                    DEFAULT_PENDING_OFFENCE_TTL,
-                )
-                round_sequence.add_pending_offence(pending_offense)
+            # the transaction is invalid, it's potentially an offence, so we add it to the list of pending offences
+            self.settle_pending_offence(payload_sender, invalid=True)
             return self._deliver_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
@@ -229,23 +248,8 @@ class ABCIRoundHandler(ABCIHandler):
                 message, dialogue, exception_to_info_msg(exception)
             )
 
-        try:
-            last_round_transition_timestamp = (
-                round_sequence.last_round_transition_timestamp.timestamp()
-            )
-        except ValueError:  # pragma: no cover
-            # no round transition has been completed yet
-            pass
-        else:
-            # the invalid payloads' availability window needs to be populated with the negative values as well
-            pending_offense = PendingOffense(
-                payload_sender,
-                round_sequence.current_round_height,
-                OffenseType.NO_OFFENCE,
-                last_round_transition_timestamp,
-                DEFAULT_PENDING_OFFENCE_TTL,
-            )
-            round_sequence.add_pending_offence(pending_offense)
+        # the invalid payloads' availability window needs to be populated with the negative values as well
+        self.settle_pending_offence(payload_sender, invalid=False)
 
         # return deliver_tx success
         reply = dialogue.reply(
