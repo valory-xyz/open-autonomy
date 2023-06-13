@@ -45,7 +45,7 @@ fingerprint:
   tests/pending_offences/__init__.py: bafybeibhu5ofttw4ra6i5bh7qt5clr2okiiod3sshmszpblvt42iqex4n4
   tests/pending_offences/test_behaviours.py: bafybeibdwv4o5d4zl5h3lybrbghprqcwr2z6m2vocnelavvhqq74clwue4
   tests/pending_offences/test_payloads.py: bafybeidbkaliprpty4jgtp3nbgvt5nt3mztytq234q66yehc2sfn3mdinq
-  tests/pending_offences/test_rounds.py: bafybeih4gkilguskguy27t7zbqa7lapmtm64okoexg7wu4jqg6cg7gbncy
+  tests/pending_offences/test_rounds.py: bafybeicavoudhdjbchc2rvppbf73adk5r7ibp4huc3xmpk4s3piv5wveyy
   tests/test_abci_app_chain.py: bafybeihqvjkcwkwxowhb3umtk52us4pd5f6nbppw4ycx76oljw4j3j7xpa
   tests/test_base.py: bafybeigcyb7eckx3knd46rscashhmsixvtgmesdkgfdzxlc6hmeh5tsanu
   tests/test_base_rounds.py: bafybeiadkpwuhz6y5k5ffvoqvyi6nqetf5ov5bmodejge7yvscm6yqzpse
