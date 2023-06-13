@@ -49,11 +49,6 @@ from packages.valory.skills.abstract_round_abci.tests.conftest import profile_na
 settings.load_profile(profile_name)
 
 
-def serialized_status(status: OffenceStatus) -> str:
-    """Serialize an offence status to a string."""
-    return json.dumps(status, cls=OffenseStatusEncoder, sort_keys=True)
-
-
 class TestPendingOffencesRound(BaseRoundTestClass):
     """Tests for `PendingOffencesRound`."""
 
