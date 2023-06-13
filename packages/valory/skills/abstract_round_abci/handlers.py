@@ -229,6 +229,16 @@ class ABCIRoundHandler(ABCIHandler):
                 message, dialogue, exception_to_info_msg(exception)
             )
 
+        # the invalid payloads' availability window needs to be populated with the negative values as well
+        pending_offense = PendingOffense(
+            payload_sender,
+            shared_state.round_sequence.current_round_height,
+            OffenseType.NO_OFFENCE,
+            shared_state.round_sequence.last_round_transition_timestamp.timestamp(),
+            DEFAULT_PENDING_OFFENCE_TTL,
+        )
+        shared_state.round_sequence.add_pending_offence(pending_offense)
+
         # return deliver_tx success
         reply = dialogue.reply(
             performative=AbciMessage.Performative.RESPONSE_DELIVER_TX,

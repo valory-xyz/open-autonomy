@@ -2782,6 +2782,7 @@ class OffenseType(Enum):
     See also `is_light_offence` and `is_serious_offence` functions.
     """
 
+    NO_OFFENCE = -1
     VALIDATOR_DOWNTIME = 0
     INVALID_PAYLOAD = 1
     BLACKLISTED = 2
@@ -2793,7 +2794,7 @@ class OffenseType(Enum):
 
 def is_light_offence(offence_type: OffenseType) -> bool:
     """Check if an offence type is light."""
-    return offence_type.value < SERIOUS_OFFENCE_ENUM_MIN
+    return 0 <= offence_type.value < SERIOUS_OFFENCE_ENUM_MIN
 
 
 def is_serious_offence(offence_type: OffenseType) -> bool:
