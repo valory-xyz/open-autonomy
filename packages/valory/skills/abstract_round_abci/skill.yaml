@@ -140,6 +140,8 @@ models:
     class_name: TendermintDialogues
 dependencies:
   eth_typing: {}
+  pytest:
+    version: ==7.2.1
   hypothesis:
     version: ==6.21.6
   ipfshttpclient:
