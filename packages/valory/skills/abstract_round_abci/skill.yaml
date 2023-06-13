@@ -18,7 +18,7 @@ fingerprint:
   background/pending_offences/tests/test_behaviours.py: bafybeibdwv4o5d4zl5h3lybrbghprqcwr2z6m2vocnelavvhqq74clwue4
   background/pending_offences/tests/test_payloads.py: bafybeidbkaliprpty4jgtp3nbgvt5nt3mztytq234q66yehc2sfn3mdinq
   background/pending_offences/tests/test_rounds.py: bafybeiggsrldo3xgw3igq4qy3rvbofyilrrmqcs7iflimxocyuvcwjjjyu
-  base.py: bafybeifdipht35iz2ixytqrget5xxyfqce57xtxfy34f5jptrob3mqb3mu
+  base.py: bafybeiacfdgpbpdpo4kanqfcwgqskscpnfjqre4ruxbmzodgurokwohjyi
   behaviour_utils.py: bafybeidan3bdtejaly4almhl5jly5ec2jouwqk4uny2iqqn6umj3et6owu
   behaviours.py: bafybeif5wcr6q6hx5ocgfemkh3g7iv75kjbhhsytqix2ky2fzm3w74xaaa
   common.py: bafybeidzqdfvwf226d5qeqcyzpkqsjy6kiawoz5ldsfvzzhtym3f73giia
@@ -53,7 +53,7 @@ fingerprint:
   tests/test_behaviours_utils.py: bafybeihlvphptgz3lx4y7n7j3aedhkay5alsqw2gmodjz2cqtxd5ylh7ca
   tests/test_common.py: bafybeigruyqp6h4qim3nsijeg5mvoot2dei2yzm5zxpank22vjyyiaysue
   tests/test_dialogues.py: bafybeigpfrslqaz2yullyehia5bsl7cmy2qqxtz627ig7rbrypw5xfzeum
-  tests/test_handlers.py: bafybeicbeqbyn4kaavztygvptam6eotzmjdm7cd5i5jkwfhchmceszft3q
+  tests/test_handlers.py: bafybeida6tldhe7rd2q2ncumaqcs2jthal2clxldda6vhybfe2shuyc4cu
   tests/test_io/__init__.py: bafybeid3sssvbbyju4snrdssxyafleuo57sqyuepl25btxcbuj3p5oonsm
   tests/test_io/test_ipfs.py: bafybeidm6f6naq6y7ntoivrqon2bkwdvd2dqru467fxqvgonv5oq5huhra
   tests/test_io/test_load.py: bafybeidgnxt5rt67ackbcgi5vnlliedxakcnzgihogplolck7kp57pc6iy
