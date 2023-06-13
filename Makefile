@@ -44,7 +44,7 @@ clean-test: clean-cache
 # removes various cache files
 .PHONY: clean-cache
 clean-cache:
-	rm -fr .hypothesis/
+	find . -type d -name .hypothesis -prune -exec rm -rf {} \;
 	rm -fr .pytest_cache
 	rm -fr .mypy_cache/
 
