@@ -123,14 +123,17 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
     AbciAppTest,
     ConcreteBackgroundRound,
+    ConcreteBackgroundSlashingRound,
     ConcreteEvents,
     ConcreteRoundA,
     ConcreteRoundB,
     ConcreteRoundC,
-    ConcreteSlashingRound,
+    ConcreteSlashingRoundA,
     ConcreteTerminationRoundA,
     ConcreteTerminationRoundB,
     ConcreteTerminationRoundC,
+    SlashingAppTest,
+    TerminationAppTest,
 )
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
@@ -1593,9 +1596,20 @@ class TestTimeouts:
 class TestAbciApp:
     """Test the 'AbciApp' class."""
 
+    abci_app: AbciAppTest = AbciAppTest(MagicMock(), MagicMock(), MagicMock())
+
     def setup(self) -> None:
         """Set up the test."""
         self.abci_app = AbciAppTest(MagicMock(), MagicMock(), MagicMock())
+        self.abci_app.add_background_app(
+            ConcreteBackgroundRound,
+            ConcreteEvents.TERMINATE,
+            abci_app=TerminationAppTest,
+        )
+
+    def teardown(self) -> None:
+        """Teardown the test."""
+        self.abci_app.background_apps.clear()
 
     @pytest.mark.parametrize("flag", (True, False))
     def test_is_abstract(self, flag: bool) -> None:
@@ -1643,27 +1657,41 @@ class TestAbciApp:
 
     def test_process_event(self) -> None:
         """Test the 'process_event' method, positive case, with timeout events."""
+        self.abci_app.add_background_app(
+            ConcreteBackgroundSlashingRound,
+            ConcreteEvents.SLASH_START,
+            ConcreteEvents.SLASH_END,
+            SlashingAppTest,
+        )
         self.abci_app.setup()
         self.abci_app._last_timestamp = MagicMock()
+        assert self.abci_app._transition_backup.transition_function is None
         assert isinstance(self.abci_app.current_round, ConcreteRoundA)
         self.abci_app.process_event(ConcreteEvents.B)
         assert isinstance(self.abci_app.current_round, ConcreteRoundB)
         self.abci_app.process_event(ConcreteEvents.TIMEOUT)
         assert isinstance(self.abci_app.current_round, ConcreteRoundA)
-        self.abci_app.process_event(self.abci_app.termination_event)
+        self.abci_app.process_event(ConcreteEvents.TERMINATE)
         assert isinstance(self.abci_app.current_round, ConcreteTerminationRoundA)
-        expected_backup = self.abci_app.transition_function
-        self.abci_app.process_event(self.abci_app.slashing_start_event)
-        assert isinstance(self.abci_app.current_round, ConcreteSlashingRound)
-        assert self.abci_app._backup_transition_function == expected_backup
+        expected_backup = deepcopy(self.abci_app.transition_function)
         assert (
-            self.abci_app.transition_function
-            == self.abci_app.slashing_transition_function
+            self.abci_app._transition_backup.transition_function
+            == AbciAppTest.transition_function
         )
-        self.abci_app.process_event(self.abci_app.slashing_end_event)
-        assert isinstance(self.abci_app.current_round, ConcreteRoundA)
+        self.abci_app.process_event(ConcreteEvents.SLASH_START)
+        assert isinstance(self.abci_app.current_round, ConcreteSlashingRoundA)
+        assert (
+            self.abci_app._transition_backup.transition_function
+            == expected_backup
+            == TerminationAppTest.transition_function
+        )
+        assert self.abci_app.transition_function == SlashingAppTest.transition_function
+        self.abci_app.process_event(ConcreteEvents.SLASH_END)
+        # should return back to the round that was running before the slashing started
+        assert isinstance(self.abci_app.current_round, ConcreteTerminationRoundA)
         assert self.abci_app.transition_function == expected_backup
-        assert self.abci_app._backup_transition_function is None
+        assert self.abci_app._transition_backup.transition_function is None
+        assert self.abci_app._transition_backup.round is None
 
     def test_process_event_negative_case(self) -> None:
         """Test the 'process_event' method, negative case."""
@@ -1717,19 +1745,15 @@ class TestAbciApp:
             ConcreteEvents.TIMEOUT,
         } == self.abci_app.get_all_events()
 
-    @pytest.mark.parametrize("include_termination_rounds", (True, False))
-    @pytest.mark.parametrize("include_pending_offences_rounds", (True, False))
-    @pytest.mark.parametrize("include_slashing_rounds", (True, False))
+    @pytest.mark.parametrize("include_background_rounds", (True, False))
     def test_get_all_rounds_classes(
         self,
-        include_termination_rounds: bool,
-        include_pending_offences_rounds: bool,
-        include_slashing_rounds: bool,
+        include_background_rounds: bool,
     ) -> None:
         """Test the get all rounds getter."""
         expected_rounds = {ConcreteRoundA, ConcreteRoundB, ConcreteRoundC}
 
-        if include_termination_rounds:
+        if include_background_rounds:
             expected_rounds.update(
                 {
                     ConcreteBackgroundRound,
@@ -1738,42 +1762,35 @@ class TestAbciApp:
                     ConcreteTerminationRoundC,
                 }
             )
-        if include_pending_offences_rounds:
-            expected_rounds.update({ConcreteBackgroundRound})
-        if include_slashing_rounds:
-            expected_rounds.update({ConcreteBackgroundRound, ConcreteSlashingRound})
 
-        actual_rounds = self.abci_app.get_all_round_classes(
-            include_termination_rounds,
-            include_pending_offences_rounds,
-            include_slashing_rounds,
-        )
+        actual_rounds = self.abci_app.get_all_round_classes(include_background_rounds)
 
         assert actual_rounds == expected_rounds
 
-    def test_get_all_rounds_classes_including_termination_no_termination_rounds(
+    def test_get_all_rounds_classes_bg_ever_running(
         self,
     ) -> None:
-        """Test the get all rounds when the termination rounds are not set."""
-        # we set termination_transition_function to its default value (None)
-        with mock.patch.object(
-            AbciAppTest, "termination_transition_function", return_value=None
-        ):
-            include_termination_rounds = True
-            expected_rounds = {
-                ConcreteRoundA,
-                ConcreteRoundB,
-                ConcreteRoundC,
-            }
-            assert expected_rounds == self.abci_app.get_all_round_classes(
-                include_termination_rounds
-            )
+        """Test the get all rounds when the background round is of an ever running type."""
+        # we clear the pre-existing bg apps and add an ever running
+        self.abci_app.background_apps.clear()
+        self.abci_app.add_background_app(
+            ConcreteBackgroundRound,
+        )
+        include_background_rounds = True
+        expected_rounds = {
+            ConcreteRoundA,
+            ConcreteRoundB,
+            ConcreteRoundC,
+            ConcreteBackgroundRound,
+        }
+        assert expected_rounds == self.abci_app.get_all_round_classes(
+            include_background_rounds
+        )
 
-    @pytest.mark.parametrize(
-        "background_app", ("termination", "pending_offences", "slashing")
-    )
-    def test_add_background(self, background_app: str) -> None:
-        """Tests the add methods for the background rounds."""
+    def test_add_background_app(self) -> None:
+        """Tests the add method for the background apps."""
+        # remove the terminating bg round added in `setup()`
+        self.abci_app.background_apps.pop()
 
         class EmptyAbciApp(AbciAppTest):
             """An AbciApp without background apps' attributes set."""
@@ -1785,63 +1802,15 @@ class TestAbciApp:
 
             cross_period_persisted_keys = frozenset({"2", "3"})
 
-        background_add_method = getattr(EmptyAbciApp, f"add_{background_app}")
-        round_cls = getattr(EmptyAbciApp, f"{background_app}_round_cls")
-
-        if background_app == "pending_offences":
-            assert round_cls is not None
-            background_add_method(
-                round_cls,
-                BackgroundAbciApp,
-            )
-        elif background_app == "termination":
-            event = getattr(EmptyAbciApp, f"{background_app}_event")
-            transition_function = getattr(
-                EmptyAbciApp, f"{background_app}_transition_function"
-            )
-            assert round_cls is not None
-            assert transition_function is not None
-            assert event is not None
-            background_add_method(
-                round_cls,
-                event,
-                BackgroundAbciApp,
-            )
-        else:
-            start_event = getattr(EmptyAbciApp, f"{background_app}_start_event")
-            end_event = getattr(EmptyAbciApp, f"{background_app}_end_event")
-            transition_function = getattr(
-                EmptyAbciApp, f"{background_app}_transition_function"
-            )
-            assert round_cls is not None
-            assert transition_function is not None
-            assert start_event is not None
-            assert end_event is not None
-            background_add_method(
-                round_cls,
-                start_event,
-                end_event,
-                BackgroundAbciApp,
-            )
-
+        assert not len(EmptyAbciApp.background_apps)
+        assert EmptyAbciApp.cross_period_persisted_keys == {"1", "2"}
+        EmptyAbciApp.add_background_app(
+            ConcreteBackgroundRound,
+            start_event=ConcreteEvents.TERMINATE,
+            abci_app=BackgroundAbciApp,
+        )
+        assert len(EmptyAbciApp.background_apps) == 1
         assert EmptyAbciApp.cross_period_persisted_keys == {"1", "2", "3"}
-
-    def test_background_rounds(self) -> None:
-        """Test the background round properties."""
-        self.abci_app.setup()
-        assert self.abci_app.termination_round is not None
-        assert self.abci_app.pending_offences_round is not None
-        assert self.abci_app.slashing_round is not None
-
-    def test_background_round_negative(self) -> None:
-        """Test the background round properties when the corresponding attribute is not set."""
-        # notice that we don't call `self.abci_app.setup()` here which is why this test works
-        with pytest.raises(ValueError, match="Termination round not set!"):
-            _ = self.abci_app.termination_round
-        with pytest.raises(ValueError, match="Pending offences round not set!"):
-            _ = self.abci_app.pending_offences_round
-        with pytest.raises(ValueError, match="Slashing round not set!"):
-            _ = self.abci_app.slashing_round
 
     def test_cleanup(self) -> None:
         """Test the cleanup method."""
@@ -1982,6 +1951,8 @@ class TestAvailabilityWindow:
         assert availability_window_1 == availability_window_2
         availability_window_2.add(False)
         assert availability_window_1 != availability_window_2
+        # test with a different type
+        assert availability_window_1 != MagicMock()
 
     @staticmethod
     @given(integers(min_value=0, max_value=100), data())
@@ -2872,8 +2843,6 @@ class TestRoundSequence:
 
         with mock.patch.object(
             self.round_sequence.current_round, "end_block", return_value=end_block_res
-        ), mock.patch.object(
-            self.round_sequence.abci_app, "_is_termination_set", return_value=False
         ):
             self.round_sequence._update_round()
 
@@ -2912,13 +2881,19 @@ class TestRoundSequence:
         self.round_sequence.begin_block(MagicMock(height=1), MagicMock(), MagicMock())
         block = self.round_sequence._block_builder.get_block()
         self.round_sequence._blockchain.add_block(block)
+        self.round_sequence.abci_app.add_background_app(
+            ConcreteBackgroundRound,
+            ConcreteEvents.TERMINATE,
+            abci_app=TerminationAppTest,
+        )
+        self.round_sequence.abci_app.setup()
 
         with mock.patch.object(
             self.round_sequence.current_round,
             "end_block",
             return_value=current_round_result,
         ), mock.patch.object(
-            self.round_sequence.termination_round,
+            ConcreteBackgroundRound,
             "end_block",
             return_value=termination_round_result,
         ):
@@ -2984,6 +2959,8 @@ class TestRoundSequence:
                 termination_round_result[-1],
                 result=termination_round_result[0],
             )
+
+        self.round_sequence.abci_app.background_apps.clear()
 
     @pytest.mark.parametrize("restart_from_round", (ConcreteRoundA, MagicMock()))
     @pytest.mark.parametrize("serialized_db_state", (None, "serialized state"))

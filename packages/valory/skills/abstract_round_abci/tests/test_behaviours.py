@@ -23,7 +23,7 @@
 
 from abc import ABC
 from pathlib import Path
-from typing import Any, Dict, Generator, Optional, Tuple, Type
+from typing import Any, Dict, Generator, Optional, Tuple
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -193,9 +193,7 @@ class ConcreteRoundBehaviour(AbstractRoundBehaviour):
     abci_app_cls = ConcreteAbciApp
     behaviours = {BehaviourA, BehaviourB}  # type: ignore
     initial_behaviour_cls = BehaviourA
-    termination_behaviour_cls = ConcreteBackgroundBehaviour
-    pending_offences_behaviour_cls = ConcreteBackgroundBehaviour
-    slashing_behaviour_cls = ConcreteBackgroundBehaviour
+    background_behaviours_cls = {ConcreteBackgroundBehaviour}  # type: ignore
 
 
 class TestAbstractRoundBehaviour:
@@ -211,75 +209,19 @@ class TestAbstractRoundBehaviour:
         self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
 
     @pytest.mark.parametrize("use_termination", (True, False))
-    @pytest.mark.parametrize(
-        "expected",
-        (
-            {
-                "current_behaviour": BehaviourA,
-                "tm_manager": TmManager,
-                "termination_behaviour": ConcreteBackgroundBehaviour,
-                "pending_offences_behaviour": ConcreteBackgroundBehaviour,
-                "slashing_behaviour": ConcreteBackgroundBehaviour,
-            },
-        ),
-    )
-    def test_setup(self, use_termination: bool, expected: Dict[str, Type]) -> None:
+    def test_setup(self, use_termination: bool) -> None:
         """Test 'setup' method."""
+        assert self.behaviour.background_behaviours == set()
         self.behaviour.context.params.use_termination = use_termination
-
-        for attr in expected.keys():
-            assert getattr(self.behaviour, attr) is None
-
         self.behaviour.setup()
-
-        for attr, expected_cls in expected.items():
-            instance = getattr(self.behaviour, attr)
-            assert (
-                isinstance(instance, expected_cls)
-                if attr != "termination_behaviour" or use_termination
-                else instance is None
+        assert self.behaviour.background_behaviours_cls == {ConcreteBackgroundBehaviour}
+        assert (
+            isinstance(
+                self.behaviour.background_behaviours.pop(), ConcreteBackgroundBehaviour
             )
-
-    none_or_behaviour_mock = (
-        None,
-        MagicMock(spec=BaseBehaviour),
-    )
-
-    @pytest.mark.parametrize(
-        "termination_behaviour",
-        none_or_behaviour_mock,
-    )
-    @pytest.mark.parametrize(
-        "pending_offences_behaviour",
-        none_or_behaviour_mock,
-    )
-    @pytest.mark.parametrize(
-        "slashing_behaviour",
-        none_or_behaviour_mock,
-    )
-    def test_set_behaviours(
-        self,
-        termination_behaviour: Optional[BaseBehaviour],
-        pending_offences_behaviour: Optional[BaseBehaviour],
-        slashing_behaviour: Optional[BaseBehaviour],
-    ) -> None:
-        """Test the `set_behaviours` property."""
-        self.behaviour.termination_behaviour = termination_behaviour
-        self.behaviour.pending_offences_behaviour = pending_offences_behaviour
-        self.behaviour.slashing_behaviour = slashing_behaviour
-
-        expected = [
-            behaviour
-            for behaviour in (
-                termination_behaviour,
-                pending_offences_behaviour,
-                slashing_behaviour,
-            )
-            if behaviour is not None
-        ]
-        actual = list(self.behaviour.set_behaviours)
-
-        assert actual == expected
+            if use_termination
+            else self.behaviour.background_behaviours == set()
+        )
 
     def test_teardown(self) -> None:
         """Test 'teardown' method."""
@@ -319,7 +261,7 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = MagicMock(
-                    get_all_round_classes=lambda include_termination_rounds: rounds,
+                    get_all_round_classes=lambda include_background_rounds: rounds,
                     final_states={
                         rounds[0],
                     },
@@ -327,11 +269,11 @@ class TestAbstractRoundBehaviour:
                 behaviours = mock_behaviours  # type: ignore
                 initial_behaviour_cls = MagicMock()
 
-    @pytest.mark.parametrize("behaviour_cls", (None, MagicMock()))
-    def test_check_matching_round_consistency_with_termination(
-        self, behaviour_cls: Optional[MagicMock]
+    @pytest.mark.parametrize("behaviour_cls", (set(), {MagicMock()}))
+    def test_check_matching_round_consistency_with_bg_rounds(
+        self, behaviour_cls: set
     ) -> None:
-        """Test classmethod '_check_matching_round_consistency' when the termination behaviour class is set."""
+        """Test classmethod '_check_matching_round_consistency' when a background behaviour class is set."""
         rounds = [
             MagicMock(**{"auto_round_id.return_value": f"round_{i}"}) for i in range(3)
         ]
@@ -354,18 +296,18 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = MagicMock(
-                    get_all_round_classes=lambda include_termination_rounds: rounds
-                    if include_termination_rounds
+                    get_all_round_classes=lambda include_background_rounds: rounds
+                    if include_background_rounds
                     else [],
                     final_states={
                         rounds[0],
                     }
-                    if behaviour_cls is not None
+                    if behaviour_cls
                     else {},
                 )
                 behaviours = mock_behaviours  # type: ignore
                 initial_behaviour_cls = MagicMock()
-                termination_behaviour_cls = behaviour_cls
+                background_behaviours_cls = behaviour_cls
 
     def test_get_behaviour_id_to_behaviour_mapping_negative(self) -> None:
         """Test classmethod '_get_behaviour_id_to_behaviour_mapping', negative case."""
@@ -658,13 +600,13 @@ class TestAbstractRoundBehaviour:
         self.behaviour.setup()
         if expected_termination_acting:
             with mock.patch.object(
-                self.behaviour.termination_behaviour,
+                ConcreteBackgroundBehaviour,
                 "act_wrapper",
             ) as mock_background_act:
                 self.behaviour.act()
                 mock_background_act.assert_called()
         else:
-            assert self.behaviour.termination_behaviour is None
+            assert self.behaviour.background_behaviours == set()
 
     @mock.patch.object(
         AbstractRoundBehaviour,

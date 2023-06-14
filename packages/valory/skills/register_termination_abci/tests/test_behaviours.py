@@ -62,4 +62,4 @@ def test_RegisterSafeTerminationAbciAppConsensusBehaviour() -> None:
         *ResetPauseABCIConsensusBehaviour.behaviours,
         *TerminationAbciBehaviours.behaviours,
     }
-    assert behaviour.termination_behaviour_cls == BackgroundBehaviour
+    assert behaviour.background_behaviours_cls == {BackgroundBehaviour}

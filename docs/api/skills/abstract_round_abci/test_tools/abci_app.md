@@ -94,6 +94,16 @@ class ConcreteBackgroundRound(_ConcreteRound)
 
 Dummy instantiation of the AbstractRound class.
 
+<a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.ConcreteBackgroundSlashingRound"></a>
+
+## ConcreteBackgroundSlashingRound Objects
+
+```python
+class ConcreteBackgroundSlashingRound(_ConcreteRound)
+```
+
+Dummy instantiation of the AbstractRound class.
+
 <a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.ConcreteTerminationRoundA"></a>
 
 ## ConcreteTerminationRoundA Objects
@@ -124,12 +134,22 @@ class ConcreteTerminationRoundC(_ConcreteRound)
 
 Dummy instantiation of the AbstractRound class.
 
-<a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.ConcreteSlashingRound"></a>
+<a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.ConcreteSlashingRoundA"></a>
 
-## ConcreteSlashingRound Objects
+## ConcreteSlashingRoundA Objects
 
 ```python
-class ConcreteSlashingRound(_ConcreteRound)
+class ConcreteSlashingRoundA(_ConcreteRound)
+```
+
+Dummy instantiation of the AbstractRound class.
+
+<a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.ConcreteSlashingRoundB"></a>
+
+## ConcreteSlashingRoundB Objects
+
+```python
+class ConcreteSlashingRoundB(_ConcreteRound)
 ```
 
 Dummy instantiation of the AbstractRound class.
@@ -153,6 +173,26 @@ def __str__() -> str
 ```
 
 Get the string representation of the event.
+
+<a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.TerminationAppTest"></a>
+
+## TerminationAppTest Objects
+
+```python
+class TerminationAppTest(AbciApp[ConcreteEvents])
+```
+
+A dummy Termination abci for testing purposes.
+
+<a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.SlashingAppTest"></a>
+
+## SlashingAppTest Objects
+
+```python
+class SlashingAppTest(AbciApp[ConcreteEvents])
+```
+
+A dummy Slashing abci for testing purposes.
 
 <a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.AbciAppTest"></a>
 

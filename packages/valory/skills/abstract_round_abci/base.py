@@ -2138,6 +2138,121 @@ class _MetaAbciApp(ABCMeta):
             )
 
 
+class BackgroundAppType(Enum):
+    """
+    The type of a background app.
+
+    Please note that the values correspond to the priority in which the background apps should be processed
+    when updating rounds.
+    """
+
+    TERMINATING = 0
+    EVER_RUNNING = 1
+    NORMAL = 2
+    INCORRECT = 3
+
+    @staticmethod
+    def correct_types() -> Set[str]:
+        """Return the correct types only."""
+        return set(BackgroundAppType.__members__) - {BackgroundAppType.INCORRECT.name}
+
+
+class BackgroundApp:
+    """A background app."""
+
+    def __init__(
+        self,
+        round_cls: AppState,
+        transition_function: Optional[AbciAppTransitionFunction] = None,
+        start_event: Optional[EventType] = None,
+        end_event: Optional[EventType] = None,
+    ) -> None:
+        """Initialize the BackgroundApp."""
+        given_args = locals()
+
+        self.round_cls: AppState = round_cls
+        self.transition_function: Optional[
+            AbciAppTransitionFunction
+        ] = transition_function
+        self.start_event: Optional[EventType] = start_event
+        self.end_event: Optional[EventType] = end_event
+
+        self.type = self.specify_type()
+        if self.type == BackgroundAppType.INCORRECT:  # pragma: nocover
+            raise ValueError(
+                f"Background app has not been initialized correctly with {given_args}. "
+                f"Cannot match with any of the possible background apps' types: {BackgroundAppType.correct_types()}"
+            )
+        _logger.debug(
+            f"Created background app of type '{self.type}' using {given_args}."
+        )
+        self._background_round: Optional[AbstractRound] = None
+
+    def specify_type(self) -> BackgroundAppType:
+        """Specify the type of the background app."""
+        if (
+            self.start_event is None
+            and self.end_event is None
+            and self.transition_function is None
+        ):
+            self.transition_function = {}
+            return BackgroundAppType.EVER_RUNNING
+        if (
+            self.start_event is not None
+            and self.end_event is None
+            and self.transition_function is not None
+        ):
+            return BackgroundAppType.TERMINATING
+        if (
+            self.start_event is not None
+            and self.end_event is not None
+            and self.transition_function is not None
+        ):
+            return BackgroundAppType.NORMAL
+        return BackgroundAppType.INCORRECT  # pragma: nocover
+
+    def setup(
+        self, initial_synchronized_data: BaseSynchronizedData, context: SkillContext
+    ) -> None:
+        """Set up the background round."""
+        round_cls = cast(Type[AbstractRound], self.round_cls)
+        self._background_round = round_cls(
+            initial_synchronized_data,
+            context,
+        )
+
+    @property
+    def background_round(self) -> AbstractRound:
+        """Get the background round."""
+        if self._background_round is None:  # pragma: nocover
+            raise ValueError(f"Background round with class `{self.round_cls}` not set!")
+        return self._background_round
+
+    def process_transaction(self, transaction: Transaction, dry: bool = False) -> bool:
+        """Process a transaction."""
+
+        payload_class = type(transaction.payload)
+        bg_payload_class = cast(AppState, self.round_cls).payload_class
+        if payload_class is bg_payload_class:
+            processor = (
+                self.background_round.check_transaction
+                if dry
+                else self.background_round.process_transaction
+            )
+            processor(transaction)
+            return True
+        return False
+
+
+@dataclass
+class TransitionBackup:
+    """Holds transition related information as a backup in case we want to transition back from a background app."""
+
+    round: Optional[AbstractRound] = None
+    round_cls: Optional[AppState] = None
+    transition_function: Optional[AbciAppTransitionFunction] = None
+
+
 class AbciApp(
     Generic[EventType], ABC, metaclass=_MetaAbciApp
 ):  # pylint: disable=too-many-instance-attributes
@@ -2153,15 +2268,7 @@ class AbciApp(
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
     cross_period_persisted_keys: FrozenSet[str] = frozenset()
-    termination_round_cls: Optional[AppState] = None
-    termination_transition_function: Optional[AbciAppTransitionFunction] = None
-    termination_event: Optional[EventType] = None
-    # pending offences need a single background round, therefore, no transition function or events are specified
-    pending_offences_round_cls: Optional[AppState] = None
-    slashing_round_cls: Optional[AppState] = None
-    slashing_transition_function: Optional[AbciAppTransitionFunction] = None
-    slashing_start_event: Optional[EventType] = None
-    slashing_end_event: Optional[EventType] = None
+    background_apps: Set[BackgroundApp] = set()
     default_db_preconditions: Set[str] = BaseSynchronizedData.default_db_keys
     db_pre_conditions: Dict[AppState, Set[str]] = {}
     db_post_conditions: Dict[AppState, Set[str]] = {}
@@ -2183,9 +2290,6 @@ class AbciApp(
         self.context = context
         self._current_round_cls: Optional[AppState] = None
         self._current_round: Optional[AbstractRound] = None
-        self._termination_round: Optional[AbstractRound] = None
-        self._pending_offences_round: Optional[AbstractRound] = None
-        self._slashing_round: Optional[AbstractRound] = None
         self._last_round: Optional[AbstractRound] = None
         self._previous_rounds: List[AbstractRound] = []
         self._current_round_height: int = 0
@@ -2193,19 +2297,8 @@ class AbciApp(
         self._last_timestamp: Optional[datetime.datetime] = None
         self._current_timeout_entries: List[int] = []
         self._timeouts = Timeouts[EventType]()
-        self._is_termination_set = (
-            self.termination_round_cls is not None
-            and self.termination_transition_function is not None
-            and self.termination_event is not None
-        )
-        self._is_pending_offences_set = self.pending_offences_round_cls is not None
-        self._is_slashing_set = (
-            self.slashing_round_cls is not None
-            and self.slashing_transition_function is not None
-            and self.slashing_start_event is not None
-            and self.slashing_end_event is not None
-        )
-        self._backup_transition_function: Optional[AbciAppTransitionFunction] = None
+        self._transition_backup = TransitionBackup()
+        self._switched = False
 
     @classmethod
     def is_abstract(cls) -> bool:
@@ -2213,52 +2306,43 @@ class AbciApp(
         return cls._is_abstract
 
     @classmethod
-    def add_termination(
+    def add_background_app(
         cls,
-        termination_round_cls: AppState,
-        termination_event: EventType,
-        termination_abci_app: Type["AbciApp"],
+        round_cls: AppState,
+        start_event: Optional[EventType] = None,
+        end_event: Optional[EventType] = None,
+        abci_app: Optional[Type["AbciApp"]] = None,
     ) -> Type["AbciApp"]:
-        """Sets the termination-related class variables."""
-        cls.termination_round_cls = termination_round_cls
-        cls.termination_transition_function = termination_abci_app.transition_function
-        cls.termination_event = termination_event
-        new_cross_period_persisted_keys = copy(cls.cross_period_persisted_keys)
-        cls.cross_period_persisted_keys = new_cross_period_persisted_keys.union(
-            termination_abci_app.cross_period_persisted_keys
-        )
-        return cls
+        """
+        Sets the background related class variables.
 
-    @classmethod
-    def add_slashing(
-        cls,
-        slashing_round_cls: AppState,
-        slashing_start_event: EventType,
-        slashing_end_event: EventType,
-        slashing_abci_app: Type["AbciApp"],
-    ) -> Type["AbciApp"]:
-        """Sets the slashing-related class variables."""
-        cls.slashing_round_cls = slashing_round_cls
-        cls.slashing_transition_function = slashing_abci_app.transition_function
-        cls.slashing_start_event = slashing_start_event
-        cls.slashing_end_event = slashing_end_event
-        new_cross_period_persisted_keys = copy(cls.cross_period_persisted_keys)
-        cls.cross_period_persisted_keys = new_cross_period_persisted_keys.union(
-            slashing_abci_app.cross_period_persisted_keys
-        )
-        return cls
+        For a deeper understanding of the various types of background apps and how the inputs of this method influence
+        the generated background app's type, please refer to the `BackgroundApp` class.
+        The `specify_type` method provides further insight on the subject matter.
 
-    @classmethod
-    def add_pending_offences(
-        cls,
-        pending_offences_round_cls: AppState,
-        pending_offences_abci_app: Type["AbciApp"],
-    ) -> Type["AbciApp"]:
-        """Sets the pending offences-related class variables."""
-        cls.pending_offences_round_cls = pending_offences_round_cls
-        new_cross_period_persisted_keys = copy(cls.cross_period_persisted_keys)
-        cls.cross_period_persisted_keys = new_cross_period_persisted_keys.union(
-            pending_offences_abci_app.cross_period_persisted_keys
+        :param round_cls: the class of the background round.
+        :param start_event: the start event of the background round.
+         If no event or transition function is specified, then the round is running in the background forever.
+        :param end_event: the end event of the background round.
+         If not specified, then the round is terminating the abci app.
+        :param abci_app: the abci app of the background round.
+         The abci app must specify a valid transition function if the round is not of an ever-running type.
+        :return: the `AbciApp` with the new background app contained in the `background_apps` set.
+        """
+        background_app = BackgroundApp(
+            round_cls,
+            abci_app.transition_function if abci_app is not None else None,
+            start_event,
+            end_event,
+        )
+        cls.background_apps.add(background_app)
+        cross_period_keys = (
+            abci_app.cross_period_persisted_keys
+            if abci_app is not None
+            else frozenset()
+        )
+        cls.cross_period_persisted_keys = cls.cross_period_persisted_keys.union(
+            cross_period_keys
         )
         return cls
 
@@ -2305,30 +2389,32 @@ class AbciApp(
 
     @classmethod
     def get_all_round_classes(
-        cls,
-        include_termination_rounds: bool = False,
-        include_pending_offences_rounds: bool = False,
-        include_slashing_rounds: bool = False,
+        cls, include_background_rounds: bool = False
     ) -> Set[AppState]:
         """Get all round classes."""
-        result: Set[AppState] = cls._get_rounds_from_transition_function(
-            cls.transition_function
-        )
-        if include_termination_rounds:
-            termination_rounds = cls._get_rounds_from_transition_function(
-                cls.termination_transition_function,
-            )
-            result.update(termination_rounds)
-        if include_pending_offences_rounds:
-            pending_offences_round_cls = cast(AppState, cls.pending_offences_round_cls)
-            pending_offences_rounds = {pending_offences_round_cls}
-            result.update(pending_offences_rounds)
-        if include_slashing_rounds:
-            slashing_rounds = cls._get_rounds_from_transition_function(
-                cls.slashing_transition_function,
-            )
-            result.update(slashing_rounds)
-        return result
+        full_fn = deepcopy(cls.transition_function)
+
+        if include_background_rounds:
+            for app in cls.background_apps:
+                if app.type == BackgroundAppType.EVER_RUNNING:
+                    full_fn.update({app.round_cls: {}})
+                transition_fn = cast(AbciAppTransitionFunction, app.transition_function)
+                full_fn.update(transition_fn)
+
+        return cls._get_rounds_from_transition_function(full_fn)
+
+    @property
+    def bg_apps_prioritized(self) -> Tuple[List[BackgroundApp], ...]:
+        """Get the background apps grouped and prioritized by their types."""
+        n_correct_types = len(BackgroundAppType.correct_types())
+        grouped_prioritized: Tuple[List, ...] = ([],) * n_correct_types
+        for app in self.background_apps:
+            # reminder: the values correspond to the priority of the background apps
+            for priority in range(n_correct_types):
+                if app.type == BackgroundAppType(priority):
+                    grouped_prioritized[priority].append(app)
+
+        return grouped_prioritized
 
     @property
     def last_timestamp(self) -> datetime.datetime:
@@ -2339,15 +2425,8 @@ class AbciApp(
 
     def _setup_background(self) -> None:
         """Set up the background rounds."""
-        for background_app_name in ("termination", "pending_offences", "slashing"):
-            is_set = getattr(self, f"is_{background_app_name}_set")
-            round_cls = getattr(self, f"{background_app_name}_round_cls")
-            if is_set:
-                round_instance = round_cls(
-                    self._initial_synchronized_data,
-                    self.context,
-                )
-                setattr(self, f"_{background_app_name}_round", round_instance)
+        for app in self.background_apps:
+            app.setup(self._initial_synchronized_data, self.context)
 
     def setup(self) -> None:
         """Set up the behaviour."""
@@ -2434,42 +2513,6 @@ class AbciApp(
         return self._current_round
 
     @property
-    def termination_round(self) -> AbstractRound:
-        """Get the termination round."""
-        if self._termination_round is None:
-            raise ValueError("Termination round not set!")
-        return self._termination_round
-
-    @property
-    def pending_offences_round(self) -> AbstractRound:
-        """Get the pending_offences round."""
-        if self._pending_offences_round is None:
-            raise ValueError("Pending offences round not set!")
-        return self._pending_offences_round
-
-    @property
-    def slashing_round(self) -> AbstractRound:
-        """Get the slashing round."""
-        if self._slashing_round is None:
-            raise ValueError("Slashing round not set!")
-        return self._slashing_round
-
-    @property
-    def is_termination_set(self) -> bool:
-        """Get whether termination is set."""
-        return self._is_termination_set
-
-    @property
-    def is_pending_offences_set(self) -> bool:
-        """Get whether pending offences is set."""
-        return self._is_pending_offences_set
-
-    @property
-    def is_slashing_set(self) -> bool:
-        """Get whether slashing is set."""
-        return self._is_slashing_set
-
-    @property
     def current_round_id(self) -> Optional[str]:
         """Get the current round id."""
         return self._current_round.round_id if self._current_round else None
@@ -2506,114 +2549,120 @@ class AbciApp(
         self._last_timestamp = None
 
     def check_transaction(self, transaction: Transaction) -> None:
-        """
-        Check a transaction.
+        """Check a transaction."""
 
-        The background round runs concurrently with other (normal) rounds.
-        First we check if the transaction is meant for the background round,
-        if not we forward to the current round object.
+        self.process_transaction(transaction, dry=True)
 
-        :param transaction: the transaction.
-        """
-
-        payload_type = type(transaction.payload)
-
-        for background_app_name in ("termination", "pending_offences", "slashing"):
-            is_set = getattr(self, f"is_{background_app_name}_set")
-            round_cls = getattr(self, f"{background_app_name}_round_cls")
-            if is_set and payload_type is round_cls.payload_class:
-                round_ = getattr(self, f"{background_app_name}_round")
-                round_.check_transaction(transaction)
-                return
-
-        self.current_round.check_transaction(transaction)
-
-    def process_transaction(self, transaction: Transaction) -> None:
+    def process_transaction(self, transaction: Transaction, dry: bool = False) -> None:
         """
         Process a transaction.
 
-        The background round runs concurrently with other (normal) rounds.
-        First we check if the transaction is meant for the background round,
-        if not we forward to the current round object.
+        The background rounds run concurrently with other (normal) rounds.
+        First we check if the transaction is meant for a background round,
+        if not we forward it to the current round object.
 
         :param transaction: the transaction.
+        :param dry: whether the transaction should only be checked and not processed.
         """
 
-        payload_type = type(transaction.payload)
-
-        for background_app_name in ("termination", "pending_offences", "slashing"):
-            is_set = getattr(self, f"is_{background_app_name}_set")
-            round_cls = getattr(self, f"{background_app_name}_round_cls")
-            if is_set and payload_type is round_cls.payload_class:
-                round_ = getattr(self, f"{background_app_name}_round")
-                round_.process_transaction(transaction)
+        for app in self.background_apps:
+            processed = app.process_transaction(transaction, dry)
+            if processed:
                 return
 
-        self.current_round.process_transaction(transaction)
+        processor = (
+            self.current_round.check_transaction
+            if dry
+            else self.current_round.process_transaction
+        )
+        processor(transaction)
+
+    def _resolve_bg_transition(
+        self, app: BackgroundApp, event: EventType
+    ) -> Tuple[bool, Optional[AppState]]:
+        """
+        Resolve a background app's transition.
+
+        First check whether the event is a special start event.
+        If that's the case, proceed with the corresponding background app's transition function,
+         regardless of what the current round is.
+
+        :param app: the background app instance.
+        :param event: the event for the transition.
+        :return: the new app state.
+        """
+
+        if (
+            app.type in (BackgroundAppType.NORMAL, BackgroundAppType.TERMINATING)
+            and event == app.start_event
+        ):
+            app.transition_function = cast(
+                AbciAppTransitionFunction, app.transition_function
+            )
+            app.round_cls = cast(AppState, app.round_cls)
+            next_round_cls = app.transition_function[app.round_cls].get(event, None)
+            if next_round_cls is None:  # pragma: nocover
+                return True, None
+
+            # we backup the current round so we can return back to normal, in case the end event is received later
+            self._transition_backup.round = self._current_round
+            self._transition_backup.round_cls = self._current_round_cls
+            # we switch the current transition function, with the background app's transition function
+            self._transition_backup.transition_function = deepcopy(
+                self.transition_function
+            )
+            self.transition_function = app.transition_function
+            self.logger.info(
+                f"The {event} event was produced, transitioning to "
+                f"`{next_round_cls.auto_round_id()}`."
+            )
+            return True, next_round_cls
+
+        return False, None
+
+    def _adjust_transition_fn(self, event: EventType) -> None:
+        """
+        Adjust the transition function if necessary.
+
+        Check whether the event is a special end event.
+        If that's the case, reset the transition function back to normal.
+        This method is meant to be called after resolving the next round transition, given an event.
+
+        :param event: the emitted event.
+        """
+        if self._transition_backup.transition_function is None:
+            return
+
+        for app in self.background_apps:
+            if app.type == BackgroundAppType.NORMAL and event == app.end_event:
+                self._current_round = self._transition_backup.round
+                self._transition_backup.round = None
+                self._current_round_cls = self._transition_backup.round_cls
+                self._transition_backup.round_cls = None
+                backup_fn = cast(
+                    AbciAppTransitionFunction,
+                    self._transition_backup.transition_function,
+                )
+                self.transition_function = deepcopy(backup_fn)
+                self._transition_backup.transition_function = None
+                self._switched = True
+                self.logger.info(
+                    f"The {app.end_event} event was produced. Switching back to the normal FSM."
+                )
 
     def _resolve_transition(self, event: EventType) -> Optional[Type[AbstractRound]]:
         """Resolve the transitioning based on the given event."""
-        # we first check whether the event is the special termination event.
-        # if that's the case, we proceed with the termination transition function,
-        # regardless of what the current round is
-        if self.is_termination_set and event == self.termination_event:
-            self.termination_transition_function = cast(
-                AbciAppTransitionFunction, self.termination_transition_function
-            )
-            self.termination_round_cls = cast(AppState, self.termination_round_cls)
-            next_round_cls = self.termination_transition_function[
-                self.termination_round_cls
-            ].get(event, None)
+        for app in self.background_apps:
+            matched, next_round_cls = self._resolve_bg_transition(app, event)
+            if matched:
+                return next_round_cls
 
-            # we switch the current transition function, with the termination
-            # transition function. Note that we don't need to return to the
-            # normal transition function (self.transition_function) because
-            # the termination transition function is sufficient for going
-            # through the necessary rounds
-            self.transition_function = self.termination_transition_function
-            self.logger.info(
-                "The termination event was produced, transitioning to "
-                f"`{cast(AppState, next_round_cls).auto_round_id()}`."
-            )
-            return next_round_cls
-
-        # we check whether the event is the special slashing start event.
-        # if that's the case, we proceed with the slashing transition function,
-        # regardless of what the current round is
-        if self.is_slashing_set and event == self.slashing_start_event:
-            self.slashing_transition_function = cast(
-                AbciAppTransitionFunction, self.slashing_transition_function
-            )
-            self.slashing_round_cls = cast(AppState, self.slashing_round_cls)
-            next_round_cls = self.slashing_transition_function[
-                self.slashing_round_cls
-            ].get(event, None)
-
-            # we switch the current transition function, with the slashing transition function
-            self._backup_transition_function = deepcopy(self.transition_function)
-            self.transition_function = self.slashing_transition_function
-            self.logger.info(
-                "The slashing start event was produced, transitioning to "
-                f"`{cast(AppState, next_round_cls).auto_round_id()}`."
-            )
-            return next_round_cls
+        self._adjust_transition_fn(event)
 
         current_round_cls = cast(AppState, self._current_round_cls)
         next_round_cls = self.transition_function[current_round_cls].get(event, None)
-
-        # we check whether the event is the special slashing end event.
-        # if that's the case, we reset the transition function back to normal.
-        if (
-            self.is_slashing_set
-            and event == self.slashing_end_event
-            and self._backup_transition_function is not None
-        ):
-            self.transition_function = self._backup_transition_function
-            self._backup_transition_function = None
-            self.logger.info(
-                "The slashing end event was produced, transitioning to "
-                f"`{cast(AppState, next_round_cls).auto_round_id()}` and switching back to the normal FSM."
-            )
+        if next_round_cls is None:
+            return None
 
         return next_round_cls
 
@@ -2636,6 +2685,10 @@ class AbciApp(
         self._log_end(event)
         if next_round_cls is not None:
             self.schedule_round(next_round_cls)
+            return
+
+        if self._switched:
+            self._switched = False
             return
 
         self.logger.warning("AbciApp has reached a dead end.")
@@ -3004,7 +3057,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._last_round_transition_tm_height: Optional[int] = None
         self._tm_height: Optional[int] = None
         self._block_stall_deadline: Optional[datetime.datetime] = None
-        self._termination_called: bool = False
+        self._terminating_round_called: bool = False
         # a mapping of the validators' addresses to their agent addresses
         # we create a mapping to avoid calculating the agent address from the validator address every time we need it
         # since this is an operation that will be performed every time we want to create an offence
@@ -3042,7 +3095,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         """Get the mapping of the agents' addresses to their offence status."""
         if self._offence_status:
             return self._offence_status
-        raise SlashingNotConfiguredError(
+        raise SlashingNotConfiguredError(  # pragma: nocover
             "The mapping of the agents' addresses to their offence status has not been set."
         )
 
@@ -3173,21 +3226,6 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
     def current_round(self) -> AbstractRound:
         """Get current round."""
         return self.abci_app.current_round
-
-    @property
-    def termination_round(self) -> AbstractRound:
-        """Get the termination round."""
-        return self.abci_app.termination_round
-
-    @property
-    def pending_offences_round(self) -> AbstractRound:
-        """Get the pending_offences round."""
-        return self.abci_app.pending_offences_round
-
-    @property
-    def slashing_round(self) -> AbstractRound:
-        """Get the slashing round."""
-        return self.abci_app.slashing_round
 
     @property
     def current_round_id(self) -> Optional[str]:
@@ -3468,49 +3506,43 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             )
         self._blockchain = Blockchain(is_init=is_init)
 
-    def _get_background_result(
+    def _get_round_result(
         self,
     ) -> Optional[Tuple[BaseSynchronizedData, Any]]:
-        """Update the `results` with the background apps' results."""
-        for background_app_name in ("pending_offences", "slashing"):
-            is_set = getattr(self.abci_app, f"is_{background_app_name}_set")
-            if is_set:
-                round_ = getattr(self.abci_app, f"{background_app_name}_round")
-                result = round_.end_block()
-                if result is not None:
-                    return result
-        return None
-
-    def _get_round_result(self) -> Optional[Tuple[BaseSynchronizedData, Any]]:
         """
         Get the round's result.
 
-        Give priority to termination, then the rest of the bg rounds, and then the normal rounds.
+        Give priority to:
+            1. terminating bg rounds
+            2. ever running bg rounds
+            3. normal bg rounds
+            4. normal rounds
 
-        :return: the round result.
+        :return: the round's result.
         """
-        termination_result = None
-        if self.abci_app.is_termination_set:
-            termination_result = self.abci_app.termination_round.end_block()
-
-        if termination_result is not None and not self._termination_called:
-            # when the background round returns, it takes priority over normal rounds.
-            # the BackgroundRound never ends, therefore, we should take its response into account only once
-            self._termination_called = True
-            return termination_result
-
-        bg_result = self._get_background_result()
-        if bg_result is None:
-            return self.abci_app.current_round.end_block()
-        return bg_result
+        for prioritized_group in self.abci_app.bg_apps_prioritized:
+            for app in prioritized_group:
+                result = app.background_round.end_block()
+                if (
+                    result is None
+                    or app.type == BackgroundAppType.TERMINATING
+                    and self._terminating_round_called
+                ):
+                    continue
+                if (
+                    app.type == BackgroundAppType.TERMINATING
+                    and not self._terminating_round_called
+                ):
+                    self._terminating_round_called = True
+                return result
+        return self.abci_app.current_round.end_block()
 
     def _update_round(self) -> None:
         """
         Update a round.
 
         Check whether the round has finished. If so, get the new round and set it as the current round.
-        If the termination app's round has returned a result, then the other apps' rounds are ignored.
-        Otherwise, all results are added to a list and processed serially, giving priority to the background results.
+        If a termination app's round has returned a result, then the other apps' rounds are ignored.
         """
         result = self._get_round_result()
 
