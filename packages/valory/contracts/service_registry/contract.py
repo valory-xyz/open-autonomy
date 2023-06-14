@@ -293,3 +293,28 @@ class ServiceRegistryContract(Contract):
                 return True
 
         return False
+
+    @classmethod
+    def get_slash_data(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        agent_instances: List[str],
+        amounts: List[int],
+        service_id: int,
+    ) -> bytes:
+        """Gets the encoded arguments for a slashing tx, which should only be called via the multisig."""
+
+        contract_instance = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+
+        slash_kwargs = dict(
+            agentInstances=agent_instances,
+            amounts=amounts,
+            serviceId=service_id,
+        )
+
+        data = contract_instance.encodeABI(fn_name="slash", kwargs=slash_kwargs)
+        return bytes.fromhex(data[2:])
