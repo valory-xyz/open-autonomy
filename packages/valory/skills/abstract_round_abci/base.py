@@ -91,7 +91,7 @@ VALUE_NOT_PROVIDED = object()
 BLOCKS_STALL_TOLERANCE = 15
 SERIOUS_OFFENCE_ENUM_MIN = 1000
 NUMBER_OF_BLOCKS_TRACKED = 10_000
-NUMER_OF_ROUNDS_TRACKED = 50
+NUMBER_OF_ROUNDS_TRACKED = 50
 
 EventType = TypeVar("EventType")
 
@@ -2940,13 +2940,13 @@ class OffenceStatus:
         default_factory=lambda: AvailabilityWindow(NUMBER_OF_BLOCKS_TRACKED)
     )
     invalid_payload: AvailabilityWindow = field(
-        default_factory=lambda: AvailabilityWindow(NUMER_OF_ROUNDS_TRACKED)
+        default_factory=lambda: AvailabilityWindow(NUMBER_OF_ROUNDS_TRACKED)
     )
     blacklisted: AvailabilityWindow = field(
-        default_factory=lambda: AvailabilityWindow(NUMER_OF_ROUNDS_TRACKED)
+        default_factory=lambda: AvailabilityWindow(NUMBER_OF_ROUNDS_TRACKED)
     )
     suspected: AvailabilityWindow = field(
-        default_factory=lambda: AvailabilityWindow(NUMER_OF_ROUNDS_TRACKED)
+        default_factory=lambda: AvailabilityWindow(NUMBER_OF_ROUNDS_TRACKED)
     )
     num_unknown_offenses: int = 0
     num_double_signed: int = 0
