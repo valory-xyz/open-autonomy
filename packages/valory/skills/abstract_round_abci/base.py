@@ -2969,6 +2969,24 @@ class OffenceStatus:
     num_double_signed: int = 0
     num_light_client_attack: int = 0
 
+    @property
+    def slash_amount(self) -> int:
+        """Get the slash amount of the current status."""
+        amount = 0
+
+        if self.validator_downtime.has_bad_availability_rate():
+            amount += calculate_slash_amount(OffenseType.VALIDATOR_DOWNTIME)
+        if self.invalid_payload.has_bad_availability_rate():
+            amount += calculate_slash_amount(OffenseType.INVALID_PAYLOAD)
+        if self.blacklisted.has_bad_availability_rate():
+            amount += calculate_slash_amount(OffenseType.BLACKLISTED)
+        if self.suspected.has_bad_availability_rate():
+            amount += calculate_slash_amount(OffenseType.SUSPECTED)
+        amount += calculate_slash_amount(OffenseType.UNKNOWN) * self.num_unknown_offenses
+        amount += calculate_slash_amount(OffenseType.DOUBLE_SIGNING) * self.num_double_signed
+        amount += calculate_slash_amount(OffenseType.LIGHT_CLIENT_ATTACK) * self.num_light_client_attack
+
+        return amount
 
 class OffenseStatusEncoder(json.JSONEncoder):
     """A custom JSON encoder for the offence status dictionary."""
