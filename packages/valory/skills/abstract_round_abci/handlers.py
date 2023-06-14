@@ -18,9 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the handler for the 'abstract_round_abci' skill."""
+
 import ipaddress
 import json
 from abc import ABC
+from calendar import timegm
 from dataclasses import asdict
 from enum import Enum
 from typing import Any, Callable, Dict, FrozenSet, List, Optional, cast
@@ -201,8 +203,8 @@ class ABCIRoundHandler(ABCIHandler):
         round_sequence = cast(SharedState, self.context.state).round_sequence
 
         try:
-            last_round_transition_timestamp = (
-                round_sequence.last_round_transition_timestamp.timestamp()
+            last_round_transition_timestamp = timegm(
+                round_sequence.last_round_transition_timestamp.utctimetuple()
             )
         except ValueError:  # pragma: no cover
             # do not add an offence if no round transition has been completed yet

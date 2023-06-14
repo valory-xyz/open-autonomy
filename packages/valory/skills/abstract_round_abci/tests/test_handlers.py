@@ -24,6 +24,7 @@
 import json
 import logging
 from dataclasses import asdict
+from datetime import datetime
 from typing import Any, Dict, cast
 from unittest import mock
 from unittest.mock import MagicMock
@@ -90,6 +91,9 @@ class TestABCIRoundHandler:
         self.handler = ABCIRoundHandler(name="", skill_context=self.context)
         self.context.state.round_sequence.height = 0
         self.context.state.round_sequence.root_hash = b"root_hash"
+        self.context.state.round_sequence.last_round_transition_timestamp = (
+            datetime.now()
+        )
 
     def test_info(self) -> None:
         """Test the 'info' handler method."""

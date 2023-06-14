@@ -19,6 +19,7 @@
 
 """Test the pending offences background round."""
 
+from calendar import timegm
 from copy import deepcopy
 from datetime import datetime
 from unittest.mock import MagicMock
@@ -59,8 +60,8 @@ class TestPendingOffencesRound(BaseRoundTestClass):
             [value.value for value in OffenseType.__members__.values()]
         ),
         last_transition_timestamp=st.floats(
-            min_value=datetime(1971, 1, 1).timestamp(),
-            max_value=datetime(8000, 1, 1).timestamp() - 2000,
+            min_value=timegm(datetime(1971, 1, 1).utctimetuple()),
+            max_value=timegm(datetime(8000, 1, 1).utctimetuple()) - 2000,
         ),
         time_to_live=st.floats(min_value=1, max_value=2000),
     )

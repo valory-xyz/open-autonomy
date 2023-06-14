@@ -19,6 +19,7 @@
 
 """Tests the behaviours of the pending offences."""
 
+from calendar import timegm
 from datetime import datetime
 from pathlib import Path
 from unittest import mock
@@ -59,8 +60,8 @@ class TestPendingOffencesBehaviour:
             round_count=st.integers(min_value=0),
             offense_type=st.sampled_from(OffenseType),
             last_transition_timestamp=st.floats(
-                min_value=datetime(1971, 1, 1).timestamp(),
-                max_value=datetime(8000, 1, 1).timestamp() - 2000,
+                min_value=timegm(datetime(1971, 1, 1).utctimetuple()),
+                max_value=timegm(datetime(8000, 1, 1).utctimetuple()) - 2000,
             ),
             time_to_live=st.floats(min_value=1, max_value=2000),
         ),
