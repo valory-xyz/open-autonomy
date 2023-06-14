@@ -2815,6 +2815,15 @@ def serious_offences() -> Iterator[OffenseType]:
     return filter(is_serious_offence, OffenseType)
 
 
+def calculate_slash_amount(offence_type: OffenseType) -> int:
+    """Calculates and returns the slash amount."""
+    if is_light_offence(offence_type):
+        return LIGHT_OFFENCE_SLASH_AMOUNT
+    if is_serious_offence(offence_type):
+        return SERIOUS_OFFENCE_SLASH_AMOUNT
+    return 0
+
+
 class AvailabilityWindow:
     """
     A cyclic array with a maximum length that holds boolean values.
