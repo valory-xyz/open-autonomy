@@ -35,6 +35,7 @@ from copy import copy, deepcopy
 from dataclasses import asdict, astuple, dataclass, field, is_dataclass
 from enum import Enum
 from inspect import isclass
+from math import ceil
 from typing import (
     Any,
     Callable,
@@ -2850,6 +2851,10 @@ class AvailabilityWindow:
         if isinstance(other, AvailabilityWindow):
             return self.to_dict() == other.to_dict()
         return False
+
+    def has_bad_availability_rate(self, threshold: float = 0.95) -> bool:
+        """Whether the agent on which the window belongs to has a bad availability rate or not."""
+        return self._num_positive >= ceil(self._max_length * threshold)
 
     def _update_counters(self, positive: bool, removal: bool = False) -> None:
         """Updates the `num_positive` and `num_negative` counters."""
