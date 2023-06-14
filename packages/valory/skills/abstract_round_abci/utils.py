@@ -486,3 +486,15 @@ def consensus_threshold(nb: int) -> int:
     :return: the consensus threshold
     """
     return ceil((2 * nb + 1) / 3)
+
+
+KeyType = TypeVar("KeyType")
+ValueType = TypeVar("ValueType")
+
+
+def inverse(dict_: Dict[KeyType, ValueType]) -> Dict[ValueType, List[KeyType]]:
+    """Get the inverse of a dictionary."""
+    inverse_ = dict.fromkeys(dict_.values(), [])
+    for key, value in dict_.items():
+        inverse_[value].append(key)
+    return inverse_
