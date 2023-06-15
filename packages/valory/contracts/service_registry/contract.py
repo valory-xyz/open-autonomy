@@ -21,7 +21,7 @@
 
 import hashlib
 import logging
-from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
+from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast, FrozenSet
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -350,4 +350,39 @@ class ServiceRegistryContract(Contract):
         return {
             "slash_timestamp": block["timestamp"],
             "events": [log["args"] for log in logs],
+        }
+
+    @classmethod
+    def get_operator(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        agent_instance: str,
+    ) -> str:
+        """Retrieve an operator given its agent instance."""
+
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+        map_fn = contract_instance.functions.mapAgentInstanceOperators
+        return map_fn(agent_instance).call()
+
+    @classmethod
+    def get_operators_mapping(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        agent_instances: FrozenSet[str],
+    ) -> Dict[str, str]:
+        """
+        Retrieve a mapping of the given agent instances to their operators.
+
+        Please keep in mind that this method performs a call for each agent instance.
+
+        :param ledger_api: the ledger api.
+        :param contract_address: the contract address.
+        :param agent_instances: the agent instances to be mapped.
+        :return: a mapping of the given agent instances to their operators.
+        """
+        return {
+            agent: cls.get_operator(ledger_api, contract_address, agent)
+            for agent in agent_instances
         }

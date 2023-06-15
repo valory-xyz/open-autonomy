@@ -40,6 +40,14 @@ SERVICE_REGISTRY_INVALID = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed"
 VALID_SERVICE_ID = 1
 INVALID_SERVICE_ID = 0
 CHAIN_ID = 31337
+AGENT_INSTANCES = [
+    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+    "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+]
+OPERATOR = "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
+OPERATORS_MAPPING = dict.fromkeys(AGENT_INSTANCES, OPERATOR)
 
 
 def event_filter_patch(event: str, return_value: Any) -> mock._patch:
@@ -112,12 +120,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
 
         return_value = {
             "numAgentInstances": 4,
-            "agentInstances": [
-                "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-                "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-                "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-                "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-            ],
+            "agentInstances": AGENT_INSTANCES,
         }
 
         assert self.contract_address is not None
@@ -132,7 +135,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
 
     def test_get_service_owner(self) -> None:
         """Test service owner retrieval."""
-        service_owner = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+        service_owner = AGENT_INSTANCES[0]
         assert self.contract_address is not None
 
         actual = self.contract.get_service_owner(
@@ -309,12 +312,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         result = self.contract.get_slash_data(
             self.ledger_api,
             self.contract_address,
-            [
-                "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-                "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-                "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-                "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-            ],
+            AGENT_INSTANCES,
             [0, 0, 0, 1],
             service_id=1,
         )
@@ -337,3 +335,22 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
             b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
             b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01"
         ), "Contract did not return the expected data."
+
+    def test_get_operator(self) -> None:
+        """Test `get_operator` method."""
+        for agent_instance, expected_operator in OPERATORS_MAPPING.items():
+            actual_operator = self.contract.get_operator(
+                self.ledger_api,
+                self.contract_address,
+                agent_instance,
+            )
+            assert actual_operator == expected_operator
+
+    def test_get_operators_mapping(self) -> None:
+        """Test `get_operator` method."""
+        actual_mapping = self.contract.get_operators_mapping(
+            self.ledger_api,
+            self.contract_address,
+            frozenset(OPERATORS_MAPPING.keys()),
+        )
+        assert actual_mapping == OPERATORS_MAPPING
