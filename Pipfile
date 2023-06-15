@@ -21,6 +21,7 @@ asn1crypto = "==1.4.0"
 # we pin this as the range specified in open-aea-ledger-cosmos is wide
 cosmpy = "==0.3.1"
 grpcio = "==1.43.0"
+pytest = "==7.2.1"
 hypothesis = "==6.21.6"
 # latest supported for Python 3.7
 numpy = "==1.21.6"

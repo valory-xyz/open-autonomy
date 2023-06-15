@@ -24,6 +24,7 @@
 import json
 import logging
 from dataclasses import asdict
+from datetime import datetime
 from typing import Any, Dict, cast
 from unittest import mock
 from unittest.mock import MagicMock
@@ -90,6 +91,9 @@ class TestABCIRoundHandler:
         self.handler = ABCIRoundHandler(name="", skill_context=self.context)
         self.context.state.round_sequence.height = 0
         self.context.state.round_sequence.root_hash = b"root_hash"
+        self.context.state.round_sequence.last_round_transition_timestamp = (
+            datetime.now()
+        )
 
     def test_info(self) -> None:
         """Test the 'info' handler method."""
@@ -195,7 +199,7 @@ class TestABCIRoundHandler:
             response = self.handler.deliver_tx(
                 cast(AbciMessage, message), cast(AbciDialogue, dialogue)
             )
-            mock_add_pending_offence.assert_not_called()
+            mock_add_pending_offence.assert_called_once()
 
         assert response.performative == AbciMessage.Performative.RESPONSE_DELIVER_TX
         assert response.code == OK_CODE
@@ -241,7 +245,7 @@ class TestABCIRoundHandler:
             response = self.handler.deliver_tx(
                 cast(AbciMessage, message), cast(AbciDialogue, dialogue)
             )
-            mock_add_pending_offence.assert_called()
+            mock_add_pending_offence.assert_called_once()
 
         assert response.performative == AbciMessage.Performative.RESPONSE_DELIVER_TX
         assert response.code == ERROR_CODE

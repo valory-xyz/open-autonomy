@@ -2782,6 +2782,7 @@ class OffenseType(Enum):
     See also `is_light_offence` and `is_serious_offence` functions.
     """
 
+    NO_OFFENCE = -1
     VALIDATOR_DOWNTIME = 0
     INVALID_PAYLOAD = 1
     BLACKLISTED = 2
@@ -2793,12 +2794,12 @@ class OffenseType(Enum):
 
 def is_light_offence(offence_type: OffenseType) -> bool:
     """Check if an offence type is light."""
-    return offence_type.value < SERIOUS_OFFENCE_ENUM_MIN
+    return 0 <= offence_type.value < SERIOUS_OFFENCE_ENUM_MIN
 
 
 def is_serious_offence(offence_type: OffenseType) -> bool:
     """Check if an offence type is serious."""
-    return not is_light_offence(offence_type)
+    return offence_type.value >= SERIOUS_OFFENCE_ENUM_MIN
 
 
 def light_offences() -> Iterator[OffenseType]:
@@ -2999,6 +3000,11 @@ class PendingOffense:
     last_transition_timestamp: float
     time_to_live: float
 
+    def __post_init__(self) -> None:
+        """Post initialization for offence type conversion in case it is given as an `int`."""
+        if isinstance(self.offense_type, int):
+            super().__setattr__("offense_type", OffenseType(self.offense_type))
+
 
 class SlashingNotConfiguredError(Exception):
     """Custom exception raised when slashing configuration is requested but is not available."""
@@ -3064,8 +3070,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._validator_to_agent: Dict[str, str] = {}
         # a mapping of the agents' addresses to their offence status
         self._offence_status: Dict[str, OffenceStatus] = {}
-        self._pending_offences: Set[PendingOffense] = set()
         self._slashing_enabled = False
+        self.pending_offences: Set[PendingOffense] = set()
 
     def enable_slashing(self) -> None:
         """Enable slashing."""
@@ -3117,7 +3123,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         :param pending_offence: the pending offence to add
         :return: None
         """
-        self._pending_offences.add(pending_offence)
+        self.pending_offences.add(pending_offence)
 
     def sync_db_and_slashing(self, serialized_db_state: str) -> None:
         """Sync the database and the slashing configuration."""
@@ -3572,8 +3578,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._last_round_transition_root_hash = b""
         self._last_round_transition_tm_height = None
         self._tm_height = None
-        self._pending_offences = set()
         self._slashing_enabled = False
+        self.pending_offences = set()
 
     def reset_state(
         self,

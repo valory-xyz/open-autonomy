@@ -18,9 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the handler for the 'abstract_round_abci' skill."""
+
 import ipaddress
 import json
 from abc import ABC
+from calendar import timegm
 from dataclasses import asdict
 from enum import Enum
 from typing import Any, Callable, Dict, FrozenSet, List, Optional, cast
@@ -189,37 +191,56 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
+    def settle_pending_offence(
+        self, accused_agent_address: Optional[str], invalid: bool
+    ) -> None:
+        """Add an invalid pending offence or a no-offence for the given accused agent address, if possible."""
+        if accused_agent_address is None:
+            # only add the offence if we know and can verify the sender,
+            # otherwise someone could pretend to be someone else, which may lead to wrong punishments
+            return
+
+        round_sequence = cast(SharedState, self.context.state).round_sequence
+
+        try:
+            last_round_transition_timestamp = timegm(
+                round_sequence.last_round_transition_timestamp.utctimetuple()
+            )
+        except ValueError:  # pragma: no cover
+            # do not add an offence if no round transition has been completed yet
+            return
+
+        offence_type = (
+            OffenseType.INVALID_PAYLOAD if invalid else OffenseType.NO_OFFENCE
+        )
+        pending_offense = PendingOffense(
+            accused_agent_address,
+            round_sequence.current_round_height,
+            offence_type,
+            last_round_transition_timestamp,
+            DEFAULT_PENDING_OFFENCE_TTL,
+        )
+        round_sequence.add_pending_offence(pending_offense)
+
     def deliver_tx(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """Handle the 'deliver_tx' request."""
         transaction_bytes = message.tx
-        shared_state = cast(SharedState, self.context.state)
+        round_sequence = cast(SharedState, self.context.state).round_sequence
         payload_sender: Optional[str] = None
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify(self.context.default_ledger_id)
             payload_sender = transaction.payload.sender
-            shared_state.round_sequence.check_is_finished()
-            shared_state.round_sequence.deliver_tx(transaction)
+            round_sequence.check_is_finished()
+            round_sequence.deliver_tx(transaction)
         except (
             SignatureNotValidError,
             TransactionNotValidError,
             TransactionTypeNotRecognizedError,
         ) as exception:
             self._log_exception(exception)
-            # the transaction is invalid, it's potentially an offence
-            # so we add it to the list of pending offences
-            if payload_sender is not None:
-                # only add the offence if we know and can verify the sender
-                # otherwise someone could pretend to be someone else,
-                # which may lead to wrong punishments
-                pending_offense = PendingOffense(
-                    payload_sender,
-                    shared_state.round_sequence.current_round_height,
-                    OffenseType.INVALID_PAYLOAD,
-                    shared_state.round_sequence.last_round_transition_timestamp.timestamp(),
-                    DEFAULT_PENDING_OFFENCE_TTL,
-                )
-                shared_state.round_sequence.add_pending_offence(pending_offense)
+            # the transaction is invalid, it's potentially an offence, so we add it to the list of pending offences
+            self.settle_pending_offence(payload_sender, invalid=True)
             return self._deliver_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
@@ -228,6 +249,9 @@ class ABCIRoundHandler(ABCIHandler):
             return self._deliver_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
+
+        # the invalid payloads' availability window needs to be populated with the negative values as well
+        self.settle_pending_offence(payload_sender, invalid=False)
 
         # return deliver_tx success
         reply = dialogue.reply(

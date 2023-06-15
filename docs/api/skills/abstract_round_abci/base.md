@@ -2713,6 +2713,16 @@ class PendingOffense()
 
 A dataclass to represent offences that need to be addressed.
 
+<a id="packages.valory.skills.abstract_round_abci.base.PendingOffense.__post_init__"></a>
+
+#### `__`post`_`init`__`
+
+```python
+def __post_init__() -> None
+```
+
+Post initialization for offence type conversion in case it is given as an `int`.
+
 <a id="packages.valory.skills.abstract_round_abci.base.SlashingNotConfiguredError"></a>
 
 ## SlashingNotConfiguredError Objects
