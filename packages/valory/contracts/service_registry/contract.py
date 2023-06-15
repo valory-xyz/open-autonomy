@@ -27,7 +27,7 @@ from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea_ledger_ethereum import EthereumApi, LedgerApi
-
+from web3.types import EventData, TxReceipt, BlockData
 
 EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID = {
     1: "0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA",
@@ -318,3 +318,36 @@ class ServiceRegistryContract(Contract):
 
         data = contract_instance.encodeABI(fn_name="slash", kwargs=slash_kwargs)
         return bytes.fromhex(data[2:])
+
+    @classmethod
+    def process_slash_receipt(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        tx_hash: str,
+    ) -> Optional[JSONLike]:
+        """
+        Process the slash receipt.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :param tx_hash: the hash of a slash tx to be processed.
+        :return: a dictionary with the timestamp of the slashing and the `OperatorSlashed` events.
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        contract = cls.get_instance(ledger_api, contract_address)
+        receipt: TxReceipt = ledger_api.api.eth.get_transaction_receipt(tx_hash)
+        logs: List[EventData] = list(
+            contract.events.OperatorSlashed().processReceipt(receipt)
+        )
+
+        if len(logs) == 0:
+            _logger.error(f"No `OperatorSlashed` event was emitted in tx {tx_hash}.")
+            return None
+
+        block: BlockData = ledger_api.api.eth.get_block(receipt["blockNumber"])
+
+        return {
+            "slash_timestamp": block["timestamp"],
+            "events": [log["args"] for log in logs],
+        }
