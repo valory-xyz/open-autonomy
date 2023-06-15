@@ -91,7 +91,7 @@ test:
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
 .PHONY: all-checks
-all-checks: clean formatters code-checks security generators common-checks-1 common-checks-2
+all-checks: clean security generators common-checks-1 common-checks-2
 
 .PHONY: test-skill
 test-skill:

@@ -6,14 +6,14 @@ When developing your service (and its required components, including the {{fsm_a
 
 For convenience the [Dev template](https://github.com/valory-xyz/dev-template) comes with a Pipenv that includes a number of tools grouped under predefined make targets.
 
-Make target: `make formatters`
+`tomte format-code`
 
 : | Tool                                       | Description                                                                                             |
     |--------------------------------------------|---------------------------------------------------------------------------------------------------------|
     | [`black`](https://black.readthedocs.io/)   | A Python code formatter that automatically reformats code to conform to a consistent style.             |
     | [`isort`](https://pycqa.github.io/isort/ ) | A Python tool that sorts imports alphabetically and separates them into sections, making it easier to read and maintain import statements in Python code. |
 
-Make target: `make code-checks`
+`tomte check-code`
 
 : | Tool                                                 | Description                                                                                                                                                         |
 |------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
