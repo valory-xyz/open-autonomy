@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the behaviours for the 'abci' skill."""
+"""This module contains the behaviours for the 'registration_abci' skill."""
 
 import datetime
 import json
@@ -166,27 +166,29 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     ) -> Generator[None, None, bool]:
         """Contract deployment verification."""
 
-        log_message = self.LogMessages.request_verification
-        self.context.logger.info(f"{log_message}")
+        self.context.logger.info(self.LogMessages.request_verification)
 
         performative = ContractApiMessage.Performative.GET_STATE
-        contract_api_response = yield from self.get_contract_api_response(
-            performative=performative,  # type: ignore
+        kwargs = dict(
+            performative=performative,
             contract_address=service_registry_address,
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="verify_contract",
         )
+        contract_api_response = yield from self.get_contract_api_response(**kwargs)  # type: ignore
         if (
             contract_api_response.performative
             is not ContractApiMessage.Performative.STATE
         ):
-            log_message = self.LogMessages.failed_verification
             verified = False
+            log_method = self.context.logger.error
+            log_message = f"{self.LogMessages.failed_verification} ({kwargs}): {contract_api_response}"
         else:
-            log_message = self.LogMessages.response_verification
             verified = cast(bool, contract_api_response.state.body["verified"])
+            log_method = self.context.logger.info
+            log_message = f"{self.LogMessages.response_verification}: {verified}"
 
-        self.context.logger.info(f"{log_message}: {contract_api_response}")
+        log_method(log_message)
         return verified
 
     def get_agent_instances(
@@ -208,10 +210,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         contract_api_response = yield from self.get_contract_api_response(**kwargs)  # type: ignore
         if contract_api_response.performative != ContractApiMessage.Performative.STATE:
             log_message = self.LogMessages.failed_service_info
-            self.context.logger.info(
+            self.context.logger.error(
                 f"{log_message} ({kwargs}): {contract_api_response}"
             )
-            self.context.logger.info(log_message)
             return {}
 
         log_message = self.LogMessages.response_service_info
@@ -224,7 +225,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         service_registry_address = self.params.service_registry_address
         if service_registry_address is None:
             log_message = self.LogMessages.no_contract_address.value
-            self.context.logger.info(log_message)
+            self.context.logger.error(log_message)
             return False
 
         correctly_deployed = yield from self.is_correct_contract(
@@ -236,7 +237,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         on_chain_service_id = self.params.on_chain_service_id
         if on_chain_service_id is None:
             log_message = self.LogMessages.no_on_chain_service_id.value
-            self.context.logger.info(log_message)
+            self.context.logger.error(log_message)
             return False
 
         service_info = yield from self.get_agent_instances(
@@ -248,13 +249,13 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         registered_addresses = set(service_info["agentInstances"])
         if not registered_addresses:
             log_message = self.LogMessages.no_agents_registered.value
-            self.context.logger.info(f"{log_message}: {service_info}")
+            self.context.logger.error(f"{log_message}: {service_info}")
             return False
 
         my_address = self.context.agent_address
         if my_address not in registered_addresses:
             log_message = f"{self.LogMessages.self_not_registered} ({my_address})"
-            self.context.logger.info(f"{log_message}: {registered_addresses}")
+            self.context.logger.error(f"{log_message}: {registered_addresses}")
             return False
 
         # put service info in the shared state for p2p message handler

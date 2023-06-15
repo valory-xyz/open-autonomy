@@ -63,7 +63,7 @@ class AbciApp(
 
         :param timestamp: the latest block's timestamp.
         """
-    # ...
+    # (...)
 ```
 
 Some of its methods relate to concepts discussed in the [FSM section](./fsm.md):
@@ -113,7 +113,7 @@ class MyAbciApp(AbciApp):
             get_name(BaseSynchronizedData.generated_value),
         },
     }
-    # ...
+    # (...)
 ```
 
 <figure markdown>

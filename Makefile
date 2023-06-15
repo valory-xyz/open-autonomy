@@ -48,24 +48,6 @@ clean-cache:
 	rm -fr .pytest_cache
 	rm -fr .mypy_cache/
 
-# isort: fix import orders
-# black: format files according to the pep standards
-.PHONY: formatters
-formatters:
-	tox -e isort
-	tox -e black
-
-# black-check: check code style
-# isort-check: check for import order
-# flake8: wrapper around various code checks, https://flake8.pycqa.org/en/latest/user/error-codes.html
-# mypy: static type checker
-# pylint: code analysis for code smells and refactoring suggestions
-# vulture: finds dead code
-# darglint: docstring linter
-.PHONY: code-checks
-code-checks:
-	tox -p -e black-check -e isort-check -e flake8 -e mypy -e pylint -e vulture -e darglint
-
 # safety: checks dependencies for known security vulnerabilities
 # bandit: security linter
 .PHONY: security

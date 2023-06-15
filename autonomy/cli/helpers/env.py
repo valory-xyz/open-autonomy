@@ -17,4 +17,32 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the support resources for the scaffold contract."""
+"""Environment variable helpers."""
+
+
+import json
+import os
+from pathlib import Path
+from typing import Dict
+
+from dotenv import load_dotenv
+
+
+def load_json(file: Path, serialize: bool = False) -> None:
+    """Load json."""
+    env_vars: Dict = json.load(file.open(mode="r", encoding="utf-8"))
+    if serialize:
+        for key, val in env_vars.items():
+            if isinstance(val, str):
+                continue  # pragma: nocover
+            env_vars[key] = json.dumps(val)
+    os.environ.update(env_vars)
+
+
+def load_env_file(file: Path, serialize_json: bool = False) -> None:
+    """Load env file."""
+
+    if file.name.endswith(".json"):
+        load_json(file=file, serialize=serialize_json)
+    else:
+        load_dotenv(dotenv_path=file)

@@ -31,7 +31,8 @@ To set up the tool, you need to follow a couple of steps detailed below. Note th
 
 2. Ensure that the skill configuration file `skill.yaml` points correctly to the skill benchmark tool in the section `models`.
 
-    ```yaml
+    ```yaml title="skill.yaml"
+    # (...)
     models:
         benchmark_tool:
             args:
@@ -91,7 +92,7 @@ The benchmark data will be stored in the folder `<service_folder>/abci_build/per
 
 ## Use the command line to aggregate benchmark information
 
-1. **Run the service.** Build and run the agent service in [dev mode](./dev_mode.md#build-and-run-an-agent-service-in-dev-mode). (The tool also works if you run the agent [normal mode](../../guides/deploy_service.md#local-deployment).)
+1. **Run the service.** Build and run the agent service in [dev mode](./dev_mode.md#build-and-run-an-agent-service-in-dev-mode). (The tool also works if you run the agent [normal mode](../../guides/deploy_service.md#local-deployment-full-workflow).)
 
 2. **Wait for service execution.** Wait until the service has completed at least one period before cancelling the execution. That is, wait until the `ResetAndPauseRound` round has occurred at least once. As commented above, this is required because benchmark data is saved in this state. Once you have a data dump, you can stop the local execution by pressing `Ctrl-C`.
 

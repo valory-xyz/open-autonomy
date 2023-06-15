@@ -46,6 +46,7 @@ from autonomy.deploy.constants import (
     INFO,
     KEY_SCHEMA_ADDRESS,
     KEY_SCHEMA_PRIVATE_KEY,
+    KEY_SCHEMA_TYPE,
 )
 
 
@@ -265,7 +266,11 @@ class ServiceBuilder:
             ) from e
 
         for key in keys:
-            if {KEY_SCHEMA_ADDRESS, KEY_SCHEMA_PRIVATE_KEY} != set(key.keys()):
+            if {KEY_SCHEMA_ADDRESS, KEY_SCHEMA_PRIVATE_KEY} != set(key.keys()) and {
+                KEY_SCHEMA_ADDRESS,
+                KEY_SCHEMA_PRIVATE_KEY,
+                KEY_SCHEMA_TYPE,
+            } != set(key.keys()):
                 raise NotValidKeysFile("Key file incorrectly formatted.")
 
         if self.agent_instances is not None:

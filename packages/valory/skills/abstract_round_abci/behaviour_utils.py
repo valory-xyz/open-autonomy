@@ -574,6 +574,7 @@ class BaseBehaviour(
         self._timeout: float = 0
         self._is_healthy: bool = False
         self._non_200_return_code_count: int = 0
+        self.gentle_reset_attempted: bool = False
 
     @classmethod
     def auto_behaviour_id(cls) -> str:
@@ -765,6 +766,7 @@ class BaseBehaviour(
                         f"local height == remote == {local_height}; Sync complete..."
                     )
                     self.context.state.round_sequence.end_sync()
+                    self.gentle_reset_attempted = False
                     return
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
             except (json.JSONDecodeError, KeyError):  # pragma: nocover
@@ -1988,6 +1990,7 @@ class BaseBehaviour(
             # if we are on startup we don't need to wait for the reset pause duration
             # as the reset is being performed to update the tm config.
             yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
+        self._is_healthy = False
         return True
 
     def send_to_ipfs(  # pylint: disable=too-many-arguments
@@ -2129,24 +2132,14 @@ class TmManager(BaseBehaviour):
         """
         return self._hard_reset_sleep
 
-    def _kill_if_no_majority_peers(self) -> Generator[None, None, None]:
-        """This method checks whether there are enough peers in the network to reach majority. If not, the agent is shut down."""
-        # We assign a timeout to the num_active_peers request because we are trying to check whether the unhealthy
-        # tm communication, i.e. tm not sending blocks to the abci (agent), is caused by not having enough peers
-        # in the network. If that's the case, the node that is being queried has to be healthy, and respond in a
-        # timely fashion. If the tm node doesn't respond in the specified timeout, we assume the problem is not
-        # the lack of peers in the service.
-        num_active_peers = yield from self.num_active_peers(timeout=TM_REQ_TIMEOUT)
-        if (
-            num_active_peers is not None
-            and num_active_peers < self.synchronized_data.consensus_threshold
-        ):
-            self.context.logger.error(
-                f"There should be at least {self.synchronized_data.consensus_threshold} peers in the service,"
-                f" only {num_active_peers} are currently active. Shutting down the agent."
-            )
-            not_ok_code = 1
-            sys.exit(not_ok_code)
+    def _gentle_reset(self) -> Generator[None, None, None]:
+        """Perform a gentle reset of the Tendermint node."""
+        self.context.logger.info("Performing a gentle reset.")
+        request_message, http_dialogue = self._build_http_request_message(
+            "GET",
+            self.params.tendermint_com_url + "/gentle_reset",
+        )
+        yield from self._do_request(request_message, http_dialogue)
 
     def _handle_unhealthy_tm(self) -> Generator:
         """This method handles the case when the tendermint node is unhealthy."""
@@ -2155,12 +2148,14 @@ class TmManager(BaseBehaviour):
             "Trying to reset local Tendermint node as there could be something wrong with the communication."
         )
 
-        # we first check whether the reason why we haven't received blocks for more than we allow is because
-        # there are not enough peers in the network to reach majority.
-        yield from self._kill_if_no_majority_peers()
+        if not self.gentle_reset_attempted:
+            self.gentle_reset_attempted = True
+            yield from self._gentle_reset()
+            yield from self._check_sync()
+            return
 
-        # since we have reached this point that means that the cause of blocks not being received
-        # cannot be attributed to a lack of peers in the network
+        # since we have reached this point, that means that the cause of blocks not being received
+        # cannot be fixed with a simple gentle reset,
         # therefore, we request the recovery parameters via the ACN, and if we succeed, we use them to recover
         acn_communication_success = yield from self.request_recovery_params()
         if not acn_communication_success:
@@ -2183,9 +2178,7 @@ class TmManager(BaseBehaviour):
                 is_recovery=True,
             )
             if reset_successfully:
-                self.context.logger.info(
-                    "Tendermint reset was successfully performed. "
-                )
+                self.context.logger.info("Tendermint reset was successfully performed.")
                 # we sleep to give some time for tendermint to start sending us blocks
                 # otherwise we might end-up assuming that tendermint is still not working.
                 # Note that the wait_from_last_timestamp() in reset_tendermint_with_wait()

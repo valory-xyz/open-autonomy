@@ -14,4 +14,10 @@ cd agent
 
 echo "Installing the necessary dependencies!"
 aea install || exit 1
+
+echo "Building the deployment"
+aea build || exit 1
+
+echo "Successfully built the agent"
+
 cd ..

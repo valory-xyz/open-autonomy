@@ -92,5 +92,5 @@ def deploy(ctx: Context, service_id: int, key: Path, hwi: bool,
            password: Optional[str], deployment_payload: Optional[str]) -> None
 ```
 
-Activate service.
+Deploy a service.
 

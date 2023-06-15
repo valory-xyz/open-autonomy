@@ -164,3 +164,45 @@ the service and registered the required agent instances.
 deployment transaction
 - `timeout`: Time to wait for deploy event to emit
 
+<a id="autonomy.chain.service.terminate_service"></a>
+
+#### terminate`_`service
+
+```python
+def terminate_service(ledger_api: LedgerApi, crypto: Crypto,
+                      chain_type: ChainType, service_id: int) -> None
+```
+
+Terminate service.
+
+Using this method you can terminate a service on-chain once you have activated
+the service and registered the required agent instances.
+
+**Arguments**:
+
+- `ledger_api`: `aea.crypto.LedgerApi` object for interacting with the chain
+- `crypto`: `aea.crypto.Crypto` object which has a funded key
+- `chain_type`: Chain type
+- `service_id`: Service ID retrieved after minting a service
+
+<a id="autonomy.chain.service.unbond_service"></a>
+
+#### unbond`_`service
+
+```python
+def unbond_service(ledger_api: LedgerApi, crypto: Crypto,
+                   chain_type: ChainType, service_id: int) -> None
+```
+
+Unbond service.
+
+Using this method you can unbond a service on-chain once you have terminated
+the service.
+
+**Arguments**:
+
+- `ledger_api`: `aea.crypto.LedgerApi` object for interacting with the chain
+- `crypto`: `aea.crypto.Crypto` object which has a funded key
+- `chain_type`: Chain type
+- `service_id`: Service ID retrieved after minting a service
+

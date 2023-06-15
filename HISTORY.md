@@ -1,10 +1,68 @@
 # Release History - `open-autonomy`
 
+
 # TBD (TBD)
 
 Packages:
 - Adds slashing functionality #1927
 
+
+# 0.10.6 (2023-06-12)
+
+Autonomy:
+- Makes the chained `ABCI` skill filter more strict on the service analyser #1982
+
+Packages:
+- Fixes the gentle reset logic #1987
+
+Docs:
+- Fixes code check linter #1986
+
+# 0.10.5.post2 (2023-06-06)
+
+Autonomy:
+- Update agent node template on the kubernetes generator to support different types of private keys from various ledgers #1991
+
+
+# 0.10.5.post1 (2023-05-24)
+
+Autonomy:
+- Makes sure the alias gets used when fetching service packages #1947
+- Updates the agent runtime docker image to execute aea build when building the runtime image #1954
+- Adds support for `terminate` and `unbond` actions on `autonomy service` command group #1956
+- Generalises the `star.sh` script on the autonomy runtime docker image to deal with different types of keys #1964
+- Makes ledger plugins optional for CLI tools  #1973
+- Adds support for loading environment variables from file on the `autonomy deploy` command group #1960
+
+Packages:
+- Addresses Tendermint disconnection issues. #1976
+
+Plugins:
+- Removes the hardware wallet plugin as a dependency from contract packages  #1973
+- Fixes the ledger plugin version specifiers on the test plugin  #197
+
+Chores:
+- Pins `typing_extensions` to `>=3.10.0.2` to avoid dependency conflicts with `solana` plugin #1964
+- Bumps docker to `v6.1.2` #1975
+
+Docs:
+- Adds information on required agent components  #1967
+
+# 0.10.4 (2023-05-11)
+
+Autonomy:
+- Adds support for exposing `tendermint` container ports on the docker compose deployments #1952
+
+Packages:
+- Removes the kill logic in case the active Tendermint peers are less than the majority of the participants #1958
+- Adds support for verifying the service registry on Polygon and Gnosis #1959
+- Improves error logging during registration #1961
+
+Docs:
+- Updates deployment guide for the cluster deployments #1924
+
+Docs:
+- Improves cluster deployment section, now based on minikube #1924
 
 # 0.10.3 (2023-05-03)
 

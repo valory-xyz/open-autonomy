@@ -8,5 +8,5 @@ fingerprint:
   README.md: bafybeidtsspnbrkqb55jjnpl3ai5qhcoumm6h5dqf76e6gxldklbxmdusi
 fingerprint_ignore_patterns: []
 number_of_agents: 1
-agent: dummy_author/dummy_agent:0.1.0:bafybeihjl5fgwnfecwknnhulebj3e7ktyz6ba6flbjwmpibzj2ih3gweo4
+agent: dummy_author/dummy_agent:0.1.0:bafybeiesyomdtlyiqbqkie7oolfrrjsy33pw6osizdvo3hy4a46bf3qkve
 deployment: {}

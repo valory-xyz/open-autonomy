@@ -54,3 +54,11 @@ class InstanceRegistrationFailed(ChainInteractionError):
 
 class ServiceDeployFailed(ChainInteractionError):
     """Raise when service activation fails."""
+
+
+class TerminateServiceFailed(ChainInteractionError):
+    """Raise when service termination fails."""
+
+
+class UnbondServiceFailed(ChainInteractionError):
+    """Raise when service unbond call fails."""

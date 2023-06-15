@@ -60,6 +60,7 @@ from autonomy.chain.utils import resolve_component_id
 from autonomy.cli.helpers.chain import get_ledger_and_crypto_objects
 from autonomy.cli.utils.click_utils import sys_path_patch
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS, Service
+from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
 
 
 def load_package_tree(packages_dir: Path) -> None:
@@ -289,6 +290,18 @@ def _load_from_local(
     )
 
 
+def _has_abstract_round_abci_skill_as_dependency(skill_config: SkillConfig) -> bool:
+    """Check if a skill has a `abstract_round_abci` as a dependency"""
+    abstract_round_abci_skill = PublicId.from_str(
+        ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
+    ).without_hash()
+    return any(
+        map(
+            lambda x: x.without_hash() == abstract_round_abci_skill, skill_config.skills
+        )
+    )
+
+
 def _get_chained_abci_skill(
     agent_config: AgentConfig,
     package_manager: PackageManagerV1,
@@ -336,6 +349,10 @@ def _get_chained_abci_skill(
 
         # Check if the skill has the `is_abstract` property set to true
         if skill_config.is_abstract:
+            continue
+
+        # Check if the skill has the `abstract_round_abci` skill as a dependency
+        if not _has_abstract_round_abci_skill_as_dependency(skill_config=skill_config):
             continue
 
         # This statement makes an assumption skills other than the chained/main
@@ -435,7 +452,10 @@ def check_service_readiness(  # pylint: disable=too-many-locals
 
     if skill_config is None:
         raise click.ClickException(
-            "Please make sure the agent package configuration contains overrides for the chained ABCI app"
+            "Chained ABCI skill package not found, possible reasons for this failures\n"
+            "- The agent package does not contain overrides for the chained ABCI app\n"
+            "- The chained ABCI skill config has `is_abstract` flag set to `true`\n"
+            "- The chained ABCI skill does not have the `valory/abstract_round_abci` skill as a dependency"
         )
 
     try:

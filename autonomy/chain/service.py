@@ -25,7 +25,6 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 from aea.crypto.base import Crypto, LedgerApi
 from requests.exceptions import ConnectionError as RequestsConnectionError
-from web3.exceptions import ContractLogicError
 
 from autonomy.chain.base import ServiceState, registry_contracts
 from autonomy.chain.config import ChainType, ContractConfigs
@@ -39,6 +38,8 @@ from autonomy.chain.exceptions import (
     InstanceRegistrationFailed,
     ServiceDeployFailed,
     ServiceRegistrationFailed,
+    TerminateServiceFailed,
+    UnbondServiceFailed,
 )
 from autonomy.chain.mint import transact
 
@@ -189,7 +190,7 @@ def activate_service(
         raise ServiceRegistrationFailed(
             "Service activation failed; Error connecting to the RPC"
         ) from e
-    except ContractLogicError as e:
+    except ValueError as e:
         raise ServiceRegistrationFailed(f"Service activation failed; {e}") from e
 
     try:
@@ -283,7 +284,7 @@ def register_instance(  # pylint: disable=too-many-arguments
         raise InstanceRegistrationFailed(
             "Instance registration failed; Error connecting to the RPC"
         ) from e
-    except ContractLogicError as e:
+    except ValueError as e:  # pragma: nocover
         raise InstanceRegistrationFailed(f"Instance registration failed; {e}") from e
 
     try:
@@ -352,7 +353,7 @@ def deploy_service(
         raise ServiceDeployFailed(
             "Service deployment failed; Cannot connect to the RPC"
         ) from e
-    except ContractLogicError as e:
+    except ValueError as e:  # pragma: nocover
         raise ServiceDeployFailed(f"Service deployment failed; {e}") from e
 
     try:
@@ -374,3 +375,104 @@ def deploy_service(
         )
     except TimeoutError as e:
         raise ServiceDeployFailed(e) from e
+
+
+def terminate_service(
+    ledger_api: LedgerApi,
+    crypto: Crypto,
+    chain_type: ChainType,
+    service_id: int,
+) -> None:
+    """
+    Terminate service.
+
+    Using this method you can terminate a service on-chain once you have activated
+    the service and registered the required agent instances.
+
+    :param ledger_api: `aea.crypto.LedgerApi` object for interacting with the chain
+    :param crypto: `aea.crypto.Crypto` object which has a funded key
+    :param chain_type: Chain type
+    :param service_id: Service ID retrieved after minting a service
+    """
+
+    (*_, service_state, _,) = get_service_info(
+        ledger_api=ledger_api,
+        chain_type=chain_type,
+        token_id=service_id,
+    )
+
+    if service_state == ServiceState.NON_EXISTENT.value:
+        raise TerminateServiceFailed("Service does not exist")
+
+    if service_state == ServiceState.PRE_REGISTRATION.value:
+        raise TerminateServiceFailed("Service not active")
+
+    if service_state == ServiceState.TERMINATED_BONDED.value:
+        raise TerminateServiceFailed("Service already terminated")
+
+    try:
+        tx = registry_contracts.service_manager.get_terminate_service_transaction(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                SERVICE_MANAGER_CONTRACT.name
+            ).contracts[chain_type],
+            owner=crypto.address,
+            service_id=service_id,
+            raise_on_try=True,
+        )
+        transact(ledger_api=ledger_api, crypto=crypto, tx=tx)
+    except RequestsConnectionError as e:  # pragma: nocover
+        raise TerminateServiceFailed(
+            "Service termination failed; Cannot connect to the RPC"
+        ) from e
+    except ValueError as e:
+        raise TerminateServiceFailed(f"Service termination failed; {e}") from e
+
+
+def unbond_service(
+    ledger_api: LedgerApi,
+    crypto: Crypto,
+    chain_type: ChainType,
+    service_id: int,
+) -> None:
+    """
+    Unbond service.
+
+    Using this method you can unbond a service on-chain once you have terminated
+    the service.
+
+    :param ledger_api: `aea.crypto.LedgerApi` object for interacting with the chain
+    :param crypto: `aea.crypto.Crypto` object which has a funded key
+    :param chain_type: Chain type
+    :param service_id: Service ID retrieved after minting a service
+    """
+
+    (*_, service_state, _,) = get_service_info(
+        ledger_api=ledger_api,
+        chain_type=chain_type,
+        token_id=service_id,
+    )
+
+    if service_state == ServiceState.NON_EXISTENT.value:
+        raise UnbondServiceFailed("Service does not exist")
+
+    if service_state != ServiceState.TERMINATED_BONDED.value:
+        raise UnbondServiceFailed("Service needs to be in terminated-bonded state")
+
+    try:
+        tx = registry_contracts.service_manager.get_unbond_service_transaction(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                SERVICE_MANAGER_CONTRACT.name
+            ).contracts[chain_type],
+            owner=crypto.address,
+            service_id=service_id,
+            raise_on_try=True,
+        )
+        transact(ledger_api=ledger_api, crypto=crypto, tx=tx)
+    except RequestsConnectionError as e:  # pragma: nocover
+        raise UnbondServiceFailed(
+            "Service unbond failed; Cannot connect to the RPC"
+        ) from e
+    except ValueError as e:
+        raise UnbondServiceFailed(f"Service unbond failed; {e}") from e

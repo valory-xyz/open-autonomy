@@ -15,7 +15,7 @@ where `<author>` is the author name from the local CLI config (specified with `a
 ## Usage
 
 ```bash
-autonomy build-image [OPTIONS] [PUBLIC_ID]
+autonomy build-image [OPTIONS] [AGENT_PUBLIC_ID]
 ```
 
 ## Options

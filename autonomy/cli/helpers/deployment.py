@@ -28,7 +28,6 @@ from aea.helpers.base import cd
 from compose.cli import main as docker_compose
 from compose.config.errors import ConfigurationError
 from docker.errors import NotFound
-from web3.exceptions import BadFunctionCallOutput
 
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
@@ -204,9 +203,9 @@ def _resolve_on_chain_token_id(
         )
     except FailedToRetrieveComponentMetadata as e:
         raise click.ClickException(str(e)) from e
-    except BadFunctionCallOutput as e:
+    except Exception as e:
         raise click.ClickException(
-            f"Cannot find the service registry deployment; Service contract address {contract_address}"
+            f"Cannot find the service registry deployment; Service contract address {contract_address}; Error: {e}"
         ) from e
 
     return metadata, agent_instances, multisig_address, consensus_threshold

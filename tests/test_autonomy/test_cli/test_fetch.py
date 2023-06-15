@@ -163,6 +163,21 @@ class TestFetchServiceCommand(FetchTest):
             assert result.exit_code == 0, result.output
             assert service_dir.exists()
 
+        alias = "some_service"
+
+        with mock.patch(
+            "autonomy.cli.helpers.registry.get_default_remote_registry",
+            new=lambda: "ipfs",
+        ), mock.patch(
+            "autonomy.cli.helpers.registry.get_ipfs_node_multiaddr",
+            new=lambda: IPFS_REGISTRY,
+        ), cd(
+            service_dir.parent
+        ):
+            result = self.run_cli(("--remote", "--alias", alias, expected_hash))
+            assert result.exit_code == 0, result.output
+            assert (service_dir.parent / alias).exists()
+
         shutil.rmtree(service_dir)
 
     def test_fetch_service_mixed(
