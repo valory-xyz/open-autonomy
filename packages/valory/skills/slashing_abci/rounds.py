@@ -23,7 +23,7 @@ import json
 from enum import Enum
 from typing import Dict, Tuple, Optional, cast, Set
 
-from packages.valory.skills.abstract_round_abci.background.slashing.payloads import (
+from packages.valory.skills.slashing_abci.payloads import (
     SlashingTxPayload,
     StatusResetPayload,
 )

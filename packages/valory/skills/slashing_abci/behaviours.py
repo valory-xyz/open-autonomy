@@ -42,18 +42,18 @@ from packages.valory.protocols.contract_api import ContractApiMessage
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
-from packages.valory.skills.abstract_round_abci.background.slashing import (
+from packages.valory.skills.slashing_abci import (
     SLASH_THRESHOLD_AMOUNT,
     SLASH_WAIT_HOURS,
 )
-from packages.valory.skills.abstract_round_abci.background.slashing.composition import (
+from packages.valory.skills.slashing_abci.composition import (
     SlashingAbciApp,
 )
-from packages.valory.skills.abstract_round_abci.background.slashing.payloads import (
+from packages.valory.skills.slashing_abci.payloads import (
     SlashingTxPayload,
     StatusResetPayload,
 )
-from packages.valory.skills.abstract_round_abci.background.slashing.round import (
+from packages.valory.skills.slashing_abci.rounds import (
     SlashingCheckRound,
     SynchronizedData as SlashingSyncedData,
     StatusResetRound,

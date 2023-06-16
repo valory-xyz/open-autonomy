@@ -23,7 +23,7 @@ from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
     chain,
 )
-from packages.valory.skills.abstract_round_abci.background.slashing.round import (
+from packages.valory.skills.slashing_abci.rounds import (
     PostSlashingTxAbciApp,
     SlashingCheckRound,
     Event,
