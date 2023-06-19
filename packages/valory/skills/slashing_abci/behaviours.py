@@ -64,7 +64,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
-from packages.valory.skills.abstract_round_abci.models import SharedState
+from packages.valory.skills.slashing_abci.models import SharedState
 from packages.valory.skills.abstract_round_abci.utils import inverse
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     TransactionSettlementRoundBehaviour,
