@@ -357,6 +357,8 @@ class AsyncBehaviour(ABC):
                 # wait for the next message
                 self.__notified = False
                 self.__message = None
+        else:
+            self.__get_generator_act().send(None)
 
     def __handle_tick(self) -> None:
         """Handle an 'act' tick."""
