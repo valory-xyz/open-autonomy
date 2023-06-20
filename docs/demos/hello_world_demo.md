@@ -29,7 +29,7 @@ mv hello_world hello_world_agent
 and the Hello World service:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeidjsoqmimmyu2lqke7cfh7loqmbqfgqimbukri2qm2pxwixoqfkwa --service
+autonomy fetch valory/hello_world:0.1.0:bafybeia7boaie5zvmuogkoj5tb3rpx7ia2i2qgyaczbjxbrt7oujropgtq --service
 mv hello_world hello_world_service
 ```
 

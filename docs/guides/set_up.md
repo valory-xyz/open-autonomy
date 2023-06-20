@@ -106,7 +106,7 @@ If you plan to follow the guides in the next sections, you need to populate the 
     "dev": {
     },
     "third_party": {
-        "service/valory/hello_world/0.1.0": "bafybeidjsoqmimmyu2lqke7cfh7loqmbqfgqimbukri2qm2pxwixoqfkwa",
+        "service/valory/hello_world/0.1.0": "bafybeia7boaie5zvmuogkoj5tb3rpx7ia2i2qgyaczbjxbrt7oujropgtq",
         "agent/valory/hello_world/0.1.0": "bafybeifhfslkvcgc3ydbpuwz34f65bf4yesuecq6pwrdngr6vmmw6mxmam",
         "connection/valory/abci/0.1.0": "bafybeie7fsmdzatyofhagfice7afbmyn7ht3zuzojdlu6cjaz7zncjspfq",
         "connection/valory/http_client/0.23.0": "bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi",
