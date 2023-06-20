@@ -55,7 +55,7 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
             * Protocols: `open_aea/signing`, `valory/abci`, `valory/acn`(*).
             * Skills: `valory/abstract_abci`, `valory/abstract_round_abci`, `valory/termination_abci`(*).
 
-            (*) Components required only if the service is minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
+            (*) Components required only if the service is minted in the {{ autonolas_protocol }}.
 
       * Configuration overrides that specify values for component parameters. These overrides are separated by YAML document separators `---` and will be discussed in a further section.
 
