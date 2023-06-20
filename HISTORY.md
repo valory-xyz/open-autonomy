@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# TBD
+
+Docs:
+- Fixes olas.network links #1998
+
 # 0.10.6 (2023-06-12)
 
 Autonomy:
