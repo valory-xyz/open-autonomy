@@ -267,7 +267,25 @@ def test_async_behaviour_wait_for_message_raises_timeout_exception() -> None:
         # sleep so to run out the timeout
         time.sleep(0.02)
         # trigger function and make the exception to raise
-        try_send(gen)
+        behaviour.act()
+
+
+def test_async_behaviour_wait_for_message_raises_timeout_exception_when_no_message() -> None:
+    """Test 'wait_for_message' when it raises TimeoutException."""
+
+    with pytest.raises(TimeoutException):
+        behaviour = AsyncBehaviourTest()
+        behaviour.act()
+        gen = behaviour.wait_for_message(lambda _: False, timeout=0.01)
+        # simulate the generator is waiting for a message
+        behaviour._AsyncBehaviour__generator_act = gen  # type: ignore
+        behaviour._AsyncBehaviour__state = AsyncBehaviour.AsyncState.WAITING_MESSAGE  # type: ignore
+        # the message never arrives, a timeout exception should be raised
+        behaviour.act()
+        # sleep so to run out the timeout
+        time.sleep(0.02)
+        # trigger function and make the exception to raise
+        behaviour.act()
 
 
 def test_async_behaviour_wait_for_condition() -> None:
