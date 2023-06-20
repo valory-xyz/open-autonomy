@@ -267,7 +267,7 @@ def test_async_behaviour_wait_for_message_raises_timeout_exception() -> None:
         # sleep so to run out the timeout
         time.sleep(0.02)
         # trigger function and make the exception to raise
-        behaviour.act()
+        try_send(gen)
 
 
 def test_async_behaviour_wait_for_message_raises_timeout_exception_when_no_message() -> None:
