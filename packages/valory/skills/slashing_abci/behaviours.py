@@ -233,7 +233,7 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
             service_id=self.params.service_id,
         )
         if response_msg.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
-            self.context.logger.warning(
+            self.context.logger.error(
                 f"Could not get the data for the slash transaction: {response_msg}"
             )
             return None
