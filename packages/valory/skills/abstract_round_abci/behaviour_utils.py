@@ -358,7 +358,10 @@ class AsyncBehaviour(ABC):
                 self.__notified = False
                 self.__message = None
         else:
-            self.__get_generator_act().send(None)
+            try:
+                self.__get_generator_act().send(self.__message)
+            except StopIteration:
+                self.__handle_stop_iteration()
 
     def __handle_tick(self) -> None:
         """Handle an 'act' tick."""
