@@ -357,12 +357,13 @@ class OperatorSlashedInfo:
     """The slash receipt's information after being parsed."""
 
     slash_timestamp: int
-    events: List[Union[Dict[str, Union[str, int]], OperatorSlashedEventLog]]
+    events: List[OperatorSlashedEventLog]
 
     def __post_init__(self) -> None:
         """Post initialization process for the events."""
         if all(isinstance(event, dict) for event in self.events):
-            self.events = [OperatorSlashedEventLog(**event) for event in self.events]
+            events = cast(dict, self.events)
+            self.events = [OperatorSlashedEventLog(**event) for event in events]
 
 
 class StatusResetBehaviour(SlashingBaseBehaviour):

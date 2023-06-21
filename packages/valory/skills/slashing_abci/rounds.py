@@ -72,7 +72,7 @@ class SynchronizedData(BaseSynchronizedData):
         return bool(self.db.get("slashing_majority_reached", False))
 
     @property
-    def operators_mapping(self) -> Optional[Dict[str, str]]:
+    def operators_mapping(self) -> Optional[Dict[str, List[str]]]:
         """Get a mapping of the operators mapped to their agent instances."""
         mapping = self.db.get("operators_mapping", None)
 
