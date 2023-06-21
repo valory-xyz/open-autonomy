@@ -75,6 +75,8 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TxSettlementSyncedData,
 )
+from packages.valory.skills.transaction_settlement_abci.rounds import TX_HASH_LENGTH
+
 
 # setting the safe gas to 0 means that all available gas will be used
 # which is what we want in most cases
@@ -236,7 +238,13 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
             )
             return None
 
-        return response_msg.raw_transaction.body
+        slash_data = response_msg.raw_transaction.body.get("data", None)
+        if slash_data is None:
+            self.context.logger.error(
+                "Something went wrong while trying to encode the slash data."
+            )
+
+        return slash_data
 
     def _get_safe_tx_hash(self, data: bytes) -> Generator[None, None, Optional[str]]:
         """
@@ -263,9 +271,16 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
             )
             return None
 
+        tx_hash = response_msg.raw_transaction.body.get("tx_hash", None)
+        if tx_hash is None or len(tx_hash) != TX_HASH_LENGTH:
+            self.context.logger.error(
+                "Something went wrong while trying to get the slash transaction's hash. "
+                f"Invalid hash {tx_hash!r} was returned."
+            )
+            return None
+
         # strip "0x" from the response hash
-        tx_hash = cast(str, response_msg.state.body["tx_hash"])[2:]
-        return tx_hash
+        return tx_hash[2:]
 
     def async_act(self) -> Generator:
         """
