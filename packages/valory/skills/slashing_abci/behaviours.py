@@ -24,48 +24,47 @@ from abc import ABC
 from calendar import timegm
 from dataclasses import dataclass
 from typing import (
-    Generator,
-    cast,
-    Dict,
-    Optional,
-    Callable,
     Any,
-    List,
-    Union,
+    Callable,
+    Dict,
     FrozenSet,
-    Type,
+    Generator,
+    List,
+    Optional,
     Set,
+    Type,
+    cast,
 )
 
 from aea.protocols.base import Message
-from packages.valory.protocols.contract_api import ContractApiMessage
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
+from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.skills.abstract_round_abci.base import OffenceStatus, RoundSequence
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    AsyncBehaviour,
+    BaseBehaviour,
+)
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.abstract_round_abci.utils import inverse
 from packages.valory.skills.slashing_abci import (
     SLASH_THRESHOLD_AMOUNT,
     SLASH_WAIT_HOURS,
 )
-from packages.valory.skills.slashing_abci.composition import (
-    SlashingAbciApp,
-)
+from packages.valory.skills.slashing_abci.composition import SlashingAbciApp
+from packages.valory.skills.slashing_abci.models import SharedState
 from packages.valory.skills.slashing_abci.payloads import (
     SlashingTxPayload,
     StatusResetPayload,
 )
 from packages.valory.skills.slashing_abci.rounds import (
     SlashingCheckRound,
-    SynchronizedData as SlashingSyncedData,
     StatusResetRound,
 )
-from packages.valory.skills.abstract_round_abci.base import RoundSequence, OffenceStatus
-from packages.valory.skills.abstract_round_abci.behaviour_utils import (
-    BaseBehaviour,
-    AsyncBehaviour,
+from packages.valory.skills.slashing_abci.rounds import (
+    SynchronizedData as SlashingSyncedData,
 )
-from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
-from packages.valory.skills.slashing_abci.models import SharedState
-from packages.valory.skills.abstract_round_abci.utils import inverse
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     TransactionSettlementRoundBehaviour,
 )
@@ -107,8 +106,9 @@ class SlashingBaseBehaviour(BaseBehaviour, ABC):
 
 class SlashingCheckBehaviour(SlashingBaseBehaviour):
     """
-    A behaviour responsible for checking if there are any slashable events,
-    running concurrently with the other behaviours.
+    A behaviour responsible for checking if there are any slashable events.
+
+    Running concurrently with the other behaviours.
     """
 
     matching_round = SlashingCheckRound
@@ -453,7 +453,8 @@ class StatusResetBehaviour(SlashingBaseBehaviour):
             )
             if instances_mapping is None:
                 self.context.logger.error(
-                    f"Cannot continue without the agents to operators mapping. Retrying in {self.params.sleep_time} seconds."
+                    f"Cannot continue without the agents to operators mapping. "
+                    f"Retrying in {self.params.sleep_time} seconds."
                 )
                 yield from self.sleep(self.params.sleep_time)
                 return

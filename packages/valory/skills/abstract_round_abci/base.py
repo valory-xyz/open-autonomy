@@ -2982,11 +2982,19 @@ class OffenceStatus:
             amount += calculate_slash_amount(OffenseType.BLACKLISTED)
         if self.suspected.has_bad_availability_rate():
             amount += calculate_slash_amount(OffenseType.SUSPECTED)
-        amount += calculate_slash_amount(OffenseType.UNKNOWN) * self.num_unknown_offenses
-        amount += calculate_slash_amount(OffenseType.DOUBLE_SIGNING) * self.num_double_signed
-        amount += calculate_slash_amount(OffenseType.LIGHT_CLIENT_ATTACK) * self.num_light_client_attack
+        amount += (
+            calculate_slash_amount(OffenseType.UNKNOWN) * self.num_unknown_offenses
+        )
+        amount += (
+            calculate_slash_amount(OffenseType.DOUBLE_SIGNING) * self.num_double_signed
+        )
+        amount += (
+            calculate_slash_amount(OffenseType.LIGHT_CLIENT_ATTACK)
+            * self.num_light_client_attack
+        )
 
         return amount
+
 
 class OffenseStatusEncoder(json.JSONEncoder):
     """A custom JSON encoder for the offence status dictionary."""

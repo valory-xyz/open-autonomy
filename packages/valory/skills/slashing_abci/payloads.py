@@ -34,6 +34,7 @@ class SlashingTxPayload(BaseTxPayload):
     # normal payload field
     tx_hex: str
 
+
 @dataclass(frozen=True)
 class StatusResetPayload(BaseTxPayload):
     """Represent a transaction payload for resetting the offence status."""

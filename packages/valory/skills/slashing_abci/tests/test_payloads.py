@@ -21,11 +21,11 @@
 
 import pytest
 
+from packages.valory.skills.abstract_round_abci.base import ROUND_COUNT_DEFAULT
 from packages.valory.skills.slashing_abci.payloads import (
     SlashingTxPayload,
     StatusResetPayload,
 )
-from packages.valory.skills.abstract_round_abci.base import ROUND_COUNT_DEFAULT
 
 
 @pytest.mark.parametrize(

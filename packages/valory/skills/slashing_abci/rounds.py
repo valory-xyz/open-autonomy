@@ -21,23 +21,23 @@
 
 import json
 from enum import Enum
-from typing import Dict, Tuple, Optional, cast, Set
+from typing import Dict, List, Optional, Set, Tuple, cast
 
+from packages.valory.skills.abstract_round_abci.base import (
+    ABCIAppInternalError,
+    AbciApp,
+    AppState,
+    BaseSynchronizedData,
+    BaseTxPayload,
+    CollectSameUntilThresholdRound,
+    CollectionRound,
+    DeserializedCollection,
+    TransactionNotValidError,
+    get_name,
+)
 from packages.valory.skills.slashing_abci.payloads import (
     SlashingTxPayload,
     StatusResetPayload,
-)
-from packages.valory.skills.abstract_round_abci.base import (
-    BaseSynchronizedData,
-    CollectSameUntilThresholdRound,
-    BaseTxPayload,
-    ABCIAppInternalError,
-    TransactionNotValidError,
-    get_name,
-    DeserializedCollection,
-    CollectionRound,
-    AbciApp,
-    AppState,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TxSettlementSyncedData,
@@ -92,7 +92,9 @@ class SynchronizedData(BaseSynchronizedData):
         return json.loads(timestamps)
 
     @property
-    def participant_to_offence_reset(self) -> DeserializedCollection:
+    def participant_to_offence_reset(
+        self,
+    ) -> DeserializedCollection:  # pragma: no cover
         """The participants mapped to the status reset payloads."""
         serialized = self.db.get_strict("participant_to_randomness")
         deserialized = CollectionRound.deserialize_collection(serialized)
@@ -183,12 +185,15 @@ class PostSlashingTxAbciApp(AbciApp[Event]):
 
     Transition states:
         0. StatusResetRound
-            - slashing_end: 0.
+            - slash end: 0.
+            - no majority: 0.
+            - round timeout: 0.
+            - none: 0.
 
     Final states: {}
 
     Timeouts:
-
+        round timeout: 30.0
     """
 
     initial_round_cls = StatusResetRound

@@ -24,14 +24,14 @@ from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     chain,
 )
 from packages.valory.skills.slashing_abci.rounds import (
+    Event,
     PostSlashingTxAbciApp,
     SlashingCheckRound,
-    Event,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
+    FailedRound,
     FinishedTransactionSubmissionRound,
     TransactionSubmissionAbciApp,
-    FailedRound,
 )
 
 

@@ -2562,6 +2562,16 @@ def serious_offences() -> Iterator[OffenseType]
 
 Get the serious offences.
 
+<a id="packages.valory.skills.abstract_round_abci.base.calculate_slash_amount"></a>
+
+#### calculate`_`slash`_`amount
+
+```python
+def calculate_slash_amount(offence_type: OffenseType) -> int
+```
+
+Calculates and returns the slash amount.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow"></a>
 
 ## AvailabilityWindow Objects
@@ -2600,6 +2610,16 @@ def __eq__(other: Any) -> bool
 ```
 
 Compare `AvailabilityWindow` objects.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow.has_bad_availability_rate"></a>
+
+#### has`_`bad`_`availability`_`rate
+
+```python
+def has_bad_availability_rate(threshold: float = 0.95) -> bool
+```
+
+Whether the agent on which the window belongs to has a bad availability rate or not.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow.add"></a>
 
@@ -2648,6 +2668,17 @@ class OffenceStatus()
 ```
 
 A class that holds information about offence status for an agent.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenceStatus.slash_amount"></a>
+
+#### slash`_`amount
+
+```python
+@property
+def slash_amount() -> int
+```
+
+Get the slash amount of the current status.
 
 <a id="packages.valory.skills.abstract_round_abci.base.OffenseStatusEncoder"></a>
 
