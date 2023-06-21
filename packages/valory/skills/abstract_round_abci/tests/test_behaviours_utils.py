@@ -2410,7 +2410,9 @@ class TestTmManager:
             BaseBehaviour, "_do_request", new_callable=lambda *_: dummy_do_request
         ), mock.patch.object(
             BaseBehaviour, "_get_status", new_callable=lambda *_: dummy_get_status
-        ):
+        ), mock.patch.object(
+            self.tm_manager.round_sequence, "set_block_stall_deadline"
+        ) as set_block_stall_deadline_mock:
             next(gen)
 
             if not gentle_reset_attempted:
@@ -2418,17 +2420,21 @@ class TestTmManager:
                 assert self.tm_manager.gentle_reset_attempted
                 with pytest.raises(StopIteration):
                     next(gen)
+                set_block_stall_deadline_mock.assert_called_once()
                 assert not self.tm_manager.gentle_reset_attempted
                 return
 
             if not acn_communication_success:
                 with pytest.raises(StopIteration):
                     next(gen)
+                set_block_stall_deadline_mock.assert_not_called()
                 return
 
             next(gen)
             with pytest.raises(StopIteration):
                 next(gen)
+
+            set_block_stall_deadline_mock.assert_not_called()
 
     @pytest.mark.parametrize(
         "expected_reset_params",

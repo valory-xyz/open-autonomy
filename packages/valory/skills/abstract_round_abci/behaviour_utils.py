@@ -760,6 +760,9 @@ class BaseBehaviour(
                         f"local height == remote == {local_height}; Sync complete..."
                     )
                     self.round_sequence.end_sync()
+                    # we set the block stall deadline here because we pinged the /status endpoint
+                    # and received a response from tm, which means that the communication is fine
+                    self.round_sequence.set_block_stall_deadline()
                     self.gentle_reset_attempted = False
                     return
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
