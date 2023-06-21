@@ -298,6 +298,11 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
             # Additionally, we verify whether a slashing operation has already been triggered to avoid duplication.
             return
 
+        if self.params.service_registry_address is None:  # pragma: no cover
+            raise ValueError(
+                "Service registry address not set, but is required for slashing!"
+            )
+
         self._check_offence_status()
         if len(self._slash_amounts) == 0:
             # no slashable events are present, so we sleep and try again
@@ -325,7 +330,7 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
             safe_tx_hash,
             _ETHER_VALUE,
             _SAFE_GAS,
-            self.params.service_registry_address,
+            str(self.params.service_registry_address),
             data,
         )
 
