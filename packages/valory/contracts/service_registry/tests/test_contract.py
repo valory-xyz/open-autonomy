@@ -339,10 +339,12 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
     def test_get_operator(self) -> None:
         """Test `get_operator` method."""
         for agent_instance, expected_operator in OPERATORS_MAPPING.items():
-            actual_operator = self.contract.get_operator(
-                self.ledger_api,
-                self.contract_address,
-                agent_instance,
+            actual_operator = (
+                self.contract._get_operator(  # pylint: disable=protected-access
+                    self.ledger_api,
+                    self.contract_address,
+                    agent_instance,
+                )
             )
             assert actual_operator == expected_operator
 

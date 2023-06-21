@@ -353,7 +353,7 @@ class ServiceRegistryContract(Contract):
         }
 
     @classmethod
-    def get_operator(
+    def _get_operator(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
@@ -383,6 +383,6 @@ class ServiceRegistryContract(Contract):
         :return: a mapping of the given agent instances to their operators.
         """
         return {
-            agent: cls.get_operator(ledger_api, contract_address, agent)
+            agent: cls._get_operator(ledger_api, contract_address, agent)
             for agent in agent_instances
         }
