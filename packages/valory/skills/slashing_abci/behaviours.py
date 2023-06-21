@@ -485,7 +485,7 @@ class StatusResetBehaviour(SlashingBaseBehaviour):
             for agent_instance in operators_mapping[event.operator]
         }
         self.context.logger.info(
-            f"A slashing operation has been performed for the operator(s) of agents {agent_to_timestamp.keys()}."
+            f"A slashing operation has been performed for the operator(s) of agents {list(agent_to_timestamp.keys())}."
         )
         self.context.logger.info("Resetting status for the slashed agents.")
         for agent in agent_to_timestamp.keys():
