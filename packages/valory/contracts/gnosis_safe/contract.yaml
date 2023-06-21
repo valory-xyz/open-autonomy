@@ -14,7 +14,7 @@ fingerprint:
   tests/test_contract.py: bafybeidnlxmcedoean6xfhjwvj5yvgbaxevjgtlu6wnu2w6y5a37hiniri
 fingerprint_ignore_patterns: []
 contracts:
-- valory/gnosis_safe_proxy_factory:0.1.0:bafybeiaqg2ovb3r6iskkp6iyawsw42u7h4hhci6r4cowmazrlosjcq3vxq
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeiaa6fgwtykrti6i7sbt22raavpsbobsq2xgem4nkbcg744agnmkae
 class_name: GnosisSafeContract
 contract_interface_paths:
   ethereum: build/GnosisSafe_V1_3_0.json
