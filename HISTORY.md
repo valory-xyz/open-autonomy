@@ -1,5 +1,13 @@
 # Release History - `open-autonomy`
 
+# 0.10.7 (2023-06-21)
+
+Packages:
+- Make sure the timeout gets checked even when there's no message from connection #1996
+
+Chore:
+- Bumps `web3py` to `v5.31.4` #1999
+
 # 0.10.6 (2023-06-12)
 
 Autonomy:
