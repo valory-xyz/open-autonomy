@@ -302,7 +302,7 @@ class ServiceRegistryContract(Contract):
         agent_instances: List[str],
         amounts: List[int],
         service_id: int,
-    ) -> bytes:
+    ) -> Dict[str, bytes]:
         """Gets the encoded arguments for a slashing tx, which should only be called via the multisig."""
 
         contract_instance = cls.get_instance(
@@ -317,7 +317,7 @@ class ServiceRegistryContract(Contract):
         )
 
         data = contract_instance.encodeABI(fn_name="slash", kwargs=slash_kwargs)
-        return bytes.fromhex(data[2:])
+        return {"data": bytes.fromhex(data[2:])}
 
     @classmethod
     def process_slash_receipt(
