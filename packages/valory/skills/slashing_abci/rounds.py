@@ -162,7 +162,7 @@ class StatusResetRound(CollectSameUntilThresholdRound):
 
     payload_class = StatusResetPayload
     synchronized_data_class = SynchronizedData
-    collection_key = SynchronizedData.participant_to_offence_reset
+    collection_key = get_name(SynchronizedData.participant_to_offence_reset)
     selection_key = (
         get_name(SynchronizedData.slashing_in_flight),
         get_name(SynchronizedData.slashing_majority_reached),
