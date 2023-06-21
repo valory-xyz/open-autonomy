@@ -494,8 +494,8 @@ class StatusResetBehaviour(SlashingBaseBehaviour):
 
         status_reset_payload = StatusResetPayload(
             self.context.agent_address,
-            json.dumps(operators_mapping),
-            json.dumps(agent_to_timestamp),
+            json.dumps(operators_mapping, sort_keys=True),
+            json.dumps(agent_to_timestamp, sort_keys=True),
         )
 
         yield from self.send_a2a_transaction(status_reset_payload)
