@@ -9,8 +9,8 @@ fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeicjyrltgdmwzvctebhfteyyd5mbrjashiji4glwf5vwcijuyzzm24
   abci_app_chain.py: bafybeic6uzd7oywbnhoqrv5bitan2kw7sgfejgnmjbe5sobvckvk2qisvm
-  base.py: bafybeic5k3epzwjm3pnbwfqmp5ppmtr3ee5rfflvkvygdanakneoyusf4m
-  behaviour_utils.py: bafybeigfgculnhhwxaxbgcyoji7siy62zpo5i6bgmvmqw77gtqxch6nnbm
+  base.py: bafybeihk4xkgkzmjtbnanah27byfnnghqsipbbascr2xiegqdgtldivv2y
+  behaviour_utils.py: bafybeif5inyc6jwse4asqy7n2ulgbuut3a77rfme54b3sltv6a5ybcqjly
   behaviours.py: bafybeiaurunqjfmh7gxgnphxhibfrhn4g6sx6gfjpnlk5rl6e2lqxxjwbm
   common.py: bafybeidzqdfvwf226d5qeqcyzpkqsjy6kiawoz5ldsfvzzhtym3f73giia
   dialogues.py: bafybeid5sgrfa7ghnnjpssltgtey5gzt5kc2jlaitffaukvhhdbhrzcjti
@@ -41,7 +41,7 @@ fingerprint:
   tests/test_base.py: bafybeiek357ciorty2flxg2l6omccgl55yoi3vonrmp5tssl6nx6y4urja
   tests/test_base_rounds.py: bafybeiatnef47roakdc6g6wvz3wxppb4wdwu2vqoumakkdnz5ehfgzfjea
   tests/test_behaviours.py: bafybeids7szbmopbz7vmx3s5ppydmrjwrbnphzafnhfzolftwj4cm3fmty
-  tests/test_behaviours_utils.py: bafybeigy5lvk2ermrimwe4q6q4akpibggago5vnyclczifmpbudk2gz6ge
+  tests/test_behaviours_utils.py: bafybeietsbrwaygp6bxfm6lc5d36z7skjr7uii2pm7tuythkmlu6mynveq
   tests/test_common.py: bafybeigruyqp6h4qim3nsijeg5mvoot2dei2yzm5zxpank22vjyyiaysue
   tests/test_dialogues.py: bafybeigpfrslqaz2yullyehia5bsl7cmy2qqxtz627ig7rbrypw5xfzeum
   tests/test_handlers.py: bafybeiho7ruvh6gilajz5ns6cljdrxis2tzualmgkksprwdpm7art4ambm
