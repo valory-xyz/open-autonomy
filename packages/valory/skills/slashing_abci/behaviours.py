@@ -91,14 +91,14 @@ class SlashingBaseBehaviour(BaseBehaviour, ABC):
     """Represents the base class for the slashing background FSM."""
 
     @property
-    def state(self) -> SharedState:
+    def shared_state(self) -> SharedState:
         """Get the round sequence from the shared state."""
         return cast(SharedState, self.context.state)
 
     @property
     def round_sequence(self) -> RoundSequence:
         """Get the round sequence from the shared state."""
-        return self.state.round_sequence
+        return self.shared_state.round_sequence
 
     @property
     def offence_status(self) -> Dict[str, OffenceStatus]:
