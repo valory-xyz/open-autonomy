@@ -394,11 +394,11 @@ class StatusResetBehaviour(SlashingBaseBehaviour):
             )
             return None
 
-        if response_msg.state.body is None:
+        if response_msg.raw_transaction.body is None:  # pragma: no cover
             # error is logged in the contract
             return None
 
-        return OperatorSlashedInfo(**response_msg.state.body)
+        return OperatorSlashedInfo(**response_msg.raw_transaction.body)
 
     def _get_instances_mapping(
         self,
@@ -429,7 +429,7 @@ class StatusResetBehaviour(SlashingBaseBehaviour):
             )
             return None
 
-        return response_msg.state.body
+        return response_msg.raw_transaction.body
 
     def async_act(self) -> Generator:
         """
