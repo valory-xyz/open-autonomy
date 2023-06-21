@@ -19,6 +19,11 @@
 
 """This package contains the background app for the slashing."""
 
+from aea.configurations.base import PublicId
+
+
+PUBLIC_ID = PublicId.from_str("valory/slashing_abci:0.1.0")
+
 # TODO move into params and decide on the values
 SLASH_WAIT_HOURS = 3
 SLASH_THRESHOLD_AMOUNT = 2
