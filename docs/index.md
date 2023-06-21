@@ -18,7 +18,7 @@ The framework provides:
 
 !!! abstract "Read the Whitepaper"
 
-    The [Autonolas Whitepaper](https://autonolas.network/whitepaper/autonolas-whitepaper.pdf), presents a comprehensive discussion on the architecture of the Autonolas stack. The Open Autonomy framework connects with the **Technical Architecture** section therein as a facilitator to build autonomous services.
+    The {{ autonolas_whitepaper }}, presents a comprehensive discussion on the architecture of the Autonolas stack. The Open Autonomy framework connects with the **Technical Architecture** section therein as a facilitator to build autonomous services.
 
 ## Building with Open Autonomy
 

@@ -299,16 +299,17 @@ markdown_extensions:
 extra:
   open_aea: '[Open AEA](https://github.com/valory-xyz/open-aea)'
   open_aea_doc: '[Open AEA documentation](https://open-aea.docs.autonolas.tech)'
-  open_aea_api: '[Open AEA API](https://open-aea.docs.autonolas.tech/api/)'
+  open_aea_api: '[Open AEA API](https://open-aea.docs.autonolas.tech/api)'
   fsm_app: 'FSM App'
   open_autonomy: '[Open Autonomy](https://github.com/valory-xyz/open-autonomy)'
-  open_autonomy_api: '[Open Autonomy API](https://docs.autonolas.network/)'
+  open_autonomy_api: '[Open Autonomy API](https://docs.autonolas.network)'
   open_aea_repository: '[Open AEA repository](https://github.com/valory-xyz/open-aea)'
   open_autonomy_repository: '[Open Autonomy repository](https://github.com/valory-xyz/open-autonomy)'
   autonolas_whitepaper: '[Autonolas Whitepaper](https://www.autonolas.network/documents/whitepaper/Whitepaper%20v1.0.pdf)'
-  autonolas_protocol: '[Autonolas Protocol](https://docs.autonolas.network/protocol/)'
-  autonolas_protocol_registry_dapp: '[Autonolas Protocol web app](https://protocol.olas.network/)'
-  autonolas_protocol_tokenomics_dapp: '[Autonolas Tokenomics web app](https://tokenomics.olas.network/)'
+  autonolas_protocol: '[Autonolas Protocol](https://docs.autonolas.network/protocol)'
+  autonolas_protocol_registry_dapp_link: 'https://registry.olas.network'
+  autonolas_protocol_registry_dapp: '[Autonolas Protocol web app](https://registry.olas.network)'
+  autonolas_protocol_tokenomics_dapp: '[Autonolas Tokenomics web app](https://tokenomics.olas.network)'
   social:
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/autonolas

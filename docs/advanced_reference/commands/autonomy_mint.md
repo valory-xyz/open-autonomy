@@ -19,7 +19,7 @@ This command group consists of a number of functionalities to mint components, a
     - `GOERLI_CHAIN_RPC` : RPC endpoint for the Görli testnet chain.
 
 `--use-custom-chain`
-: Use the custom-chain chain profile to interact with the Autonolas Protocol registry contracts. This option requires that you define the following environment variables (see the [Autonolas Protocol](https://docs.autonolas.network/protocol/) documentation for more information):
+: Use the custom-chain chain profile to interact with the Autonolas Protocol registry contracts. This option requires that you define the following environment variables (see the {{ autonolas_protocol }} documentation for more information):
 
     - `CUSTOM_CHAIN_RPC` : RPC endpoint for the custom chain.
     - `CUSTOM_CHAIN_ID` : chain ID.
