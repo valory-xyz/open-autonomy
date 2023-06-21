@@ -31,4 +31,4 @@ dependencies:
   py-eth-sig-utils: {}
   requests: {}
   web3:
-    version: ==5.25.0
+    version: ==5.31.4
