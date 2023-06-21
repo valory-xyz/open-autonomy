@@ -84,9 +84,6 @@ _SAFE_GAS = 0
 _ETHER_VALUE = 0
 
 
-SynchronizedData = Union[SlashingSyncedData, TxSettlementSyncedData]
-
-
 class SlashingBaseBehaviour(BaseBehaviour, ABC):
     """Represents the base class for the slashing background FSM."""
 
@@ -354,9 +351,14 @@ class StatusResetBehaviour(SlashingBaseBehaviour):
     matching_round = StatusResetRound
 
     @property
-    def synchronized_data(self) -> SynchronizedData:
+    def slashing_synced_data(self) -> SlashingSyncedData:
         """Return the synchronized data."""
-        return cast(SynchronizedData, self.state.synchronized_data)
+        return cast(SlashingSyncedData, self.shared_state.synchronized_data)
+
+    @property
+    def tx_settlement_synced_data(self) -> TxSettlementSyncedData:
+        """Return the synchronized data."""
+        return TxSettlementSyncedData(db=super().synchronized_data.db)
 
     def _process_slash_receipt(
         self, slash_tx_hash: str
@@ -383,7 +385,7 @@ class StatusResetBehaviour(SlashingBaseBehaviour):
 
         return OperatorSlashedInfo(**response_msg.state.body)
 
-    def _get_operators_mapping(
+    def _get_instances_mapping(
         self,
         agent_instances: FrozenSet[str],
     ) -> Generator[None, None, Optional[Dict[str, str]]]:
@@ -423,25 +425,25 @@ class StatusResetBehaviour(SlashingBaseBehaviour):
         If that is the case, it proceeds with resetting the offence status of the slashed agents.
         """
         # the `OperatorSlashed` event returns the operators and not the agent instances, so we will need a mapping
-        operators_mapping = self.synchronized_data.operators_mapping
+        operators_mapping = self.slashing_synced_data.operators_mapping
         if operators_mapping is None:
-            operators_mapping = yield from self._get_operators_mapping(
-                self.synchronized_data.all_participants
+            instances_mapping = yield from self._get_instances_mapping(
+                self.slashing_synced_data.all_participants
             )
-            if operators_mapping is None:
+            if instances_mapping is None:
                 self.context.logger.error(
                     f"Cannot continue without the agents to operators mapping. Retrying in {self.params.sleep_time} seconds."
                 )
                 yield from self.sleep(self.params.sleep_time)
                 return
-            # as also mentioned in `_get_operators_mapping`,
+            # as also mentioned in `_get_instances_mapping`,
             # it would be better if `mapOperatorAndServiceIdAgentInstances` was used,
             # because getting the inverse here would not be necessary
-            operators_mapping = inverse(operators_mapping)
+            operators_mapping = inverse(instances_mapping)
 
         # check `OperatorSlashed` event to see which agents were slashed and if everything went as expected
         slash_info = yield from self._process_slash_receipt(
-            self.synchronized_data.final_tx_hash
+            self.tx_settlement_synced_data.final_tx_hash
         )
         if slash_info is None:
             # This signifies that we will continue retrying until either we succeed or the round times out.
