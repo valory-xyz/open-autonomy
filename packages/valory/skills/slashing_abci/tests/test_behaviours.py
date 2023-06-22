@@ -33,6 +33,7 @@ from unittest.mock import MagicMock
 import pytest
 from _pytest.logging import LogCaptureFixture
 
+import packages.valory.skills.abstract_round_abci.base as abci_base
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
 from packages.valory.protocols.contract_api import ContractApiMessage
@@ -298,8 +299,9 @@ class TestSlashingCheckBehaviour(BaseSlashingTest):
             SlashingCheckBehaviourTestCase(),
         ),
     )
-    @mock.patch(
-        "packages.valory.skills.abstract_round_abci.base.SERIOUS_OFFENCE_SLASH_AMOUNT",
+    @mock.patch.object(
+        abci_base,
+        "SERIOUS_OFFENCE_SLASH_AMOUNT",
         SLASH_THRESHOLD_AMOUNT + 1,
     )
     @mock.patch.object(AsyncBehaviour, "sleep")
@@ -447,8 +449,9 @@ class TestStatusResetBehaviour(BaseSlashingTest):
             StatusResetBehaviourTestCase(),
         ),
     )
-    @mock.patch(
-        "packages.valory.skills.abstract_round_abci.base.SERIOUS_OFFENCE_SLASH_AMOUNT",
+    @mock.patch.object(
+        abci_base,
+        "SERIOUS_OFFENCE_SLASH_AMOUNT",
         SLASH_THRESHOLD_AMOUNT + 1,
     )
     @mock.patch.object(AsyncBehaviour, "sleep")
