@@ -2770,6 +2770,12 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             return False
         return datetime.datetime.now() > self._block_stall_deadline
 
+    def set_block_stall_deadline(self) -> None:
+        """Use the local time of the agent and a predefined tolerance, to specify the expiration of the deadline."""
+        self._block_stall_deadline = datetime.datetime.now() + datetime.timedelta(
+            seconds=BLOCKS_STALL_TOLERANCE
+        )
+
     def init_chain(self, initial_height: int) -> None:
         """Init chain."""
         # reduce `initial_height` by 1 to get block count offset as per Tendermint protocol
@@ -2796,10 +2802,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._block_builder.reset()
         self._block_builder.header = header
         self.abci_app.update_time(header.timestamp)
-        # we use the local time of the agent to specify the expiration of the deadline
-        self._block_stall_deadline = datetime.datetime.now() + datetime.timedelta(
-            seconds=BLOCKS_STALL_TOLERANCE
-        )
+        self.set_block_stall_deadline()
         _logger.info(
             "Created a new local deadline for the next `begin_block` request from the Tendermint node: "
             f"{self._block_stall_deadline}"
