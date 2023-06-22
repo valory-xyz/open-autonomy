@@ -348,16 +348,14 @@ class AsyncBehaviour(ABC):
 
     def __handle_waiting_for_message(self) -> None:
         """Handle an 'act' tick, when waiting for a message."""
-        # if there is no message coming, skip.
-        if self.__notified:
-            try:
-                self.__get_generator_act().send(self.__message)
-            except StopIteration:
-                self.__handle_stop_iteration()
-            finally:
-                # wait for the next message
-                self.__notified = False
-                self.__message = None
+        try:
+            self.__get_generator_act().send(self.__message)
+        except StopIteration:
+            self.__handle_stop_iteration()
+        finally:
+            # wait for the next message
+            self.__notified = False
+            self.__message = None
 
     def __handle_tick(self) -> None:
         """Handle an 'act' tick."""
