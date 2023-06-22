@@ -78,6 +78,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     LEDGER_API_ADDRESS,
     OK_CODE,
+    RoundSequence,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
@@ -597,36 +598,35 @@ class BaseBehaviour(
     @property
     def params(self) -> BaseParams:
         """Return the params."""
-        return cast(BaseParams, self.context.params)
+        return self.context.params
+
+    @property
+    def shared_state(self) -> SharedState:
+        """Return the round sequence."""
+        return self.context.state
+
+    @property
+    def round_sequence(self) -> RoundSequence:
+        """Return the round sequence."""
+        return self.shared_state.round_sequence
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
         """Return the synchronized data."""
-        return cast(
-            BaseSynchronizedData,
-            cast(SharedState, self.context.state).synchronized_data,
-        )
+        return self.shared_state.synchronized_data
 
     @property
     def tm_communication_unhealthy(self) -> bool:
         """Return if the Tendermint communication is not healthy anymore."""
-        return cast(
-            SharedState, self.context.state
-        ).round_sequence.block_stall_deadline_expired
+        return self.round_sequence.block_stall_deadline_expired
 
     def check_in_round(self, round_id: str) -> bool:
         """Check that we entered a specific round."""
-        return (
-            cast(SharedState, self.context.state).round_sequence.current_round_id
-            == round_id
-        )
+        return self.round_sequence.current_round_id == round_id
 
     def check_in_last_round(self, round_id: str) -> bool:
         """Check that we entered a specific round."""
-        return (
-            cast(SharedState, self.context.state).round_sequence.last_round_id
-            == round_id
-        )
+        return self.round_sequence.last_round_id == round_id
 
     def check_not_in_round(self, round_id: str) -> bool:
         """Check that we are not in a specific round."""
@@ -642,10 +642,7 @@ class BaseBehaviour(
 
     def check_round_height_has_changed(self, round_height: int) -> bool:
         """Check that the round height has changed."""
-        return (
-            cast(SharedState, self.context.state).round_sequence.current_round_height
-            != round_height
-        )
+        return self.round_sequence.current_round_height != round_height
 
     def is_round_ended(self, round_id: str) -> Callable[[], bool]:
         """Get a callable to check whether the current round has ended."""
@@ -661,12 +658,11 @@ class BaseBehaviour(
         :yield: None
         """
         round_id = self.matching_round.auto_round_id()
-        round_height = cast(
-            SharedState, self.context.state
-        ).round_sequence.current_round_height
+        round_height = self.round_sequence.current_round_height
         if self.check_not_in_round(round_id) and self.check_not_in_last_round(round_id):
             raise ValueError(
-                f"Should be in matching round ({round_id}) or last round ({self.context.state.round_sequence.last_round_id}), actual round {self.context.state.round_sequence.current_round_id}!"
+                f"Should be in matching round ({round_id}) or last round ({self.round_sequence.last_round_id}), "
+                f"actual round {self.round_sequence.current_round_id}!"
             )
         yield from self.wait_for_condition(
             partial(self.check_round_height_has_changed, round_height), timeout=timeout
@@ -685,9 +681,9 @@ class BaseBehaviour(
         """
         if seconds < 0:
             raise ValueError("Can only wait for a positive amount of time")
-        deadline = cast(
-            SharedState, self.context.state
-        ).round_sequence.abci_app.last_timestamp + datetime.timedelta(seconds=seconds)
+        deadline = self.round_sequence.abci_app.last_timestamp + datetime.timedelta(
+            seconds=seconds
+        )
 
         def _wait_until() -> bool:
             return datetime.datetime.now() > deadline
@@ -713,9 +709,7 @@ class BaseBehaviour(
         :yield: the responses
         """
         stop_condition = self.is_round_ended(self.matching_round.auto_round_id())
-        round_count = cast(
-            SharedState, self.context.state
-        ).synchronized_data.round_count
+        round_count = self.synchronized_data.round_count
         object.__setattr__(payload, "round_count", round_count)
         yield from self._send_transaction(
             payload,
@@ -729,7 +723,7 @@ class BaseBehaviour(
             self._log_start()
             self._is_started = True
         try:
-            if self.context.state.round_sequence.syncing_up:
+            if self.round_sequence.syncing_up:
                 yield from self._check_sync()
             else:
                 yield from self.async_act()
@@ -757,13 +751,16 @@ class BaseBehaviour(
                 remote_height = int(
                     json_body["result"]["sync_info"]["latest_block_height"]
                 )
-                local_height = int(self.context.state.round_sequence.height)
+                local_height = int(self.round_sequence.height)
                 _is_sync_complete = local_height == remote_height
                 if _is_sync_complete:
                     self.context.logger.info(
                         f"local height == remote == {local_height}; Sync complete..."
                     )
-                    self.context.state.round_sequence.end_sync()
+                    self.round_sequence.end_sync()
+                    # we set the block stall deadline here because we pinged the /status endpoint
+                    # and received a response from tm, which means that the communication is fine
+                    self.round_sequence.set_block_stall_deadline()
                     self.gentle_reset_attempted = False
                     return
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
@@ -1733,9 +1730,7 @@ class BaseBehaviour(
         """Perform an ACN request to each one of the agents which have not sent a response yet."""
         not_responded_yet = {
             address
-            for address, deliverable in cast(
-                SharedState, self.context.state
-            ).address_to_acn_deliverable.items()
+            for address, deliverable in self.shared_state.address_to_acn_deliverable.items()
             if deliverable is None
         }
 
@@ -1767,9 +1762,8 @@ class BaseBehaviour(
         :param performative: the ACN request performative.
         :return: the result that the majority of the agents sent. If majority cannot be reached, returns `None`.
         """
-        shared_state = cast(SharedState, self.context.state)
         # reset the ACN deliverables at the beginning of a new request
-        shared_state.address_to_acn_deliverable = shared_state.acn_container()
+        self.shared_state.address_to_acn_deliverable = self.shared_state.acn_container()
 
         result = None
         for i in range(self.params.max_attempts):
@@ -1778,7 +1772,7 @@ class BaseBehaviour(
             )
             yield from self._acn_request_from_pending(performative)
 
-            result = cast(SharedState, self.context.state).get_acn_result()
+            result = self.shared_state.get_acn_result()
             if result is not None:
                 break
 
@@ -1800,7 +1794,7 @@ class BaseBehaviour(
             )
             return False
 
-        cast(SharedState, self.context.state).tm_recovery_params = acn_result
+        self.shared_state.tm_recovery_params = acn_result
         self.context.logger.info(
             f"Updated the Tendermint recovery parameters from the other agents via the ACN: {acn_result}"
         )
@@ -1869,7 +1863,7 @@ class BaseBehaviour(
             return None
 
         last_round_transition_timestamp = (
-            self.context.state.round_sequence.last_round_transition_timestamp
+            self.round_sequence.last_round_transition_timestamp
         )
         genesis_time = last_round_transition_timestamp.astimezone(pytz.UTC).strftime(
             GENESIS_TIME_FMT
@@ -1903,8 +1897,8 @@ class BaseBehaviour(
                 f"Resetting tendermint node at end of period={self.synchronized_data.period_count}."
             )
 
-            backup_blockchain = self.context.state.round_sequence.blockchain
-            self.context.state.round_sequence.reset_blockchain()
+            backup_blockchain = self.round_sequence.blockchain
+            self.round_sequence.reset_blockchain()
             reset_params = self._get_reset_params(on_startup)
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
@@ -1920,7 +1914,7 @@ class BaseBehaviour(
                     is_replay = response.get("is_replay", False)
                     if is_replay:
                         # in case of replay, the local blockchain should be set up differently.
-                        self.context.state.round_sequence.reset_blockchain(
+                        self.round_sequence.reset_blockchain(
                             is_replay=is_replay, is_init=True
                         )
                     for handler_name in self.context.handlers.__dict__.keys():
@@ -1930,18 +1924,17 @@ class BaseBehaviour(
                         # in case of successful reset we store the reset params in the shared state,
                         # so that in the future if the communication with tendermint breaks, and we need to
                         # perform a hard reset to restore it, we can use these as the right ones
-                        shared_state = cast(SharedState, self.context.state)
-                        round_count = shared_state.synchronized_data.db.round_count - 1
+                        round_count = self.synchronized_data.db.round_count - 1
                         # in case we need to reset in order to recover agent <-> tm communication
                         # we store this round as the one to start from
                         restart_from_round = self.matching_round
-                        shared_state.tm_recovery_params = TendermintRecoveryParams(
+                        self.shared_state.tm_recovery_params = TendermintRecoveryParams(
                             reset_params=reset_params,
                             round_count=round_count,
                             reset_from_round=restart_from_round.auto_round_id(),
-                            serialized_db_state=shared_state.synchronized_data.db.serialize(),
+                            serialized_db_state=self.shared_state.synchronized_data.db.serialize(),
                         )
-                    self.context.state.round_sequence.abci_app.cleanup(
+                    self.round_sequence.abci_app.cleanup(
                         self.params.cleanup_history_depth,
                         self.params.cleanup_history_depth_current,
                     )
@@ -1949,7 +1942,7 @@ class BaseBehaviour(
 
                 else:
                     msg = response.get("message")
-                    self.context.state.round_sequence.blockchain = backup_blockchain
+                    self.round_sequence.blockchain = backup_blockchain
                     self.context.logger.error(f"Error resetting: {msg}")
                     yield from self.sleep(self.params.sleep_time)
                     return False
@@ -1957,7 +1950,7 @@ class BaseBehaviour(
                 self.context.logger.error(
                     "Error communicating with tendermint com server."
                 )
-                self.context.state.round_sequence.blockchain = backup_blockchain
+                self.round_sequence.blockchain = backup_blockchain
                 yield from self.sleep(self.params.sleep_time)
                 return False
 
@@ -1972,7 +1965,7 @@ class BaseBehaviour(
             return False
 
         remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
-        local_height = self.context.state.round_sequence.height
+        local_height = self.round_sequence.height
         self.context.logger.info(
             "local-height = %s, remote-height=%s", local_height, remote_height
         )
@@ -2162,9 +2155,8 @@ class TmManager(BaseBehaviour):
             )
             return
 
-        shared_state = cast(SharedState, self.context.state)
-        recovery_params = shared_state.tm_recovery_params
-        shared_state.round_sequence.reset_state(
+        recovery_params = self.shared_state.tm_recovery_params
+        self.round_sequence.reset_state(
             restart_from_round=recovery_params.reset_from_round,
             round_count=recovery_params.round_count,
             serialized_db_state=recovery_params.serialized_db_state,
@@ -2200,10 +2192,7 @@ class TmManager(BaseBehaviour):
         # we get the params from the latest successful reset, if they are not available,
         # i.e. no successful reset has been performed, we return None.
         # Returning None means default params will be used.
-        reset_params = cast(
-            SharedState, self.context.state
-        ).tm_recovery_params.reset_params
-        return reset_params
+        return self.shared_state.tm_recovery_params.reset_params
 
     def get_callback_request(self) -> Callable[[Message, "BaseBehaviour"], None]:
         """Wrapper for callback_request(), overridden to remove checks not applicable to TmManager."""
