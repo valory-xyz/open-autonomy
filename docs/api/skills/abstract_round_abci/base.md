@@ -2112,12 +2112,27 @@ def correct_types() -> Set[str]
 
 Return the correct types only.
 
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundAppConfig"></a>
+
+## BackgroundAppConfig Objects
+
+```python
+@dataclass
+class BackgroundAppConfig(Generic[EventType])
+```
+
+Necessary configuration for a background app.
+
+For a deeper understanding of the various types of background apps and how the config influences
+the generated background app's type, please refer to the `BackgroundApp` class.
+The `specify_type` method provides further insight on the subject matter.
+
 <a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp"></a>
 
 ## BackgroundApp Objects
 
 ```python
-class BackgroundApp()
+class BackgroundApp(Generic[EventType])
 ```
 
 A background app.
@@ -2127,10 +2142,7 @@ A background app.
 #### `__`init`__`
 
 ```python
-def __init__(round_cls: AppState,
-             transition_function: Optional[AbciAppTransitionFunction] = None,
-             start_event: Optional[EventType] = None,
-             end_event: Optional[EventType] = None) -> None
+def __init__(config: BackgroundAppConfig) -> None
 ```
 
 Initialize the BackgroundApp.
@@ -2228,12 +2240,7 @@ Return if the abci app is abstract.
 
 ```python
 @classmethod
-def add_background_app(
-        cls,
-        round_cls: AppState,
-        start_event: Optional[EventType] = None,
-        end_event: Optional[EventType] = None,
-        abci_app: Optional[Type["AbciApp"]] = None) -> Type["AbciApp"]
+def add_background_app(cls, config: BackgroundAppConfig) -> Type["AbciApp"]
 ```
 
 Sets the background related class variables.
@@ -2244,13 +2251,7 @@ The `specify_type` method provides further insight on the subject matter.
 
 **Arguments**:
 
-- `round_cls`: the class of the background round.
-- `start_event`: the start event of the background round.
-If no event or transition function is specified, then the round is running in the background forever.
-- `end_event`: the end event of the background round.
-If not specified, then the round is terminating the abci app.
-- `abci_app`: the abci app of the background round.
-The abci app must specify a valid transition function if the round is not of an ever-running type.
+- `config`: the background app's configuration.
 
 **Returns**:
 
@@ -3279,4 +3280,61 @@ This round should be the first round in the last period.
 - `round_count`: the round count at the beginning of the period -1.
 - `serialized_db_state`: the state of the database at the beginning of the period.
 If provided, the database will be reset to this state.
+
+<a id="packages.valory.skills.abstract_round_abci.base.PendingOffencesPayload"></a>
+
+## PendingOffencesPayload Objects
+
+```python
+@dataclass(frozen=True)
+class PendingOffencesPayload(BaseTxPayload)
+```
+
+Represent a transaction payload for pending offences.
+
+<a id="packages.valory.skills.abstract_round_abci.base.PendingOffencesRound"></a>
+
+## PendingOffencesRound Objects
+
+```python
+class PendingOffencesRound(CollectSameUntilThresholdRound)
+```
+
+Defines the pending offences background round, which runs concurrently with other rounds to sync the offences.
+
+<a id="packages.valory.skills.abstract_round_abci.base.PendingOffencesRound.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(*args: Any, **kwargs: Any) -> None
+```
+
+Initialize the `PendingOffencesRound`.
+
+<a id="packages.valory.skills.abstract_round_abci.base.PendingOffencesRound.offence_status"></a>
+
+#### offence`_`status
+
+```python
+@property
+def offence_status() -> Dict[str, OffenceStatus]
+```
+
+Get the offence status from the round sequence.
+
+<a id="packages.valory.skills.abstract_round_abci.base.PendingOffencesRound.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> None
+```
+
+Process the end of the block for the pending offences background round.
+
+It is important to note that this is a non-standard type of round, meaning it does not emit any events.
+Instead, it continuously runs in the background.
+The objective of this round is to consistently monitor the received pending offences
+and achieve a consensus among the agents.
 
