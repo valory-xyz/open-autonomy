@@ -1809,7 +1809,7 @@ class TestAbciApp:
 
             cross_period_persisted_keys = frozenset({"2", "3"})
 
-        assert not len(EmptyAbciApp.background_apps)
+        assert len(EmptyAbciApp.background_apps) == 0
         assert EmptyAbciApp.cross_period_persisted_keys == {"1", "2"}
         # add the background app
         bg_app_config = deepcopy(STUB_TERMINATION_CONFIG)
