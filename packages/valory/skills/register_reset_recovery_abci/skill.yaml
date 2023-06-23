@@ -123,6 +123,7 @@ models:
       tendermint_url: http://localhost:26657
       tx_timeout: 10.0
       use_termination: false
+      use_slashing: false
     class_name: Params
   requests:
     args: {}

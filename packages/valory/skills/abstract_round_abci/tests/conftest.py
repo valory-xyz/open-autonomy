@@ -108,4 +108,5 @@ irrelevant_config = {
     "setup": {},
     "genesis_config": irrelevant_genesis_config,
     "use_termination": False,
+    "use_slashing": False,
 }

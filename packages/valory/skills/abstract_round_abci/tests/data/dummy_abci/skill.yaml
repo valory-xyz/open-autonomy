@@ -115,6 +115,7 @@ models:
       share_tm_config_on_startup: false
       tendermint_p2p_url: localhost:26656
       use_termination: false
+      use_slashing: false
     class_name: Params
   randomness_api:
     args:

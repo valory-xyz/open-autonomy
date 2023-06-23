@@ -268,6 +268,7 @@ def get_dummy_skill_config() -> Dict:
                     "tendermint_url": "http://localhost:26657",
                     "tx_timeout": 10,
                     "use_termination": False,
+                    "use_slashing": False,
                 },
                 "class_name": "Params",
             },

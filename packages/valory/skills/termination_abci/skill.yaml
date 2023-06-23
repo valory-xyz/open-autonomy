@@ -129,6 +129,7 @@ models:
       termination_sleep: 900
       tx_timeout: 10.0
       use_termination: false
+      use_slashing: false
       validate_timeout: 1205
     class_name: TerminationParams
   requests:

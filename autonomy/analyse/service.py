@@ -172,6 +172,7 @@ ABCI_SKILL_MODEL_PARAMS_SCHEMA = {
         "on_chain_service_id",
         "share_tm_config_on_startup",
         "use_termination",
+        "use_slashing",
         "setup",
     ],
 }
