@@ -237,7 +237,7 @@ class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
     abci_app_cls: Type[AbciApp[EventType]]
     behaviours: AbstractSet[BehaviourType]
     initial_behaviour_cls: BehaviourType
-    background_behaviours_cls: Set[BehaviourType] = set()
+    background_behaviours_cls: Set[BehaviourType] = {PendingOffencesBehaviour}  # type: ignore
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the behaviour."""
