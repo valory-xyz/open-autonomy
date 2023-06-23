@@ -2400,10 +2400,11 @@ class AbciApp(
 
         if include_background_rounds:
             for app in cls.background_apps:
-                if app.type == BackgroundAppType.EVER_RUNNING:
-                    full_fn.update({app.round_cls: {}})
-                transition_fn = cast(AbciAppTransitionFunction, app.transition_function)
-                full_fn.update(transition_fn)
+                if app.type != BackgroundAppType.EVER_RUNNING:
+                    transition_fn = cast(
+                        AbciAppTransitionFunction, app.transition_function
+                    )
+                    full_fn.update(transition_fn)
 
         return cls._get_rounds_from_transition_function(full_fn)
 

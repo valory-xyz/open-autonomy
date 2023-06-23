@@ -80,7 +80,9 @@ class _MetaRoundBehaviour(ABCMeta):
             # the check only applies to AbstractRoundBehaviour subclasses
             return new_cls
 
-        mcs.are_background_behaviours_set = bool(new_cls.background_behaviours_cls)
+        mcs.are_background_behaviours_set = bool(
+            new_cls.background_behaviours_cls - {PendingOffencesBehaviour}
+        )
         mcs._check_consistency(cast(AbstractRoundBehaviour, new_cls))
         return new_cls
 

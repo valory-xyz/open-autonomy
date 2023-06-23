@@ -1784,7 +1784,6 @@ class TestAbciApp:
             ConcreteRoundA,
             ConcreteRoundB,
             ConcreteRoundC,
-            ConcreteBackgroundRound,
         }
         assert expected_rounds == self.abci_app.get_all_round_classes(
             include_background_rounds
