@@ -56,6 +56,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
 from packages.valory.skills.abstract_round_abci.models import SharedState
 
 
+SLASHING_BACKGROUND_BEHAVIOUR_ID = "slashing_check_behaviour"
 TERMINATION_BACKGROUND_BEHAVIOUR_ID = "background_behaviour"
 
 
@@ -314,9 +315,14 @@ class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
                 not params.use_termination
                 and background_cls.auto_behaviour_id()
                 == TERMINATION_BACKGROUND_BEHAVIOUR_ID
+            ) or (
+                not params.use_slashing
+                and background_cls.auto_behaviour_id()
+                == SLASHING_BACKGROUND_BEHAVIOUR_ID
+                or background_cls == PendingOffencesBehaviour
             ):
-                # This logic is not entirely safe, as there is a potential for conflicts
-                # if a user creates a behaviour named "background_behaviour" as well.
+                # comparing with the behaviour id is not entirely safe, as there is a potential for conflicts
+                # if a user creates a behaviour with the same name
                 continue
 
             self.background_behaviours.add(
