@@ -35,6 +35,7 @@ from copy import copy, deepcopy
 from dataclasses import asdict, astuple, dataclass, field, is_dataclass
 from enum import Enum
 from inspect import isclass
+from math import ceil
 from typing import (
     Any,
     Callable,
@@ -88,10 +89,13 @@ MAX_INT_256 = 2**256 - 1
 RESET_COUNT_START = 0
 VALUE_NOT_PROVIDED = object()
 # tolerance in seconds for new blocks not having arrived yet
-BLOCKS_STALL_TOLERANCE = 15
+BLOCKS_STALL_TOLERANCE = 60
 SERIOUS_OFFENCE_ENUM_MIN = 1000
 NUMBER_OF_BLOCKS_TRACKED = 10_000
-NUMER_OF_ROUNDS_TRACKED = 50
+NUMBER_OF_ROUNDS_TRACKED = 50
+# TODO update slash amounts
+LIGHT_OFFENCE_SLASH_AMOUNT = 0
+SERIOUS_OFFENCE_SLASH_AMOUNT = 0
 
 EventType = TypeVar("EventType")
 
@@ -2812,6 +2816,15 @@ def serious_offences() -> Iterator[OffenseType]:
     return filter(is_serious_offence, OffenseType)
 
 
+def calculate_slash_amount(offence_type: OffenseType) -> int:
+    """Calculates and returns the slash amount."""
+    if is_light_offence(offence_type):
+        return LIGHT_OFFENCE_SLASH_AMOUNT
+    if is_serious_offence(offence_type):
+        return SERIOUS_OFFENCE_SLASH_AMOUNT
+    return 0
+
+
 class AvailabilityWindow:
     """
     A cyclic array with a maximum length that holds boolean values.
@@ -2838,6 +2851,10 @@ class AvailabilityWindow:
         if isinstance(other, AvailabilityWindow):
             return self.to_dict() == other.to_dict()
         return False
+
+    def has_bad_availability_rate(self, threshold: float = 0.95) -> bool:
+        """Whether the agent on which the window belongs to has a bad availability rate or not."""
+        return self._num_positive >= ceil(self._max_length * threshold)
 
     def _update_counters(self, positive: bool, removal: bool = False) -> None:
         """Updates the `num_positive` and `num_negative` counters."""
@@ -2940,17 +2957,43 @@ class OffenceStatus:
         default_factory=lambda: AvailabilityWindow(NUMBER_OF_BLOCKS_TRACKED)
     )
     invalid_payload: AvailabilityWindow = field(
-        default_factory=lambda: AvailabilityWindow(NUMER_OF_ROUNDS_TRACKED)
+        default_factory=lambda: AvailabilityWindow(NUMBER_OF_ROUNDS_TRACKED)
     )
     blacklisted: AvailabilityWindow = field(
-        default_factory=lambda: AvailabilityWindow(NUMER_OF_ROUNDS_TRACKED)
+        default_factory=lambda: AvailabilityWindow(NUMBER_OF_ROUNDS_TRACKED)
     )
     suspected: AvailabilityWindow = field(
-        default_factory=lambda: AvailabilityWindow(NUMER_OF_ROUNDS_TRACKED)
+        default_factory=lambda: AvailabilityWindow(NUMBER_OF_ROUNDS_TRACKED)
     )
     num_unknown_offenses: int = 0
     num_double_signed: int = 0
     num_light_client_attack: int = 0
+
+    @property
+    def slash_amount(self) -> int:
+        """Get the slash amount of the current status."""
+        amount = 0
+
+        if self.validator_downtime.has_bad_availability_rate():
+            amount += calculate_slash_amount(OffenseType.VALIDATOR_DOWNTIME)
+        if self.invalid_payload.has_bad_availability_rate():
+            amount += calculate_slash_amount(OffenseType.INVALID_PAYLOAD)
+        if self.blacklisted.has_bad_availability_rate():
+            amount += calculate_slash_amount(OffenseType.BLACKLISTED)
+        if self.suspected.has_bad_availability_rate():
+            amount += calculate_slash_amount(OffenseType.SUSPECTED)
+        amount += (
+            calculate_slash_amount(OffenseType.UNKNOWN) * self.num_unknown_offenses
+        )
+        amount += (
+            calculate_slash_amount(OffenseType.DOUBLE_SIGNING) * self.num_double_signed
+        )
+        amount += (
+            calculate_slash_amount(OffenseType.LIGHT_CLIENT_ATTACK)
+            * self.num_light_client_attack
+        )
+
+        return amount
 
 
 class OffenseStatusEncoder(json.JSONEncoder):

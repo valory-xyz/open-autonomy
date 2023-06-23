@@ -14,7 +14,7 @@ fingerprint:
   background/pending_offences/behaviour.py: bafybeigo4lraq5e2pinfqaa2d34n2l2prgjg3vbt74iuzj6w2t3vcdgegi
   background/pending_offences/payloads.py: bafybeifzn6jawfnubhdxwzygqpgcx5pcni5hvneztayuir3tlarqkp7yr4
   background/pending_offences/round.py: bafybeigthrqp2y4iwp7r6hnxni3r4f75lxf74w6v3ebinhcvvagmtmrcve
-  base.py: bafybeibcjvdum6zzeuafdt7tj5lxufhezyizckh4jwoux6fzvklnkdksiy
+  base.py: bafybeicjqr436ly2hwz4rhovabq5fs5krn5klyhxa2zvbireltwmwqelpy
   behaviour_utils.py: bafybeigfgculnhhwxaxbgcyoji7siy62zpo5i6bgmvmqw77gtqxch6nnbm
   behaviours.py: bafybeif5wcr6q6hx5ocgfemkh3g7iv75kjbhhsytqix2ky2fzm3w74xaaa
   common.py: bafybeidzqdfvwf226d5qeqcyzpkqsjy6kiawoz5ldsfvzzhtym3f73giia
@@ -33,6 +33,11 @@ fingerprint:
   test_tools/integration.py: bafybeifqq3bx46hz2deph3usvrt7u45tpsapvocofd2zu3yh7rfl5nlmzq
   test_tools/rounds.py: bafybeie576yxtiramzt5czpt4hnv76gfetzio2t3k5kprhdhvbpfddbaem
   tests/__init__.py: bafybeiebss5rdfh7tdbw2qi3tjpf6cjgwuonowsw6bimyosfie2ngxhhzy
+  tests/background/__init__.py: bafybeidwfvuix3ifg7wab555vpsx2slolwk62slmcuf2jeffbhybc5kszu
+  tests/background/pending_offences/__init__.py: bafybeibhu5ofttw4ra6i5bh7qt5clr2okiiod3sshmszpblvt42iqex4n4
+  tests/background/pending_offences/test_behaviours.py: bafybeifx6jtznxqedu4vagpvlss7y7mrpefucxlqokxhgjarcjv6evmwlq
+  tests/background/pending_offences/test_payloads.py: bafybeidbkaliprpty4jgtp3nbgvt5nt3mztytq234q66yehc2sfn3mdinq
+  tests/background/pending_offences/test_rounds.py: bafybeif3kuphn5lv3jqoidolvxgturyj7joy3dtmwqr465wj2rxmr23hte
   tests/conftest.py: bafybeib2tebjwysgej4kpczd7tmxi2a2ikinzvoav25buogofujz47kj54
   tests/data/__init__.py: bafybeifmqjnrqgbau4tshhdtrosru7xyjky72ljlrf3ynrk76fxjcsgfpi
   tests/data/dummy_abci/__init__.py: bafybeiaoqyjlgez5gkvutl22ihebcjk3zskve5gdt5wbap5zkmhehoddca
@@ -42,10 +47,6 @@ fingerprint:
   tests/data/dummy_abci/models.py: bafybeiear3i45wbaylrkbnm2fbtqorxx56glul36piuah7m7jb56f5rpoq
   tests/data/dummy_abci/payloads.py: bafybeiczldqiumb7prcusb7l5vb575vschwyseyigpupvteldfyz7h6fyi
   tests/data/dummy_abci/rounds.py: bafybeihhheznpcntg4z5cdd7dysnivo2g4x5biv7blriyiyoouqp6xf5aq
-  tests/pending_offences/__init__.py: bafybeibhu5ofttw4ra6i5bh7qt5clr2okiiod3sshmszpblvt42iqex4n4
-  tests/pending_offences/test_behaviours.py: bafybeifx6jtznxqedu4vagpvlss7y7mrpefucxlqokxhgjarcjv6evmwlq
-  tests/pending_offences/test_payloads.py: bafybeidbkaliprpty4jgtp3nbgvt5nt3mztytq234q66yehc2sfn3mdinq
-  tests/pending_offences/test_rounds.py: bafybeif3kuphn5lv3jqoidolvxgturyj7joy3dtmwqr465wj2rxmr23hte
   tests/test_abci_app_chain.py: bafybeihqvjkcwkwxowhb3umtk52us4pd5f6nbppw4ycx76oljw4j3j7xpa
   tests/test_base.py: bafybeigcyb7eckx3knd46rscashhmsixvtgmesdkgfdzxlc6hmeh5tsanu
   tests/test_base_rounds.py: bafybeiadkpwuhz6y5k5ffvoqvyi6nqetf5ov5bmodejge7yvscm6yqzpse
@@ -66,7 +67,7 @@ fingerprint:
   tests/test_tools/test_integration.py: bafybeidxkvb2kizi7djrpuw446dqxo2v5s7j2dbdrdpfmnd2ggezaxbnkm
   tests/test_tools/test_rounds.py: bafybeibaoj4miysneipgukz7xufs47vpv5rds3ptgmu3yxlcl7gjss6ccm
   tests/test_utils.py: bafybeibs7zjpepzdetcy4ybksqxoul45hw372z4evkop3avx6qhrss3bba
-  utils.py: bafybeicckjeq5ubm25squfzevdwlwnios7enstmelc7tw4qpzcv2h7ysmq
+  utils.py: bafybeigeqglfoyoxyaem4gzvdybc2cyabo2hnas7y3mvxaz2rwimdqclcm
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeie7fsmdzatyofhagfice7afbmyn7ht3zuzojdlu6cjaz7zncjspfq
@@ -75,7 +76,7 @@ connections:
 - valory/ledger:0.19.0:bafybeicgfupeudtmvehbwziqfxiz6ztsxr5rxzvalzvsdsspzz73o5fzfi
 - valory/p2p_libp2p_client:0.1.0:bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva
 contracts:
-- valory/service_registry:0.1.0:bafybeiatcuw6zeqok4spkkonui6likgdfwtp2dichzrlbjxnf76eg42sdq
+- valory/service_registry:0.1.0:bafybeiekherinqdcfewnuyha7kdva45ep7bw4ovejsd22ritemx7al7yvq
 protocols:
 - open_aea/signing:1.0.0:bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4
 - valory/abci:0.1.0:bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4

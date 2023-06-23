@@ -21,7 +21,7 @@ contracts:
 - valory/gnosis_safe:0.1.0:bafybeigay6nfnmzddx3opzqdnl2lvlvabi73beffs2py3krlagwgzuesmu
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeiaqg2ovb3r6iskkp6iyawsw42u7h4hhci6r4cowmazrlosjcq3vxq
 - valory/multisend:0.1.0:bafybeigjywkl7hydjsrkogob3xebj2ifhqwmfhhxoeyrndzhhxi5u6amey
-- valory/service_registry:0.1.0:bafybeiatcuw6zeqok4spkkonui6likgdfwtp2dichzrlbjxnf76eg42sdq
+- valory/service_registry:0.1.0:bafybeiekherinqdcfewnuyha7kdva45ep7bw4ovejsd22ritemx7al7yvq
 protocols:
 - open_aea/signing:1.0.0:bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4
 - valory/abci:0.1.0:bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4
@@ -33,12 +33,12 @@ protocols:
 - valory/tendermint:0.1.0:bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54
 skills:
 - valory/abstract_abci:0.1.0:bafybeifeqstiynx2n37k7lpdbcclylgg7tsmym7vtj4tanrukkvw4pp5nu
-- valory/abstract_round_abci:0.1.0:bafybeigaiza5oy2ncb5ftm5r2jz7mkpfvb2fqswu5lb5ef7ux3powa3ksu
-- valory/register_termination_abci:0.1.0:bafybeiayusw4ymfp6jk5i5pckyxkgavpztx2nm63wdxgpcaqqwwje4b3oe
-- valory/registration_abci:0.1.0:bafybeifu4tgxvbq2n6b5gjvsnpoh7dafrdvswvos5z7nbksgse7vdsnsca
-- valory/reset_pause_abci:0.1.0:bafybeigkokqp52ibdc5n2c2e35qjtiz4b35nqsri6z4knk56gcinj3j3m4
-- valory/termination_abci:0.1.0:bafybeifzwjgloyoki2ghirvb7t6uhhpsxkmjdexehvkfcphnsdvar5mc6u
-- valory/transaction_settlement_abci:0.1.0:bafybeibtwnx3s5afgrgizln57ldprykyo5s4wsno5jdbdelgmx7qoatyay
+- valory/abstract_round_abci:0.1.0:bafybeia2t7ynmo5kbmctckwdct2tzbl227kic2fsmux6ptkzio6k5rqive
+- valory/register_termination_abci:0.1.0:bafybeibv3toz7ps5bjsoafrltep5q6ghumbov55wusy5cybqtbvkggsocy
+- valory/registration_abci:0.1.0:bafybeiakyy35532nalm3notx47lodm4hm4ydixvzcjbd43np5mh4yf6yni
+- valory/reset_pause_abci:0.1.0:bafybeianakvbmgewhtoeq2lcsiumddjavjca5ac7wncmsyybizpjucoqwq
+- valory/termination_abci:0.1.0:bafybeiedldb25qn27enudtkoypz6yrmajyrsmrzipm76tvmgwu5jwnoi44
+- valory/transaction_settlement_abci:0.1.0:bafybeiarkuuaetj2tett2ae577dtmd2r64zaek4k45mgasv3ansybfcvza
 default_ledger: ethereum
 required_ledgers:
 - ethereum

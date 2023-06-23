@@ -363,3 +363,13 @@ Get consensus threshold.
 
 the consensus threshold
 
+<a id="packages.valory.skills.abstract_round_abci.utils.inverse"></a>
+
+#### inverse
+
+```python
+def inverse(dict_: Dict[KeyType, ValueType]) -> Dict[ValueType, List[KeyType]]
+```
+
+Get the inverse of a dictionary.
+
