@@ -32,7 +32,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-import packages.valory.skills.abstract_round_abci.base as abci_base
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
 from packages.valory.protocols.contract_api import ContractApiMessage
@@ -46,10 +45,6 @@ from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
 from packages.valory.skills.abstract_round_abci.utils import inverse
-from packages.valory.skills.slashing_abci import (
-    SLASH_THRESHOLD_AMOUNT,
-    SLASH_WAIT_HOURS,
-)
 from packages.valory.skills.slashing_abci.behaviours import (
     SlashingAbciBehaviours,
     SlashingCheckBehaviour,
@@ -63,6 +58,8 @@ from packages.valory.skills.transaction_settlement_abci.rounds import TX_HASH_LE
 
 
 STUB_OPERATORS_MAPPING = {"test_instance": "test_operator"}
+DUMMY_SLASH_THRESHOLD = 1
+DUMMY_SLASH_COOLDOWN = 1
 
 
 class BaseSlashingTest(FSMBehaviourBaseCase):
@@ -101,6 +98,10 @@ class BaseSlashingTest(FSMBehaviourBaseCase):
             and self.behaviour.current_behaviour.behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
+        self.current_behaviour.params.__dict__["_frozen"] = False
+        self.current_behaviour.params.slash_threshold_amount = DUMMY_SLASH_THRESHOLD
+        self.current_behaviour.params.slash_cooldown_hours = DUMMY_SLASH_COOLDOWN
+        self.current_behaviour.params.__dict__["_frozen"] = True
 
     def complete(self) -> None:
         """Complete test"""
@@ -214,28 +215,40 @@ class TestSlashingCheckBehaviour(BaseSlashingTest):
         "offence_status, timestamps, last_timestamp, expected_amounts",
         (
             (
-                {"agent": MagicMock(slash_amount=0)},
+                {"agent": MagicMock(slash_amount=MagicMock(return_value=0))},
                 {"agent": 0},
                 datetime(2000, 1, 1),
                 {},
             ),
             (
-                {"agent": MagicMock(slash_amount=SLASH_THRESHOLD_AMOUNT)},
-                {"agent": 946684800 - SLASH_WAIT_HOURS},
+                {
+                    "agent": MagicMock(
+                        slash_amount=MagicMock(return_value=DUMMY_SLASH_THRESHOLD)
+                    )
+                },
+                {"agent": 946684800 - DUMMY_SLASH_COOLDOWN},
                 datetime(2000, 1, 1),
                 {},
             ),
             (
-                {"agent": MagicMock(slash_amount=SLASH_THRESHOLD_AMOUNT + 1)},
+                {
+                    "agent": MagicMock(
+                        slash_amount=MagicMock(return_value=DUMMY_SLASH_THRESHOLD + 1)
+                    )
+                },
                 {"agent": 946684800},
                 datetime(2000, 1, 1),
                 {},
             ),
             (
-                {"agent": MagicMock(slash_amount=SLASH_THRESHOLD_AMOUNT + 1)},
-                {"agent": 946684800 - SLASH_WAIT_HOURS - 1},
+                {
+                    "agent": MagicMock(
+                        slash_amount=MagicMock(return_value=DUMMY_SLASH_THRESHOLD + 1)
+                    )
+                },
+                {"agent": 946684800 - DUMMY_SLASH_COOLDOWN - 1},
                 datetime(2000, 1, 1),
-                {"agent": SLASH_THRESHOLD_AMOUNT + 1},
+                {"agent": DUMMY_SLASH_THRESHOLD + 1},
             ),
         ),
     )
@@ -290,11 +303,6 @@ class TestSlashingCheckBehaviour(BaseSlashingTest):
             SlashingCheckBehaviourTestCase(safe_tx_invalid=True),
             SlashingCheckBehaviourTestCase(),
         ),
-    )
-    @mock.patch.object(
-        abci_base,
-        "SERIOUS_OFFENCE_SLASH_AMOUNT",
-        SLASH_THRESHOLD_AMOUNT + 1,
     )
     @mock.patch.object(AsyncBehaviour, "sleep")
     def test_slashing_check_act(
@@ -440,11 +448,6 @@ class TestStatusResetBehaviour(BaseSlashingTest):
             ),
             StatusResetBehaviourTestCase(),
         ),
-    )
-    @mock.patch.object(
-        abci_base,
-        "SERIOUS_OFFENCE_SLASH_AMOUNT",
-        SLASH_THRESHOLD_AMOUNT + 1,
     )
     @mock.patch.object(AsyncBehaviour, "sleep")
     def test_status_reset_act(

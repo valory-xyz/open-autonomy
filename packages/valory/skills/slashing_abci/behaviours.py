@@ -48,10 +48,6 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
 )
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.utils import inverse
-from packages.valory.skills.slashing_abci import (
-    SLASH_THRESHOLD_AMOUNT,
-    SLASH_WAIT_HOURS,
-)
 from packages.valory.skills.slashing_abci.composition import SlashingAbciApp
 from packages.valory.skills.slashing_abci.models import SharedState
 from packages.valory.skills.slashing_abci.payloads import (
@@ -202,19 +198,19 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
             )
             # If an agent has not been slashed, then it is not included in the timestamps.
             # To facilitate the comparison in the subsequent code,
-            # we assign a timestamp to the negative value of the wait time between slashes(`SLASH_WAIT_HOURS`).
+            # we assign a timestamp to the negative value of the wait time between slashes(`slash_cooldown_hours`).
             # This ensures that the comparison being performed is against 0.
             last_slashed_timestamp = self.synchronized_data.slash_timestamps.get(
-                agent, -SLASH_WAIT_HOURS
+                agent, -self.params.slash_cooldown_hours
             )
             last_round_transition_timestamp = timegm(
                 self.round_sequence.last_round_transition_timestamp.utctimetuple()
             )
 
             if (
-                amount > SLASH_THRESHOLD_AMOUNT
+                amount > self.params.slash_threshold_amount
                 and last_round_transition_timestamp
-                > last_slashed_timestamp + SLASH_WAIT_HOURS
+                > last_slashed_timestamp + self.params.slash_cooldown_hours
             ):
                 # Check whether the threshold has been met, essentially bundling up offences.
                 # Otherwise, we might end up in a situation where the slash tx is more expensive than the slash amount.
