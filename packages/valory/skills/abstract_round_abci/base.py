@@ -1951,6 +1951,8 @@ class Timeouts(Generic[EventType]):
 class _MetaAbciApp(ABCMeta):
     """A metaclass that validates AbciApp's attributes."""
 
+    bg_round_added: bool = False
+
     def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type:  # type: ignore
         """Initialize the class."""
         new_cls = super().__new__(mcs, name, bases, namespace, **kwargs)
@@ -1962,7 +1964,12 @@ class _MetaAbciApp(ABCMeta):
             # the check only applies to AbciApp subclasses
             return new_cls
 
+        if not mcs.bg_round_added:
+            mcs._add_pending_offences_bg_round(new_cls)
+            mcs.bg_round_added = True
+
         mcs._check_consistency(cast(Type[AbciApp], new_cls))
+
         return new_cls
 
     @classmethod
@@ -2140,6 +2147,12 @@ class _MetaAbciApp(ABCMeta):
                 f"non-final state {non_final_state} must have at least one "
                 f"non-timeout transition",
             )
+
+    @classmethod
+    def _add_pending_offences_bg_round(cls, abci_app_cls: Type["AbciApp"]) -> None:
+        """Add the pending offences synchronization background round."""
+        config: BackgroundAppConfig = BackgroundAppConfig(PendingOffencesRound)
+        abci_app_cls.add_background_app(config)
 
 
 class BackgroundAppType(Enum):

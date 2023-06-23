@@ -1796,8 +1796,8 @@ class TestAbciApp:
 
     def test_add_background_app(self) -> None:
         """Tests the add method for the background apps."""
-        # remove the terminating bg round added in `setup()`
-        self.abci_app.background_apps.pop()
+        # remove the terminating bg round added in `setup()` and the pending offences bg app added in the metaclass
+        self.abci_app.background_apps.clear()
 
         class EmptyAbciApp(AbciAppTest):
             """An AbciApp without background apps' attributes set."""
