@@ -6,8 +6,8 @@ description: Slashing skill.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: bafybeibfyoyftjzeqknqq3czvtwjqakvy5lwbzgylbrvuk5caff4owu3g4
-  behaviours.py: bafybeifkvxxkhtud376noppxattf42uufm5ccqci37egyzasygnvddjtdi
+  __init__.py: bafybeiaa4imr3kx3j7yi6z5hm2u5jtx5ozlqkmkjktzy4jctyooqakdjca
+  behaviours.py: bafybeieweig4i3bfytuvlkyqgm3hdek4miizfyyh4on7gw5rawnkmc6qiy
   composition.py: bafybeielasseqc663nstmdkbrvzjcy5kxp7jnv745svousetfyglb235ze
   dialogues.py: bafybeigpwuzku3we7axmxeamg7vn656maww6emuztau5pg3ebsoquyfdqm
   handlers.py: bafybeihagfgueqadffrmvqwkrjk4vhalhfvsctquay2uiqru2h4vur6j5e
@@ -15,7 +15,7 @@ fingerprint:
   payloads.py: bafybeigl4mecg2e3gxhqifv33kucusug6t6lcfthbtvffpmohgt552j7vu
   rounds.py: bafybeievt3nfx3dqr6m2ni22yiiwnrouy6tdtzb5eggqa5ltyj6ejacorm
   tests/__init__.py: bafybeiesff34nldcxucqzb7fz5bg6awtqxgcafvasecdsh5eutmtahwaeu
-  tests/test_behaviours.py: bafybeig4mcme2ypqo4dq24xowwpxk2kixr2zis4b4o2w56fx2pmszjtfui
+  tests/test_behaviours.py: bafybeiemexmhw363jqzmtrg57d6yzqh2r2hopmanvd4ap4h4f6dgmwmzsq
   tests/test_dialogues.py: bafybeiaipkfzciwtc6emjsi2vatof3tjptxww5cwqymefs57co7f2hb6pe
   tests/test_handlers.py: bafybeicbxl2n4ch6p347ksb6dgm2orebrbj26oplfhvkk25l5crspzbvs4
   tests/test_models.py: bafybeifnjo33d2q2hsqcf4bwdk7wcp45amt7idogup24botupdo7u4cuju
@@ -29,8 +29,8 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidrutrt3ksxgypmciql42tc3iw3s3irc52qas3jx4yq6euvj7wjoy
-- valory/transaction_settlement_abci:0.1.0:bafybeifevahyjjico4svjqvsqyhashkx3szxdg3t6737pbqxyakfcdplq4
+- valory/abstract_round_abci:0.1.0:bafybeihra6faekx656w3vj47xlm3hxbgpewf2fo2spnvuklamlamt6necm
+- valory/transaction_settlement_abci:0.1.0:bafybeiba2rhcovvuui7bvx7jsjai7e54625cj6ilvrh427shjuuathslta
 behaviours:
   main:
     args: {}
@@ -130,6 +130,10 @@ models:
       tx_timeout: 10.0
       use_termination: false
       use_slashing: false
+      slash_cooldown_hours: 3
+      slash_threshold_amount: 10000000000000000
+      light_slash_unit_amount: 5000000000000000
+      serious_slash_unit_amount: 8000000000000000
       validate_timeout: 1205
     class_name: SlashingParams
   requests:
