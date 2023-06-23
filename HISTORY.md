@@ -5,6 +5,7 @@
 Packages:
 - Make sure the timeout gets checked even when there's no message from connection #1996
 - Fixes the gentle reset logic #2000
+- Refactors the block stall tolerance as it was not large enough for edge cases #2002
 
 Chore:
 - Bumps `web3py` to `v5.31.4` #1999
