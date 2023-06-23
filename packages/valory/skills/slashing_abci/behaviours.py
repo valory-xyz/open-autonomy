@@ -196,7 +196,10 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
     def _check_offence_status(self) -> None:
         """Check the offence status, calculate the slash amount per operator, and assign it to `_slash_amounts`."""
         for agent, status in self.offence_status.items():
-            amount = status.slash_amount
+            amount = status.slash_amount(
+                self.params.light_slash_unit_amount,
+                self.params.serious_slash_unit_amount,
+            )
             # If an agent has not been slashed, then it is not included in the timestamps.
             # To facilitate the comparison in the subsequent code,
             # we assign a timestamp to the negative value of the wait time between slashes(`SLASH_WAIT_HOURS`).

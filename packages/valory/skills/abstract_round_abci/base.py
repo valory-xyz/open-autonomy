@@ -93,9 +93,6 @@ BLOCKS_STALL_TOLERANCE = 60
 SERIOUS_OFFENCE_ENUM_MIN = 1000
 NUMBER_OF_BLOCKS_TRACKED = 10_000
 NUMBER_OF_ROUNDS_TRACKED = 50
-# TODO update slash amounts
-LIGHT_OFFENCE_SLASH_AMOUNT = 0
-SERIOUS_OFFENCE_SLASH_AMOUNT = 0
 
 EventType = TypeVar("EventType")
 
@@ -2836,15 +2833,6 @@ def serious_offences() -> Iterator[OffenseType]:
     return filter(is_serious_offence, OffenseType)
 
 
-def calculate_slash_amount(offence_type: OffenseType) -> int:
-    """Calculates and returns the slash amount."""
-    if is_light_offence(offence_type):
-        return LIGHT_OFFENCE_SLASH_AMOUNT
-    if is_serious_offence(offence_type):
-        return SERIOUS_OFFENCE_SLASH_AMOUNT
-    return 0
-
-
 class AvailabilityWindow:
     """
     A cyclic array with a maximum length that holds boolean values.
@@ -2989,31 +2977,32 @@ class OffenceStatus:
     num_double_signed: int = 0
     num_light_client_attack: int = 0
 
-    @property
-    def slash_amount(self) -> int:
+    def slash_amount(self, light_unit_amount: int, serious_unit_amount: int) -> int:
         """Get the slash amount of the current status."""
-        amount = 0
+        offence_types = []
 
         if self.validator_downtime.has_bad_availability_rate():
-            amount += calculate_slash_amount(OffenseType.VALIDATOR_DOWNTIME)
+            offence_types.append(OffenseType.VALIDATOR_DOWNTIME)
         if self.invalid_payload.has_bad_availability_rate():
-            amount += calculate_slash_amount(OffenseType.INVALID_PAYLOAD)
+            offence_types.append(OffenseType.INVALID_PAYLOAD)
         if self.blacklisted.has_bad_availability_rate():
-            amount += calculate_slash_amount(OffenseType.BLACKLISTED)
+            offence_types.append(OffenseType.BLACKLISTED)
         if self.suspected.has_bad_availability_rate():
-            amount += calculate_slash_amount(OffenseType.SUSPECTED)
-        amount += (
-            calculate_slash_amount(OffenseType.UNKNOWN) * self.num_unknown_offenses
-        )
-        amount += (
-            calculate_slash_amount(OffenseType.DOUBLE_SIGNING) * self.num_double_signed
-        )
-        amount += (
-            calculate_slash_amount(OffenseType.LIGHT_CLIENT_ATTACK)
-            * self.num_light_client_attack
-        )
+            offence_types.append(OffenseType.SUSPECTED)
+        offence_types.extend([OffenseType.UNKNOWN] * self.num_unknown_offenses)
+        offence_types.extend([OffenseType.UNKNOWN] * self.num_double_signed)
+        offence_types.extend([OffenseType.UNKNOWN] * self.num_light_client_attack)
 
-        return amount
+        light_multiplier = 0
+        serious_multiplier = 0
+        for offence_type in offence_types:
+            light_multiplier += bool(is_light_offence(offence_type))
+            serious_multiplier += bool(is_serious_offence(offence_type))
+
+        return (
+            light_multiplier * light_unit_amount
+            + serious_multiplier * serious_unit_amount
+        )
 
 
 class OffenseStatusEncoder(json.JSONEncoder):
