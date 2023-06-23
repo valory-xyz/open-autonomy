@@ -2161,25 +2161,45 @@ class BackgroundAppType(Enum):
         return set(BackgroundAppType.__members__) - {BackgroundAppType.INCORRECT.name}
 
 
-class BackgroundApp:
+@dataclass
+class BackgroundAppConfig(Generic[EventType]):
+    """
+    Necessary configuration for a background app.
+
+    For a deeper understanding of the various types of background apps and how the config influences
+    the generated background app's type, please refer to the `BackgroundApp` class.
+    The `specify_type` method provides further insight on the subject matter.
+    """
+
+    # the class of the background round
+    round_cls: AppState
+    # the abci app of the background round
+    # the abci app must specify a valid transition function if the round is not of an ever-running type
+    abci_app: Optional[Type["AbciApp"]] = None
+    # the start event of the background round
+    # if no event or transition function is specified, then the round is running in the background forever
+    start_event: Optional[EventType] = None
+    # the end event of the background round
+    # if not specified, then the round is terminating the abci app
+    end_event: Optional[EventType] = None
+
+
+class BackgroundApp(Generic[EventType]):
     """A background app."""
 
     def __init__(
         self,
-        round_cls: AppState,
-        transition_function: Optional[AbciAppTransitionFunction] = None,
-        start_event: Optional[EventType] = None,
-        end_event: Optional[EventType] = None,
+        config: BackgroundAppConfig,
     ) -> None:
         """Initialize the BackgroundApp."""
         given_args = locals()
 
-        self.round_cls: AppState = round_cls
-        self.transition_function: Optional[
-            AbciAppTransitionFunction
-        ] = transition_function
-        self.start_event: Optional[EventType] = start_event
-        self.end_event: Optional[EventType] = end_event
+        self.round_cls: AppState = config.round_cls
+        self.transition_function: Optional[AbciAppTransitionFunction] = (
+            config.abci_app.transition_function if config.abci_app is not None else None
+        )
+        self.start_event: Optional[EventType] = config.start_event
+        self.end_event: Optional[EventType] = config.end_event
 
         self.type = self.specify_type()
         if self.type == BackgroundAppType.INCORRECT:  # pragma: nocover
@@ -2312,10 +2332,7 @@ class AbciApp(
     @classmethod
     def add_background_app(
         cls,
-        round_cls: AppState,
-        start_event: Optional[EventType] = None,
-        end_event: Optional[EventType] = None,
-        abci_app: Optional[Type["AbciApp"]] = None,
+        config: BackgroundAppConfig,
     ) -> Type["AbciApp"]:
         """
         Sets the background related class variables.
@@ -2324,25 +2341,14 @@ class AbciApp(
         the generated background app's type, please refer to the `BackgroundApp` class.
         The `specify_type` method provides further insight on the subject matter.
 
-        :param round_cls: the class of the background round.
-        :param start_event: the start event of the background round.
-         If no event or transition function is specified, then the round is running in the background forever.
-        :param end_event: the end event of the background round.
-         If not specified, then the round is terminating the abci app.
-        :param abci_app: the abci app of the background round.
-         The abci app must specify a valid transition function if the round is not of an ever-running type.
+        :param config: the background app's configuration.
         :return: the `AbciApp` with the new background app contained in the `background_apps` set.
         """
-        background_app = BackgroundApp(
-            round_cls,
-            abci_app.transition_function if abci_app is not None else None,
-            start_event,
-            end_event,
-        )
+        background_app: BackgroundApp = BackgroundApp(config)
         cls.background_apps.add(background_app)
         cross_period_keys = (
-            abci_app.cross_period_persisted_keys
-            if abci_app is not None
+            config.abci_app.cross_period_persisted_keys
+            if config.abci_app is not None
             else frozenset()
         )
         cls.cross_period_persisted_keys = cls.cross_period_persisted_keys.union(

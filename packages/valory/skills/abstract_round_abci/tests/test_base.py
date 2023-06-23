@@ -1598,17 +1598,27 @@ class TestTimeouts:
         assert self.timeouts.size == 1
 
 
+STUB_TERMINATION_CONFIG = abci_base.BackgroundAppConfig(
+    round_cls=ConcreteBackgroundRound,
+    start_event=ConcreteEvents.TERMINATE,
+    abci_app=TerminationAppTest,
+)
+
+STUB_SLASH_CONFIG = abci_base.BackgroundAppConfig(
+    round_cls=ConcreteBackgroundSlashingRound,
+    start_event=ConcreteEvents.SLASH_START,
+    end_event=ConcreteEvents.SLASH_END,
+    abci_app=SlashingAppTest,
+)
+
+
 class TestAbciApp:
     """Test the 'AbciApp' class."""
 
     def setup(self) -> None:
         """Set up the test."""
         self.abci_app = AbciAppTest(MagicMock(), MagicMock(), MagicMock())
-        self.abci_app.add_background_app(
-            ConcreteBackgroundRound,
-            ConcreteEvents.TERMINATE,
-            abci_app=TerminationAppTest,
-        )
+        self.abci_app.add_background_app(STUB_TERMINATION_CONFIG)
 
     def teardown(self) -> None:
         """Teardown the test."""
@@ -1660,12 +1670,7 @@ class TestAbciApp:
 
     def test_process_event(self) -> None:
         """Test the 'process_event' method, positive case, with timeout events."""
-        self.abci_app.add_background_app(
-            ConcreteBackgroundSlashingRound,
-            ConcreteEvents.SLASH_START,
-            ConcreteEvents.SLASH_END,
-            SlashingAppTest,
-        )
+        self.abci_app.add_background_app(STUB_SLASH_CONFIG)
         self.abci_app.setup()
         self.abci_app._last_timestamp = MagicMock()
         assert self.abci_app._transition_backup.transition_function is None
@@ -1777,7 +1782,7 @@ class TestAbciApp:
         # we clear the pre-existing bg apps and add an ever running
         self.abci_app.background_apps.clear()
         self.abci_app.add_background_app(
-            ConcreteBackgroundRound,
+            abci_base.BackgroundAppConfig(ConcreteBackgroundRound)
         )
         include_background_rounds = True
         expected_rounds = {
@@ -1806,11 +1811,10 @@ class TestAbciApp:
 
         assert not len(EmptyAbciApp.background_apps)
         assert EmptyAbciApp.cross_period_persisted_keys == {"1", "2"}
-        EmptyAbciApp.add_background_app(
-            ConcreteBackgroundRound,
-            start_event=ConcreteEvents.TERMINATE,
-            abci_app=BackgroundAbciApp,
-        )
+        # add the background app
+        bg_app_config = deepcopy(STUB_TERMINATION_CONFIG)
+        bg_app_config.abci_app = BackgroundAbciApp
+        EmptyAbciApp.add_background_app(bg_app_config)
         assert len(EmptyAbciApp.background_apps) == 1
         assert EmptyAbciApp.cross_period_persisted_keys == {"1", "2", "3"}
 
@@ -2883,11 +2887,7 @@ class TestRoundSequence:
         self.round_sequence.begin_block(MagicMock(height=1), MagicMock(), MagicMock())
         block = self.round_sequence._block_builder.get_block()
         self.round_sequence._blockchain.add_block(block)
-        self.round_sequence.abci_app.add_background_app(
-            ConcreteBackgroundRound,
-            ConcreteEvents.TERMINATE,
-            abci_app=TerminationAppTest,
-        )
+        self.round_sequence.abci_app.add_background_app(STUB_TERMINATION_CONFIG)
         self.round_sequence.abci_app.setup()
 
         with mock.patch.object(
