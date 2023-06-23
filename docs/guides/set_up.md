@@ -76,9 +76,9 @@ This is roughly how your workspace should look like:
 
     ```bash
 <<<<<<< HEAD
-    autonomy fetch valory/hello_world:0.1.0:bafybeih36hdmv5gcle4ghtpxih5g3ymebvgo7sa2fqbco5cida3kxltayy
+    autonomy fetch valory/hello_world:0.1.0:bafybeigqyxqtg3stjlhswtvxqnu3iejvtigk3erqgsptlcjgevddtaq5c4
 =======
-    autonomy fetch valory/hello_world:0.1.0:bafybeih36hdmv5gcle4ghtpxih5g3ymebvgo7sa2fqbco5cida3kxltayy
+    autonomy fetch valory/hello_world:0.1.0:bafybeigqyxqtg3stjlhswtvxqnu3iejvtigk3erqgsptlcjgevddtaq5c4
 >>>>>>> fix/send-none-on-no-message
     ```
 
@@ -110,8 +110,8 @@ If you plan to follow the guides in the next sections, you need to populate the 
     "dev": {
     },
     "third_party": {
-        "service/valory/hello_world/0.1.0": "bafybeiejpoulfeqn6fk6bpbbyy6c5wkvwb6qdg3irpgbx45kxpy2xeobzu",
-        "agent/valory/hello_world/0.1.0": "bafybeih36hdmv5gcle4ghtpxih5g3ymebvgo7sa2fqbco5cida3kxltayy",
+        "service/valory/hello_world/0.1.0": "bafybeiaw2tv3ew5b5pjw57aiex5ylmliqalzuy42xlas4khr3zyf52qtom",
+        "agent/valory/hello_world/0.1.0": "bafybeigqyxqtg3stjlhswtvxqnu3iejvtigk3erqgsptlcjgevddtaq5c4",
         "connection/valory/abci/0.1.0": "bafybeihofnsokowicviac6yz3uhur52l3mf54s2hz4i2je5ie4vlruouga",
         "connection/valory/http_client/0.23.0": "bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi",
         "connection/valory/ipfs/0.1.0": "bafybeiatjutuiav7oxl4hszy3oypdwuetr6crjpminush54c5k4nbeciv4",
@@ -126,8 +126,8 @@ If you plan to follow the guides in the next sections, you need to populate the 
         "protocol/valory/ledger_api/1.0.0": "bafybeibo4bdtcrxi2suyzldwoetjar6pqfzm6vt5xal22ravkkcvdmtksi",
         "protocol/valory/tendermint/0.1.0": "bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54",
         "skill/valory/abstract_abci/0.1.0": "bafybeiff2dqnkeorf343fmb3547fhiznvdw4ewbwl4rqluek2cv6ibl5hi",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeihlcferdpjhcorbrgp3zplikxkuxmlx3x7mc4g5sjxxm2mgzryfia",
-        "skill/valory/hello_world_abci/0.1.0": "bafybeidzbbkgq7tmy7dot3kn6nmormujcdqukviwvmb6vwr2enuxlusmoe",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeiac62ennpw54gns2quk4g3yoaili2mb72nj6c52czobz5dcwj4mwi",
+        "skill/valory/hello_world_abci/0.1.0": "bafybeia2d2lmmp2xzw3sjmrugdvj2jripaxwew7upuzxkdqbhrl5gctteq",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva"
     }
 }
