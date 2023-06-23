@@ -305,6 +305,18 @@ class BaseParams(
         self.tendermint_p2p_url: str = self._ensure("tendermint_p2p_url", kwargs, str)
         self.use_termination: bool = self._ensure("use_termination", kwargs, bool)
         self.use_slashing: bool = self._ensure("use_slashing", kwargs, bool)
+        self.slash_cooldown_hours: int = self._ensure(
+            "slash_cooldown_hours", kwargs, int
+        )
+        self.slash_threshold_amount: int = self._ensure(
+            "slash_threshold_amount", kwargs, int
+        )
+        self.light_slash_unit_amount: int = self._ensure(
+            "light_slash_unit_amount", kwargs, int
+        )
+        self.serious_slash_unit_amount: int = self._ensure(
+            "serious_slash_unit_amount", kwargs, int
+        )
         self.setup_params: Dict[str, Any] = self._ensure("setup", kwargs, dict)
 
         # we sanitize for null values as these are just kept for schema definitions
