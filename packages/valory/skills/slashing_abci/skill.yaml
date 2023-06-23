@@ -29,8 +29,8 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeia2t7ynmo5kbmctckwdct2tzbl227kic2fsmux6ptkzio6k5rqive
-- valory/transaction_settlement_abci:0.1.0:bafybeiarkuuaetj2tett2ae577dtmd2r64zaek4k45mgasv3ansybfcvza
+- valory/abstract_round_abci:0.1.0:bafybeidrutrt3ksxgypmciql42tc3iw3s3irc52qas3jx4yq6euvj7wjoy
+- valory/transaction_settlement_abci:0.1.0:bafybeifevahyjjico4svjqvsqyhashkx3szxdg3t6737pbqxyakfcdplq4
 behaviours:
   main:
     args: {}
@@ -129,6 +129,7 @@ models:
       termination_sleep: 900
       tx_timeout: 10.0
       use_termination: false
+      use_slashing: false
       validate_timeout: 1205
     class_name: SlashingParams
   requests:

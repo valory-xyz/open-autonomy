@@ -21,10 +21,12 @@
 
 from abc import ABC, ABCMeta
 from collections import defaultdict
+from dataclasses import asdict
 from typing import (
     AbstractSet,
     Any,
     Dict,
+    Generator,
     Generic,
     List,
     Optional,
@@ -41,14 +43,20 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbstractRound,
     EventType,
+    PendingOffencesPayload,
+    PendingOffencesRound,
+    PendingOffense,
+    RoundSequence,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseBehaviour,
     TmManager,
     make_degenerate_behaviour,
 )
+from packages.valory.skills.abstract_round_abci.models import SharedState
 
 
+SLASHING_BACKGROUND_BEHAVIOUR_ID = "slashing_check_behaviour"
 TERMINATION_BACKGROUND_BEHAVIOUR_ID = "background_behaviour"
 
 
@@ -73,7 +81,9 @@ class _MetaRoundBehaviour(ABCMeta):
             # the check only applies to AbstractRoundBehaviour subclasses
             return new_cls
 
-        mcs.are_background_behaviours_set = bool(new_cls.background_behaviours_cls)
+        mcs.are_background_behaviours_set = bool(
+            new_cls.background_behaviours_cls - {PendingOffencesBehaviour}
+        )
         mcs._check_consistency(cast(AbstractRoundBehaviour, new_cls))
         return new_cls
 
@@ -166,6 +176,60 @@ class _MetaRoundBehaviour(ABCMeta):
             )
 
 
+class PendingOffencesBehaviour(BaseBehaviour):
+    """A behaviour responsible for checking whether there are any pending offences."""
+
+    matching_round = PendingOffencesRound
+
+    @property
+    def round_sequence(self) -> RoundSequence:
+        """Get the round sequence from the shared state."""
+        return cast(SharedState, self.context.state).round_sequence
+
+    @property
+    def pending_offences(self) -> Set[PendingOffense]:
+        """Get the pending offences from the round sequence."""
+        return self.round_sequence.pending_offences
+
+    def has_pending_offences(self) -> bool:
+        """Check if there are any pending offences."""
+        return bool(len(self.pending_offences))
+
+    def async_act(self) -> Generator:
+        """
+        Checks the pending offences.
+
+        This behaviour simply checks if the set of pending offences is not empty.
+        When it’s not empty, it pops the offence from the set, and sends it to the rest of the agents via a payload
+
+        :return: None
+        :yield: None
+        """
+        yield from self.wait_for_condition(self.has_pending_offences)
+        offence = self.pending_offences.pop()
+        offence_detected_log = (
+            f"An offence of type {offence.offense_type.name} has been detected "
+            f"for agent with address {offence.accused_agent_address} during round {offence.round_count}. "
+        )
+        offence_expiration = offence.last_transition_timestamp + offence.time_to_live
+        last_timestamp = self.round_sequence.last_round_transition_timestamp
+
+        if offence_expiration < last_timestamp.timestamp():
+            ignored_log = "Offence will be ignored as it has expired."
+            self.context.logger.info(offence_detected_log + ignored_log)
+            return
+
+        sharing_log = "Sharing offence with the other agents."
+        self.context.logger.info(offence_detected_log + sharing_log)
+
+        payload = PendingOffencesPayload(
+            self.context.agent_address, *asdict(offence).values()
+        )
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
+        self.set_done()
+
+
 class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
     Behaviour, ABC, Generic[EventType], metaclass=_MetaRoundBehaviour
 ):
@@ -174,7 +238,7 @@ class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
     abci_app_cls: Type[AbciApp[EventType]]
     behaviours: AbstractSet[BehaviourType]
     initial_behaviour_cls: BehaviourType
-    background_behaviours_cls: Set[BehaviourType] = set()
+    background_behaviours_cls: Set[BehaviourType] = {PendingOffencesBehaviour}  # type: ignore
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the behaviour."""
@@ -241,18 +305,24 @@ class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
             name=behaviour_cls.auto_behaviour_id(), skill_context=self.context
         )
 
-    def _setup_background(self, use_termination: bool) -> None:
+    def _setup_background(self) -> None:
         """Set up the background behaviours."""
+        params = cast(BaseBehaviour, self.current_behaviour).params
         for background_cls in self.background_behaviours_cls:
             background_cls = cast(Type[BaseBehaviour], background_cls)
 
             if (
-                not use_termination
+                not params.use_termination
                 and background_cls.auto_behaviour_id()
                 == TERMINATION_BACKGROUND_BEHAVIOUR_ID
+            ) or (
+                not params.use_slashing
+                and background_cls.auto_behaviour_id()
+                == SLASHING_BACKGROUND_BEHAVIOUR_ID
+                or background_cls == PendingOffencesBehaviour
             ):
-                # This logic is not entirely safe, as there is a potential for conflicts
-                # if a user creates a behaviour named "background_behaviour" as well.
+                # comparing with the behaviour id is not entirely safe, as there is a potential for conflicts
+                # if a user creates a behaviour with the same name
                 continue
 
             self.background_behaviours.add(
@@ -265,7 +335,7 @@ class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
             self.initial_behaviour_cls
         )
         self.tm_manager = self.instantiate_behaviour_cls(TmManager)  # type: ignore
-        self._setup_background(self.current_behaviour.params.use_termination)
+        self._setup_background()
 
     def teardown(self) -> None:
         """Tear down the behaviour"""

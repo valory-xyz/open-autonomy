@@ -114,6 +114,7 @@ BASE_DUMMY_PARAMS = dict(
     share_tm_config_on_startup=False,
     tendermint_p2p_url="",
     use_termination=False,
+    use_slashing=False,
 )
 
 

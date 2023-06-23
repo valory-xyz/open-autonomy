@@ -1951,6 +1951,8 @@ class Timeouts(Generic[EventType]):
 class _MetaAbciApp(ABCMeta):
     """A metaclass that validates AbciApp's attributes."""
 
+    bg_round_added: bool = False
+
     def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type:  # type: ignore
         """Initialize the class."""
         new_cls = super().__new__(mcs, name, bases, namespace, **kwargs)
@@ -1962,7 +1964,12 @@ class _MetaAbciApp(ABCMeta):
             # the check only applies to AbciApp subclasses
             return new_cls
 
+        if not mcs.bg_round_added:
+            mcs._add_pending_offences_bg_round(new_cls)
+            mcs.bg_round_added = True
+
         mcs._check_consistency(cast(Type[AbciApp], new_cls))
+
         return new_cls
 
     @classmethod
@@ -2141,6 +2148,12 @@ class _MetaAbciApp(ABCMeta):
                 f"non-timeout transition",
             )
 
+    @classmethod
+    def _add_pending_offences_bg_round(cls, abci_app_cls: Type["AbciApp"]) -> None:
+        """Add the pending offences synchronization background round."""
+        config: BackgroundAppConfig = BackgroundAppConfig(PendingOffencesRound)
+        abci_app_cls.add_background_app(config)
+
 
 class BackgroundAppType(Enum):
     """
@@ -2161,25 +2174,45 @@ class BackgroundAppType(Enum):
         return set(BackgroundAppType.__members__) - {BackgroundAppType.INCORRECT.name}
 
 
-class BackgroundApp:
+@dataclass
+class BackgroundAppConfig(Generic[EventType]):
+    """
+    Necessary configuration for a background app.
+
+    For a deeper understanding of the various types of background apps and how the config influences
+    the generated background app's type, please refer to the `BackgroundApp` class.
+    The `specify_type` method provides further insight on the subject matter.
+    """
+
+    # the class of the background round
+    round_cls: AppState
+    # the abci app of the background round
+    # the abci app must specify a valid transition function if the round is not of an ever-running type
+    abci_app: Optional[Type["AbciApp"]] = None
+    # the start event of the background round
+    # if no event or transition function is specified, then the round is running in the background forever
+    start_event: Optional[EventType] = None
+    # the end event of the background round
+    # if not specified, then the round is terminating the abci app
+    end_event: Optional[EventType] = None
+
+
+class BackgroundApp(Generic[EventType]):
     """A background app."""
 
     def __init__(
         self,
-        round_cls: AppState,
-        transition_function: Optional[AbciAppTransitionFunction] = None,
-        start_event: Optional[EventType] = None,
-        end_event: Optional[EventType] = None,
+        config: BackgroundAppConfig,
     ) -> None:
         """Initialize the BackgroundApp."""
         given_args = locals()
 
-        self.round_cls: AppState = round_cls
-        self.transition_function: Optional[
-            AbciAppTransitionFunction
-        ] = transition_function
-        self.start_event: Optional[EventType] = start_event
-        self.end_event: Optional[EventType] = end_event
+        self.round_cls: AppState = config.round_cls
+        self.transition_function: Optional[AbciAppTransitionFunction] = (
+            config.abci_app.transition_function if config.abci_app is not None else None
+        )
+        self.start_event: Optional[EventType] = config.start_event
+        self.end_event: Optional[EventType] = config.end_event
 
         self.type = self.specify_type()
         if self.type == BackgroundAppType.INCORRECT:  # pragma: nocover
@@ -2312,10 +2345,7 @@ class AbciApp(
     @classmethod
     def add_background_app(
         cls,
-        round_cls: AppState,
-        start_event: Optional[EventType] = None,
-        end_event: Optional[EventType] = None,
-        abci_app: Optional[Type["AbciApp"]] = None,
+        config: BackgroundAppConfig,
     ) -> Type["AbciApp"]:
         """
         Sets the background related class variables.
@@ -2324,25 +2354,14 @@ class AbciApp(
         the generated background app's type, please refer to the `BackgroundApp` class.
         The `specify_type` method provides further insight on the subject matter.
 
-        :param round_cls: the class of the background round.
-        :param start_event: the start event of the background round.
-         If no event or transition function is specified, then the round is running in the background forever.
-        :param end_event: the end event of the background round.
-         If not specified, then the round is terminating the abci app.
-        :param abci_app: the abci app of the background round.
-         The abci app must specify a valid transition function if the round is not of an ever-running type.
+        :param config: the background app's configuration.
         :return: the `AbciApp` with the new background app contained in the `background_apps` set.
         """
-        background_app = BackgroundApp(
-            round_cls,
-            abci_app.transition_function if abci_app is not None else None,
-            start_event,
-            end_event,
-        )
+        background_app: BackgroundApp = BackgroundApp(config)
         cls.background_apps.add(background_app)
         cross_period_keys = (
-            abci_app.cross_period_persisted_keys
-            if abci_app is not None
+            config.abci_app.cross_period_persisted_keys
+            if config.abci_app is not None
             else frozenset()
         )
         cls.cross_period_persisted_keys = cls.cross_period_persisted_keys.union(
@@ -2400,10 +2419,11 @@ class AbciApp(
 
         if include_background_rounds:
             for app in cls.background_apps:
-                if app.type == BackgroundAppType.EVER_RUNNING:
-                    full_fn.update({app.round_cls: {}})
-                transition_fn = cast(AbciAppTransitionFunction, app.transition_function)
-                full_fn.update(transition_fn)
+                if app.type != BackgroundAppType.EVER_RUNNING:
+                    transition_fn = cast(
+                        AbciAppTransitionFunction, app.transition_function
+                    )
+                    full_fn.update(transition_fn)
 
         return cls._get_rounds_from_transition_function(full_fn)
 
@@ -3661,3 +3681,56 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
                 f"{set(round_id_to_cls.keys())}."
             )
         self.abci_app.schedule_round(restart_from_round_cls)
+
+
+@dataclass(frozen=True)
+class PendingOffencesPayload(BaseTxPayload):
+    """Represent a transaction payload for pending offences."""
+
+    accused_agent_address: str
+    offense_round: int
+    offense_type_value: int
+    last_transition_timestamp: float
+    time_to_live: float
+
+
+class PendingOffencesRound(CollectSameUntilThresholdRound):
+    """Defines the pending offences background round, which runs concurrently with other rounds to sync the offences."""
+
+    payload_class = PendingOffencesPayload
+    synchronized_data_class = BaseSynchronizedData
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the `PendingOffencesRound`."""
+        super().__init__(*args, **kwargs)
+        self._latest_round_processed = -1
+
+    @property
+    def offence_status(self) -> Dict[str, OffenceStatus]:
+        """Get the offence status from the round sequence."""
+        return self.context.state.round_sequence.offence_status
+
+    def end_block(self) -> None:
+        """
+        Process the end of the block for the pending offences background round.
+
+        It is important to note that this is a non-standard type of round, meaning it does not emit any events.
+        Instead, it continuously runs in the background.
+        The objective of this round is to consistently monitor the received pending offences
+        and achieve a consensus among the agents.
+        """
+        if not self.threshold_reached:
+            return
+
+        offence = PendingOffense(*self.most_voted_payload_values)
+
+        # an offence should only be tracked once, not every time a payload is processed after the threshold is reached
+        if self._latest_round_processed == offence.round_count:
+            return
+
+        # add synchronized offence to the offence status
+        # only `INVALID_PAYLOAD` offence types are supported at the moment as pending offences:
+        # https://github.com/valory-xyz/open-autonomy/blob/6831d6ebaf10ea8e3e04624b694c7f59a6d05bb4/packages/valory/skills/abstract_round_abci/handlers.py#L215-L222  # noqa
+        invalid = offence.offense_type == OffenseType.INVALID_PAYLOAD
+        self.offence_status[offence.accused_agent_address].invalid_payload.add(invalid)
+        self._latest_round_processed = offence.round_count
