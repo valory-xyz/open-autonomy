@@ -304,13 +304,14 @@ class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
             name=behaviour_cls.auto_behaviour_id(), skill_context=self.context
         )
 
-    def _setup_background(self, use_termination: bool) -> None:
+    def _setup_background(self) -> None:
         """Set up the background behaviours."""
+        params = cast(BaseBehaviour, self.current_behaviour).params
         for background_cls in self.background_behaviours_cls:
             background_cls = cast(Type[BaseBehaviour], background_cls)
 
             if (
-                not use_termination
+                not params.use_termination
                 and background_cls.auto_behaviour_id()
                 == TERMINATION_BACKGROUND_BEHAVIOUR_ID
             ):
@@ -328,7 +329,7 @@ class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
             self.initial_behaviour_cls
         )
         self.tm_manager = self.instantiate_behaviour_cls(TmManager)  # type: ignore
-        self._setup_background(self.current_behaviour.params.use_termination)
+        self._setup_background()
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
