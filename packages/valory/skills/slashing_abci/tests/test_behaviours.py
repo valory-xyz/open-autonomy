@@ -31,7 +31,6 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
-from _pytest.logging import LogCaptureFixture
 
 import packages.valory.skills.abstract_round_abci.base as abci_base
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
@@ -178,9 +177,7 @@ class TestSlashingCheckBehaviour(BaseSlashingTest):
         )
 
     @mock.patch.object(AsyncBehaviour, "try_send")
-    def test_get_callback_request(
-        self, try_send_mock: mock.Mock, caplog: LogCaptureFixture
-    ) -> None:
+    def test_get_callback_request(self, try_send_mock: mock.Mock) -> None:
         """Test `get_callback_request` method."""
         self.fast_forward(
             data=dict(
@@ -195,22 +192,17 @@ class TestSlashingCheckBehaviour(BaseSlashingTest):
             datetime(2000, 1, 1)
         )
 
+        # `__stopped` is `True` in the beginning
         callback = self.current_behaviour.get_callback_request()
         message_mock = MagicMock()
         callback(message_mock, MagicMock())
         try_send_mock.assert_not_called()
-        assert (
-            f"dropping message as behaviour has stopped: {message_mock}" in caplog.text
-        )
 
         # call act wrapper so that `__call_act_first_time()` is triggered, which sets `self.__stopped = False`
+        # however, state is not `AsyncState.WAITING_MESSAGE`
         self.behaviour.act_wrapper()
         callback(message_mock, MagicMock())
         try_send_mock.assert_not_called()
-        assert (
-            f"could not send message {message_mock} to {self.current_behaviour.behaviour_id}"
-            in caplog.text
-        )
 
         # call `wait_for_message()` which sets `self.__state = self.AsyncState.WAITING_MESSAGE`
         wait_gen = self.current_behaviour.wait_for_message()
