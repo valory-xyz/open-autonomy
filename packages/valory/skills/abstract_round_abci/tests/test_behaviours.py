@@ -22,12 +22,16 @@
 # pylint: skip-file
 
 from abc import ABC
+from calendar import timegm
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Generator, Optional, Tuple
 from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from packages.valory.skills.abstract_round_abci import PUBLIC_ID
 from packages.valory.skills.abstract_round_abci.base import (
@@ -38,6 +42,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     DegenerateRound,
     EventType,
+    OffenseType,
+    PendingOffense,
     RoundSequence,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
@@ -47,9 +53,11 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
 )
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
+    PendingOffencesBehaviour,
     _MetaRoundBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.models import TendermintRecoveryParams
+from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
 
 BEHAVIOUR_A_ID = "behaviour_a"
@@ -59,6 +67,9 @@ CONCRETE_BACKGROUND_BEHAVIOUR_ID = "background_behaviour"
 ROUND_A_ID = "round_a"
 ROUND_B_ID = "round_b"
 CONCRETE_BACKGROUND_ROUND_ID = "background_round"
+
+
+settings.load_profile(profile_name)
 
 
 def test_skill_public_id() -> None:
@@ -804,3 +815,76 @@ def test_reset_should_be_performed_when_tm_unhealthy() -> None:
         behaviour.tm_manager.gentle_reset_attempted = True
         behaviour.act()
         mock_reset_tendermint.assert_called()
+
+
+class TestPendingOffencesBehaviour:
+    """Tests for `PendingOffencesBehaviour`."""
+
+    behaviour: PendingOffencesBehaviour
+
+    @classmethod
+    def setup_class(cls) -> None:
+        """Setup the test class."""
+        cls.behaviour = PendingOffencesBehaviour(
+            name="test",
+            skill_context=MagicMock(),
+        )
+
+    @given(
+        offence=st.builds(
+            PendingOffense,
+            accused_agent_address=st.text(),
+            round_count=st.integers(min_value=0),
+            offense_type=st.sampled_from(OffenseType),
+            last_transition_timestamp=st.floats(
+                min_value=timegm(datetime(1971, 1, 1).utctimetuple()),
+                max_value=timegm(datetime(8000, 1, 1).utctimetuple()) - 2000,
+            ),
+            time_to_live=st.floats(min_value=1, max_value=2000),
+        ),
+        wait_ticks=st.integers(min_value=0, max_value=1000),
+        expired=st.booleans(),
+    )
+    def test_pending_offences_act(
+        self,
+        offence: PendingOffense,
+        wait_ticks: int,
+        expired: bool,
+    ) -> None:
+        """Test `PendingOffencesBehaviour`."""
+        offence_expiration = offence.last_transition_timestamp + offence.time_to_live
+        offence_expiration += 1 if expired else -1
+        self.behaviour.round_sequence.last_round_transition_timestamp = datetime.fromtimestamp(  # type: ignore
+            offence_expiration
+        )
+
+        gen = self.behaviour.async_act()
+
+        with mock.patch.object(
+            self.behaviour,
+            "send_a2a_transaction",
+        ) as mock_send_a2a_transaction, mock.patch.object(
+            self.behaviour,
+            "wait_until_round_end",
+        ) as mock_wait_until_round_end, mock.patch.object(
+            self.behaviour,
+            "set_done",
+        ) as mock_set_done:
+
+            # while pending offences are empty, the behaviour simply waits
+            for _ in range(wait_ticks):
+                next(gen)
+
+            self.behaviour.round_sequence.pending_offences = {offence}
+
+            with pytest.raises(StopIteration):
+                next(gen)
+
+            check = "assert_not_called" if expired else "assert_called_once"
+
+            for mocked in (
+                mock_send_a2a_transaction,
+                mock_wait_until_round_end,
+                mock_set_done,
+            ):
+                getattr(mocked, check)()

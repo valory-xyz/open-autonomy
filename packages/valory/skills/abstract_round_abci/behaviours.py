@@ -21,10 +21,12 @@
 
 from abc import ABC, ABCMeta
 from collections import defaultdict
+from dataclasses import asdict
 from typing import (
     AbstractSet,
     Any,
     Dict,
+    Generator,
     Generic,
     List,
     Optional,
@@ -41,12 +43,17 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbstractRound,
     EventType,
+    PendingOffencesPayload,
+    PendingOffencesRound,
+    PendingOffense,
+    RoundSequence,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseBehaviour,
     TmManager,
     make_degenerate_behaviour,
 )
+from packages.valory.skills.abstract_round_abci.models import SharedState
 
 
 TERMINATION_BACKGROUND_BEHAVIOUR_ID = "background_behaviour"
@@ -164,6 +171,60 @@ class _MetaRoundBehaviour(ABCMeta):
             raise ABCIAppInternalError(
                 f"initial behaviour {behaviour_cls.initial_behaviour_cls.auto_behaviour_id()} is not in the set of behaviours"
             )
+
+
+class PendingOffencesBehaviour(BaseBehaviour):
+    """A behaviour responsible for checking whether there are any pending offences."""
+
+    matching_round = PendingOffencesRound
+
+    @property
+    def round_sequence(self) -> RoundSequence:
+        """Get the round sequence from the shared state."""
+        return cast(SharedState, self.context.state).round_sequence
+
+    @property
+    def pending_offences(self) -> Set[PendingOffense]:
+        """Get the pending offences from the round sequence."""
+        return self.round_sequence.pending_offences
+
+    def has_pending_offences(self) -> bool:
+        """Check if there are any pending offences."""
+        return bool(len(self.pending_offences))
+
+    def async_act(self) -> Generator:
+        """
+        Checks the pending offences.
+
+        This behaviour simply checks if the set of pending offences is not empty.
+        When it’s not empty, it pops the offence from the set, and sends it to the rest of the agents via a payload
+
+        :return: None
+        :yield: None
+        """
+        yield from self.wait_for_condition(self.has_pending_offences)
+        offence = self.pending_offences.pop()
+        offence_detected_log = (
+            f"An offence of type {offence.offense_type.name} has been detected "
+            f"for agent with address {offence.accused_agent_address} during round {offence.round_count}. "
+        )
+        offence_expiration = offence.last_transition_timestamp + offence.time_to_live
+        last_timestamp = self.round_sequence.last_round_transition_timestamp
+
+        if offence_expiration < last_timestamp.timestamp():
+            ignored_log = "Offence will be ignored as it has expired."
+            self.context.logger.info(offence_detected_log + ignored_log)
+            return
+
+        sharing_log = "Sharing offence with the other agents."
+        self.context.logger.info(offence_detected_log + sharing_log)
+
+        payload = PendingOffencesPayload(
+            self.context.agent_address, *asdict(offence).values()
+        )
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
+        self.set_done()
 
 
 class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes

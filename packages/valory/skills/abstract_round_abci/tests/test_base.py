@@ -26,6 +26,7 @@ import logging
 import re
 import shutil
 from abc import ABC
+from calendar import timegm
 from collections import deque
 from contextlib import suppress
 from copy import copy, deepcopy
@@ -134,6 +135,10 @@ from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
     ConcreteTerminationRoundC,
     SlashingAppTest,
     TerminationAppTest,
+)
+from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
+    BaseRoundTestClass,
+    get_participants,
 )
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
@@ -3124,3 +3129,117 @@ def test_get_name() -> None:
     assert get_name(SomeObject.some_property) == "some_property"
     with pytest.raises(ValueError, match="1 is not a property"):
         get_name(1)
+
+
+@pytest.mark.parametrize(
+    "sender, accused_agent_address, offense_round, offense_type_value, last_transition_timestamp, time_to_live",
+    (
+        (
+            "sender",
+            "test_address",
+            90,
+            3,
+            10,
+            2,
+        ),
+    ),
+)
+def test_pending_offences_payload(
+    sender: str,
+    accused_agent_address: str,
+    offense_round: int,
+    offense_type_value: int,
+    last_transition_timestamp: int,
+    time_to_live: int,
+) -> None:
+    """Test `PendingOffencesPayload`"""
+
+    payload = abci_base.PendingOffencesPayload(
+        sender,
+        accused_agent_address,
+        offense_round,
+        offense_type_value,
+        last_transition_timestamp,
+        time_to_live,
+    )
+
+    assert payload.id_
+    assert payload.round_count == abci_base.ROUND_COUNT_DEFAULT
+    assert payload.sender == sender
+    assert payload.accused_agent_address == accused_agent_address
+    assert payload.offense_round == offense_round
+    assert payload.offense_type_value == offense_type_value
+    assert payload.last_transition_timestamp == last_transition_timestamp
+    assert payload.time_to_live == time_to_live
+    assert payload.data == {
+        "accused_agent_address": accused_agent_address,
+        "offense_round": offense_round,
+        "offense_type_value": offense_type_value,
+        "last_transition_timestamp": last_transition_timestamp,
+        "time_to_live": time_to_live,
+    }
+
+
+class TestPendingOffencesRound(BaseRoundTestClass):
+    """Tests for `PendingOffencesRound`."""
+
+    _synchronized_data_class = BaseSynchronizedData
+
+    @given(
+        accused_agent_address=sampled_from(list(get_participants())),
+        offense_round=integers(min_value=0),
+        offense_type_value=sampled_from(
+            [value.value for value in OffenseType.__members__.values()]
+        ),
+        last_transition_timestamp=floats(
+            min_value=timegm(datetime.datetime(1971, 1, 1).utctimetuple()),
+            max_value=timegm(datetime.datetime(8000, 1, 1).utctimetuple()) - 2000,
+        ),
+        time_to_live=floats(min_value=1, max_value=2000),
+    )
+    def test_run(
+        self,
+        accused_agent_address: str,
+        offense_round: int,
+        offense_type_value: int,
+        last_transition_timestamp: float,
+        time_to_live: float,
+    ) -> None:
+        """Run tests."""
+
+        test_round = abci_base.PendingOffencesRound(
+            synchronized_data=self.synchronized_data,
+            context=MagicMock(),
+        )
+        # initialize the offence status
+        status_initialization = dict.fromkeys(self.participants, OffenceStatus())
+        test_round.context.state.round_sequence.offence_status = status_initialization
+
+        # create the actual and expected value
+        actual = test_round.context.state.round_sequence.offence_status
+        expected_invalid = offense_type_value == OffenseType.INVALID_PAYLOAD.value
+        expected = deepcopy(status_initialization)
+
+        first_payload, *payloads = [
+            abci_base.PendingOffencesPayload(
+                sender,
+                accused_agent_address,
+                offense_round,
+                offense_type_value,
+                last_transition_timestamp,
+                time_to_live,
+            )
+            for sender in self.participants
+        ]
+
+        test_round.process_payload(first_payload)
+        assert test_round.collection == {first_payload.sender: first_payload}
+        test_round.end_block()
+        assert actual == expected
+
+        for payload in payloads:
+            test_round.process_payload(payload)
+            test_round.end_block()
+
+        expected[accused_agent_address].invalid_payload.add(expected_invalid)
+        assert actual == expected
