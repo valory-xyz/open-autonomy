@@ -23,17 +23,23 @@ from pathlib import Path
 from typing import cast
 
 import docker
+import pytest
 from docker.models.containers import Container
 
 from autonomy import __version__
 from autonomy.constants import AUTONOMY_IMAGE_NAME
 from autonomy.deploy.constants import DOCKERFILES
 
-from tests.conftest import ROOT_DIR, skip_docker_tests
+from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_images.base import BaseImageBuildTest
 
 
-@skip_docker_tests
+@pytest.mark.skip(
+    reason=(
+        "Temporary skip untile we figure out the volume size issue"
+        "https://forums.docker.com/t/error-response-from-daemon-error-creating-overlay-mount-to-var-lib-docker-overlay2-merged-no-such-file-or-directory-error-failed-to-start-containers-mydocker/123365"
+    )
+)
 class TestOpenAutonomyUserImage(BaseImageBuildTest):
     """Test image build and run."""
 
