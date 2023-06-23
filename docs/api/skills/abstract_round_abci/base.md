@@ -2563,16 +2563,6 @@ def serious_offences() -> Iterator[OffenseType]
 
 Get the serious offences.
 
-<a id="packages.valory.skills.abstract_round_abci.base.calculate_slash_amount"></a>
-
-#### calculate`_`slash`_`amount
-
-```python
-def calculate_slash_amount(offence_type: OffenseType) -> int
-```
-
-Calculates and returns the slash amount.
-
 <a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow"></a>
 
 ## AvailabilityWindow Objects
@@ -2675,8 +2665,7 @@ A class that holds information about offence status for an agent.
 #### slash`_`amount
 
 ```python
-@property
-def slash_amount() -> int
+def slash_amount(light_unit_amount: int, serious_unit_amount: int) -> int
 ```
 
 Get the slash amount of the current status.

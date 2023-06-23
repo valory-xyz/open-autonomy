@@ -23,10 +23,10 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidrutrt3ksxgypmciql42tc3iw3s3irc52qas3jx4yq6euvj7wjoy
-- valory/registration_abci:0.1.0:bafybeihyhu5n6mkzawrfvukf2yklnc2wpxuvu7oszctxk7hhu5tqjy7i7y
-- valory/reset_pause_abci:0.1.0:bafybeiez6rn3ddeqwkwy4c6kwysrvaqu5ghzafij42nmdvzs7qynbhhktu
-- valory/termination_abci:0.1.0:bafybeibcfqmg4ldigwaailxeoju4xwcwgkachwnhudnmwt3b3bhg5ebwka
+- valory/abstract_round_abci:0.1.0:bafybeihra6faekx656w3vj47xlm3hxbgpewf2fo2spnvuklamlamt6necm
+- valory/registration_abci:0.1.0:bafybeicvlgn2wz3gpzpi766tmzvznxlpe6jbujmy6vp7kbuqv6pnhfai6u
+- valory/reset_pause_abci:0.1.0:bafybeielrbgc4qhi3nylgfb6co7owcyncjyoyhks2nl25ezh2mhilzhso4
+- valory/termination_abci:0.1.0:bafybeicgupmnwf6k4tnvy2yahx3iqiywmqfvvtxy4sia32s25blsmu26ia
 behaviours:
   main:
     args: {}
@@ -127,9 +127,9 @@ models:
       use_termination: false
       use_slashing: false
       slash_cooldown_hours: 3
-      slash_threshold_amount: 10_000_000_000_000_000
-      light_slash_unit_amount: 5_000_000_000_000_000
-      serious_slash_unit_amount: 8_000_000_000_000_000
+      slash_threshold_amount: 10000000000000000
+      light_slash_unit_amount: 5000000000000000
+      serious_slash_unit_amount: 8000000000000000
       validate_timeout: 1205
     class_name: Params
   randomness_api:

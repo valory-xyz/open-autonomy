@@ -27,7 +27,7 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidrutrt3ksxgypmciql42tc3iw3s3irc52qas3jx4yq6euvj7wjoy
+- valory/abstract_round_abci:0.1.0:bafybeihra6faekx656w3vj47xlm3hxbgpewf2fo2spnvuklamlamt6necm
 behaviours:
   main:
     args: {}
@@ -126,9 +126,9 @@ models:
       use_termination: false
       use_slashing: false
       slash_cooldown_hours: 3
-      slash_threshold_amount: 10_000_000_000_000_000
-      light_slash_unit_amount: 5_000_000_000_000_000
-      serious_slash_unit_amount: 8_000_000_000_000_000
+      slash_threshold_amount: 10000000000000000
+      light_slash_unit_amount: 5000000000000000
+      serious_slash_unit_amount: 8000000000000000
     class_name: HelloWorldParams
   randomness_api:
     args:
