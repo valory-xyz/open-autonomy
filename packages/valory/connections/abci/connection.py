@@ -1220,25 +1220,25 @@ class TendermintNode:
         """Stop a Tendermint node process on Windows."""
         os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
         try:
-            self._process.wait(timeout=5)
+            self._process.wait(timeout=5)  # type: ignore
         except subprocess.TimeoutExpired:  # nosec
             os.kill(self._process.pid, signal.CTRL_BREAK_EVENT)  # type: ignore  # pylint: disable=no-member
 
     def _unix_stop_tm(self) -> None:
         """Stop a Tendermint node process on Unix."""
-        self._process.send_signal(signal.SIGTERM)
+        self._process.send_signal(signal.SIGTERM)  # type: ignore
         try:
-            self._process.wait(timeout=5)
+            self._process.wait(timeout=5)  # type: ignore
         except subprocess.TimeoutExpired:  # nosec
             self.write_line("Tendermint process did not stop gracefully\n")
 
         # if the process is still running poll will return None
-        poll = self._process.poll()
+        poll = self._process.poll()  # type: ignore
         if poll is not None:
             return
 
-        self._process.terminate()
-        self._process.wait(3)
+        self._process.terminate()  # type: ignore
+        self._process.wait(3)  # type: ignore
 
     def _stop_monitoring_thread(self) -> None:
         """Stop a monitoring process."""
