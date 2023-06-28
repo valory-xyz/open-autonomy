@@ -55,7 +55,7 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
             * Protocols: `open_aea/signing`, `valory/abci`, `valory/acn`(*).
             * Skills: `valory/abstract_abci`, `valory/abstract_round_abci`, `valory/termination_abci`(*).
 
-            (*) Components required only if the service is minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
+            (*) Components required only if the service is minted in the {{ autonolas_protocol }}.
 
       * Configuration overrides that specify values for component parameters. These overrides are separated by YAML document separators `---` and will be discussed in a further section.
 
@@ -120,9 +120,9 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
               propagate: true
         dependencies:
           open-aea-ledger-ethereum:
-            version: ==1.34.0
+            version: ==1.35.0
           open-aea-test-autonomy:
-            version: ==0.10.6
+            version: ==0.10.7
         default_connection: null
         ---
         public_id: valory/hello_world_abci:0.1.0

@@ -3172,6 +3172,16 @@ def block_stall_deadline_expired() -> bool
 
 Get if the deadline for not having received any begin block requests from the Tendermint node has expired.
 
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.set_block_stall_deadline"></a>
+
+#### set`_`block`_`stall`_`deadline
+
+```python
+def set_block_stall_deadline() -> None
+```
+
+Use the local time of the agent and a predefined tolerance, to specify the expiration of the deadline.
+
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.init_chain"></a>
 
 #### init`_`chain

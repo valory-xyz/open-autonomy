@@ -19,6 +19,10 @@ Below we describe the additional manual steps required to upgrade between differ
 
 1 && 4 should be taken into consideration for all the apps that are utilizing the termination.
 
+## `v0.10.6` to `v0.10.7`
+
+No backwards incompatible changes
+
 ## `v0.10.5.post2` to `v0.10.6`
 
 No backwards incompatible changes

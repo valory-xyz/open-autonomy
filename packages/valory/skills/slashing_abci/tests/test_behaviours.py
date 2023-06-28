@@ -266,7 +266,7 @@ class TestSlashingCheckBehaviour(BaseSlashingTest):
         assert self.current_behaviour is not None
 
         self.current_behaviour._slash_amounts = {}
-        self.current_behaviour.round_sequence._offence_status = offence_status
+        self.current_behaviour.round_sequence._offence_status = offence_status  # type: ignore
         self.current_behaviour.round_sequence._last_round_transition_timestamp = (
             last_timestamp
         )
