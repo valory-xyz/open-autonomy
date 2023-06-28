@@ -2647,8 +2647,10 @@ class TestRoundSequence:
 
     @given(offence_tracking())
     @settings(suppress_health_check=[HealthCheck.too_slow])
-    def test_track_offences(self, offences: Tuple[Evidences, LastCommitInfo]) -> None:
-        """Test `_track_offences` method."""
+    def test_track_tm_offences(
+        self, offences: Tuple[Evidences, LastCommitInfo]
+    ) -> None:
+        """Test `_track_tm_offences` method."""
         evidences, last_commit_info = offences
         dummy_addr_template = "agent_{i}"
         round_sequence = RoundSequence(context=MagicMock(), abci_app_cls=AbciAppTest)
@@ -2687,8 +2689,32 @@ class TestRoundSequence:
                 evidence_type == EvidenceType.LIGHT_CLIENT_ATTACK
             )
 
-        round_sequence._try_track_offences(evidences, last_commit_info)
+        round_sequence._track_tm_offences(evidences, last_commit_info)
         assert round_sequence._offence_status == expected_offence_status
+
+    @mock.patch.object(abci_base, "ADDRESS_LENGTH", len("agent_i"))
+    def test_track_app_offences(self) -> None:
+        """Test `_track_app_offences` method."""
+        dummy_addr_template = "agent_{i}"
+        stub_offending_keepers = [dummy_addr_template.format(i=i) for i in range(2)]
+        self.round_sequence.enable_slashing()
+        self.round_sequence._offence_status = {
+            dummy_addr_template.format(i=i): OffenceStatus() for i in range(4)
+        }
+        expected_offence_status = deepcopy(self.round_sequence._offence_status)
+
+        for i in (dummy_addr_template.format(i=i) for i in range(4)):
+            offended = i in stub_offending_keepers
+            expected_offence_status[i].blacklisted.add(offended)
+            expected_offence_status[i].suspected.add(offended)
+
+        with mock.patch.object(
+            self.round_sequence.latest_synchronized_data.db,
+            "get",
+            return_value="".join(stub_offending_keepers),
+        ):
+            self.round_sequence._track_app_offences()
+        assert self.round_sequence._offence_status == expected_offence_status
 
     @given(builds(SlashingNotConfiguredError, text()))
     def test_handle_slashing_not_configured(
@@ -2723,7 +2749,10 @@ class TestRoundSequence:
         self.round_sequence.enable_slashing()
         with mock.patch.object(
             self.round_sequence,
-            "_track_offences",
+            "_track_app_offences",
+        ), mock.patch.object(
+            self.round_sequence,
+            "_track_tm_offences",
             side_effect=SlashingNotConfiguredError if _track_offences_raises else None,
         ) as _track_offences_mock, mock.patch.object(
             self.round_sequence, "_handle_slashing_not_configured"
