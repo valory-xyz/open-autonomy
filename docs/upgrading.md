@@ -16,6 +16,9 @@ Below we describe the additional manual steps required to upgrade between differ
 - Renamed the `background_round_cls` attribute of the `AbciApp` to `termination_round_cls`.
 - Renamed the `_background_round` attribute of the `AbciApp` to `_termination_round`.
 - Renamed the `background_round` property of the `AbciApp` to `termination_round`.
+- The `AbstractRound` class now requires a `SkillContext` positional argument. 
+ To accommodate this change, 
+ all round tests will need to be modified to include a mocked context in addition to the synchronized data.
 
 1 && 4 should be taken into consideration for all the apps that are utilizing the termination.
 
