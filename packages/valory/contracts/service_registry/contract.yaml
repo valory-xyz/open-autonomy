@@ -22,4 +22,4 @@ dependencies:
   open-aea-test-autonomy:
     version: ==0.10.7
   web3:
-    version: ==5.25.0
+    version: ==5.31.4
