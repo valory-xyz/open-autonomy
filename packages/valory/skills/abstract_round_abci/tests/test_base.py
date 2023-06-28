@@ -2132,6 +2132,63 @@ class TestAvailabilityWindow:
         assert availability_window.to_dict() == data_
 
 
+class TestOffenceStatus:
+    """Test the `OffenceStatus` dataclass."""
+
+    @staticmethod
+    @pytest.mark.parametrize("light_unit_amount, serious_unit_amount", ((1, 2),))
+    @pytest.mark.parametrize(
+        "validator_downtime, invalid_payload, blacklisted, suspected, "
+        "num_unknown_offenses, num_double_signed, num_light_client_attack, expected",
+        (
+            (False, False, False, False, 0, 0, 0, 0),
+            (True, False, False, False, 0, 0, 0, 1),
+            (False, True, False, False, 0, 0, 0, 1),
+            (False, False, True, False, 0, 0, 0, 1),
+            (False, False, False, True, 0, 0, 0, 1),
+            (False, False, False, False, 1, 0, 0, 2),
+            (False, False, False, False, 0, 1, 0, 2),
+            (False, False, False, False, 0, 0, 1, 2),
+            (False, False, False, False, 0, 2, 1, 6),
+            (False, True, False, True, 5, 2, 1, 18),
+            (True, True, True, True, 5, 2, 1, 20),
+        ),
+    )
+    def test_slash_amount(
+        light_unit_amount: int,
+        serious_unit_amount: int,
+        validator_downtime: bool,
+        invalid_payload: bool,
+        blacklisted: bool,
+        suspected: bool,
+        num_unknown_offenses: int,
+        num_double_signed: int,
+        num_light_client_attack: int,
+        expected: int,
+    ) -> None:
+        """Test the `slash_amount` method."""
+        status = OffenceStatus()
+
+        if validator_downtime:
+            for _ in range(abci_base.NUMBER_OF_BLOCKS_TRACKED):
+                status.validator_downtime.add(True)
+
+        for _ in range(abci_base.NUMBER_OF_ROUNDS_TRACKED):
+            if invalid_payload:
+                status.invalid_payload.add(True)
+            if blacklisted:
+                status.blacklisted.add(True)
+            if suspected:
+                status.suspected.add(True)
+
+        status.num_unknown_offenses = num_unknown_offenses
+        status.num_double_signed = num_double_signed
+        status.num_light_client_attack = num_light_client_attack
+
+        actual = status.slash_amount(light_unit_amount, serious_unit_amount)
+        assert actual == expected
+
+
 @composite
 def offence_tracking(draw: DrawFn) -> Tuple[Evidences, LastCommitInfo]:
     """A strategy for building offences reported by Tendermint."""
