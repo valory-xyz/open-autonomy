@@ -428,16 +428,27 @@ class TestSharedState:
             shared_state.setup_slashing(validator_to_agent)
             assert shared_state.round_sequence.validator_to_agent == validator_to_agent
 
+            status = shared_state.round_sequence.offence_status
             encoded_status = json.dumps(
-                shared_state.round_sequence.offence_status,
+                status,
                 cls=OffenseStatusEncoder,
             )
-            expected_status = dict.fromkeys(acn_configured_agents, OffenceStatus())
+            expected_status = {
+                agent: OffenceStatus() for agent in acn_configured_agents
+            }
             encoded_expected_status = json.dumps(
                 expected_status, cls=OffenseStatusEncoder
             )
 
             assert encoded_status == encoded_expected_status
+
+            random_agent = acn_configured_agents.pop()
+            status[random_agent].num_unknown_offenses = 10
+            assert status[random_agent].num_unknown_offenses == 10
+
+            for other_agent in acn_configured_agents - {random_agent}:
+                assert status[other_agent].num_unknown_offenses == 0
+
             return
 
         expected_diff = acn_configured_agents.symmetric_difference(

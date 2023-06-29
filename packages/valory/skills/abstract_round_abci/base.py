@@ -3405,10 +3405,10 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         # reduce `initial_height` by 1 to get block count offset as per Tendermint protocol
         self._blockchain = Blockchain(initial_height - 1)
 
-    def _track_offences(
+    def _track_tm_offences(
         self, evidences: Evidences, last_commit_info: LastCommitInfo
     ) -> None:
-        """Track offences if there are any."""
+        """Track offences provided by Tendermint, if there are any."""
         for vote_info in last_commit_info.votes:
             agent_address = self.get_agent_address(vote_info.validator)
             was_down = not vote_info.signed_last_block
@@ -3426,6 +3426,16 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             self.offence_status[agent_address].num_light_client_attack += bool(
                 evidence_type == EvidenceType.LIGHT_CLIENT_ATTACK
             )
+
+    def _track_app_offences(self) -> None:
+        """Track offences provided by the app level, if there are any."""
+        synced_data = self.abci_app.synchronized_data
+        for agent in self.offence_status.keys():
+            blacklisted = agent in synced_data.blacklisted_keepers
+            suspected = agent in cast(tuple, synced_data.db.get("suspects", tuple()))
+            agent_status = self.offence_status[agent]
+            agent_status.blacklisted.add(blacklisted)
+            agent_status.suspected.add(suspected)
 
     def _handle_slashing_not_configured(self, exc: SlashingNotConfiguredError) -> None:
         """Handle a `SlashingNotConfiguredError`."""
@@ -3451,7 +3461,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
                 # only track offences if the first round has finished
                 # we avoid tracking offences in the first round
                 # because we do not have the slashing configuration synced yet
-                self._track_offences(evidences, last_commit_info)
+                self._track_tm_offences(evidences, last_commit_info)
+                self._track_app_offences()
         except SlashingNotConfiguredError as exc:
             self._handle_slashing_not_configured(exc)
 

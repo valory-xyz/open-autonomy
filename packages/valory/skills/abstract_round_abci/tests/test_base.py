@@ -2132,6 +2132,63 @@ class TestAvailabilityWindow:
         assert availability_window.to_dict() == data_
 
 
+class TestOffenceStatus:
+    """Test the `OffenceStatus` dataclass."""
+
+    @staticmethod
+    @pytest.mark.parametrize("light_unit_amount, serious_unit_amount", ((1, 2),))
+    @pytest.mark.parametrize(
+        "validator_downtime, invalid_payload, blacklisted, suspected, "
+        "num_unknown_offenses, num_double_signed, num_light_client_attack, expected",
+        (
+            (False, False, False, False, 0, 0, 0, 0),
+            (True, False, False, False, 0, 0, 0, 1),
+            (False, True, False, False, 0, 0, 0, 1),
+            (False, False, True, False, 0, 0, 0, 1),
+            (False, False, False, True, 0, 0, 0, 1),
+            (False, False, False, False, 1, 0, 0, 2),
+            (False, False, False, False, 0, 1, 0, 2),
+            (False, False, False, False, 0, 0, 1, 2),
+            (False, False, False, False, 0, 2, 1, 6),
+            (False, True, False, True, 5, 2, 1, 18),
+            (True, True, True, True, 5, 2, 1, 20),
+        ),
+    )
+    def test_slash_amount(
+        light_unit_amount: int,
+        serious_unit_amount: int,
+        validator_downtime: bool,
+        invalid_payload: bool,
+        blacklisted: bool,
+        suspected: bool,
+        num_unknown_offenses: int,
+        num_double_signed: int,
+        num_light_client_attack: int,
+        expected: int,
+    ) -> None:
+        """Test the `slash_amount` method."""
+        status = OffenceStatus()
+
+        if validator_downtime:
+            for _ in range(abci_base.NUMBER_OF_BLOCKS_TRACKED):
+                status.validator_downtime.add(True)
+
+        for _ in range(abci_base.NUMBER_OF_ROUNDS_TRACKED):
+            if invalid_payload:
+                status.invalid_payload.add(True)
+            if blacklisted:
+                status.blacklisted.add(True)
+            if suspected:
+                status.suspected.add(True)
+
+        status.num_unknown_offenses = num_unknown_offenses
+        status.num_double_signed = num_double_signed
+        status.num_light_client_attack = num_light_client_attack
+
+        actual = status.slash_amount(light_unit_amount, serious_unit_amount)
+        assert actual == expected
+
+
 @composite
 def offence_tracking(draw: DrawFn) -> Tuple[Evidences, LastCommitInfo]:
     """A strategy for building offences reported by Tendermint."""
@@ -2590,8 +2647,10 @@ class TestRoundSequence:
 
     @given(offence_tracking())
     @settings(suppress_health_check=[HealthCheck.too_slow])
-    def test_track_offences(self, offences: Tuple[Evidences, LastCommitInfo]) -> None:
-        """Test `_track_offences` method."""
+    def test_track_tm_offences(
+        self, offences: Tuple[Evidences, LastCommitInfo]
+    ) -> None:
+        """Test `_track_tm_offences` method."""
         evidences, last_commit_info = offences
         dummy_addr_template = "agent_{i}"
         round_sequence = RoundSequence(context=MagicMock(), abci_app_cls=AbciAppTest)
@@ -2630,8 +2689,32 @@ class TestRoundSequence:
                 evidence_type == EvidenceType.LIGHT_CLIENT_ATTACK
             )
 
-        round_sequence._try_track_offences(evidences, last_commit_info)
+        round_sequence._track_tm_offences(evidences, last_commit_info)
         assert round_sequence._offence_status == expected_offence_status
+
+    @mock.patch.object(abci_base, "ADDRESS_LENGTH", len("agent_i"))
+    def test_track_app_offences(self) -> None:
+        """Test `_track_app_offences` method."""
+        dummy_addr_template = "agent_{i}"
+        stub_offending_keepers = [dummy_addr_template.format(i=i) for i in range(2)]
+        self.round_sequence.enable_slashing()
+        self.round_sequence._offence_status = {
+            dummy_addr_template.format(i=i): OffenceStatus() for i in range(4)
+        }
+        expected_offence_status = deepcopy(self.round_sequence._offence_status)
+
+        for i in (dummy_addr_template.format(i=i) for i in range(4)):
+            offended = i in stub_offending_keepers
+            expected_offence_status[i].blacklisted.add(offended)
+            expected_offence_status[i].suspected.add(offended)
+
+        with mock.patch.object(
+            self.round_sequence.latest_synchronized_data.db,
+            "get",
+            return_value="".join(stub_offending_keepers),
+        ):
+            self.round_sequence._track_app_offences()
+        assert self.round_sequence._offence_status == expected_offence_status
 
     @given(builds(SlashingNotConfiguredError, text()))
     def test_handle_slashing_not_configured(
@@ -2666,7 +2749,10 @@ class TestRoundSequence:
         self.round_sequence.enable_slashing()
         with mock.patch.object(
             self.round_sequence,
-            "_track_offences",
+            "_track_app_offences",
+        ), mock.patch.object(
+            self.round_sequence,
+            "_track_tm_offences",
             side_effect=SlashingNotConfiguredError if _track_offences_raises else None,
         ) as _track_offences_mock, mock.patch.object(
             self.round_sequence, "_handle_slashing_not_configured"

@@ -494,7 +494,7 @@ ValueType = TypeVar("ValueType")
 
 def inverse(dict_: Dict[KeyType, ValueType]) -> Dict[ValueType, List[KeyType]]:
     """Get the inverse of a dictionary."""
-    inverse_: Dict[ValueType, List[KeyType]] = dict.fromkeys(dict_.values(), [])
+    inverse_: Dict[ValueType, List[KeyType]] = {val: [] for val in dict_.values()}
     for key, value in dict_.items():
         inverse_[value].append(key)
     return inverse_

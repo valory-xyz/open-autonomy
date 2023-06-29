@@ -453,9 +453,9 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
                 f"The agents which have been configured via ACN are `{configured_agents}` and the diff was for {diff}."
             )
         self.round_sequence.validator_to_agent = validator_to_agent
-        self.round_sequence.offence_status = dict.fromkeys(
-            agents_mapped, OffenceStatus()
-        )
+        self.round_sequence.offence_status = {
+            agent: OffenceStatus() for agent in agents_mapped
+        }
 
     def get_validator_address(self, agent_address: str) -> str:
         """Get the validator address of an agent."""

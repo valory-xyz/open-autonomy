@@ -35,10 +35,10 @@ protocols:
 - valory/ipfs:0.1.0:bafybeic72ncgqbzoz2guj4p4yjqulid7mv6yroeh65hxznloamoveeg7hq
 skills:
 - valory/abstract_abci:0.1.0:bafybeiff2dqnkeorf343fmb3547fhiznvdw4ewbwl4rqluek2cv6ibl5hi
-- valory/abstract_round_abci:0.1.0:bafybeih23qkyb3vrabrvotgdfqifa7meajcblkyrrfrnu632d6bdygbbda
-- valory/register_reset_abci:0.1.0:bafybeiebf3vrz32xxkifnnvaqbocsncfo7gts4ovqaq2viaovbb2uwax5i
-- valory/registration_abci:0.1.0:bafybeicmngpr2opnmzcgzjjhrqikzu6fkyymp27rfo4izc6zpxe56kgnrm
-- valory/reset_pause_abci:0.1.0:bafybeih2brhhcgxst4ywl3o36uyu5npnnvkzdhvnej35ttmrgym63aepwu
+- valory/abstract_round_abci:0.1.0:bafybeibunpcyzetz4vuzsizwjtmlfcwy3wos6olx5lzm4eem7ntmt63k6u
+- valory/register_reset_abci:0.1.0:bafybeianjwlurmncb4b4umumnublsdau33pdlm6y6o4ofwjzlbynqga5z4
+- valory/registration_abci:0.1.0:bafybeibrtucsflsk6xxlq3lm5kuljcchyxdqhdmcaoatnufiz7wcogf744
+- valory/reset_pause_abci:0.1.0:bafybeibd55zw5lynzan7kw2v7zqdqs647i4x3qweszc2ggfwrstikwdcry
 default_ledger: ethereum
 required_ledgers:
 - ethereum
