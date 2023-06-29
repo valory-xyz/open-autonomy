@@ -217,6 +217,7 @@ fix-abci-app-specs:
 	autonomy analyse fsm-specs --update --app-class RegisterResetAbciApp --package packages/valory/skills/register_reset_abci || (echo "Failed to check register_reset_abci consistency" && exit 1)
 	autonomy analyse fsm-specs --update --app-class HelloWorldAbciApp --package packages/valory/skills/hello_world_abci || (echo "Failed to check hello_world_abci consistency" && exit 1)
 	autonomy analyse fsm-specs --update --app-class TransactionSubmissionAbciApp --package packages/valory/skills/transaction_settlement_abci || (echo "Failed to check transaction_settlement_abci consistency" && exit 1)
+	autonomy analyse fsm-specs --update --app-class OffendAbciApp --package packages/valory/skills/offend_abci || (echo "Failed to check offend_abci consistency" && exit 1)
 	echo "Successfully validated abcis!"
 
 release-images:
