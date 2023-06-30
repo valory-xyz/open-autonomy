@@ -1,0 +1,152 @@
+name: offend_abci
+author: valory
+version: 0.1.0
+type: skill
+description: Offend ABCI application.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: bafybeic6ufinrstjvfoccnehekx3kmpgs6vpffmp7d5xqu7ghpxsfyxl7m
+  __init__.py: bafybeier4l5m6ib3awn3aaam6ykqybo33qoljq63lsfdsmhxqkzxfsk3ka
+  behaviours.py: bafybeietoverlxrntvhcjezoxjsnm3yflmtxmw2ho7cxvookiobc5nukga
+  dialogues.py: bafybeigpwuzku3we7axmxeamg7vn656maww6emuztau5pg3ebsoquyfdqm
+  fsm_specification.yaml: bafybeifdw3an6m65bortljjcqxuk4qek546ttkfuxkk4isbqnep62zqo2m
+  handlers.py: bafybeidb35i5zq5ichb3dxzsjdlqo4baltmtpldf4l7nw3uxaqa2cxaktq
+  models.py: bafybeigzu5qbghaniagvchbaamac4edl23djsb2dhfwuxs47f7n2fljfpi
+  payloads.py: bafybeiaew2vr65nm7gmm4qf5wh445wrwn7hbgm7hlx3jz7k2rucq73dj7m
+  rounds.py: bafybeih6pdjthaekfxuan46nryoptjpg6uw5njrfxzbr5vd6uauz4l7twm
+  tests/__init__.py: bafybeibdfveo3untltoeuvvv3nalsg2kilbwpxg6ypxax73b44nksva26m
+  tests/test_behaviours.py: bafybeievl6cyr5dmzu4r57urspvl4uy2yzty5a3mhrbxqmezn6ph6ycl2i
+  tests/test_dialogues.py: bafybeifqufxzmjmzph7ub2eucz3atgadl2lubf45xriaqgqgvck4yf5xs4
+  tests/test_handlers.py: bafybeibamjqe73hlcexdrfauurmso77wxkbtvs4roednhynlyi7yr35com
+  tests/test_models.py: bafybeihmgqfxrolxozuhus3cscnaincmegu5zkx3z3rbhskb3ay2a5xrke
+  tests/test_payloads.py: bafybeiftpwgwjaezqateg63jk3onz5gfauldqqmajprkstjnzi6w6tkcwu
+  tests/test_rounds.py: bafybeia4uwwelzzmehc323tukb6xdxzuc2ikq7a3jf2lmg6lpqnnowucii
+fingerprint_ignore_patterns: []
+connections: []
+contracts: []
+protocols: []
+skills:
+- valory/abstract_round_abci:0.1.0:bafybeibunpcyzetz4vuzsizwjtmlfcwy3wos6olx5lzm4eem7ntmt63k6u
+behaviours:
+  main:
+    args: {}
+    class_name: OffendRoundBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: ABCIHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  ipfs:
+    args: {}
+    class_name: IpfsHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+  tendermint:
+    args: {}
+    class_name: TendermintHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  benchmark_tool:
+    args:
+      log_dir: /logs
+    class_name: BenchmarkTool
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  ipfs_dialogues:
+    args: {}
+    class_name: IpfsDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  params:
+    args:
+      cleanup_history_depth: 1
+      cleanup_history_depth_current: null
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      genesis_config:
+        genesis_time: '2022-05-20T16:00:21.735122717Z'
+        chain_id: chain-c4daS1
+        consensus_params:
+          block:
+            max_bytes: '22020096'
+            max_gas: '-1'
+            time_iota_ms: '1000'
+          evidence:
+            max_age_num_blocks: '100000'
+            max_age_duration: '172800000000000'
+            max_bytes: '1048576'
+          validator:
+            pub_key_types:
+            - ed25519
+          version: {}
+        voting_power: '10'
+      keeper_timeout: 30.0
+      max_attempts: 10
+      max_healthcheck: 120
+      on_chain_service_id: null
+      request_retry_delay: 1.0
+      request_timeout: 10.0
+      reset_pause_duration: 10
+      reset_tendermint_after: 2
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30.0
+      service_id: offend_abci
+      service_registry_address: null
+      setup:
+        all_participants:
+        - '0x0000000000000000000000000000000000000000'
+        safe_contract_address: '0x0000000000000000000000000000000000000000'
+        consensus_threshold: null
+      share_tm_config_on_startup: false
+      sleep_time: 1
+      tendermint_check_sleep_delay: 3
+      tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
+      tendermint_p2p_url: localhost:26656
+      tendermint_url: http://localhost:26657
+      tx_timeout: 10.0
+      use_termination: false
+      use_slashing: false
+      slash_cooldown_hours: 3
+      slash_threshold_amount: 10000000000000000
+      light_slash_unit_amount: 5000000000000000
+      serious_slash_unit_amount: 8000000000000000
+      validator_downtime: false
+      invalid_payload: false
+      blacklisted: false
+      suspected: false
+      num_unknown: 0
+      num_double_signed: 0
+      num_light_client_attack: 0
+    class_name: OffendParams
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+  tendermint_dialogues:
+    args: {}
+    class_name: TendermintDialogues
+dependencies: {}
+is_abstract: false

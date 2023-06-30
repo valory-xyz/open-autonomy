@@ -41,7 +41,8 @@
         "skill/valory/register_reset_recovery_abci/0.1.0": "bafybeia7nwk25hzfbushzfuroe6zh75bo6mr4hoo6zgs5c7rudfbe7qf5a",
         "agent/valory/register_reset_recovery/0.1.0": "bafybeibxbwawvchslnwisp67efndbjcp6no47pjfh6xqd257vqjlk63oqm",
         "contract/valory/multicall2/0.1.0": "bafybeiey2nftajodtjwxhdcjhyhedn4nipixfvccrewiu4aebh3sbdqqm4",
-        "skill/valory/slashing_abci/0.1.0": "bafybeieqxqmm4nusbpulprmd5tnrjijs5xwrmsmo7wm2cnzefjac5pjjtq"
+        "skill/valory/slashing_abci/0.1.0": "bafybeieqxqmm4nusbpulprmd5tnrjijs5xwrmsmo7wm2cnzefjac5pjjtq",
+        "skill/valory/offend_abci/0.1.0": "bafybeigyjldxq5beftb4igdwgo6iyhphe4ytovatyfsz53ldeasvr56uci"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4",
