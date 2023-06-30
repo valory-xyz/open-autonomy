@@ -229,7 +229,7 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
             contract_callable="get_slash_data",
             agent_instances=self.slashable_instances,
             amounts=self.slashable_amounts,
-            service_id=self.params.service_id,
+            service_id=self.params.on_chain_service_id,
         )
         if response_msg.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
             self.context.logger.error(
