@@ -272,7 +272,7 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = MagicMock(
-                    get_all_round_classes=lambda include_background_rounds: rounds,
+                    get_all_round_classes=lambda _, include_background_rounds: rounds,
                     final_states={
                         rounds[0],
                     },
@@ -307,7 +307,7 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = MagicMock(
-                    get_all_round_classes=lambda include_background_rounds: rounds
+                    get_all_round_classes=lambda _, include_background_rounds: rounds
                     if include_background_rounds
                     else [],
                     final_states={

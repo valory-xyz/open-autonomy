@@ -2409,14 +2409,19 @@ class AbciApp(
 
     @classmethod
     def get_all_round_classes(
-        cls, include_background_rounds: bool = False
+        cls,
+        bg_round_cls: set[Type[AbstractRound]],
+        include_background_rounds: bool = False,
     ) -> Set[AppState]:
         """Get all round classes."""
         full_fn = deepcopy(cls.transition_function)
 
         if include_background_rounds:
             for app in cls.background_apps:
-                if app.type != BackgroundAppType.EVER_RUNNING:
+                if (
+                    app.type != BackgroundAppType.EVER_RUNNING
+                    and app.round_cls in bg_round_cls
+                ):
                     transition_fn = cast(
                         AbciAppTransitionFunction, app.transition_function
                     )

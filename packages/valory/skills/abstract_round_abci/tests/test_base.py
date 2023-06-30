@@ -1771,7 +1771,9 @@ class TestAbciApp:
                 }
             )
 
-        actual_rounds = self.abci_app.get_all_round_classes(include_background_rounds)
+        actual_rounds = self.abci_app.get_all_round_classes(
+            {ConcreteBackgroundRound}, include_background_rounds
+        )
 
         assert actual_rounds == expected_rounds
 
@@ -1791,7 +1793,7 @@ class TestAbciApp:
             ConcreteRoundC,
         }
         assert expected_rounds == self.abci_app.get_all_round_classes(
-            include_background_rounds
+            {ConcreteBackgroundRound}, include_background_rounds
         )
 
     def test_add_background_app(self) -> None:
