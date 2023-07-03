@@ -1,0 +1,17 @@
+name: squads_multisig
+author: valory
+version: 0.1.0
+type: contract
+description: The scaffold contract scaffolds a contract to be implemented by the developer.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: bafybeieeus2bbbexmthy4pnsdtgen4flxzk3ao5ekjbocvmrkhhszffbgu
+  build/SquadsMultisig.json: bafybeiey7jbufdyfroy3vahjrfiifsvwf7zaq5yjjb56zokhbg5t76hjcm
+  contract.py: bafybeiejazfyeh2f6dqrxamt6hfhhtmokhqa53kfjlzz3cst7tvke5h7jy
+fingerprint_ignore_patterns: []
+class_name: SquadsMultisig
+contract_interface_paths:
+  solana: build/SquadsMultisig.json
+dependencies: {}
+contracts: []
