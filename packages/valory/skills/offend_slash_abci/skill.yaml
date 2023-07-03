@@ -117,7 +117,7 @@ models:
         safe_contract_address: '0xD8dE647170163a981bb3Fdb2063583eAcF7D55AC'
         consensus_threshold: null
       share_tm_config_on_startup: false
-      sleep_time: 300
+      sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
