@@ -21,7 +21,7 @@
 
 from collections import OrderedDict
 from enum import Enum, IntEnum
-from typing import Any, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -50,6 +50,98 @@ class MultisigAccountType(Enum):
     MS = "Ms"
     MS_TRANSACTION = "MsTransaction"
     MS_INSTRUCTION = "MsInstruction"
+
+    def __str__(self) -> str:
+        """String represenation."""
+        return self._value_  # pylint: disable=no-member
+
+
+class TransactionStatus(IntEnum):
+    """Transaction status"""
+
+    Draft = 0  # Transaction default state
+    Active = 1  # Transaction is live and ready
+    ExecuteReady = 2  # Transaction has been approved and is pending execution
+    Executed = 3  # Transaction has been executed
+    Rejected = 4  # Transaction has been rejected
+    Cancelled = 5  # Transaction has been cancelled
+
+
+def pubkey_container_to_list(container: Any) -> List[str]:
+    """Convert pubkey container to list of pubkey strings."""
+    return list(map(str, container))
+
+
+def account_meta_container_to_list(container: Any) -> List[Dict[str, Any]]:
+    """Convert pubkey container to list of pubkey strings."""
+    return [
+        {
+            "pubkey": str(ac.pubkey),
+            "is_signer": ac.is_signer,
+            "is_writable": ac.is_writable,
+        }
+        for ac in container
+    ]
+
+
+def ms_account_to_dict(state: Any) -> Dict[str, Any]:
+    """Multisig account to dictionary object."""
+    return {
+        "threshold": state.threshold,
+        "authority_index": state.authority_index,
+        "transaction_index": state.transaction_index,
+        "ms_change_index": state.ms_change_index,
+        "bump": state.bump,
+        "create_key": str(state.create_key),
+        "allow_external_execute": state.allow_external_execute,
+        "keys": pubkey_container_to_list(container=state.keys),
+    }
+
+
+def ms_tx_account_to_dict(state: Any) -> Dict[str, Any]:
+    """Multisig transaction account to dictionary object."""
+    return {
+        "creator": str(state.creator),
+        "ms": str(state.ms),
+        "transaction_index": state.transaction_index,
+        "authority_index": state.authority_index,
+        "authority_bump": state.authority_bump,
+        "status": state.status.index,
+        "instruction_index": state.instruction_index,
+        "bump": state.bump,
+        "approved": pubkey_container_to_list(state.approved),
+        "rejected": pubkey_container_to_list(state.rejected),
+        "cancelled": pubkey_container_to_list(state.cancelled),
+        "executed_index": state.executed_index,
+    }
+
+
+def ms_ix_account_to_dict(state: Any) -> Dict[str, Any]:
+    """Multisig transaction account to dictionary object."""
+    return {
+        "program_id": str(state.program_id),
+        "keys": account_meta_container_to_list(state.keys),
+        "data": list(state.data),
+        "instruction_index": state.instruction_index,
+        "bump": state.bump,
+        "executed": state.executed,
+    }
+
+
+ACCOUNT_STATE_SERIALIZERS = {
+    MultisigAccountType.MS: ms_account_to_dict,
+    MultisigAccountType.MS_TRANSACTION: ms_tx_account_to_dict,
+    MultisigAccountType.MS_INSTRUCTION: ms_ix_account_to_dict,
+}
+
+# Same for mainnet, devnet, testnet
+SQUADS_MULTISIG_ADDRESS = "SMPLecH534NA9acpos4G6x7uf3LWbCAwZQE9e8ZekMu"
+
+# Note: When loading contract instances on the ethereum contract packages we use `contract_address`
+# argument as the contract addres for the instance being loaded, but in case of squads multisig
+# the main contract is defined a factory/proxy. Which means you cannot directly interact with a
+# multisig, you'll have to go through the factory contract. So when loading the contract/program
+# instance use the `SQUADS_MULTISIG_ADDRESS` (Check the `get_program_state` method for an exmaple).
 
 
 class SquadsMultisig(Contract):
@@ -109,15 +201,11 @@ class SquadsMultisig(Contract):
         raise NotImplementedError
 
     @classmethod
-    def get_program_instance(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: Pubkey,
-    ) -> Program:
+    def get_program_instance(cls, ledger_api: LedgerApi) -> Program:
         """Get program instance."""
         program: Program = ledger_api.get_contract_instance(
             contract_interface=cls.contract_interface[ledger_api.identifier],
-            contract_address=contract_address,
+            contract_address=SQUADS_MULTISIG_ADDRESS,
         ).get("program")
         return program
 
@@ -126,10 +214,9 @@ class SquadsMultisig(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: Pubkey,
-        pda: Pubkey,
-        account_type: MultisigAccountType,
+        account_type: Union[MultisigAccountType, str],
         program: Optional[Program] = None,
-    ) -> Any:
+    ) -> JSONLike:
         """
         Get multisig account.
 
@@ -144,21 +231,21 @@ class SquadsMultisig(Contract):
         :return: The decoded multisig account information.
         :rtype: Any
         """
-        pda = ledger_api.to_pubkey(pda)
-        account_info = ledger_api.api.get_account_info(pubkey=pda)
-        program = program or cls.get_program_instance(
-            ledger_api=ledger_api, contract_address=contract_address
-        )
-        return program.account[  # pylint: disable=protected-access
+        account_type = MultisigAccountType(str(account_type))
+        contract_address = ledger_api.to_pubkey(contract_address)
+        account_info = ledger_api.api.get_account_info(pubkey=contract_address)
+        program = program or cls.get_program_instance(ledger_api=ledger_api)
+        state = program.account[  # pylint: disable=protected-access
             account_type.value
         ]._coder.accounts.decode(account_info.value.data)
+        serializer = ACCOUNT_STATE_SERIALIZERS[account_type]
+        return serializer(state=state)
 
     @classmethod
     def current_tx_index(
         cls,
         ledger_api: LedgerApi,
         contract_address: Pubkey,
-        multisig_pda: Pubkey,
         program: Optional[Program] = None,
     ) -> int:
         """
@@ -173,25 +260,46 @@ class SquadsMultisig(Contract):
         :return: The transaction index for the account.
         :rtype: int
         """
-        multisig_pda = ledger_api.to_pubkey(multisig_pda)
-        program = program or cls.get_program_instance(
-            ledger_api=ledger_api, contract_address=contract_address
-        )
+        contract_address = ledger_api.to_pubkey(contract_address)
+        program = program or cls.get_program_instance(ledger_api=ledger_api)
         account_data = cls.get_account_state(
             ledger_api=ledger_api,
             contract_address=contract_address,
-            pda=multisig_pda,
             account_type=MultisigAccountType.MS,
             program=program,
         )
-        return account_data.transaction_index
+        return account_data["transaction_index"]
+
+    @classmethod
+    def next_tx_index(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: Pubkey,
+        program: Optional[Program] = None,
+    ) -> int:
+        """
+        Get the next transaction index of a multisig.
+
+        :param ledger_api: The ledger API.
+        :type ledger_api: LedgerApi
+        :param program: The program instance.
+        :type program: Program
+        :param multisig_pda: The public key of the multisig account (Not the vault address).
+        :type multisig_pda: Pubkey
+        :return: The transaction index for the account.
+        :rtype: int
+        """
+        return 1 + cls.current_tx_index(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+            program=program,
+        )
 
     @classmethod
     def current_ix_index(
         cls,
         ledger_api: LedgerApi,
         contract_address: Pubkey,
-        tx_pda: Pubkey,
         program: Optional[Program] = None,
     ) -> int:
         """
@@ -206,18 +314,40 @@ class SquadsMultisig(Contract):
         :return: The instruction index for the transaction.
         :rtype: int
         """
-        tx_pda = ledger_api.to_pubkey(tx_pda)
-        program = program or cls.get_program_instance(
-            ledger_api=ledger_api, contract_address=contract_address
-        )
+        contract_address = ledger_api.to_pubkey(contract_address)
+        program = program or cls.get_program_instance(ledger_api=ledger_api)
         account_data = cls.get_account_state(
             ledger_api=ledger_api,
             contract_address=contract_address,
-            pda=tx_pda,
             account_type=MultisigAccountType.MS_TRANSACTION,
             program=program,
         )
-        return account_data.instruction_index
+        return account_data["instruction_index"]
+
+    @classmethod
+    def next_ix_index(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: Pubkey,
+        program: Optional[Program] = None,
+    ) -> int:
+        """
+        Get the next transaction index of a multisig.
+
+        :param ledger_api: The ledger API.
+        :type ledger_api: LedgerApi
+        :param program: The program instance.
+        :type program: Program
+        :param multisig_pda: The public key of the multisig account (Not the vault address).
+        :type multisig_pda: Pubkey
+        :return: The transaction index for the account.
+        :rtype: int
+        """
+        return 1 + cls.current_ix_index(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+            program=program,
+        )
 
     @classmethod
     def get_tx_pda(
@@ -225,8 +355,7 @@ class SquadsMultisig(Contract):
         ledger_api: LedgerApi,
         contract_address: Pubkey,
         tx_index: int,
-        multisig_pda: Pubkey,
-    ) -> Tuple[Pubkey, int]:
+    ) -> Pubkey:
         """
         Get transaction PDA (Program Derived Address).
 
@@ -243,17 +372,15 @@ class SquadsMultisig(Contract):
         :return: The transaction PDA and nonce.
         :rtype: Tuple[Pubkey, int]
         """
-        multisig_pda = ledger_api.to_pubkey(multisig_pda)
-        program_id = ledger_api.to_pubkey(contract_address)
-        return ledger_api.pda(
-            seeds=[
-                "squad".encode(encoding="utf-8"),
-                bytes(multisig_pda),  # type: ignore
-                int(str(tx_index), 10).to_bytes(byteorder="little", length=4),
-                "transaction".encode(encoding="utf-8"),
-            ],
-            program_id=program_id,
-        )
+        contract_address = ledger_api.to_pubkey(contract_address)
+        program_id = ledger_api.to_pubkey(SQUADS_MULTISIG_ADDRESS)
+        seeds = [
+            "squad".encode(encoding="utf-8"),
+            bytes(contract_address),  # type: ignore
+            int(str(tx_index), 10).to_bytes(byteorder="little", length=4),
+            "transaction".encode(encoding="utf-8"),
+        ]
+        return str(ledger_api.pda(seeds=seeds, program_id=program_id))
 
     @classmethod
     def get_ix_pda(
@@ -261,15 +388,14 @@ class SquadsMultisig(Contract):
         ledger_api: LedgerApi,
         contract_address: Pubkey,
         ix_index: int,
-        tx_pda: Pubkey,
     ) -> Tuple[Pubkey, int]:
         """Create TX PDA"""
-        tx_pda = ledger_api.to_pubkey(tx_pda)
-        program_id = ledger_api.to_pubkey(contract_address)
+        contract_address = ledger_api.to_pubkey(contract_address)
+        program_id = ledger_api.to_pubkey(SQUADS_MULTISIG_ADDRESS)
         return ledger_api.pda(
             seeds=[
                 "squad".encode(encoding="utf-8"),
-                bytes(tx_pda),  # type: ignore
+                bytes(contract_address),  # type: ignore
                 int(str(ix_index), 10).to_bytes(byteorder="little", length=1),
                 "instruction".encode(encoding="utf-8"),
             ],
@@ -282,7 +408,6 @@ class SquadsMultisig(Contract):
         ledger_api: LedgerApi,
         contract_address: Pubkey,
         authority_index: int,
-        multisig_pda: Pubkey,
         creator: Pubkey,
         tx_pda: Optional[Pubkey] = None,
     ) -> JSONLike:
@@ -303,41 +428,30 @@ class SquadsMultisig(Contract):
         :rtype: JSONLike
         """
         creator = ledger_api.to_pubkey(creator)
-        multisig_pda = ledger_api.to_pubkey(multisig_pda)
-        program = cls.get_program_instance(
-            ledger_api=ledger_api, contract_address=contract_address
-        )
-
-        if tx_pda is not None:
-            tx_pda = ledger_api.to_pubkey(tx_pda)
-        else:
-            next_tx_index = (
-                cls.current_tx_index(
-                    ledger_api=ledger_api,
-                    contract_address=contract_address,
-                    multisig_pda=multisig_pda,
-                    program=program,
-                )
-                + 1
-            )
-            tx_pda, _ = cls.get_tx_pda(
+        contract_address = ledger_api.to_pubkey(contract_address)
+        program = cls.get_program_instance(ledger_api=ledger_api)
+        if tx_pda is None:
+            tx_pda = cls.get_tx_pda(
                 ledger_api=ledger_api,
                 contract_address=contract_address,
-                tx_index=next_tx_index,
-                multisig_pda=multisig_pda,
+                tx_index=cls.next_tx_index(
+                    ledger_api=ledger_api,
+                    contract_address=contract_address,
+                    program=program,
+                ),
             )
-        remaining_accounts = None
+        tx_pda = ledger_api.to_pubkey(tx_pda)
         ix = ledger_api.build_instruction(
             contract_instance=program,
             method_name="create_transaction",
             data=[authority_index],
             accounts={
-                "multisig": multisig_pda,
+                "multisig": contract_address,
                 "transaction": tx_pda,
                 "creator": creator,
                 "system_program": ledger_api.system_program,
             },
-            remaining_accounts=remaining_accounts,
+            remaining_accounts=None,
         )
         return {"recent_blockhash": ledger_api.latest_hash, "ixs": [ix]}
 
@@ -347,35 +461,24 @@ class SquadsMultisig(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         tx_pda: Pubkey,
-        multisig_pda: Pubkey,
         creator: Pubkey,
         ix: Instruction,
-        ix_index: Optional[int] = None,
+        index: Optional[int] = None,
     ) -> JSONLike:
         """Attach instruction"""
         tx_pda = ledger_api.to_pubkey(tx_pda)
-        multisig_pda = ledger_api.to_pubkey(multisig_pda)
+        contract_address = ledger_api.to_pubkey(contract_address)
         creator = ledger_api.to_pubkey(creator)
-        program = cls.get_program_instance(
+        program = cls.get_program_instance(ledger_api=ledger_api)
+        index = index or cls.next_ix_index(
             ledger_api=ledger_api,
             contract_address=contract_address,
+            program=program,
         )
-        ix_index = (
-            (ix_index - 1)
-            if ix_index is not None
-            else cls.current_ix_index(
-                ledger_api=ledger_api,
-                contract_address=contract_address,
-                tx_pda=tx_pda,
-                program=program,
-            )
-        )
-        next_ix_index = ix_index + 1
-        ix_pda, _ = cls.get_ix_pda(
+        ix_pda = cls.get_ix_pda(
             ledger_api=ledger_api,
-            contract_address=contract_address,
-            ix_index=next_ix_index,
-            tx_pda=tx_pda,
+            contract_address=tx_pda,
+            ix_index=index,
         )
         ix = ledger_api.deserialize_ix(ix)
         incoming_is = program.type["IncomingInstruction"](
@@ -395,7 +498,7 @@ class SquadsMultisig(Contract):
             method_name="add_instruction",
             data=[incoming_is],
             accounts={
-                "multisig": multisig_pda,
+                "multisig": contract_address,
                 "transaction": tx_pda,
                 "instruction": ix_pda,
                 "creator": creator,
@@ -409,24 +512,20 @@ class SquadsMultisig(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        multisig_pda: Pubkey,
         tx_pda: Pubkey,
         creator: Pubkey,
     ) -> JSONLike:
         """Activate transaction."""
-        multisig_pda = ledger_api.to_pubkey(multisig_pda)
+        contract_address = ledger_api.to_pubkey(contract_address)
         tx_pda = ledger_api.to_pubkey(tx_pda)
         creator = ledger_api.to_pubkey(creator)
-        program = cls.get_program_instance(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-        )
+        program = cls.get_program_instance(ledger_api=ledger_api)
         ix = ledger_api.build_instruction(
             contract_instance=program,
             method_name="activate_transaction",
             data=[],
             accounts={
-                "multisig": multisig_pda,
+                "multisig": contract_address,
                 "transaction": tx_pda,
                 "creator": creator,
             },
@@ -439,58 +538,51 @@ class SquadsMultisig(Contract):
         ledger_api: LedgerApi,
         contract_address: Pubkey,
         authority_index: int,
-        multisig_pda: Pubkey,
         creator: Pubkey,
-        ix: Instruction,
+        ixs: List[Instruction],
+        tx_pda: Optional[Pubkey] = None,
     ) -> JSONLike:
         """Create instruction set for creating and activating the transaction with given list of instruction."""
         creator = ledger_api.to_pubkey(creator)
-        multisig_pda = ledger_api.to_pubkey(multisig_pda)
-        program = cls.get_program_instance(
-            ledger_api=ledger_api, contract_address=contract_address
-        )
-        next_tx_index = (
-            cls.current_tx_index(
+        contract_address = ledger_api.to_pubkey(contract_address)
+        program = cls.get_program_instance(ledger_api=ledger_api)
+        if tx_pda is not None:
+            tx_pda = ledger_api.to_pubkey(tx_pda)
+        else:
+            tx_pda = cls.get_tx_pda(
                 ledger_api=ledger_api,
                 contract_address=contract_address,
-                multisig_pda=multisig_pda,
-                program=program,
+                tx_index=cls.next_tx_index(
+                    ledger_api=ledger_api,
+                    contract_address=contract_address,
+                    program=program,
+                ),
             )
-            + 1
-        )
-        tx_pda, _ = cls.get_tx_pda(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-            tx_index=next_tx_index,
-            multisig_pda=multisig_pda,
-        )
 
         ixs = []
         create_ix = cls.create_transaction_ix(
             ledger_api=ledger_api,
             contract_address=contract_address,
             authority_index=authority_index,
-            multisig_pda=multisig_pda,
             creator=creator,
             tx_pda=tx_pda,
         )
         ixs += create_ix["ixs"]
 
-        attach_ix = cls.add_instruction_ix(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-            tx_pda=tx_pda,
-            multisig_pda=multisig_pda,
-            creator=creator,
-            ix=ix,
-            ix_index=1,
-        )
-        ixs += attach_ix["ixs"]
+        for index, ix in enumerate(ixs):
+            attach_ix = cls.add_instruction_ix(
+                ledger_api=ledger_api,
+                contract_address=contract_address,
+                tx_pda=tx_pda,
+                creator=creator,
+                ix=ix,
+                index=(index + 1),
+            )
+            ixs += attach_ix["ixs"]
 
         activate_ix = cls.activate_transaction_ix(
             ledger_api=ledger_api,
             contract_address=contract_address,
-            multisig_pda=multisig_pda,
             tx_pda=tx_pda,
             creator=creator,
         )
@@ -503,26 +595,22 @@ class SquadsMultisig(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        multisig_pda: Pubkey,
         tx_pda: Pubkey,
-        creator: Pubkey,
+        member: Pubkey,
     ) -> JSONLike:
         """Approve transaction."""
-        multisig_pda = ledger_api.to_pubkey(multisig_pda)
+        contract_address = ledger_api.to_pubkey(contract_address)
         tx_pda = ledger_api.to_pubkey(tx_pda)
-        creator = ledger_api.to_pubkey(creator)
-        program = cls.get_program_instance(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-        )
+        member = ledger_api.to_pubkey(member)
+        program = cls.get_program_instance(ledger_api=ledger_api)
         ix = ledger_api.build_instruction(
             contract_instance=program,
             method_name="approve_transaction",
             data=[],
             accounts={
-                "multisig": multisig_pda,
+                "multisig": contract_address,
                 "transaction": tx_pda,
-                "member": creator,
+                "member": member,
             },
         )
         return {"recent_blockhash": ledger_api.latest_hash, "ixs": [ix]}
@@ -532,42 +620,34 @@ class SquadsMultisig(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        multisig_pda: Pubkey,
         tx_pda: Pubkey,
-        creator: Pubkey,
+        member: Pubkey,
     ) -> JSONLike:
         """Execute transaction."""
-        multisig_pda = ledger_api.to_pubkey(multisig_pda)
+        contract_address = ledger_api.to_pubkey(contract_address)
         tx_pda = ledger_api.to_pubkey(tx_pda)
-        creator = ledger_api.to_pubkey(creator)
-        program = cls.get_program_instance(
-            ledger_api=ledger_api, contract_address=contract_address
-        )
-
+        member = ledger_api.to_pubkey(member)
+        program = cls.get_program_instance(ledger_api=ledger_api)
         ixs = []
         tx_account = cls.get_account_state(
             ledger_api=ledger_api,
-            contract_address=contract_address,
-            pda=tx_pda,
+            contract_address=tx_pda,
             account_type=MultisigAccountType.MS_TRANSACTION,
             program=program,
         )
-        for idx in range(1, tx_account.instruction_index + 1):
-            ix_pda, _ = cls.get_ix_pda(
+        for idx in range(1, tx_account["instruction_index"] + 1):
+            ix_pda = cls.get_ix_pda(
                 ledger_api=ledger_api,
-                contract_address=contract_address,
+                contract_address=tx_pda,
                 ix_index=idx,
-                tx_pda=tx_pda,
             )
             ix_account = cls.get_account_state(
                 ledger_api=ledger_api,
-                contract_address=contract_address,
-                pda=ix_pda,
+                contract_address=ix_pda,
                 account_type=MultisigAccountType.MS_INSTRUCTION,
                 program=program,
             )
             ixs.append({"pubkey": ix_pda, "account": ix_account})
-
         keys = OrderedDict()
         for ix in ixs:
             keys[ix["pubkey"]] = {
@@ -580,21 +660,20 @@ class SquadsMultisig(Contract):
                 "is_signer": False,
                 "is_writable": False,
             }
-            for key in ix["account"].keys:
-                keys[key.pubkey] = {
-                    "pubkey": key.pubkey,
+            for key in ix["account"]["keys"]:
+                keys[key["pubkey"]] = {
+                    "pubkey": key["pubkey"],
                     "is_signer": False,
-                    "is_writable": key.is_writable,
+                    "is_writable": key["is_writable"],
                 }
-
         ix = ledger_api.build_instruction(
             contract_instance=program,
             method_name="execute_transaction",
             data=[bytes(list(range(len(keys))))],
             accounts={
-                "multisig": multisig_pda,
+                "multisig": contract_address,
                 "transaction": tx_pda,
-                "member": creator,
+                "member": member,
             },
             remaining_accounts=[
                 ledger_api.to_account_meta(**key) for key in keys.values()
