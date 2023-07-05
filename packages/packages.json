@@ -41,7 +41,8 @@
         "skill/valory/register_reset_recovery_abci/0.1.0": "bafybeifj2naau3mwf4ebgyucd2uevr7wf7h7vkp3lxodwakhy2n7ctmsny",
         "agent/valory/register_reset_recovery/0.1.0": "bafybeibbrlqs43rlh4cdxdnlbbpatbjsbrshrqn7jlgegu3a4d4crehxkm",
         "contract/valory/multicall2/0.1.0": "bafybeiey2nftajodtjwxhdcjhyhedn4nipixfvccrewiu4aebh3sbdqqm4",
-        "contract/valory/squads_multisig/0.1.0": "bafybeicabf4e6dv2vg3fijgmkjgepkvt3braedszounfgvu3fyymwbzy4e"
+        "contract/valory/squads_multisig/0.1.0": "bafybeigcq7n3deknjbghxm7vggbknrwq7dueogvz6zoaet32t77uabxbwq",
+        "skill/valory/solana_transaction_settlement_abci/0.1.0": "bafybeifamvbyvgkjv2wlf2nvoz5dzsngjrtgu2u3du6b2wgtglemjgwr2i"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4",
