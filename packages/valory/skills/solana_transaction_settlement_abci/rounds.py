@@ -324,6 +324,10 @@ class SolanaTransactionSubmissionAbciApp(AbciApp[Event]):
         FinishedTransactionSubmissionRound: {},
         FailedRound: {},
     }
+    final_states: Set[AppState] = {
+        FinishedTransactionSubmissionRound,
+        FailedRound,
+    }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
     }
