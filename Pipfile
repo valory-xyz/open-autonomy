@@ -34,7 +34,7 @@ pytest-asyncio = "*"
 open-aea-ledger-cosmos = "==1.35.0"
 # we pin this as the range specified in open-aea-ledger-cosmos is wide
 cosmpy = "==0.3.1"
-grpcio = "==1.43.0"
+grpcio = "==1.53.0"
 hypothesis = "==6.21.6"
 # latest supported for Python 3.7
 numpy = "==1.21.6"
