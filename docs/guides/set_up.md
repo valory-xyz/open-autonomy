@@ -76,9 +76,9 @@ This is roughly how your workspace should look like:
 
     ```bash
 <<<<<<< HEAD
-    autonomy fetch valory/hello_world:0.1.0:bafybeifcyanng2ppdhpsovworx2q7fbhrzrjlueqfzhlixbv7mua4lze4u
+    autonomy fetch valory/hello_world:0.1.0:bafybeigoxrs43xsafhh7xv2fgp7coh57m4ywsporgdxefpcn45yxxqzdqe
 =======
-    autonomy fetch valory/hello_world:0.1.0:bafybeifcyanng2ppdhpsovworx2q7fbhrzrjlueqfzhlixbv7mua4lze4u
+    autonomy fetch valory/hello_world:0.1.0:bafybeigoxrs43xsafhh7xv2fgp7coh57m4ywsporgdxefpcn45yxxqzdqe
 >>>>>>> fix/send-none-on-no-message
     ```
 
@@ -110,25 +110,25 @@ If you plan to follow the guides in the next sections, you need to populate the 
     "dev": {
     },
     "third_party": {
-        "service/valory/hello_world/0.1.0": "bafybeihby3xgza5zw5xtrpkkkj5amt446ya3jm7vikdszxc4bnmpaubj5a",
-        "agent/valory/hello_world/0.1.0": "bafybeifcyanng2ppdhpsovworx2q7fbhrzrjlueqfzhlixbv7mua4lze4u",
+        "service/valory/hello_world/0.1.0": "bafybeiej4opda6spjiytbxpehtbkfh5ml66kuya44flb7jestqvqhcijmi",
+        "agent/valory/hello_world/0.1.0": "bafybeigoxrs43xsafhh7xv2fgp7coh57m4ywsporgdxefpcn45yxxqzdqe",
         "connection/valory/abci/0.1.0": "bafybeif4je7jk6r3cv2pjfkk5qmobyhwuvv2oyvjozttcvpapnb3v4zome",
-        "connection/valory/http_client/0.23.0": "bafybeifdb5urioonbzlpqptu4ee76utmzq6tli3cpqnlyez7fn4jag2mci",
+        "connection/valory/http_client/0.23.0": "bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi",
         "connection/valory/ipfs/0.1.0": "bafybeial2bbx5qvlpuwhpbb47yjd65kenwcth65u2bqelvc2omzisue3eq",
-        "connection/valory/ledger/0.19.0": "bafybeibeb2zpyoxcvlhp5xtx7vr7nythn3cfwfmzentocupdcbbx22xklm",
+        "connection/valory/ledger/0.19.0": "bafybeicgfupeudtmvehbwziqfxiz6ztsxr5rxzvalzvsdsspzz73o5fzfi",
         "contract/valory/service_registry/0.1.0": "bafybeiesh4be5q5httbnwfd5mphojwg2mfbhspityy3p75chcv3fkngyuy",
-        "protocol/open_aea/signing/1.0.0": "bafybeifuxs7gdg2okbn7uofymenjlmnih2wxwkym44lsgwmklgwuckxm2m",
+        "protocol/open_aea/signing/1.0.0": "bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4",
         "protocol/valory/abci/0.1.0": "bafybeigootsvqpk6th5xpdtzanxum3earifrrezfyhylfrit7yvqdrtgpe",
-        "protocol/valory/acn/1.1.0": "bafybeibifwnyxae7ar3mpdqgu3mv3u5db4noinpi2pj5dqt7velwt7exqy",
-        "protocol/valory/contract_api/1.0.0": "bafybeiezsmj4kvyyscy2s3rftennbyau5cfqn2hb2bk3cj6gptbmmiava4",
-        "protocol/valory/http/1.0.0": "bafybeianlbknceiznl2rhc7xq23sb6jb2zoe7dnnzof4ccjvo7wcuyuk3q",
+        "protocol/valory/acn/1.1.0": "bafybeignmc5uh3vgpuckljcj2tgg7hdqyytkm6m5b6v6mxtazdcvubibva",
+        "protocol/valory/contract_api/1.0.0": "bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy",
+        "protocol/valory/http/1.0.0": "bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty",
         "protocol/valory/ipfs/0.1.0": "bafybeibjzhsengtxfofqpxy6syamplevp35obemwfp4c5lhag3v2bvgysa",
-        "protocol/valory/ledger_api/1.0.0": "bafybeidk4nn7hs7ttq3kwxmqd6h5qjhxp5skkbarpip6csekccxchpn42e",
+        "protocol/valory/ledger_api/1.0.0": "bafybeibo4bdtcrxi2suyzldwoetjar6pqfzm6vt5xal22ravkkcvdmtksi",
         "protocol/valory/tendermint/0.1.0": "bafybeidjqmwvgi4rqgp65tbkhmi45fwn2odr5ecezw6q47hwitsgyw4jpa",
         "skill/valory/abstract_abci/0.1.0": "bafybeife3lndiy6b6zreqlgwiwoyufdcu2zqov3fdkiqqzefkwe4iqddn4",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeicrvq7kxyzaxrhgtmjyfeuhgjpvqz7ukdx4nsjdrql5yqluetml2i",
-        "skill/valory/hello_world_abci/0.1.0": "bafybeicxbrqlems7egvvap7hfymjpvblwyexolluk3blpl6vgnndqs6dlm",
-        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeierggvxlpnsowctmfc5brlk26bhbexxregi7udxnpfhzpjf5ufaeq"
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeibrwwodrbd52aebsz3qsdwoyjm4ce4rrelni7pb2z7yr3umlr5kla",
+        "skill/valory/hello_world_abci/0.1.0": "bafybeigyrpcvfv54chvmuwo6xtc6vm7qknrxgqtynfazdkzfzvxhdjpecu",
+        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva"
     }
 }
 ```
