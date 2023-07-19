@@ -12,7 +12,7 @@ connections:
 - valory/p2p_libp2p_client:0.1.0:bafybeierggvxlpnsowctmfc5brlk26bhbexxregi7udxnpfhzpjf5ufaeq
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:bafybeifgymwsva6ogk3tvlqyrjxvotngcv4ajjbtdvh6kl7wehurir5zcu
+- open_aea/signing:1.0.0:bafybeifuxs7gdg2okbn7uofymenjlmnih2wxwkym44lsgwmklgwuckxm2m
 - valory/http:1.0.0:bafybeianlbknceiznl2rhc7xq23sb6jb2zoe7dnnzof4ccjvo7wcuyuk3q
 skills:
 - valory/counter_client:0.1.0:bafybeidrakthgt5tisjskyixdgk5boiu4u4hlitt5g2fumev5n2o4u4l3q
