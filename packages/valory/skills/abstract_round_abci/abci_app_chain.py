@@ -173,7 +173,7 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
         accumulated_post_conditions: Set[str] = current_app.db_pre_conditions.get(
             current_initial_state, set()
         )
-        for (next_initial_state, next_app, next_final_state) in path[1:]:
+        for next_initial_state, next_app, next_final_state in path[1:]:
             if current_final_state is None:
                 # No outwards transition, nothing to check.
                 # we are at the end of a path where the last

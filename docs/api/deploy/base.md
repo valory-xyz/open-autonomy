@@ -4,6 +4,12 @@
 
 Base deployments module.
 
+<a id="autonomy.deploy.base.ENV_VAR_AEA_PASSWORD"></a>
+
+#### ENV`_`VAR`_`AEA`_`PASSWORD
+
+nosec
+
 <a id="autonomy.deploy.base.NotValidKeysFile"></a>
 
 ## NotValidKeysFile Objects

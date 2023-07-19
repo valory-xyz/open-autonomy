@@ -123,7 +123,6 @@ _sym_db.RegisterMessage(IpfsMessage.Files_Performative.FilesEntry)
 _sym_db.RegisterMessage(IpfsMessage.Error_Performative)
 
 if _descriptor._USE_C_DESCRIPTORS == False:
-
     DESCRIPTOR._options = None
     _IPFSMESSAGE_STORE_FILES_PERFORMATIVE_FILESENTRY._options = None
     _IPFSMESSAGE_STORE_FILES_PERFORMATIVE_FILESENTRY._serialized_options = b"8\001"

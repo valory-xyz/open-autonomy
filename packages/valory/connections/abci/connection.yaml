@@ -33,11 +33,11 @@ fingerprint:
   tendermint/types/validator_pb2.py: bafybeihbukxnnvzbc2w75uln5qxyj3sle7euezbwo6pk65rbdznexgatbm
   tendermint/version/types_pb2.py: bafybeiee7dx3fxa4vnuyosl6qps7z6guk3p627lan7owqjuq3rgjhfqnty
   tendermint_decoder.py: bafybeidal3n3q4lka4zwbrt277lmlhht5nlxnpnmc4rwi6zb5halnksomu
-  tendermint_encoder.py: bafybeibzfssuon2i7omvpe6qmcrv62kje2rik36qm5m5jzeb4m6nu42z2i
+  tendermint_encoder.py: bafybeibpnofkac6jizpbezlo7rdsbijloovsuz5rjysshjrims7x44wxv4
   tests/__init__.py: bafybeid67ezzjsfsukyqdjtlnd3ra5yy73jnobm4setddgagd3u4vqboyu
-  tests/helper.py: bafybeicdnny6bobjlmqzpvkyce7dxusa54xyo3ooyvzizlbsnz57scll4i
+  tests/helper.py: bafybeiewqp7ulsc5n6hrcoj5bvqp2pz5f5sadrfyrm2nywzeazi443b5ba
   tests/test_abci.py: bafybeia4pw67do72gzc66kz23yzllnspbzqrtd5c5muqxhol27ipjjscxa
-  tests/test_abci_fuzz.py: bafybeicd7chwsit4mr6ypaeulkz7dsxyzv5mkmjw7fxxmey3xfxcq3cy2a
+  tests/test_abci_fuzz.py: bafybeiddeye3fbgefihbgdhqwwuv3dlseo6d5kt3jpixpq45bewm5dep2u
   tests/test_abci_spec.py: bafybeifacnizp2mryyb2j64iugnxn5rhtx7xr4emwbw5xcke6le6utpwhu
   tests/test_fuzz/__init__.py: bafybeiggaobawdxpx2j637ldmacq7r7tnyeygukmjuayodj3vytdyqsjze
   tests/test_fuzz/base.py: bafybeihcup3o3pbyfk33bvhznxsedjzf4wnbuoa6h3czo34m4qqyss6ixq
@@ -55,7 +55,7 @@ fingerprint_ignore_patterns: []
 build_entrypoint: check_dependencies.py
 connections: []
 protocols:
-- valory/abci:0.1.0:bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4
+- valory/abci:0.1.0:bafybeigootsvqpk6th5xpdtzanxum3earifrrezfyhylfrit7yvqdrtgpe
 class_name: ABCIServerConnection
 config:
   host: 127.0.0.1
@@ -73,11 +73,11 @@ excluded_protocols: []
 restricted_to_protocols: []
 dependencies:
   grpcio:
-    version: ==1.43.0
+    version: ==1.47.0
   hypothesis:
     version: ==6.21.6
   open-aea-test-autonomy:
-    version: ==0.10.7
+    version: ==0.10.8
   protobuf:
     version: <=3.20.1,>=3.19
 is_abstract: false

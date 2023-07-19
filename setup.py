@@ -56,7 +56,7 @@ base_deps = [
     "pandas<1.4,>=1.3.4",
     "watchdog>=2.1.6",
     "pytest==7.2.1",
-    "docker-compose==1.29.2",
+    "docker-compose@git+https://github.com/solarw/compose.git@1.29.3",
     "werkzeug==2.0.3",
     "docker==6.1.2",
 ]
