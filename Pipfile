@@ -16,7 +16,7 @@ Werkzeug= "==2.0.3"
 watchdog = ">=2.1.6"
 pytest = "==7.2.1"
 click = "==8.0.2"
-docker-compose = {editable = true, ref = "1.29.3", git = "https://github.com/solarw/compose.git"}
+docker-compose = {editable = true, ref = "1.29.3", git = "https://github.com/valory-xyz/compose.git"}
 
 [dev-packages]
 ### package deps
