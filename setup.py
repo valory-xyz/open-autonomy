@@ -51,8 +51,6 @@ all_extras = get_all_extras()
 
 
 base_deps = [
-    "cython<3",
-    "pyyaml==5.4.1",
     "Flask>=2.0.2,<3.0.0",
     "open-aea[all]==1.36.0",
     "pandas<1.4,>=1.3.4",
