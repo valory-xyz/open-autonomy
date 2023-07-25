@@ -76,9 +76,9 @@ This is roughly how your workspace should look like:
 
     ```bash
 <<<<<<< HEAD
-    autonomy fetch valory/hello_world:0.1.0:bafybeigoxrs43xsafhh7xv2fgp7coh57m4ywsporgdxefpcn45yxxqzdqe
+    autonomy fetch valory/hello_world:0.1.0:bafybeidacwdnfua5b7rpuamlrjb6hqc4h56kxjpxbqawb2fmvfhpsbsjd4
 =======
-    autonomy fetch valory/hello_world:0.1.0:bafybeigoxrs43xsafhh7xv2fgp7coh57m4ywsporgdxefpcn45yxxqzdqe
+    autonomy fetch valory/hello_world:0.1.0:bafybeidacwdnfua5b7rpuamlrjb6hqc4h56kxjpxbqawb2fmvfhpsbsjd4
 >>>>>>> fix/send-none-on-no-message
     ```
 
@@ -110,25 +110,25 @@ If you plan to follow the guides in the next sections, you need to populate the 
     "dev": {
     },
     "third_party": {
-        "service/valory/hello_world/0.1.0": "bafybeiej4opda6spjiytbxpehtbkfh5ml66kuya44flb7jestqvqhcijmi",
-        "agent/valory/hello_world/0.1.0": "bafybeigoxrs43xsafhh7xv2fgp7coh57m4ywsporgdxefpcn45yxxqzdqe",
-        "connection/valory/abci/0.1.0": "bafybeif4je7jk6r3cv2pjfkk5qmobyhwuvv2oyvjozttcvpapnb3v4zome",
-        "connection/valory/http_client/0.23.0": "bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi",
-        "connection/valory/ipfs/0.1.0": "bafybeial2bbx5qvlpuwhpbb47yjd65kenwcth65u2bqelvc2omzisue3eq",
-        "connection/valory/ledger/0.19.0": "bafybeicgfupeudtmvehbwziqfxiz6ztsxr5rxzvalzvsdsspzz73o5fzfi",
-        "contract/valory/service_registry/0.1.0": "bafybeiesh4be5q5httbnwfd5mphojwg2mfbhspityy3p75chcv3fkngyuy",
-        "protocol/open_aea/signing/1.0.0": "bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4",
+        "service/valory/hello_world/0.1.0": "bafybeiaggsxpjcvpbxigfefsz3vtajsv5yc52rj23kdfrgbi6g2wglkudm",
+        "agent/valory/hello_world/0.1.0": "bafybeidacwdnfua5b7rpuamlrjb6hqc4h56kxjpxbqawb2fmvfhpsbsjd4",
+        "connection/valory/abci/0.1.0": "bafybeibtq3d4whbio6ohsatbo6n4khgybkgc64egoos2uf3eptuokdrzci",
+        "connection/valory/http_client/0.23.0": "bafybeieoeuy4brzimtnubmokwirhrx27ezls6cdnl5qik4rkykfle3nn2y",
+        "connection/valory/ipfs/0.1.0": "bafybeicwe4fksbhaqs4qycfdqbzgqtikfn3u4g5y5fucxfmriezwwf7hse",
+        "connection/valory/ledger/0.19.0": "bafybeiejc7g7ebv3cleiqb4f4h4pspcu6vtr54332szwlqiabfs3sfdh44",
+        "contract/valory/service_registry/0.1.0": "bafybeihozg6yrqka5vkf5hleoobfmjlpmjon4ulsmigidfi377kxn64wla",
+        "protocol/open_aea/signing/1.0.0": "bafybeifuxs7gdg2okbn7uofymenjlmnih2wxwkym44lsgwmklgwuckxm2m",
         "protocol/valory/abci/0.1.0": "bafybeigootsvqpk6th5xpdtzanxum3earifrrezfyhylfrit7yvqdrtgpe",
-        "protocol/valory/acn/1.1.0": "bafybeignmc5uh3vgpuckljcj2tgg7hdqyytkm6m5b6v6mxtazdcvubibva",
-        "protocol/valory/contract_api/1.0.0": "bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy",
-        "protocol/valory/http/1.0.0": "bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty",
+        "protocol/valory/acn/1.1.0": "bafybeiapa5ilsobggnspoqhspftwolrx52udrwmaxdxgrk26heuvl4oooa",
+        "protocol/valory/contract_api/1.0.0": "bafybeiasywsvax45qmugus5kxogejj66c5taen27h4voriodz7rgushtqa",
+        "protocol/valory/http/1.0.0": "bafybeia5bxdua2i6chw6pg47bvoljzcpuqxzy4rdrorbdmcbnwmnfdobtu",
         "protocol/valory/ipfs/0.1.0": "bafybeibjzhsengtxfofqpxy6syamplevp35obemwfp4c5lhag3v2bvgysa",
-        "protocol/valory/ledger_api/1.0.0": "bafybeibo4bdtcrxi2suyzldwoetjar6pqfzm6vt5xal22ravkkcvdmtksi",
+        "protocol/valory/ledger_api/1.0.0": "bafybeigsvceac33asd6ecbqev34meyyjwu3rangenv6xp5rkxyz4krvcby",
         "protocol/valory/tendermint/0.1.0": "bafybeidjqmwvgi4rqgp65tbkhmi45fwn2odr5ecezw6q47hwitsgyw4jpa",
-        "skill/valory/abstract_abci/0.1.0": "bafybeife3lndiy6b6zreqlgwiwoyufdcu2zqov3fdkiqqzefkwe4iqddn4",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeibrwwodrbd52aebsz3qsdwoyjm4ce4rrelni7pb2z7yr3umlr5kla",
-        "skill/valory/hello_world_abci/0.1.0": "bafybeigyrpcvfv54chvmuwo6xtc6vm7qknrxgqtynfazdkzfzvxhdjpecu",
-        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva"
+        "skill/valory/abstract_abci/0.1.0": "bafybeibmfcjuceds33zgrhnhv7eg5fujnp4gavzewu4rvvsacngpn2njwy",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeicyyrjrrwipg6ir6lrawq4iif77f6a6pt2it2momhuy5msz4n7nde",
+        "skill/valory/hello_world_abci/0.1.0": "bafybeihqcufnnajww7dov2uitqfndq2b4uvxfuyobn27io4yo7oh6ec2ai",
+        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihdnfdth3qgltefgrem7xyi4b3ejzaz67xglm2hbma2rfvpl2annq"
     }
 }
 ```
