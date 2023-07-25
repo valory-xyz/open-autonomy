@@ -14,7 +14,7 @@ fingerprint:
   tests/test_contract.py: bafybeidnlxmcedoean6xfhjwvj5yvgbaxevjgtlu6wnu2w6y5a37hiniri
 fingerprint_ignore_patterns: []
 contracts:
-- valory/gnosis_safe_proxy_factory:0.1.0:bafybeif5r3tfdutfqawikieaftog2t5s7ia4vzvabwmvkzp4jffpcrweb4
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeigbtbgzqlt4tufgymtjsyxiqvivxmtc4csx43hmo5nexmdfcxm6bi
 class_name: GnosisSafeContract
 contract_interface_paths:
   ethereum: build/GnosisSafe_V1_3_0.json
@@ -26,7 +26,7 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==1.37.0
   open-aea-test-autonomy:
-    version: ==0.10.8
+    version: ==0.10.9
   packaging: {}
   py-eth-sig-utils: {}
   requests: {}
