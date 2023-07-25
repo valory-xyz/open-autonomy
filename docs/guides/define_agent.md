@@ -120,7 +120,7 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
               propagate: true
         dependencies:
           open-aea-ledger-ethereum:
-            version: ==1.36.0
+            version: ==1.37.0
           open-aea-test-autonomy:
             version: ==0.10.8
         default_connection: null
