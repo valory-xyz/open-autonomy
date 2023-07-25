@@ -198,7 +198,13 @@ def _resolve_on_chain_token_id(
             ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
         )
         agent_instances = info["agentInstances"]
-        (_, multisig_address, _, consensus_threshold, *_,) = get_service_info(
+        (
+            _,
+            multisig_address,
+            _,
+            consensus_threshold,
+            *_,
+        ) = get_service_info(
             ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
         )
     except FailedToRetrieveComponentMetadata as e:

@@ -118,13 +118,25 @@ def update_tox_ini(
         if isinstance(value, str) and len(value) == 1 and "*" == value[0]:
             new_package_dependencies[key] = ""
         if isinstance(value, dict):
-            value_ = "["
-            for it in value["extras"]:
-                value_ += it
-                value_ += ","
-            value_ = value_[:-1]
-            value_ += "]"
-            new_package_dependencies[key] = value_ + value["version"]
+            if "extras" in value:
+                value_ = "["
+                for it in value["extras"]:
+                    value_ += it
+                    value_ += ","
+                value_ = value_[:-1]
+                value_ += "]"
+                new_package_dependencies[key] = value_ + value["version"]
+            elif "git" in value:
+                new_package_dependencies[key] = (
+                    "git+"
+                    + value["git"]
+                    + "@"
+                    + value.get("ref", "None")
+                    + "#egg="
+                    + key
+                )
+            else:
+                raise ValueError(value)
     with open(tox_ini_path, "r", encoding="utf-8") as file:
         lines = file.readlines()
 
@@ -144,12 +156,15 @@ def update_tox_ini(
         else:
             end_line = len(lines)
 
-        lines[start_line:end_line] = (
-            ["deps =\n"]
-            + ["    {[deps-tests]deps}\n"]
-            + [f"    {key}{value}\n" for key, value in new_package_dependencies.items()]
-            + ["\n"]
-        )
+        updated_lines = ["deps =\n"] + ["    {[deps-tests]deps}\n"]
+        for key, value in new_package_dependencies.items():
+            if str(value).startswith("git+"):
+                updated_lines.append(f"    {value}\n")
+            else:
+                updated_lines.append(f"    {key}{value}\n")
+        updated_lines.extend(["\n"])
+
+        lines[start_line:end_line] = updated_lines
 
     # Write the modified content back to the tox.ini file
     with open(tox_ini_path, "w", encoding="utf-8") as file:

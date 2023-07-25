@@ -164,7 +164,12 @@ def activate_service(
     :param timeout: Time to wait for activation event to emit
     """
 
-    (cost_of_bond, *_, service_state, _,) = get_service_info(
+    (
+        cost_of_bond,
+        *_,
+        service_state,
+        _,
+    ) = get_service_info(
         ledger_api=ledger_api, chain_type=chain_type, token_id=service_id
     )
 
@@ -251,7 +256,12 @@ def register_instance(  # pylint: disable=too-many-arguments
             "Number of agent instances and agent IDs needs to be same"
         )
 
-    (cost_of_bond, *_, service_state, _,) = get_service_info(
+    (
+        cost_of_bond,
+        *_,
+        service_state,
+        _,
+    ) = get_service_info(
         ledger_api=ledger_api,
         chain_type=chain_type,
         token_id=service_id,
@@ -322,7 +332,11 @@ def deploy_service(
     :param timeout: Time to wait for deploy event to emit
     """
     deployment_payload = deployment_payload or DEFAULT_DEPLOY_PAYLOAD
-    (*_, service_state, _,) = get_service_info(
+    (
+        *_,
+        service_state,
+        _,
+    ) = get_service_info(
         ledger_api=ledger_api,
         chain_type=chain_type,
         token_id=service_id,
@@ -395,7 +409,11 @@ def terminate_service(
     :param service_id: Service ID retrieved after minting a service
     """
 
-    (*_, service_state, _,) = get_service_info(
+    (
+        *_,
+        service_state,
+        _,
+    ) = get_service_info(
         ledger_api=ledger_api,
         chain_type=chain_type,
         token_id=service_id,
@@ -447,7 +465,11 @@ def unbond_service(
     :param service_id: Service ID retrieved after minting a service
     """
 
-    (*_, service_state, _,) = get_service_info(
+    (
+        *_,
+        service_state,
+        _,
+    ) = get_service_info(
         ledger_api=ledger_api,
         chain_type=chain_type,
         token_id=service_id,

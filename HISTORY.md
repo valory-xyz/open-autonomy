@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+
+# 0.10.8 (2023-07-19)
+
+Autonomy:
+ - open-aea bumped to 1.36.0
+
 # 0.10.7 (2023-06-21)
 
 Packages:
