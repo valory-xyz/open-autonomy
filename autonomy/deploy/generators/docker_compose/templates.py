@@ -69,17 +69,17 @@ HARDHAT_NODE_TEMPLATE: str = """  hardhat:
 """
 
 TENDERMINT_NODE_TEMPLATE: str = """
-  node{node_id}:
+  {container_name}:
     mem_limit: 1024m
     mem_reservation: 256M
     cpus: 0.5
-    container_name: node{node_id}
-    hostname: node{node_id}
+    container_name: {container_name}
+    hostname: {container_name}
     image: "{tendermint_image_name}:{tendermint_image_version}"
     restart: always
     environment:
       - ID={node_id}
-      - PROXY_APP=tcp://abci{node_id}:26658
+      - PROXY_APP=tcp://{abci_node}:26658
       - TMHOME=/tendermint/node{node_id}
       - CREATE_EMPTY_BLOCKS=true
       - DEV_MODE=0
@@ -88,7 +88,7 @@ TENDERMINT_NODE_TEMPLATE: str = """
     working_dir: /tendermint
     command: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080",]
     depends_on:
-      abci{node_id}:
+      {abci_node}:
         condition: service_healthy
     networks:
       {network_name}:
@@ -99,11 +99,11 @@ TENDERMINT_NODE_TEMPLATE: str = """
 """
 
 ABCI_NODE_TEMPLATE: str = """
-  abci{node_id}:
+  {container_name}:
     mem_limit: 1024m
     mem_reservation: 256M
     cpus: 1
-    container_name: abci{node_id}
+    container_name: {container_name}
     image: {runtime_image}
     environment:
       - PYTHONHASHSEED=0

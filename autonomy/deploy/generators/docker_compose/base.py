@@ -58,14 +58,17 @@ from autonomy.deploy.generators.docker_compose.templates import (
 
 NETWORK_ADDRESS_OFFSET = 1
 BASE_SUBNET = cast(ipaddress.IPv4Network, ipaddress.ip_network("192.167.11.0/24"))
+SUBNET_OVERFLOW = 256
 
 DEFAULT_PACKAGES_PATH = Path.cwd().absolute() / "packages"
 DEFAULT_OPEN_AEA_DIR: Path = Path.home().absolute() / "open-aea"
 DEFAULT_OPEN_AUTONOMY_DIR: Path = Path.home().absolute() / "open-autonomy"
 
 
-def build_tendermint_node_config(
+def build_tendermint_node_config(  # pylint: disable=too-many-arguments
     node_id: int,
+    container_name: str,
+    abci_node: str,
     network_name: str,
     network_address: str,
     dev_mode: bool = False,
@@ -76,6 +79,8 @@ def build_tendermint_node_config(
 
     config = TENDERMINT_NODE_TEMPLATE.format(
         node_id=node_id,
+        container_name=container_name,
+        abci_node=abci_node,
         network_address=network_address,
         localnet_port_range=node_id,
         log_level=log_level,
@@ -102,6 +107,7 @@ def build_tendermint_node_config(
 
 def build_agent_config(  # pylint: disable=too-many-arguments
     node_id: int,
+    container_name: str,
     agent_vars: Dict,
     runtime_image: str,
     network_name: str,
@@ -117,6 +123,7 @@ def build_agent_config(  # pylint: disable=too-many-arguments
     agent_vars_string = "\n".join([f"      - {k}={v}" for k, v in agent_vars.items()])
     config = ABCI_NODE_TEMPLATE.format(
         node_id=node_id,
+        container_name=container_name,
         agent_vars=agent_vars_string,
         network_address=network_address,
         runtime_image=runtime_image,
@@ -177,7 +184,7 @@ class Network:
 
         subnet = self.base
         while str(subnet) in used_subnets:
-            new_address = subnet.network_address + 256
+            new_address = subnet.network_address + SUBNET_OVERFLOW
             subnet = cast(
                 ipaddress.IPv4Network,
                 ipaddress.ip_network(f"{new_address}/{subnet.prefixlen}"),
@@ -234,7 +241,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     ) -> "DockerComposeGenerator":
         """Generate the new configuration."""
 
-        network_name = f"service_{self.service_builder.service.agent.name}_localnet"
+        network_name = f"service_{self.service_builder.service.name}_localnet"
         network = Network(name=network_name)
         image_version = image_version or self.service_builder.service.agent.hash
         if self.dev_mode:
@@ -250,6 +257,9 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             [
                 build_agent_config(
                     node_id=i,
+                    container_name=self.service_builder.get_abci_container_name(
+                        index=i
+                    ),
                     runtime_image=runtime_image,
                     agent_vars=agent_vars[i],
                     dev_mode=self.dev_mode,
@@ -271,6 +281,8 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             [
                 build_tendermint_node_config(
                     node_id=i,
+                    container_name=self.service_builder.get_tm_container_name(index=i),
+                    abci_node=self.service_builder.get_abci_container_name(index=i),
                     dev_mode=self.dev_mode,
                     log_level=self.service_builder.log_level,
                     tendermint_ports=(
