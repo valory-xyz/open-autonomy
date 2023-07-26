@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+# 0.10.10 (2023-07-26)
+
+Autonomy:
+- Adds support for running multiple `docker-compose` deployments in the same machine
+
+
 # 0.10.9 (2023-07-25)
 
 Autonomy:
