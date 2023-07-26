@@ -414,6 +414,7 @@ class TestOverrideTypes(BaseDeploymentTests):
             )
             app_instance.service.check_overrides_valid(app_instance.service.overrides)
 
+    @skip_docker_tests
     def test_validates_with_10_agents(self) -> None:
         """Test functionality of deploy safe contract."""
         for deployment_generator in deployment_generators:
@@ -429,6 +430,7 @@ class TestOverrideTypes(BaseDeploymentTests):
             app_instance.generate_agents()
             deployment_instance.generate()
 
+    @skip_docker_tests
     def test_validates_with_20_agents(self) -> None:
         """Test functionality of deploy safe contract."""
         for deployment_generator in deployment_generators:

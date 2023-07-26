@@ -124,7 +124,6 @@ _sym_db.RegisterMessage(TendermintMessage.Error_Performative)
 _sym_db.RegisterMessage(TendermintMessage.Error_Performative.ErrorDataEntry)
 
 if _descriptor._USE_C_DESCRIPTORS == False:
-
     DESCRIPTOR._options = None
     _TENDERMINTMESSAGE_ERROR_PERFORMATIVE_ERRORDATAENTRY._options = None
     _TENDERMINTMESSAGE_ERROR_PERFORMATIVE_ERRORDATAENTRY._serialized_options = b"8\001"
