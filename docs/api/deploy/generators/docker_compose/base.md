@@ -11,6 +11,8 @@ Docker-compose Deployment Generator.
 ```python
 def build_tendermint_node_config(
         node_id: int,
+        container_name: str,
+        abci_node: str,
         network_name: str,
         network_address: str,
         dev_mode: bool = False,
@@ -26,6 +28,7 @@ Build tendermint node config for docker compose.
 
 ```python
 def build_agent_config(node_id: int,
+                       container_name: str,
                        agent_vars: Dict,
                        runtime_image: str,
                        network_name: str,

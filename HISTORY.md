@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.10.9 (2023-07-25)
+
+Autonomy:
+- Bumps `open-aea` to `v1.37.0`
+
 
 # 0.10.8 (2023-07-19)
 
@@ -17,7 +22,7 @@ Chore:
 - Bumps `web3py` to `v5.31.4` #1999
 
 Docs:
-- Fixes olas.network links #1998
+- Fixes `olas.network` links #1998
 
 # 0.10.6 (2023-06-12)
 
