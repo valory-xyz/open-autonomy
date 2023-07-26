@@ -166,6 +166,15 @@ class Network:
 
         self._address_offeset = NETWORK_ADDRESS_OFFSET
 
+    @staticmethod
+    def next_subnet(subnet: ipaddress.IPv4Network) -> ipaddress.IPv4Network:
+        """Calculat next available subnet."""
+        new_address = subnet.network_address + SUBNET_OVERFLOW
+        return cast(
+            ipaddress.IPv4Network,
+            ipaddress.ip_network(f"{new_address}/{subnet.prefixlen}"),
+        )
+
     def build(
         self,
     ) -> ipaddress.IPv4Network:
@@ -184,11 +193,7 @@ class Network:
 
         subnet = self.base
         while str(subnet) in used_subnets:
-            new_address = subnet.network_address + SUBNET_OVERFLOW
-            subnet = cast(
-                ipaddress.IPv4Network,
-                ipaddress.ip_network(f"{new_address}/{subnet.prefixlen}"),
-            )
+            subnet = self.next_subnet(subnet=subnet)
         return subnet
 
     @property

@@ -62,6 +62,17 @@ def __init__(name: str, base: ipaddress.IPv4Network = BASE_SUBNET) -> None
 
 Initialize.
 
+<a id="autonomy.deploy.generators.docker_compose.base.Network.next_subnet"></a>
+
+#### next`_`subnet
+
+```python
+@staticmethod
+def next_subnet(subnet: ipaddress.IPv4Network) -> ipaddress.IPv4Network
+```
+
+Calculat next available subnet.
+
 <a id="autonomy.deploy.generators.docker_compose.base.Network.build"></a>
 
 #### build
