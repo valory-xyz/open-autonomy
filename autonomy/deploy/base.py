@@ -132,11 +132,11 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
 
     def get_abci_container_name(self, index: int) -> str:
         """Format ABCI container name."""
-        return f"{self._service_name_clean}abci{index}"
+        return f"{self._service_name_clean}_abci_{index}"
 
     def get_tm_container_name(self, index: int) -> str:
         """Format tendermint container name."""
-        return f"{self._service_name_clean}tm{index}"
+        return f"{self._service_name_clean}_tm_{index}"
 
     def try_get_all_participants(self) -> Optional[List[str]]:
         """Try get all participants from the ABCI overrides"""
