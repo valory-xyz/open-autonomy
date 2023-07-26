@@ -20,4 +20,4 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==1.37.0
   open-aea-test-autonomy:
-    version: ==0.10.9
+    version: ==0.10.10
