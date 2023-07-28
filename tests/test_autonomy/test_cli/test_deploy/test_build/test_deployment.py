@@ -188,6 +188,8 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                     str(self.t / DEFAULT_BUILD_FOLDER),
                     "--local",
                     "--local-tm-setup",
+                    "--n",
+                    "1",
                 )
             )
 
