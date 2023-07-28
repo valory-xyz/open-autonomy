@@ -215,7 +215,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         if not self.use_tm_testnet_setup:
             return self
 
-        hosts = " \\\n".join(
+        hosts = " ".join(
             [
                 "--hostname=" + self.service_builder.get_tm_container_name(index=k)
                 for k in range(self.service_builder.service.number_of_agents)
