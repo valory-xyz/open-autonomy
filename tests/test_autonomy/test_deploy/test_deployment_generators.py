@@ -27,6 +27,7 @@ from unittest import mock
 import pytest
 from aea.configurations.data_types import PublicId
 from aea.helpers.base import cd
+from aea_test_autonomy.docker.base import skip_docker_tests
 
 from autonomy.configurations.base import Service
 from autonomy.deploy.base import BaseDeploymentGenerator, ServiceBuilder
@@ -50,6 +51,7 @@ def get_dummy_service() -> Service:
     return Service(name="dummy", author="default", agent=AGENT)
 
 
+@skip_docker_tests
 @pytest.mark.parametrize("generator_cls", (DockerComposeGenerator, KubernetesGenerator))
 @pytest.mark.parametrize("image_version", [None, "0.1.0"])
 @pytest.mark.parametrize("use_hardhat", [False, True])
