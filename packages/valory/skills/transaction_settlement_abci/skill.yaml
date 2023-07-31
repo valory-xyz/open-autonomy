@@ -22,7 +22,7 @@ fingerprint:
   tests/test_behaviours.py: bafybeici37gttvhpcufar457oky4opaql2nwqj6lwlsnbg52uapg2fcobm
   tests/test_dialogues.py: bafybeictrjf6jzsj4y6u2ftdrb2nyriiipia5b7wc4fsli3lwbjpd3mbam
   tests/test_handlers.py: bafybeievntkwacpfaom3qabvrlworjqyd4sgfjknjlhys7f5tuq7725xli
-  tests/test_models.py: bafybeidn3s2f5ghfilxo3bcyffyrsfujbm7iqlbs6xurtai34hsyvopkku
+  tests/test_models.py: bafybeihvrv7vtaei64nv7okkfz2gg2g4ey4nei27ayc74h5bdlqpbk4xde
   tests/test_payload_tools.py: bafybeihyw5ea22gw3p2iz3ipce3rjkglwptaa2p2cvtqr4sfus4pi5blhu
   tests/test_payloads.py: bafybeidvjqvjvnuw5vt4zgnqwzopvprznmefosqy3wcxukvobaiishygze
   tests/test_rounds.py: bafybeicx644a742mnebxkxufuhmbcc4zasyol6daycnmfdpbawfvbc6rfu
@@ -33,12 +33,12 @@ connections: []
 contracts:
 - valory/gnosis_safe:0.1.0:bafybeibhezhwgi5ustv675gfohsq5l5xjijp36gqueuicyl2ofrtkrortm
 protocols:
-- open_aea/signing:1.0.0:bafybeifuxs7gdg2okbn7uofymenjlmnih2wxwkym44lsgwmklgwuckxm2m
+- open_aea/signing:1.0.0:bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4
 - valory/abci:0.1.0:bafybeigootsvqpk6th5xpdtzanxum3earifrrezfyhylfrit7yvqdrtgpe
-- valory/contract_api:1.0.0:bafybeiasywsvax45qmugus5kxogejj66c5taen27h4voriodz7rgushtqa
-- valory/ledger_api:1.0.0:bafybeigsvceac33asd6ecbqev34meyyjwu3rangenv6xp5rkxyz4krvcby
+- valory/contract_api:1.0.0:bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy
+- valory/ledger_api:1.0.0:bafybeibo4bdtcrxi2suyzldwoetjar6pqfzm6vt5xal22ravkkcvdmtksi
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeibqpzbklnljvtc67yon4ciijxj75d7vazm7rurcvbbfnk6jtudukm
+- valory/abstract_round_abci:0.1.0:bafybeibxprbas6islpxzjr2jz7gig5m6o233p3xkdr3etx32xdeuqbbb44
 behaviours:
   main:
     args: {}
