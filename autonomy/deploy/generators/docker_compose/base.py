@@ -215,13 +215,11 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         if not self.use_tm_testnet_setup:
             return self
 
-        hosts = (
-            " \\\n".join(
-                [
-                    f"--hostname=node{k}"
-                    for k in range(self.service_builder.service.number_of_agents)
-                ]
-            ),
+        hosts = " ".join(
+            [
+                "--hostname=" + self.service_builder.get_tm_container_name(index=k)
+                for k in range(self.service_builder.service.number_of_agents)
+            ]
         )
         self.tendermint_job_config = TENDERMINT_CONFIG_TEMPLATE.format(
             validators=self.service_builder.service.number_of_agents, hosts=hosts
