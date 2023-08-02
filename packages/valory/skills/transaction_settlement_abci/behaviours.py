@@ -856,6 +856,9 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
             old_price=self.params.mutable_params.gas_price,
             operation=tx_params["operation"],
             fallback_gas=self.params.mutable_params.fallback_gas,
+            gas_price=self.params.gas_params.gas_price,
+            max_fee_per_gas=self.params.gas_params.max_fee_per_gas,
+            max_priority_fee_per_gas=self.params.gas_params.max_priority_fee_per_gas,
         )
 
         tx_data = yield from self._get_tx_data(
