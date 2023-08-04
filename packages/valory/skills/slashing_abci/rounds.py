@@ -156,6 +156,9 @@ class SlashingCheckRound(CollectSameUntilThresholdRound):
             synchronized_data_class=self.synchronized_data_class,
             **majority_data,
         )
+        # we need to reset the collection before returning the slash start event,
+        # because this round is continuously and concurrently run in the background
+        self.collection = {}
         return state, Event.SLASH_START
 
 
