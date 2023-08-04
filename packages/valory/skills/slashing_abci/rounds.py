@@ -148,11 +148,12 @@ class SlashingCheckRound(CollectSameUntilThresholdRound):
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
-        if not self.threshold_reached:
+        synced_data = SynchronizedData(db=self.synchronized_data.db)
+        if not self.threshold_reached or synced_data.slashing_in_flight:
             return None
 
         majority_data = dict(zip(self.selection_key, self.most_voted_payload_values))
-        state = self.synchronized_data.update(
+        state = synced_data.update(
             synchronized_data_class=self.synchronized_data_class,
             **majority_data,
         )
