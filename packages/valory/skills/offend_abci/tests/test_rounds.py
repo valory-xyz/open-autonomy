@@ -20,7 +20,7 @@
 """Test the rounds of the skill."""
 
 import json
-from typing import Any, Dict
+from typing import Dict
 from unittest.mock import MagicMock
 
 from packages.valory.skills.abstract_round_abci.base import (
@@ -42,12 +42,18 @@ class TestOffendRound(BaseCollectSameUntilThresholdRoundTest):
     _event_class = Event
 
     @property
+    def status(
+        self,
+    ) -> Dict[str, OffenceStatus]:
+        """Get a stub offence status."""
+        return {participant: OffenceStatus() for participant in self.participants}
+
+    @property
     def serialized_status(
         self,
     ) -> str:
         """Get a stub offence status, serialized."""
-        status = {participant: OffenceStatus() for participant in self.participants}
-        return json.dumps(status, cls=OffenseStatusEncoder, sort_keys=True)
+        return json.dumps(self.status, cls=OffenseStatusEncoder, sort_keys=True)
 
     @property
     def participant_to_offend(
@@ -61,27 +67,22 @@ class TestOffendRound(BaseCollectSameUntilThresholdRoundTest):
 
     def test_run(self) -> None:
         """Runs test."""
-        test_round = OffendRound(self.synchronized_data, MagicMock())
-
-        def expected_update(
-            synchronized_data: BaseSynchronizedData, _: Any
-        ) -> BaseSynchronizedData:
-            """Update the synchronized data as expected."""
-            synchronized_data.slashing_config = self.serialized_status
-            return synchronized_data
+        context_mock = MagicMock()
+        context_mock.state.round_sequence.offence_status = None
+        test_round = OffendRound(self.synchronized_data, context_mock)
 
         self._complete_run(
             self._test_round(
                 test_round=test_round,
                 round_payloads=self.participant_to_offend,
-                synchronized_data_update_fn=expected_update,
-                synchronized_data_attr_checks=[
-                    lambda _synchronized_data: _synchronized_data.slashing_config
-                ],
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data,
+                synchronized_data_attr_checks=[],
                 most_voted_payload=self.serialized_status,
                 exit_event=Event.DONE,
             )
         )
+
+        assert context_mock.state.round_sequence.offence_status == self.status
 
     def test_no_majority_event(self) -> None:
         """Test the no-majority event."""
