@@ -2866,6 +2866,11 @@ class AvailabilityWindow:
 
         :param max_length: the maximum length of the cyclic array.
         """
+        if max_length < 1:
+            raise ValueError(
+                f"An `AvailabilityWindow` with a `max_length` {max_length} < 1 is not valid."
+            )
+
         self._max_length = max_length
         self._window: Deque[bool] = deque(maxlen=max_length)
         self._num_positive = 0
@@ -3047,7 +3052,7 @@ class OffenseStatusDecoder(json.JSONDecoder):
     ) -> Union[AvailabilityWindow, OffenceStatus, Dict[str, OffenceStatus]]:
         """Perform the custom decoding."""
         # if this is an `AvailabilityWindow`
-        window_attributes = sorted(AvailabilityWindow(0).to_dict().keys())
+        window_attributes = sorted(AvailabilityWindow(1).to_dict().keys())
         if window_attributes == sorted(data.keys()):
             return AvailabilityWindow.from_dict(data)
 
