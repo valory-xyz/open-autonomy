@@ -302,6 +302,7 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
         if not self.is_majority_possible() or self.synchronized_data.slashing_in_flight:
             # If the service does not have enough participants to reach consensus, there is no need to run the act.
             # Additionally, we verify whether a slashing operation has already been triggered to avoid duplication.
+            yield from self.sleep(self.params.sleep_time)
             return
 
         if self.params.service_registry_address is None:  # pragma: no cover
