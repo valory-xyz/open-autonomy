@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.10.10.post1 (2023-07-28)
+
+Autonomy:
+- Update `tendermint` testnet command generator to accommodate for new container naming format 
+
 # 0.10.10 (2023-07-26)
 
 Autonomy:

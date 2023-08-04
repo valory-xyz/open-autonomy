@@ -20,12 +20,7 @@
 """Deployment Templates."""
 
 
-TENDERMINT_CONFIG_TEMPLATE: str = """/usr/bin/tendermint testnet \
-        --config /etc/tendermint/config-template.toml \
-        --v {validators} \
-        --o . \
-        {hosts}
-"""
+TENDERMINT_CONFIG_TEMPLATE: str = """/usr/bin/tendermint testnet --config /etc/tendermint/config-template.toml --v {validators} --o . {hosts}"""
 
 DOCKER_COMPOSE_TEMPLATE: str = """version: "2.4"
 services:
