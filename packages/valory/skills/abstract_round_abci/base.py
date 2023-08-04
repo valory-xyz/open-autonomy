@@ -2891,8 +2891,12 @@ class AvailabilityWindow:
         update_amount = -1 if removal else 1
 
         if positive:
+            if self._num_positive == 0 and update_amount == -1:  # pragma: no cover
+                return
             self._num_positive += update_amount
         else:
+            if self._num_negative == 0 and update_amount == -1:  # pragma: no cover
+                return
             self._num_negative += update_amount
 
     def add(self, value: bool) -> None:
