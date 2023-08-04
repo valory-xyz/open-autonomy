@@ -467,7 +467,10 @@ class StatusResetBehaviour(SlashingBaseBehaviour):
             # as also mentioned in `_get_instances_mapping`,
             # it would be better if `mapOperatorAndServiceIdAgentInstances` was used,
             # because getting the inverse here would not be necessary
-            operators_mapping = inverse(instances_mapping)
+            # in any case, we need to sort the mapping,
+            # as the order in which they are received from the contract is not guaranteed,
+            # and we need its content to be deterministic as it is later passed via the payload
+            operators_mapping = inverse(dict(sorted(instances_mapping.items())))
 
         # check `OperatorSlashed` event to see which agents were slashed and if everything went as expected
         slash_info = yield from self._process_slash_receipt(
