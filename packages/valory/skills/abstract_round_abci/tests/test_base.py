@@ -2566,7 +2566,8 @@ class TestRoundSequence:
         blockchain = self.round_sequence.blockchain
         blockchain._is_init = False
         self.round_sequence.blockchain = blockchain
-        self.round_sequence.commit()
+        with caplog.at_level(logging.INFO):
+            self.round_sequence.commit()
         expected = "Received block with height 1 before the blockchain was initialized."
         assert expected in caplog.text
 
