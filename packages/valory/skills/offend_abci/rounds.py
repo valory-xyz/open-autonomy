@@ -44,7 +44,7 @@ class Event(Enum):
 
 
 class OffendRound(CollectSameUntilThresholdRound):
-    """A round in which the agents get registered"""
+    """A round in which the agents simulate an offence"""
 
     synchronized_data_class = BaseSynchronizedData
     payload_class = OffencesPayload
