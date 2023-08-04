@@ -99,6 +99,11 @@ class SlashingBaseBehaviour(BaseBehaviour, ABC):
         """Get the offence status from the round sequence."""
         return self.round_sequence.offence_status
 
+    @offence_status.setter
+    def offence_status(self, status: Dict[str, OffenceStatus]) -> None:
+        """Set the offence status in the round sequence."""
+        self.round_sequence.offence_status = status
+
 
 class SlashingCheckBehaviour(SlashingBaseBehaviour):
     """
@@ -489,8 +494,9 @@ class StatusResetBehaviour(SlashingBaseBehaviour):
             f"A slashing operation has been performed for the operator(s) of agents {list(agent_to_timestamp.keys())}."
         )
         self.context.logger.info("Resetting status for the slashed agents.")
-        for agent in agent_to_timestamp.keys():
-            self.offence_status[agent] = OffenceStatus()
+        self.offence_status = {
+            agent: OffenceStatus() for agent in agent_to_timestamp.keys()
+        }
         self.context.logger.info("Successfully reset status for the slashed agents.")
 
         status_reset_payload = StatusResetPayload(
