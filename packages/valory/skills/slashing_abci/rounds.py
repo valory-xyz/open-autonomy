@@ -215,5 +215,13 @@ class PostSlashingTxAbciApp(AbciApp[Event]):
             Event.NONE: StatusResetRound,
         },
     }
+    cross_period_persisted_keys = frozenset(
+        {
+            get_name(SynchronizedData.operators_mapping),
+            get_name(SynchronizedData.slash_timestamps),
+            get_name(SynchronizedData.slashing_in_flight),
+            get_name(SynchronizedData.slashing_majority_reached),
+        }
+    )
     event_to_timeout: Dict[Event, float] = {Event.ROUND_TIMEOUT: 30.0}
     db_pre_conditions: Dict[AppState, Set[str]] = {StatusResetRound: set()}
