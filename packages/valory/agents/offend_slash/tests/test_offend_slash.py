@@ -79,7 +79,9 @@ class SlashingE2E(UseRegistries, UseACNNode, BaseTestEnd2End):
     wait_to_finish = 60
     _args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
 
-    def __set_configs(self, i: int, nb_agents: int) -> None:
+    def __set_configs(  # pylint: disable=unused-private-member
+        self, i: int, nb_agents: int
+    ) -> None:
         """Set the current agent's config overrides."""
         super().__set_configs(i=i, nb_agents=nb_agents)
 
