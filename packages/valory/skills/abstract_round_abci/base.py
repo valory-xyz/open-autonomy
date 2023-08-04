@@ -2171,7 +2171,7 @@ class BackgroundAppType(Enum):
         return set(BackgroundAppType.__members__) - {BackgroundAppType.INCORRECT.name}
 
 
-@dataclass
+@dataclass(frozen=True)
 class BackgroundAppConfig(Generic[EventType]):
     """
     Necessary configuration for a background app.
@@ -2204,6 +2204,7 @@ class BackgroundApp(Generic[EventType]):
         """Initialize the BackgroundApp."""
         given_args = locals()
 
+        self.config = config
         self.round_cls: AppState = config.round_cls
         self.transition_function: Optional[AbciAppTransitionFunction] = (
             config.abci_app.transition_function if config.abci_app is not None else None
@@ -2221,6 +2222,17 @@ class BackgroundApp(Generic[EventType]):
             f"Created background app of type '{self.type}' using {given_args}."
         )
         self._background_round: Optional[AbstractRound] = None
+
+    def __eq__(self, other: Any) -> bool:
+        """Custom equality comparing operator."""
+        if not isinstance(other, BackgroundApp):
+            return False
+
+        return self.config == other.config
+
+    def __hash__(self) -> int:
+        """Custom hashing operator"""
+        return hash(self.config)
 
     def specify_type(self) -> BackgroundAppType:
         """Specify the type of the background app."""

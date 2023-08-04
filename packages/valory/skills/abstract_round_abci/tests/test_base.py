@@ -1814,8 +1814,11 @@ class TestAbciApp:
         assert len(EmptyAbciApp.background_apps) == 0
         assert EmptyAbciApp.cross_period_persisted_keys == {"1", "2"}
         # add the background app
-        bg_app_config = deepcopy(STUB_TERMINATION_CONFIG)
-        bg_app_config.abci_app = BackgroundAbciApp
+        bg_app_config = abci_base.BackgroundAppConfig(
+            round_cls=ConcreteBackgroundRound,
+            start_event=ConcreteEvents.TERMINATE,
+            abci_app=BackgroundAbciApp,
+        )
         EmptyAbciApp.add_background_app(bg_app_config)
         assert len(EmptyAbciApp.background_apps) == 1
         assert EmptyAbciApp.cross_period_persisted_keys == {"1", "2", "3"}
