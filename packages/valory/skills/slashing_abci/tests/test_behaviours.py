@@ -265,7 +265,7 @@ class TestSlashingCheckBehaviour(BaseSlashingTest):
         # `error: Item "None" of "Optional[BaseBehaviour]" has no attribute "context"` when accessing the context below
         assert self.current_behaviour is not None
 
-        self.current_behaviour._slash_amounts = {}
+        self.current_behaviour._slash_amounts = {"agent": "something_random"}
         self.current_behaviour.round_sequence._offence_status = offence_status  # type: ignore
         self.current_behaviour.round_sequence._last_round_transition_timestamp = (
             last_timestamp

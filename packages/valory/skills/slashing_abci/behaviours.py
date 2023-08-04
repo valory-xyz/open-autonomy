@@ -196,6 +196,8 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
 
     def _check_offence_status(self) -> None:
         """Check the offence status, calculate the slash amount per operator, and assign it to `_slash_amounts`."""
+        self._slash_amounts = {}
+
         for agent, status in self.offence_status.items():
             amount = status.slash_amount(
                 self.params.light_slash_unit_amount,
