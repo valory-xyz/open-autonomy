@@ -204,7 +204,7 @@ class PostSlashingTxAbciApp(AbciApp[Event]):
     initial_states = {StatusResetRound}
     transition_function = {
         StatusResetRound: {
-            # the following is not needed, it is added to satisfy the round check
+            # the following is not needed, it is added to satisfy the round check.
             # the `SLASH_END` event is the end event of the slashing background app,
             # which signals the app to return to the main transition function
             # for more information, see `BackgroundApp` and `AbciApp` implementation
