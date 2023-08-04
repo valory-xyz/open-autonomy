@@ -28,20 +28,20 @@ from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 class SlashingTxPayload(BaseTxPayload):
     """Represent a transaction payload for slashing."""
 
-    # these two fields are present in order to simplify the `end_block` method implementation of the corresponding round
-    in_progress: bool = field(default=True, init=False)
-    sent: bool = field(default=True, init=False)
     # normal payload field
     tx_hex: str
+    # these two fields are present in order to simplify the `end_block` method implementation of the corresponding round
+    in_progress: bool = field(default=True)
+    sent: bool = field(default=True)
 
 
 @dataclass(frozen=True)
 class StatusResetPayload(BaseTxPayload):
     """Represent a transaction payload for resetting the offence status."""
 
-    # these two fields are present in order to simplify the `end_block` method implementation of the corresponding round
-    slashing_in_flight: bool = field(default=False, init=False)
-    slash_tx_sent: bool = field(default=False, init=False)
     # normal payload fields
     operators_mapping: str
     slash_timestamps: str
+    # these two fields are present in order to simplify the `end_block` method implementation of the corresponding round
+    slashing_in_flight: bool = field(default=False)
+    slash_tx_sent: bool = field(default=False)

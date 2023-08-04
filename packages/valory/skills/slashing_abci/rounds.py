@@ -107,9 +107,9 @@ class SlashingCheckRound(CollectSameUntilThresholdRound):
     payload_class = SlashingTxPayload
     synchronized_data_class = SynchronizedData
     selection_key = (
+        get_name(TxSettlementSyncedData.most_voted_tx_hash),
         get_name(SynchronizedData.slashing_in_flight),
         get_name(SynchronizedData.slashing_majority_reached),
-        get_name(TxSettlementSyncedData.most_voted_tx_hash),
     )
 
     def process_payload(self, payload: BaseTxPayload) -> None:
@@ -166,10 +166,10 @@ class StatusResetRound(CollectSameUntilThresholdRound):
     synchronized_data_class = SynchronizedData
     collection_key = get_name(SynchronizedData.participant_to_offence_reset)
     selection_key = (
-        get_name(SynchronizedData.slashing_in_flight),
-        get_name(SynchronizedData.slashing_majority_reached),
         get_name(SynchronizedData.operators_mapping),
         get_name(SynchronizedData.slash_timestamps),
+        get_name(SynchronizedData.slashing_in_flight),
+        get_name(SynchronizedData.slashing_majority_reached),
     )
     done_event = Event.SLASH_END
     no_majority_event = Event.NO_MAJORITY
