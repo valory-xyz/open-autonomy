@@ -5,10 +5,10 @@ license: Apache-2.0
 description: Offend and slash to test the slashing feature.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: 
-  __init__.py: 
-  tests/__init__.py: 
-  tests/test_offend_slash.py: 
+  README.md: bafybeibvdndrwbxlyljznpnv6rn7ks6e7sy4dfveb2vw7hqw3uuvrq64dm
+  __init__.py: bafybeihpqeerwvdztwaovdaas3lecjxztp7yectgjsqbk4phmpdjnww6fi
+  tests/__init__.py: bafybeic5zltt6wlvoegj2tfewe6qgr5f743lef4d6bkgvlqyfsnleiyb6y
+  tests/test_offend_slash.py: bafybeia4sgaoaedabeewbz4g3cqu2lnhhegf4e2rq7ajikargl66j7fibi
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeihofnsokowicviac6yz3uhur52l3mf54s2hz4i2je5ie4vlruouga
@@ -30,14 +30,14 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeibo4bdtcrxi2suyzldwoetjar6pqfzm6vt5xal22ravkkcvdmtksi
 - valory/tendermint:0.1.0:bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54
 skills:
-- valory/abstract_abci:0.1.0:bafybeiaax5v36477s3knhbjesr5bo6ixiwt2jobfvckwoxg7cpehcquhaa
-- valory/abstract_round_abci:0.1.0:bafybeibunpcyzetz4vuzsizwjtmlfcwy3wos6olx5lzm4eem7ntmt63k6u
-- valory/offend_abci:0.1.0:bafybeigyjldxq5beftb4igdwgo6iyhphe4ytovatyfsz53ldeasvr56uci
-- valory/offend_slash_abci:0.1.0:bafybeigicluwratwjda7u2xvt3olj262bcium67kzluhkbposawesqijbi
-- valory/registration_abci:0.1.0:bafybeibrtucsflsk6xxlq3lm5kuljcchyxdqhdmcaoatnufiz7wcogf744
-- valory/reset_pause_abci:0.1.0:bafybeibd55zw5lynzan7kw2v7zqdqs647i4x3qweszc2ggfwrstikwdcry
-- valory/slashing_abci:0.1.0:bafybeieqxqmm4nusbpulprmd5tnrjijs5xwrmsmo7wm2cnzefjac5pjjtq
-- valory/transaction_settlement_abci:0.1.0:bafybeibyjozl55uhxo6rk5hj7ehq5bqnxbru2pcmzt37wgx7y4h24m2jpi
+- valory/abstract_abci:0.1.0:bafybeiff2dqnkeorf343fmb3547fhiznvdw4ewbwl4rqluek2cv6ibl5hi
+- valory/abstract_round_abci:0.1.0:bafybeidped62jbgjwhkq3waoflfttbc7doe3rbol2vmdjoxuiqmqc4guim
+- valory/offend_abci:0.1.0:bafybeih6djagqwih53gi2eudq7nexctkziwsokqg434dlxy4irry2j4e54
+- valory/offend_slash_abci:0.1.0:bafybeibfe7zmsfxtfw5riv4idpghjtbtjwyr5gxqwld65y64rvvh7f273e
+- valory/registration_abci:0.1.0:bafybeifdm5o7d5oslkspklyl5l3vtwo4ght4efskeemu2fhudrjade6hki
+- valory/reset_pause_abci:0.1.0:bafybeidi6rfpuxlgu6m2kenfhcufjjwb7hgqgp3fsts5hpdh7t2opnngne
+- valory/slashing_abci:0.1.0:bafybeif3tcnj6mgeqrwzgsmd7cpig2cuw5ho3ike6nroq37c7twtbrc6gq
+- valory/transaction_settlement_abci:0.1.0:bafybeih75wg5zgl7c437apt3t6umkxalo3xr7hc6pziua7ipwulmiexp7i
 default_ledger: ethereum
 required_ledgers:
 - ethereum

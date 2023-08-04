@@ -23,7 +23,11 @@ from pathlib import Path
 
 import pytest
 from aea.configurations.data_types import PublicId
-from aea_test_autonomy.base_test_classes.agents import BaseTestEnd2EndExecution, RoundChecks, BaseTestEnd2End
+from aea_test_autonomy.base_test_classes.agents import (
+    BaseTestEnd2End,
+    BaseTestEnd2EndExecution,
+    RoundChecks,
+)
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401  pylint: disable=unused-import
     UseACNNode,
     UseRegistries,
@@ -93,9 +97,7 @@ class SlashingE2E(UseRegistries, UseACNNode, BaseTestEnd2End):
 
 
 @pytest.mark.e2e
-class TestSlashingThresholdUnmet(
-    SlashingE2E, BaseTestEnd2EndExecution
-):
+class TestSlashingThresholdUnmet(SlashingE2E, BaseTestEnd2EndExecution):
     """Test that slashing works right."""
 
     happy_path = NO_SLASHING_HAPPY_PATH
@@ -108,9 +110,7 @@ class TestSlashingThresholdUnmet(
 
 
 @pytest.mark.e2e
-class TestSlashing(
-    SlashingE2E, BaseTestEnd2EndExecution
-):
+class TestSlashing(SlashingE2E, BaseTestEnd2EndExecution):
     """Test that slashing works right."""
 
     happy_path = SLASHING_HAPPY_PATH
