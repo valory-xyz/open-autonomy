@@ -506,6 +506,7 @@ class AbciAppDB:
         self,
         setup_data: Dict[str, List[Any]],
         cross_period_persisted_keys: Optional[FrozenSet[str]] = None,
+        logger: Optional[logging.Logger] = None,
     ) -> None:
         """Initialize the AbciApp database.
 
@@ -515,7 +516,9 @@ class AbciAppDB:
 
         :param setup_data: the setup data
         :param cross_period_persisted_keys: data keys that will be kept after a new period starts
+        :param logger: the logger of the abci app
         """
+        self.logger = logger or _logger
         AbciAppDB._check_data(setup_data)
         self._setup_data = deepcopy(setup_data)
         self._data: Dict[int, Dict[str, List[Any]]] = {
@@ -535,7 +538,7 @@ class AbciAppDB:
             self.cross_period_persisted_keys
         )
         if not_in_cross_period:
-            _logger.warning(
+            self.logger.warning(
                 f"The setup data ({self._setup_data.keys()}) contain keys that are not in the "
                 f"cross period persisted keys ({self.cross_period_persisted_keys}): {not_in_cross_period}"
             )
@@ -755,7 +758,7 @@ class AbciAppDB:
         data = self.serialize()
         sha256.update(data.encode("utf-8"))
         hash_ = sha256.digest()
-        _logger.debug(f"root hash: {hash_.hex()}; data: {data}")
+        self.logger.debug(f"root hash: {hash_.hex()}; data: {data}")
         return hash_
 
     @staticmethod
@@ -2517,7 +2520,7 @@ class AbciApp(
                 # time if we're scheduling from within update_time
                 deadline = self.last_timestamp + datetime.timedelta(0, timeout)
                 entry_id = self._timeouts.add_timeout(deadline, event)
-                self.logger.info(
+                self.logger.debug(
                     "scheduling timeout of %s seconds for event %s with deadline %s",
                     timeout,
                     event,
@@ -2709,7 +2712,7 @@ class AbciApp(
     ) -> None:
         """Process a round event."""
         if self._current_round_cls is None:
-            self.logger.info(
+            self.logger.warning(
                 f"cannot process event '{event}' as current state is not set"
             )
             return
@@ -2739,15 +2742,15 @@ class AbciApp(
 
         :param timestamp: the latest block's timestamp.
         """
-        self.logger.info("arrived block with timestamp: %s", timestamp)
-        self.logger.info("current AbciApp time: %s", self._last_timestamp)
+        self.logger.debug("arrived block with timestamp: %s", timestamp)
+        self.logger.debug("current AbciApp time: %s", self._last_timestamp)
         self._timeouts.pop_earliest_cancelled_timeouts()
 
         if self._timeouts.size == 0:
             # if no pending timeouts, then it is safe to
             # move forward the last known timestamp to the
             # latest block's timestamp.
-            self.logger.info("no pending timeout, move time forward")
+            self.logger.debug("no pending timeout, move time forward")
             self._last_timestamp = timestamp
             return
 
@@ -2770,7 +2773,7 @@ class AbciApp(
             # of the next rounds. (for now we set it to timestamp to explore
             # the impact)
             self._last_timestamp = timestamp
-            self.logger.info(
+            self.logger.warning(
                 "current AbciApp time after expired deadline: %s", self.last_timestamp
             )
 
@@ -3526,7 +3529,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._block_builder.header = header
         self.abci_app.update_time(header.timestamp)
         self.set_block_stall_deadline()
-        _logger.info(
+        self.abci_app.logger.debug(
             "Created a new local deadline for the next `begin_block` request from the Tendermint node: "
             f"{self._block_stall_deadline}"
         )
@@ -3588,7 +3591,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
                 self._blockchain.add_block(block)
                 self._update_round()
             else:
-                logging.warning(
+                self.abci_app.logger.warning(
                     f"Received block with height {block.header.height} before the blockchain was initialized."
                 )
             # The ABCI app now waits again for the next block
@@ -3664,9 +3667,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._last_round_transition_tm_height = self.tm_height
 
         round_result, event = result
-        _logger.debug(
-            f"updating round, current_round {self.current_round.round_id}, event: {event}, "
-            f"round result {round_result}"
+        self.abci_app.logger.debug(
+            f"updating round, current_round {self.current_round.round_id}, event: {event}, round result {round_result}"
         )
         self.abci_app.process_event(event, result=round_result)
 

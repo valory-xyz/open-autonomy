@@ -742,9 +742,9 @@ class BaseBehaviour(
         self,
     ) -> Generator[None, None, None]:
         """Check if agent has completed sync."""
-        self.context.logger.info("Checking sync...")
+        self.context.logger.info("Synchronizing with Tendermint...")
         for _ in range(self.context.params.tendermint_max_retries):
-            self.context.logger.info(
+            self.context.logger.debug(
                 "Checking status @ " + self.context.params.tendermint_url + "/status",
             )
             status = yield from self._get_status()
@@ -757,7 +757,7 @@ class BaseBehaviour(
                 _is_sync_complete = local_height == remote_height
                 if _is_sync_complete:
                     self.context.logger.info(
-                        f"local height == remote == {local_height}; Sync complete..."
+                        f"local height == remote == {local_height}; Synchronization complete."
                     )
                     self.round_sequence.end_sync()
                     # we set the block stall deadline here because we pinged the /status endpoint
@@ -767,10 +767,12 @@ class BaseBehaviour(
                     return
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
             except (json.JSONDecodeError, KeyError):  # pragma: nocover
-                self.context.logger.error(
+                self.context.logger.debug(
                     "Tendermint not accepting transactions yet, trying again!"
                 )
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
+
+        self.context.logger.error("Could not synchronize with Tendermint!")
 
     def _log_start(self) -> None:
         """Log the entering in the behaviour."""
@@ -855,7 +857,7 @@ class BaseBehaviour(
                 # yield in time before the behaviour is finished. As a result logs below might not show
                 # up on the happy execution path.
             except TimeoutException:
-                self.context.logger.info(
+                self.context.logger.warning(
                     f"Timeout expired for submit tx. Retrying in {request_retry_delay} seconds..."
                 )
                 payload = payload.with_new_id()
@@ -868,7 +870,7 @@ class BaseBehaviour(
                 > NON_200_RETURN_CODE_DURING_RESET_THRESHOLD
                 or not resetting
             ):
-                self.context.logger.info(
+                self.context.logger.error(
                     f"Received return code != 200 with response {response} with body {str(response.body)}. "
                     f"Retrying in {request_retry_delay} seconds..."
                 )
@@ -887,7 +889,7 @@ class BaseBehaviour(
             self.context.logger.debug(f"JSON response: {pprint.pformat(json_body)}")
             tx_hash = json_body["result"]["hash"]
             if json_body["result"]["code"] != OK_CODE:
-                self.context.logger.info(
+                self.context.logger.error(
                     f"Received tendermint code != 0. Retrying in {request_retry_delay} seconds..."
                 )
                 yield from self.sleep(request_retry_delay)
@@ -901,28 +903,31 @@ class BaseBehaviour(
                     request_retry_delay=request_retry_delay,
                 )
             except TimeoutException:
-                self.context.logger.info(
-                    f"Timeout expired for wait until transaction delivered. Retrying in {request_retry_delay} seconds..."
+                self.context.logger.warning(
+                    f"Timeout expired for wait until transaction delivered. "
+                    f"Retrying in {request_retry_delay} seconds..."
                 )
                 payload = payload.with_new_id()
                 yield from self.sleep(request_retry_delay)
                 continue  # pragma: nocover
 
             if is_delivered:
-                self.context.logger.info("A2A transaction delivered!")
+                self.context.logger.debug("A2A transaction delivered!")
                 break
             if isinstance(res, HttpMessage) and self._is_invalid_transaction(res):
-                self.context.logger.info(
+                self.context.logger.error(
                     f"Tx sent but not delivered. Invalid transaction - not trying again! Response = {res}"
                 )
                 break
             # otherwise, repeat until done, or until stop condition is true
             if isinstance(res, HttpMessage) and self._tx_not_found(tx_hash, res):
-                self.context.logger.info(f"Tx {tx_hash} not found! Response = {res}")
+                self.context.logger.warning(f"Tx {tx_hash} not found! Response = {res}")
             else:
-                self.context.logger.info(f"Tx sent but not delivered. Response = {res}")
+                self.context.logger.warning(
+                    f"Tx sent but not delivered. Response = {res}"
+                )
             payload = payload.with_new_id()
-        self.context.logger.info(
+        self.context.logger.debug(
             "Stop condition is true, no more attempts to send the transaction."
         )
 
@@ -1093,7 +1098,7 @@ class BaseBehaviour(
             request_nonce
         ] = self.get_callback_request()
         self.context.outbox.put_message(message=ledger_api_msg)
-        self.context.logger.info("Sending transaction to ledger.")
+        self.context.logger.debug("Sending transaction to ledger...")
 
     def _send_transaction_receipt_request(
         self,
@@ -1131,13 +1136,13 @@ class BaseBehaviour(
             request_nonce
         ] = self.get_callback_request()
         self.context.outbox.put_message(message=ledger_api_msg)
-        self.context.logger.info(
-            f"sending transaction receipt request for tx_digest='{tx_digest}'."
+        self.context.logger.debug(
+            f"Sending transaction receipt request for tx_digest='{tx_digest}'..."
         )
 
     def _handle_signing_failure(self) -> None:
         """Handle signing failure."""
-        self.context.logger.error("the transaction could not be signed.")
+        self.context.logger.error("The transaction could not be signed!")
 
     def _submit_tx(
         self, tx_bytes: bytes, timeout: Optional[float] = None
@@ -1231,7 +1236,7 @@ class BaseBehaviour(
             if http_response.status_code != http_ok:
                 # a bad response was received, we cannot retrieve the number of active peers
                 self.context.logger.warning(
-                    f"/net_info responded with status {http_response.status_code}"
+                    f"`/net_info` responded with status {http_response.status_code}."
                 )
                 return None
 
@@ -1263,7 +1268,7 @@ class BaseBehaviour(
             """The callback request."""
             if self.is_stopped:
                 self.context.logger.debug(
-                    "dropping message as behaviour has stopped: %s", message
+                    "Dropping message as behaviour has stopped: %s", message
                 )
             elif self != current_behaviour:
                 self.handle_late_messages(self.behaviour_id, message)
@@ -1271,7 +1276,7 @@ class BaseBehaviour(
                 self.try_send(message)
             else:
                 self.context.logger.warning(
-                    "could not send message to FSMBehaviour: %s", message
+                    "Could not send message to FSMBehaviour: %s", message
                 )
 
         return callback_request
@@ -1559,7 +1564,9 @@ class BaseBehaviour(
             signature_response.performative
             != SigningMessage.Performative.SIGNED_TRANSACTION
         ):
-            self.context.logger.error("Error when requesting transaction signature.")
+            self.context.logger.error(
+                f"Error when requesting transaction signature: {signature_response}"
+            )
             return None, RPCResponseStatus.UNCLASSIFIED_ERROR
         self.context.logger.info(
             f"Received signature response: {signature_response}\n Sending transaction..."
@@ -1807,7 +1814,7 @@ class BaseBehaviour(
         """Request the Tendermint recovery parameters from the other agents via the ACN."""
 
         self.context.logger.info(
-            "Requesting the Tendermint recovery parameters from the other agents via the ACN."
+            "Requesting the Tendermint recovery parameters from the other agents via the ACN..."
         )
 
         performative = TendermintMessage.Performative.GET_RECOVERY_PARAMS
@@ -1934,7 +1941,7 @@ class BaseBehaviour(
             try:
                 response = json.loads(result.body.decode())
                 if response.get("status"):
-                    self.context.logger.info(response.get("message"))
+                    self.context.logger.debug(response.get("message"))
                     self.context.logger.info("Resetting tendermint node successful!")
                     is_replay = response.get("is_replay", False)
                     if is_replay:
@@ -1991,16 +1998,15 @@ class BaseBehaviour(
 
         remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
         local_height = self.round_sequence.height
-        self.context.logger.info(
-            "local-height = %s, remote-height=%s", local_height, remote_height
-        )
         if local_height != remote_height:
-            self.context.logger.info("local height != remote height; retrying...")
+            self.context.logger.warning(
+                f"local height ({local_height}) != remote height ({remote_height}); retrying..."
+            )
             yield from self.sleep(self.params.sleep_time)
             return False
 
         self.context.logger.info(
-            "local height == remote height; continuing execution..."
+            f"local height == remote height == {local_height}; continuing execution..."
         )
         if not on_startup:
             # if we are on startup we don't need to wait for the reset pause duration
@@ -2047,7 +2053,9 @@ class BaseBehaviour(
                 )
                 return None
             ipfs_hash = ipfs_message.ipfs_hash
-            self.context.logger.info(f"Successfully stored with IPFS hash: {ipfs_hash}")
+            self.context.logger.info(
+                f"Successfully stored {filename} to IPFS with hash: {ipfs_hash}"
+            )
             return ipfs_hash
         except IPFSInteractionError as e:  # pragma: no cover
             self.context.logger.error(
@@ -2150,7 +2158,7 @@ class TmManager(BaseBehaviour):
 
     def _gentle_reset(self) -> Generator[None, None, None]:
         """Perform a gentle reset of the Tendermint node."""
-        self.context.logger.info("Performing a gentle reset.")
+        self.context.logger.debug("Performing a gentle reset...")
         request_message, http_dialogue = self._build_http_request_message(
             "GET",
             self.params.tendermint_com_url + "/gentle_reset",
@@ -2205,7 +2213,7 @@ class TmManager(BaseBehaviour):
                 yield from self.sleep(self.hard_reset_sleep)
                 return
 
-        self.context.logger.info("Failed to reset tendermint.")
+        self.context.logger.error("Failed to reset tendermint.")
 
     def _get_reset_params(self, default: bool) -> Optional[Dict[str, str]]:
         """
@@ -2239,7 +2247,7 @@ class TmManager(BaseBehaviour):
                 self.try_send(message)
             else:
                 self.context.logger.warning(
-                    "could not send message to TmManager: %s", message
+                    "Could not send message to TmManager: %s", message
                 )
 
         return callback_request
@@ -2270,7 +2278,7 @@ class TmManager(BaseBehaviour):
 
         except StopIteration:
             # the generator is finished
-            self.context.logger.info("Applying tendermint fix finished.")
+            self.context.logger.debug("Applying tendermint fix finished.")
             self._active_generator = None
             # the following is required because the message
             # 'tick' might be the last one the generator needs

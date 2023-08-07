@@ -96,12 +96,12 @@ class RandomnessBehaviour(BaseBehaviour, ABC):
         )
         observation = self.context.randomness_api.process_response(response)
         if observation is not None:
-            self.context.logger.info("Verifying DRAND values.")
+            self.context.logger.info("Verifying DRAND values...")
             check, error = drand_check.verify(observation, self.params.drand_public_key)
             if check:
                 self.context.logger.info("DRAND check successful.")
             else:
-                self.context.logger.info(f"DRAND check failed, {error}.")
+                self.context.logger.error(f"DRAND check failed, {error}.")
                 return None
         return observation
 
@@ -116,16 +116,16 @@ class RandomnessBehaviour(BaseBehaviour, ABC):
         """
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             if self.context.randomness_api.is_retries_exceeded():
-                self.context.logger.info("Cannot retrieve randomness from api.")
-                self.context.logger.info("Generating randomness from chain.")
+                self.context.logger.warning("Cannot retrieve randomness from api.")
+                self.context.logger.info("Generating randomness from chain...")
                 observation = yield from self.failsafe_randomness()
                 if observation is None:
                     self.context.logger.error(
-                        "Could not generate randomness from chain."
+                        "Could not generate randomness from chain!"
                     )
                     return
             else:
-                self.context.logger.info("Retrieving DRAND values from api.")
+                self.context.logger.info("Retrieving DRAND values from api...")
                 observation = yield from self.get_randomness_from_api()
                 self.context.logger.info(f"Retrieved DRAND values: {observation}.")
 

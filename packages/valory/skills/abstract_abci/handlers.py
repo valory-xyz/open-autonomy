@@ -81,7 +81,7 @@ class ABCIHandler(Handler):
         handler = getattr(self, request_type, None)
         if handler is None:  # pragma: nocover
             self.context.logger.warning(
-                f"cannot handle request '{request_type}', ignoring..."
+                f"Cannot handle request '{request_type}', ignoring..."
             )
             return
 

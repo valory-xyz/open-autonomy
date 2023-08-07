@@ -212,8 +212,9 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
         if len(apps) > 1:
             apps_str = "\n".join(apps)
             _default_logger.warning(
-                f"The same event '{event}' has been found in several apps:\n{apps_str}\nIt will be interpreted as the same event."
-                " If this is not the intented behaviour, please rename it to enforce its uniqueness."
+                f"The same event '{event}' has been found in several apps:\n{apps_str}\n"
+                "It will be interpreted as the same event. "
+                "If this is not the intended behaviour, please rename it to enforce its uniqueness."
             )
 
     new_initial_round_cls = abci_apps[0].initial_round_cls
