@@ -1,0 +1,23 @@
+name: service_registry_l2
+author: valory
+version: 0.1.0
+type: contract
+description: Service Registry contract
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: bafybeidey4syohls5hxmso6qsp5p4uhtzle5txv2mlbym6ktjzknich6oa
+  build/ServiceRegistryL2.json: bafybeic2jylwfod4nmdtbs4izyxyi246pd3f35aoqyahnmyrvzn7j3sv4e
+  contract.py: bafybeicpjqsrj2gw6saed3pfaasfkg227rzn6tekekacr7nbarxprcjdme
+  tests/__init__.py: bafybeicl2oklx774jomlt6wwwegfdzrxh6iazjxwcyc7h4gepjljkpl4ji
+  tests/test_contract.py: bafybeidjecg2q7r65kcvrslyeoubpozezxzqhxucoi5cqbdrg6xqdtu6hi
+fingerprint_ignore_patterns: []
+contracts: []
+class_name: ServiceRegistryL2Contract
+contract_interface_paths:
+  ethereum: build/ServiceRegistryL2.json
+dependencies:
+  open-aea-ledger-ethereum:
+    version: ==1.37.0
+  open-aea-test-autonomy:
+    version: ==0.10.10.post1
