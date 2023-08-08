@@ -39,7 +39,10 @@ This command group consists of a number of functionalities to mint components, a
     The options `--use-ethereum`, `--use-goerli`, `--use-custom-chain` and `--use-local` are mutually exclusive.
 
 `--skip-hash-check`
-: Skip hash check when verifying dependencies on chain.
+: Skip hash check when verifyin--thresholdg dependencies on chain.
+
+`--skip-dependencies-check`
+: Skip dependency verification.
 
 ## `autonomy mint protocol` / `contract` / `connection` / `skill`
 
@@ -167,6 +170,9 @@ autonomy mint service [OPTIONS] PACKAGE_PATH
 
 `--threshold`
 : Threshold for the minimum number of agents required to run the service. The threshold has to be at least $\lceil(2N + 1) / 3\rceil$, where $N$ is total number of the agents in the service.
+
+`--l2`
+: The chain being used for minting is a layer 2 chain.
 
 ### Examples
 
