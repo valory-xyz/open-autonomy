@@ -171,9 +171,6 @@ autonomy mint service [OPTIONS] PACKAGE_PATH
 `--threshold`
 : Threshold for the minimum number of agents required to run the service. The threshold has to be at least $\lceil(2N + 1) / 3\rceil$, where $N$ is total number of the agents in the service.
 
-`--l2`
-: The chain being used for minting is a layer 2 chain.
-
 ### Examples
 
 Mint the `hello_world` service with 4 instances of canonical agent ID 3, cost of bond 10000000000000000 Wei per agent and a threshold of 3 agents, in the Ethereum main chain:
