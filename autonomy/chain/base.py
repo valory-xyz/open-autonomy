@@ -149,17 +149,5 @@ class RegistryContracts:
 
         return self._service_registry
 
-    @property
-    def service_registry_l2(
-        self,
-    ) -> Contract:
-        """Returns an instance of the registries manager contract."""
-        if self._service_registry_l2 is None:
-            self._service_registry_l2 = self.get_contract(
-                public_id=SERVICE_REGISTRY_L2_CONTRACT,
-            )
-
-        return self._service_registry_l2
-
 
 registry_contracts = RegistryContracts()

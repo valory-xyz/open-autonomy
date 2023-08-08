@@ -19,16 +19,17 @@
 
 """This module contains the class to connect to the Service Registry contract."""
 
-import hashlib, json
+import hashlib
+import json
 import logging
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
-from aea.crypto.ledger_apis import LedgerApi
-from pathlib import Path
+
 
 PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
 ETHEREUM_IDENTIFIER = "ethereum"
