@@ -71,6 +71,17 @@ def service_manager() -> Contract
 
 Returns an instance of the registries manager contract.
 
+<a id="autonomy.chain.base.RegistryContracts.service_manager_token"></a>
+
+#### service`_`manager`_`token
+
+```python
+@property
+def service_manager_token() -> Contract
+```
+
+Returns an instance of the registries manager contract.
+
 <a id="autonomy.chain.base.RegistryContracts.component_registry"></a>
 
 #### component`_`registry
@@ -100,6 +111,17 @@ Returns an instance of the registries manager contract.
 ```python
 @property
 def service_registry() -> Contract
+```
+
+Returns an instance of the registries manager contract.
+
+<a id="autonomy.chain.base.RegistryContracts.service_registry_l2"></a>
+
+#### service`_`registry`_`l2
+
+```python
+@property
+def service_registry_l2() -> Contract
 ```
 
 Returns an instance of the registries manager contract.

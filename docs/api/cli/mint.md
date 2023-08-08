@@ -18,8 +18,13 @@ Mint command group definitions.
     is_flag=True,
     help="Skip hash check when verifying dependencies on chain",
 )
+@click.option(
+    "--skip-dependencies-check",
+    is_flag=True,
+    help="Skip dependencies check.",
+)
 def mint(ctx: Context, chain_type: str, skip_hash_check: bool,
-         timeout: float) -> None
+         skip_dependencies_check: bool, timeout: float) -> None
 ```
 
 Mint component on-chain.
@@ -194,6 +199,11 @@ Mint an agent.
     required=True,
     help="Threshold for the minimum numbers required to run the service",
 )
+@click.option(
+    "--l2",
+    help="Chain you're using is an L2 chain",
+    is_flag=True,
+)
 def service(ctx: Context,
             package_path: Path,
             key: Path,
@@ -204,7 +214,8 @@ def service(ctx: Context,
             password: Optional[str],
             nft: Optional[Union[Path, IPFSHash]],
             owner: Optional[str],
-            hwi: bool = False) -> None
+            hwi: bool = False,
+            l2: bool = False) -> None
 ```
 
 Mint a service
