@@ -7,7 +7,7 @@
         "contract/valory/component_registry/0.1.0": "bafybeialw5eaa4v54s7i3sjsuy6d5k624quhxhziqntwq5hnz4g646sb7m",
         "contract/valory/agent_registry/0.1.0": "bafybeibkj4pm6ziqh2fl3xfsjiou4ibnxlipmvmqhgvc7xwpnaddbtxzli",
         "contract/valory/registries_manager/0.1.0": "bafybeihtfmbzsjwsz7kmujzc4bofyoxckekbdi643f762tj3fe4witgjqu",
-        "contract/valory/service_manager/0.1.0": "bafybeidzttjrfn3kfxubr24axouytshsm57sjl2232g2z3wlitk6dl32em",
+        "contract/valory/service_manager/0.1.0": "bafybeicf2cm5ttwygom6iqxmmrb3ws3xhwflfvgkhqhmmp64amqpmepvba",
         "skill/valory/test_ipfs_abci/0.1.0": "bafybeibqpdayc4nzadg5pqv3n2yzpqmbj6p3rsi3xs3vdrelseaorapfdm",
         "agent/valory/test_ipfs/0.1.0": "bafybeiald24uiau7qjozdujjdtd7z5ktuxtis7f35q4xeg7y4cafqss6pu",
         "contract/valory/service_registry/0.1.0": "bafybeidjm7w7pugc6kzrxlhbtnnc4rpgr3pkrg3owdxacrccar5qqwyu2e",
@@ -40,7 +40,9 @@
         "service/valory/register_reset/0.1.0": "bafybeibx3jdboks4c4gunfpkhbbluja3cs33spovr7rsoel3tvado2mlde",
         "skill/valory/register_reset_recovery_abci/0.1.0": "bafybeidonszdatkuua4xoekobpbzuuljcantjirodtfdaxynbz3k2kfj7e",
         "agent/valory/register_reset_recovery/0.1.0": "bafybeid4y2uenuliujsecspl75lr2kdxngejkowazi4b2qown65lohuppi",
-        "contract/valory/multicall2/0.1.0": "bafybeihdhxhs7lf5uy4fi7g3s3q2ge34q575pydbh7ccbcd4ebggsakpgy"
+        "contract/valory/multicall2/0.1.0": "bafybeihdhxhs7lf5uy4fi7g3s3q2ge34q575pydbh7ccbcd4ebggsakpgy",
+        "contract/valory/service_registry_l2/0.1.0": "bafybeid6vyfjvmf4c25dcdglemtbytdypqtgllmmnzalim4m2zkc7a26o4",
+        "contract/valory/service_manager_token/0.1.0": "bafybeiajaqn3ri7afjizddpdvtulwwzmihxpxmixrebq6kqjbkg3uofsla"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4",
