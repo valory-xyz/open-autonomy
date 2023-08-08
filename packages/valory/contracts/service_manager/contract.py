@@ -19,7 +19,9 @@
 
 """This module contains the class to connect to the Service Registry contract."""
 
+import json
 import logging
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from aea.common import JSONLike
@@ -29,7 +31,14 @@ from aea.crypto.base import LedgerApi
 
 
 PUBLIC_ID = PublicId.from_str("valory/service_manager:0.1.0")
-
+ETHEREUM_ERC20 = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+ETHEREUM_IDENTIFIER = "ethereum"
+L1_CHAINS = (
+    1,
+    5,
+    31337,
+)
+L2_BUILD_FILENAME = "ServiceManager.json"
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
 )
@@ -61,6 +70,34 @@ class ServiceManagerContract(Contract):
         """Get state."""
         raise NotImplementedError
 
+    @staticmethod
+    def load_l2_build() -> JSONLike:
+        """Load L2 ABI"""
+        path = Path(__file__).parent / "build" / L2_BUILD_FILENAME
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    @staticmethod
+    def is_l1_chain(ledger_api: LedgerApi) -> bool:
+        """Check if we're interecting with an L1 chain"""
+        return ledger_api.api.eth.chain_id in L1_CHAINS
+
+    @classmethod
+    def get_instance(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: Optional[str] = None,
+    ) -> Any:
+        """Get contract instance."""
+        if ledger_api.identifier != ETHEREUM_IDENTIFIER:
+            return super().get_instance(
+                ledger_api=ledger_api, contract_address=contract_address
+            )
+        if cls.is_l1_chain(ledger_api=ledger_api):
+            contract_interface = cls.contract_interface.get(ledger_api.identifier, {})
+        else:
+            contract_interface = cls.load_l2_build()
+        return ledger_api.get_contract_instance(contract_interface, contract_address)
+
     @classmethod
     def get_create_transaction(  # pylint: disable=too-many-arguments
         cls,
@@ -72,28 +109,31 @@ class ServiceManagerContract(Contract):
         agent_ids: List[int],
         agent_params: List[List[int]],
         threshold: int,
+        token: str = ETHEREUM_ERC20,
         raise_on_try: bool = False,
     ) -> Dict[str, Any]:
         """Retrieve the service owner."""
+        method_args = {
+            "serviceOwner": owner,
+            "configHash": metadata_hash,
+            "agentIds": agent_ids,
+            "agentParams": agent_params,
+            "threshold": threshold,
+        }
+        if cls.is_l1_chain(ledger_api=ledger_api):
+            method_args["token"] = ledger_api.api.to_checksum_address(token)
 
-        tx_params = ledger_api.build_transaction(
+        return ledger_api.build_transaction(
             contract_instance=cls.get_instance(
                 ledger_api=ledger_api, contract_address=contract_address
             ),
             method_name="create",
-            method_args={
-                "serviceOwner": owner,
-                "configHash": metadata_hash,
-                "agentIds": agent_ids,
-                "agentParams": agent_params,
-                "threshold": threshold,
-            },
+            method_args=method_args,
             tx_args={
                 "sender_address": sender,
             },
             raise_on_try=raise_on_try,
         )
-        return tx_params
 
     @classmethod
     def get_activate_registration_transaction(  # pylint: disable=too-many-arguments
