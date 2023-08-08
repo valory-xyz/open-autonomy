@@ -272,6 +272,7 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
     skip_dependencies_check: bool = False,
     timeout: Optional[float] = None,
     hwi: bool = False,
+    l2: bool = False,
 ) -> None:
     """Mint service"""
 
@@ -305,7 +306,7 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
             f"Please provide hash for NFT image to mint component on `{chain_type.value}` chain"
         )
 
-    if not skip_dependencies_check:
+    if not l2 and not skip_dependencies_check:
         try:
             verify_service_dependencies(
                 ledger_api=ledger_api,
@@ -346,6 +347,7 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
             threshold=threshold,
             timeout=timeout,
             owner=owner,
+            l2=l2,
         )
     except ComponentMintFailed as e:
         raise click.ClickException(

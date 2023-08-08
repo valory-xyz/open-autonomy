@@ -328,6 +328,11 @@ def agent(  # pylint: disable=too-many-arguments
     required=True,
     help="Threshold for the minimum numbers required to run the service",
 )
+@click.option(
+    "--l2",
+    help="Chain you're using is an L2 chain",
+    is_flag=True,
+)
 def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-arguments
     ctx: Context,
     package_path: Path,
@@ -340,6 +345,7 @@ def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-a
     nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
     hwi: bool = False,
+    l2: bool = False,
 ) -> None:
     """Mint a service"""
 
@@ -358,4 +364,5 @@ def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-a
         skip_dependencies_check=ctx.config.get("skip_dependencies_check", False),
         timeout=ctx.config["timeout"],
         hwi=hwi,
+        l2=l2,
     )
