@@ -130,7 +130,7 @@ install: clean
 
 .PHONY: eject-contracts
 eject-contracts:
-	@for contract in registries_manager service_manager component_registry agent_registry service_registry ; do \
+	@for contract in registries_manager service_manager service_manager_token component_registry agent_registry service_registry service_registry_l2 ; do \
 		echo Updating $$contract contract; \
     	rm -rf autonomy/data/contracts/$$contract ; \
 		cp -r packages/valory/contracts/$$contract autonomy/data/contracts/$$contract ; \
