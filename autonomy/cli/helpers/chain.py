@@ -200,7 +200,7 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
             f"Please provide hash for NFT image to mint component on `{chain_type.value}` chain"
         )
 
-    if not skip_dependencies_check:
+    if not skip_dependencies_check and chain_type == ChainType.ETHEREUM:
         try:
             verify_component_dependencies(
                 ledger_api=ledger_api,
@@ -305,7 +305,7 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
             f"Please provide hash for NFT image to mint component on `{chain_type.value}` chain"
         )
 
-    if not skip_dependencies_check:
+    if not skip_dependencies_check and chain_type == ChainType.ETHEREUM:
         try:
             verify_service_dependencies(
                 ledger_api=ledger_api,
