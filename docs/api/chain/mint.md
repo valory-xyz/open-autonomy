@@ -69,8 +69,7 @@ def mint_service(ledger_api: LedgerApi,
                  cost_of_bond_per_agent: List[int],
                  threshold: int,
                  owner: Optional[str] = None,
-                 timeout: Optional[float] = None,
-                 l2: bool = False) -> Optional[int]
+                 timeout: Optional[float] = None) -> Optional[int]
 ```
 
 Publish component on-chain.

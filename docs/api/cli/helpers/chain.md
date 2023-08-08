@@ -57,8 +57,7 @@ def mint_service(package_path: Path,
                  skip_hash_check: bool = False,
                  skip_dependencies_check: bool = False,
                  timeout: Optional[float] = None,
-                 hwi: bool = False,
-                 l2: bool = False) -> None
+                 hwi: bool = False) -> None
 ```
 
 Mint service

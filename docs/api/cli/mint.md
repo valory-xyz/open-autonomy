@@ -199,11 +199,6 @@ Mint an agent.
     required=True,
     help="Threshold for the minimum numbers required to run the service",
 )
-@click.option(
-    "--l2",
-    help="Chain you're using is an L2 chain",
-    is_flag=True,
-)
 def service(ctx: Context,
             package_path: Path,
             key: Path,
@@ -214,8 +209,7 @@ def service(ctx: Context,
             password: Optional[str],
             nft: Optional[Union[Path, IPFSHash]],
             owner: Optional[str],
-            hwi: bool = False,
-            l2: bool = False) -> None
+            hwi: bool = False) -> None
 ```
 
 Mint a service
