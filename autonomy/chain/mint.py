@@ -35,9 +35,7 @@ from autonomy.chain.constants import (
     EVENT_VERIFICATION_TIMEOUT,
     REGISTRIES_MANAGER_CONTRACT,
     SERVICE_MANAGER_CONTRACT,
-    SERVICE_MANAGER_TOKEN_CONTRACT,
     SERVICE_REGISTRY_CONTRACT,
-    SERVICE_REGISTRY_L2_CONTRACT,
 )
 from autonomy.chain.exceptions import (
     ComponentMintFailed,
@@ -91,7 +89,6 @@ def wait_for_component_to_mint(
     deadline = datetime.datetime.now() + datetime.timedelta(seconds=timeout)
     while datetime.datetime.now() < deadline:
         token_id = token_retriever()
-        print(token_id)
         if token_id is not None:
             return token_id
         time.sleep(sleep)
@@ -188,7 +185,6 @@ def mint_service(  # pylint: disable=too-many-arguments,too-many-locals
     threshold: int,
     owner: Optional[str] = None,
     timeout: Optional[float] = None,
-    l2: bool = False,
 ) -> Optional[int]:
     """Publish component on-chain."""
 
@@ -243,34 +239,19 @@ def mint_service(  # pylint: disable=too-many-arguments,too-many-locals
         raise ComponentMintFailed(f"Invalid owner address {owner}") from e
 
     try:
-        if l2:
-            tx = registry_contracts.service_manager.get_create_transaction(
-                ledger_api=ledger_api,
-                contract_address=ContractConfigs.get(
-                    SERVICE_MANAGER_CONTRACT.name
-                ).contracts[chain_type],
-                owner=owner,
-                sender=crypto.address,
-                metadata_hash=metadata_hash,
-                agent_ids=agent_ids,
-                agent_params=agent_params,
-                threshold=threshold,
-                raise_on_try=True,
-            )
-        else:
-            tx = registry_contracts.service_manager_token.get_create_transaction(
-                ledger_api=ledger_api,
-                contract_address=ContractConfigs.get(
-                    SERVICE_MANAGER_TOKEN_CONTRACT.name
-                ).contracts[chain_type],
-                owner=owner,
-                sender=crypto.address,
-                metadata_hash=metadata_hash,
-                agent_ids=agent_ids,
-                agent_params=agent_params,
-                threshold=threshold,
-                raise_on_try=True,
-            )
+        tx = registry_contracts.service_manager.get_create_transaction(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                SERVICE_MANAGER_CONTRACT.name
+            ).contracts[chain_type],
+            owner=owner,
+            sender=crypto.address,
+            metadata_hash=metadata_hash,
+            agent_ids=agent_ids,
+            agent_params=agent_params,
+            threshold=threshold,
+            raise_on_try=True,
+        )
         tx_receipt = transact(
             ledger_api=ledger_api,
             crypto=crypto,
@@ -281,26 +262,16 @@ def mint_service(  # pylint: disable=too-many-arguments,too-many-locals
     except RequestsConnectionError as e:
         raise ComponentMintFailed("Cannot connect to the given RPC") from e
 
+    def token_retriever() -> bool:
+        """Retrieve token"""
+        return registry_contracts.service_registry.filter_token_id_from_emitted_events(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                SERVICE_REGISTRY_CONTRACT.name
+            ).contracts[chain_type],
+        )
+
     try:
-
-        def token_retriever() -> bool:
-            """Retrieve token"""
-            if l2:
-                return registry_contracts.service_registry_l2.filter_token_id_from_emitted_events(
-                    ledger_api=ledger_api,
-                    contract_address=ContractConfigs.get(
-                        SERVICE_REGISTRY_L2_CONTRACT.name
-                    ).contracts[chain_type],
-                )
-            return (
-                registry_contracts.service_registry.filter_token_id_from_emitted_events(
-                    ledger_api=ledger_api,
-                    contract_address=ContractConfigs.get(
-                        SERVICE_REGISTRY_CONTRACT.name
-                    ).contracts[chain_type],
-                )
-            )
-
         return wait_for_component_to_mint(
             token_retriever=token_retriever, timeout=timeout
         )

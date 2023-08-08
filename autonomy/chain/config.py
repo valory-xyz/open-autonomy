@@ -148,18 +148,6 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
         },
     )
 
-    service_registry_l2 = ContractConfig(
-        name="service_registry_l2",
-        contracts={
-            ChainType.LOCAL: getattr(
-                chain_constants, f"SERVICE_REGISTRY_ADDRESS_{ChainType.LOCAL.name}"
-            ),
-            ChainType.CUSTOM: getattr(
-                chain_constants, f"SERVICE_REGISTRY_ADDRESS_{ChainType.CUSTOM.name}"
-            ),
-        },
-    )
-
     service_manager = ContractConfig(
         name="service_manager",
         contracts={
@@ -167,20 +155,6 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
                 chain_constants, f"SERVICE_MANAGER_ADDRESS_{chain_type.name}"
             )
             for chain_type in ChainType
-        },
-    )
-
-    service_manager_token = ContractConfig(
-        name="service_manager_token",
-        contracts={
-            ChainType.LOCAL: getattr(
-                chain_constants,
-                f"SERVICE_MANAGER_TOKEN_ADDRESS_{ChainType.LOCAL.name}",
-            ),
-            ChainType.ETHEREUM: getattr(
-                chain_constants,
-                f"SERVICE_MANAGER_TOKEN_ADDRESS_{ChainType.ETHEREUM.name}",
-            ),
         },
     )
 
