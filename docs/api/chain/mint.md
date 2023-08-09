@@ -9,7 +9,11 @@ Helpers for minting components
 #### transact
 
 ```python
-def transact(ledger_api: LedgerApi, crypto: Crypto, tx: Dict) -> Dict
+def transact(ledger_api: LedgerApi,
+             crypto: Crypto,
+             tx: Dict,
+             max_retries: int = 5,
+             sleep: float = 2.0) -> Optional[Dict]
 ```
 
 Make a transaction and return a receipt

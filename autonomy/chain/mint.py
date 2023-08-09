@@ -47,13 +47,24 @@ from autonomy.chain.exceptions import (
 DEFAULT_NFT_IMAGE_HASH = "bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm"
 
 
-def transact(ledger_api: LedgerApi, crypto: Crypto, tx: Dict) -> Dict:
+def transact(
+    ledger_api: LedgerApi,
+    crypto: Crypto,
+    tx: Dict,
+    max_retries: int = 5,
+    sleep: float = 2.0,
+) -> Optional[Dict]:
     """Make a transaction and return a receipt"""
-
+    retries = 0
+    tx_receipt = None
     tx_signed = crypto.sign_transaction(transaction=tx)
     tx_digest = ledger_api.send_signed_transaction(tx_signed=tx_signed)
-
-    return ledger_api.get_transaction_receipt(tx_digest=tx_digest)
+    while tx_receipt is None and retries < max_retries:
+        time.sleep(sleep)
+        tx_receipt = ledger_api.get_transaction_receipt(tx_digest=tx_digest)
+        if tx_receipt is not None:
+            break
+    return tx_receipt
 
 
 def sort_service_dependency_metadata(
