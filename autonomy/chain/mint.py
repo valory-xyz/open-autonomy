@@ -269,7 +269,7 @@ def mint_service(  # pylint: disable=too-many-arguments,too-many-locals
             tx=tx,
         )
         if tx_receipt is None:
-            return None
+            raise ComponentMintFailed("Could not retrieve the transaction receipt")
     except RequestsConnectionError as e:
         raise ComponentMintFailed("Cannot connect to the given RPC") from e
 
