@@ -75,7 +75,7 @@ This is roughly how your workspace should look like:
     You can override the default registry in use (set up with `autonomy init`) for a particular command through the flags `--registry-path` and `--local`. For example, if the framework was initialized with the remote registry, the following command will fetch a runtime folder for the `hello_world` agent from the remote registry:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeid2hem4nmcjupxmuf5uixk3odoyxupon4q6iqljkamma62m75ws4q
+    autonomy fetch valory/hello_world:0.1.0:bafybeih7f3e5bl46i7z6hhayggc4evxlkm5vdtaydvwx5xqjq3aymhvree
     ```
 
     On the other hand, if you want to fetch the copy stored in your local registry, then you can use:
@@ -106,25 +106,25 @@ If you plan to follow the guides in the next sections, you need to populate the 
     "dev": {
     },
     "third_party": {
-        "service/valory/hello_world/0.1.0": "bafybeig2277qjz7zpkgwafrdbwoie3dw24ccqiresbjy3gl446r5kalape",
-        "agent/valory/hello_world/0.1.0": "bafybeid2hem4nmcjupxmuf5uixk3odoyxupon4q6iqljkamma62m75ws4q",
+        "service/valory/hello_world/0.1.0": "bafybeiapnbnr6cszubxhhkygr5krku7436prlcmzluiqnfqxy63ekp4bme",
+        "agent/valory/hello_world/0.1.0": "bafybeih7f3e5bl46i7z6hhayggc4evxlkm5vdtaydvwx5xqjq3aymhvree",
         "connection/valory/abci/0.1.0": "bafybeifq54kwhrbrzalzn2jt6qm5ntzck7z23hgm2jmewfgxs4jsnhu5vu",
-        "connection/valory/http_client/0.23.0": "bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi",
+        "connection/valory/http_client/0.23.0": "bafybeieoeuy4brzimtnubmokwirhrx27ezls6cdnl5qik4rkykfle3nn2y",
         "connection/valory/ipfs/0.1.0": "bafybeicwe4fksbhaqs4qycfdqbzgqtikfn3u4g5y5fucxfmriezwwf7hse",
-        "connection/valory/ledger/0.19.0": "bafybeicgfupeudtmvehbwziqfxiz6ztsxr5rxzvalzvsdsspzz73o5fzfi",
+        "connection/valory/ledger/0.19.0": "bafybeiejc7g7ebv3cleiqb4f4h4pspcu6vtr54332szwlqiabfs3sfdh44",
         "contract/valory/service_registry/0.1.0": "bafybeie3ncxiovdz74w3vsyatukzp2e2dsuetousaz6gzkfnym5muzisku",
-        "protocol/open_aea/signing/1.0.0": "bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4",
+        "protocol/open_aea/signing/1.0.0": "bafybeifuxs7gdg2okbn7uofymenjlmnih2wxwkym44lsgwmklgwuckxm2m",
         "protocol/valory/abci/0.1.0": "bafybeigootsvqpk6th5xpdtzanxum3earifrrezfyhylfrit7yvqdrtgpe",
-        "protocol/valory/acn/1.1.0": "bafybeignmc5uh3vgpuckljcj2tgg7hdqyytkm6m5b6v6mxtazdcvubibva",
-        "protocol/valory/contract_api/1.0.0": "bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy",
-        "protocol/valory/http/1.0.0": "bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty",
+        "protocol/valory/acn/1.1.0": "bafybeiapa5ilsobggnspoqhspftwolrx52udrwmaxdxgrk26heuvl4oooa",
+        "protocol/valory/contract_api/1.0.0": "bafybeiasywsvax45qmugus5kxogejj66c5taen27h4voriodz7rgushtqa",
+        "protocol/valory/http/1.0.0": "bafybeia5bxdua2i6chw6pg47bvoljzcpuqxzy4rdrorbdmcbnwmnfdobtu",
         "protocol/valory/ipfs/0.1.0": "bafybeibjzhsengtxfofqpxy6syamplevp35obemwfp4c5lhag3v2bvgysa",
-        "protocol/valory/ledger_api/1.0.0": "bafybeibo4bdtcrxi2suyzldwoetjar6pqfzm6vt5xal22ravkkcvdmtksi",
+        "protocol/valory/ledger_api/1.0.0": "bafybeigsvceac33asd6ecbqev34meyyjwu3rangenv6xp5rkxyz4krvcby",
         "protocol/valory/tendermint/0.1.0": "bafybeidjqmwvgi4rqgp65tbkhmi45fwn2odr5ecezw6q47hwitsgyw4jpa",
         "skill/valory/abstract_abci/0.1.0": "bafybeidnoe2d2ibt75smtc4m4ukklj62qqnefhclbvekhj54mz4ti5lgda",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeidymwayw5jquka5gx7er32krtakoyljjfxgm3jdgsgtwbhatgxqua",
-        "skill/valory/hello_world_abci/0.1.0": "bafybeibxhkqh2htqfrnvho5e4mckofvytsyzyd7gbd6czd25l6uxgladre",
-        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva"
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeibjbnxjqqiel4f4niw242vzbrjvw4252fv5rul47ut5a2b3drrrua",
+        "skill/valory/hello_world_abci/0.1.0": "bafybeiepld4ml2jqf522bcqh7umjjh3pvclkv2w3i4zwwqxghmldhclzwq",
+        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihdnfdth3qgltefgrem7xyi4b3ejzaz67xglm2hbma2rfvpl2annq"
     }
 }
 ```
