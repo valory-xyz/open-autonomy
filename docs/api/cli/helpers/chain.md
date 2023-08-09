@@ -32,6 +32,7 @@ def mint_component(package_path: Path,
                    owner: Optional[str] = None,
                    password: Optional[str] = None,
                    skip_hash_check: bool = False,
+                   skip_dependencies_check: bool = False,
                    timeout: Optional[float] = None,
                    hwi: bool = False) -> None
 ```
@@ -54,6 +55,7 @@ def mint_service(package_path: Path,
                  owner: Optional[str] = None,
                  password: Optional[str] = None,
                  skip_hash_check: bool = False,
+                 skip_dependencies_check: bool = False,
                  timeout: Optional[float] = None,
                  hwi: bool = False) -> None
 ```

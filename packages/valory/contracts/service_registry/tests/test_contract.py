@@ -177,7 +177,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         )
 
         assert security_deposit == 10000000000000000
-        assert multisig_address == "0xD8dE647170163a981bb3Fdb2063583eAcF7D55AC"
+        assert multisig_address == "0x77b783e911F4398D75908Cc60C7138Bd1eFe35Fd"
         assert ipfs_hash_for_config == b"UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
         assert threshold == 3
         assert max_number_of_agent_instances == 4
