@@ -4,6 +4,16 @@
 
 Helper functions to manage on-chain services
 
+<a id="autonomy.chain.service.get_default_delployment_payload"></a>
+
+#### get`_`default`_`delployment`_`payload
+
+```python
+def get_default_delployment_payload() -> str
+```
+
+Return default deployment payload.
+
 <a id="autonomy.chain.service.get_agent_instances"></a>
 
 #### get`_`agent`_`instances
