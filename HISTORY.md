@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.10.11.post1 (2023-08-10)
+
+Autonomy:
+- Fixes the deployment payload calculations on `autonomy service deploy` command
+
 # 0.10.11 (2023-08-08)
 
 Autonomy:
