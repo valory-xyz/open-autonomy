@@ -39,7 +39,7 @@ This command group consists of a number of functionalities to mint components, a
     The options `--use-ethereum`, `--use-goerli`, `--use-custom-chain` and `--use-local` are mutually exclusive.
 
 `--skip-hash-check`
-: Skip hash check when verifyin--thresholdg dependencies on chain.
+: Skip hash check when verifying dependencies on chain.
 
 `--skip-dependencies-check`
 : Skip dependency verification.

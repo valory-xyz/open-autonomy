@@ -44,9 +44,14 @@ from autonomy.chain.exceptions import (
 from autonomy.chain.mint import transact
 
 
-DEFAULT_DEPLOY_PAYLOAD = "0x"
+DEFAULT_DEPLOY_PAYLOAD = "0x0000000000000000000000000000000000000000f48f2b2d2a534e402487b3ee7c18c33aec0fe5e4000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 
 ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
+
+
+def get_default_delployment_payload() -> str:
+    """Return default deployment payload."""
+    return DEFAULT_DEPLOY_PAYLOAD + int(time.time()).to_bytes(32, "big").hex()
 
 
 def get_agent_instances(
@@ -331,7 +336,7 @@ def deploy_service(
                             deployment transaction
     :param timeout: Time to wait for deploy event to emit
     """
-    deployment_payload = deployment_payload or DEFAULT_DEPLOY_PAYLOAD
+    deployment_payload = deployment_payload or get_default_delployment_payload()
     (
         *_,
         service_state,
