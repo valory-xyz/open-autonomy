@@ -75,7 +75,7 @@ This is roughly how your workspace should look like:
     You can override the default registry in use (set up with `autonomy init`) for a particular command through the flags `--registry-path` and `--local`. For example, if the framework was initialized with the remote registry, the following command will fetch a runtime folder for the `hello_world` agent from the remote registry:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeif5utama7am6ajcuegbnjxfi7anpgsawxneciqmuzfqloc5gze4km
+    autonomy fetch valory/hello_world:0.1.0:bafybeihvtevtkp4m53dfxtd3zi3ndoi7rsbfwslyobc6zmfxhb757nhmxm
     ```
 
     On the other hand, if you want to fetch the copy stored in your local registry, then you can use:
@@ -106,8 +106,8 @@ If you plan to follow the guides in the next sections, you need to populate the 
     "dev": {
     },
     "third_party": {
-        "service/valory/hello_world/0.1.0": "bafybeicahhzz2xypv76b5hsgacnwb753makdnccb3q5zzgyoph5f6nc6ci",
-        "agent/valory/hello_world/0.1.0": "bafybeif5utama7am6ajcuegbnjxfi7anpgsawxneciqmuzfqloc5gze4km",
+        "service/valory/hello_world/0.1.0": "bafybeihkolm6vktjswgq7om2ryh6cihhb74u56nn2pcx5oo6usvsbsdp5m",
+        "agent/valory/hello_world/0.1.0": "bafybeihvtevtkp4m53dfxtd3zi3ndoi7rsbfwslyobc6zmfxhb757nhmxm",
         "connection/valory/abci/0.1.0": "bafybeicehggwsv3hs6o5ifdrshdcei7czhxxcedcv6dbvsi4yfxuhik3mu",
         "connection/valory/http_client/0.23.0": "bafybeieoeuy4brzimtnubmokwirhrx27ezls6cdnl5qik4rkykfle3nn2y",
         "connection/valory/ipfs/0.1.0": "bafybeicwe4fksbhaqs4qycfdqbzgqtikfn3u4g5y5fucxfmriezwwf7hse",
@@ -122,8 +122,8 @@ If you plan to follow the guides in the next sections, you need to populate the 
         "protocol/valory/ledger_api/1.0.0": "bafybeigsvceac33asd6ecbqev34meyyjwu3rangenv6xp5rkxyz4krvcby",
         "protocol/valory/tendermint/0.1.0": "bafybeidjqmwvgi4rqgp65tbkhmi45fwn2odr5ecezw6q47hwitsgyw4jpa",
         "skill/valory/abstract_abci/0.1.0": "bafybeihj6mz6wpamylo44b2ow4pgodfzufablksntfz7vshyx4eu6e52wi",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeihqwia5qhgrytqy26gpkh6wm5odfgxv4etdh3xhk73vxpzpnakyky",
-        "skill/valory/hello_world_abci/0.1.0": "bafybeibf47n5uamc47s7wygzbbzjjqslcaqijrxek4qtzsgodtyp5kk6mu",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeiahxjslet4zw3oxs54zvjohfxv7uwrop2gmqqih762ethbws7fhju",
+        "skill/valory/hello_world_abci/0.1.0": "bafybeihkkewys2e7ghtmrfprznzp3ahyytwxb7kpmc22a5hqf4pt4yauke",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihdnfdth3qgltefgrem7xyi4b3ejzaz67xglm2hbma2rfvpl2annq"
     }
 }
