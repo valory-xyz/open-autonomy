@@ -10,7 +10,7 @@ fingerprint:
   __init__.py: bafybeib4nfvueif2tkc7migc73qopyjvrbzedyehrexjx4y5vav3clmf34
   build/GnosisSafe_V1_3_0.json: bafybeifxc4pnyus43qfrvxrqunlmkzvwfr5chyjesyobbk5m4smb2hkd4y
   contract.py: bafybeiaswtmdsehphodyeaotbuzrrs3hfdsdsi44ipa2vdpuxwj2rftxei
-  encode.py: bafybeihklhrkal7tf7qvsbmutrs5566bcxonoykcyr6zl6hjiy2umptiga
+  encode.py: bafybeiez2siif4cpntxjvzcxsgpv2xcdgco4xtnr26pjqzwrlu62tmn2na
   tests/__init__.py: bafybeihbclcqwfoxoljzwnbg3nf22srsyx5dgdbcyj27irwizktg4ygujy
   tests/test_contract.py: bafybeiccezfy6uu24owucy3klzddbtinfs6agyarzbekmtnq7dgruimz3y
 fingerprint_ignore_patterns: []

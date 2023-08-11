@@ -21,8 +21,8 @@
 
 import typing as t
 
-from Crypto.Hash import keccak
-from eth_abi.abi import default_codec
+from Crypto.Hash import keccak  # nosec
+from eth_abi.abi import default_codec  # nosec
 from eth_utils import decode_hex
 
 
