@@ -196,7 +196,7 @@ class ServiceRegistryContract(Contract):
         """Retrieve the service owner."""
         contract_instance = cls.get_instance(ledger_api, contract_address)
         service_owner = contract_instance.functions.ownerOf(service_id).call()
-        checksum_service_owner = ledger_api.api.toChecksumAddress(service_owner)
+        checksum_service_owner = ledger_api.api.to_checksum_address(service_owner)
         return dict(
             service_owner=checksum_service_owner,
         )

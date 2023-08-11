@@ -85,8 +85,10 @@ class BaseTestTerminationEnd2End(
         """
         instance = web3.Web3(web3.HTTPProvider(self.NETWORK_ENDPOINT))
         zero_eth = Wei(0)
-        checksum_sender_address = instance.toChecksumAddress(self.SERVICE_OWNER_ADDRESS)
-        checksum_receiver_address = instance.toChecksumAddress(
+        checksum_sender_address = instance.to_checksum_address(
+            self.SERVICE_OWNER_ADDRESS
+        )
+        checksum_receiver_address = instance.to_checksum_address(
             self.SAFE_CONTRACT_ADDRESS
         )
 

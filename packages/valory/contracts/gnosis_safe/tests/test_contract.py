@@ -46,7 +46,7 @@ from hexbytes import HexBytes
 from web3 import Web3
 from web3.datastructures import AttributeDict
 from web3.eth import Eth
-from web3.exceptions import SolidityError
+from web3.exceptions import ContractLogicError
 from web3.types import TxData
 
 from packages.valory.contracts.gnosis_safe.contract import (
@@ -106,7 +106,9 @@ class BaseContractTest(BaseGanacheContractTest):
     @classmethod
     def owners(cls) -> List[str]:
         """Get the owners."""
-        return [Web3.toChecksumAddress(t[0]) for t in cls.key_pairs()[: cls.NB_OWNERS]]
+        return [
+            Web3.to_checksum_address(t[0]) for t in cls.key_pairs()[: cls.NB_OWNERS]
+        ]
 
     @classmethod
     def deployer(cls) -> Tuple[str, str]:
@@ -159,7 +161,9 @@ class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
     @classmethod
     def owners(cls) -> List[str]:
         """Get the owners."""
-        return [Web3.toChecksumAddress(t[0]) for t in cls.key_pairs()[: cls.NB_OWNERS]]
+        return [
+            Web3.to_checksum_address(t[0]) for t in cls.key_pairs()[: cls.NB_OWNERS]
+        ]
 
     @classmethod
     def deployer(cls) -> Tuple[str, str]:
@@ -340,7 +344,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
         }
 
         def _raise_solidity_error(*_: Any) -> None:
-            raise SolidityError("reason")
+            raise ContractLogicError("reason")
 
         with mock.patch.object(
             self.ledger_api.api.eth, "call", new=_raise_solidity_error
@@ -349,7 +353,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
                 self.ledger_api, "contract_address", cast(TxData, tx)
             )
             assert "revert_reason" in reason
-            assert reason["revert_reason"] == "SolidityError('reason')"
+            assert reason["revert_reason"] == "ContractLogicError('reason')"
 
         with mock.patch.object(self.ledger_api.api.eth, "call"), pytest.raises(
             ValueError, match=f"The given transaction has not been reverted!\ntx: {tx}"
