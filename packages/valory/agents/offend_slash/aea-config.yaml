@@ -103,7 +103,7 @@ models:
       use_termination: ${bool:true}
       on_chain_service_id: ${int:1}
       setup:
-        safe_contract_address: ${str:0xD8dE647170163a981bb3Fdb2063583eAcF7D55AC}
+        safe_contract_address: ${str:0x77b783e911F4398D75908Cc60C7138Bd1eFe35Fd}
         consensus_threshold: ${int:null}
       service_registry_address: ${str:0x998abeb3E57409262aE5b751f60747921B33613E}
       share_tm_config_on_startup: ${bool:true}

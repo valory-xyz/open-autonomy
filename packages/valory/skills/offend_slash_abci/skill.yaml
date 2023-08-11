@@ -114,7 +114,7 @@ models:
       setup:
         all_participants:
         - '0x0000000000000000000000000000000000000000'
-        safe_contract_address: '0xD8dE647170163a981bb3Fdb2063583eAcF7D55AC'
+        safe_contract_address: '0x77b783e911F4398D75908Cc60C7138Bd1eFe35Fd'
         consensus_threshold: null
       share_tm_config_on_startup: false
       sleep_time: 1
