@@ -73,7 +73,7 @@ excluded_protocols: []
 restricted_to_protocols: []
 dependencies:
   grpcio:
-    version: ==1.47.5
+    version: ==1.53.0
   hypothesis:
     version: ==6.21.6
   open-aea-test-autonomy:

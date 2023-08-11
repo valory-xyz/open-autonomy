@@ -19,9 +19,9 @@ contract_interface_paths:
   ethereum: build/ProxyFactory_V1_3_0.json
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.37.0
+    version: ==1.38.0
   open-aea-test-autonomy:
     version: ==0.10.11.post1
   py-eth-sig-utils: {}
-  web3:
-    version: ==5.31.4
+  open-aea-web3:
+    version: ==6.0.1

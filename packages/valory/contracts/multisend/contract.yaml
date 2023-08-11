@@ -19,5 +19,5 @@ contract_interface_paths:
   ethereum: build/MultiSend.json
 dependencies:
   hexbytes: {}
-  web3:
-    version: ==5.31.4
+  open-aea-web3:
+    version: ==6.0.1
