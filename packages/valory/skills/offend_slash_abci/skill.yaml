@@ -6,28 +6,28 @@ description: ABCI application used in order to test the slashing abci
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md:
-  __init__.py:
-  behaviours.py:
-  composition.py:
-  dialogues.py:
-  handlers.py:
-  models.py:
-  tests/__init__.py:
-  tests/test_behaviours.py:
-  tests/test_dialogues.py:
-  tests/test_handlers.py:
-  tests/test_models.py:
+  README.md: bafybeiff3e5cjvl74rtybyvodggnsxubw7agw37epoagwrpz6g2szufmxa
+  __init__.py: bafybeiaopodjnkdcukf3vw4racq552bzt22uh5oioebcaklwpnvjyihpfy
+  behaviours.py: bafybeices54uowgfsq67funxpl2b7k7xxbshiorgrrkmncdhqrcwnothnq
+  composition.py: bafybeihoddfltsv4nt34qstcw77ttoiwqssgaqhtgj4na7534wz4cq7sge
+  dialogues.py: bafybeigpwuzku3we7axmxeamg7vn656maww6emuztau5pg3ebsoquyfdqm
+  handlers.py: bafybeifnzry2revihwvjkvc6aqbbsdwvauw7jqv253m5clc23qbwepxfzu
+  models.py: bafybeiaoxx4n7c2zc4pcphh5laxil2d2ejq6kjbghb3rkt26a5utymnpva
+  tests/__init__.py: bafybeihg5ifbullyt64anjht5vlmspr6byo4rk6arcg5ufzmmw6xr5t77i
+  tests/test_behaviours.py: bafybeiajcitxmshmwgkeizd4dnhb34t2w47wxh7lhcizhoimijnfgvswaq
+  tests/test_dialogues.py: bafybeibb3tlcp7cz76iounglv32tjgebclqi3wm4cslxf3neyeibyqy5t4
+  tests/test_handlers.py: bafybeif65ihrcfmhidos4wyq3ub2cbhhsrezanr3r3jyhgfhuxetjjl6im
+  tests/test_models.py: bafybeiectmzpvdgytmqt6b2rc22qx2bogudm7mtkcc2ol4q3l3ayvmx7sa
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeibunpcyzetz4vuzsizwjtmlfcwy3wos6olx5lzm4eem7ntmt63k6u
-- valory/registration_abci:0.1.0:bafybeibrtucsflsk6xxlq3lm5kuljcchyxdqhdmcaoatnufiz7wcogf744
-- valory/offend_abci:0.1.0:bafybeigyjldxq5beftb4igdwgo6iyhphe4ytovatyfsz53ldeasvr56uci
-- valory/slashing_abci:0.1.0:bafybeieqxqmm4nusbpulprmd5tnrjijs5xwrmsmo7wm2cnzefjac5pjjtq
-- valory/reset_pause_abci:0.1.0:bafybeibd55zw5lynzan7kw2v7zqdqs647i4x3qweszc2ggfwrstikwdcry
+- valory/abstract_round_abci:0.1.0:bafybeiajiyoncmpmvfzyowo37azhhwwksp7tjrmsf3pls46evyr7uqs35a
+- valory/registration_abci:0.1.0:bafybeigbteofptjs6p3pivtdanb6mwgyomn5qodeubag7ar5wetzugp3mi
+- valory/offend_abci:0.1.0:bafybeibyyf32rneag7ba4pl5uh6jvdeo7h3fa2lebdthnsqyyo4l4ysxoe
+- valory/slashing_abci:0.1.0:bafybeidp3ssljhtbwfmvvisw5phuvrqvtlmm2flvnqrsfpybwp7bh4x77q
+- valory/reset_pause_abci:0.1.0:bafybeifkkxvzur7jbjw4yerj3e57t2kzjzvwumahk67sme6nucykpcf2ni
 behaviours:
   main:
     args: {}

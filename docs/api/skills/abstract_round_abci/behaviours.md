@@ -98,6 +98,12 @@ class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
 
 This behaviour implements an abstract round behaviour.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.background_behaviours_cls"></a>
+
+#### background`_`behaviours`_`cls
+
+type: ignore
+
 <a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.__init__"></a>
 
 #### `__`init`__`

@@ -1,10 +1,43 @@
 # Release History - `open-autonomy`
 
-
 # TBD (TBD)
 
 Packages:
 - Adds slashing functionality #1927
+
+
+# 0.10.11.post1 (2023-08-10)
+
+Autonomy:
+- Fixes the deployment payload calculations on `autonomy service deploy` command
+
+# 0.10.11 (2023-08-08)
+
+Autonomy:
+- Adds support for minting services on layer 2 chains
+- Adds support for skipping dependency checks when minting components
+
+# 0.10.10.post1 (2023-07-28)
+
+Autonomy:
+- Update `tendermint` testnet command generator to accommodate for new container naming format 
+
+# 0.10.10 (2023-07-26)
+
+Autonomy:
+- Adds support for running multiple `docker-compose` deployments in the same machine
+
+
+# 0.10.9 (2023-07-25)
+
+Autonomy:
+- Bumps `open-aea` to `v1.37.0`
+
+
+# 0.10.8 (2023-07-19)
+
+Autonomy:
+ - open-aea bumped to 1.36.0
 
 
 # 0.10.7 (2023-06-21)
@@ -18,7 +51,7 @@ Chore:
 - Bumps `web3py` to `v5.31.4` #1999
 
 Docs:
-- Fixes olas.network links #1998
+- Fixes `olas.network` links #1998
 
 
 # 0.10.6 (2023-06-12)

@@ -2296,9 +2296,10 @@ Get all the events.
 
 ```python
 @classmethod
-def get_all_round_classes(cls,
-                          include_background_rounds: bool = False
-                          ) -> Set[AppState]
+def get_all_round_classes(
+        cls,
+        bg_round_cls: set[Type[AbstractRound]],
+        include_background_rounds: bool = False) -> Set[AppState]
 ```
 
 Get all round classes.
@@ -2753,6 +2754,12 @@ class SlashingNotConfiguredError(Exception)
 ```
 
 Custom exception raised when slashing configuration is requested but is not available.
+
+<a id="packages.valory.skills.abstract_round_abci.base.DEFAULT_PENDING_OFFENCE_TTL"></a>
+
+#### DEFAULT`_`PENDING`_`OFFENCE`_`TTL
+
+1 hour
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence"></a>
 

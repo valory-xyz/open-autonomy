@@ -64,7 +64,7 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
 
         # TODO: Replace this logic with logic to use hash from the previous release
         # after v0.10.5.post1
-        package_hash = "bafybeifmmrwsjl7cnp4p4pjsn7qmkofmqoll5rl3cukwnlnlfcz64i553y"
+        package_hash = "bafybeigqyxqtg3stjlhswtvxqnu3iejvtigk3erqgsptlcjgevddtaq5c4"
         cls.agent = str(AGENT.with_hash(package_hash).public_id)
 
     def test_image_fail(self) -> None:

@@ -144,7 +144,6 @@ class TestTendermintRunner(BaseCliTest):
         ), mock.patch.object(TendermintNetwork, "stop") as stop_mock, mock.patch.object(
             flask.Flask, "run", new=ctrl_c
         ):
-
             result = self.run_cli(("--build", str(self.t / DEFAULT_BUILD_FOLDER)))
             assert result.exit_code == 0, result.output
             stop_mock.assert_any_call()

@@ -23,7 +23,11 @@ from pathlib import Path
 
 import pytest
 from aea.configurations.data_types import PublicId
-from aea_test_autonomy.base_test_classes.agents import BaseTestEnd2EndExecution, RoundChecks, BaseTestEnd2End
+from aea_test_autonomy.base_test_classes.agents import (
+    BaseTestEnd2End,
+    BaseTestEnd2EndExecution,
+    RoundChecks,
+)
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401  pylint: disable=unused-import
     UseACNNode,
     UseRegistries,
@@ -44,7 +48,10 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401  pylint: disable=u
 from packages.valory.skills.offend_abci.rounds import OffendRound
 from packages.valory.skills.registration_abci.rounds import RegistrationStartupRound
 from packages.valory.skills.reset_pause_abci.rounds import ResetAndPauseRound
-from packages.valory.skills.slashing_abci.rounds import SlashingCheckRound, StatusResetRound
+from packages.valory.skills.slashing_abci.rounds import (
+    SlashingCheckRound,
+    StatusResetRound,
+)
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     ValidateTransactionRound,
 )
@@ -73,21 +80,21 @@ class SlashingE2E(UseRegistries, UseACNNode, BaseTestEnd2End):
     wait_to_finish = 60
     _args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
 
-    def __set_configs(self, i: int, nb_agents: int) -> None:
+    def __set_configs(  # pylint: disable=unused-private-member
+        self, i: int, nb_agents: int
+    ) -> None:
         """Set the current agent's config overrides."""
         super().__set_configs(i=i, nb_agents=nb_agents)
 
         self.set_config(
-            dotted_path=f"{self.__args_prefix}.tendermint_p2p_url",
+            dotted_path=f"{self._args_prefix}.tendermint_p2p_url",
             value=f"localhost:{self._tendermint_image.get_p2p_port(i=i)}",
             type_="str",
         )
 
 
 @pytest.mark.e2e
-class TestSlashingThresholdUnmet(
-    SlashingE2E, BaseTestEnd2EndExecution
-):
+class TestSlashingThresholdUnmet(SlashingE2E, BaseTestEnd2EndExecution):
     """Test that slashing works right."""
 
     happy_path = NO_SLASHING_HAPPY_PATH
@@ -100,9 +107,7 @@ class TestSlashingThresholdUnmet(
 
 
 @pytest.mark.e2e
-class TestSlashing(
-    SlashingE2E, BaseTestEnd2EndExecution
-):
+class TestSlashing(SlashingE2E, BaseTestEnd2EndExecution):
     """Test that slashing works right."""
 
     happy_path = SLASHING_HAPPY_PATH

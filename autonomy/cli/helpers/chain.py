@@ -159,6 +159,7 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
     owner: Optional[str] = None,
     password: Optional[str] = None,
     skip_hash_check: bool = False,
+    skip_dependencies_check: bool = False,
     timeout: Optional[float] = None,
     hwi: bool = False,
 ) -> None:
@@ -199,20 +200,21 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
             f"Please provide hash for NFT image to mint component on `{chain_type.value}` chain"
         )
 
-    try:
-        verify_component_dependencies(
-            ledger_api=ledger_api,
-            contract_address=ContractConfigs.get(
-                COMPONENT_REGISTRY_CONTRACT.name
-            ).contracts[chain_type],
-            dependencies=dependencies,
-            package_configuration=package_configuration,
-            skip_hash_check=skip_hash_check,
-        )
-    except FailedToRetrieveComponentMetadata as e:
-        raise click.ClickException(f"Dependency verification failed; {e}") from e
-    except DependencyError as e:
-        raise click.ClickException(f"Dependency verification failed; {e}") from e
+    if not skip_dependencies_check and chain_type == ChainType.ETHEREUM:
+        try:
+            verify_component_dependencies(
+                ledger_api=ledger_api,
+                contract_address=ContractConfigs.get(
+                    COMPONENT_REGISTRY_CONTRACT.name
+                ).contracts[chain_type],
+                dependencies=dependencies,
+                package_configuration=package_configuration,
+                skip_hash_check=skip_hash_check,
+            )
+        except FailedToRetrieveComponentMetadata as e:
+            raise click.ClickException(f"Dependency verification failed; {e}") from e
+        except DependencyError as e:
+            raise click.ClickException(f"Dependency verification failed; {e}") from e
 
     metadata_hash, metadata_string = publish_metadata(
         package_id=package_configuration.package_id,
@@ -267,6 +269,7 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
     owner: Optional[str] = None,
     password: Optional[str] = None,
     skip_hash_check: bool = False,
+    skip_dependencies_check: bool = False,
     timeout: Optional[float] = None,
     hwi: bool = False,
 ) -> None:
@@ -302,20 +305,21 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
             f"Please provide hash for NFT image to mint component on `{chain_type.value}` chain"
         )
 
-    try:
-        verify_service_dependencies(
-            ledger_api=ledger_api,
-            contract_address=ContractConfigs.get(
-                AGENT_REGISTRY_CONTRACT.name
-            ).contracts[chain_type],
-            agent_id=agent_id,
-            service_configuration=cast(Service, package_configuration),
-            skip_hash_check=skip_hash_check,
-        )
-    except FailedToRetrieveComponentMetadata as e:
-        raise click.ClickException(f"Dependency verification failed; {e}") from e
-    except DependencyError as e:
-        raise click.ClickException(f"Dependency verification failed; {e}") from e
+    if not skip_dependencies_check and chain_type == ChainType.ETHEREUM:
+        try:
+            verify_service_dependencies(
+                ledger_api=ledger_api,
+                contract_address=ContractConfigs.get(
+                    AGENT_REGISTRY_CONTRACT.name
+                ).contracts[chain_type],
+                agent_id=agent_id,
+                service_configuration=cast(Service, package_configuration),
+                skip_hash_check=skip_hash_check,
+            )
+        except FailedToRetrieveComponentMetadata as e:
+            raise click.ClickException(f"Dependency verification failed; {e}") from e
+        except DependencyError as e:
+            raise click.ClickException(f"Dependency verification failed; {e}") from e
 
     metadata_hash, metadata_string = publish_metadata(
         package_id=package_configuration.package_id,

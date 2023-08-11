@@ -388,7 +388,6 @@ class _TendermintProtocolEncoder:
 
     @classmethod
     def _encode_event(cls, event: CustomEvent) -> Event:
-
         attributes_pb = []
         for attribute in event.attributes:
             attribute_pb = EventAttribute()
@@ -402,7 +401,6 @@ class _TendermintProtocolEncoder:
 
     @classmethod
     def _encode_proof_ops(cls, proof_ops: CustomProofOps) -> ProofOps:
-
         ops_pb = []
         for proof_op in proof_ops.proof_ops:
             proof_op_pb = ProofOp()

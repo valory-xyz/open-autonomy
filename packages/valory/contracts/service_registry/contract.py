@@ -20,16 +20,21 @@
 """This module contains the class to connect to the Service Registry contract."""
 
 import hashlib
+import json
 import logging
+from pathlib import Path
 from typing import Any, Dict, FrozenSet, List, Optional, Set, Tuple, Union, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
-from aea_ledger_ethereum import EthereumApi, LedgerApi
+from aea.crypto.base import LedgerApi
 from web3.types import BlockData, EventData, TxReceipt
 
 
+PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
+ETHEREUM_IDENTIFIER = "ethereum"
+UNIT_HASH_PREFIX = "0x{metadata_hash}"
 EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID = {
     1: "0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA",
     5: "0x1cEe30D08943EB58EFF84DD1AB44a6ee6FEff63a",
@@ -42,17 +47,20 @@ DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID = {
     5: "d4a860f21f17762c99d93359244b39a878dd5bac9ea6056c0ff29c7558d6653aa0d5962aa819fc9f05f237d068845125cfc37a7fd7761b11c29a709ad5c48157",
     100: "10e2cfb500481d6c5a3b6b90507e4ac04d8b0d88741cea5568306ed4115f24e8b9747055423da5fca05838d5ccefebf41fb47d2ba1fb45215b6b21c0a27823be",
     137: "10e2cfb500481d6c5a3b6b90507e4ac04d8b0d88741cea5568306ed4115f24e8b9747055423da5fca05838d5ccefebf41fb47d2ba1fb45215b6b21c0a27823be",
-    31337: "d8084598f884509694ab1f244cbb8e7697d8db00c241710b89b2ec3037d2edd3b82d01f1f0ca6bd9b265b1184d9c563a6000c30958c2a7ae5a9c35e5ff2ba7de",
+    31337: "41ab54d43fd4bdfdc929658a0dc9bedd970c7339eecafbefda9892ab54c02c396bceedaa3a84a0f4690bee03dc11195a3267a264de7859c420efbf4291f1fef0",
 }
-UNIT_HASH_PREFIX = "0x{metadata_hash}"
+L1_CHAINS = (
+    1,
+    5,
+    31337,
+)
+L2_BUILD_FILENAME = "ServiceRegistryL2.json"
 
-PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
+ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
 
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
 )
-
-ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
 
 
 class ServiceRegistryContract(Contract):
@@ -81,6 +89,37 @@ class ServiceRegistryContract(Contract):
         """Get state."""
         raise NotImplementedError  # pragma: nocover
 
+    @staticmethod
+    def is_l1_chain(ledger_api: LedgerApi) -> bool:
+        """Check if we're interecting with an L1 chain"""
+        return ledger_api.api.eth.chain_id in L1_CHAINS
+
+    @staticmethod
+    def load_l2_build() -> JSONLike:
+        """Load L2 ABI"""
+        path = Path(__file__).parent / "build" / L2_BUILD_FILENAME
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    @classmethod
+    def get_instance(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: Optional[str] = None,
+    ) -> Any:
+        """Get contract instance."""
+        if ledger_api.identifier != ETHEREUM_IDENTIFIER:
+            return super().get_instance(
+                ledger_api=ledger_api, contract_address=contract_address
+            )
+        if cls.is_l1_chain(ledger_api=ledger_api):
+            contract_interface = cls.contract_interface.get(ledger_api.identifier, {})
+        else:
+            contract_interface = cls.load_l2_build()
+        instance = ledger_api.get_contract_instance(
+            contract_interface, contract_address
+        )
+        return instance
+
     @classmethod
     def verify_contract(
         cls, ledger_api: LedgerApi, contract_address: str
@@ -93,7 +132,6 @@ class ServiceRegistryContract(Contract):
         :return: the verified status
         """
         verified = False
-        ledger_api = cast(EthereumApi, ledger_api)
         chain_id = ledger_api.api.eth.chain_id
         expected_address = EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID[chain_id]
         if contract_address != expected_address:
@@ -335,7 +373,6 @@ class ServiceRegistryContract(Contract):
         :param tx_hash: the hash of a slash tx to be processed.
         :return: a dictionary with the timestamp of the slashing and the `OperatorSlashed` events.
         """
-        ledger_api = cast(EthereumApi, ledger_api)
         contract = cls.get_instance(ledger_api, contract_address)
         receipt: TxReceipt = ledger_api.api.eth.get_transaction_receipt(tx_hash)
         logs: List[EventData] = list(

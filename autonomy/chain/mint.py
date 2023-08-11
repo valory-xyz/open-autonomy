@@ -47,13 +47,24 @@ from autonomy.chain.exceptions import (
 DEFAULT_NFT_IMAGE_HASH = "bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm"
 
 
-def transact(ledger_api: LedgerApi, crypto: Crypto, tx: Dict) -> Dict:
+def transact(
+    ledger_api: LedgerApi,
+    crypto: Crypto,
+    tx: Dict,
+    max_retries: int = 5,
+    sleep: float = 2.0,
+) -> Optional[Dict]:
     """Make a transaction and return a receipt"""
-
+    retries = 0
+    tx_receipt = None
     tx_signed = crypto.sign_transaction(transaction=tx)
     tx_digest = ledger_api.send_signed_transaction(tx_signed=tx_signed)
-
-    return ledger_api.get_transaction_receipt(tx_digest=tx_digest)
+    while tx_receipt is None and retries < max_retries:
+        time.sleep(sleep)
+        tx_receipt = ledger_api.get_transaction_receipt(tx_digest=tx_digest)
+        if tx_receipt is not None:
+            break
+    return tx_receipt
 
 
 def sort_service_dependency_metadata(
@@ -174,7 +185,7 @@ def mint_component(  # pylint: disable=too-many-arguments
         raise FailedToRetrieveTokenId(str(e)) from e
 
 
-def mint_service(  # pylint: disable=too-many-arguments
+def mint_service(  # pylint: disable=too-many-arguments,too-many-locals
     ledger_api: LedgerApi,
     crypto: Crypto,
     metadata_hash: str,
@@ -252,31 +263,29 @@ def mint_service(  # pylint: disable=too-many-arguments
             threshold=threshold,
             raise_on_try=True,
         )
-        transact(
+        tx_receipt = transact(
             ledger_api=ledger_api,
             crypto=crypto,
             tx=tx,
         )
+        if tx_receipt is None:
+            raise ComponentMintFailed("Could not retrieve the transaction receipt")
     except RequestsConnectionError as e:
         raise ComponentMintFailed("Cannot connect to the given RPC") from e
 
+    def token_retriever() -> bool:
+        """Retrieve token"""
+        return registry_contracts.service_registry.filter_token_id_from_emitted_events(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                SERVICE_REGISTRY_CONTRACT.name
+            ).contracts[chain_type],
+        )
+
     try:
-
-        def token_retriever() -> bool:
-            """Retrieve token"""
-            return (
-                registry_contracts.service_registry.filter_token_id_from_emitted_events(
-                    ledger_api=ledger_api,
-                    contract_address=ContractConfigs.get(
-                        SERVICE_REGISTRY_CONTRACT.name
-                    ).contracts[chain_type],
-                )
-            )
-
         return wait_for_component_to_mint(
             token_retriever=token_retriever, timeout=timeout
         )
-
     except RequestsConnectionError as e:
         raise FailedToRetrieveTokenId(
             "Connection interrupted while waiting for the unitId emit event"

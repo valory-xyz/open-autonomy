@@ -38,6 +38,7 @@ Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
 RandomnessApi = SlashingRandomness
 
+
 class Params(OffendParams, SlashingParams):
     """`offend_slash` skill's parameters."""
 
