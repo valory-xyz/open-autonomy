@@ -4,6 +4,12 @@
 
 Base deployments module.
 
+<a id="autonomy.deploy.base.ENV_VAR_AEA_PASSWORD"></a>
+
+#### ENV`_`VAR`_`AEA`_`PASSWORD
+
+nosec
+
 <a id="autonomy.deploy.base.NotValidKeysFile"></a>
 
 ## NotValidKeysFile Objects
@@ -37,6 +43,26 @@ def __init__(service: Service,
 ```
 
 Initialize the Base Deployment.
+
+<a id="autonomy.deploy.base.ServiceBuilder.get_abci_container_name"></a>
+
+#### get`_`abci`_`container`_`name
+
+```python
+def get_abci_container_name(index: int) -> str
+```
+
+Format ABCI container name.
+
+<a id="autonomy.deploy.base.ServiceBuilder.get_tm_container_name"></a>
+
+#### get`_`tm`_`container`_`name
+
+```python
+def get_tm_container_name(index: int) -> str
+```
+
+Format tendermint container name.
 
 <a id="autonomy.deploy.base.ServiceBuilder.try_get_all_participants"></a>
 

@@ -8,11 +8,11 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeihvqvbj2tiiyimz3e27gqhb7ku5rut7hycfahi4qle732kvj5fs7q
   __init__.py: bafybeicyrp6x2efg43gfdekxuofrlidc3w6aubzmyioqwnryropp6u7sby
-  behaviours.py: bafybeiac22flb67zjdjpnhbm33u3zqpszl6kr76p6k3mic2jyqvr33wjgq
+  behaviours.py: bafybeidryi7tdfvshqy5bgx3kxc7owtvmb353g6hg4aud3q2ytz3fbazue
   dialogues.py: bafybeigabhaykiyzbluu4mk6bbrmqhzld2kyp32pg24bvjmzrrb74einwm
   fsm_specification.yaml: bafybeigsgpjkt73zeigxndggvqvhst7pyb4vkphfgdcw5boxexqvdtjldm
   handlers.py: bafybeie42qa3csgy6oompuqs2qnkat5mnslepbbwmgoxv6ljme4jofa5pe
-  models.py: bafybeieziji7agfrod5hoj62j34psjawmbma2r6cl57bqy7yxyb7m45ygy
+  models.py: bafybeiguxishqvtvlyznok3xjnzm4t6vfflamcvz5vtecq5esbldsxuc5e
   payload_tools.py: bafybeig5cjypnpd3guhomlwldcjull3jntxo46hrbehqhxaxnqmdmsqdoy
   payloads.py: bafybeiclhjnsgylqzfnu2azlqxor3vyldaoof757dnfwz5xbwejk2ro2cm
   rounds.py: bafybeic5t3epyzfpumzv3ggvq7aenvd7of34cyqhyzs6foycbq2uv5a64i
@@ -22,7 +22,7 @@ fingerprint:
   tests/test_behaviours.py: bafybeici37gttvhpcufar457oky4opaql2nwqj6lwlsnbg52uapg2fcobm
   tests/test_dialogues.py: bafybeictrjf6jzsj4y6u2ftdrb2nyriiipia5b7wc4fsli3lwbjpd3mbam
   tests/test_handlers.py: bafybeievntkwacpfaom3qabvrlworjqyd4sgfjknjlhys7f5tuq7725xli
-  tests/test_models.py: bafybeifysgk6xywarymqbfwnpkjlzrjxtxkgm26k3mfiyerqvovwyyhqsa
+  tests/test_models.py: bafybeihvrv7vtaei64nv7okkfz2gg2g4ey4nei27ayc74h5bdlqpbk4xde
   tests/test_payload_tools.py: bafybeihyw5ea22gw3p2iz3ipce3rjkglwptaa2p2cvtqr4sfus4pi5blhu
   tests/test_payloads.py: bafybeidvjqvjvnuw5vt4zgnqwzopvprznmefosqy3wcxukvobaiishygze
   tests/test_rounds.py: bafybeig3raif5lmv3ji2hyevzjsbzpjznwc5pmyfv4372ggifkgccosohm
@@ -31,14 +31,14 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeif5fdwoxq5mscrurtuimadmtctyxxeeui45u4g6leqobzls7bsl3u
+- valory/gnosis_safe:0.1.0:bafybeib553aeszr6ndmunl3kjsroatcsljqia2vjm5rao4d5lcttgdwgsy
 protocols:
-- open_aea/signing:1.0.0:bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4
-- valory/abci:0.1.0:bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4
-- valory/contract_api:1.0.0:bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy
-- valory/ledger_api:1.0.0:bafybeibo4bdtcrxi2suyzldwoetjar6pqfzm6vt5xal22ravkkcvdmtksi
+- open_aea/signing:1.0.0:bafybeifuxs7gdg2okbn7uofymenjlmnih2wxwkym44lsgwmklgwuckxm2m
+- valory/abci:0.1.0:bafybeigootsvqpk6th5xpdtzanxum3earifrrezfyhylfrit7yvqdrtgpe
+- valory/contract_api:1.0.0:bafybeiasywsvax45qmugus5kxogejj66c5taen27h4voriodz7rgushtqa
+- valory/ledger_api:1.0.0:bafybeigsvceac33asd6ecbqev34meyyjwu3rangenv6xp5rkxyz4krvcby
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidped62jbgjwhkq3waoflfttbc7doe3rbol2vmdjoxuiqmqc4guim
+- valory/abstract_round_abci:0.1.0:bafybeihqwia5qhgrytqy26gpkh6wm5odfgxv4etdh3xhk73vxpzpnakyky
 behaviours:
   main:
     args: {}
@@ -166,7 +166,7 @@ models:
     class_name: TendermintDialogues
 dependencies:
   open-aea-test-autonomy:
-    version: ==0.10.7
+    version: ==0.10.11.post1
   web3:
     version: ==5.31.4
 is_abstract: true

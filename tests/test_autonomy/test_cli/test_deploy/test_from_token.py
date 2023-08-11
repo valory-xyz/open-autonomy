@@ -116,7 +116,9 @@ class TestFromToken(BaseChainInteractionTest):
         with mock.patch(
             "autonomy.cli.helpers.deployment.fetch_service_ipfs",
             return_value=service_dir,
-        ), (run_deployment_patch), (
+        ), (
+            run_deployment_patch
+        ), (
             build_image_patch
         ), default_remote_registry_patch, default_ipfs_node_patch, ipfs_resolve_patch:
             result = self.run_cli(
@@ -174,7 +176,11 @@ class TestFromToken(BaseChainInteractionTest):
     def test_fail_on_chain_resolve_connection_error(self) -> None:
         """Run test."""
 
-        with (run_deployment_patch), (build_image_patch), (
+        with (
+            run_deployment_patch
+        ), (
+            build_image_patch
+        ), (
             default_remote_registry_patch
         ), default_ipfs_node_patch, ipfs_resolve_patch, mock.patch(
             "autonomy.cli.helpers.deployment.resolve_component_id",
@@ -195,7 +201,11 @@ class TestFromToken(BaseChainInteractionTest):
     def test_fail_on_chain_resolve_bad_contract_call(self) -> None:
         """Run test."""
 
-        with (run_deployment_patch), (build_image_patch), (
+        with (
+            run_deployment_patch
+        ), (
+            build_image_patch
+        ), (
             default_remote_registry_patch
         ), default_ipfs_node_patch, ipfs_resolve_patch, mock.patch(
             "autonomy.cli.helpers.deployment.resolve_component_id",

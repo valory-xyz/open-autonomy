@@ -88,16 +88,23 @@ hwi_flag = click.option(
     is_flag=True,
     help="Skip hash check when verifying dependencies on chain",
 )
+@click.option(
+    "--skip-dependencies-check",
+    is_flag=True,
+    help="Skip dependencies check.",
+)
 def mint(  # pylint: disable=too-many-arguments
     ctx: Context,
     chain_type: str,
     skip_hash_check: bool,
+    skip_dependencies_check: bool,
     timeout: float,
 ) -> None:
     """Mint component on-chain."""
 
     ctx.config["chain_type"] = ChainType(chain_type)
     ctx.config["skip_hash_check"] = skip_hash_check
+    ctx.config["skip_dependencies_check"] = skip_dependencies_check
     ctx.config["timeout"] = timeout
 
 
@@ -132,6 +139,7 @@ def protocol(  # pylint: disable=too-many-arguments
         nft=nft,
         owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
+        skip_dependencies_check=ctx.config.get("skip_dependencies_check", False),
         timeout=ctx.config["timeout"],
         hwi=hwi,
     )
@@ -168,6 +176,7 @@ def contract(  # pylint: disable=too-many-arguments
         nft=nft,
         owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
+        skip_dependencies_check=ctx.config.get("skip_dependencies_check", False),
         timeout=ctx.config["timeout"],
         hwi=hwi,
     )
@@ -204,6 +213,7 @@ def connection(  # pylint: disable=too-many-arguments
         nft=nft,
         owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
+        skip_dependencies_check=ctx.config.get("skip_dependencies_check", False),
         timeout=ctx.config["timeout"],
         hwi=hwi,
     )
@@ -240,6 +250,7 @@ def skill(  # pylint: disable=too-many-arguments
         nft=nft,
         owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
+        skip_dependencies_check=ctx.config.get("skip_dependencies_check", False),
         timeout=ctx.config["timeout"],
         hwi=hwi,
     )
@@ -276,6 +287,7 @@ def agent(  # pylint: disable=too-many-arguments
         nft=nft,
         owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
+        skip_dependencies_check=ctx.config.get("skip_dependencies_check", False),
         timeout=ctx.config["timeout"],
         hwi=hwi,
     )
@@ -343,6 +355,7 @@ def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-a
         nft=nft,
         owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
+        skip_dependencies_check=ctx.config.get("skip_dependencies_check", False),
         timeout=ctx.config["timeout"],
         hwi=hwi,
     )

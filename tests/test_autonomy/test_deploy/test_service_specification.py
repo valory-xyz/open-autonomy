@@ -33,7 +33,6 @@ import pytest
 import yaml
 
 from autonomy.deploy.base import (
-    ABCI_HOST_TEMPLATE,
     DEFAULT_ABCI_PORT,
     ENV_VAR_AEA_AGENT,
     ENV_VAR_AEA_PASSWORD,
@@ -266,13 +265,15 @@ class TestServiceBuilder:
 
         assert skill_config["models"]["params"]["args"][
             TENDERMINT_URL_PARAM
-        ] == TENDERMINT_NODE.format(0)
+        ] == TENDERMINT_NODE.format(host=spec.get_tm_container_name(index=0))
         assert skill_config["models"]["params"]["args"][
             TENDERMINT_COM_URL_PARAM
-        ] == TENDERMINT_COM.format(0)
+        ] == TENDERMINT_COM.format(host=spec.get_tm_container_name(index=0))
         assert skill_config["models"]["params"]["args"][
             TENDERMINT_P2P_URL_PARAM
-        ] == TENDERMINT_P2P_URL.format(0, TENDERMINT_P2P_PORT)
+        ] == TENDERMINT_P2P_URL.format(
+            host=spec.get_tm_container_name(index=0), port=TENDERMINT_P2P_PORT
+        )
 
     def test_try_update_runtime_params_multiple(
         self,
@@ -307,13 +308,18 @@ class TestServiceBuilder:
 
             assert skill_config[agent_idx]["models"]["params"]["args"][
                 TENDERMINT_URL_PARAM
-            ] == TENDERMINT_NODE.format(agent_idx)
+            ] == TENDERMINT_NODE.format(
+                host=spec.get_tm_container_name(index=agent_idx)
+            )
             assert skill_config[agent_idx]["models"]["params"]["args"][
                 TENDERMINT_COM_URL_PARAM
-            ] == TENDERMINT_COM.format(agent_idx)
+            ] == TENDERMINT_COM.format(host=spec.get_tm_container_name(index=agent_idx))
             assert skill_config[agent_idx]["models"]["params"]["args"][
                 TENDERMINT_P2P_URL_PARAM
-            ] == TENDERMINT_P2P_URL.format(agent_idx, TENDERMINT_P2P_PORT)
+            ] == TENDERMINT_P2P_URL.format(
+                host=spec.get_tm_container_name(index=agent_idx),
+                port=TENDERMINT_P2P_PORT,
+            )
 
     def test_update_tm_p2p_endpoint_from_env(
         self,
@@ -335,10 +341,10 @@ class TestServiceBuilder:
 
             assert skill_config["models"]["params"]["args"][
                 TENDERMINT_URL_PARAM
-            ] == TENDERMINT_NODE.format(0)
+            ] == TENDERMINT_NODE.format(host=spec.get_tm_container_name(index=0))
             assert skill_config["models"]["params"]["args"][
                 TENDERMINT_COM_URL_PARAM
-            ] == TENDERMINT_COM.format(0)
+            ] == TENDERMINT_COM.format(host=spec.get_tm_container_name(index=0))
             assert (
                 skill_config["models"]["params"]["args"][TENDERMINT_P2P_URL_PARAM]
                 == url
@@ -381,7 +387,7 @@ class TestServiceBuilder:
         spec.try_update_abci_connection_params()
         conn_config, *_ = spec.service.overrides
 
-        assert conn_config["config"]["host"] == ABCI_HOST_TEMPLATE.format(0)
+        assert conn_config["config"]["host"] == spec.get_abci_container_name(index=0)
         assert conn_config["config"]["port"] == DEFAULT_ABCI_PORT
 
     def test_try_update_abci_connection_params_multiple(
@@ -402,7 +408,9 @@ class TestServiceBuilder:
         ]
 
         for idx in range(spec.service.number_of_agents):
-            assert conn_config[idx]["config"]["host"] == ABCI_HOST_TEMPLATE.format(idx)
+            assert conn_config[idx]["config"]["host"] == spec.get_abci_container_name(
+                index=idx
+            )
             assert conn_config[idx]["config"]["port"] == DEFAULT_ABCI_PORT
 
     def test_try_update_abci_connection_params_kubernetes(

@@ -80,7 +80,7 @@ nav:
     - Analise and test: 'configure_service/analise_test.md'
   - Advanced reference:
     - 'advanced_reference/index.md'
-    - publish fetch: 'guides/publish_fetch_packages.md'
+    # - publish fetch: 'guides/publish_fetch_packages.md'
     - Commands:
       - autonomy deploy: 'advanced_reference/commands/autonomy_deploy.md'
       - autonomy build-image: 'advanced_reference/commands/autonomy_build-image.md'

@@ -662,14 +662,18 @@ class TestAbstractRoundBehaviour:
                 mock_try_fix.assert_not_called()
 
 
-def test_meta_round_behaviour_when_instance_not_subclass_of_abstract_round_behaviour() -> None:
+def test_meta_round_behaviour_when_instance_not_subclass_of_abstract_round_behaviour() -> (
+    None
+):
     """Test instantiation of meta class when instance not a subclass of abstract round behaviour."""
 
     class MyRoundBehaviour(metaclass=_MetaRoundBehaviour):
         pass
 
 
-def test_abstract_round_behaviour_instantiation_without_attributes_raises_error() -> None:
+def test_abstract_round_behaviour_instantiation_without_attributes_raises_error() -> (
+    None
+):
     """Test that definition of concrete subclass of AbstractRoundBehavior without attributes raises error."""
     with pytest.raises(ABCIAppInternalError):
 
@@ -870,7 +874,6 @@ class TestPendingOffencesBehaviour:
             self.behaviour,
             "set_done",
         ) as mock_set_done:
-
             # while pending offences are empty, the behaviour simply waits
             for _ in range(wait_ticks):
                 next(gen)

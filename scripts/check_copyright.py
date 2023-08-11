@@ -163,7 +163,6 @@ def _validate_years(
 
     # Specified year is 2021/2022 but the file has been last modified in another later year (missing -202x)
     if end_year is not None and check_end_year:
-
         if start_year > end_year:
             check_info["check"] = False
             check_info["message"] = "End year should be greater then start year."

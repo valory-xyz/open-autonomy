@@ -236,7 +236,9 @@ def test_base_tx_payload() -> None:
     assert type(hash(payload)) == int
 
 
-def test_meta_round_abstract_round_when_instance_not_subclass_of_abstract_round() -> None:
+def test_meta_round_abstract_round_when_instance_not_subclass_of_abstract_round() -> (
+    None
+):
     """Test instantiation of meta class when instance not a subclass of abstract round."""
 
     class MyAbstractRound(metaclass=_MetaAbstractRound):
@@ -1259,7 +1261,6 @@ class TestAbstractRound:
         ):
 
             class MyConcreteRound(AbstractRound):
-
                 synchronized_data_class = MagicMock()
                 payload_attribute = MagicMock()
                 # here payload_class is missing

@@ -192,7 +192,6 @@ def check_bash_commands_exist(md_file: str, make_commands: List[str]) -> None:
 
     for code_block in code_blocks:
         for line in code_block.split("\n"):
-
             # Python/pytest commands
             match = re.match(PYTHON_COMMAND, line)
             if match:
