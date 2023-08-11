@@ -2422,7 +2422,7 @@ class AbciApp(
     @classmethod
     def get_all_round_classes(
         cls,
-        bg_round_cls: set[Type[AbstractRound]],
+        bg_round_cls: Set[Type[AbstractRound]],
         include_background_rounds: bool = False,
     ) -> Set[AppState]:
         """Get all round classes."""
