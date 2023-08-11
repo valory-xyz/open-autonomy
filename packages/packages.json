@@ -43,8 +43,8 @@
         "contract/valory/multicall2/0.1.0": "bafybeihdhxhs7lf5uy4fi7g3s3q2ge34q575pydbh7ccbcd4ebggsakpgy",
         "skill/valory/slashing_abci/0.1.0": "bafybeihuehc2vxfbrrotx4pesmu537w3q37jnb7v5volmmokz2ovmjylnq",
         "skill/valory/offend_abci/0.1.0": "bafybeig6pobftr5ji6je2cftlqgzghgsmrzkohrbtx7k4pldcjccd3xqhm",
-        "skill/valory/offend_slash_abci/0.1.0": "bafybeig53k7c3qug7umdsklildxtbq7wogmdnz4g7a2z7idzpjrmhwqoem",
-        "agent/valory/offend_slash/0.1.0": "bafybeieutdqwri44xrzgbqmzvwuvvj76wfhz4aft6677hujonssmlwf4ri"
+        "skill/valory/offend_slash_abci/0.1.0": "bafybeiffbqmbglhlwx337slyuwuzmchfiv5om4wu733kacdksl26sgcsuu",
+        "agent/valory/offend_slash/0.1.0": "bafybeiblag77rrsc4afd7wxfo2j7ob3azeirbhmwst7bx6d62whwjmnic4"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifuxs7gdg2okbn7uofymenjlmnih2wxwkym44lsgwmklgwuckxm2m",
