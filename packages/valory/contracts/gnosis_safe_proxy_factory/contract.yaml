@@ -9,7 +9,7 @@ fingerprint:
   README.md: bafybeibobgyzn3kozckup5uxbugbgkiqrc7d5okmj6gahctccqfifu7e4e
   __init__.py: bafybeif32mykzila23udgceziog2zr4tkreij6zn43ybbtzonojsfmy5ee
   build/ProxyFactory_V1_3_0.json: bafybeibmhgw6us3nzg5d4vb3krg3udxgnux66vuz26pjcigdjc7zn5jrxm
-  contract.py: bafybeih7756f2ba6m2w5w4zhxck2bowngudbhfj5ylppxyidzmsojpsk3q
+  contract.py: bafybeidtzl7j6z5a4v4d2afff7p62tdnvmqaablpqmszt6nfiym2ftj3wq
   tests/__init__.py: bafybeied5o76k2pgmpqlofnfo2mhoncecnigkm24t26qrnhhqzvtg3g3b4
   tests/test_contract.py: bafybeidgcxvkl4xjg5dbjzl3o6ffoylkdewrpni6lxm3624qrebbwmqeay
 fingerprint_ignore_patterns: []
