@@ -3,6 +3,7 @@
 # global dictionary is at the start, file overrides afterwards
 # one word per line, to define a file override use ' - filename'
 # where filename is relative to this configuration file
+0.10.11.post1
 anymore
 AEAs
 Tendermint
@@ -415,3 +416,4 @@ fuzzer
 selection_key
 0.10.0.post1
 0.10.0.post2
+0.10.10.post1

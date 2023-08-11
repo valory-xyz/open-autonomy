@@ -18,8 +18,13 @@ Mint command group definitions.
     is_flag=True,
     help="Skip hash check when verifying dependencies on chain",
 )
+@click.option(
+    "--skip-dependencies-check",
+    is_flag=True,
+    help="Skip dependencies check.",
+)
 def mint(ctx: Context, chain_type: str, skip_hash_check: bool,
-         timeout: float) -> None
+         skip_dependencies_check: bool, timeout: float) -> None
 ```
 
 Mint component on-chain.

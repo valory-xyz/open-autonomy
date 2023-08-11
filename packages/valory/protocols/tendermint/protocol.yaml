@@ -15,7 +15,7 @@ fingerprint:
   message.py: bafybeifosu5ckcnivuotfwsumly7mdjanwv7ia3z5rnmee7kqigtd7smo4
   serialization.py: bafybeif6erxpnajwu3mljxfwapdtqv6liknit3ykm5rrbx4uzq3w2cd3su
   tendermint.proto: bafybeiaqoltnijwje7iog7s3r4nbtly6rbfp6zwb2btnrw7xuenoxtobui
-  tendermint_pb2.py: bafybeihfddkaapcyprghywav46cunh56q7ecgq4f2de5qcozdxd7nqtr54
+  tendermint_pb2.py: bafybeiau3fzniclbm4rtziqhcof67b5jgzj4dk6uqniih742ivr6u4otua
   tests/__init__.py: bafybeiguds53xs5tmygjd26a7xxilzdrgi2x262relfagdlvdzymacumie
   tests/test_tendermint.py: bafybeihnjxpkvgsclevn4bwi4qepw56vz554wox7gmhnjwobelbee7xpce
   tests/test_tendermint_dialogues.py: bafybeieoviq62cv62h4nglyr7qflzb32bjcvjbepmytgfpycuypnz3mriy

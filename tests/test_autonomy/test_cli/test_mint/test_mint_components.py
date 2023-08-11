@@ -28,6 +28,7 @@ from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 from requests.exceptions import ConnectionError as RequestsConnectionError
 
+from autonomy.chain.config import ChainConfigs
 from autonomy.chain.mint import registry_contracts
 
 from tests.test_autonomy.test_chain.base import (
@@ -263,9 +264,12 @@ class TestMintComponents(BaseChainInteractionTest):
             registry_contracts._service_registry,
             "get_token_uri",
             side_effect=RequestsConnectionError,
+        ), mock.patch.object(
+            ChainConfigs, "get", return_value=ChainConfigs.local
         ):
             result = self.run_cli(
                 commands=(
+                    "--use-ethereum",
                     package_id.package_type.value,
                     str(
                         DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
@@ -274,6 +278,8 @@ class TestMintComponents(BaseChainInteractionTest):
                     ),
                     "--key",
                     str(ETHEREUM_KEY_DEPLOYER),
+                    "--nft",
+                    "Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev",
                     *parameters,
                 ),
             )
@@ -292,9 +298,12 @@ class TestMintComponents(BaseChainInteractionTest):
             registry_contracts._service_registry, "get_token_uri"
         ), mock.patch(
             "autonomy.chain.utils.r_get", side_effect=RequestsConnectionError
+        ), mock.patch.object(
+            ChainConfigs, "get", return_value=ChainConfigs.local
         ):
             result = self.run_cli(
                 commands=(
+                    "--use-ethereum",
                     package_id.package_type.value,
                     str(
                         DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
@@ -303,6 +312,8 @@ class TestMintComponents(BaseChainInteractionTest):
                     ),
                     "--key",
                     str(ETHEREUM_KEY_DEPLOYER),
+                    "--nft",
+                    "Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev",
                     *parameters,
                 ),
             )
@@ -456,16 +467,28 @@ class TestMintComponents(BaseChainInteractionTest):
         self,
     ) -> None:
         """Test token id retrieval failure."""
-
-        result = self.run_cli(
-            commands=(
-                DUMMY_SERVICE.package_type.value,
-                str(DUMMY_PACKAGE_MANAGER.package_path_from_package_id(DUMMY_SERVICE)),
-                "--key",
-                str(ETHEREUM_KEY_DEPLOYER),
-                *DEFAULT_SERVICE_MINT_PARAMETERS,
-            ),
-        )
+        with mock.patch.object(
+            ChainConfigs, "get", return_value=ChainConfigs.local
+        ), mock.patch(
+            "autonomy.chain.utils.resolve_component_id",
+            return_value={"name": "skill/author/name"},
+        ):
+            result = self.run_cli(
+                commands=(
+                    "--use-ethereum",
+                    DUMMY_SERVICE.package_type.value,
+                    str(
+                        DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
+                            DUMMY_SERVICE
+                        )
+                    ),
+                    "--key",
+                    str(ETHEREUM_KEY_DEPLOYER),
+                    "--nft",
+                    "Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev",
+                    *DEFAULT_SERVICE_MINT_PARAMETERS,
+                ),
+            )
 
         assert result.exit_code == 1, result.output
         assert (
@@ -478,21 +501,32 @@ class TestMintComponents(BaseChainInteractionTest):
     ) -> None:
         """Test token id retrieval failure."""
 
-        result = self.run_cli(
-            commands=(
-                DUMMY_CONNECTION.package_type.value,
-                str(
-                    DUMMY_PACKAGE_MANAGER.package_path_from_package_id(DUMMY_CONNECTION)
+        with mock.patch.object(
+            ChainConfigs, "get", return_value=ChainConfigs.local
+        ), mock.patch(
+            "autonomy.chain.utils.resolve_component_id",
+            return_value={"name": "skill/author/name"},
+        ):
+            result = self.run_cli(
+                commands=(
+                    "--use-ethereum",
+                    DUMMY_CONNECTION.package_type.value,
+                    str(
+                        DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
+                            DUMMY_CONNECTION
+                        )
+                    ),
+                    "--key",
+                    str(ETHEREUM_KEY_DEPLOYER),
+                    "-d",
+                    "1",
+                    "--nft",
+                    "Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev",
                 ),
-                "--key",
-                str(ETHEREUM_KEY_DEPLOYER),
-                "-d",
-                "1",
-            ),
-        )
+            )
 
         assert result.exit_code == 1, result.output
         assert (
-            "On chain dependency with id 1 and public ID valory/abci:any not found in the local package configuration"
+            "On chain dependency with id 1 and public ID author/name:any not found in the local package configuration"
             in result.stderr
         )

@@ -270,7 +270,9 @@ def test_async_behaviour_wait_for_message_raises_timeout_exception() -> None:
         try_send(gen)
 
 
-def test_async_behaviour_wait_for_message_raises_timeout_exception_when_no_message() -> None:
+def test_async_behaviour_wait_for_message_raises_timeout_exception_when_no_message() -> (
+    None
+):
     """Test 'wait_for_message' when it raises TimeoutException."""
 
     with pytest.raises(TimeoutException):

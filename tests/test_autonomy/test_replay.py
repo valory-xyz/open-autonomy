@@ -156,7 +156,6 @@ def test_tendermint_network() -> None:
             tendermint_network.run_until_interruption()
 
         with app.test_client() as client:
-
             response = client.get("/0/tx")
             response_data = response.get_json()
             assert response_data["result"]["tx_result"]["code"] == 0

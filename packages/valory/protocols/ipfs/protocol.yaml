@@ -11,7 +11,7 @@ fingerprint:
   __init__.py: bafybeibxzovsffa3l2ac5h7yrhmbq2oplsteqtlhsgzvu2wvx7qvkyrkle
   dialogues.py: bafybeihlnjaqvq5765hqttoqe3aeql572veyfbawsrcyko4wvds5wv7gwe
   ipfs.proto: bafybeifpe6szd3m2zjlvn5zwiy7mbimur7pu46lobxvyyarozabxpmhcs4
-  ipfs_pb2.py: bafybeiaulqlxfb5uxthorlasrdrqjgt7obxpwzqfioswqsqmyxp4npjjze
+  ipfs_pb2.py: bafybeiatedc2qk3p3rwfritjw6uloohsvvao2vnknalwpkluz7owqt6tla
   message.py: bafybeihufe4v6jlwrzz5doeesr3tdsjgksi2shymrcdngfhmi3h6rsqoie
   serialization.py: bafybeifi5snrp4knrxwftskyjb5zuipjfqeipqw6nxn4mbk42vdwkstxd4
   tests/test_ipfs_dialogues.py: bafybeigqi2cal5m252qf3ry75mldfd5kyqj3bgstvyzpjgpjgxhi2otpoa

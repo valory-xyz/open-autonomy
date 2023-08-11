@@ -2754,6 +2754,12 @@ class SlashingNotConfiguredError(Exception)
 
 Custom exception raised when slashing configuration is requested but is not available.
 
+<a id="packages.valory.skills.abstract_round_abci.base.DEFAULT_PENDING_OFFENCE_TTL"></a>
+
+#### DEFAULT`_`PENDING`_`OFFENCE`_`TTL
+
+1 hour
+
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence"></a>
 
 ## RoundSequence Objects

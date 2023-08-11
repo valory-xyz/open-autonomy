@@ -41,6 +41,9 @@ This command group consists of a number of functionalities to mint components, a
 `--skip-hash-check`
 : Skip hash check when verifying dependencies on chain.
 
+`--skip-dependencies-check`
+: Skip dependency verification.
+
 ## `autonomy mint protocol` / `contract` / `connection` / `skill`
 
 Mint a protocol, contract, connection or skill in the Autonolas Protocol.

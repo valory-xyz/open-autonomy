@@ -424,7 +424,6 @@ def compare_trees(init_node: Node, tender_node: Node) -> None:
         return
 
     for k, init_child in init_node.items():
-
         # translate key to tendermint key
         tk = {"type_": "type", "format_": "format", "hash_": "hash"}.get(k, k)
         tender_child = tender_node[tk]
@@ -438,7 +437,6 @@ def compare_trees(init_node: Node, tender_node: Node) -> None:
             compare_trees(init_child, tender_child)
 
         elif isinstance(tender_child, list):
-
             # we use a nested mapping to represent a custom class,
             # tendermint doesn't use this for storing repeated fields
             if isinstance(init_child, dict):
@@ -461,7 +459,6 @@ def _process_message_descriptor(m_descriptor: Any) -> Node:
 
     node: Node = {}
     for name, field in m_descriptor.fields_by_name.items():
-
         if field.message_type:
             cls = set_repr(field.message_type._concrete_class)
             node[name] = cls, _process_message_descriptor(cls.DESCRIPTOR)

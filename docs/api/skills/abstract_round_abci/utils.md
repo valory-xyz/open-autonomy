@@ -165,6 +165,12 @@ def __str__() -> str
 
 Get string representation of AutonomyTypeError.
 
+<a id="packages.valory.skills.abstract_round_abci.utils.Result"></a>
+
+#### Result
+
+returns error context
+
 <a id="packages.valory.skills.abstract_round_abci.utils.check"></a>
 
 #### check
