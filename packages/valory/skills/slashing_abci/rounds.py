@@ -62,6 +62,11 @@ class SynchronizedData(BaseSynchronizedData):
     """
 
     @property
+    def slashing_bg_init(self) -> bool:
+        """Get if the slashing background round has been initialized."""
+        return bool(self.db.get("slashing_bg_init", False))
+
+    @property
     def slashing_in_flight(self) -> bool:
         """Get if there is a slashing operation in progress."""
         return bool(self.db.get("slashing_in_flight", False))
@@ -149,6 +154,20 @@ class SlashingCheckRound(CollectSameUntilThresholdRound):
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         synced_data = SynchronizedData(db=self.synchronized_data.db)
+        if not synced_data.slashing_bg_init:
+            # we set the cross-period values because the period will most probably be increased
+            # before this background round ever returns a `SLASH_START` event.
+            # if this happens, and we do not set them here, then the db creation for the new period will fail
+            # because the values are in the cross-period persisted keys.
+            self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
+                slashing_bg_init=True,
+                operators_mapping=None,
+                slash_timestamps="",
+                slashing_in_flight=synced_data.slashing_in_flight,
+                slashing_majority_reached=synced_data.slashing_majority_reached,
+            )
+
         if not self.threshold_reached or synced_data.slashing_in_flight:
             return None
 
