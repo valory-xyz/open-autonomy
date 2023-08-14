@@ -9,12 +9,13 @@ fingerprint:
   README.md: bafybeig26vrs7tcobu4cgk3fpqhvlzjwmb4nqsc7u66n4yhd2dh2rt7ff4
   __init__.py: bafybeib4nfvueif2tkc7migc73qopyjvrbzedyehrexjx4y5vav3clmf34
   build/GnosisSafe_V1_3_0.json: bafybeifxc4pnyus43qfrvxrqunlmkzvwfr5chyjesyobbk5m4smb2hkd4y
-  contract.py: bafybeihdb5oeg4xtnapwml5qz5rkckfetam4wnc2n3gdws23mstpq33ue4
+  contract.py: bafybeievi34akchvijxzbtytogpm3mft6qk3pmmewjzwxyugfofkwqfqxe
+  encode.py: bafybeiez2siif4cpntxjvzcxsgpv2xcdgco4xtnr26pjqzwrlu62tmn2na
   tests/__init__.py: bafybeihbclcqwfoxoljzwnbg3nf22srsyx5dgdbcyj27irwizktg4ygujy
-  tests/test_contract.py: bafybeidnlxmcedoean6xfhjwvj5yvgbaxevjgtlu6wnu2w6y5a37hiniri
+  tests/test_contract.py: bafybeiccezfy6uu24owucy3klzddbtinfs6agyarzbekmtnq7dgruimz3y
 fingerprint_ignore_patterns: []
 contracts:
-- valory/gnosis_safe_proxy_factory:0.1.0:bafybeievdjct23qgi6tc5vgseusaap7tlqasclj4fowrtluqhc453o74hq
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeihuyxtxqp5f5sviid5hgtpuncd545hiurp3pjdbhqbs3u4kag4a2a
 class_name: GnosisSafeContract
 contract_interface_paths:
   ethereum: build/GnosisSafe_V1_3_0.json
@@ -24,11 +25,16 @@ dependencies:
   eth_typing: {}
   hexbytes: {}
   open-aea-ledger-ethereum:
-    version: ==1.37.0
+    version: ==1.38.0
   open-aea-test-autonomy:
-    version: ==0.10.11.post1
+    version: ==0.11.0
   packaging: {}
-  py-eth-sig-utils: {}
   requests: {}
-  web3:
-    version: ==5.31.4
+  open-aea-web3:
+    version: ==6.0.1
+  eth-utils:
+    version: ==2.2.0
+  eth-abi:
+    version: ==4.0.0
+  pycryptodome:
+    version: ==3.18.0

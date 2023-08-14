@@ -33,7 +33,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 def get_all_extras() -> Dict:
     cli_deps = [
         "click==8.0.2",
-        "open-aea-cli-ipfs==1.37.0",
+        "open-aea-cli-ipfs==1.38.0",
         "texttable==1.6.7",
         "python-dotenv>=0.14.0,<0.18.0",
     ]
@@ -52,8 +52,8 @@ all_extras = get_all_extras()
 
 base_deps = [
     "Flask>=2.0.2,<3.0.0",
-    "open-aea[all]==1.37.0",
-    "pandas<1.4,>=1.3.4",
+    "open-aea[all]==1.38.0",
+    "pandas>=1.5.3",
     "watchdog>=2.1.6",
     "pytest==7.2.1",
     "valory-docker-compose==1.29.3",
@@ -122,10 +122,10 @@ if __name__ == "__main__":
             "Operating System :: MacOS",
             "Operating System :: Microsoft",
             "Operating System :: Unix",
-            "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",
+            "Programming Language :: Python :: 3.11",
             "Topic :: Communications",
             "Topic :: Internet",
             "Topic :: Scientific/Engineering",
@@ -139,7 +139,7 @@ if __name__ == "__main__":
         zip_safe=False,
         include_package_data=True,
         license=about["__license__"],
-        python_requires=">=3.7",
+        python_requires=">=3.8",
         keywords="autonomy open-autonomy aea open-aea autonomous-economic-agents agent-framework multi-agent-systems multi-agent cryptocurrency cryptocurrencies dezentralized dezentralized-network",
         project_urls={
             "Bug Reports": "https://github.com/valory-xyz/open-autonomy/issues",

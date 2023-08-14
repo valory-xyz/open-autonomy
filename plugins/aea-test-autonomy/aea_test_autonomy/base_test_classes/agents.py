@@ -172,7 +172,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
                 f"vendor.{skill.author}.skills.{skill.name}.models.params.args.setup.all_participants",
                 json.dumps(
                     [
-                        Web3.toChecksumAddress(pairs[0])
+                        Web3.to_checksum_address(pairs[0])
                         for pairs in key_pairs[:nb_agents]
                     ]
                 ),

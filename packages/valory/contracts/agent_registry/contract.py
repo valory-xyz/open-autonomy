@@ -93,7 +93,7 @@ class AgentRegistryContract(Contract):
             contract_address=contract_address,
         )
 
-        events = contract_interface.events.CreateUnit.createFilter(
+        events = contract_interface.events.CreateUnit.create_filter(
             fromBlock="latest"
         ).get_all_entries()
 
@@ -104,7 +104,7 @@ class AgentRegistryContract(Contract):
                 unit_hash_bytes = UNIT_HASH_PREFIX.format(
                     metadata_hash=hash_bytes32
                 ).encode()
-                metadata_hash_bytes = ledger_api.api.toBytes(text=metadata_hash)
+                metadata_hash_bytes = ledger_api.api.to_bytes(text=metadata_hash)
                 if unit_hash_bytes == metadata_hash_bytes:
                     return cast(int, event_args["unitId"])
 

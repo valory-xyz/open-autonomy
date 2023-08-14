@@ -123,7 +123,7 @@ def mint_component(  # pylint: disable=too-many-arguments
         dependencies = sorted(set(dependencies))
 
     try:
-        owner = ledger_api.api.toChecksumAddress(owner or crypto.address)
+        owner = ledger_api.api.to_checksum_address(owner or crypto.address)
     except ValueError as e:  # pragma: nocover
         raise ComponentMintFailed(f"Invalid owner address {owner}") from e
 
@@ -245,7 +245,7 @@ def mint_service(  # pylint: disable=too-many-arguments,too-many-locals
     ]
 
     try:
-        owner = ledger_api.api.toChecksumAddress(owner or crypto.address)
+        owner = ledger_api.api.to_checksum_address(owner or crypto.address)
     except ValueError as e:
         raise ComponentMintFailed(f"Invalid owner address {owner}") from e
 
