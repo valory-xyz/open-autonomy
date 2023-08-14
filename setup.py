@@ -53,7 +53,7 @@ all_extras = get_all_extras()
 base_deps = [
     "Flask>=2.0.2,<3.0.0",
     "open-aea[all]==1.38.0",
-    "pandas<1.4,>=1.3.4",
+    "pandas>=1.5.3",
     "watchdog>=2.1.6",
     "pytest==7.2.1",
     "valory-docker-compose==1.29.3",
