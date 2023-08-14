@@ -18,7 +18,7 @@ connections:
 - valory/ledger:0.19.0:bafybeigfoz7d7si7s4jehvloq2zmiiocpbxcaathl3bxkyarxoerxq7g3a
 - valory/p2p_libp2p_client:0.1.0:bafybeihdnfdth3qgltefgrem7xyi4b3ejzaz67xglm2hbma2rfvpl2annq
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeihj64zqd6e7rfvzew56wvtjtssj3zakhnvf6npe47vovk6qwgu2by
+- valory/gnosis_safe:0.1.0:bafybeigaeon5qhgdwhduw4wtjt7x7o3hpz62aifr5a7522ynll3nps3qnm
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeihuyxtxqp5f5sviid5hgtpuncd545hiurp3pjdbhqbs3u4kag4a2a
 - valory/multisend:0.1.0:bafybeiemglycsigpsf2f6ohfdlsha7w6lrc5nmhlydmocna4apa7b4cqcq
 - valory/service_registry:0.1.0:bafybeihi2tfcf4l7j6tzwb6vptrctkj57zye2oqxmyfwxc4u7gb2v3fmwa
@@ -33,12 +33,12 @@ protocols:
 - valory/tendermint:0.1.0:bafybeidjqmwvgi4rqgp65tbkhmi45fwn2odr5ecezw6q47hwitsgyw4jpa
 skills:
 - valory/abstract_abci:0.1.0:bafybeibcemiz3qxoordadxwkxkjp7g7rerbfwap6wqxiepcms22ocb3v7i
-- valory/abstract_round_abci:0.1.0:bafybeiezwtwukvqdhgm5lg6dzkqitqdth2orho6b667yi6gwcsw5h4b7au
-- valory/register_termination_abci:0.1.0:bafybeigjmtasv5br7sikv7zwmz7mjxpdyuodoizvzobyvmhhmfzzjtor54
-- valory/registration_abci:0.1.0:bafybeicmzy6neno636wccmcwukrmzdmvj7vzobgdrnw4e6ekwxnm4jwbda
-- valory/reset_pause_abci:0.1.0:bafybeih6j4n6jytsyvfiunsxeuujvgyw4iwk7ijek4ku2p45jfaehs253u
-- valory/termination_abci:0.1.0:bafybeiapnqldjp3nu4l7os32bvjyoc3633hhxot7cmfvqb55p5id7g2cyu
-- valory/transaction_settlement_abci:0.1.0:bafybeicj5kpfksvpzxdq54l3aryjtn2covfp6zet4sexmiubdogr2ndnfu
+- valory/abstract_round_abci:0.1.0:bafybeicyy4g3x6ol6x2ayzcdkg2wstubqecp6ycgo6f2c2bhjnhwdjs3qa
+- valory/register_termination_abci:0.1.0:bafybeihkev7hmik7zlnpu2uwzeerieigkfhdjburs5m22fgwigx353l7x4
+- valory/registration_abci:0.1.0:bafybeigexg5mw5sh35qkhlaeegycgtkd2ym5o4marjc5o7gl7t352hohiu
+- valory/reset_pause_abci:0.1.0:bafybeigabcdz5en52zuxzxa6a4p5c7z4qyi3fcfp7lodqusjh32z5obcqy
+- valory/termination_abci:0.1.0:bafybeies2zrbcsajnsgjq2ljr352gzvjsvkoycu65tuj5avnxlgjqlevci
+- valory/transaction_settlement_abci:0.1.0:bafybeic7vatd3um6en3fqdxpbdsdq4n2zdqf3c4m5cs2r73ag5pbgdohoe
 default_ledger: ethereum
 required_ledgers:
 - ethereum

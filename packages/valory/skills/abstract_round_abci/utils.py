@@ -313,6 +313,10 @@ def check(  # pylint: disable=too-many-return-statements
                 return AutonomyTypeError(ty=ty, value=value)
         elif issubclass(ty, int):  # For boolean
             return check_int(value, ty)
+        elif ty is typing.Any:
+            # `isinstance(value, typing.Any) fails on python 3.11`
+            # https://stackoverflow.com/questions/68031358/typeerror-typing-any-cannot-be-used-with-isinstance
+            pass
         elif not isinstance(value, ty):
             return AutonomyTypeError(ty=ty, value=value)
     return None

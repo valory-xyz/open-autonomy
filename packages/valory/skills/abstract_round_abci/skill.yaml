@@ -42,7 +42,7 @@ fingerprint:
   tests/test_base_rounds.py: bafybeiatnef47roakdc6g6wvz3wxppb4wdwu2vqoumakkdnz5ehfgzfjea
   tests/test_behaviours.py: bafybeicxr35uzvmu73iys76by752mcpg24yu7an2j6mv4cckrkas5drefu
   tests/test_behaviours_utils.py: bafybeidpvqxc7reggyrr5tlt567nc6sqi6cspvr7wcemsbrmpfkfc7iige
-  tests/test_common.py: bafybeigruyqp6h4qim3nsijeg5mvoot2dei2yzm5zxpank22vjyyiaysue
+  tests/test_common.py: bafybeiekicwjh3vu5kqppictya2bmqm3p5dcauj7cvsiunvhhultpzmyla
   tests/test_dialogues.py: bafybeigpfrslqaz2yullyehia5bsl7cmy2qqxtz627ig7rbrypw5xfzeum
   tests/test_handlers.py: bafybeiho7ruvh6gilajz5ns6cljdrxis2tzualmgkksprwdpm7art4ambm
   tests/test_io/__init__.py: bafybeid3sssvbbyju4snrdssxyafleuo57sqyuepl25btxcbuj3p5oonsm
@@ -57,7 +57,7 @@ fingerprint:
   tests/test_tools/test_integration.py: bafybeidxkvb2kizi7djrpuw446dqxo2v5s7j2dbdrdpfmnd2ggezaxbnkm
   tests/test_tools/test_rounds.py: bafybeiccirhrajrvlhkwz4nmj4syw2jgxcrits5v4hfdxegepfd4idh6va
   tests/test_utils.py: bafybeibs7zjpepzdetcy4ybksqxoul45hw372z4evkop3avx6qhrss3bba
-  utils.py: bafybeicckjeq5ubm25squfzevdwlwnios7enstmelc7tw4qpzcv2h7ysmq
+  utils.py: bafybeiflukhathkj3smnowhe3efijp4inw4jq56kos4ucxfvtfjdrkdraq
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeihczvjnki5kxhyixkh4lxuxkqsuhqmpn63tneyj76p7cmgaxqo7pu
