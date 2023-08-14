@@ -244,7 +244,7 @@ class ServiceRegistryContract(Contract):
             contract_address=contract_address,
         )
 
-        events = contract_interface.events.CreateService.createFilter(
+        events = contract_interface.events.CreateService.create_filter(
             fromBlock="latest"
         ).get_all_entries()
 
@@ -269,7 +269,7 @@ class ServiceRegistryContract(Contract):
             contract_address=contract_address,
         )
 
-        events = contract_interface.events.ActivateRegistration.createFilter(
+        events = contract_interface.events.ActivateRegistration.create_filter(
             fromBlock="latest"
         ).get_all_entries()
         for event in events:
@@ -293,7 +293,7 @@ class ServiceRegistryContract(Contract):
             contract_address=contract_address,
         )
 
-        events = contract_interface.events.RegisterInstance.createFilter(
+        events = contract_interface.events.RegisterInstance.create_filter(
             fromBlock="latest"
         ).get_all_entries()
 
@@ -323,7 +323,7 @@ class ServiceRegistryContract(Contract):
             contract_address=contract_address,
         )
 
-        events = contract_interface.events.DeployService.createFilter(
+        events = contract_interface.events.DeployService.create_filter(
             fromBlock="latest"
         ).get_all_entries()
         for event in events:

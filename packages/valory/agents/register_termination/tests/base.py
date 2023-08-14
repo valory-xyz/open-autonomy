@@ -99,7 +99,7 @@ class BaseTestTerminationEnd2End(
             "gas": 100000,
             "chainId": self.CHAIN_ID,
             "gasPrice": instance.eth.gas_price,
-            "nonce": instance.eth.getTransactionCount(checksum_sender_address),
+            "nonce": instance.eth.get_transaction_count(checksum_sender_address),
         }
         signed_tx = instance.eth.account.signTransaction(
             raw_tx, private_key=self.SERVICE_OWNER_PK

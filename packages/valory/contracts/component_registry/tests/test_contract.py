@@ -70,7 +70,7 @@ class TestComponentRegistry(BaseRegistriesContractsTest):
             return_value=mock.MagicMock(
                 events=mock.MagicMock(
                     CreateUnit=mock.MagicMock(
-                        createFilter=lambda **_: mock.MagicMock(
+                        create_filter=lambda **_: mock.MagicMock(
                             get_all_entries=lambda *_: []
                         )
                     )
@@ -90,7 +90,7 @@ class TestComponentRegistry(BaseRegistriesContractsTest):
             return_value=mock.MagicMock(
                 events=mock.MagicMock(
                     CreateUnit=mock.MagicMock(
-                        createFilter=lambda **_: mock.MagicMock(
+                        create_filter=lambda **_: mock.MagicMock(
                             get_all_entries=lambda *_: [
                                 {
                                     "args": {
@@ -105,7 +105,7 @@ class TestComponentRegistry(BaseRegistriesContractsTest):
                 )
             ),
         ), mock.patch.object(
-            self.ledger_api.api, "toBytes", return_value=expected_hash.encode()
+            self.ledger_api.api, "to_bytes", return_value=expected_hash.encode()
         ):
             token_id = self.contract.filter_token_id_from_emitted_events(
                 ledger_api=self.ledger_api,

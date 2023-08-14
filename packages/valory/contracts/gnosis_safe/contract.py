@@ -681,7 +681,7 @@ class GnosisSafeContract(Contract):
             current_block = ledger_api.api.eth.get_block("latest")["number"]
             from_block = hex(max(0, current_block - 50))  # check in the last ~10 min
 
-        safe_filter = safe_contract.events.SafeReceived.createFilter(
+        safe_filter = safe_contract.events.SafeReceived.create_filter(
             fromBlock=from_block, toBlock=to_block
         )
         all_entries = safe_filter.get_all_entries()
@@ -755,7 +755,7 @@ class GnosisSafeContract(Contract):
 
         ledger_api = cast(EthereumApi, ledger_api)
         factory_contract = cls.get_instance(ledger_api, contract_address)
-        entries = factory_contract.events.ExecutionSuccess.createFilter(
+        entries = factory_contract.events.ExecutionSuccess.create_filter(
             fromBlock=from_block,
             toBlock=to_block,
         ).get_all_entries()
@@ -793,7 +793,7 @@ class GnosisSafeContract(Contract):
         """
         ledger_api = cast(EthereumApi, ledger_api)
         safe_contract = cls.get_instance(ledger_api, contract_address)
-        entries = safe_contract.events.RemovedOwner.createFilter(
+        entries = safe_contract.events.RemovedOwner.create_filter(
             fromBlock=from_block,
             toBlock=to_block,
         ).get_all_entries()
@@ -849,7 +849,7 @@ class GnosisSafeContract(Contract):
         ledger_api = cast(EthereumApi, ledger_api)
         safe_contract = cls.get_instance(ledger_api, contract_address)
         sender_address = ledger_api.api.to_checksum_address(sender_address)
-        entries = safe_contract.events.SafeReceived.createFilter(
+        entries = safe_contract.events.SafeReceived.create_filter(
             fromBlock=from_block,
             toBlock=to_block,
             argument_filters=dict(sender=sender_address),
