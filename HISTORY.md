@@ -1,5 +1,18 @@
 # Release History - `open-autonomy`
 
+# 0.11.0 (2023-08-14)
+
+Autonomy:
+- Deprecates the support for `Python 3.7` and extends support for `Python 3.11`
+- Adds support for multi platform image builds
+
+Packages:
+- Replaces the usage of deprecated `web3py` APIs
+
+Chore:
+- Replaces the `web3py` with `open-aea-web3`
+- Bumps `py-ecc@6.0.0`, `numpy@>=1.21.6` and `pandas@1.5.3` 
+
 # 0.10.11.post1 (2023-08-10)
 
 Autonomy:
