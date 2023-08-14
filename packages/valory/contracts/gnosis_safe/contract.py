@@ -179,7 +179,7 @@ class GnosisSafeContract(Contract):
             raise ValueError("Client does not have any funds")
 
         ether_account_balance = round(
-            ledger_api.api.fromWei(account_balance, "ether"), 6
+            ledger_api.api.from_wei(account_balance, "ether"), 6
         )
         _logger.info(
             "Network %s - Sender %s - Balance: %sΞ",
@@ -765,7 +765,7 @@ class GnosisSafeContract(Contract):
                 map(
                     lambda entry: dict(
                         tx_hash=entry.transactionHash.hex(),
-                        block_number=entry.block_number,
+                        block_number=entry.blockNumber,
                     ),
                     entries,
                 )
@@ -801,7 +801,7 @@ class GnosisSafeContract(Contract):
             removed_owner_events = list(
                 dict(
                     tx_hash=entry.transactionHash.hex(),
-                    block_number=entry.block_number,
+                    block_number=entry.blockNumber,
                     owner=entry["args"]["owner"],
                 )
                 for entry in entries
@@ -814,7 +814,7 @@ class GnosisSafeContract(Contract):
         removed_owner_events = list(
             dict(
                 tx_hash=entry.transactionHash.hex(),
-                block_number=entry.block_number,
+                block_number=entry.blockNumber,
                 owner=entry["args"]["owner"],
             )
             for entry in entries
@@ -857,7 +857,7 @@ class GnosisSafeContract(Contract):
         zero_transfer_events = list(
             dict(
                 tx_hash=entry.transactionHash.hex(),
-                block_number=entry.block_number,
+                block_number=entry.blockNumber,
                 sender=ledger_api.api.to_checksum_address(entry["args"]["sender"]),
             )
             for entry in entries
