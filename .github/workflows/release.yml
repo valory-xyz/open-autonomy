@@ -81,8 +81,8 @@ jobs:
           autonomy init --reset --author valory --ipfs --remote
           autonomy push-all
 
-  publish-images:
-    name: Publish Docker Images
+  publish-docs-images:
+    name: Publish Docs Images
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -92,44 +92,102 @@ jobs:
       - publish-autonomy-packages
     steps:
     - uses: actions/checkout@v2
-    - name: Set up tag
-      run: echo export TAG=$(python3 -c "from setup import about; print(about[\"__version__\"])") > env.sh
-    - name: Build version tagged images
-      run: |
-        source env.sh
-        docker build -t valory/open-autonomy-docs:$TAG -f deployments/Dockerfiles/documentation/Dockerfile . && \
-        docker build -t valory/open-autonomy:$TAG deployments/Dockerfiles/autonomy && \
-        docker build -t valory/open-autonomy-tendermint:$TAG deployments/Dockerfiles/tendermint && \
-        docker build -t valory/open-autonomy-hardhat:$TAG deployments/Dockerfiles/hardhat && \
-        docker build -t valory/open-autonomy-user:$TAG deployments/Dockerfiles/autonomy-user
-    - name: Tag to latest
-      run:  |
-        source env.sh
-        docker tag valory/open-autonomy-docs:$TAG valory/open-autonomy-docs:latest
-        docker tag valory/open-autonomy:$TAG valory/open-autonomy:latest
-        docker tag valory/open-autonomy-tendermint:$TAG valory/open-autonomy-tendermint:latest
-        docker tag valory/open-autonomy-hardhat:$TAG valory/open-autonomy-hardhat:latest
-        docker tag valory/open-autonomy-user:$TAG valory/open-autonomy-user:latest
     - name: Docker login
       env:
         DOCKER_USER: ${{secrets.DOCKER_USER}}
         DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
       run: |
         docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-    - name: Docker Push
+    - name: Set up tag
+      run: echo export TAG=$(python3 -c "from setup import about; print(about[\"__version__\"])") > env.sh
+    - name: Build version tagged images
       run: |
         source env.sh
-        docker push valory/open-autonomy-docs:$TAG
-        docker push valory/open-autonomy-docs:latest
-      
-        docker push valory/open-autonomy:$TAG
-        docker push valory/open-autonomy:latest
-      
-        docker push valory/open-autonomy-tendermint:$TAG
-        docker push valory/open-autonomy-tendermint:latest
-      
-        docker push valory/open-autonomy-hardhat:$TAG
-        docker push valory/open-autonomy-hardhat:latest
-      
-        docker push valory/open-autonomy-user:$TAG
-        docker push valory/open-autonomy-user:latest
+        docker build -t valory/open-autonomy-docs:$TAG -f deployments/Dockerfiles/documentation/Dockerfile . --push
+        docker build -t valory/open-autonomy-docs:latest -f deployments/Dockerfiles/documentation/Dockerfile . --push
+
+  publish-deploy-images:
+    name: Publish Deploy Images
+    runs-on: ubuntu-latest
+    needs:
+      - publish-autonomy-packages
+    steps:
+      - uses: actions/checkout@v2
+      - name: Docker login
+        env:
+          DOCKER_USER: ${{secrets.DOCKER_USER}}
+          DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+        run: |
+          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+      - name: Set up support for multi platform build
+        run: |
+          docker run --privileged --rm tonistiigi/binfmt --install all
+          docker buildx create --use --name multibuild
+          docker buildx inspect --bootstrap
+      - name: Set up tag
+        run: echo export TAG=$(python3 -c "from setup import about; print(about[\"__version__\"])") > env.sh
+      - name: Build and push version tagged images
+        run: |
+          # export `TAG` variable
+          source env.sh
+          docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy:$TAG deployments/Dockerfiles/autonomy --push
+          docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy:latest deployments/Dockerfiles/autonomy --push
+
+  publish-user-images:
+    name: Publish User Images
+    runs-on: ubuntu-latest
+    needs:
+      - publish-autonomy-packages
+    steps:
+      - uses: actions/checkout@v2
+      - name: Docker login
+        env:
+          DOCKER_USER: ${{secrets.DOCKER_USER}}
+          DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+        run: |
+          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+      - name: Set up support for multi platform build
+        run: |
+          docker run --privileged --rm tonistiigi/binfmt --install all
+          docker buildx create --use --name multibuild
+          docker buildx inspect --bootstrap
+      - name: Set up tag
+        run: echo export TAG=$(python3 -c "from setup import about; print(about[\"__version__\"])") > env.sh
+      - name: Build and push version tagged images
+        run: |
+          # export `TAG` variable
+          source env.sh
+          docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy-user:$TAG deployments/Dockerfiles/autonomy-user --push
+          docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy-user:latest deployments/Dockerfiles/autonomy-user --push
+
+  publish-helper-images:
+    name: Publish Helper Images
+    runs-on: ubuntu-latest
+    needs:
+      - publish-autonomy-packages
+    steps:
+      - uses: actions/checkout@v2
+      - name: Docker login
+        env:
+          DOCKER_USER: ${{secrets.DOCKER_USER}}
+          DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+        run: |
+          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+      - name: Set up support for multi platform build
+        run: |
+          docker run --privileged --rm tonistiigi/binfmt --install all
+          docker buildx create --use --name multibuild
+          docker buildx inspect --bootstrap
+      - name: Set up tag
+        run: echo export TAG=$(python3 -c "from setup import about; print(about[\"__version__\"])") > env.sh
+      - name: Build and push version tagged images
+        run: |
+          # export `TAG` variable
+          source env.sh
+
+          docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy-tendermint:$TAG deployments/Dockerfiles/tendermint --push
+          docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy-tendermint:latest deployments/Dockerfiles/tendermint --push
+
+          docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy-hardhat:$TAG deployments/Dockerfiles/hardhat --push
+          docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy-hardhat:latest deployments/Dockerfiles/hardhat --push
+
