@@ -8,7 +8,7 @@ fingerprint:
   README.md: bafybeidoybzzjch4djhhafqm4e4jcrpaqmlthntcnonlsjtowwpykbc5xi
 fingerprint_ignore_patterns: []
 number_of_agents: 1
-agent: valory/counter:0.1.0:bafybeigt4flkzqn3jqecbshv6c3hawwt7jpuyn43se5rip5zkvfqw2skim
+agent: valory/counter:0.1.0:bafybeiabtfo4i7zxfdkddat5y6gyjtefnflnlcv3az7ssa4pr3cw2csabu
 deployment: {}
 ---
 public_id: valory/ledger:0.19.0
