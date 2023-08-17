@@ -5,6 +5,10 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.11.0` to `v0.11.0.post1`
+
+No backwards incompatible changes
+
 ## `v0.10.11.post1` to `v0.11.0`
 
 - `web3py` has been replaced with `open-aea-web3` and we forked this from `web3py@v6.0.0`, that means the method names will use the `snake_case` and the `camelCase` naming has been deprecated

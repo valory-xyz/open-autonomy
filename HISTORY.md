@@ -2,6 +2,14 @@
 
 # 0.11.0 (2023-08-14)
 
+Packages:
+- Pins `requests` to `2.28.2`
+
+Chores:
+- Fixes the dependency check
+
+# 0.11.0 (2023-08-14)
+
 Autonomy:
 - Deprecates the support for `Python 3.7` and extends support for `Python 3.11`
 - Adds support for multi platform image builds
