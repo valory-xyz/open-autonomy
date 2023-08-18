@@ -23,8 +23,8 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeigsvceac33asd6ecbqev34meyyjwu3rangenv6xp5rkxyz4krvcby
 skills:
 - valory/abstract_abci:0.1.0:bafybeicg7dv7cff34nv2k2z47c4yp4kddsxp3wozonzow6tnvfvwndz3cy
-- valory/abstract_round_abci:0.1.0:bafybeih2voxfobopywznn3nhegxoyak265wu2f32wcqj2kjaitup6oxczy
-- valory/test_abci:0.1.0:bafybeicvmufnwjk7ar6ojgwgtawsds42kvjvpcgbtch3xp6hritx2ovhv4
+- valory/abstract_round_abci:0.1.0:bafybeigxjcci53vwytymzlhr37436yvenh7jup4astrn7dgyixo24aq2pq
+- valory/test_abci:0.1.0:bafybeifcg2xabaabjg2cjzxfi4ina2zhzk2idhioc2c4u6x67cvfjbch7i
 default_ledger: ethereum
 required_ledgers:
 - ethereum
