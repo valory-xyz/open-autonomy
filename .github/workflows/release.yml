@@ -130,8 +130,8 @@ jobs:
         run: |
           # export `TAG` variable
           source env.sh
-          docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy:$TAG deployments/Dockerfiles/autonomy --push
-          docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy:latest deployments/Dockerfiles/autonomy --push
+          docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t valory/open-autonomy:$TAG deployments/Dockerfiles/autonomy --push
+          docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t valory/open-autonomy:latest deployments/Dockerfiles/autonomy --push
 
   publish-user-images:
     name: Publish User Images
@@ -185,8 +185,8 @@ jobs:
           # export `TAG` variable
           source env.sh
 
-          docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy-tendermint:$TAG deployments/Dockerfiles/tendermint --push
-          docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy-tendermint:latest deployments/Dockerfiles/tendermint --push
+          docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t valory/open-autonomy-tendermint:$TAG deployments/Dockerfiles/tendermint --push
+          docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t valory/open-autonomy-tendermint:latest deployments/Dockerfiles/tendermint --push
 
           docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy-hardhat:$TAG deployments/Dockerfiles/hardhat --push
           docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy-hardhat:latest deployments/Dockerfiles/hardhat --push
