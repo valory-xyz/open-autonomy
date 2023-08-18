@@ -150,12 +150,12 @@ def run_deployment(
             time.sleep(1)
     except NotFound as e:  # pragma: no cover
         raise click.ClickException(e.explanation)
-    except ProjectError as e:
+    except ProjectError as e:  # pragma: no cover
         click.echo("Error occured bringing up the project")
         _print_log(compose_app=commands)
         _kill_containers(compose_app=commands)
         raise click.ClickException(e)
-    except KeyboardInterrupt:
+    except KeyboardInterrupt:  # pragma: no cover
         stop_deployment(build_dir=build_dir)
 
 
