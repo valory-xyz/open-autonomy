@@ -44,7 +44,7 @@ Follow the guides to learn how to use the framework to **create and deploy agent
 
 ------
 
-A tour to **existing agent services** that you can explore and use them as a reference
+A tour to **existing agent services** that you can explore and use as a reference
 for your implementations.
 
 [Demos](./demos/index.md){ .md-button }
