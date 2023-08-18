@@ -1,7 +1,7 @@
 # Counter Agent Service Demo
 
 This demo shows how to run an agent service implementing a counter.
-It is simple example that illustrates how state-machine replication is achieved across different agents through the consensus gadget, which is Tendermint, in this case. Note that, unlike the remaining demos, due to its simplicity, the business logic of this service is not encoded as an {{fsm_app}}. Rather, it is implemented as a simple skill (`counter`) containing an `ABCIHandler`. The skill does not contain proactive behaviours, which means that no client calls are made to the consensus gadget.
+It is a simple example that illustrates how state-machine replication is achieved across different agents through the consensus gadget, which is Tendermint, in this case. Note that, unlike the remaining demos, due to its simplicity, the business logic of this service is not encoded as an {{fsm_app}}. Rather, it is implemented as a simple skill (`counter`) containing an `ABCIHandler`. The skill does not contain proactive behaviours, which means that no client calls are made to the consensus gadget.
 
 ## Architecture of the Demo
 
@@ -127,7 +127,7 @@ The response to this HTTP request above is:
 }
 ```
 
-As you can see from the `log` field, the counter is initializes at `0`.
+As you can see from the `log` field, the counter is initialized at `0`.
 `value` contains the `base64` encoding of the bytes of the data,
 representing the app state.
 
@@ -277,7 +277,7 @@ returns the updated counter value:
 
 ### Interact through an AEA
 
-In this section we will see an example on
+In this section we will see an example of
 how to use an AEA to interact with the Tendermint network built above.
 
 First, open a terminal to the root of this repository,
