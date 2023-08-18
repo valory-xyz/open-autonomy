@@ -127,37 +127,3 @@ def get_service_deploy_transaction(
 
 Retrieve the service owner.
 
-<a id="autonomy.data.contracts.service_manager.contract.ServiceManagerContract.get_terminate_service_transaction"></a>
-
-#### get`_`terminate`_`service`_`transaction
-
-```python
-@classmethod
-def get_terminate_service_transaction(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        owner: str,
-        service_id: int,
-        raise_on_try: bool = False) -> Dict[str, Any]
-```
-
-Retrieve the service owner.
-
-<a id="autonomy.data.contracts.service_manager.contract.ServiceManagerContract.get_unbond_service_transaction"></a>
-
-#### get`_`unbond`_`service`_`transaction
-
-```python
-@classmethod
-def get_unbond_service_transaction(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        owner: str,
-        service_id: int,
-        raise_on_try: bool = False) -> Dict[str, Any]
-```
-
-Retrieve the service owner.
-
