@@ -5,6 +5,10 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.11.0` to `v0.11.1`
+
+The `autonomy deploy run` command now handles the exists from deployment and to do this we're running the deployments in detached mode and waiting for the user to cancel what that means is from now on when running the deployments the logs won't be printed out by default. If you want to check out the logs for containers you can use `docker logs` command.
+
 ## `v0.10.11.post1` to `v0.11.0`
 
 - `web3py` has been replaced with `open-aea-web3` and we forked this from `web3py@v6.0.0`, that means the method names will use the `snake_case` and the `camelCase` naming has been deprecated

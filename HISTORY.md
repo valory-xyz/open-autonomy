@@ -1,5 +1,16 @@
 # Release History - `open-autonomy`
 
+# 0.11.1 (2023-08-18)
+
+Autonomy:
+- Adds support for `arm/v7` docker images
+- Adds support for running the service in background using `--detach` flag
+- Adds support for stopping the service running in background using `autonomy deploy stop`
+- Implements clean exists from `docker-compose` deployments
+
+Packages:
+- Reverts #1996, because it introduced some instability
+
 # 0.11.0 (2023-08-14)
 
 Autonomy:
