@@ -141,6 +141,9 @@ autonomy deploy run [OPTIONS]
 `--remove-orphans`
 :   Remove containers for services not defined in the Compose file.
 
+`--detach`
+:   Run service in the background.
+
 `--help`
 :   Show the help message and exit.
 
@@ -209,3 +212,22 @@ autonomy deploy from-token --use-goerli 2 keys.json
 ```
 
 Runs the service deployment registered with `TOKEN_ID`=2 in the Görli on-chain protocol. The deployment will be run for as many agents as keys are defined in the `keys.json` file. 
+
+
+## `autonomy deploy stop`
+
+Stop a deployment running in background, if you use `--detach` flag on `autonomy deploy run` or `autonomy deploy from-token` the service will run in background. You can stop this service using `autonomy deploy stop` command.
+
+### Usage
+
+```bash
+autonomy deploy stop --build-dir BUILD_DIR
+```
+
+### Options:
+
+`--build-dir PATH`
+:   Path to the deployment build directory.
+
+`--help`
+:   Show this message and exit.

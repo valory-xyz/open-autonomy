@@ -47,9 +47,40 @@ class TestRun(BaseCliTest):
         with mock.patch(
             "autonomy.cli.helpers.deployment.docker_compose.project_from_options"
         ), mock.patch("autonomy.cli.helpers.deployment.docker_compose.TopLevelCommand"):
-            result = self.run_cli()
+            result = self.run_cli(("--detach",))
             assert result.exit_code == 0, result.output
             assert "Running build @" in result.output
+
+    def test_missing_config_file(
+        self,
+    ) -> None:
+        """Run test."""
+        result = self.run_cli()
+        assert result.exit_code == 1, result.output
+        assert "Deployment configuration does not exist" in result.output
+
+
+class TestStop(BaseCliTest):
+    """Test `stop` command."""
+
+    cli_options = ("deploy", "stop")
+
+    def setup(self) -> None:
+        """Setup test method."""
+        super().setup()
+        os.chdir(self.t)
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run test."""
+        (self.t / DOCKER_COMPOSE_YAML).touch()
+        with mock.patch(
+            "autonomy.cli.helpers.deployment.docker_compose.project_from_options"
+        ), mock.patch("autonomy.cli.helpers.deployment.docker_compose.TopLevelCommand"):
+            result = self.run_cli()
+            assert result.exit_code == 0, result.output
+            assert "Don't cancel while stopping services..." in result.output
 
     def test_missing_config_file(
         self,
