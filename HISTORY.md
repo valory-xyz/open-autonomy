@@ -4,7 +4,7 @@
 
 Autonomy:
 - Adds support for `arm/v7` docker images
-- Adds support for running the service in background using `--detach` flag
+- Adds support for running the service in background using `--detach` flag in the `autonomy deploy run` command
 - Adds support for stopping the service running in background using `autonomy deploy stop`
 - Implements clean exists from `docker-compose` deployments
 
