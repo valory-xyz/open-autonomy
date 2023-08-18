@@ -38,6 +38,7 @@ from autonomy.cli.helpers.deployment import (
     build_and_deploy_from_token,
     build_deployment,
     run_deployment,
+    stop_deployment,
 )
 from autonomy.cli.helpers.env import load_env_file
 from autonomy.cli.utils.click_utils import (
@@ -242,6 +243,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
 @click.option(
     "--build-dir",
     type=click.Path(),
+    help="Path to the deployment build directory.",
 )
 @click.option(
     "--no-recreate",
@@ -255,16 +257,38 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     default=False,
     help="Remove containers for services not defined in the Compose file.",
 )
-def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
+@click.option(
+    "--detach",
+    is_flag=True,
+    default=False,
+    help="Run service in the background.",
+)
+def run(
+    build_dir: Path, no_recreate: bool, remove_orphans: bool, detach: bool = False
+) -> None:
     """Run deployment."""
     build_dir = Path(build_dir or Path.cwd()).absolute()
-
     if not (build_dir / DockerComposeGenerator.output_name).exists():
         raise click.ClickException(
             f"Deployment configuration does not exist @ {build_dir}"
         )
+    run_deployment(build_dir, no_recreate, remove_orphans, detach=detach)
 
-    run_deployment(build_dir, no_recreate, remove_orphans)
+
+@deploy_group.command(name="stop")
+@click.option(
+    "--build-dir",
+    type=click.Path(),
+    help="Path to the deployment build directory.",
+)
+def stop(build_dir: Path) -> None:
+    """Stop a running deployment."""
+    build_dir = Path(build_dir or Path.cwd()).absolute()
+    if not (build_dir / DockerComposeGenerator.output_name).exists():
+        raise click.ClickException(
+            f"Deployment configuration does not exist @ {build_dir}"
+        )
+    stop_deployment(build_dir=build_dir)
 
 
 @deploy_group.command(name="from-token")
@@ -296,6 +320,12 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
     is_flag=True,
     help="If set to true, the deployment won't run automatically",
 )
+@click.option(
+    "--detach",
+    is_flag=True,
+    default=False,
+    help="Run service in the background.",
+)
 @chain_selection_flag(help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 @password_option(confirmation_prompt=True)
@@ -308,6 +338,7 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     n: Optional[int],
     deployment_type: str,
     no_deploy: bool,
+    detach: bool,
     aev: bool = False,
     password: Optional[str] = None,
 ) -> None:
@@ -330,4 +361,5 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
             aev=aev,
             password=password,
             no_deploy=no_deploy,
+            detach=detach,
         )
