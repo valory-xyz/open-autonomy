@@ -2223,7 +2223,7 @@ class BackgroundApp(Generic[EventType]):
         )
         self._background_round: Optional[AbstractRound] = None
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: Any) -> bool:  # pragma: no cover
         """Custom equality comparing operator."""
         if not isinstance(other, BackgroundApp):
             return False
