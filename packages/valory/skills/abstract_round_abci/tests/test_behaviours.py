@@ -18,9 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test the behaviours.py module of the skill."""
-
 # pylint: skip-file
 
+import platform
 from abc import ABC
 from calendar import timegm
 from datetime import datetime
@@ -834,6 +834,11 @@ class TestPendingOffencesBehaviour:
             skill_context=MagicMock(),
         )
 
+    @pytest.mark.skipif(
+        platform.system() == "Windows",
+        reason="`timegm` behaves differently on Windows. "
+        "As a result, the generation of `last_transition_timestamp` is invalid.",
+    )
     @given(
         offence=st.builds(
             PendingOffense,
