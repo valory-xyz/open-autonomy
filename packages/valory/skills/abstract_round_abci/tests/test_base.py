@@ -1815,8 +1815,11 @@ class TestAbciApp:
         assert len(EmptyAbciApp.background_apps) == 0
         assert EmptyAbciApp.cross_period_persisted_keys == {"1", "2"}
         # add the background app
-        bg_app_config = deepcopy(STUB_TERMINATION_CONFIG)
-        bg_app_config.abci_app = BackgroundAbciApp
+        bg_app_config = abci_base.BackgroundAppConfig(
+            round_cls=ConcreteBackgroundRound,
+            start_event=ConcreteEvents.TERMINATE,
+            abci_app=BackgroundAbciApp,
+        )
         EmptyAbciApp.add_background_app(bg_app_config)
         assert len(EmptyAbciApp.background_apps) == 1
         assert EmptyAbciApp.cross_period_persisted_keys == {"1", "2", "3"}
@@ -1952,7 +1955,7 @@ class TestAvailabilityWindow:
     """Test `AvailabilityWindow`."""
 
     @staticmethod
-    @given(integers(min_value=0, max_value=100))
+    @given(integers(min_value=1, max_value=100))
     def test_not_equal(max_length: int) -> None:
         """Test the `add` method."""
         availability_window_1 = AvailabilityWindow(max_length)
@@ -1967,6 +1970,14 @@ class TestAvailabilityWindow:
     @given(integers(min_value=0, max_value=100), data())
     def test_add(max_length: int, hypothesis_data: Any) -> None:
         """Test the `add` method."""
+        if max_length < 1:
+            with pytest.raises(
+                ValueError,
+                match=f"An `AvailabilityWindow` with a `max_length` {max_length} < 1 is not valid.",
+            ):
+                AvailabilityWindow(max_length)
+            return
+
         availability_window = AvailabilityWindow(max_length)
 
         expected_positives = expected_negatives = 0
@@ -2000,7 +2011,7 @@ class TestAvailabilityWindow:
 
     @staticmethod
     @given(
-        max_length=integers(min_value=0, max_value=30_000),
+        max_length=integers(min_value=1, max_value=30_000),
         num_positive=integers(min_value=0),
         num_negative=integers(min_value=0),
     )
@@ -2556,7 +2567,8 @@ class TestRoundSequence:
         blockchain = self.round_sequence.blockchain
         blockchain._is_init = False
         self.round_sequence.blockchain = blockchain
-        self.round_sequence.commit()
+        with caplog.at_level(logging.INFO):
+            self.round_sequence.commit()
         expected = "Received block with height 1 before the blockchain was initialized."
         assert expected in caplog.text
 

@@ -2171,7 +2171,7 @@ class BackgroundAppType(Enum):
         return set(BackgroundAppType.__members__) - {BackgroundAppType.INCORRECT.name}
 
 
-@dataclass
+@dataclass(frozen=True)
 class BackgroundAppConfig(Generic[EventType]):
     """
     Necessary configuration for a background app.
@@ -2204,6 +2204,7 @@ class BackgroundApp(Generic[EventType]):
         """Initialize the BackgroundApp."""
         given_args = locals()
 
+        self.config = config
         self.round_cls: AppState = config.round_cls
         self.transition_function: Optional[AbciAppTransitionFunction] = (
             config.abci_app.transition_function if config.abci_app is not None else None
@@ -2221,6 +2222,17 @@ class BackgroundApp(Generic[EventType]):
             f"Created background app of type '{self.type}' using {given_args}."
         )
         self._background_round: Optional[AbstractRound] = None
+
+    def __eq__(self, other: Any) -> bool:  # pragma: no cover
+        """Custom equality comparing operator."""
+        if not isinstance(other, BackgroundApp):
+            return False
+
+        return self.config == other.config
+
+    def __hash__(self) -> int:
+        """Custom hashing operator"""
+        return hash(self.config)
 
     def specify_type(self) -> BackgroundAppType:
         """Specify the type of the background app."""
@@ -2410,7 +2422,7 @@ class AbciApp(
     @classmethod
     def get_all_round_classes(
         cls,
-        bg_round_cls: set[Type[AbstractRound]],
+        bg_round_cls: Set[Type[AbstractRound]],
         include_background_rounds: bool = False,
     ) -> Set[AppState]:
         """Get all round classes."""
@@ -2854,6 +2866,11 @@ class AvailabilityWindow:
 
         :param max_length: the maximum length of the cyclic array.
         """
+        if max_length < 1:
+            raise ValueError(
+                f"An `AvailabilityWindow` with a `max_length` {max_length} < 1 is not valid."
+            )
+
         self._max_length = max_length
         self._window: Deque[bool] = deque(maxlen=max_length)
         self._num_positive = 0
@@ -2874,8 +2891,12 @@ class AvailabilityWindow:
         update_amount = -1 if removal else 1
 
         if positive:
+            if self._num_positive == 0 and update_amount == -1:  # pragma: no cover
+                return
             self._num_positive += update_amount
         else:
+            if self._num_negative == 0 and update_amount == -1:  # pragma: no cover
+                return
             self._num_negative += update_amount
 
     def add(self, value: bool) -> None:
@@ -3035,7 +3056,7 @@ class OffenseStatusDecoder(json.JSONDecoder):
     ) -> Union[AvailabilityWindow, OffenceStatus, Dict[str, OffenceStatus]]:
         """Perform the custom decoding."""
         # if this is an `AvailabilityWindow`
-        window_attributes = sorted(AvailabilityWindow(0).to_dict().keys())
+        window_attributes = sorted(AvailabilityWindow(1).to_dict().keys())
         if window_attributes == sorted(data.keys()):
             return AvailabilityWindow.from_dict(data)
 

@@ -48,11 +48,9 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401  pylint: disable=u
 from packages.valory.skills.offend_abci.rounds import OffendRound
 from packages.valory.skills.registration_abci.rounds import RegistrationStartupRound
 from packages.valory.skills.reset_pause_abci.rounds import ResetAndPauseRound
-from packages.valory.skills.slashing_abci.rounds import (
-    SlashingCheckRound,
-    StatusResetRound,
-)
+from packages.valory.skills.slashing_abci.rounds import StatusResetRound
 from packages.valory.skills.transaction_settlement_abci.rounds import (
+    RandomnessTransactionSubmissionRound,
     ValidateTransactionRound,
 )
 
@@ -64,9 +62,14 @@ NO_SLASHING_HAPPY_PATH = (
 )
 
 SLASHING_HAPPY_PATH = NO_SLASHING_HAPPY_PATH + (
-    RoundChecks(SlashingCheckRound.auto_round_id(), success_event="SLASH_START"),
     RoundChecks(ValidateTransactionRound.auto_round_id()),
-    RoundChecks(StatusResetRound.auto_round_id(), success_event="SLASH_END"),
+)
+
+SLASHING_STRICT_CHECKS = (
+    "The Event.SLASH_START event was produced, "
+    f"transitioning to `{RandomnessTransactionSubmissionRound.auto_round_id()}`",
+    f"Entered in the '{StatusResetRound.auto_round_id()}' round for period 0",
+    "The Event.SLASH_END event was produced. Switching back to the normal FSM.",
 )
 
 
@@ -77,7 +80,7 @@ class SlashingE2E(UseRegistries, UseACNNode, BaseTestEnd2End):
     package_registry_src_rel = Path(__file__).parents[4]
     agent_package = "valory/offend_slash:0.1.0"
     skill_package = "valory/offend_slash_abci:0.1.0"
-    wait_to_finish = 60
+    wait_to_finish = 120
     _args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
 
     def __set_configs(  # pylint: disable=unused-private-member
@@ -111,6 +114,7 @@ class TestSlashing(SlashingE2E, BaseTestEnd2EndExecution):
     """Test that slashing works right."""
 
     happy_path = SLASHING_HAPPY_PATH
+    strict_check_strings = SLASHING_STRICT_CHECKS
     extra_configs = [
         {
             "dotted_path": f"{SlashingE2E._args_prefix}.validator_downtime",

@@ -72,7 +72,7 @@ class TestSlashingCheckRound(BaseRoundTestClass):
         res = test_round.end_block()
         assert res is None
 
-        for payload in payloads:
+        for payload in payloads[:2]:
             test_round.process_payload(payload)
             res = test_round.end_block()
 
@@ -97,6 +97,7 @@ class TestSlashingCheckRound(BaseRoundTestClass):
             == TxSettlementSyncedData(expected_state.db).most_voted_tx_hash
         )
         assert event == Event.SLASH_START
+        assert not test_round.collection
 
     def test_bad_payloads(self) -> None:
         """Tests the slashing check round when bad payloads are sent."""

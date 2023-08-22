@@ -23,11 +23,11 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiajiyoncmpmvfzyowo37azhhwwksp7tjrmsf3pls46evyr7uqs35a
-- valory/registration_abci:0.1.0:bafybeigbteofptjs6p3pivtdanb6mwgyomn5qodeubag7ar5wetzugp3mi
-- valory/offend_abci:0.1.0:bafybeibyyf32rneag7ba4pl5uh6jvdeo7h3fa2lebdthnsqyyo4l4ysxoe
-- valory/slashing_abci:0.1.0:bafybeidp3ssljhtbwfmvvisw5phuvrqvtlmm2flvnqrsfpybwp7bh4x77q
-- valory/reset_pause_abci:0.1.0:bafybeifkkxvzur7jbjw4yerj3e57t2kzjzvwumahk67sme6nucykpcf2ni
+- valory/abstract_round_abci:0.1.0:bafybeia7z7x4np7ssy2b4zyv5v5fdxss7yvdbe2sdhuubixoylvgsh3vmq
+- valory/registration_abci:0.1.0:bafybeidnw34nx2locaunoddbuwte7pdplabkwgxees66prhevp6w3kvzne
+- valory/offend_abci:0.1.0:bafybeiebmst7kfpkqmpjaamouzzm7fh62mixh675na5rsasicx4xbifpgm
+- valory/slashing_abci:0.1.0:bafybeibp4g22mbp3fg3dj555tpdzbmkmvdspgw4rfljn7tomykpoql4zgu
+- valory/reset_pause_abci:0.1.0:bafybeib7tbk44lpx4vxh3exvlvdgej6vidbd2sc2ypotyuxehg64twkdaq
 behaviours:
   main:
     args: {}
@@ -114,10 +114,10 @@ models:
       setup:
         all_participants:
         - '0x0000000000000000000000000000000000000000'
-        safe_contract_address: '0xD8dE647170163a981bb3Fdb2063583eAcF7D55AC'
+        safe_contract_address: '0x77b783e911F4398D75908Cc60C7138Bd1eFe35Fd'
         consensus_threshold: null
       share_tm_config_on_startup: false
-      sleep_time: 300
+      sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5

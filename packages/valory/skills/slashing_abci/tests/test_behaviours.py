@@ -57,7 +57,10 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 from packages.valory.skills.transaction_settlement_abci.rounds import TX_HASH_LENGTH
 
 
-STUB_OPERATORS_MAPPING = {"test_instance": "test_operator"}
+STUB_OPERATORS_MAPPING = {
+    "test_instance_1": "test_operator",
+    "test_instance_0": "test_operator",
+}
 DUMMY_SLASH_THRESHOLD = 1
 DUMMY_SLASH_COOLDOWN = 1
 
@@ -265,7 +268,7 @@ class TestSlashingCheckBehaviour(BaseSlashingTest):
         # `error: Item "None" of "Optional[BaseBehaviour]" has no attribute "context"` when accessing the context below
         assert self.current_behaviour is not None
 
-        self.current_behaviour._slash_amounts = {}
+        self.current_behaviour._slash_amounts = {"agent": "something_random"}
         self.current_behaviour.round_sequence._offence_status = offence_status  # type: ignore
         self.current_behaviour.round_sequence._last_round_transition_timestamp = (
             last_timestamp
@@ -444,7 +447,9 @@ class TestStatusResetBehaviour(BaseSlashingTest):
             StatusResetBehaviourTestCase(get_mapping_error=True),
             StatusResetBehaviourTestCase(process_receipt_error=True),
             StatusResetBehaviourTestCase(
-                operators_mapping=json.dumps(inverse(STUB_OPERATORS_MAPPING))
+                operators_mapping=json.dumps(
+                    inverse(dict(sorted(STUB_OPERATORS_MAPPING.items())))
+                )
             ),
             StatusResetBehaviourTestCase(),
         ),
@@ -493,5 +498,9 @@ class TestStatusResetBehaviour(BaseSlashingTest):
             return
 
         assert self.current_behaviour.offence_status == initial_offence_status
+        # check the order for determinism
+        assert list(self.current_behaviour.offence_status.keys()) == sorted(
+            initial_offence_status.keys()
+        )
         self.complete()
         sleep_mock.assert_not_called()

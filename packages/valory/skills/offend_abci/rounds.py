@@ -19,6 +19,7 @@
 
 """This module contains the rounds for the offend_abci skill."""
 
+import json
 from enum import Enum
 from typing import Dict, Optional, Set, Tuple
 
@@ -29,6 +30,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     CollectSameUntilThresholdRound,
     DegenerateRound,
+    OffenseStatusDecoder,
 )
 from packages.valory.skills.offend_abci.payloads import OffencesPayload
 
@@ -42,7 +44,7 @@ class Event(Enum):
 
 
 class OffendRound(CollectSameUntilThresholdRound):
-    """A round in which the agents get registered"""
+    """A round in which the agents simulate an offence"""
 
     synchronized_data_class = BaseSynchronizedData
     payload_class = OffencesPayload
@@ -51,7 +53,10 @@ class OffendRound(CollectSameUntilThresholdRound):
         """Process the end of the block."""
 
         if self.threshold_reached:
-            self.synchronized_data.slashing_config = self.most_voted_payload
+            self.context.state.round_sequence.offence_status = json.loads(
+                self.most_voted_payload,
+                cls=OffenseStatusDecoder,
+            )
             return self.synchronized_data, Event.DONE
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
