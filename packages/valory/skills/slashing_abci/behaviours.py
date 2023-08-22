@@ -99,6 +99,11 @@ class SlashingBaseBehaviour(BaseBehaviour, ABC):
         """Get the offence status from the round sequence."""
         return self.round_sequence.offence_status
 
+    @offence_status.setter
+    def offence_status(self, status: Dict[str, OffenceStatus]) -> None:
+        """Set the offence status in the round sequence."""
+        self.round_sequence.offence_status = status
+
 
 class SlashingCheckBehaviour(SlashingBaseBehaviour):
     """
@@ -191,6 +196,8 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
 
     def _check_offence_status(self) -> None:
         """Check the offence status, calculate the slash amount per operator, and assign it to `_slash_amounts`."""
+        self._slash_amounts = {}
+
         for agent, status in self.offence_status.items():
             amount = status.slash_amount(
                 self.params.light_slash_unit_amount,
@@ -229,7 +236,7 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
             contract_callable="get_slash_data",
             agent_instances=self.slashable_instances,
             amounts=self.slashable_amounts,
-            service_id=self.params.service_id,
+            service_id=self.params.on_chain_service_id,
         )
         if response_msg.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
             self.context.logger.error(
@@ -295,6 +302,7 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
         if not self.is_majority_possible() or self.synchronized_data.slashing_in_flight:
             # If the service does not have enough participants to reach consensus, there is no need to run the act.
             # Additionally, we verify whether a slashing operation has already been triggered to avoid duplication.
+            yield from self.sleep(self.params.sleep_time)
             return
 
         if self.params.service_registry_address is None:  # pragma: no cover
@@ -460,7 +468,10 @@ class StatusResetBehaviour(SlashingBaseBehaviour):
             # as also mentioned in `_get_instances_mapping`,
             # it would be better if `mapOperatorAndServiceIdAgentInstances` was used,
             # because getting the inverse here would not be necessary
-            operators_mapping = inverse(instances_mapping)
+            # in any case, we need to sort the mapping,
+            # as the order in which they are received from the contract is not guaranteed,
+            # and we need its content to be deterministic as it is later passed via the payload
+            operators_mapping = inverse(dict(sorted(instances_mapping.items())))
 
         # check `OperatorSlashed` event to see which agents were slashed and if everything went as expected
         slash_info = yield from self._process_slash_receipt(
@@ -489,8 +500,9 @@ class StatusResetBehaviour(SlashingBaseBehaviour):
             f"A slashing operation has been performed for the operator(s) of agents {list(agent_to_timestamp.keys())}."
         )
         self.context.logger.info("Resetting status for the slashed agents.")
-        for agent in agent_to_timestamp.keys():
-            self.offence_status[agent] = OffenceStatus()
+        self.offence_status = {
+            agent: OffenceStatus() for agent in agent_to_timestamp.keys()
+        }
         self.context.logger.info("Successfully reset status for the slashed agents.")
 
         status_reset_payload = StatusResetPayload(

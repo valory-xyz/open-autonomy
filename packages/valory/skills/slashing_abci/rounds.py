@@ -62,6 +62,11 @@ class SynchronizedData(BaseSynchronizedData):
     """
 
     @property
+    def slashing_bg_init(self) -> bool:
+        """Get if the slashing background round has been initialized."""
+        return bool(self.db.get("slashing_bg_init", False))
+
+    @property
     def slashing_in_flight(self) -> bool:
         """Get if there is a slashing operation in progress."""
         return bool(self.db.get("slashing_in_flight", False))
@@ -107,9 +112,9 @@ class SlashingCheckRound(CollectSameUntilThresholdRound):
     payload_class = SlashingTxPayload
     synchronized_data_class = SynchronizedData
     selection_key = (
+        get_name(TxSettlementSyncedData.most_voted_tx_hash),
         get_name(SynchronizedData.slashing_in_flight),
         get_name(SynchronizedData.slashing_majority_reached),
-        get_name(TxSettlementSyncedData.most_voted_tx_hash),
     )
 
     def process_payload(self, payload: BaseTxPayload) -> None:
@@ -148,14 +153,32 @@ class SlashingCheckRound(CollectSameUntilThresholdRound):
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
-        if not self.threshold_reached:
+        synced_data = SynchronizedData(db=self.synchronized_data.db)
+        if not synced_data.slashing_bg_init:
+            # we set the cross-period values because the period will most probably be increased
+            # before this background round ever returns a `SLASH_START` event.
+            # if this happens, and we do not set them here, then the db creation for the new period will fail
+            # because the values are in the cross-period persisted keys.
+            self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
+                slashing_bg_init=True,
+                operators_mapping=None,
+                slash_timestamps="",
+                slashing_in_flight=synced_data.slashing_in_flight,
+                slashing_majority_reached=synced_data.slashing_majority_reached,
+            )
+
+        if not self.threshold_reached or synced_data.slashing_in_flight:
             return None
 
         majority_data = dict(zip(self.selection_key, self.most_voted_payload_values))
-        state = self.synchronized_data.update(
+        state = synced_data.update(
             synchronized_data_class=self.synchronized_data_class,
             **majority_data,
         )
+        # we need to reset the collection before returning the slash start event,
+        # because this round is continuously and concurrently run in the background
+        self.collection = {}
         return state, Event.SLASH_START
 
 
@@ -166,10 +189,10 @@ class StatusResetRound(CollectSameUntilThresholdRound):
     synchronized_data_class = SynchronizedData
     collection_key = get_name(SynchronizedData.participant_to_offence_reset)
     selection_key = (
-        get_name(SynchronizedData.slashing_in_flight),
-        get_name(SynchronizedData.slashing_majority_reached),
         get_name(SynchronizedData.operators_mapping),
         get_name(SynchronizedData.slash_timestamps),
+        get_name(SynchronizedData.slashing_in_flight),
+        get_name(SynchronizedData.slashing_majority_reached),
     )
     done_event = Event.SLASH_END
     no_majority_event = Event.NO_MAJORITY
@@ -200,7 +223,7 @@ class PostSlashingTxAbciApp(AbciApp[Event]):
     initial_states = {StatusResetRound}
     transition_function = {
         StatusResetRound: {
-            # the following is not needed, it is added to satisfy the round check
+            # the following is not needed, it is added to satisfy the round check.
             # the `SLASH_END` event is the end event of the slashing background app,
             # which signals the app to return to the main transition function
             # for more information, see `BackgroundApp` and `AbciApp` implementation
@@ -211,5 +234,13 @@ class PostSlashingTxAbciApp(AbciApp[Event]):
             Event.NONE: StatusResetRound,
         },
     }
+    cross_period_persisted_keys = frozenset(
+        {
+            get_name(SynchronizedData.operators_mapping),
+            get_name(SynchronizedData.slash_timestamps),
+            get_name(SynchronizedData.slashing_in_flight),
+            get_name(SynchronizedData.slashing_majority_reached),
+        }
+    )
     event_to_timeout: Dict[Event, float] = {Event.ROUND_TIMEOUT: 30.0}
     db_pre_conditions: Dict[AppState, Set[str]] = {StatusResetRound: set()}

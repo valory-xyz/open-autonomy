@@ -18,9 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test the behaviours.py module of the skill."""
-
 # pylint: skip-file
 
+import platform
 from abc import ABC
 from calendar import timegm
 from datetime import datetime
@@ -272,7 +272,7 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = MagicMock(
-                    get_all_round_classes=lambda include_background_rounds: rounds,
+                    get_all_round_classes=lambda _, include_background_rounds: rounds,
                     final_states={
                         rounds[0],
                     },
@@ -307,7 +307,7 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = MagicMock(
-                    get_all_round_classes=lambda include_background_rounds: rounds
+                    get_all_round_classes=lambda _, include_background_rounds: rounds
                     if include_background_rounds
                     else [],
                     final_states={
@@ -834,6 +834,11 @@ class TestPendingOffencesBehaviour:
             skill_context=MagicMock(),
         )
 
+    @pytest.mark.skipif(
+        platform.system() == "Windows",
+        reason="`timegm` behaves differently on Windows. "
+        "As a result, the generation of `last_transition_timestamp` is invalid.",
+    )
     @given(
         offence=st.builds(
             PendingOffense,

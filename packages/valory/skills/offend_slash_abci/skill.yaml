@@ -1,40 +1,37 @@
-name: termination_abci
+name: offend_slash_abci
 author: valory
 version: 0.1.0
 type: skill
-description: Termination skill.
+description: ABCI application used in order to test the slashing abci
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: bafybeidztixckwwbn4ujl6kkvghgsk23xecbgnbiw3e4t3owxldhyjo3au
-  behaviours.py: bafybeidl5q5fenawxaze2crv3h3nhsjkyylxihsmn67o6dhvdd35wj6mpe
-  dialogues.py: bafybeif7uhfjkcz3ryhti6gafqxhvciw4ec5bdshxvq3355tun5ydkzrna
-  handlers.py: bafybeibh5b3p4bdvbnwiqwormduqjvuievylb3s2wgj4ald4led7gx2kji
-  models.py: bafybeif5qygu6bdgsxv53sqoty76vgp3afib6e6fmykofrgnlcubmg4cd4
-  payloads.py: bafybeihbwfunongkws5lck67sdgpnytq6bdbiv22yuehmyfth4qeypjcpa
-  rounds.py: bafybeifj7xjobumi7l2vwfdzeqfqdlrcn7oq2vy46tzakketgipxwgh3nu
-  tests/__init__.py: bafybeigsjjibb2gcybzp5yrsy25vyiu54rw6oaeyw5onaqemsvul7bmroi
-  tests/test_behaviours.py: bafybeibkogjosxk6ktneru5ddgzguuiw2wuvx2n63d3rpyqhoy7llnoc5i
-  tests/test_dialogues.py: bafybeicb6gfanfyt3wiq3svdlvtxiuzpk72oxp7cfdeq4ezed7ixee5yae
-  tests/test_handlers.py: bafybeiefz2ebr5rlyxziwr4bts2r75abpqgji3k47a6hnrj7e7t2yvgmpu
-  tests/test_models.py: bafybeih5wtdjuv4hc25fxneeg7mgjiks55xj353zxfamvtrthkw2ydmbbe
-  tests/test_payloads.py: bafybeibai4dzjjdeyeinyirjndcfzbj2qst6roj6prjvcqwut5m3won3fa
-  tests/test_rounds.py: bafybeigpc5xuuhlycjq52gbnw6c33o3yvozpuhzhutrrqdm2wtdgqmkcy4
+  README.md: bafybeiff3e5cjvl74rtybyvodggnsxubw7agw37epoagwrpz6g2szufmxa
+  __init__.py: bafybeiaopodjnkdcukf3vw4racq552bzt22uh5oioebcaklwpnvjyihpfy
+  behaviours.py: bafybeices54uowgfsq67funxpl2b7k7xxbshiorgrrkmncdhqrcwnothnq
+  composition.py: bafybeihoddfltsv4nt34qstcw77ttoiwqssgaqhtgj4na7534wz4cq7sge
+  dialogues.py: bafybeigpwuzku3we7axmxeamg7vn656maww6emuztau5pg3ebsoquyfdqm
+  handlers.py: bafybeifnzry2revihwvjkvc6aqbbsdwvauw7jqv253m5clc23qbwepxfzu
+  models.py: bafybeiaoxx4n7c2zc4pcphh5laxil2d2ejq6kjbghb3rkt26a5utymnpva
+  tests/__init__.py: bafybeihg5ifbullyt64anjht5vlmspr6byo4rk6arcg5ufzmmw6xr5t77i
+  tests/test_behaviours.py: bafybeiajcitxmshmwgkeizd4dnhb34t2w47wxh7lhcizhoimijnfgvswaq
+  tests/test_dialogues.py: bafybeibb3tlcp7cz76iounglv32tjgebclqi3wm4cslxf3neyeibyqy5t4
+  tests/test_handlers.py: bafybeif65ihrcfmhidos4wyq3ub2cbhhsrezanr3r3jyhgfhuxetjjl6im
+  tests/test_models.py: bafybeiectmzpvdgytmqt6b2rc22qx2bogudm7mtkcc2ol4q3l3ayvmx7sa
 fingerprint_ignore_patterns: []
 connections: []
-contracts:
-- valory/gnosis_safe:0.1.0:bafybeib553aeszr6ndmunl3kjsroatcsljqia2vjm5rao4d5lcttgdwgsy
-- valory/multisend:0.1.0:bafybeict2k3vf3c4fvzosaq5kku2ivtzsskbomrujmmoicut7eg52onnje
-- valory/service_registry:0.1.0:bafybeicfc6n75iyxwl42d7ust3lsosx5jvjv234zyfdpixx3dsjbjg6biu
-protocols:
-- valory/contract_api:1.0.0:bafybeiasywsvax45qmugus5kxogejj66c5taen27h4voriodz7rgushtqa
+contracts: []
+protocols: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeia7z7x4np7ssy2b4zyv5v5fdxss7yvdbe2sdhuubixoylvgsh3vmq
-- valory/transaction_settlement_abci:0.1.0:bafybeiega33rqvedohqugodyt5pbartc2teukk6sg5sjgacbjx5w4kjerq
+- valory/registration_abci:0.1.0:bafybeidnw34nx2locaunoddbuwte7pdplabkwgxees66prhevp6w3kvzne
+- valory/offend_abci:0.1.0:bafybeiebmst7kfpkqmpjaamouzzm7fh62mixh675na5rsasicx4xbifpgm
+- valory/slashing_abci:0.1.0:bafybeibp4g22mbp3fg3dj555tpdzbmkmvdspgw4rfljn7tomykpoql4zgu
+- valory/reset_pause_abci:0.1.0:bafybeib7tbk44lpx4vxh3exvlvdgej6vidbd2sc2ypotyuxehg64twkdaq
 behaviours:
   main:
     args: {}
-    class_name: TerminationAbciBehaviours
+    class_name: OffendSlashAbciAppConsensusBehaviour
 handlers:
   abci:
     args: {}
@@ -45,9 +42,6 @@ handlers:
   http:
     args: {}
     class_name: HttpHandler
-  ipfs:
-    args: {}
-    class_name: IpfsHandler
   ledger_api:
     args: {}
     class_name: LedgerApiHandler
@@ -102,23 +96,26 @@ models:
         voting_power: '10'
       history_check_timeout: 1205
       init_fallback_gas: 0
-      ipfs_domain_name: null
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
       max_attempts: 10
       max_healthcheck: 120
-      multisend_address: '0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761'
+      multisend_address: null
       on_chain_service_id: null
       request_retry_delay: 1.0
       request_timeout: 10.0
       reset_pause_duration: 10
-      reset_tendermint_after: 2
+      reset_tendermint_after: 200
       retry_attempts: 400
       retry_timeout: 3
-      round_timeout_seconds: 30.0
-      service_id: termination_abci
-      service_registry_address: '0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA'
-      setup: {}
+      round_timeout_seconds: 15.0
+      service_id: register_termination_abci
+      service_registry_address: null
+      setup:
+        all_participants:
+        - '0x0000000000000000000000000000000000000000'
+        safe_contract_address: '0x77b783e911F4398D75908Cc60C7138Bd1eFe35Fd'
+        consensus_threshold: null
       share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 3
@@ -129,13 +126,31 @@ models:
       termination_sleep: 900
       tx_timeout: 10.0
       use_termination: false
-      use_slashing: false
+      use_slashing: true
       slash_cooldown_hours: 3
       slash_threshold_amount: 10000000000000000
       light_slash_unit_amount: 5000000000000000
       serious_slash_unit_amount: 8000000000000000
       validate_timeout: 1205
-    class_name: TerminationParams
+      validator_downtime: false
+      invalid_payload: false
+      blacklisted: false
+      suspected: false
+      num_unknown: 0
+      num_double_signed: 0
+      num_light_client_attack: 0
+    class_name: Params
+  randomness_api:
+    args:
+      api_id: cloudflare
+      headers: {}
+      method: GET
+      parameters: {}
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: https://drand.cloudflare.com/public/latest
+    class_name: RandomnessApi
   requests:
     args: {}
     class_name: Requests
@@ -148,6 +163,5 @@ models:
   tendermint_dialogues:
     args: {}
     class_name: TendermintDialogues
-dependencies:
-  hexbytes: {}
-is_abstract: true
+dependencies: {}
+is_abstract: false

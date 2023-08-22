@@ -2117,7 +2117,7 @@ Return the correct types only.
 ## BackgroundAppConfig Objects
 
 ```python
-@dataclass
+@dataclass(frozen=True)
 class BackgroundAppConfig(Generic[EventType])
 ```
 
@@ -2146,6 +2146,26 @@ def __init__(config: BackgroundAppConfig) -> None
 ```
 
 Initialize the BackgroundApp.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp.__eq__"></a>
+
+#### `__`eq`__`
+
+```python
+def __eq__(other: Any) -> bool
+```
+
+Custom equality comparing operator.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp.__hash__"></a>
+
+#### `__`hash`__`
+
+```python
+def __hash__() -> int
+```
+
+Custom hashing operator
 
 <a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp.specify_type"></a>
 
@@ -2296,9 +2316,10 @@ Get all the events.
 
 ```python
 @classmethod
-def get_all_round_classes(cls,
-                          include_background_rounds: bool = False
-                          ) -> Set[AppState]
+def get_all_round_classes(
+        cls,
+        bg_round_cls: Set[Type[AbstractRound]],
+        include_background_rounds: bool = False) -> Set[AppState]
 ```
 
 Get all round classes.

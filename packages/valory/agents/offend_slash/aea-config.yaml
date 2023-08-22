@@ -1,15 +1,14 @@
-agent_name: register_reset_recovery
+agent_name: offend_slash
 author: valory
 version: 0.1.0
 license: Apache-2.0
-description: Agent to showcase hard reset as a recovery mechanism.
+description: Offend and slash to test the slashing feature.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: bafybeicocdojplie5z4kbs7cn7apunfydbxui2nigp6ci2osuvv3mybzfm
-  __init__.py: bafybeihgxrmmp63exxkdmvlu565kehvuucg4iivnejwutaehb2p7xzxu4q
-  tests/__init__.py: bafybeigkkq3hon4wuyrazwnt5tiu23idpelf6a7kzbmawty7zfrpqnmnhi
-  tests/base.py: bafybeideqzbfh6sykp5j4asojcn26qg5hro3ot4xa4cl7uhtwrdgwbrxk4
-  tests/test_register_reset_recovery.py: bafybeiajrzfeqcdvapjhdjggyxya2g3gdxboodpagld6uyclrsrfsiri7u
+  README.md: bafybeibvdndrwbxlyljznpnv6rn7ks6e7sy4dfveb2vw7hqw3uuvrq64dm
+  __init__.py: bafybeihpqeerwvdztwaovdaas3lecjxztp7yectgjsqbk4phmpdjnww6fi
+  tests/__init__.py: bafybeic5zltt6wlvoegj2tfewe6qgr5f743lef4d6bkgvlqyfsnleiyb6y
+  tests/test_offend_slash.py: bafybeideqlz3vfssoylvesyr4oualignptsjsbiqlzgoskpd7ru6vosg4m
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeicehggwsv3hs6o5ifdrshdcei7czhxxcedcv6dbvsi4yfxuhik3mu
@@ -17,21 +16,31 @@ connections:
 - valory/ipfs:0.1.0:bafybeicwe4fksbhaqs4qycfdqbzgqtikfn3u4g5y5fucxfmriezwwf7hse
 - valory/ledger:0.19.0:bafybeiejc7g7ebv3cleiqb4f4h4pspcu6vtr54332szwlqiabfs3sfdh44
 - valory/p2p_libp2p_client:0.1.0:bafybeihdnfdth3qgltefgrem7xyi4b3ejzaz67xglm2hbma2rfvpl2annq
-contracts: []
+contracts:
+- valory/gnosis_safe:0.1.0:bafybeib553aeszr6ndmunl3kjsroatcsljqia2vjm5rao4d5lcttgdwgsy
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeievdjct23qgi6tc5vgseusaap7tlqasclj4fowrtluqhc453o74hq
+- valory/service_registry:0.1.0:bafybeicfc6n75iyxwl42d7ust3lsosx5jvjv234zyfdpixx3dsjbjg6biu
 protocols:
 - open_aea/signing:1.0.0:bafybeifuxs7gdg2okbn7uofymenjlmnih2wxwkym44lsgwmklgwuckxm2m
 - valory/abci:0.1.0:bafybeigootsvqpk6th5xpdtzanxum3earifrrezfyhylfrit7yvqdrtgpe
+- valory/acn:1.1.0:bafybeiapa5ilsobggnspoqhspftwolrx52udrwmaxdxgrk26heuvl4oooa
+- valory/contract_api:1.0.0:bafybeiasywsvax45qmugus5kxogejj66c5taen27h4voriodz7rgushtqa
 - valory/http:1.0.0:bafybeia5bxdua2i6chw6pg47bvoljzcpuqxzy4rdrorbdmcbnwmnfdobtu
 - valory/ipfs:0.1.0:bafybeibjzhsengtxfofqpxy6syamplevp35obemwfp4c5lhag3v2bvgysa
+- valory/ledger_api:1.0.0:bafybeigsvceac33asd6ecbqev34meyyjwu3rangenv6xp5rkxyz4krvcby
+- valory/tendermint:0.1.0:bafybeidjqmwvgi4rqgp65tbkhmi45fwn2odr5ecezw6q47hwitsgyw4jpa
 skills:
 - valory/abstract_abci:0.1.0:bafybeihj6mz6wpamylo44b2ow4pgodfzufablksntfz7vshyx4eu6e52wi
 - valory/abstract_round_abci:0.1.0:bafybeia7z7x4np7ssy2b4zyv5v5fdxss7yvdbe2sdhuubixoylvgsh3vmq
-- valory/register_reset_recovery_abci:0.1.0:bafybeihulfkasserwkxc25jfqjtalzr6bs3ampxldgfwy4uog2ftysypg4
+- valory/offend_abci:0.1.0:bafybeiebmst7kfpkqmpjaamouzzm7fh62mixh675na5rsasicx4xbifpgm
+- valory/offend_slash_abci:0.1.0:bafybeihi63fq2rvzfu5ecbumyxfryai6imsysvuhu7yhjdpykk4hvguz6e
 - valory/registration_abci:0.1.0:bafybeidnw34nx2locaunoddbuwte7pdplabkwgxees66prhevp6w3kvzne
+- valory/reset_pause_abci:0.1.0:bafybeib7tbk44lpx4vxh3exvlvdgej6vidbd2sc2ypotyuxehg64twkdaq
+- valory/slashing_abci:0.1.0:bafybeibp4g22mbp3fg3dj555tpdzbmkmvdspgw4rfljn7tomykpoql4zgu
+- valory/transaction_settlement_abci:0.1.0:bafybeiega33rqvedohqugodyt5pbartc2teukk6sg5sjgacbjx5w4kjerq
 default_ledger: ethereum
 required_ledgers:
 - ethereum
-- cosmos
 default_routing: {}
 connection_private_key_paths: {}
 private_key_paths: {}
@@ -54,37 +63,50 @@ logging_config:
   loggers:
     aea:
       handlers:
-      - console
       - logfile
-      propagate: true
-dependencies:
-  open-aea-ledger-cosmos:
-    version: ==1.37.0
-  open-aea-ledger-ethereum:
-    version: ==1.37.0
-  open-aea-test-autonomy:
-    version: ==0.10.11.post1
+      - console
+      propagate: false
 skill_exception_policy: stop_and_exit
+dependencies:
+  open-aea-ledger-ethereum:
+    version: ==1.35.0
+  open-aea-test-autonomy:
+    version: ==0.10.7
 default_connection: null
 ---
 public_id: valory/abci:0.1.0
 type: connection
 config:
-  target_skill_id: valory/register_reset_recovery_abci:0.1.0
+  target_skill_id: valory/offend_slash_abci:0.1.0
   host: ${ABCI_HOST:str:localhost}
   port: ${ABCI_PORT:int:26658}
   use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
 ---
-public_id: valory/register_reset_recovery_abci:0.1.0
+public_id: valory/ledger:0.19.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_ADDRESS:str:http://localhost:8545}
+      chain_id: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_CHAIN_ID:int:31337}
+---
+public_id: valory/offend_slash_abci:0.1.0
 type: skill
 models:
   benchmark_tool:
     args:
-      log_dir: ${SKILL_REGISTER_RESET_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
+      log_dir: ${str:/benchmarks}
   params:
     args:
       tendermint_url: ${str:http://localhost:26657}
       tendermint_com_url: ${str:http://localhost:8080}
+      use_termination: ${bool:true}
+      on_chain_service_id: ${int:1}
+      setup:
+        safe_contract_address: ${str:0x77b783e911F4398D75908Cc60C7138Bd1eFe35Fd}
+        consensus_threshold: ${int:null}
+      service_registry_address: ${str:0x998abeb3E57409262aE5b751f60747921B33613E}
+      share_tm_config_on_startup: ${bool:true}
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
