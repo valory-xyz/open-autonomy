@@ -18,16 +18,20 @@
 # ------------------------------------------------------------------------------
 
 """Test the behaviours.py module of the skill."""
-
 # pylint: skip-file
 
+import platform
 from abc import ABC
+from calendar import timegm
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Generator, Optional, Tuple
 from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from packages.valory.skills.abstract_round_abci import PUBLIC_ID
 from packages.valory.skills.abstract_round_abci.base import (
@@ -38,6 +42,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     DegenerateRound,
     EventType,
+    OffenseType,
+    PendingOffense,
     RoundSequence,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
@@ -47,9 +53,11 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
 )
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
+    PendingOffencesBehaviour,
     _MetaRoundBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.models import TendermintRecoveryParams
+from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
 
 BEHAVIOUR_A_ID = "behaviour_a"
@@ -59,6 +67,9 @@ CONCRETE_BACKGROUND_BEHAVIOUR_ID = "background_behaviour"
 ROUND_A_ID = "round_a"
 ROUND_B_ID = "round_b"
 CONCRETE_BACKGROUND_ROUND_ID = "background_round"
+
+
+settings.load_profile(profile_name)
 
 
 def test_skill_public_id() -> None:
@@ -193,7 +204,7 @@ class ConcreteRoundBehaviour(AbstractRoundBehaviour):
     abci_app_cls = ConcreteAbciApp
     behaviours = {BehaviourA, BehaviourB}  # type: ignore
     initial_behaviour_cls = BehaviourA
-    background_behaviour_cls = ConcreteBackgroundBehaviour
+    background_behaviours_cls = {ConcreteBackgroundBehaviour}  # type: ignore
 
 
 class TestAbstractRoundBehaviour:
@@ -207,20 +218,20 @@ class TestAbstractRoundBehaviour:
         context_mock.state.round_sequence.syncing_up = False
         self.round_sequence_mock.block_stall_deadline_expired = False
         self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
-        self.behaviour.tm_manager = self.behaviour.instantiate_behaviour_cls(TmManager)  # type: ignore
 
     @pytest.mark.parametrize("use_termination", (True, False))
     def test_setup(self, use_termination: bool) -> None:
         """Test 'setup' method."""
-        assert self.behaviour.background_behaviour is None
+        assert self.behaviour.background_behaviours == set()
         self.behaviour.context.params.use_termination = use_termination
         self.behaviour.setup()
-        background_behaviour = self.behaviour.background_behaviour
-        assert self.behaviour.background_behaviour_cls == ConcreteBackgroundBehaviour
+        assert self.behaviour.background_behaviours_cls == {ConcreteBackgroundBehaviour}
         assert (
-            isinstance(background_behaviour, self.behaviour.background_behaviour_cls)
+            isinstance(
+                self.behaviour.background_behaviours.pop(), ConcreteBackgroundBehaviour
+            )
             if use_termination
-            else background_behaviour is None
+            else self.behaviour.background_behaviours == set()
         )
 
     def test_teardown(self) -> None:
@@ -233,6 +244,7 @@ class TestAbstractRoundBehaviour:
 
     def test_act_current_behaviour_name_is_none(self) -> None:
         """Test 'act' with current behaviour None."""
+        self.behaviour.tm_manager = self.behaviour.instantiate_behaviour_cls(TmManager)  # type: ignore
         self.behaviour.current_behaviour = None
         with mock.patch.object(self.behaviour, "_process_current_round"):
             self.behaviour.act()
@@ -260,13 +272,53 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = MagicMock(
-                    get_all_round_classes=lambda include_termination_rounds: rounds,
+                    get_all_round_classes=lambda _, include_background_rounds: rounds,
                     final_states={
                         rounds[0],
                     },
                 )
                 behaviours = mock_behaviours  # type: ignore
                 initial_behaviour_cls = MagicMock()
+
+    @pytest.mark.parametrize("behaviour_cls", (set(), {MagicMock()}))
+    def test_check_matching_round_consistency_with_bg_rounds(
+        self, behaviour_cls: set
+    ) -> None:
+        """Test classmethod '_check_matching_round_consistency' when a background behaviour class is set."""
+        rounds = [
+            MagicMock(**{"auto_round_id.return_value": f"round_{i}"}) for i in range(3)
+        ]
+        mock_behaviours = (
+            [
+                MagicMock(matching_round=round_, behaviour_id=f"behaviour_{i}")
+                for i, round_ in enumerate(rounds[1:])
+            ]
+            if behaviour_cls
+            else []
+        )
+
+        with mock.patch.object(
+            _MetaRoundBehaviour, "_check_all_required_classattributes_are_set"
+        ), mock.patch.object(
+            _MetaRoundBehaviour, "_check_behaviour_id_uniqueness"
+        ), mock.patch.object(
+            _MetaRoundBehaviour, "_check_initial_behaviour_in_set_of_behaviours"
+        ):
+
+            class MyRoundBehaviour(AbstractRoundBehaviour):
+                abci_app_cls = MagicMock(
+                    get_all_round_classes=lambda _, include_background_rounds: rounds
+                    if include_background_rounds
+                    else [],
+                    final_states={
+                        rounds[0],
+                    }
+                    if behaviour_cls
+                    else {},
+                )
+                behaviours = mock_behaviours  # type: ignore
+                initial_behaviour_cls = MagicMock()
+                background_behaviours_cls = behaviour_cls
 
     def test_get_behaviour_id_to_behaviour_mapping_negative(self) -> None:
         """Test classmethod '_get_behaviour_id_to_behaviour_mapping', negative case."""
@@ -496,12 +548,14 @@ class TestAbstractRoundBehaviour:
 
     def test_act_with_round_change_after_current_behaviour_is_none(self) -> None:
         """Test the 'act' method of the behaviour, with round change, after cur behaviour is none."""
+        self.behaviour.tm_manager = self.behaviour.instantiate_behaviour_cls(TmManager)  # type: ignore
         self.round_sequence_mock.current_round = RoundA(MagicMock(), MagicMock())
         self.round_sequence_mock.current_round_height = 0
 
         # instantiate behaviour
-        self.behaviour.current_behaviour = self.behaviour.instantiate_behaviour_cls(BehaviourA)  # type: ignore
-        self.behaviour.background_behaviour = self.behaviour.instantiate_behaviour_cls(ConcreteBackgroundBehaviour)  # type: ignore
+        self.behaviour.current_behaviour = self.behaviour.instantiate_behaviour_cls(
+            BehaviourA
+        )
 
         with mock.patch.object(
             self.behaviour.current_behaviour, "clean_up"
@@ -544,26 +598,26 @@ class TestAbstractRoundBehaviour:
         new_callable=mock.PropertyMock,
         return_value=False,
     )
-    @pytest.mark.parametrize("expected_background_acting", (True, False))
-    def test_background_behaviour_acting(
+    @pytest.mark.parametrize("expected_termination_acting", (True, False))
+    def test_termination_behaviour_acting(
         self,
         _: mock._patch,
         __: mock._patch,
         ___: mock._patch,
-        expected_background_acting: bool,
+        expected_termination_acting: bool,
     ) -> None:
-        """Test if the background behaviour is acting only when it should."""
-        self.behaviour.context.params.use_termination = expected_background_acting
+        """Test if the termination background behaviour is acting only when it should."""
+        self.behaviour.context.params.use_termination = expected_termination_acting
         self.behaviour.setup()
-        if expected_background_acting:
+        if expected_termination_acting:
             with mock.patch.object(
-                self.behaviour.background_behaviour,
+                ConcreteBackgroundBehaviour,
                 "act_wrapper",
             ) as mock_background_act:
                 self.behaviour.act()
                 mock_background_act.assert_called()
         else:
-            assert self.behaviour.background_behaviour is None
+            assert self.behaviour.background_behaviours == set()
 
     @mock.patch.object(
         AbstractRoundBehaviour,
@@ -586,6 +640,7 @@ class TestAbstractRoundBehaviour:
         expected_fix: bool,
     ) -> None:
         """Test that `try_fix` is called when necessary."""
+        self.behaviour.tm_manager = self.behaviour.instantiate_behaviour_cls(TmManager)  # type: ignore
         with mock.patch.object(
             TmManager,
             "tm_communication_unhealthy",
@@ -655,7 +710,7 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour(_: mock._patch) -> None:
         behaviours = {BehaviourA}
         initial_behaviour_cls = BehaviourA
 
-    round_sequence = RoundSequence(AbciAppTest)
+    round_sequence = RoundSequence(MagicMock(), AbciAppTest)
     round_sequence.end_sync()
     round_sequence.setup(MagicMock(), MagicMock())
     context_mock = MagicMock()
@@ -701,7 +756,7 @@ def test_reset_should_be_performed_when_tm_unhealthy() -> None:
         behaviours = {LongRunningBehaviour}  # type: ignore
         initial_behaviour_cls = LongRunningBehaviour
 
-    round_sequence = RoundSequence(AbciAppTest)
+    round_sequence = RoundSequence(MagicMock(), AbciAppTest)
     round_sequence.end_sync()
     round_sequence.setup(MagicMock(), MagicMock())
     context_mock = MagicMock()
@@ -764,3 +819,80 @@ def test_reset_should_be_performed_when_tm_unhealthy() -> None:
         behaviour.tm_manager.gentle_reset_attempted = True
         behaviour.act()
         mock_reset_tendermint.assert_called()
+
+
+class TestPendingOffencesBehaviour:
+    """Tests for `PendingOffencesBehaviour`."""
+
+    behaviour: PendingOffencesBehaviour
+
+    @classmethod
+    def setup_class(cls) -> None:
+        """Setup the test class."""
+        cls.behaviour = PendingOffencesBehaviour(
+            name="test",
+            skill_context=MagicMock(),
+        )
+
+    @pytest.mark.skipif(
+        platform.system() == "Windows",
+        reason="`timegm` behaves differently on Windows. "
+        "As a result, the generation of `last_transition_timestamp` is invalid.",
+    )
+    @given(
+        offence=st.builds(
+            PendingOffense,
+            accused_agent_address=st.text(),
+            round_count=st.integers(min_value=0),
+            offense_type=st.sampled_from(OffenseType),
+            last_transition_timestamp=st.floats(
+                min_value=timegm(datetime(1971, 1, 1).utctimetuple()),
+                max_value=timegm(datetime(8000, 1, 1).utctimetuple()) - 2000,
+            ),
+            time_to_live=st.floats(min_value=1, max_value=2000),
+        ),
+        wait_ticks=st.integers(min_value=0, max_value=1000),
+        expired=st.booleans(),
+    )
+    def test_pending_offences_act(
+        self,
+        offence: PendingOffense,
+        wait_ticks: int,
+        expired: bool,
+    ) -> None:
+        """Test `PendingOffencesBehaviour`."""
+        offence_expiration = offence.last_transition_timestamp + offence.time_to_live
+        offence_expiration += 1 if expired else -1
+        self.behaviour.round_sequence.last_round_transition_timestamp = datetime.fromtimestamp(  # type: ignore
+            offence_expiration
+        )
+
+        gen = self.behaviour.async_act()
+
+        with mock.patch.object(
+            self.behaviour,
+            "send_a2a_transaction",
+        ) as mock_send_a2a_transaction, mock.patch.object(
+            self.behaviour,
+            "wait_until_round_end",
+        ) as mock_wait_until_round_end, mock.patch.object(
+            self.behaviour,
+            "set_done",
+        ) as mock_set_done:
+            # while pending offences are empty, the behaviour simply waits
+            for _ in range(wait_ticks):
+                next(gen)
+
+            self.behaviour.round_sequence.pending_offences = {offence}
+
+            with pytest.raises(StopIteration):
+                next(gen)
+
+            check = "assert_not_called" if expired else "assert_called_once"
+
+            for mocked in (
+                mock_send_a2a_transaction,
+                mock_wait_until_round_end,
+                mock_set_done,
+            ):
+                getattr(mocked, check)()

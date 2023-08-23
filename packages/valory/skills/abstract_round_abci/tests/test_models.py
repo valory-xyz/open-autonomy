@@ -24,13 +24,14 @@
 import builtins
 import json
 import logging
+import re
 from collections import OrderedDict
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
-from typing import Any, Dict, List, Optional, Tuple, Type, cast
+from typing import Any, Dict, List, Optional, Set, Tuple, Type, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -41,6 +42,8 @@ from typing_extensions import Literal, TypedDict
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
+    OffenceStatus,
+    OffenseStatusEncoder,
     ROUND_COUNT_DEFAULT,
 )
 from packages.valory.skills.abstract_round_abci.models import (
@@ -111,6 +114,11 @@ BASE_DUMMY_PARAMS = dict(
     share_tm_config_on_startup=False,
     tendermint_p2p_url="",
     use_termination=False,
+    use_slashing=False,
+    slash_cooldown_hours=3,
+    slash_threshold_amount=10_000_000_000_000_000,
+    light_slash_unit_amount=5_000_000_000_000_000,
+    serious_slash_unit_amount=8_000_000_000_000_000,
 )
 
 
@@ -385,6 +393,78 @@ class TestSharedState:
         }
         shared_state.setup()
 
+    @pytest.mark.parametrize(
+        "acn_configured_agents, validator_to_agent, raises",
+        (
+            (
+                {i for i in range(4)},
+                {f"validator_address_{i}": i for i in range(4)},
+                False,
+            ),
+            (
+                {i for i in range(5)},
+                {f"validator_address_{i}": i for i in range(4)},
+                True,
+            ),
+            (
+                {i for i in range(4)},
+                {f"validator_address_{i}": i for i in range(5)},
+                True,
+            ),
+        ),
+    )
+    def test_setup_slashing(
+        self,
+        acn_configured_agents: Set[str],
+        validator_to_agent: Dict[str, str],
+        raises: bool,
+    ) -> None:
+        """Test the `validator_to_agent` properties."""
+        shared_state = SharedState(name="", skill_context=MagicMock())
+        self.dummy_state_setup(shared_state)
+
+        if not raises:
+            shared_state.initial_tm_configs = dict.fromkeys(acn_configured_agents)
+            shared_state.setup_slashing(validator_to_agent)
+            assert shared_state.round_sequence.validator_to_agent == validator_to_agent
+
+            status = shared_state.round_sequence.offence_status
+            encoded_status = json.dumps(
+                status,
+                cls=OffenseStatusEncoder,
+            )
+            expected_status = {
+                agent: OffenceStatus() for agent in acn_configured_agents
+            }
+            encoded_expected_status = json.dumps(
+                expected_status, cls=OffenseStatusEncoder
+            )
+
+            assert encoded_status == encoded_expected_status
+
+            random_agent = acn_configured_agents.pop()
+            status[random_agent].num_unknown_offenses = 10
+            assert status[random_agent].num_unknown_offenses == 10
+
+            for other_agent in acn_configured_agents - {random_agent}:
+                assert status[other_agent].num_unknown_offenses == 0
+
+            return
+
+        expected_diff = acn_configured_agents.symmetric_difference(
+            validator_to_agent.values()
+        )
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                f"Trying to use the mapping `{validator_to_agent}`, which contains validators for non-configured "
+                "agents and/or does not contain validators for some configured agents. The agents which have been "
+                f"configured via ACN are `{acn_configured_agents}` and the diff was for {expected_diff}."
+            ),
+        ):
+            shared_state.initial_tm_configs = dict.fromkeys(acn_configured_agents)
+            shared_state.setup_slashing(validator_to_agent)
+
     def test_setup(self, *_: Any) -> None:
         """Test setup method."""
         shared_state = SharedState(
@@ -393,6 +473,64 @@ class TestSharedState:
         assert shared_state.initial_tm_configs == {}
         self.dummy_state_setup(shared_state)
         assert shared_state.initial_tm_configs == {i: None for i in range(4)}
+
+    @pytest.mark.parametrize(
+        "initial_tm_configs, address_input, exception, expected",
+        (
+            (
+                {},
+                "0x1",
+                "The validator address of non-participating agent `0x1` was requested.",
+                None,
+            ),
+            ({}, "0x0", "SharedState's setup was not performed successfully.", None),
+            (
+                {"0x0": None},
+                "0x0",
+                "ACN registration has not been successfully performed for agent `0x0`. "
+                "Have you set the `share_tm_config_on_startup` flag to `true` in the configuration?",
+                None,
+            ),
+            (
+                {"0x0": {}},
+                "0x0",
+                "The tendermint configuration for agent `0x0` is invalid: `{}`.",
+                None,
+            ),
+            (
+                {"0x0": {"address": None}},
+                "0x0",
+                "The tendermint configuration for agent `0x0` is invalid: `{'address': None}`.",
+                None,
+            ),
+            (
+                {"0x0": {"address": "test_validator_address"}},
+                "0x0",
+                None,
+                "test_validator_address",
+            ),
+        ),
+    )
+    def test_get_validator_address(
+        self,
+        initial_tm_configs: Dict[str, Optional[Dict[str, Any]]],
+        address_input: str,
+        exception: Optional[str],
+        expected: Optional[str],
+    ) -> None:
+        """Test `get_validator_address` method."""
+        shared_state = SharedState(name="", skill_context=MagicMock())
+        with mock.patch.object(shared_state.context, "params") as mock_params:
+            mock_params.setup_params = {
+                "all_participants": ["0x0"],
+            }
+            shared_state.setup()
+            shared_state.initial_tm_configs = initial_tm_configs
+            if exception is None:
+                assert shared_state.get_validator_address(address_input) == expected
+                return
+            with pytest.raises(ValueError, match=exception):
+                shared_state.get_validator_address(address_input)
 
     @pytest.mark.parametrize("self_idx", (range(4)))
     def test_acn_container(self, self_idx: int) -> None:
@@ -432,14 +570,8 @@ class TestSharedState:
                 "all_participants": "0x0",
             }
             shared_state.setup()
-            assert (
-                shared_state.synchronized_data.db.get_strict("safe_contract_address")
-                == "0xsafe"
-            )
-            assert (
-                shared_state.synchronized_data.db.get_strict("oracle_contract_address")
-                == "0xoracle"
-            )
+            for key, value in mock_params.setup_params.items():
+                assert shared_state.synchronized_data.db.get_strict(key) == value
 
     @pytest.mark.parametrize(
         "address_to_acn_deliverable, n_participants, expected",

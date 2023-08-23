@@ -986,6 +986,28 @@ def nb_participants() -> int
 
 Get the number of participants.
 
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.slashing_config"></a>
+
+#### slashing`_`config
+
+```python
+@property
+def slashing_config() -> str
+```
+
+Get the slashing configuration.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.slashing_config"></a>
+
+#### slashing`_`config
+
+```python
+@slashing_config.setter
+def slashing_config(config: str) -> None
+```
+
+Set the slashing configuration.
+
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.update"></a>
 
 #### update
@@ -1166,6 +1188,7 @@ Optionally, round_id can be defined, although it is recommended to use the autog
 ```python
 def __init__(
     synchronized_data: BaseSynchronizedData,
+    context: SkillContext,
     previous_round_payload_class: Optional[Type[BaseTxPayload]] = None
 ) -> None
 ```
@@ -2065,6 +2088,138 @@ def __new__(mcs, name: str, bases: Tuple, namespace: Dict,
 
 Initialize the class.
 
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundAppType"></a>
+
+## BackgroundAppType Objects
+
+```python
+class BackgroundAppType(Enum)
+```
+
+The type of a background app.
+
+Please note that the values correspond to the priority in which the background apps should be processed
+when updating rounds.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundAppType.correct_types"></a>
+
+#### correct`_`types
+
+```python
+@staticmethod
+def correct_types() -> Set[str]
+```
+
+Return the correct types only.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundAppConfig"></a>
+
+## BackgroundAppConfig Objects
+
+```python
+@dataclass(frozen=True)
+class BackgroundAppConfig(Generic[EventType])
+```
+
+Necessary configuration for a background app.
+
+For a deeper understanding of the various types of background apps and how the config influences
+the generated background app's type, please refer to the `BackgroundApp` class.
+The `specify_type` method provides further insight on the subject matter.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp"></a>
+
+## BackgroundApp Objects
+
+```python
+class BackgroundApp(Generic[EventType])
+```
+
+A background app.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(config: BackgroundAppConfig) -> None
+```
+
+Initialize the BackgroundApp.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp.__eq__"></a>
+
+#### `__`eq`__`
+
+```python
+def __eq__(other: Any) -> bool
+```
+
+Custom equality comparing operator.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp.__hash__"></a>
+
+#### `__`hash`__`
+
+```python
+def __hash__() -> int
+```
+
+Custom hashing operator
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp.specify_type"></a>
+
+#### specify`_`type
+
+```python
+def specify_type() -> BackgroundAppType
+```
+
+Specify the type of the background app.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp.setup"></a>
+
+#### setup
+
+```python
+def setup(initial_synchronized_data: BaseSynchronizedData,
+          context: SkillContext) -> None
+```
+
+Set up the background round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp.background_round"></a>
+
+#### background`_`round
+
+```python
+@property
+def background_round() -> AbstractRound
+```
+
+Get the background round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BackgroundApp.process_transaction"></a>
+
+#### process`_`transaction
+
+```python
+def process_transaction(transaction: Transaction, dry: bool = False) -> bool
+```
+
+Process a transaction.
+
+<a id="packages.valory.skills.abstract_round_abci.base.TransitionBackup"></a>
+
+## TransitionBackup Objects
+
+```python
+@dataclass
+class TransitionBackup()
+```
+
+Holds transition related information as a backup in case we want to transition back from a background app.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp"></a>
 
 ## AbciApp Objects
@@ -2082,7 +2237,8 @@ Concrete classes of this class implement the ABCI App.
 #### `__`init`__`
 
 ```python
-def __init__(synchronized_data: BaseSynchronizedData, logger: logging.Logger)
+def __init__(synchronized_data: BaseSynchronizedData, logger: logging.Logger,
+             context: SkillContext)
 ```
 
 Initialize the AbciApp.
@@ -2098,18 +2254,28 @@ def is_abstract(cls) -> bool
 
 Return if the abci app is abstract.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.add_termination"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.add_background_app"></a>
 
-#### add`_`termination
+#### add`_`background`_`app
 
 ```python
 @classmethod
-def add_termination(cls, background_round_cls: AppState,
-                    termination_event: EventType,
-                    termination_abci_app: Type["AbciApp"]) -> Type["AbciApp"]
+def add_background_app(cls, config: BackgroundAppConfig) -> Type["AbciApp"]
 ```
 
-Sets the termination related class variables.
+Sets the background related class variables.
+
+For a deeper understanding of the various types of background apps and how the inputs of this method influence
+the generated background app's type, please refer to the `BackgroundApp` class.
+The `specify_type` method provides further insight on the subject matter.
+
+**Arguments**:
+
+- `config`: the background app's configuration.
+
+**Returns**:
+
+the `AbciApp` with the new background app contained in the `background_apps` set.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.synchronized_data"></a>
 
@@ -2150,12 +2316,24 @@ Get all the events.
 
 ```python
 @classmethod
-def get_all_round_classes(cls,
-                          include_termination_rounds: bool = False
-                          ) -> Set[AppState]
+def get_all_round_classes(
+        cls,
+        bg_round_cls: Set[Type[AbstractRound]],
+        include_background_rounds: bool = False) -> Set[AppState]
 ```
 
 Get all round classes.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.bg_apps_prioritized"></a>
+
+#### bg`_`apps`_`prioritized
+
+```python
+@property
+def bg_apps_prioritized() -> Tuple[List[BackgroundApp], ...]
+```
+
+Get the background apps grouped and prioritized by their types.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.last_timestamp"></a>
 
@@ -2208,28 +2386,6 @@ def current_round() -> AbstractRound
 ```
 
 Get the current round.
-
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.background_round"></a>
-
-#### background`_`round
-
-```python
-@property
-def background_round() -> AbstractRound
-```
-
-Get the background round.
-
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.is_termination_set"></a>
-
-#### is`_`termination`_`set
-
-```python
-@property
-def is_termination_set() -> bool
-```
-
-Get whether termination is set.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.current_round_id"></a>
 
@@ -2309,31 +2465,24 @@ def check_transaction(transaction: Transaction) -> None
 
 Check a transaction.
 
-The background round runs concurrently with other (normal) rounds.
-First we check if the transaction is meant for the background round,
-if not we forward to the current round object.
-
-**Arguments**:
-
-- `transaction`: the transaction.
-
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.process_transaction"></a>
 
 #### process`_`transaction
 
 ```python
-def process_transaction(transaction: Transaction) -> None
+def process_transaction(transaction: Transaction, dry: bool = False) -> None
 ```
 
 Process a transaction.
 
-The background round runs concurrently with other (normal) rounds.
-First we check if the transaction is meant for the background round,
-if not we forward to the current round object.
+The background rounds run concurrently with other (normal) rounds.
+First we check if the transaction is meant for a background round,
+if not we forward it to the current round object.
 
 **Arguments**:
 
 - `transaction`: the transaction.
+- `dry`: whether the transaction should only be checked and not processed.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.process_event"></a>
 
@@ -2381,6 +2530,257 @@ def cleanup_current_histories(cleanup_history_depth_current: int) -> None
 
 Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter.
 
+<a id="packages.valory.skills.abstract_round_abci.base.OffenseType"></a>
+
+## OffenseType Objects
+
+```python
+class OffenseType(Enum)
+```
+
+The types of offenses.
+
+The values of the enum represent the seriousness of the offence.
+Offense types with values >1000 are considered serious.
+See also `is_light_offence` and `is_serious_offence` functions.
+
+<a id="packages.valory.skills.abstract_round_abci.base.is_light_offence"></a>
+
+#### is`_`light`_`offence
+
+```python
+def is_light_offence(offence_type: OffenseType) -> bool
+```
+
+Check if an offence type is light.
+
+<a id="packages.valory.skills.abstract_round_abci.base.is_serious_offence"></a>
+
+#### is`_`serious`_`offence
+
+```python
+def is_serious_offence(offence_type: OffenseType) -> bool
+```
+
+Check if an offence type is serious.
+
+<a id="packages.valory.skills.abstract_round_abci.base.light_offences"></a>
+
+#### light`_`offences
+
+```python
+def light_offences() -> Iterator[OffenseType]
+```
+
+Get the light offences.
+
+<a id="packages.valory.skills.abstract_round_abci.base.serious_offences"></a>
+
+#### serious`_`offences
+
+```python
+def serious_offences() -> Iterator[OffenseType]
+```
+
+Get the serious offences.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow"></a>
+
+## AvailabilityWindow Objects
+
+```python
+class AvailabilityWindow()
+```
+
+A cyclic array with a maximum length that holds boolean values.
+
+When an element is added to the array and the maximum length has been reached,
+the oldest element is removed. Two attributes `num_positive` and `num_negative`
+reflect the number of positive and negative elements in the AvailabilityWindow,
+they are updated every time a new element is added.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(max_length: int) -> None
+```
+
+Initializes the `AvailabilityWindow` instance.
+
+**Arguments**:
+
+- `max_length`: the maximum length of the cyclic array.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow.__eq__"></a>
+
+#### `__`eq`__`
+
+```python
+def __eq__(other: Any) -> bool
+```
+
+Compare `AvailabilityWindow` objects.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow.has_bad_availability_rate"></a>
+
+#### has`_`bad`_`availability`_`rate
+
+```python
+def has_bad_availability_rate(threshold: float = 0.95) -> bool
+```
+
+Whether the agent on which the window belongs to has a bad availability rate or not.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow.add"></a>
+
+#### add
+
+```python
+def add(value: bool) -> None
+```
+
+Adds a new boolean value to the cyclic array.
+
+If the maximum length has been reached, the oldest element is removed.
+
+**Arguments**:
+
+- `value`: The boolean value to add to the cyclic array.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow.to_dict"></a>
+
+#### to`_`dict
+
+```python
+def to_dict() -> Dict[str, int]
+```
+
+Returns a dictionary representation of the `AvailabilityWindow` instance.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow.from_dict"></a>
+
+#### from`_`dict
+
+```python
+@classmethod
+def from_dict(cls, data: Dict[str, int]) -> "AvailabilityWindow"
+```
+
+Initializes an `AvailabilityWindow` instance from a dictionary.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenceStatus"></a>
+
+## OffenceStatus Objects
+
+```python
+@dataclass
+class OffenceStatus()
+```
+
+A class that holds information about offence status for an agent.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenceStatus.slash_amount"></a>
+
+#### slash`_`amount
+
+```python
+def slash_amount(light_unit_amount: int, serious_unit_amount: int) -> int
+```
+
+Get the slash amount of the current status.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenseStatusEncoder"></a>
+
+## OffenseStatusEncoder Objects
+
+```python
+class OffenseStatusEncoder(json.JSONEncoder)
+```
+
+A custom JSON encoder for the offence status dictionary.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenseStatusEncoder.default"></a>
+
+#### default
+
+```python
+def default(o: Any) -> Any
+```
+
+The default JSON encoder.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenseStatusDecoder"></a>
+
+## OffenseStatusDecoder Objects
+
+```python
+class OffenseStatusDecoder(json.JSONDecoder)
+```
+
+A custom JSON decoder for the offence status dictionary.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenseStatusDecoder.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(*args: Any, **kwargs: Any) -> None
+```
+
+Initialize the custom JSON decoder.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenseStatusDecoder.hook"></a>
+
+#### hook
+
+```python
+@staticmethod
+def hook(
+    data: Dict[str, Any]
+) -> Union[AvailabilityWindow, OffenceStatus, Dict[str, OffenceStatus]]
+```
+
+Perform the custom decoding.
+
+<a id="packages.valory.skills.abstract_round_abci.base.PendingOffense"></a>
+
+## PendingOffense Objects
+
+```python
+@dataclass(frozen=True, eq=True)
+class PendingOffense()
+```
+
+A dataclass to represent offences that need to be addressed.
+
+<a id="packages.valory.skills.abstract_round_abci.base.PendingOffense.__post_init__"></a>
+
+#### `__`post`_`init`__`
+
+```python
+def __post_init__() -> None
+```
+
+Post initialization for offence type conversion in case it is given as an `int`.
+
+<a id="packages.valory.skills.abstract_round_abci.base.SlashingNotConfiguredError"></a>
+
+## SlashingNotConfiguredError Objects
+
+```python
+class SlashingNotConfiguredError(Exception)
+```
+
+Custom exception raised when slashing configuration is requested but is not available.
+
+<a id="packages.valory.skills.abstract_round_abci.base.DEFAULT_PENDING_OFFENCE_TTL"></a>
+
+#### DEFAULT`_`PENDING`_`OFFENCE`_`TTL
+
+1 hour
+
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence"></a>
 
 ## RoundSequence Objects
@@ -2402,10 +2802,126 @@ It also schedules the next round (if any) whenever a round terminates.
 #### `__`init`__`
 
 ```python
-def __init__(abci_app_cls: Type[AbciApp])
+def __init__(context: SkillContext, abci_app_cls: Type[AbciApp])
 ```
 
 Initialize the round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.enable_slashing"></a>
+
+#### enable`_`slashing
+
+```python
+def enable_slashing() -> None
+```
+
+Enable slashing.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.validator_to_agent"></a>
+
+#### validator`_`to`_`agent
+
+```python
+@property
+def validator_to_agent() -> Dict[str, str]
+```
+
+Get the mapping of the validators' addresses to their agent addresses.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.validator_to_agent"></a>
+
+#### validator`_`to`_`agent
+
+```python
+@validator_to_agent.setter
+def validator_to_agent(validator_to_agent: Dict[str, str]) -> None
+```
+
+Set the mapping of the validators' addresses to their agent addresses.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.offence_status"></a>
+
+#### offence`_`status
+
+```python
+@property
+def offence_status() -> Dict[str, OffenceStatus]
+```
+
+Get the mapping of the agents' addresses to their offence status.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.offence_status"></a>
+
+#### offence`_`status
+
+```python
+@offence_status.setter
+def offence_status(offence_status: Dict[str, OffenceStatus]) -> None
+```
+
+Set the mapping of the agents' addresses to their offence status.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.add_pending_offence"></a>
+
+#### add`_`pending`_`offence
+
+```python
+def add_pending_offence(pending_offence: PendingOffense) -> None
+```
+
+Add a pending offence to the set of pending offences.
+
+Pending offences are offences that have been detected, but not yet agreed upon by the consensus.
+A pending offence is removed from the set of pending offences and added to the OffenceStatus of a validator
+when the majority of the agents agree on it.
+
+**Arguments**:
+
+- `pending_offence`: the pending offence to add
+
+**Returns**:
+
+None
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.sync_db_and_slashing"></a>
+
+#### sync`_`db`_`and`_`slashing
+
+```python
+def sync_db_and_slashing(serialized_db_state: str) -> None
+```
+
+Sync the database and the slashing configuration.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.serialized_offence_status"></a>
+
+#### serialized`_`offence`_`status
+
+```python
+def serialized_offence_status() -> str
+```
+
+Serialize the offence status.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.store_offence_status"></a>
+
+#### store`_`offence`_`status
+
+```python
+def store_offence_status() -> None
+```
+
+Store the serialized offence status.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.get_agent_address"></a>
+
+#### get`_`agent`_`address
+
+```python
+def get_agent_address(validator: Validator) -> str
+```
+
+Get corresponding agent address from a `Validator` instance.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.setup"></a>
 
@@ -2531,17 +3047,6 @@ def current_round() -> AbstractRound
 ```
 
 Get current round.
-
-<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.background_round"></a>
-
-#### background`_`round
-
-```python
-@property
-def background_round() -> AbstractRound
-```
-
-Get the background round.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.current_round_id"></a>
 
@@ -2719,7 +3224,8 @@ Init chain.
 #### begin`_`block
 
 ```python
-def begin_block(header: Header) -> None
+def begin_block(header: Header, evidences: Evidences,
+                last_commit_info: LastCommitInfo) -> None
 ```
 
 Begin block.
@@ -2789,13 +3295,72 @@ def reset_state(restart_from_round: str,
                 serialized_db_state: Optional[str] = None) -> None
 ```
 
-This method resets the state of RoundSequence to the begging of the period.
+This method resets the state of RoundSequence to the beginning of the period.
 
-Note: This is intended to be used only for agent <-> tendermint communication recovery only!
+Note: This is intended to be used for agent <-> tendermint communication recovery only!
 
 **Arguments**:
 
-- `restart_from_round`: from which round to restart the abci. This round should be the first round in the last period.
+- `restart_from_round`: from which round to restart the abci.
+This round should be the first round in the last period.
 - `round_count`: the round count at the beginning of the period -1.
-- `serialized_db_state`: the state of the database at the beginning of the period. If provided, the database will be reset to this state.
+- `serialized_db_state`: the state of the database at the beginning of the period.
+If provided, the database will be reset to this state.
+
+<a id="packages.valory.skills.abstract_round_abci.base.PendingOffencesPayload"></a>
+
+## PendingOffencesPayload Objects
+
+```python
+@dataclass(frozen=True)
+class PendingOffencesPayload(BaseTxPayload)
+```
+
+Represent a transaction payload for pending offences.
+
+<a id="packages.valory.skills.abstract_round_abci.base.PendingOffencesRound"></a>
+
+## PendingOffencesRound Objects
+
+```python
+class PendingOffencesRound(CollectSameUntilThresholdRound)
+```
+
+Defines the pending offences background round, which runs concurrently with other rounds to sync the offences.
+
+<a id="packages.valory.skills.abstract_round_abci.base.PendingOffencesRound.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(*args: Any, **kwargs: Any) -> None
+```
+
+Initialize the `PendingOffencesRound`.
+
+<a id="packages.valory.skills.abstract_round_abci.base.PendingOffencesRound.offence_status"></a>
+
+#### offence`_`status
+
+```python
+@property
+def offence_status() -> Dict[str, OffenceStatus]
+```
+
+Get the offence status from the round sequence.
+
+<a id="packages.valory.skills.abstract_round_abci.base.PendingOffencesRound.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> None
+```
+
+Process the end of the block for the pending offences background round.
+
+It is important to note that this is a non-standard type of round, meaning it does not emit any events.
+Instead, it continuously runs in the background.
+The objective of this round is to consistently monitor the received pending offences
+and achieve a consensus among the agents.
 

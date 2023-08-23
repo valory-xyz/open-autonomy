@@ -9,26 +9,26 @@ fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeicjyrltgdmwzvctebhfteyyd5mbrjashiji4glwf5vwcijuyzzm24
   abci_app_chain.py: bafybeiflgwhyzkoqpgrvx3eol6p37l6jymccfqgz4hs35gh7zuptvetmh4
-  base.py: bafybeic6r5lf4j3ahtsn4bstxphbmhxcvu4tbrsvd42qutxpjgefdcbn6q
+  base.py: bafybeicaxcub5pbm24crg7qni4ls3mmtarm567mvxmbgw7ph2mtis6fd2q
   behaviour_utils.py: bafybeif5inyc6jwse4asqy7n2ulgbuut3a77rfme54b3sltv6a5ybcqjly
-  behaviours.py: bafybeiaurunqjfmh7gxgnphxhibfrhn4g6sx6gfjpnlk5rl6e2lqxxjwbm
+  behaviours.py: bafybeic7rnt4fo3falirgepw4akun5xh3mna7didul6daitlk5xwsza7lm
   common.py: bafybeidzqdfvwf226d5qeqcyzpkqsjy6kiawoz5ldsfvzzhtym3f73giia
   dialogues.py: bafybeid5sgrfa7ghnnjpssltgtey5gzt5kc2jlaitffaukvhhdbhrzcjti
-  handlers.py: bafybeihivgv6caywexg3h32d4mzvnulvxlvgda6r2k5pjvezmsaxjs35qq
+  handlers.py: bafybeid4nt54j7dijzsiu7kdau6bavdkg72pgjr3lyuzb54a6m5kumqhma
   io_/__init__.py: bafybeihv6ytxeo5jkbdlqjum4pfo4aaluvw4m7c55k5xncvvs7ubrlokhy
   io_/ipfs.py: bafybeiffdxdt36rcwu5tyfav2umvw3hvlfjwbys3626p2g2gdlfi7djzly
   io_/load.py: bafybeigkywwlsheqvd4gpyfwaxqzkkb2ih2poyicqk7e7n2mrsghxzyns4
   io_/paths.py: bafybeicfno2l4vwtmjcm3rzpp6tqi3xlkof47pypf5teecad22d44u2ple
   io_/store.py: bafybeig24lslvhf7amim55ig5zzre4z45pcx3r2ozlagg3mtbr6rry2wpu
-  models.py: bafybeih4kchpjcc4nvfo5ycayaqatemqnl6rdne2sq27vodz3sy4ijech4
+  models.py: bafybeibyo6c3jkrmz2xnwz37orbyk4oig5weiongx6dysx5pi7vnq5wn5q
   test_tools/__init__.py: bafybeibayeahoo73eztt2chpwi45taj2uv3dxbpyn47ksqfjoepjyaoca4
-  test_tools/abci_app.py: bafybeicnd4xvumelx2fgp46kxt62usoq3pp3zrcgmpsr6ufu56k5ozh5mm
-  test_tools/base.py: bafybeib2ynevixrujorskv36x3ywlstimjlltybmtwfrslmec3dtjykteq
+  test_tools/abci_app.py: bafybeigmrjzxfoc63xgecyngdecz4msvze4aw2iejcjewatjefjbvdlmce
+  test_tools/base.py: bafybeiero67d4rs7bsnu5wlxu7fagtxekqguplw4dl3wd5pjskwhy4dkye
   test_tools/common.py: bafybeibxlx7es632kdoeivfrjahns3kknkxfmw4rj2dcxjwqm5j6vx25sq
   test_tools/integration.py: bafybeifqq3bx46hz2deph3usvrt7u45tpsapvocofd2zu3yh7rfl5nlmzq
   test_tools/rounds.py: bafybeie576yxtiramzt5czpt4hnv76gfetzio2t3k5kprhdhvbpfddbaem
   tests/__init__.py: bafybeiebss5rdfh7tdbw2qi3tjpf6cjgwuonowsw6bimyosfie2ngxhhzy
-  tests/conftest.py: bafybeib2tebjwysgej4kpczd7tmxi2a2ikinzvoav25buogofujz47kj54
+  tests/conftest.py: bafybeiauvmnuetxooprdsy3vlys3pha6x2rfg7acr3xrdfffr7onlmnave
   tests/data/__init__.py: bafybeifmqjnrqgbau4tshhdtrosru7xyjky72ljlrf3ynrk76fxjcsgfpi
   tests/data/dummy_abci/__init__.py: bafybeiaoqyjlgez5gkvutl22ihebcjk3zskve5gdt5wbap5zkmhehoddca
   tests/data/dummy_abci/behaviours.py: bafybeibei4ngebbktuq6a2uvwhrulgkvn6uhaj5k3a75zihkxwnfarqh4m
@@ -37,27 +37,27 @@ fingerprint:
   tests/data/dummy_abci/models.py: bafybeiear3i45wbaylrkbnm2fbtqorxx56glul36piuah7m7jb56f5rpoq
   tests/data/dummy_abci/payloads.py: bafybeiczldqiumb7prcusb7l5vb575vschwyseyigpupvteldfyz7h6fyi
   tests/data/dummy_abci/rounds.py: bafybeihhheznpcntg4z5cdd7dysnivo2g4x5biv7blriyiyoouqp6xf5aq
-  tests/test_abci_app_chain.py: bafybeif6mf6cs22q7ynsigaz2smi5wqivqz4gjcnjjiyujt6b2qwtba7py
-  tests/test_base.py: bafybeidpuvihksfy2ydf4czjlrbw5kgisj626dejueuhjujjsvyuzbbiym
-  tests/test_base_rounds.py: bafybeiatnef47roakdc6g6wvz3wxppb4wdwu2vqoumakkdnz5ehfgzfjea
-  tests/test_behaviours.py: bafybeicxr35uzvmu73iys76by752mcpg24yu7an2j6mv4cckrkas5drefu
+  tests/test_abci_app_chain.py: bafybeihqvjkcwkwxowhb3umtk52us4pd5f6nbppw4ycx76oljw4j3j7xpa
+  tests/test_base.py: bafybeifkja3qckaznt5qt2aexzu6deujpdt35r3m64qofdsdelbptijp2q
+  tests/test_base_rounds.py: bafybeiadkpwuhz6y5k5ffvoqvyi6nqetf5ov5bmodejge7yvscm6yqzpse
+  tests/test_behaviours.py: bafybeidcuzy4c3rp6ir7yftegafe4qd54j6qkqymbrb4ixqrld3eas3poe
   tests/test_behaviours_utils.py: bafybeietsbrwaygp6bxfm6lc5d36z7skjr7uii2pm7tuythkmlu6mynveq
   tests/test_common.py: bafybeiekicwjh3vu5kqppictya2bmqm3p5dcauj7cvsiunvhhultpzmyla
   tests/test_dialogues.py: bafybeigpfrslqaz2yullyehia5bsl7cmy2qqxtz627ig7rbrypw5xfzeum
-  tests/test_handlers.py: bafybeiho7ruvh6gilajz5ns6cljdrxis2tzualmgkksprwdpm7art4ambm
+  tests/test_handlers.py: bafybeih64lmsukci3oc5mwi636gntyx243xnbzwx64dwjxittch77qyqsu
   tests/test_io/__init__.py: bafybeid3sssvbbyju4snrdssxyafleuo57sqyuepl25btxcbuj3p5oonsm
-  tests/test_io/test_ipfs.py: bafybeihkazdsdooi3vuypf4nu5g6pqnp5xmxg2vjjv4hlwgfl4gsyzaape
+  tests/test_io/test_ipfs.py: bafybeidm6f6naq6y7ntoivrqon2bkwdvd2dqru467fxqvgonv5oq5huhra
   tests/test_io/test_load.py: bafybeidgnxt5rt67ackbcgi5vnlliedxakcnzgihogplolck7kp57pc6iy
   tests/test_io/test_store.py: bafybeid2zbdjtgbplenacudk6re7si7dloqs2u7faqt7vhapjipjuw35ku
-  tests/test_models.py: bafybeihuwrekqrn7eydexcxyj6po5vpbomgktjpvvzbd6drzriz4rgjxm4
+  tests/test_models.py: bafybeicrbu6xtprfgwjs3msa3idilwqe3ymz5zx6xm326huhspzrdngrwi
   tests/test_tools/__init__.py: bafybeiew6gu4pgp2sjevq4dbnmv2ail5dph7vj4yi7h3eae4gzx7vj7cbq
   tests/test_tools/base.py: bafybeihi7ax53326dhin3riwwwk3bouqvsoeq26han4nspodzj6hrk3gia
   tests/test_tools/test_base.py: bafybeie2hox7v6sy677grl6awq57ouliohpwhmlvrypz5rqcz5gxsxn24y
   tests/test_tools/test_common.py: bafybeieauphpcqm5on7d2u2lc5lrf3esbhojp6sxlf7phrlmpqy5cfoitq
   tests/test_tools/test_integration.py: bafybeidxkvb2kizi7djrpuw446dqxo2v5s7j2dbdrdpfmnd2ggezaxbnkm
-  tests/test_tools/test_rounds.py: bafybeiccirhrajrvlhkwz4nmj4syw2jgxcrits5v4hfdxegepfd4idh6va
-  tests/test_utils.py: bafybeibs7zjpepzdetcy4ybksqxoul45hw372z4evkop3avx6qhrss3bba
-  utils.py: bafybeiflukhathkj3smnowhe3efijp4inw4jq56kos4ucxfvtfjdrkdraq
+  tests/test_tools/test_rounds.py: bafybeibaoj4miysneipgukz7xufs47vpv5rds3ptgmu3yxlcl7gjss6ccm
+  tests/test_utils.py: bafybeift6igxoan2bnuexps7rrdl25jmlniqujw3odnir3cgjy4oukjjfq
+  utils.py: bafybeienx5y7er37rvluz5x5oirsephs6td4werjett5vaavrv6ohymzpm
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeicasheudousm2unmh5qmy5n3qdq5hmkg2j42fxfm2crxmgq3nzjkq
@@ -66,7 +66,7 @@ connections:
 - valory/ledger:0.19.0:bafybeigfoz7d7si7s4jehvloq2zmiiocpbxcaathl3bxkyarxoerxq7g3a
 - valory/p2p_libp2p_client:0.1.0:bafybeihdnfdth3qgltefgrem7xyi4b3ejzaz67xglm2hbma2rfvpl2annq
 contracts:
-- valory/service_registry:0.1.0:bafybeif6x4zvsokwcetbrjdb4uyv4l3pqx756cg2ohv2zgcky5yuiwuqvi
+- valory/service_registry:0.1.0:bafybeidg755nqytkppiaxe2u5nat2vyqokgjdbzj777z5i7rftp4eqrjae
 protocols:
 - open_aea/signing:1.0.0:bafybeifuxs7gdg2okbn7uofymenjlmnih2wxwkym44lsgwmklgwuckxm2m
 - valory/abci:0.1.0:bafybeigootsvqpk6th5xpdtzanxum3earifrrezfyhylfrit7yvqdrtgpe
@@ -152,6 +152,8 @@ dependencies:
     version: <=3.20.1,>=3.19
   py-ecc:
     version: ==6.0.0
+  pytest:
+    version: ==7.2.1
   pytz:
     version: ==2022.2.1
   requests:

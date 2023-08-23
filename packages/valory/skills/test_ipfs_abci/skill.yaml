@@ -21,13 +21,13 @@ fingerprint:
   tests/test_handlers.py: bafybeicoa6x4tf4pmr5dityxxzp5w2aegn2ubcubxzq7e4minclcwy3cw4
   tests/test_models.py: bafybeifyidlrsnut4mrqtenfwo5lmsplp6wm46ej6xide7bvin2j5k7kre
   tests/test_payloads.py: bafybeihdizr6r5xnd5hudj7ho7ye3dkcppjt753ulaofyazqpokxnf6cga
-  tests/test_rounds.py: bafybeidmmr4vevplodp6zz55cqarlyv5gufqnofmqpepwwhvpeitexhvl4
+  tests/test_rounds.py: bafybeiauoo6cg6srmyxcpdmsic4nvoq4ddniq4zx2t7wzzvbiir6bpgkya
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigxjcci53vwytymzlhr37436yvenh7jup4astrn7dgyixo24aq2pq
+- valory/abstract_round_abci:0.1.0:bafybeiaq4d5fbs4qtiqzkg46pxlk2vi7wv5a4cqgygamidsnuczdd45doy
 behaviours:
   main:
     args: {}
@@ -129,6 +129,11 @@ models:
       termination_sleep: 900
       tx_timeout: 10.0
       use_termination: false
+      use_slashing: false
+      slash_cooldown_hours: 3
+      slash_threshold_amount: 10000000000000000
+      light_slash_unit_amount: 5000000000000000
+      serious_slash_unit_amount: 8000000000000000
       validate_timeout: 1205
     class_name: Params
   requests:

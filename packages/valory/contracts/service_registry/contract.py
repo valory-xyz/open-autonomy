@@ -23,12 +23,13 @@ import hashlib
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
+from typing import Any, Dict, FrozenSet, List, Optional, Set, Tuple, Union, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
+from web3.types import BlockData, EventData, TxReceipt
 
 
 PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
@@ -331,3 +332,95 @@ class ServiceRegistryContract(Contract):
                 return True
 
         return False
+
+    @classmethod
+    def get_slash_data(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        agent_instances: List[str],
+        amounts: List[int],
+        service_id: int,
+    ) -> Dict[str, bytes]:
+        """Gets the encoded arguments for a slashing tx, which should only be called via the multisig."""
+
+        contract_instance = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+
+        slash_kwargs = dict(
+            agentInstances=agent_instances,
+            amounts=amounts,
+            serviceId=service_id,
+        )
+
+        data = contract_instance.encodeABI(fn_name="slash", kwargs=slash_kwargs)
+        return {"data": bytes.fromhex(data[2:])}
+
+    @classmethod
+    def process_slash_receipt(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        tx_hash: str,
+    ) -> Optional[JSONLike]:
+        """
+        Process the slash receipt.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :param tx_hash: the hash of a slash tx to be processed.
+        :return: a dictionary with the timestamp of the slashing and the `OperatorSlashed` events.
+        """
+        contract = cls.get_instance(ledger_api, contract_address)
+        receipt: TxReceipt = ledger_api.api.eth.get_transaction_receipt(tx_hash)
+        logs: List[EventData] = list(
+            contract.events.OperatorSlashed().process_receipt(receipt)
+        )
+
+        if len(logs) == 0:
+            _logger.error(f"No `OperatorSlashed` event was emitted in tx {tx_hash}.")
+            return None
+
+        block: BlockData = ledger_api.api.eth.get_block(receipt["blockNumber"])
+
+        return {
+            "slash_timestamp": block["timestamp"],
+            "events": [log["args"] for log in logs],
+        }
+
+    @classmethod
+    def _get_operator(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        agent_instance: str,
+    ) -> str:
+        """Retrieve an operator given its agent instance."""
+
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+        map_fn = contract_instance.functions.mapAgentInstanceOperators
+        return map_fn(agent_instance).call()
+
+    @classmethod
+    def get_operators_mapping(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        agent_instances: FrozenSet[str],
+    ) -> Dict[str, str]:
+        """
+        Retrieve a mapping of the given agent instances to their operators.
+
+        Please keep in mind that this method performs a call for each agent instance.
+
+        :param ledger_api: the ledger api.
+        :param contract_address: the contract address.
+        :param agent_instances: the agent instances to be mapped.
+        :return: a mapping of the given agent instances to their operators.
+        """
+        return {
+            agent: cls._get_operator(ledger_api, contract_address, agent)
+            for agent in agent_instances
+        }

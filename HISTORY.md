@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.12.0 (2023-08-24)
+
+Packages:
+- Adds slashing functionality #1927
+
 # 0.11.1 (2023-08-18)
 
 Autonomy:
@@ -22,7 +27,7 @@ Packages:
 
 Chore:
 - Replaces the `web3py` with `open-aea-web3`
-- Bumps `py-ecc@6.0.0`, `numpy@>=1.21.6` and `pandas@1.5.3` 
+- Bumps `py-ecc@6.0.0`, `numpy@>=1.21.6` and `pandas@1.5.3`
 
 # 0.10.11.post1 (2023-08-10)
 

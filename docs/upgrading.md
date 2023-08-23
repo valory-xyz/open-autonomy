@@ -5,6 +5,23 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.11.1` to `v0.12.0`
+
+- Renamed the `background_behaviour_cls` in `AbstractRoundBehaviour` to `termination_behaviour_cls`. 
+ *Should be taken into consideration for all the apps that are utilizing the termination.*
+- Renamed the `background_behaviour` in `AbstractRoundBehaviour` to `termination_behaviour`.
+- Renamed the `is_background_behaviour_set` property in `AbstractRoundBehaviour` to `is_termination_set`.
+- Renamed the `background_round_cls` argument of the `add_termination` method in `AbciApp` to `termination_round_cls`. 
+ *Should be taken into consideration for all the apps that are utilizing the termination.*
+- Renamed the `background_round_cls` attribute of the `AbciApp` to `termination_round_cls`.
+- Renamed the `_background_round` attribute of the `AbciApp` to `_termination_round`.
+- Renamed the `background_round` property of the `AbciApp` to `termination_round`.
+- The `AbstractRound` class now requires a `SkillContext` positional argument. 
+ To accommodate this change, 
+ all round tests will need to be modified to include a mocked context in addition to the synchronized data.
+
+1 && 4 should be taken into consideration for all the apps that are utilizing the termination.
+
 ## `v0.11.0` to `v0.11.1`
 
 The `autonomy deploy run` command now handles the exists from deployment and to do this we're running the deployments in detached mode and waiting for the user to cancel what that means is from now on when running the deployments the logs won't be printed out by default. If you want to check out the logs for containers you can use `docker logs` command.

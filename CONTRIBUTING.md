@@ -15,8 +15,8 @@ Also mention potential effects on other branches/code might have from your chang
 For a clean workflow run checks in following order before making a PR or pushing the code
 
 - make clean
-- make formatters
-- make code-checks
+- tomte format-code
+- tomte check-code
 - make security
 
 **Run only if you've modified an AbciApp definition**

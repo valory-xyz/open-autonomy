@@ -108,4 +108,9 @@ irrelevant_config = {
     "setup": {},
     "genesis_config": irrelevant_genesis_config,
     "use_termination": False,
+    "use_slashing": False,
+    "slash_cooldown_hours": 3,
+    "slash_threshold_amount": 10_000_000_000_000_000,
+    "light_slash_unit_amount": 5_000_000_000_000_000,
+    "serious_slash_unit_amount": 8_000_000_000_000_000,
 }
