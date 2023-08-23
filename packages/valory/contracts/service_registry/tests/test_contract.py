@@ -59,7 +59,7 @@ def event_filter_patch(event: str, return_value: Any) -> mock._patch:
             events=mock.MagicMock(
                 **{
                     event: mock.MagicMock(
-                        createFilter=lambda **_: mock.MagicMock(
+                        create_filter=lambda **_: mock.MagicMock(
                             get_all_entries=lambda *_: return_value
                         )
                     )

@@ -4,7 +4,7 @@ The purpose of this guide is to set up your system to work with the {{open_auton
 
 Ensure that your machine satisfies the following requirements:
 
-- [Python](https://www.python.org/) `>= 3.7` (recommended `>= 3.10`)
+- [Python](https://www.python.org/) `>= 3.8` (recommended `>= 3.10`)
 - [Pip](https://pip.pypa.io/en/stable/installation/)
 - [Pipenv](https://pipenv.pypa.io/en/latest/installation/) `>=2021.x.xx`
 - [Docker Engine](https://docs.docker.com/engine/install/)
@@ -75,7 +75,7 @@ This is roughly how your workspace should look like:
     You can override the default registry in use (set up with `autonomy init`) for a particular command through the flags `--registry-path` and `--local`. For example, if the framework was initialized with the remote registry, the following command will fetch a runtime folder for the `hello_world` agent from the remote registry:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeiew5bggorxhde75tvdgk4vehgodyjpeh6h4mwen73nkontlo4b4iy
+    autonomy fetch valory/hello_world:0.1.0:bafybeig2exytjr7oh42wn7bizvo4hd74ley3k4ucwkyoy2dgvnbxmvfoge
     ```
 
     On the other hand, if you want to fetch the copy stored in your local registry, then you can use:
@@ -106,13 +106,13 @@ If you plan to follow the guides in the next sections, you need to populate the 
     "dev": {
     },
     "third_party": {
-        "service/valory/hello_world/0.1.0": "bafybeien43pt37vrxmow4efqkitgisyywei6ajrqmxep7vt3d3zxckrtrq",
-        "agent/valory/hello_world/0.1.0": "bafybeiew5bggorxhde75tvdgk4vehgodyjpeh6h4mwen73nkontlo4b4iy",
-        "connection/valory/abci/0.1.0": "bafybeicehggwsv3hs6o5ifdrshdcei7czhxxcedcv6dbvsi4yfxuhik3mu",
+        "service/valory/hello_world/0.1.0": "bafybeignp4nixpcp2n5443yronghrgdwz7modjmesgmlbhvdg7v3pmvpbu",
+        "agent/valory/hello_world/0.1.0": "bafybeig2exytjr7oh42wn7bizvo4hd74ley3k4ucwkyoy2dgvnbxmvfoge",
+        "connection/valory/abci/0.1.0": "bafybeicasheudousm2unmh5qmy5n3qdq5hmkg2j42fxfm2crxmgq3nzjkq",
         "connection/valory/http_client/0.23.0": "bafybeieoeuy4brzimtnubmokwirhrx27ezls6cdnl5qik4rkykfle3nn2y",
-        "connection/valory/ipfs/0.1.0": "bafybeicwe4fksbhaqs4qycfdqbzgqtikfn3u4g5y5fucxfmriezwwf7hse",
-        "connection/valory/ledger/0.19.0": "bafybeiejc7g7ebv3cleiqb4f4h4pspcu6vtr54332szwlqiabfs3sfdh44",
-        "contract/valory/service_registry/0.1.0": "bafybeicfc6n75iyxwl42d7ust3lsosx5jvjv234zyfdpixx3dsjbjg6biu",
+        "connection/valory/ipfs/0.1.0": "bafybeiau32pzy55ta6ugl2bebevlxudal6pnlfomhplfm5mph6reaw3krq",
+        "connection/valory/ledger/0.19.0": "bafybeigfoz7d7si7s4jehvloq2zmiiocpbxcaathl3bxkyarxoerxq7g3a",
+        "contract/valory/service_registry/0.1.0": "bafybeidg755nqytkppiaxe2u5nat2vyqokgjdbzj777z5i7rftp4eqrjae",
         "protocol/open_aea/signing/1.0.0": "bafybeifuxs7gdg2okbn7uofymenjlmnih2wxwkym44lsgwmklgwuckxm2m",
         "protocol/valory/abci/0.1.0": "bafybeigootsvqpk6th5xpdtzanxum3earifrrezfyhylfrit7yvqdrtgpe",
         "protocol/valory/acn/1.1.0": "bafybeiapa5ilsobggnspoqhspftwolrx52udrwmaxdxgrk26heuvl4oooa",
@@ -121,9 +121,9 @@ If you plan to follow the guides in the next sections, you need to populate the 
         "protocol/valory/ipfs/0.1.0": "bafybeibjzhsengtxfofqpxy6syamplevp35obemwfp4c5lhag3v2bvgysa",
         "protocol/valory/ledger_api/1.0.0": "bafybeigsvceac33asd6ecbqev34meyyjwu3rangenv6xp5rkxyz4krvcby",
         "protocol/valory/tendermint/0.1.0": "bafybeidjqmwvgi4rqgp65tbkhmi45fwn2odr5ecezw6q47hwitsgyw4jpa",
-        "skill/valory/abstract_abci/0.1.0": "bafybeihj6mz6wpamylo44b2ow4pgodfzufablksntfz7vshyx4eu6e52wi",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeia7z7x4np7ssy2b4zyv5v5fdxss7yvdbe2sdhuubixoylvgsh3vmq",
-        "skill/valory/hello_world_abci/0.1.0": "bafybeibgg3njzcgpngrvkirzbxyklcuy532e4zyooe5vtnvobti5xhdpwa",
+        "skill/valory/abstract_abci/0.1.0": "bafybeicg7dv7cff34nv2k2z47c4yp4kddsxp3wozonzow6tnvfvwndz3cy",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeiaq4d5fbs4qtiqzkg46pxlk2vi7wv5a4cqgygamidsnuczdd45doy",
+        "skill/valory/hello_world_abci/0.1.0": "bafybeib72uzqqnuhd6a56efvhth5lx4k257fiklumbqk5kftvzso6kr6t4",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihdnfdth3qgltefgrem7xyi4b3ejzaz67xglm2hbma2rfvpl2annq"
     }
 }

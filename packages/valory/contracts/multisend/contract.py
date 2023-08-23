@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ def decode_data(encoded_tx: bytes) -> Tuple[Dict, int]:
     """Decodes multisend transaction."""
     encoded_tx = HexBytes(encoded_tx)
     operation = MultiSendOperation(encoded_tx[0])
-    to = Web3.toChecksumAddress(encoded_tx[1 : 1 + 20])
+    to = Web3.to_checksum_address(encoded_tx[1 : 1 + 20])
     value = int.from_bytes(encoded_tx[21 : 21 + 32], byteorder="big")
     data_length = int.from_bytes(encoded_tx[21 + 32 : 21 + 32 * 2], byteorder="big")
     data = encoded_tx[21 + 32 * 2 : 21 + 32 * 2 + data_length]
@@ -148,7 +148,7 @@ class MultiSendContract(Contract):
         return {
             "data": multisend_contract.functions.multiSend(
                 encoded_multisend_data
-            ).buildTransaction({"gas": MIN_GAS, "gasPrice": MIN_GASPRICE})["data"]
+            ).build_transaction({"gas": MIN_GAS, "gasPrice": MIN_GASPRICE})["data"]
         }
 
     @classmethod

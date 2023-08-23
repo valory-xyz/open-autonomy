@@ -11,10 +11,21 @@ Deployment helpers.
 ```python
 def run_deployment(build_dir: Path,
                    no_recreate: bool = False,
-                   remove_orphans: bool = False) -> None
+                   remove_orphans: bool = False,
+                   detach: bool = False) -> None
 ```
 
 Run deployment.
+
+<a id="autonomy.cli.helpers.deployment.stop_deployment"></a>
+
+#### stop`_`deployment
+
+```python
+def stop_deployment(build_dir: Path) -> None
+```
+
+Stop running deployment.
 
 <a id="autonomy.cli.helpers.deployment.build_deployment"></a>
 
@@ -57,7 +68,8 @@ def build_and_deploy_from_token(token_id: int,
                                 deployment_type: str,
                                 aev: bool = False,
                                 password: Optional[str] = None,
-                                no_deploy: bool = False) -> None
+                                no_deploy: bool = False,
+                                detach: bool = False) -> None
 ```
 
 Build and run deployment from tokenID.

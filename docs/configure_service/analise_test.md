@@ -6,14 +6,14 @@ When developing your service (and its required components, including the {{fsm_a
 
 For convenience the [Dev template](https://github.com/valory-xyz/dev-template) comes with a Pipenv that includes a number of tools grouped under predefined make targets.
 
-`tomte format-code`
+Make target: `make formatters`
 
 : | Tool                                       | Description                                                                                             |
     |--------------------------------------------|---------------------------------------------------------------------------------------------------------|
     | [`black`](https://black.readthedocs.io/)   | A Python code formatter that automatically reformats code to conform to a consistent style.             |
     | [`isort`](https://pycqa.github.io/isort/ ) | A Python tool that sorts imports alphabetically and separates them into sections, making it easier to read and maintain import statements in Python code. |
 
-`tomte check-code`
+Make target: `make code-checks`
 
 : | Tool                                                 | Description                                                                                                                                                         |
 |------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -50,7 +50,7 @@ The `valory/abstract_round_abci` skill packages come with a number of testing to
     Fetch the `hello_world` agent, which comes with the `hello_world_abci` {{fsm_app}} skill within:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeiew5bggorxhde75tvdgk4vehgodyjpeh6h4mwen73nkontlo4b4iy
+    autonomy fetch valory/hello_world:0.1.0:bafybeig2exytjr7oh42wn7bizvo4hd74ley3k4ucwkyoy2dgvnbxmvfoge
     mv hello_world hello_world_agent
     ```
 
@@ -77,7 +77,7 @@ The same plugin also provides tools for writing end-to-end tests for agents. The
     Fetch the `hello_world` agent:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeiew5bggorxhde75tvdgk4vehgodyjpeh6h4mwen73nkontlo4b4iy
+    autonomy fetch valory/hello_world:0.1.0:bafybeig2exytjr7oh42wn7bizvo4hd74ley3k4ucwkyoy2dgvnbxmvfoge
     mv hello_world hello_world_agent
     ```
 

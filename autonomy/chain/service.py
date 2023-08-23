@@ -44,6 +44,12 @@ from autonomy.chain.exceptions import (
 from autonomy.chain.mint import transact
 
 
+try:
+    from web3.exceptions import Web3Exception
+except (ModuleNotFoundError, ImportError):
+    Web3Exception = Exception
+
+
 DEFAULT_DEPLOY_PAYLOAD = "0x0000000000000000000000000000000000000000f48f2b2d2a534e402487b3ee7c18c33aec0fe5e4000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 
 ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
@@ -299,7 +305,7 @@ def register_instance(  # pylint: disable=too-many-arguments
         raise InstanceRegistrationFailed(
             "Instance registration failed; Error connecting to the RPC"
         ) from e
-    except ValueError as e:  # pragma: nocover
+    except (Web3Exception, ValueError) as e:  # pragma: nocover
         raise InstanceRegistrationFailed(f"Instance registration failed; {e}") from e
 
     try:

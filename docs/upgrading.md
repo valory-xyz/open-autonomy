@@ -5,7 +5,7 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
-## `TBD` to `TBD`
+## `v0.11.1` to `v0.12.0`
 
 - Renamed the `background_behaviour_cls` in `AbstractRoundBehaviour` to `termination_behaviour_cls`. 
  *Should be taken into consideration for all the apps that are utilizing the termination.*
@@ -21,6 +21,15 @@ Below we describe the additional manual steps required to upgrade between differ
  all round tests will need to be modified to include a mocked context in addition to the synchronized data.
 
 1 && 4 should be taken into consideration for all the apps that are utilizing the termination.
+
+## `v0.11.0` to `v0.11.1`
+
+The `autonomy deploy run` command now handles the exists from deployment and to do this we're running the deployments in detached mode and waiting for the user to cancel what that means is from now on when running the deployments the logs won't be printed out by default. If you want to check out the logs for containers you can use `docker logs` command.
+
+## `v0.10.11.post1` to `v0.11.0`
+
+- `web3py` has been replaced with `open-aea-web3` and we forked this from `web3py@v6.0.0`, that means the method names will use the `snake_case` and the `camelCase` naming has been deprecated
+- Support for `Python 3.7` has been deprecated
 
 ## `v0.10.11` to `v0.10.11.post1`
 
