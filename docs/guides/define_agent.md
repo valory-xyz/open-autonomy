@@ -15,7 +15,7 @@ You must ensure that your machine satisfies the [framework requirements](./set_u
 
 ## Step-by-step instructions
 
-In order to deploy and run a service you need an agent with a working {{fsm_app}}. We base this guide in a default {{fsm_app}} available in the remote registry, namely, the `hello_world_abci` {{fsm_app}}. As a result, we will define an agent implementing a functionality equivalent to the [Hello World service](../demos/hello_world_demo.md). You can, of course, use your own {{fsm_app}} to define your agent.
+In order to deploy and run a service you need an agent with a working {{fsm_app}}. We base this guide on a default {{fsm_app}} available in the remote registry, namely, the `hello_world_abci` {{fsm_app}}. As a result, we will define an agent implementing a functionality equivalent to the [Hello World service](../demos/hello_world_demo.md). You can, of course, use your own {{fsm_app}} to define your agent.
 
 !!! warning "Important"
 
@@ -122,7 +122,7 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
           open-aea-ledger-ethereum:
             version: ==1.38.0
           open-aea-test-autonomy:
-            version: ==0.11.0
+            version: ==0.11.1
         default_connection: null
         ---
         public_id: valory/hello_world_abci:0.1.0

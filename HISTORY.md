@@ -1,5 +1,21 @@
 # Release History - `open-autonomy`
 
+# 0.12.0 (2023-08-24)
+
+Packages:
+- Adds slashing functionality #1927
+
+# 0.11.1 (2023-08-18)
+
+Autonomy:
+- Adds support for `arm/v7` docker images
+- Adds support for running the service in background using `--detach` flag in the `autonomy deploy run` command
+- Adds support for stopping the service running in background using `autonomy deploy stop`
+- Implements clean exists from `docker-compose` deployments
+
+Packages:
+- Reverts #1996, because it introduced some instability
+
 # 0.11.0 (2023-08-14)
 
 Autonomy:
@@ -11,7 +27,7 @@ Packages:
 
 Chore:
 - Replaces the `web3py` with `open-aea-web3`
-- Bumps `py-ecc@6.0.0`, `numpy@>=1.21.6` and `pandas@1.5.3` 
+- Bumps `py-ecc@6.0.0`, `numpy@>=1.21.6` and `pandas@1.5.3`
 
 # 0.10.11.post1 (2023-08-10)
 

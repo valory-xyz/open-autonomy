@@ -20,6 +20,7 @@
 """Test the rounds of the skill."""
 
 from copy import deepcopy
+from unittest.mock import MagicMock
 
 from packages.valory.skills.abstract_round_abci.base import BaseSynchronizedData
 from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
@@ -53,6 +54,7 @@ class TestTerminationRound(BaseRoundTestClass):
 
         test_round = RoundCountRound(
             synchronized_data=deepcopy(self.synchronized_data),
+            context=MagicMock(),
         )
         payload_data = 1
         first_payload, *payloads = [

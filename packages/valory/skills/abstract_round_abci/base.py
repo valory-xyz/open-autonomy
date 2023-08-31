@@ -30,16 +30,20 @@ import sys
 import textwrap
 import uuid
 from abc import ABC, ABCMeta, abstractmethod
-from collections import Counter
+from collections import Counter, deque
 from copy import copy, deepcopy
-from dataclasses import asdict, astuple, dataclass, field
+from dataclasses import asdict, astuple, dataclass, field, is_dataclass
 from enum import Enum
 from inspect import isclass
+from math import ceil
 from typing import (
     Any,
+    Callable,
+    Deque,
     Dict,
     FrozenSet,
     Generic,
+    Iterator,
     List,
     Mapping,
     Optional,
@@ -54,12 +58,19 @@ from typing import (
 
 from aea.crypto.ledger_apis import LedgerApis
 from aea.exceptions import enforce
+from aea.skills.base import SkillContext
 
 from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES
 from packages.valory.connections.ledger.connection import (
     PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
-from packages.valory.protocols.abci.custom_types import Header
+from packages.valory.protocols.abci.custom_types import (
+    EvidenceType,
+    Evidences,
+    Header,
+    LastCommitInfo,
+    Validator,
+)
 from packages.valory.skills.abstract_round_abci.utils import (
     consensus_threshold,
     is_json_serializable,
@@ -79,6 +90,9 @@ RESET_COUNT_START = 0
 VALUE_NOT_PROVIDED = object()
 # tolerance in seconds for new blocks not having arrived yet
 BLOCKS_STALL_TOLERANCE = 60
+SERIOUS_OFFENCE_ENUM_MIN = 1000
+NUMBER_OF_BLOCKS_TRACKED = 10_000
+NUMBER_OF_ROUNDS_TRACKED = 50
 
 EventType = TypeVar("EventType")
 
@@ -475,6 +489,9 @@ class AbciAppDB:
     https://github.com/python/cpython/blob/3.10/Lib/copy.py#L182-L183
     """
 
+    DB_DATA_KEY = "db_data"
+    SLASHING_CONFIG_KEY = "slashing_config"
+
     # database keys which values are always set for the next period by default
     default_cross_period_keys: FrozenSet[str] = frozenset(
         {
@@ -510,6 +527,7 @@ class AbciAppDB:
             cross_period_persisted_keys or frozenset()
         )
         self._cross_period_check()
+        self.slashing_config: str = ""
 
     def _cross_period_check(self) -> None:
         """Check the cross period keys against the setup data."""
@@ -681,7 +699,11 @@ class AbciAppDB:
 
     def serialize(self) -> str:
         """Serialize the data of the database to a string."""
-        return json.dumps(self._data, sort_keys=True)
+        db = {
+            self.DB_DATA_KEY: self._data,
+            self.SLASHING_CONFIG_KEY: self.slashing_config,
+        }
+        return json.dumps(db, sort_keys=True)
 
     @staticmethod
     def _as_abci_data(data: Dict) -> Dict[int, Any]:
@@ -696,22 +718,35 @@ class AbciAppDB:
         """
         try:
             loaded_data = json.loads(serialized_data)
-            loaded_data = self._as_abci_data(loaded_data)
         except json.JSONDecodeError as exc:
             raise ABCIAppInternalError(
                 f"Could not decode data using {serialized_data}: {exc}"
             ) from exc
+
+        input_report = f"\nThe following serialized data were given: {serialized_data}"
+        try:
+            db_data = loaded_data[self.DB_DATA_KEY]
+            slashing_config = loaded_data[self.SLASHING_CONFIG_KEY]
+        except KeyError as exc:
+            raise ABCIAppInternalError(
+                "Mandatory keys `db_data`, `slashing_config` are missing from the deserialized data: "
+                f"{loaded_data}{input_report}"
+            ) from exc
+
+        try:
+            db_data = self._as_abci_data(db_data)
         except AttributeError as exc:
             raise ABCIAppInternalError(
-                f"Could not decode db data with an invalid format: {serialized_data}"
+                f"Could not decode db data with an invalid format: {db_data}{input_report}"
             ) from exc
         except ValueError as exc:
             raise ABCIAppInternalError(
-                f"An invalid index was found while trying to sync the db using data: {serialized_data}"
+                f"An invalid index was found while trying to sync the db using data: {db_data}{input_report}"
             ) from exc
 
-        self._check_data(dict(tuple(loaded_data.values())[0]))
-        self._data = loaded_data
+        self._check_data(dict(tuple(db_data.values())[0]))
+        self._data = db_data
+        self.slashing_config = slashing_config
 
     def hash(self) -> bytes:
         """Create a hash of the data."""
@@ -850,6 +885,16 @@ class BaseSynchronizedData:
         """Get the number of participants."""
         participants = cast(List, self.db.get("participants", []))
         return len(participants)
+
+    @property
+    def slashing_config(self) -> str:
+        """Get the slashing configuration."""
+        return self.db.slashing_config
+
+    @slashing_config.setter
+    def slashing_config(self, config: str) -> None:
+        """Set the slashing configuration."""
+        self.db.slashing_config = config
 
     def update(
         self,
@@ -997,12 +1042,14 @@ class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound):
     def __init__(
         self,
         synchronized_data: BaseSynchronizedData,
+        context: SkillContext,
         previous_round_payload_class: Optional[Type[BaseTxPayload]] = None,
     ) -> None:
         """Initialize the round."""
         self._synchronized_data = synchronized_data
         self.block_confirmations = 0
         self._previous_round_payload_class = previous_round_payload_class
+        self.context = context
 
     @classmethod
     def auto_round_id(cls) -> str:
@@ -1901,6 +1948,8 @@ class Timeouts(Generic[EventType]):
 class _MetaAbciApp(ABCMeta):
     """A metaclass that validates AbciApp's attributes."""
 
+    bg_round_added: bool = False
+
     def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type:  # type: ignore
         """Initialize the class."""
         new_cls = super().__new__(mcs, name, bases, namespace, **kwargs)
@@ -1912,7 +1961,12 @@ class _MetaAbciApp(ABCMeta):
             # the check only applies to AbciApp subclasses
             return new_cls
 
+        if not mcs.bg_round_added:
+            mcs._add_pending_offences_bg_round(new_cls)
+            mcs.bg_round_added = True
+
         mcs._check_consistency(cast(Type[AbciApp], new_cls))
+
         return new_cls
 
     @classmethod
@@ -2091,6 +2145,159 @@ class _MetaAbciApp(ABCMeta):
                 f"non-timeout transition",
             )
 
+    @classmethod
+    def _add_pending_offences_bg_round(cls, abci_app_cls: Type["AbciApp"]) -> None:
+        """Add the pending offences synchronization background round."""
+        config: BackgroundAppConfig = BackgroundAppConfig(PendingOffencesRound)
+        abci_app_cls.add_background_app(config)
+
+
+class BackgroundAppType(Enum):
+    """
+    The type of a background app.
+
+    Please note that the values correspond to the priority in which the background apps should be processed
+    when updating rounds.
+    """
+
+    TERMINATING = 0
+    EVER_RUNNING = 1
+    NORMAL = 2
+    INCORRECT = 3
+
+    @staticmethod
+    def correct_types() -> Set[str]:
+        """Return the correct types only."""
+        return set(BackgroundAppType.__members__) - {BackgroundAppType.INCORRECT.name}
+
+
+@dataclass(frozen=True)
+class BackgroundAppConfig(Generic[EventType]):
+    """
+    Necessary configuration for a background app.
+
+    For a deeper understanding of the various types of background apps and how the config influences
+    the generated background app's type, please refer to the `BackgroundApp` class.
+    The `specify_type` method provides further insight on the subject matter.
+    """
+
+    # the class of the background round
+    round_cls: AppState
+    # the abci app of the background round
+    # the abci app must specify a valid transition function if the round is not of an ever-running type
+    abci_app: Optional[Type["AbciApp"]] = None
+    # the start event of the background round
+    # if no event or transition function is specified, then the round is running in the background forever
+    start_event: Optional[EventType] = None
+    # the end event of the background round
+    # if not specified, then the round is terminating the abci app
+    end_event: Optional[EventType] = None
+
+
+class BackgroundApp(Generic[EventType]):
+    """A background app."""
+
+    def __init__(
+        self,
+        config: BackgroundAppConfig,
+    ) -> None:
+        """Initialize the BackgroundApp."""
+        given_args = locals()
+
+        self.config = config
+        self.round_cls: AppState = config.round_cls
+        self.transition_function: Optional[AbciAppTransitionFunction] = (
+            config.abci_app.transition_function if config.abci_app is not None else None
+        )
+        self.start_event: Optional[EventType] = config.start_event
+        self.end_event: Optional[EventType] = config.end_event
+
+        self.type = self.specify_type()
+        if self.type == BackgroundAppType.INCORRECT:  # pragma: nocover
+            raise ValueError(
+                f"Background app has not been initialized correctly with {given_args}. "
+                f"Cannot match with any of the possible background apps' types: {BackgroundAppType.correct_types()}"
+            )
+        _logger.debug(
+            f"Created background app of type '{self.type}' using {given_args}."
+        )
+        self._background_round: Optional[AbstractRound] = None
+
+    def __eq__(self, other: Any) -> bool:  # pragma: no cover
+        """Custom equality comparing operator."""
+        if not isinstance(other, BackgroundApp):
+            return False
+
+        return self.config == other.config
+
+    def __hash__(self) -> int:
+        """Custom hashing operator"""
+        return hash(self.config)
+
+    def specify_type(self) -> BackgroundAppType:
+        """Specify the type of the background app."""
+        if (
+            self.start_event is None
+            and self.end_event is None
+            and self.transition_function is None
+        ):
+            self.transition_function = {}
+            return BackgroundAppType.EVER_RUNNING
+        if (
+            self.start_event is not None
+            and self.end_event is None
+            and self.transition_function is not None
+        ):
+            return BackgroundAppType.TERMINATING
+        if (
+            self.start_event is not None
+            and self.end_event is not None
+            and self.transition_function is not None
+        ):
+            return BackgroundAppType.NORMAL
+        return BackgroundAppType.INCORRECT  # pragma: nocover
+
+    def setup(
+        self, initial_synchronized_data: BaseSynchronizedData, context: SkillContext
+    ) -> None:
+        """Set up the background round."""
+        round_cls = cast(Type[AbstractRound], self.round_cls)
+        self._background_round = round_cls(
+            initial_synchronized_data,
+            context,
+        )
+
+    @property
+    def background_round(self) -> AbstractRound:
+        """Get the background round."""
+        if self._background_round is None:  # pragma: nocover
+            raise ValueError(f"Background round with class `{self.round_cls}` not set!")
+        return self._background_round
+
+    def process_transaction(self, transaction: Transaction, dry: bool = False) -> bool:
+        """Process a transaction."""
+
+        payload_class = type(transaction.payload)
+        bg_payload_class = cast(AppState, self.round_cls).payload_class
+        if payload_class is bg_payload_class:
+            processor = (
+                self.background_round.check_transaction
+                if dry
+                else self.background_round.process_transaction
+            )
+            processor(transaction)
+            return True
+        return False
+
+
+@dataclass
+class TransitionBackup:
+    """Holds transition related information as a backup in case we want to transition back from a background app."""
+
+    round: Optional[AbstractRound] = None
+    round_cls: Optional[AppState] = None
+    transition_function: Optional[AbciAppTransitionFunction] = None
+
 
 class AbciApp(
     Generic[EventType], ABC, metaclass=_MetaAbciApp
@@ -2107,9 +2314,7 @@ class AbciApp(
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
     cross_period_persisted_keys: FrozenSet[str] = frozenset()
-    background_round_cls: Optional[AppState] = None
-    termination_transition_function: Optional[AbciAppTransitionFunction] = None
-    termination_event: Optional[EventType] = None
+    background_apps: Set[BackgroundApp] = set()
     default_db_preconditions: Set[str] = BaseSynchronizedData.default_db_keys
     db_pre_conditions: Dict[AppState, Set[str]] = {}
     db_post_conditions: Dict[AppState, Set[str]] = {}
@@ -2119,6 +2324,7 @@ class AbciApp(
         self,
         synchronized_data: BaseSynchronizedData,
         logger: logging.Logger,
+        context: SkillContext,
     ):
         """Initialize the AbciApp."""
 
@@ -2127,10 +2333,9 @@ class AbciApp(
 
         self._initial_synchronized_data = synchronized_data
         self.logger = logger
-
+        self.context = context
         self._current_round_cls: Optional[AppState] = None
         self._current_round: Optional[AbstractRound] = None
-        self._background_round: Optional[AbstractRound] = None
         self._last_round: Optional[AbstractRound] = None
         self._previous_rounds: List[AbstractRound] = []
         self._current_round_height: int = 0
@@ -2138,11 +2343,8 @@ class AbciApp(
         self._last_timestamp: Optional[datetime.datetime] = None
         self._current_timeout_entries: List[int] = []
         self._timeouts = Timeouts[EventType]()
-        self._is_termination_set = (
-            self.background_round_cls is not None
-            and self.termination_transition_function is not None
-            and self.termination_event is not None
-        )
+        self._transition_backup = TransitionBackup()
+        self._switched = False
 
     @classmethod
     def is_abstract(cls) -> bool:
@@ -2150,19 +2352,29 @@ class AbciApp(
         return cls._is_abstract
 
     @classmethod
-    def add_termination(
+    def add_background_app(
         cls,
-        background_round_cls: AppState,
-        termination_event: EventType,
-        termination_abci_app: Type["AbciApp"],
+        config: BackgroundAppConfig,
     ) -> Type["AbciApp"]:
-        """Sets the termination related class variables."""
-        cls.background_round_cls = background_round_cls
-        cls.termination_transition_function = termination_abci_app.transition_function
-        cls.termination_event = termination_event
-        new_cross_period_persisted_keys = copy(cls.cross_period_persisted_keys)
-        cls.cross_period_persisted_keys = new_cross_period_persisted_keys.union(
-            termination_abci_app.cross_period_persisted_keys
+        """
+        Sets the background related class variables.
+
+        For a deeper understanding of the various types of background apps and how the inputs of this method influence
+        the generated background app's type, please refer to the `BackgroundApp` class.
+        The `specify_type` method provides further insight on the subject matter.
+
+        :param config: the background app's configuration.
+        :return: the `AbciApp` with the new background app contained in the `background_apps` set.
+        """
+        background_app: BackgroundApp = BackgroundApp(config)
+        cls.background_apps.add(background_app)
+        cross_period_keys = (
+            config.abci_app.cross_period_persisted_keys
+            if config.abci_app is not None
+            else frozenset()
+        )
+        cls.cross_period_persisted_keys = cls.cross_period_persisted_keys.union(
+            cross_period_keys
         )
         return cls
 
@@ -2209,18 +2421,38 @@ class AbciApp(
 
     @classmethod
     def get_all_round_classes(
-        cls, include_termination_rounds: bool = False
+        cls,
+        bg_round_cls: Set[Type[AbstractRound]],
+        include_background_rounds: bool = False,
     ) -> Set[AppState]:
         """Get all round classes."""
-        result: Set[AppState] = cls._get_rounds_from_transition_function(
-            cls.transition_function
-        )
-        if include_termination_rounds:
-            termination_rounds = cls._get_rounds_from_transition_function(
-                cls.termination_transition_function,
-            )
-            result.update(termination_rounds)
-        return result
+        full_fn = deepcopy(cls.transition_function)
+
+        if include_background_rounds:
+            for app in cls.background_apps:
+                if (
+                    app.type != BackgroundAppType.EVER_RUNNING
+                    and app.round_cls in bg_round_cls
+                ):
+                    transition_fn = cast(
+                        AbciAppTransitionFunction, app.transition_function
+                    )
+                    full_fn.update(transition_fn)
+
+        return cls._get_rounds_from_transition_function(full_fn)
+
+    @property
+    def bg_apps_prioritized(self) -> Tuple[List[BackgroundApp], ...]:
+        """Get the background apps grouped and prioritized by their types."""
+        n_correct_types = len(BackgroundAppType.correct_types())
+        grouped_prioritized: Tuple[List, ...] = ([],) * n_correct_types
+        for app in self.background_apps:
+            # reminder: the values correspond to the priority of the background apps
+            for priority in range(n_correct_types):
+                if app.type == BackgroundAppType(priority):
+                    grouped_prioritized[priority].append(app)
+
+        return grouped_prioritized
 
     @property
     def last_timestamp(self) -> datetime.datetime:
@@ -2229,14 +2461,15 @@ class AbciApp(
             raise ABCIAppInternalError("last timestamp is None")
         return self._last_timestamp
 
+    def _setup_background(self) -> None:
+        """Set up the background rounds."""
+        for app in self.background_apps:
+            app.setup(self._initial_synchronized_data, self.context)
+
     def setup(self) -> None:
         """Set up the behaviour."""
         self.schedule_round(self.initial_round_cls)
-        if self.is_termination_set:
-            self.background_round_cls = cast(AppState, self.background_round_cls)
-            self._background_round = self.background_round_cls(
-                self._initial_synchronized_data,
-            )
+        self._setup_background()
 
     def _log_start(self) -> None:
         """Log the entering in the round."""
@@ -2296,12 +2529,14 @@ class AbciApp(
         self._current_round_cls = round_cls
         self._current_round = round_cls(
             self.synchronized_data,
+            self.context,
             (
                 self._last_round.payload_class
                 if self._last_round is not None
                 and self._last_round.payload_class
                 != self._current_round_cls.payload_class
-                # when transitioning to a round with the same payload type we set None as otherwise it will allow no tx to be sumitted
+                # when transitioning to a round with the same payload type we set None
+                # as otherwise it will allow no tx to be submitted
                 else None
             ),
         )
@@ -2314,18 +2549,6 @@ class AbciApp(
         if self._current_round is None:
             raise ValueError("current_round not set!")
         return self._current_round
-
-    @property
-    def background_round(self) -> AbstractRound:
-        """Get the background round."""
-        if self._background_round is None:
-            raise ValueError("background_round not set!")
-        return self._background_round
-
-    @property
-    def is_termination_set(self) -> bool:
-        """Get whether termination is set."""
-        return self._is_termination_set
 
     @property
     def current_round_id(self) -> Optional[str]:
@@ -2364,44 +2587,122 @@ class AbciApp(
         self._last_timestamp = None
 
     def check_transaction(self, transaction: Transaction) -> None:
-        """
-        Check a transaction.
+        """Check a transaction."""
 
-        The background round runs concurrently with other (normal) rounds.
-        First we check if the transaction is meant for the background round,
-        if not we forward to the current round object.
+        self.process_transaction(transaction, dry=True)
 
-        :param transaction: the transaction.
-        """
-
-        payload_type = type(transaction.payload)
-        if (
-            self.is_termination_set
-            and payload_type is cast(AppState, self.background_round_cls).payload_class
-        ):
-            self.background_round.check_transaction(transaction)
-            return
-        self.current_round.check_transaction(transaction)
-
-    def process_transaction(self, transaction: Transaction) -> None:
+    def process_transaction(self, transaction: Transaction, dry: bool = False) -> None:
         """
         Process a transaction.
 
-        The background round runs concurrently with other (normal) rounds.
-        First we check if the transaction is meant for the background round,
-        if not we forward to the current round object.
+        The background rounds run concurrently with other (normal) rounds.
+        First we check if the transaction is meant for a background round,
+        if not we forward it to the current round object.
 
         :param transaction: the transaction.
+        :param dry: whether the transaction should only be checked and not processed.
         """
 
-        payload_type = type(transaction.payload)
+        for app in self.background_apps:
+            processed = app.process_transaction(transaction, dry)
+            if processed:
+                return
+
+        processor = (
+            self.current_round.check_transaction
+            if dry
+            else self.current_round.process_transaction
+        )
+        processor(transaction)
+
+    def _resolve_bg_transition(
+        self, app: BackgroundApp, event: EventType
+    ) -> Tuple[bool, Optional[AppState]]:
+        """
+        Resolve a background app's transition.
+
+        First check whether the event is a special start event.
+        If that's the case, proceed with the corresponding background app's transition function,
+         regardless of what the current round is.
+
+        :param app: the background app instance.
+        :param event: the event for the transition.
+        :return: the new app state.
+        """
+
         if (
-            self.is_termination_set
-            and payload_type is cast(AppState, self.background_round_cls).payload_class
+            app.type in (BackgroundAppType.NORMAL, BackgroundAppType.TERMINATING)
+            and event == app.start_event
         ):
-            self.background_round.process_transaction(transaction)
+            app.transition_function = cast(
+                AbciAppTransitionFunction, app.transition_function
+            )
+            app.round_cls = cast(AppState, app.round_cls)
+            next_round_cls = app.transition_function[app.round_cls].get(event, None)
+            if next_round_cls is None:  # pragma: nocover
+                return True, None
+
+            # we backup the current round so we can return back to normal, in case the end event is received later
+            self._transition_backup.round = self._current_round
+            self._transition_backup.round_cls = self._current_round_cls
+            # we switch the current transition function, with the background app's transition function
+            self._transition_backup.transition_function = deepcopy(
+                self.transition_function
+            )
+            self.transition_function = app.transition_function
+            self.logger.info(
+                f"The {event} event was produced, transitioning to "
+                f"`{next_round_cls.auto_round_id()}`."
+            )
+            return True, next_round_cls
+
+        return False, None
+
+    def _adjust_transition_fn(self, event: EventType) -> None:
+        """
+        Adjust the transition function if necessary.
+
+        Check whether the event is a special end event.
+        If that's the case, reset the transition function back to normal.
+        This method is meant to be called after resolving the next round transition, given an event.
+
+        :param event: the emitted event.
+        """
+        if self._transition_backup.transition_function is None:
             return
-        self.current_round.process_transaction(transaction)
+
+        for app in self.background_apps:
+            if app.type == BackgroundAppType.NORMAL and event == app.end_event:
+                self._current_round = self._transition_backup.round
+                self._transition_backup.round = None
+                self._current_round_cls = self._transition_backup.round_cls
+                self._transition_backup.round_cls = None
+                backup_fn = cast(
+                    AbciAppTransitionFunction,
+                    self._transition_backup.transition_function,
+                )
+                self.transition_function = deepcopy(backup_fn)
+                self._transition_backup.transition_function = None
+                self._switched = True
+                self.logger.info(
+                    f"The {app.end_event} event was produced. Switching back to the normal FSM."
+                )
+
+    def _resolve_transition(self, event: EventType) -> Optional[Type[AbstractRound]]:
+        """Resolve the transitioning based on the given event."""
+        for app in self.background_apps:
+            matched, next_round_cls = self._resolve_bg_transition(app, event)
+            if matched:
+                return next_round_cls
+
+        self._adjust_transition_fn(event)
+
+        current_round_cls = cast(AppState, self._current_round_cls)
+        next_round_cls = self.transition_function[current_round_cls].get(event, None)
+        if next_round_cls is None:
+            return None
+
+        return next_round_cls
 
     def process_event(
         self, event: EventType, result: Optional[BaseSynchronizedData] = None
@@ -2413,45 +2714,24 @@ class AbciApp(
             )
             return
 
-        # we first check whether the event is the special termination event.
-        # if that's the case, we proceed with the termination transition function,
-        # regardless of what the current round is
-        if self.is_termination_set and event == self.termination_event:
-            self.termination_transition_function = cast(
-                AbciAppTransitionFunction, self.termination_transition_function
-            )
-            self.background_round_cls = cast(AppState, self.background_round_cls)
-            next_round_cls = self.termination_transition_function[
-                self.background_round_cls
-            ].get(event, None)
-
-            # we switch the current transition function, with the termination
-            # transition function. Note that we don't need to return to the
-            # normal transition function (self.transition_function) because
-            # the termination transition function is sufficient for going
-            # through the necessary rounds
-            self.transition_function = self.termination_transition_function
-            self.logger.info(
-                f"The termination event was produced, transitioning to `{cast(AppState, next_round_cls).auto_round_id()}`."
-            )
-        else:
-            next_round_cls = self.transition_function[self._current_round_cls].get(
-                event, None
-            )
+        next_round_cls = self._resolve_transition(event)
         self._extend_previous_rounds_with_current_round()
-        if result is not None:
-            self._round_results.append(result)
-        else:
-            # we duplicate the state since the round was preemptively ended
-            self._round_results.append(self.current_round.synchronized_data)
+        # if there is no result, we duplicate the state since the round was preemptively ended
+        result = self.current_round.synchronized_data if result is None else result
+        self._round_results.append(result)
 
         self._log_end(event)
         if next_round_cls is not None:
             self.schedule_round(next_round_cls)
-        else:
-            self.logger.warning("AbciApp has reached a dead end.")
-            self._current_round_cls = None
-            self._current_round = None
+            return
+
+        if self._switched:
+            self._switched = False
+            return
+
+        self.logger.warning("AbciApp has reached a dead end.")
+        self._current_round_cls = None
+        self._current_round = None
 
     def update_time(self, timestamp: datetime.datetime) -> None:
         """
@@ -2531,6 +2811,286 @@ class AbciApp(
         )
 
 
+class OffenseType(Enum):
+    """
+    The types of offenses.
+
+    The values of the enum represent the seriousness of the offence.
+    Offense types with values >1000 are considered serious.
+    See also `is_light_offence` and `is_serious_offence` functions.
+    """
+
+    NO_OFFENCE = -1
+    VALIDATOR_DOWNTIME = 0
+    INVALID_PAYLOAD = 1
+    BLACKLISTED = 2
+    SUSPECTED = 3
+    UNKNOWN = SERIOUS_OFFENCE_ENUM_MIN
+    DOUBLE_SIGNING = SERIOUS_OFFENCE_ENUM_MIN + 1
+    LIGHT_CLIENT_ATTACK = SERIOUS_OFFENCE_ENUM_MIN + 2
+
+
+def is_light_offence(offence_type: OffenseType) -> bool:
+    """Check if an offence type is light."""
+    return 0 <= offence_type.value < SERIOUS_OFFENCE_ENUM_MIN
+
+
+def is_serious_offence(offence_type: OffenseType) -> bool:
+    """Check if an offence type is serious."""
+    return offence_type.value >= SERIOUS_OFFENCE_ENUM_MIN
+
+
+def light_offences() -> Iterator[OffenseType]:
+    """Get the light offences."""
+    return filter(is_light_offence, OffenseType)
+
+
+def serious_offences() -> Iterator[OffenseType]:
+    """Get the serious offences."""
+    return filter(is_serious_offence, OffenseType)
+
+
+class AvailabilityWindow:
+    """
+    A cyclic array with a maximum length that holds boolean values.
+
+    When an element is added to the array and the maximum length has been reached,
+    the oldest element is removed. Two attributes `num_positive` and `num_negative`
+    reflect the number of positive and negative elements in the AvailabilityWindow,
+    they are updated every time a new element is added.
+    """
+
+    def __init__(self, max_length: int) -> None:
+        """
+        Initializes the `AvailabilityWindow` instance.
+
+        :param max_length: the maximum length of the cyclic array.
+        """
+        if max_length < 1:
+            raise ValueError(
+                f"An `AvailabilityWindow` with a `max_length` {max_length} < 1 is not valid."
+            )
+
+        self._max_length = max_length
+        self._window: Deque[bool] = deque(maxlen=max_length)
+        self._num_positive = 0
+        self._num_negative = 0
+
+    def __eq__(self, other: Any) -> bool:
+        """Compare `AvailabilityWindow` objects."""
+        if isinstance(other, AvailabilityWindow):
+            return self.to_dict() == other.to_dict()
+        return False
+
+    def has_bad_availability_rate(self, threshold: float = 0.95) -> bool:
+        """Whether the agent on which the window belongs to has a bad availability rate or not."""
+        return self._num_positive >= ceil(self._max_length * threshold)
+
+    def _update_counters(self, positive: bool, removal: bool = False) -> None:
+        """Updates the `num_positive` and `num_negative` counters."""
+        update_amount = -1 if removal else 1
+
+        if positive:
+            if self._num_positive == 0 and update_amount == -1:  # pragma: no cover
+                return
+            self._num_positive += update_amount
+        else:
+            if self._num_negative == 0 and update_amount == -1:  # pragma: no cover
+                return
+            self._num_negative += update_amount
+
+    def add(self, value: bool) -> None:
+        """
+        Adds a new boolean value to the cyclic array.
+
+        If the maximum length has been reached, the oldest element is removed.
+
+        :param value: The boolean value to add to the cyclic array.
+        """
+        if len(self._window) == self._max_length and self._max_length > 0:
+            # we have filled the window, we need to pop the oldest element
+            # and update the score accordingly
+            oldest_value = self._window.popleft()
+            self._update_counters(oldest_value, removal=True)
+
+        self._window.append(value)
+        self._update_counters(value)
+
+    def to_dict(self) -> Dict[str, int]:
+        """Returns a dictionary representation of the `AvailabilityWindow` instance."""
+        return {
+            "max_length": self._max_length,
+            # Please note that the value cannot be represented if the max length of the availability window is > 14_285
+            "array": int("".join(str(int(flag)) for flag in self._window), base=2)
+            if len(self._window)
+            else 0,
+            "num_positive": self._num_positive,
+            "num_negative": self._num_negative,
+        }
+
+    @staticmethod
+    def _validate_key(
+        data: Dict[str, int], key: str, validator: Callable[[int], bool]
+    ) -> None:
+        """Validate the given key in the data."""
+        value = data.get(key, None)
+        if value is None:
+            raise ValueError(f"Missing required key: {key}.")
+
+        if not isinstance(value, int):
+            raise ValueError(f"{key} must be of type int.")
+
+        if not validator(value):
+            raise ValueError(f"{key} has invalid value {value}.")
+
+    @staticmethod
+    def _validate(data: Dict[str, int]) -> None:
+        """Check if the input can be properly mapped to the class attributes."""
+        if not isinstance(data, dict):
+            raise TypeError(f"Expected dict, got {type(data)}")
+
+        attribute_to_validator = {
+            "max_length": lambda x: x > 0,
+            "array": lambda x: 0 <= x < 2 ** data["max_length"],
+            "num_positive": lambda x: x >= 0,
+            "num_negative": lambda x: x >= 0,
+        }
+
+        errors = []
+        for attribute, validator in attribute_to_validator.items():
+            try:
+                AvailabilityWindow._validate_key(data, attribute, validator)
+            except ValueError as e:
+                errors.append(str(e))
+
+        if errors:
+            raise ValueError("Invalid input:\n" + "\n".join(errors))
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, int]) -> "AvailabilityWindow":
+        """Initializes an `AvailabilityWindow` instance from a dictionary."""
+        cls._validate(data)
+
+        # convert the serialized array to a binary string
+        binary_number = bin(data["array"])[2:]
+        # convert each character in the binary string to a flag
+        flags = (bool(int(digit)) for digit in binary_number)
+
+        instance = cls(max_length=data["max_length"])
+        instance._window.extend(flags)
+        instance._num_positive = data["num_positive"]
+        instance._num_negative = data["num_negative"]
+        return instance
+
+
+@dataclass
+class OffenceStatus:
+    """A class that holds information about offence status for an agent."""
+
+    validator_downtime: AvailabilityWindow = field(
+        default_factory=lambda: AvailabilityWindow(NUMBER_OF_BLOCKS_TRACKED)
+    )
+    invalid_payload: AvailabilityWindow = field(
+        default_factory=lambda: AvailabilityWindow(NUMBER_OF_ROUNDS_TRACKED)
+    )
+    blacklisted: AvailabilityWindow = field(
+        default_factory=lambda: AvailabilityWindow(NUMBER_OF_ROUNDS_TRACKED)
+    )
+    suspected: AvailabilityWindow = field(
+        default_factory=lambda: AvailabilityWindow(NUMBER_OF_ROUNDS_TRACKED)
+    )
+    num_unknown_offenses: int = 0
+    num_double_signed: int = 0
+    num_light_client_attack: int = 0
+
+    def slash_amount(self, light_unit_amount: int, serious_unit_amount: int) -> int:
+        """Get the slash amount of the current status."""
+        offence_types = []
+
+        if self.validator_downtime.has_bad_availability_rate():
+            offence_types.append(OffenseType.VALIDATOR_DOWNTIME)
+        if self.invalid_payload.has_bad_availability_rate():
+            offence_types.append(OffenseType.INVALID_PAYLOAD)
+        if self.blacklisted.has_bad_availability_rate():
+            offence_types.append(OffenseType.BLACKLISTED)
+        if self.suspected.has_bad_availability_rate():
+            offence_types.append(OffenseType.SUSPECTED)
+        offence_types.extend([OffenseType.UNKNOWN] * self.num_unknown_offenses)
+        offence_types.extend([OffenseType.UNKNOWN] * self.num_double_signed)
+        offence_types.extend([OffenseType.UNKNOWN] * self.num_light_client_attack)
+
+        light_multiplier = 0
+        serious_multiplier = 0
+        for offence_type in offence_types:
+            light_multiplier += bool(is_light_offence(offence_type))
+            serious_multiplier += bool(is_serious_offence(offence_type))
+
+        return (
+            light_multiplier * light_unit_amount
+            + serious_multiplier * serious_unit_amount
+        )
+
+
+class OffenseStatusEncoder(json.JSONEncoder):
+    """A custom JSON encoder for the offence status dictionary."""
+
+    def default(self, o: Any) -> Any:
+        """The default JSON encoder."""
+        if is_dataclass(o):
+            return asdict(o)
+        if isinstance(o, AvailabilityWindow):
+            return o.to_dict()
+        return super().default(o)
+
+
+class OffenseStatusDecoder(json.JSONDecoder):
+    """A custom JSON decoder for the offence status dictionary."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the custom JSON decoder."""
+        super().__init__(object_hook=self.hook, *args, **kwargs)
+
+    @staticmethod
+    def hook(
+        data: Dict[str, Any]
+    ) -> Union[AvailabilityWindow, OffenceStatus, Dict[str, OffenceStatus]]:
+        """Perform the custom decoding."""
+        # if this is an `AvailabilityWindow`
+        window_attributes = sorted(AvailabilityWindow(1).to_dict().keys())
+        if window_attributes == sorted(data.keys()):
+            return AvailabilityWindow.from_dict(data)
+
+        # if this is an `OffenceStatus`
+        status_attributes = OffenceStatus.__annotations__.keys()
+        if sorted(status_attributes) == sorted(data.keys()):
+            return OffenceStatus(**data)
+
+        return data
+
+
+@dataclass(frozen=True, eq=True)
+class PendingOffense:
+    """A dataclass to represent offences that need to be addressed."""
+
+    accused_agent_address: str
+    round_count: int
+    offense_type: OffenseType
+    last_transition_timestamp: float
+    time_to_live: float
+
+    def __post_init__(self) -> None:
+        """Post initialization for offence type conversion in case it is given as an `int`."""
+        if isinstance(self.offense_type, int):
+            super().__setattr__("offense_type", OffenseType(self.offense_type))
+
+
+class SlashingNotConfiguredError(Exception):
+    """Custom exception raised when slashing configuration is requested but is not available."""
+
+
+DEFAULT_PENDING_OFFENCE_TTL = 2 * 60 * 60  # 1 hour
+
+
 class RoundSequence:  # pylint: disable=too-many-instance-attributes
     """
     This class represents a sequence of rounds
@@ -2563,11 +3123,11 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         WAITING_FOR_DELIVER_TX = "waiting_for_deliver_tx"
         WAITING_FOR_COMMIT = "waiting_for_commit"
 
-    def __init__(self, abci_app_cls: Type[AbciApp]):
+    def __init__(self, context: SkillContext, abci_app_cls: Type[AbciApp]):
         """Initialize the round."""
         self._blockchain = Blockchain()
         self._syncing_up = True
-
+        self._context = context
         self._block_construction_phase = (
             RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
         )
@@ -2581,7 +3141,101 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._last_round_transition_tm_height: Optional[int] = None
         self._tm_height: Optional[int] = None
         self._block_stall_deadline: Optional[datetime.datetime] = None
-        self._termination_called: bool = False
+        self._terminating_round_called: bool = False
+        # a mapping of the validators' addresses to their agent addresses
+        # we create a mapping to avoid calculating the agent address from the validator address every time we need it
+        # since this is an operation that will be performed every time we want to create an offence
+        self._validator_to_agent: Dict[str, str] = {}
+        # a mapping of the agents' addresses to their offence status
+        self._offence_status: Dict[str, OffenceStatus] = {}
+        self._slashing_enabled = False
+        self.pending_offences: Set[PendingOffense] = set()
+
+    def enable_slashing(self) -> None:
+        """Enable slashing."""
+        self._slashing_enabled = True
+
+    @property
+    def validator_to_agent(self) -> Dict[str, str]:
+        """Get the mapping of the validators' addresses to their agent addresses."""
+        if self._validator_to_agent:
+            return self._validator_to_agent
+        raise SlashingNotConfiguredError(
+            "The mapping of the validators' addresses to their agent addresses has not been set."
+        )
+
+    @validator_to_agent.setter
+    def validator_to_agent(self, validator_to_agent: Dict[str, str]) -> None:
+        """Set the mapping of the validators' addresses to their agent addresses."""
+        if self._validator_to_agent:
+            raise ValueError(
+                "The mapping of the validators' addresses to their agent addresses can only be set once. "
+                f"Attempted to set with {validator_to_agent} but it has content already: {self._validator_to_agent}."
+            )
+        self._validator_to_agent = validator_to_agent
+
+    @property
+    def offence_status(self) -> Dict[str, OffenceStatus]:
+        """Get the mapping of the agents' addresses to their offence status."""
+        if self._offence_status:
+            return self._offence_status
+        raise SlashingNotConfiguredError(  # pragma: nocover
+            "The mapping of the agents' addresses to their offence status has not been set."
+        )
+
+    @offence_status.setter
+    def offence_status(self, offence_status: Dict[str, OffenceStatus]) -> None:
+        """Set the mapping of the agents' addresses to their offence status."""
+        self.abci_app.logger.debug(f"Setting offence status to: {offence_status}")
+        self._offence_status = offence_status
+        self.store_offence_status()
+
+    def add_pending_offence(self, pending_offence: PendingOffense) -> None:
+        """
+        Add a pending offence to the set of pending offences.
+
+        Pending offences are offences that have been detected, but not yet agreed upon by the consensus.
+        A pending offence is removed from the set of pending offences and added to the OffenceStatus of a validator
+        when the majority of the agents agree on it.
+
+        :param pending_offence: the pending offence to add
+        :return: None
+        """
+        self.pending_offences.add(pending_offence)
+
+    def sync_db_and_slashing(self, serialized_db_state: str) -> None:
+        """Sync the database and the slashing configuration."""
+        self.abci_app.synchronized_data.db.sync(serialized_db_state)
+        offence_status = self.latest_synchronized_data.slashing_config
+        if offence_status:
+            # deserialize the offence status and load it to memory
+            self.offence_status = json.loads(
+                offence_status,
+                cls=OffenseStatusDecoder,
+            )
+
+    def serialized_offence_status(self) -> str:
+        """Serialize the offence status."""
+        return json.dumps(self.offence_status, cls=OffenseStatusEncoder, sort_keys=True)
+
+    def store_offence_status(self) -> None:
+        """Store the serialized offence status."""
+        encoded_status = self.serialized_offence_status()
+        self.latest_synchronized_data.slashing_config = encoded_status
+        self.abci_app.logger.debug(f"Updated db with: {encoded_status}")
+        self.abci_app.logger.debug(f"App hash now is: {self.root_hash.hex()}")
+
+    def get_agent_address(self, validator: Validator) -> str:
+        """Get corresponding agent address from a `Validator` instance."""
+        validator_address = validator.address.hex().upper()
+
+        try:
+            return self.validator_to_agent[validator_address]
+        except KeyError as exc:
+            raise ValueError(
+                f"Requested agent address for an unknown validator address {validator_address}. "
+                f"Available validators are: {self.validator_to_agent.keys()}"
+            ) from exc
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -2590,6 +3244,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         :param args: the arguments to pass to the round constructor.
         :param kwargs: the keyword-arguments to pass to the round constructor.
         """
+        kwargs["context"] = self._context
         self._abci_app = self._abci_app_cls(*args, **kwargs)
         self._abci_app.setup()
 
@@ -2655,11 +3310,6 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
     def current_round(self) -> AbstractRound:
         """Get current round."""
         return self.abci_app.current_round
-
-    @property
-    def background_round(self) -> AbstractRound:
-        """Get the background round."""
-        return self.abci_app.background_round
 
     @property
     def current_round_id(self) -> Optional[str]:
@@ -2781,7 +3431,73 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         # reduce `initial_height` by 1 to get block count offset as per Tendermint protocol
         self._blockchain = Blockchain(initial_height - 1)
 
-    def begin_block(self, header: Header) -> None:
+    def _track_tm_offences(
+        self, evidences: Evidences, last_commit_info: LastCommitInfo
+    ) -> None:
+        """Track offences provided by Tendermint, if there are any."""
+        for vote_info in last_commit_info.votes:
+            agent_address = self.get_agent_address(vote_info.validator)
+            was_down = not vote_info.signed_last_block
+            self.offence_status[agent_address].validator_downtime.add(was_down)
+
+        for byzantine_validator in evidences.byzantine_validators:
+            agent_address = self.get_agent_address(byzantine_validator.validator)
+            evidence_type = byzantine_validator.evidence_type
+            self.offence_status[agent_address].num_unknown_offenses += bool(
+                evidence_type == EvidenceType.UNKNOWN
+            )
+            self.offence_status[agent_address].num_double_signed += bool(
+                evidence_type == EvidenceType.DUPLICATE_VOTE
+            )
+            self.offence_status[agent_address].num_light_client_attack += bool(
+                evidence_type == EvidenceType.LIGHT_CLIENT_ATTACK
+            )
+
+    def _track_app_offences(self) -> None:
+        """Track offences provided by the app level, if there are any."""
+        synced_data = self.abci_app.synchronized_data
+        for agent in self.offence_status.keys():
+            blacklisted = agent in synced_data.blacklisted_keepers
+            suspected = agent in cast(tuple, synced_data.db.get("suspects", tuple()))
+            agent_status = self.offence_status[agent]
+            agent_status.blacklisted.add(blacklisted)
+            agent_status.suspected.add(suspected)
+
+    def _handle_slashing_not_configured(self, exc: SlashingNotConfiguredError) -> None:
+        """Handle a `SlashingNotConfiguredError`."""
+        # In the current slashing implementation, we do not track offences before setting the slashing
+        # configuration, i.e., before successfully sharing the tm configuration via ACN on registration.
+        # That is because we cannot slash an agent if we do not map their validator address to their agent address.
+        # Checking the number of participants will allow us to identify whether the registration round has finished,
+        # and therefore expect that the slashing configuration has been set if ACN registration is enabled.
+        if self.abci_app.synchronized_data.nb_participants:
+            _logger.error(
+                f"{exc} This error may occur when the ACN registration has not been successfully performed. "
+                "Have you set the `share_tm_config_on_startup` flag to `true` in the configuration?"
+            )
+            self._slashing_enabled = False
+            _logger.warning("Slashing has been disabled!")
+
+    def _try_track_offences(
+        self, evidences: Evidences, last_commit_info: LastCommitInfo
+    ) -> None:
+        """Try to track the offences. If an error occurs, log it, disable slashing, and warn about the latter."""
+        try:
+            if self._slashing_enabled:
+                # only track offences if the first round has finished
+                # we avoid tracking offences in the first round
+                # because we do not have the slashing configuration synced yet
+                self._track_tm_offences(evidences, last_commit_info)
+                self._track_app_offences()
+        except SlashingNotConfiguredError as exc:
+            self._handle_slashing_not_configured(exc)
+
+    def begin_block(
+        self,
+        header: Header,
+        evidences: Evidences,
+        last_commit_info: LastCommitInfo,
+    ) -> None:
         """Begin block."""
         if self.is_finished:
             raise ABCIAppInternalError(
@@ -2807,6 +3523,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             "Created a new local deadline for the next `begin_block` request from the Tendermint node: "
             f"{self._block_stall_deadline}"
         )
+        self._try_track_offences(evidences, last_commit_info)
 
     def deliver_tx(self, transaction: Transaction) -> None:
         """
@@ -2887,36 +3604,62 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             )
         self._blockchain = Blockchain(is_init=is_init)
 
+    def _get_round_result(
+        self,
+    ) -> Optional[Tuple[BaseSynchronizedData, Any]]:
+        """
+        Get the round's result.
+
+        Give priority to:
+            1. terminating bg rounds
+            2. ever running bg rounds
+            3. normal bg rounds
+            4. normal rounds
+
+        :return: the round's result.
+        """
+        for prioritized_group in self.abci_app.bg_apps_prioritized:
+            for app in prioritized_group:
+                result = app.background_round.end_block()
+                if (
+                    result is None
+                    or app.type == BackgroundAppType.TERMINATING
+                    and self._terminating_round_called
+                ):
+                    continue
+                if (
+                    app.type == BackgroundAppType.TERMINATING
+                    and not self._terminating_round_called
+                ):
+                    self._terminating_round_called = True
+                return result
+        return self.abci_app.current_round.end_block()
+
     def _update_round(self) -> None:
         """
         Update a round.
 
-        Check whether the round has finished. If so, get the
-        new round and set it as the current round.
+        Check whether the round has finished. If so, get the new round and set it as the current round.
+        If a termination app's round has returned a result, then the other apps' rounds are ignored.
         """
-        background_result: Optional[Tuple[BaseSynchronizedData, Any]] = None
-        if self.abci_app.is_termination_set:
-            background_result = self.abci_app.background_round.end_block()
-        if background_result is not None and not self._termination_called:
-            # when the background round returns, it takes priority over normal rounds
-            # because the BackgroundRound never ends, we should only take into account
-            # its response only once
-            self._termination_called = True
-            result: Optional[Tuple[BaseSynchronizedData, Any]] = background_result
-        else:
-            result = self.abci_app.current_round.end_block()
+        result = self._get_round_result()
 
         if result is None:
-            # the termination round, nor the current round returned, so no update needs to be made
+            # neither the background rounds, nor the current round returned, so no update needs to be made
             return
+
+        if self._slashing_enabled:
+            self.store_offence_status()
 
         self._last_round_transition_timestamp = self._blockchain.last_block.timestamp
         self._last_round_transition_height = self.height
         self._last_round_transition_root_hash = self.root_hash
         self._last_round_transition_tm_height = self.tm_height
+
         round_result, event = result
         _logger.debug(
-            f"updating round, current_round {self.current_round.round_id}, event: {event}, round result {round_result}"
+            f"updating round, current_round {self.current_round.round_id}, event: {event}, "
+            f"round result {round_result}"
         )
         self.abci_app.process_event(event, result=round_result)
 
@@ -2927,6 +3670,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._last_round_transition_root_hash = b""
         self._last_round_transition_tm_height = None
         self._tm_height = None
+        self._slashing_enabled = False
+        self.pending_offences = set()
 
     def reset_state(
         self,
@@ -2935,19 +3680,20 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         serialized_db_state: Optional[str] = None,
     ) -> None:
         """
-        This method resets the state of RoundSequence to the begging of the period.
+        This method resets the state of RoundSequence to the beginning of the period.
 
-        Note: This is intended to be used only for agent <-> tendermint communication recovery only!
+        Note: This is intended to be used for agent <-> tendermint communication recovery only!
 
-        :param restart_from_round: from which round to restart the abci. This round should be the first round in the last period.
+        :param restart_from_round: from which round to restart the abci.
+         This round should be the first round in the last period.
         :param round_count: the round count at the beginning of the period -1.
-        :param serialized_db_state: the state of the database at the beginning of the period. If provided, the database will be reset to this state.
+        :param serialized_db_state: the state of the database at the beginning of the period.
+         If provided, the database will be reset to this state.
         """
         self._reset_to_default_params()
         self.abci_app.synchronized_data.db.round_count = round_count
         if serialized_db_state is not None:
-            self.abci_app.synchronized_data.db.sync(serialized_db_state)
-            # When the agents prepare the recovery state, their db reflects the state of their last round.
+            self.sync_db_and_slashing(serialized_db_state)
             # Furthermore, that hash is then in turn used as the init hash when the tm network is reset.
             self._last_round_transition_root_hash = self.root_hash
 
@@ -2964,3 +3710,56 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
                 f"{set(round_id_to_cls.keys())}."
             )
         self.abci_app.schedule_round(restart_from_round_cls)
+
+
+@dataclass(frozen=True)
+class PendingOffencesPayload(BaseTxPayload):
+    """Represent a transaction payload for pending offences."""
+
+    accused_agent_address: str
+    offense_round: int
+    offense_type_value: int
+    last_transition_timestamp: float
+    time_to_live: float
+
+
+class PendingOffencesRound(CollectSameUntilThresholdRound):
+    """Defines the pending offences background round, which runs concurrently with other rounds to sync the offences."""
+
+    payload_class = PendingOffencesPayload
+    synchronized_data_class = BaseSynchronizedData
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the `PendingOffencesRound`."""
+        super().__init__(*args, **kwargs)
+        self._latest_round_processed = -1
+
+    @property
+    def offence_status(self) -> Dict[str, OffenceStatus]:
+        """Get the offence status from the round sequence."""
+        return self.context.state.round_sequence.offence_status
+
+    def end_block(self) -> None:
+        """
+        Process the end of the block for the pending offences background round.
+
+        It is important to note that this is a non-standard type of round, meaning it does not emit any events.
+        Instead, it continuously runs in the background.
+        The objective of this round is to consistently monitor the received pending offences
+        and achieve a consensus among the agents.
+        """
+        if not self.threshold_reached:
+            return
+
+        offence = PendingOffense(*self.most_voted_payload_values)
+
+        # an offence should only be tracked once, not every time a payload is processed after the threshold is reached
+        if self._latest_round_processed == offence.round_count:
+            return
+
+        # add synchronized offence to the offence status
+        # only `INVALID_PAYLOAD` offence types are supported at the moment as pending offences:
+        # https://github.com/valory-xyz/open-autonomy/blob/6831d6ebaf10ea8e3e04624b694c7f59a6d05bb4/packages/valory/skills/abstract_round_abci/handlers.py#L215-L222  # noqa
+        invalid = offence.offense_type == OffenseType.INVALID_PAYLOAD
+        self.offence_status[offence.accused_agent_address].invalid_payload.add(invalid)
+        self._latest_round_processed = offence.round_count

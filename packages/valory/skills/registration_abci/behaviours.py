@@ -315,6 +315,11 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         if all(self.initial_tm_configs.values()):
             log_message = self.LogMessages.collection_complete
             self.context.logger.info(f"{log_message}: {self.initial_tm_configs}")
+            validator_to_agent = {
+                config["address"]: agent
+                for agent, config in self.initial_tm_configs.items()
+            }
+            self.context.state.setup_slashing(validator_to_agent)
             self.collection_complete = True
         return self.collection_complete
 

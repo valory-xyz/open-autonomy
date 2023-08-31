@@ -30,7 +30,7 @@ jobs:
     - if: matrix.os != 'windows-latest'
       name: Pipenv install requirements and check it can be locked
       run: |
-        pip install pipenv
+        pip install pipenv==2023.7.23
         pipenv --clear
         time pipenv install --verbose --dev --skip-lock
         time pipenv run pip install -e .[all]
@@ -39,7 +39,7 @@ jobs:
       name: Pipenv install requirements and check it can be locked
       run: |
         choco install ptime
-        pip install pipenv
+        pip install pipenv==2023.7.23
         pipenv --clear
         ptime pipenv install --verbose --dev --skip-lock
         ptime pipenv run pip install -e .[all]
