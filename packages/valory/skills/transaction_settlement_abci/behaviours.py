@@ -537,7 +537,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
 
         self.set_done()
 
-    def _check_tx_history(
+    def _check_tx_history(  # pylint: disable=too-many-return-statements
         self,
     ) -> Generator[None, None, Tuple[VerificationStatus, Optional[str]]]:
         """Check the transaction history."""
@@ -550,7 +550,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
 
         contract_api_msg = yield from self._get_safe_nonce()
         if (
-                contract_api_msg.performative != ContractApiMessage.Performative.STATE
+            contract_api_msg.performative != ContractApiMessage.Performative.STATE
         ):  # pragma: nocover
             self.context.logger.error(
                 f"get_safe_nonce unsuccessful! Received: {contract_api_msg}"
@@ -566,7 +566,6 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
                 f"No transaction has gone through yet."
             )
             return VerificationStatus.NOT_VERIFIED, None
-
 
         self.context.logger.info(
             f"A transaction with nonce {safe_nonce} has already been sent. "

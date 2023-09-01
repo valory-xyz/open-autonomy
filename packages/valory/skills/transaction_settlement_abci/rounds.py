@@ -666,7 +666,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - done: 11.
             - negative: 5.
             - none: 6.
-            - validate timeout: 6.
+            - validate timeout: 5.
             - no majority: 4.
         5. CheckTransactionHistoryRound
             - done: 11.
