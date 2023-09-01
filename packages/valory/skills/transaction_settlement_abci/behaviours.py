@@ -320,6 +320,16 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
 
         return f"Received a {revert_code} revert error: {revert_explanation}."
 
+    def _get_safe_nonce(self) -> Generator[None, None, ContractApiMessage]:
+        """Get the safe nonce."""
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+            contract_address=self.synchronized_data.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_safe_nonce",
+        )
+        return contract_api_msg
+
 
 class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
     """Retrieve randomness."""
@@ -538,10 +548,33 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
             )
             return VerificationStatus.ERROR, None
 
+        contract_api_msg = yield from self._get_safe_nonce()
+        if (
+                contract_api_msg.performative != ContractApiMessage.Performative.STATE
+        ):  # pragma: nocover
+            self.context.logger.error(
+                f"get_safe_nonce unsuccessful! Received: {contract_api_msg}"
+            )
+            return VerificationStatus.ERROR, None
+
+        safe_nonce = cast(int, contract_api_msg.state.body["safe_nonce"])
+        if safe_nonce == self.params.mutable_params.nonce:
+            # if we have reached this state it means that the transaction didn't go through in the expected time
+            # as such we assume it is not verified
+            self.context.logger.info(
+                f"Safe nonce is the same as the nonce used in the transaction: {safe_nonce}. "
+                f"No transaction has gone through yet."
+            )
+            return VerificationStatus.NOT_VERIFIED, None
+
+
         self.context.logger.info(
-            f"Starting check for the transaction history: {self.history}."
+            f"A transaction with nonce {safe_nonce} has already been sent. "
         )
-        for tx_hash in self.history[::-1]:
+        self.context.logger.info(
+            f"Starting check for the transaction history: {self.history}. "
+        )
+        for tx_hash in self.history:
             self.context.logger.info(f"Checking hash {tx_hash}...")
             contract_api_msg = yield from self._verify_tx(tx_hash)
 

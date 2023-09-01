@@ -747,7 +747,9 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: CheckTransactionHistoryRound,
             Event.NONE: SelectKeeperTransactionSubmissionBRound,
-            Event.VALIDATE_TIMEOUT: SelectKeeperTransactionSubmissionBRound,
+            # even in case of timeout we might've sent the transaction
+            # so we need to check the history
+            Event.VALIDATE_TIMEOUT: CheckTransactionHistoryRound,
             Event.NO_MAJORITY: ValidateTransactionRound,
         },
         CheckTransactionHistoryRound: {
