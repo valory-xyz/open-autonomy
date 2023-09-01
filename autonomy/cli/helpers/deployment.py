@@ -74,6 +74,8 @@ def _build_dirs(build_dir: Path) -> None:
             click.echo(
                 f"Updating permissions failed for {path}, please do it manually."
             )
+        except AttributeError:  # pragma: no cover
+            continue
 
 
 def _print_log(compose_app: docker_compose.TopLevelCommand) -> None:
