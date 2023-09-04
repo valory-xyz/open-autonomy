@@ -2,8 +2,12 @@
 
 # 0.12.0 (2023-08-24)
 
+Autonomy:
+- Fixes deployment build bug on windows #2039
+
 Packages:
 - Adds slashing functionality #1927
+- Adds support for checking the safe nonce before re-sending a transaction #2040
 
 # 0.11.1 (2023-08-18)
 
