@@ -136,6 +136,43 @@ class ServiceManagerContract(Contract):
         )
 
     @classmethod
+    def get_update_transaction(  # pylint: disable=too-many-arguments
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        sender: str,
+        service_id: int,
+        metadata_hash: str,
+        agent_ids: List[int],
+        agent_params: List[List[int]],
+        threshold: int,
+        token: str = ETHEREUM_ERC20,
+        raise_on_try: bool = False,
+    ) -> Dict[str, Any]:
+        """Retrieve the service owner."""
+        method_args = {
+            "serviceId": service_id,
+            "configHash": metadata_hash,
+            "agentIds": agent_ids,
+            "agentParams": agent_params,
+            "threshold": threshold,
+        }
+        if cls.is_l1_chain(ledger_api=ledger_api):
+            method_args["token"] = ledger_api.api.to_checksum_address(token)
+
+        return ledger_api.build_transaction(
+            contract_instance=cls.get_instance(
+                ledger_api=ledger_api, contract_address=contract_address
+            ),
+            method_name="update",
+            method_args=method_args,
+            tx_args={
+                "sender_address": sender,
+            },
+            raise_on_try=raise_on_try,
+        )
+
+    @classmethod
     def get_activate_registration_transaction(  # pylint: disable=too-many-arguments
         cls,
         ledger_api: LedgerApi,
