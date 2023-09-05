@@ -27,7 +27,7 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 
 
-class MyScaffoldContract(Contract):
+class ERC20TokenContract(Contract):
     """The scaffold contract class for a smart contract."""
 
     contract_id = PublicId.from_str("open_aea/scaffold:0.1.0")
