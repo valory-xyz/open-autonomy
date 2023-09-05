@@ -10,7 +10,7 @@ fingerprint:
   build/ComponentRegistry.json: bafybeicssz7csipr7lhxvro6chtd45f6iqykserv35ppjtxetpx75ouno4
   contract.py: bafybeid6s5y3fs24vs7pkxms7bm2jrb2ytncegtfojgwjok5z4pmdv3gbi
   tests/__init__.py: bafybeihe42ydu66tbdogfyjh3rqgnwuhglnwll47aaagjj6b3fjngrxauq
-  tests/test_contract.py: bafybeiee4muxiye2e36wm2lml6lc7u4ykufqys4nuyvjpuixhj4sirjoem
+  tests/test_contract.py: bafybeiegforxfp6iih7rp6cupzyx4v2cagqquncam6kaadpoe5tlfcmgia
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: ComponentRegistryContract
