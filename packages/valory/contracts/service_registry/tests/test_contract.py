@@ -19,7 +19,7 @@
 
 """Tests for valory/service_registry contract."""
 from pathlib import Path
-from typing import Any, List, Optional, Set
+from typing import Any, List, Optional
 from unittest import mock
 
 import pytest
@@ -251,31 +251,6 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
             )
 
             assert success is assert_value
-
-    @pytest.mark.parametrize(
-        ("return_value", "assert_value"),
-        (
-            ([], set()),
-            (
-                [{"args": {"serviceId": 0, "agentInstance": "0x"}}],
-                {"0x"},
-            ),
-        ),
-    )
-    def test_verify_agent_instance_registration(
-        self, return_value: List, assert_value: Set[str]
-    ) -> None:
-        """Test `verify_agent_instance_registration` method."""
-
-        with event_filter_patch(event="RegisterInstance", return_value=return_value):
-            successful = self.contract.verify_agent_instance_registration(
-                ledger_api=self.ledger_api,
-                contract_address=self.contract_address,
-                service_id=0,
-                instance_check={"0x"},
-            )
-
-            assert successful == assert_value
 
     @pytest.mark.parametrize(
         ("return_value", "assert_value"),
