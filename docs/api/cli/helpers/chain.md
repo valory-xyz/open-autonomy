@@ -4,106 +4,6 @@
 
 On-chain interaction helpers.
 
-<a id="autonomy.cli.helpers.chain.get_ledger_and_crypto_objects"></a>
-
-#### get`_`ledger`_`and`_`crypto`_`objects
-
-```python
-def get_ledger_and_crypto_objects(
-        chain_type: ChainType,
-        key: Optional[Path] = None,
-        password: Optional[str] = None,
-        hwi: bool = False) -> Tuple[LedgerApi, Crypto]
-```
-
-Create ledger_api and crypto objects
-
-<a id="autonomy.cli.helpers.chain.activate_service"></a>
-
-#### activate`_`service
-
-```python
-def activate_service(service_id: int,
-                     key: Path,
-                     chain_type: ChainType,
-                     password: Optional[str] = None,
-                     timeout: Optional[float] = None,
-                     hwi: bool = False) -> None
-```
-
-Activate on-chain service
-
-<a id="autonomy.cli.helpers.chain.register_instance"></a>
-
-#### register`_`instance
-
-```python
-def register_instance(service_id: int,
-                      instances: List[str],
-                      agent_ids: List[int],
-                      key: Path,
-                      chain_type: ChainType,
-                      password: Optional[str] = None,
-                      timeout: Optional[float] = None,
-                      hwi: bool = False) -> None
-```
-
-Register agents instances on an activated service
-
-<a id="autonomy.cli.helpers.chain.deploy_service"></a>
-
-#### deploy`_`service
-
-```python
-def deploy_service(service_id: int,
-                   key: Path,
-                   chain_type: ChainType,
-                   deployment_payload: Optional[str] = None,
-                   password: Optional[str] = None,
-                   timeout: Optional[float] = None,
-                   hwi: bool = False) -> None
-```
-
-Deploy a service with registration activated
-
-<a id="autonomy.cli.helpers.chain.terminate_service"></a>
-
-#### terminate`_`service
-
-```python
-def terminate_service(service_id: int,
-                      key: Path,
-                      chain_type: ChainType,
-                      password: Optional[str] = None,
-                      hwi: bool = False) -> None
-```
-
-Terminate a service
-
-<a id="autonomy.cli.helpers.chain.unbond_service"></a>
-
-#### unbond`_`service
-
-```python
-def unbond_service(service_id: int,
-                   key: Path,
-                   chain_type: ChainType,
-                   password: Optional[str] = None,
-                   hwi: bool = False) -> None
-```
-
-Terminate a service
-
-<a id="autonomy.cli.helpers.chain.print_service_info"></a>
-
-#### print`_`service`_`info
-
-```python
-def print_service_info(service_id: int, chain_type: ChainType) -> None
-```
-
-Terminate a service
-
 <a id="autonomy.cli.helpers.chain.OnChainHelper"></a>
 
 ## OnChainHelper Objects
@@ -261,6 +161,7 @@ Mint agent.
 def mint_service(number_of_slots: int,
                  cost_of_bond: int,
                  threshold: int,
+                 token: Optional[str] = None,
                  owner: Optional[str] = None) -> None
 ```
 
@@ -296,4 +197,112 @@ def update_service(number_of_slots: int, cost_of_bond: int,
 ```
 
 Update service
+
+<a id="autonomy.cli.helpers.chain.ServiceHelper"></a>
+
+## ServiceHelper Objects
+
+```python
+class ServiceHelper(OnChainHelper)
+```
+
+Service helper.
+
+<a id="autonomy.cli.helpers.chain.ServiceHelper.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(service_id: int,
+             chain_type: ChainType,
+             key: Optional[Path] = None,
+             password: Optional[str] = None,
+             hwi: bool = False) -> None
+```
+
+Initialize object.
+
+<a id="autonomy.cli.helpers.chain.ServiceHelper.check_is_service_token_secured"></a>
+
+#### check`_`is`_`service`_`token`_`secured
+
+```python
+def check_is_service_token_secured(
+        token: Optional[str] = None) -> "ServiceHelper"
+```
+
+Check if service
+
+<a id="autonomy.cli.helpers.chain.ServiceHelper.approve_erc20_usage"></a>
+
+#### approve`_`erc20`_`usage
+
+```python
+def approve_erc20_usage(amount: int, spender: str) -> "ServiceHelper"
+```
+
+Approve ERC20 usage.
+
+<a id="autonomy.cli.helpers.chain.ServiceHelper.activate_service"></a>
+
+#### activate`_`service
+
+```python
+def activate_service() -> None
+```
+
+Activate on-chain service
+
+<a id="autonomy.cli.helpers.chain.ServiceHelper.register_instance"></a>
+
+#### register`_`instance
+
+```python
+def register_instance(instances: List[str],
+                      agent_ids: List[int],
+                      timeout: Optional[float] = None) -> None
+```
+
+Register agents instances on an activated service
+
+<a id="autonomy.cli.helpers.chain.ServiceHelper.deploy_service"></a>
+
+#### deploy`_`service
+
+```python
+def deploy_service(deployment_payload: Optional[str] = None,
+                   timeout: Optional[float] = None) -> None
+```
+
+Deploy a service with registration activated
+
+<a id="autonomy.cli.helpers.chain.ServiceHelper.terminate_service"></a>
+
+#### terminate`_`service
+
+```python
+def terminate_service() -> None
+```
+
+Terminate a service
+
+<a id="autonomy.cli.helpers.chain.ServiceHelper.unbond_service"></a>
+
+#### unbond`_`service
+
+```python
+def unbond_service() -> None
+```
+
+Unbond a service
+
+<a id="autonomy.cli.helpers.chain.print_service_info"></a>
+
+#### print`_`service`_`info
+
+```python
+def print_service_info(service_id: int, chain_type: ChainType) -> None
+```
+
+Print service information
 

@@ -10,3 +10,9 @@ Chain constants
 
 use from an editable/local installation
 
+<a id="autonomy.chain.constants.ERC20_TOKEN"></a>
+
+#### ERC20`_`TOKEN
+
+nosec
+
