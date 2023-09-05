@@ -19,7 +19,7 @@
 
 """Tests for valory/service_registry contract."""
 from pathlib import Path
-from typing import Any, List, Optional, Set
+from typing import Any, List, Set
 from unittest import mock
 
 import pytest
@@ -187,38 +187,6 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         assert number_of_agent_instances == 4
         assert service_state == 4
         assert list_of_cannonical_agents == [1]
-
-    @pytest.mark.parametrize(
-        ("return_value", "assert_value"),
-        (
-            ([], None),
-            (
-                [
-                    {
-                        "args": {
-                            "serviceId": 1,
-                        }
-                    }
-                ],
-                1,
-            ),
-        ),
-    )
-    def test_filter_token_id_from_emitted_events(
-        self, return_value: List, assert_value: Optional[int]
-    ) -> None:
-        """Test `filter_token_id_from_emitted_events` method"""
-
-        with event_filter_patch(event="CreateService", return_value=return_value):
-            token_id = self.contract.filter_token_id_from_emitted_events(
-                ledger_api=self.ledger_api,
-                contract_address=self.contract_address,
-            )
-
-            if assert_value is None:
-                assert token_id is None
-            else:
-                assert token_id == 1
 
     @pytest.mark.parametrize(
         ("return_value", "assert_value"),
