@@ -389,6 +389,8 @@ Pipfile.lock
 !packages/valory/contracts/component_registry/build
 !packages/valory/contracts/agent_registry/build
 !packages/valory/contracts/service_manager/build
+!packages/valory/contracts/erc20/build
+!packages/valory/contracts/service_registry_token_utility/build
 
 packages/open_aea
 
