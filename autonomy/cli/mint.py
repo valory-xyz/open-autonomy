@@ -81,6 +81,11 @@ update_flag = click.option(
     type=int,
     help="Update an already minted component with given token ID",
 )
+token_flag = click.option(
+    "--token",
+    type=str,
+    help="Token to use for bonding.",
+)
 
 
 @click.group("mint")
@@ -362,6 +367,7 @@ def agent(  # pylint: disable=too-many-arguments
 @nft_decorator
 @owner_flag
 @update_flag
+@token_flag
 @pass_ctx
 @click.option(
     "-a",
@@ -402,6 +408,7 @@ def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-a
     nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
     update: Optional[int],
+    token: Optional[str],
     hwi: bool = False,
 ) -> None:
     """Mint a service"""
@@ -436,5 +443,6 @@ def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-a
         number_of_slots=number_of_slots,
         cost_of_bond=cost_of_bond,
         threshold=threshold,
+        token=token,
         owner=owner,
     )
