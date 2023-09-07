@@ -19,10 +19,9 @@
 
 """Helpers for minting components"""
 
-import datetime
 import time
 from math import ceil
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from aea.crypto.base import Crypto, LedgerApi
 from requests.exceptions import ConnectionError as RequestsConnectionError
@@ -32,16 +31,11 @@ from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import (
     AGENT_REGISTRY_CONTRACT,
     COMPONENT_REGISTRY_CONTRACT,
-    EVENT_VERIFICATION_TIMEOUT,
     REGISTRIES_MANAGER_CONTRACT,
     SERVICE_MANAGER_CONTRACT,
     SERVICE_REGISTRY_CONTRACT,
 )
-from autonomy.chain.exceptions import (
-    ComponentMintFailed,
-    FailedToRetrieveTokenId,
-    InvalidMintParameter,
-)
+from autonomy.chain.exceptions import ComponentMintFailed, InvalidMintParameter
 
 
 DEFAULT_NFT_IMAGE_HASH = "bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm"
@@ -60,10 +54,10 @@ def transact(
     tx_signed = crypto.sign_transaction(transaction=tx)
     tx_digest = ledger_api.send_signed_transaction(tx_signed=tx_signed)
     while tx_receipt is None and retries < max_retries:
-        time.sleep(sleep)
-        tx_receipt = ledger_api.get_transaction_receipt(tx_digest=tx_digest)
+        tx_receipt = ledger_api.api.eth.get_transaction_receipt(tx_digest)
         if tx_receipt is not None:
             break
+        time.sleep(sleep)
     return tx_receipt
 
 
@@ -89,24 +83,6 @@ def sort_service_dependency_metadata(
     return ids_sorted, slots_sorted, securities_sorted
 
 
-def wait_for_component_to_mint(
-    token_retriever: Callable[[], Optional[int]],
-    timeout: Optional[float] = None,
-    sleep: float = 1.0,
-) -> int:
-    """Wait for service activation."""
-
-    timeout = timeout or EVENT_VERIFICATION_TIMEOUT
-    deadline = datetime.datetime.now() + datetime.timedelta(seconds=timeout)
-    while datetime.datetime.now() < deadline:
-        token_id = token_retriever()
-        if token_id is not None:
-            return token_id
-        time.sleep(sleep)
-
-    raise TimeoutError("Could not retrieve the token in given time limit.")
-
-
 def mint_component(  # pylint: disable=too-many-arguments
     ledger_api: LedgerApi,
     crypto: Crypto,
@@ -115,7 +91,6 @@ def mint_component(  # pylint: disable=too-many-arguments
     chain_type: ChainType,
     owner: Optional[str] = None,
     dependencies: Optional[List[int]] = None,
-    timeout: Optional[float] = None,
 ) -> Optional[int]:
     """Publish component on-chain."""
 
@@ -140,7 +115,7 @@ def mint_component(  # pylint: disable=too-many-arguments
             dependencies=dependencies,
             raise_on_try=True,
         )
-        transact(
+        tx_receipt = transact(
             ledger_api=ledger_api,
             crypto=crypto,
             tx=tx,
@@ -148,41 +123,84 @@ def mint_component(  # pylint: disable=too-many-arguments
     except RequestsConnectionError as e:
         raise ComponentMintFailed("Cannot connect to the given RPC") from e
 
-    try:
-        if component_type == UnitType.COMPONENT:
-
-            def token_retriever() -> bool:
-                """Retrieve token"""
-                return registry_contracts.component_registry.filter_token_id_from_emitted_events(
-                    ledger_api=ledger_api,
-                    contract_address=ContractConfigs.get(
-                        COMPONENT_REGISTRY_CONTRACT.name
-                    ).contracts[chain_type],
-                    metadata_hash=metadata_hash,
-                )
-
-        else:
-
-            def token_retriever() -> bool:
-                """Retrieve token"""
-                return registry_contracts.agent_registry.filter_token_id_from_emitted_events(
-                    ledger_api=ledger_api,
-                    contract_address=ContractConfigs.get(
-                        AGENT_REGISTRY_CONTRACT.name
-                    ).contracts[chain_type],
-                    metadata_hash=metadata_hash,
-                )
-
-        return wait_for_component_to_mint(
-            token_retriever=token_retriever, timeout=timeout
+    if component_type == UnitType.COMPONENT:
+        events = registry_contracts.component_registry.get_create_events(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                COMPONENT_REGISTRY_CONTRACT.name
+            ).contracts[chain_type],
+            receipt=tx_receipt,
         )
+    else:
+        events = registry_contracts.agent_registry.get_create_events(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                AGENT_REGISTRY_CONTRACT.name
+            ).contracts[chain_type],
+            receipt=tx_receipt,
+        )
+    for event in events:
+        if (
+            "unitHash" in event["args"]
+            and event["args"]["unitHash"].hex() == metadata_hash[2:]
+        ):
+            return event["args"]["unitId"]
+    return None
 
+
+def update_component(  # pylint: disable=too-many-arguments
+    ledger_api: LedgerApi,
+    crypto: Crypto,
+    unit_id: int,
+    metadata_hash: str,
+    component_type: UnitType,
+    chain_type: ChainType,
+) -> Optional[int]:
+    """Publish component on-chain."""
+
+    try:
+        tx = registry_contracts.registries_manager.get_update_hash_transaction(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                REGISTRIES_MANAGER_CONTRACT.name
+            ).contracts[chain_type],
+            component_type=component_type,
+            unit_id=unit_id,
+            metadata_hash=metadata_hash,
+            sender=crypto.address,
+            raise_on_try=True,
+        )
+        tx_receipt = transact(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            tx=tx,
+        )
     except RequestsConnectionError as e:
-        raise FailedToRetrieveTokenId(
-            "Connection interrupted while waiting for the unitId emit event"
-        ) from e
-    except TimeoutError as e:
-        raise FailedToRetrieveTokenId(str(e)) from e
+        raise ComponentMintFailed("Cannot connect to the given RPC") from e
+
+    if component_type == UnitType.COMPONENT:
+        events = registry_contracts.component_registry.get_update_hash_events(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                COMPONENT_REGISTRY_CONTRACT.name
+            ).contracts[chain_type],
+            receipt=tx_receipt,
+        )
+    else:
+        events = registry_contracts.agent_registry.get_update_hash_events(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                AGENT_REGISTRY_CONTRACT.name
+            ).contracts[chain_type],
+            receipt=tx_receipt,
+        )
+    for event in events:
+        if (
+            "unitHash" in event["args"]
+            and event["args"]["unitHash"].hex() == metadata_hash[2:]
+        ):
+            return event["args"]["unitId"]
+    return None
 
 
 def mint_service(  # pylint: disable=too-many-arguments,too-many-locals
@@ -195,7 +213,6 @@ def mint_service(  # pylint: disable=too-many-arguments,too-many-locals
     cost_of_bond_per_agent: List[int],
     threshold: int,
     owner: Optional[str] = None,
-    timeout: Optional[float] = None,
 ) -> Optional[int]:
     """Publish component on-chain."""
 
@@ -273,22 +290,112 @@ def mint_service(  # pylint: disable=too-many-arguments,too-many-locals
     except RequestsConnectionError as e:
         raise ComponentMintFailed("Cannot connect to the given RPC") from e
 
-    def token_retriever() -> bool:
-        """Retrieve token"""
-        return registry_contracts.service_registry.filter_token_id_from_emitted_events(
-            ledger_api=ledger_api,
-            contract_address=ContractConfigs.get(
-                SERVICE_REGISTRY_CONTRACT.name
-            ).contracts[chain_type],
+    events = registry_contracts.service_registry.get_create_events(
+        ledger_api=ledger_api,
+        contract_address=ContractConfigs.get(SERVICE_REGISTRY_CONTRACT.name).contracts[
+            chain_type
+        ],
+        receipt=tx_receipt,
+    )
+    for event in events:
+        if "serviceId" in event["args"]:
+            return event["args"]["serviceId"]
+    return None
+
+
+def update_service(  # pylint: disable=too-many-arguments,too-many-locals
+    ledger_api: LedgerApi,
+    crypto: Crypto,
+    service_id: int,
+    metadata_hash: str,
+    chain_type: ChainType,
+    agent_ids: List[int],
+    number_of_slots_per_agent: List[int],
+    cost_of_bond_per_agent: List[int],
+    threshold: int,
+) -> Optional[int]:
+    """Publish component on-chain."""
+
+    if len(agent_ids) == 0:
+        raise InvalidMintParameter("Please provide at least one agent id")
+
+    if len(number_of_slots_per_agent) == 0:
+        raise InvalidMintParameter("Please for provide number of slots for agents")
+
+    if len(cost_of_bond_per_agent) == 0:
+        raise InvalidMintParameter("Please for provide cost of bond for agents")
+
+    if (
+        len(agent_ids) != len(number_of_slots_per_agent)
+        or len(agent_ids) != len(cost_of_bond_per_agent)
+        or len(number_of_slots_per_agent) != len(cost_of_bond_per_agent)
+    ):
+        raise InvalidMintParameter(
+            "Make sure the number of agent ids, number of slots for agents and cost of bond for agents match"
         )
 
-    try:
-        return wait_for_component_to_mint(
-            token_retriever=token_retriever, timeout=timeout
+    if any(map(lambda x: x == 0, number_of_slots_per_agent)):
+        raise InvalidMintParameter("Number of slots cannot be zero")
+
+    if any(map(lambda x: x == 0, cost_of_bond_per_agent)):
+        raise InvalidMintParameter("Cost of bond cannot be zero")
+
+    number_of_agent_instances = sum(number_of_slots_per_agent)
+    if threshold < (ceil((number_of_agent_instances * 2 + 1) / 3)):
+        raise InvalidMintParameter(
+            "The threshold value should at least be greater than or equal to ceil((n * 2 + 1) / 3), "
+            "n is total number of agent instances in the service"
         )
+
+    (
+        agent_ids,
+        number_of_slots_per_agent,
+        cost_of_bond_per_agent,
+    ) = sort_service_dependency_metadata(
+        agent_ids=agent_ids,
+        number_of_slots_per_agents=number_of_slots_per_agent,
+        cost_of_bond_per_agent=cost_of_bond_per_agent,
+    )
+
+    agent_params = [
+        [n, c] for n, c in zip(number_of_slots_per_agent, cost_of_bond_per_agent)
+    ]
+
+    try:
+        tx = registry_contracts.service_manager.get_update_transaction(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                SERVICE_MANAGER_CONTRACT.name
+            ).contracts[chain_type],
+            service_id=service_id,
+            sender=crypto.address,
+            metadata_hash=metadata_hash,
+            agent_ids=agent_ids,
+            agent_params=agent_params,
+            threshold=threshold,
+            raise_on_try=True,
+        )
+        tx_receipt = transact(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            tx=tx,
+        )
+        if tx_receipt is None:
+            raise ComponentMintFailed("Could not retrieve the transaction receipt")
     except RequestsConnectionError as e:
-        raise FailedToRetrieveTokenId(
-            "Connection interrupted while waiting for the unitId emit event"
-        ) from e
-    except TimeoutError as e:
-        raise FailedToRetrieveTokenId(str(e)) from e
+        raise ComponentMintFailed("Cannot connect to the given RPC") from e
+
+    events = registry_contracts.service_registry.get_update_events(
+        ledger_api=ledger_api,
+        contract_address=ContractConfigs.get(SERVICE_REGISTRY_CONTRACT.name).contracts[
+            chain_type
+        ],
+        receipt=tx_receipt,
+    )
+    for event in events:
+        if (
+            "configHash" in event["args"]
+            and event["args"]["configHash"].hex() == metadata_hash[2:]
+        ):
+            return event["args"]["serviceId"]
+    return None

@@ -20,7 +20,7 @@
 """This module contains the class to connect to the Service Registry contract."""
 
 import logging
-from typing import Any, Optional, cast
+from typing import Any, Optional
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -65,34 +65,32 @@ class ComponentRegistryContract(Contract):
         raise NotImplementedError  # pragma: nocover
 
     @classmethod
-    def filter_token_id_from_emitted_events(
+    def get_create_events(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        metadata_hash: str,
+        receipt: JSONLike,
     ) -> Optional[int]:
         """Returns `CreateUnit` event filter."""
-
         contract_interface = cls.get_instance(
             ledger_api=ledger_api,
             contract_address=contract_address,
         )
+        return contract_interface.events.CreateUnit().process_receipt(receipt)
 
-        events = contract_interface.events.CreateUnit.create_filter(
-            fromBlock="latest"
-        ).get_all_entries()
-        for event in events:
-            event_args = event["args"]
-            if event_args["uType"] == COMPONENT_UNIT_TYPE:
-                hash_bytes32 = cast(bytes, event_args["unitHash"]).hex()
-                unit_hash_bytes = UNIT_HASH_PREFIX.format(
-                    metadata_hash=hash_bytes32
-                ).encode()
-                metadata_hash_bytes = ledger_api.api.to_bytes(text=metadata_hash)
-                if unit_hash_bytes == metadata_hash_bytes:
-                    return cast(int, event_args["unitId"])
-
-        return None
+    @classmethod
+    def get_update_hash_events(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        receipt: JSONLike,
+    ) -> Optional[int]:
+        """Returns `CreateUnit` event filter."""
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        return contract_interface.events.UpdateUnitHash().process_receipt(receipt)
 
     @classmethod
     def get_token_uri(
@@ -101,10 +99,15 @@ class ComponentRegistryContract(Contract):
         contract_address: str,
         token_id: int,
     ) -> str:
-        """Returns `CreateUnit` event filter."""
-
+        """Returns the latest metadata URI for a component."""
         contract_interface = cls.get_instance(
             ledger_api=ledger_api,
             contract_address=contract_address,
         )
-        return contract_interface.functions.tokenURI(token_id).call()
+        _, hash_updates = contract_interface.functions.getUpdatedHashes(token_id).call()
+        if len(hash_updates) > 0:
+            *_, latest_hash = hash_updates
+            uri = f"https://gateway.autonolas.tech/ipfs/f01701220{latest_hash.hex()}"
+        else:
+            uri = contract_interface.functions.tokenURI(token_id).call()
+        return uri

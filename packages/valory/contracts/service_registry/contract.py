@@ -224,8 +224,7 @@ class ServiceRegistryContract(Contract):
         contract_address: str,
         token_id: int,
     ) -> str:
-        """Resolve token URI"""
-
+        """Returns the latest metadata URI for a component."""
         contract_interface = cls.get_instance(
             ledger_api=ledger_api,
             contract_address=contract_address,
@@ -233,28 +232,46 @@ class ServiceRegistryContract(Contract):
         return contract_interface.functions.tokenURI(token_id).call()
 
     @classmethod
-    def filter_token_id_from_emitted_events(
+    def get_create_events(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        receipt: JSONLike,
     ) -> Optional[int]:
         """Returns `CreateUnit` event filter."""
-
         contract_interface = cls.get_instance(
             ledger_api=ledger_api,
             contract_address=contract_address,
         )
+        return contract_interface.events.CreateService().process_receipt(receipt)
 
-        events = contract_interface.events.CreateService.create_filter(
-            fromBlock="latest"
-        ).get_all_entries()
+    @classmethod
+    def get_update_events(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        receipt: JSONLike,
+    ) -> Optional[int]:
+        """Returns `CreateUnit` event filter."""
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        return contract_interface.events.UpdateService().process_receipt(receipt)
 
-        for event in events:
-            event_args = event["args"]
-            if "serviceId" in event_args:
-                return cast(int, event_args["serviceId"])
-
-        return None
+    @classmethod
+    def get_update_hash_events(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        receipt: JSONLike,
+    ) -> Optional[int]:
+        """Returns `CreateUnit` event filter."""
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        return contract_interface.events.UpdateUnitHash().process_receipt(receipt)
 
     @classmethod
     def verify_service_has_been_activated(

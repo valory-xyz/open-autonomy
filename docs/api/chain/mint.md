@@ -30,18 +30,6 @@ def sort_service_dependency_metadata(
 
 Sort service dependencies and their respective parameters
 
-<a id="autonomy.chain.mint.wait_for_component_to_mint"></a>
-
-#### wait`_`for`_`component`_`to`_`mint
-
-```python
-def wait_for_component_to_mint(token_retriever: Callable[[], Optional[int]],
-                               timeout: Optional[float] = None,
-                               sleep: float = 1.0) -> int
-```
-
-Wait for service activation.
-
 <a id="autonomy.chain.mint.mint_component"></a>
 
 #### mint`_`component
@@ -53,8 +41,19 @@ def mint_component(ledger_api: LedgerApi,
                    component_type: UnitType,
                    chain_type: ChainType,
                    owner: Optional[str] = None,
-                   dependencies: Optional[List[int]] = None,
-                   timeout: Optional[float] = None) -> Optional[int]
+                   dependencies: Optional[List[int]] = None) -> Optional[int]
+```
+
+Publish component on-chain.
+
+<a id="autonomy.chain.mint.update_component"></a>
+
+#### update`_`component
+
+```python
+def update_component(ledger_api: LedgerApi, crypto: Crypto, unit_id: int,
+                     metadata_hash: str, component_type: UnitType,
+                     chain_type: ChainType) -> Optional[int]
 ```
 
 Publish component on-chain.
@@ -72,8 +71,21 @@ def mint_service(ledger_api: LedgerApi,
                  number_of_slots_per_agent: List[int],
                  cost_of_bond_per_agent: List[int],
                  threshold: int,
-                 owner: Optional[str] = None,
-                 timeout: Optional[float] = None) -> Optional[int]
+                 owner: Optional[str] = None) -> Optional[int]
+```
+
+Publish component on-chain.
+
+<a id="autonomy.chain.mint.update_service"></a>
+
+#### update`_`service
+
+```python
+def update_service(ledger_api: LedgerApi, crypto: Crypto, service_id: int,
+                   metadata_hash: str, chain_type: ChainType,
+                   agent_ids: List[int], number_of_slots_per_agent: List[int],
+                   cost_of_bond_per_agent: List[int],
+                   threshold: int) -> Optional[int]
 ```
 
 Publish component on-chain.

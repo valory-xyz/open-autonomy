@@ -31,18 +31,16 @@ from autonomy.chain.base import ServiceState
 from autonomy.chain.config import ChainConfigs, ChainType
 from autonomy.chain.mint import registry_contracts
 from autonomy.cli.helpers.chain import (
+    MintHelper,
     activate_service,
     deploy_service,
     get_ledger_and_crypto_objects,
-    mint_component,
-    mint_service,
     register_instance,
     terminate_service,
     unbond_service,
 )
 
 from tests.conftest import ROOT_DIR
-from tests.test_autonomy.test_cli.test_mint.test_mint_components import DummyContract
 
 
 PACKAGE_DIR = ROOT_DIR / "packages" / "valory" / "protocols" / "abci"
@@ -78,41 +76,15 @@ class TestMintComponentMethod:
             with publish_metadata_patch, mock.patch(
                 "autonomy.chain.mint.Crypto.sign_transaction"
             ):
-                mint_component(
+                MintHelper(
+                    chain_type=ChainType.LOCAL,
+                    key=ETHEREUM_KEY_DEPLOYER,
+                ).load_package_configuration(
                     package_path=PACKAGE_DIR,
                     package_type=PackageType.PROTOCOL,
-                    key=ETHEREUM_KEY_DEPLOYER,
-                    chain_type=ChainType.LOCAL,
-                    dependencies=[],
-                )
-
-    def test_mint_component_token_id_retrieve_fail(
-        self,
-    ) -> None:
-        """Test token ID retrieval failure method."""
-        with pytest.raises(
-            click.ClickException,
-            match=(
-                "Component mint was successful but token ID retrieving failed with following error; "
-                "Connection interrupted while waiting for the unitId emit event"
-            ),
-        ):
-            with publish_metadata_patch, mock.patch.object(
-                registry_contracts, "_component_registry", DummyContract()
-            ), mock.patch.object(
-                registry_contracts, "_registries_manager", DummyContract()
-            ), mock.patch(
-                "autonomy.chain.mint.transact"
-            ), mock.patch(
-                "autonomy.cli.helpers.chain.EthereumApi.try_get_gas_pricing"
-            ):
-                mint_component(
-                    package_path=PACKAGE_DIR,
-                    package_type=PackageType.PROTOCOL,
-                    key=ETHEREUM_KEY_DEPLOYER,
-                    chain_type=ChainType.LOCAL,
-                    dependencies=[],
-                )
+                ).verify_nft().verify_component_dependencies(
+                    dependencies=(),  # type: ignore
+                ).publish_metadata().mint_component()
 
     def test_rpc_cannot_be_none(
         self,
@@ -127,13 +99,15 @@ class TestMintComponentMethod:
                 "using `GOERLI_CHAIN_RPC` environment variable"
             ),
         ):
-            mint_component(
+            MintHelper(
+                chain_type=ChainType.GOERLI,
+                key=ETHEREUM_KEY_DEPLOYER,
+            ).load_package_configuration(
                 package_path=PACKAGE_DIR,
                 package_type=PackageType.PROTOCOL,
-                key=ETHEREUM_KEY_DEPLOYER,
-                chain_type=ChainType.GOERLI,
-                dependencies=[],
-            )
+            ).verify_nft().verify_component_dependencies(
+                dependencies=(),  # type: ignore
+            ).publish_metadata().mint_component()
 
     def test_missing_nft_hash(
         self,
@@ -148,90 +122,15 @@ class TestMintComponentMethod:
                 "autonomy.cli.helpers.chain.ChainConfigs.get",
                 return_value=ChainConfigs.local,
             ):
-                mint_component(
-                    package_path=PACKAGE_DIR,
-                    package_type=PackageType.PROTOCOL,
-                    key=ETHEREUM_KEY_DEPLOYER,
+                MintHelper(
                     chain_type=ChainType.GOERLI,
-                    dependencies=[],
-                )
-
-    def test_mint_component_timeout(
-        self,
-    ) -> None:
-        """Test timeout error."""
-
-        with pytest.raises(
-            click.ClickException,
-            match=(
-                "Component mint was successful but token ID retrieving failed with following error; "
-                "Could not retrieve the token in given time limit."
-            ),
-        ):
-            with mock.patch(
-                "autonomy.cli.helpers.chain.verify_component_dependencies"
-            ), mock.patch(
-                "autonomy.cli.helpers.chain.publish_metadata",
-                return_value=(None, None),
-            ), mock.patch(
-                "autonomy.chain.mint.transact"
-            ), mock.patch.object(
-                registry_contracts._registries_manager,
-                "get_create_transaction",
-                return_value=False,
-            ), mock.patch.object(
-                registry_contracts._component_registry,
-                "filter_token_id_from_emitted_events",
-                return_value=None,
-            ):
-                mint_component(
+                    key=ETHEREUM_KEY_DEPLOYER,
+                ).load_package_configuration(
                     package_path=PACKAGE_DIR,
                     package_type=PackageType.PROTOCOL,
-                    key=ETHEREUM_KEY_DEPLOYER,
-                    chain_type=ChainType.LOCAL,
-                    dependencies=[],
-                    timeout=1.0,
-                )
-
-
-def test_mint_service_timeout() -> None:
-    """Test timeout error."""
-
-    with pytest.raises(
-        click.ClickException,
-        match=(
-            "Service mint was successful but token ID retrieving failed with following error; "
-            "Could not retrieve the token in given time limit"
-        ),
-    ):
-        with mock.patch(
-            "autonomy.cli.helpers.chain.verify_service_dependencies"
-        ), mock.patch(
-            "autonomy.cli.helpers.chain.load_configuration_object"
-        ), mock.patch(
-            "autonomy.cli.helpers.chain.publish_metadata",
-            return_value=(None, None),
-        ), mock.patch(
-            "autonomy.chain.mint.transact"
-        ), mock.patch.object(
-            registry_contracts._service_manager,
-            "get_create_transaction",
-            return_value=False,
-        ), mock.patch.object(
-            registry_contracts._service_registry,
-            "filter_token_id_from_emitted_events",
-            return_value=None,
-        ):
-            mint_service(
-                package_path=PACKAGE_DIR,
-                key=ETHEREUM_KEY_DEPLOYER,
-                chain_type=ChainType.LOCAL,
-                agent_id=1,
-                number_of_slots=4,
-                cost_of_bond=1,
-                threshold=3,
-                timeout=1.0,
-            )
+                ).verify_nft().verify_component_dependencies(
+                    dependencies=(),  # type: ignore
+                ).publish_metadata().mint_component()
 
 
 def test_activate_service_timeout_failure() -> None:
@@ -441,10 +340,11 @@ def test_get_ledger_and_crypto_failure() -> None:
         click.ClickException,
         match="Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet",
     ):
-        mint_component(
+        MintHelper(
+            chain_type=ChainType.GOERLI,
+        ).load_package_configuration(
             package_path=PACKAGE_DIR,
             package_type=PackageType.PROTOCOL,
-            key=None,
-            chain_type=ChainType.LOCAL,
-            dependencies=[],
-        )
+        ).verify_nft().verify_component_dependencies(
+            dependencies=(),  # type: ignore
+        ).publish_metadata().mint_component()
