@@ -21,7 +21,8 @@
 
 import datetime
 import time
-from typing import Dict, List, Optional, Tuple
+from enum import Enum
+from typing import Dict, List, Optional, Tuple, cast
 
 from aea.crypto.base import Crypto, LedgerApi
 from requests.exceptions import ConnectionError as RequestsConnectionError
@@ -30,7 +31,9 @@ from autonomy.chain.base import ServiceState, registry_contracts
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import (
     EVENT_VERIFICATION_TIMEOUT,
-    GNOSIS_SAFE_MULTISIG_CONTRACT,
+    GNOSIS_SAFE_PROXY_FACTORY_CONTRACT,
+    GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT,
+    MULTISEND_CONTRACT,
     SERVICE_MANAGER_CONTRACT,
     SERVICE_REGISTRY_CONTRACT,
     SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT,
@@ -51,10 +54,17 @@ try:
 except (ModuleNotFoundError, ImportError):
     Web3Exception = Exception
 
-
+NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
 DEFAULT_DEPLOY_PAYLOAD = "0x0000000000000000000000000000000000000000f48f2b2d2a534e402487b3ee7c18c33aec0fe5e4000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 
 ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
+
+
+class MultiSendOperation(Enum):
+    """Operation types."""
+
+    CALL = 0
+    DELEGATE_CALL = 1
 
 
 def get_default_delployment_payload() -> str:
@@ -416,12 +426,13 @@ def register_instance(  # pylint: disable=too-many-arguments
         raise InstanceRegistrationFailed("Could not verify the registration event.")
 
 
-def deploy_service(
+def deploy_service(  # pylint: disable=too-many-arguments
     ledger_api: LedgerApi,
     crypto: Crypto,
     chain_type: ChainType,
     service_id: int,
     deployment_payload: Optional[str] = None,
+    reuse_multisig: bool = False,
     timeout: Optional[float] = None,
 ) -> None:
     """
@@ -436,9 +447,27 @@ def deploy_service(
     :param service_id: Service ID retrieved after minting a service
     :param deployment_payload: Deployment payload to include when making the
                             deployment transaction
+    :param reuse_multisig: Use multisig from the previous deployment
     :param timeout: Time to wait for deploy event to emit
     """
     deployment_payload = deployment_payload or get_default_delployment_payload()
+    gnosis_safe_multisig = ContractConfigs.get(
+        GNOSIS_SAFE_PROXY_FACTORY_CONTRACT.name
+    ).contracts[chain_type]
+    if reuse_multisig:
+        _deployment_payload, error = get_reuse_multisig_payload(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            chain_type=chain_type,
+            service_id=service_id,
+        )
+        if _deployment_payload is None:
+            raise ServiceDeployFailed(error)
+        deployment_payload = _deployment_payload
+        gnosis_safe_multisig = ContractConfigs.get(
+            GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT.name
+        ).contracts[chain_type]
+
     (
         *_,
         service_state,
@@ -463,9 +492,7 @@ def deploy_service(
             ).contracts[chain_type],
             owner=crypto.address,
             service_id=service_id,
-            gnosis_safe_multisig=ContractConfigs.get(
-                GNOSIS_SAFE_MULTISIG_CONTRACT.name
-            ).contracts[chain_type],
+            gnosis_safe_multisig=gnosis_safe_multisig,
             deployment_payload=deployment_payload,
             raise_on_try=True,
         )
@@ -625,3 +652,91 @@ def unbond_service(
         receipt=tx_receipt,
     ):
         raise UnbondServiceFailed("Could not verify the unbond event.")
+
+
+def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
+    ledger_api: LedgerApi,
+    crypto: Crypto,
+    chain_type: ChainType,
+    service_id: int,
+) -> Tuple[Optional[str], Optional[str]]:
+    """Reuse multisig."""
+    _, old_multisig, _, threshold, *_ = get_service_info(
+        ledger_api=ledger_api,
+        chain_type=chain_type,
+        token_id=service_id,
+    )
+    if old_multisig == NULL_ADDRESS:
+        return None, "Cannot reuse multisig, No previous deployment exist!"
+
+    service_owner = crypto.address
+    multisig_instance = registry_contracts.gnosis_safe.get_instance(
+        ledger_api=ledger_api,
+        contract_address=old_multisig,
+    )
+    old_owners = multisig_instance.functions.getOwners().call()
+    if len(old_owners) != 1 or service_owner not in old_owners:
+        return (
+            None,
+            "Service was not terminated properly, the service owner should be the only owner of the safe",
+        )
+    txs = []
+    new_owners = cast(
+        List[str],
+        get_agent_instances(
+            ledger_api=ledger_api,
+            chain_type=chain_type,
+            token_id=service_id,
+        ).get("agentInstances"),
+    )
+    for owner in new_owners:
+        txs.append(
+            {
+                "to": old_multisig,
+                "data": multisig_instance.encodeABI(
+                    fn_name="addOwnerWithThreshold",
+                    args=[owner, 1],
+                )[2:],
+                "operation": MultiSendOperation.CALL,
+                "value": 0,
+            }
+        )
+    txs.append(
+        {
+            "to": old_multisig,
+            "data": multisig_instance.encodeABI(
+                fn_name="removeOwner",
+                args=[new_owners[0], service_owner, threshold],
+            )[2:],
+            "operation": MultiSendOperation.CALL,
+            "value": 0,
+        }
+    )
+    safe_tx = registry_contracts.multisend.get_multisend_tx(
+        ledger_api=ledger_api,
+        contract_address=ContractConfigs.get(MULTISEND_CONTRACT.name).contracts[
+            chain_type
+        ],
+        txs=txs,
+    )
+    signature_bytes = f"0x{'00' * 24}{service_owner[2:]}{'00' * 64}01"
+    safe_exec_data = multisig_instance.encodeABI(
+        fn_name="execTransaction",
+        args=[
+            safe_tx["to"],
+            safe_tx["value"],
+            safe_tx["data"],
+            0,
+            0,
+            0,
+            0,
+            NULL_ADDRESS,
+            NULL_ADDRESS,
+            signature_bytes,
+        ],
+    )
+    packed_data = ledger_api.api.solidity_keccak(
+        ["address", "bytes"],
+        [old_multisig, safe_exec_data],
+    )
+    return packed_data.hex(), None

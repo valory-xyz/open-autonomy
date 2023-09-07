@@ -653,6 +653,7 @@ class ServiceHelper(OnChainHelper):
 
     def deploy_service(
         self,
+        reuse_multisig: bool = False,
         deployment_payload: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> None:
@@ -664,6 +665,7 @@ class ServiceHelper(OnChainHelper):
                 crypto=self.crypto,
                 chain_type=self.chain_type,
                 service_id=self.service_id,
+                reuse_multisig=reuse_multisig,
                 deployment_payload=deployment_payload,
                 timeout=timeout,
             )
