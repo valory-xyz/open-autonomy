@@ -187,8 +187,16 @@ run-hardhat:
 	docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
 
 protolint_install:
-	GO111MODULE=on GOPATH=~/go go get -u -v github.com/yoheimuta/protolint/cmd/protolint@v0.27.0
+	wget https://github.com/yoheimuta/protolint/releases/download/v0.27.0/protolint_0.27.0_Linux_x86_64.tar.gz
+	tar -xvf protolint_0.27.0_Linux_x86_64.tar.gz
+	sudo mv protolint /usr/local/bin/protolint
 
+protolint_install_darwin:
+	wget https://github.com/yoheimuta/protolint/releases/download/v0.27.0/protolint_0.27.0_Darwin_x86_64.tar.gz
+	tar -xvf protolint_0.27.0_Darwin_x86_64.tar.gz
+	sudo mv protolint /usr/local/bin/protolint
+
+# TODO: use precompiled binary
 protolint_install_win:
 	powershell -command '$$env:GO111MODULE="on"; go install github.com/yoheimuta/protolint/cmd/protolint@v0.27.0'
 
