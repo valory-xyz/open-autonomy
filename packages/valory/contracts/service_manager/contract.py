@@ -109,7 +109,7 @@ class ServiceManagerContract(Contract):
         agent_ids: List[int],
         agent_params: List[List[int]],
         threshold: int,
-        token: Optional[str] = None,
+        token: str = ETHEREUM_ERC20,
         raise_on_try: bool = False,
     ) -> Dict[str, Any]:
         """Retrieve the service owner."""
@@ -121,9 +121,7 @@ class ServiceManagerContract(Contract):
             "threshold": threshold,
         }
         if cls.is_l1_chain(ledger_api=ledger_api):
-            method_args["token"] = ledger_api.api.to_checksum_address(
-                token or ETHEREUM_ERC20
-            )
+            method_args["token"] = ledger_api.api.to_checksum_address(token)
 
         return ledger_api.build_transaction(
             contract_instance=cls.get_instance(

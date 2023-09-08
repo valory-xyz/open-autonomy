@@ -47,7 +47,7 @@ from autonomy.chain.mint import (
     mint_service,
 )
 from autonomy.chain.utils import parse_public_id_from_metadata, resolve_component_id
-from autonomy.cli.helpers.chain import OnChainHelper
+from autonomy.cli.helpers.chain import get_ledger_and_crypto_objects
 from autonomy.cli.packages import get_package_manager
 
 from tests.conftest import DATA_DIR
@@ -121,7 +121,7 @@ class BaseChainInteractionTest(BaseCliTest):
         """Setup class."""
         super().setup_class()
 
-        cls.ledger_api, cls.crypto = OnChainHelper.get_ledger_and_crypto_objects(
+        cls.ledger_api, cls.crypto = get_ledger_and_crypto_objects(
             chain_type=cls.chain_type,
             key=cls.key_file,
         )

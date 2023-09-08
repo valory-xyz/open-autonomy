@@ -9,7 +9,7 @@ fingerprint:
   __init__.py: bafybeicqln5tyudb5bzg27wale3xjvuliat6ipn6hntg5pqtnllex4pyre
   contract.py: bafybeib6jnjv2o7ryatm5nu435qbyls6uw66bhu7d57jaical5cjlmdke4
 fingerprint_ignore_patterns: []
-class_name: ERC20TokenContract
+class_name: MyScaffoldContract
 contract_interface_paths: {}
 dependencies: {}
 contracts: []

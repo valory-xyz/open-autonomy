@@ -37,10 +37,8 @@ from autonomy.chain.constants import (
     AGENT_REGISTRY_CONTRACT,
     COMPONENT_REGISTRY_CONTRACT,
     SERVICE_REGISTRY_CONTRACT,
-    SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT,
 )
 from autonomy.chain.exceptions import (
-    ChainInteractionError,
     ComponentMintFailed,
     DependencyError,
     FailedToRetrieveComponentMetadata,
@@ -59,15 +57,8 @@ from autonomy.chain.mint import mint_service as _mint_service
 from autonomy.chain.mint import update_component as _update_component
 from autonomy.chain.mint import update_service as _update_service
 from autonomy.chain.service import activate_service as _activate_service
-from autonomy.chain.service import approve_erc20_usage
 from autonomy.chain.service import deploy_service as _deploy_service
-from autonomy.chain.service import (
-    get_activate_registration_amount,
-    get_agent_instances,
-    get_service_info,
-    get_token_deposit_amount,
-    is_service_token_secured,
-)
+from autonomy.chain.service import get_agent_instances, get_service_info
 from autonomy.chain.service import register_instance as _register_instance
 from autonomy.chain.service import terminate_service as _terminate_service
 from autonomy.chain.service import unbond_service as _unbond_service
@@ -93,6 +84,310 @@ try:
     HWI_PLUGIN_INSTALLED = True
 except ImportError:  # pragma: nocover
     HWI_PLUGIN_INSTALLED = False
+
+
+def get_ledger_and_crypto_objects(
+    chain_type: ChainType,
+    key: Optional[Path] = None,
+    password: Optional[str] = None,
+    hwi: bool = False,
+) -> Tuple[LedgerApi, Crypto]:
+    """Create ledger_api and crypto objects"""
+
+    chain_config = ChainConfigs.get(chain_type=chain_type)
+    identifier = EthereumApi.identifier
+
+    if chain_config.rpc is None:
+        raise click.ClickException(
+            f"RPC URL cannot be `None`, "
+            f"Please set the environment variable for {chain_type.value} chain "
+            f"using `{ChainConfigs.get_rpc_env_var(chain_type)}` environment variable"
+        )
+
+    if hwi and not HWI_PLUGIN_INSTALLED:
+        raise click.ClickException(
+            "Hardware wallet plugin not installed, "
+            "Run `pip3 install open-aea-ledger-ethereum-hwi` to install the plugin"
+        )
+
+    if hwi:
+        identifier = EthereumHWIApi.identifier
+
+    if not hwi and not ETHEREUM_PLUGIN_INSTALLED:
+        raise click.ClickException(
+            "Ethereum ledger plugin not installed, "
+            "Run `pip3 install open-aea-ledger-ethereum` to install the plugin"
+        )
+
+    if key is None:
+        crypto = crypto_registry.make(identifier)
+    else:
+        crypto = EthereumCrypto(
+            private_key_path=key,
+            password=password,
+        )
+
+    ledger_api = ledger_apis_registry.make(
+        identifier,
+        **{
+            "address": chain_config.rpc,
+            "chain_id": chain_config.chain_id,
+            "is_gas_estimation_enabled": True,
+        },
+    )
+
+    if hwi:
+        # Setting the `LedgerApi.identifier` to `ethereum` for both ledger and
+        # hardware plugin to interact with the contract. If we use `ethereum_hwi`
+        # as the ledger identifier the contracts will need ABI configuration for
+        # the `ethereum_hwi` identifier which means we will have to define hardware
+        # wallet as the dependency for contract but the hardware wallet plugin
+        # is meant to be used for CLI tools only so we set the identifier to
+        # `ethereum` for both ledger and hardware wallet plugin
+        ledger_api.identifier = EthereumApi.identifier
+
+    try:
+        ledger_api.api.eth.default_account = crypto.address
+    except HWIError as e:
+        raise click.ClickException(e.message)
+
+    return ledger_api, crypto
+
+
+def activate_service(  # pylint: disable=too-many-arguments
+    service_id: int,
+    key: Path,
+    chain_type: ChainType,
+    password: Optional[str] = None,
+    timeout: Optional[float] = None,
+    hwi: bool = False,
+) -> None:
+    """Activate on-chain service"""
+
+    if key is None and not hwi:  # pragma: nocover
+        raise click.ClickException(
+            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
+        )
+
+    ledger_api, crypto = get_ledger_and_crypto_objects(
+        chain_type=chain_type,
+        key=key,
+        password=password,
+        hwi=hwi,
+    )
+
+    try:
+        _activate_service(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            chain_type=chain_type,
+            service_id=service_id,
+            timeout=timeout,
+        )
+    except ServiceRegistrationFailed as e:
+        raise click.ClickException(str(e)) from e
+
+    click.echo("Service activated succesfully")
+
+
+def register_instance(  # pylint: disable=too-many-arguments
+    service_id: int,
+    instances: List[str],
+    agent_ids: List[int],
+    key: Path,
+    chain_type: ChainType,
+    password: Optional[str] = None,
+    timeout: Optional[float] = None,
+    hwi: bool = False,
+) -> None:
+    """Register agents instances on an activated service"""
+
+    if key is None and not hwi:  # pragma: nocover
+        raise click.ClickException(
+            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
+        )
+
+    ledger_api, crypto = get_ledger_and_crypto_objects(
+        chain_type=chain_type,
+        key=key,
+        password=password,
+        hwi=hwi,
+    )
+
+    try:
+        _register_instance(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            chain_type=chain_type,
+            service_id=service_id,
+            instances=instances,
+            agent_ids=agent_ids,
+            timeout=timeout,
+        )
+    except InstanceRegistrationFailed as e:
+        raise click.ClickException(str(e)) from e
+
+    click.echo("Agent instance registered succesfully")
+
+
+def deploy_service(  # pylint: disable=too-many-arguments
+    service_id: int,
+    key: Path,
+    chain_type: ChainType,
+    deployment_payload: Optional[str] = None,
+    password: Optional[str] = None,
+    timeout: Optional[float] = None,
+    hwi: bool = False,
+) -> None:
+    """Deploy a service with registration activated"""
+
+    if key is None and not hwi:  # pragma: nocover
+        raise click.ClickException(
+            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
+        )
+
+    ledger_api, crypto = get_ledger_and_crypto_objects(
+        chain_type=chain_type,
+        key=key,
+        password=password,
+        hwi=hwi,
+    )
+
+    try:
+        _deploy_service(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            chain_type=chain_type,
+            service_id=service_id,
+            deployment_payload=deployment_payload,
+            timeout=timeout,
+        )
+    except ServiceDeployFailed as e:
+        raise click.ClickException(str(e)) from e
+
+    click.echo("Service deployed succesfully")
+
+
+def terminate_service(
+    service_id: int,
+    key: Path,
+    chain_type: ChainType,
+    password: Optional[str] = None,
+    hwi: bool = False,
+) -> None:
+    """Terminate a service"""
+
+    if key is None and not hwi:  # pragma: nocover
+        raise click.ClickException(
+            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
+        )
+
+    ledger_api, crypto = get_ledger_and_crypto_objects(
+        chain_type=chain_type,
+        key=key,
+        password=password,
+        hwi=hwi,
+    )
+
+    try:
+        _terminate_service(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            chain_type=chain_type,
+            service_id=service_id,
+        )
+    except TerminateServiceFailed as e:
+        raise click.ClickException(str(e)) from e
+
+    click.echo("Service terminated succesfully")
+
+
+def unbond_service(
+    service_id: int,
+    key: Path,
+    chain_type: ChainType,
+    password: Optional[str] = None,
+    hwi: bool = False,
+) -> None:
+    """Terminate a service"""
+
+    if key is None and not hwi:  # pragma: nocover
+        raise click.ClickException(
+            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
+        )
+
+    ledger_api, crypto = get_ledger_and_crypto_objects(
+        chain_type=chain_type,
+        key=key,
+        password=password,
+        hwi=hwi,
+    )
+
+    try:
+        _unbond_service(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            chain_type=chain_type,
+            service_id=service_id,
+        )
+    except UnbondServiceFailed as e:
+        raise click.ClickException(str(e)) from e
+
+    click.echo("Service unbonded succesfully")
+
+
+def print_service_info(
+    service_id: int,
+    chain_type: ChainType,
+) -> None:
+    """Terminate a service"""
+
+    ledger_api, _ = get_ledger_and_crypto_objects(
+        chain_type=chain_type,
+    )
+    (
+        security_deposit,
+        multisig_address,
+        _,
+        threshold,
+        max_agents,
+        number_of_agent_instances,
+        _service_state,
+        cannonical_agents,
+    ) = get_service_info(
+        ledger_api=ledger_api,
+        chain_type=chain_type,
+        token_id=service_id,
+    )
+    service_state = ServiceState(_service_state)
+    rows = [
+        ("Property", "Value"),
+        ("Service State", service_state.name),
+        ("Security Deposit", security_deposit),
+        ("Multisig Address", multisig_address),
+        ("Cannonical Agents", ", ".join(map(str, cannonical_agents))),
+        ("Max Agents", max_agents),
+        ("Threshold", threshold),
+        ("Number Of Agent Instances", number_of_agent_instances),
+    ]
+
+    if service_state.value >= ServiceState.ACTIVE_REGISTRATION.value:
+        rows.append(
+            (
+                "Registered Instances",
+                "\n".join(
+                    map(
+                        lambda x: f"- {x}",
+                        get_agent_instances(
+                            ledger_api=ledger_api,
+                            chain_type=chain_type,
+                            token_id=service_id,
+                        ).get("agentInstances", []),
+                    ),
+                ),
+            ),
+        )
+    click.echo(Texttable().add_rows(rows=rows).draw())
 
 
 class OnChainHelper:  # pylint: disable=too-few-public-methods
@@ -405,7 +700,6 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         number_of_slots: int,
         cost_of_bond: int,
         threshold: int,
-        token: Optional[str] = None,
         owner: Optional[str] = None,
     ) -> None:
         """Mint service"""
@@ -426,7 +720,6 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                     cost_of_bond,
                 ],
                 threshold=threshold,
-                token=token,
                 owner=owner,
             )
         except ComponentMintFailed as e:
@@ -531,221 +824,3 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             raise click.ClickException(
                 "Could not verify metadata hash to retrieve the token ID"
             )
-
-
-class ServiceHelper(OnChainHelper):
-    """Service helper."""
-
-    token: Optional[str]
-    token_secured: bool
-
-    def __init__(
-        self,
-        service_id: int,
-        chain_type: ChainType,
-        key: Optional[Path] = None,
-        password: Optional[str] = None,
-        hwi: bool = False,
-    ) -> None:
-        """Initialize object."""
-        self.service_id = service_id
-        super().__init__(chain_type, key, password, hwi)
-
-    def check_is_service_token_secured(
-        self,
-        token: Optional[str] = None,
-    ) -> "ServiceHelper":
-        """Check if service"""
-        self.token = token
-        self.token_secured = is_service_token_secured(
-            ledger_api=self.ledger_api,
-            chain_type=self.chain_type,
-            service_id=self.service_id,
-        )
-        if self.token_secured and self.token is None:
-            raise click.ClickException(
-                "Service is token secured, please provice token address using `--token` flag"
-            )
-        return self
-
-    def approve_erc20_usage(self, amount: int, spender: str) -> "ServiceHelper":
-        """Approve ERC20 usage."""
-
-        try:
-            approve_erc20_usage(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                contract_address=cast(str, self.token),
-                spender=spender,
-                amount=amount,
-                sender=self.crypto.address,
-            )
-        except ChainInteractionError as e:
-            raise click.ClickException(f"Error getting approval : {e}")
-        return self
-
-    def activate_service(self) -> None:
-        """Activate on-chain service"""
-
-        if self.token_secured:
-            amount = get_token_deposit_amount(
-                self.ledger_api,
-                chain_type=self.chain_type,
-                service_id=self.service_id,
-            )
-            spender = ContractConfigs.get(
-                name=SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT.name
-            ).contracts[self.chain_type]
-            self.approve_erc20_usage(
-                amount=amount,
-                spender=spender,
-            )
-
-        try:
-            _activate_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                chain_type=self.chain_type,
-                service_id=self.service_id,
-            )
-        except ServiceRegistrationFailed as e:
-            raise click.ClickException(str(e)) from e
-
-        click.echo("Service activated succesfully")
-
-    def register_instance(
-        self,
-        instances: List[str],
-        agent_ids: List[int],
-        timeout: Optional[float] = None,
-    ) -> None:
-        """Register agents instances on an activated service"""
-
-        if self.token_secured:
-            amount = get_activate_registration_amount(
-                ledger_api=self.ledger_api,
-                chain_type=self.chain_type,
-                service_id=self.service_id,
-                agents=agent_ids,
-            )
-            spender = ContractConfigs.get(
-                name=SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT.name
-            ).contracts[self.chain_type]
-            self.approve_erc20_usage(
-                amount=amount,
-                spender=spender,
-            )
-
-        try:
-            _register_instance(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                chain_type=self.chain_type,
-                service_id=self.service_id,
-                instances=instances,
-                agent_ids=agent_ids,
-                timeout=timeout,
-            )
-        except InstanceRegistrationFailed as e:
-            raise click.ClickException(str(e)) from e
-
-        click.echo("Agent instance registered succesfully")
-
-    def deploy_service(
-        self,
-        deployment_payload: Optional[str] = None,
-        timeout: Optional[float] = None,
-    ) -> None:
-        """Deploy a service with registration activated"""
-
-        try:
-            _deploy_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                chain_type=self.chain_type,
-                service_id=self.service_id,
-                deployment_payload=deployment_payload,
-                timeout=timeout,
-            )
-        except ServiceDeployFailed as e:
-            raise click.ClickException(str(e)) from e
-
-        click.echo("Service deployed succesfully")
-
-    def terminate_service(self) -> None:
-        """Terminate a service"""
-
-        try:
-            _terminate_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                chain_type=self.chain_type,
-                service_id=self.service_id,
-            )
-        except TerminateServiceFailed as e:
-            raise click.ClickException(str(e)) from e
-
-        click.echo("Service terminated succesfully")
-
-    def unbond_service(self) -> None:
-        """Unbond a service"""
-
-        try:
-            _unbond_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                chain_type=self.chain_type,
-                service_id=self.service_id,
-            )
-        except UnbondServiceFailed as e:
-            raise click.ClickException(str(e)) from e
-
-        click.echo("Service unbonded succesfully")
-
-
-def print_service_info(service_id: int, chain_type: ChainType) -> None:
-    """Print service information"""
-    ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(chain_type=chain_type)
-    (
-        security_deposit,
-        multisig_address,
-        _,
-        threshold,
-        max_agents,
-        number_of_agent_instances,
-        _service_state,
-        cannonical_agents,
-    ) = get_service_info(
-        ledger_api=ledger_api,
-        chain_type=chain_type,
-        token_id=service_id,
-    )
-    service_state = ServiceState(_service_state)
-    rows = [
-        ("Property", "Value"),
-        ("Service State", service_state.name),
-        ("Security Deposit", security_deposit),
-        ("Multisig Address", multisig_address),
-        ("Cannonical Agents", ", ".join(map(str, cannonical_agents))),
-        ("Max Agents", max_agents),
-        ("Threshold", threshold),
-        ("Number Of Agent Instances", number_of_agent_instances),
-    ]
-
-    if service_state.value >= ServiceState.ACTIVE_REGISTRATION.value:
-        rows.append(
-            (
-                "Registered Instances",
-                "\n".join(
-                    map(
-                        lambda x: f"- {x}",
-                        get_agent_instances(
-                            ledger_api=ledger_api,
-                            chain_type=chain_type,
-                            token_id=service_id,
-                        ).get("agentInstances", []),
-                    ),
-                ),
-            ),
-        )
-    click.echo(Texttable().add_rows(rows=rows).draw())

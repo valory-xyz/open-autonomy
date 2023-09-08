@@ -21,7 +21,7 @@
 
 import datetime
 import time
-from typing import Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 from aea.crypto.base import Crypto, LedgerApi
 from requests.exceptions import ConnectionError as RequestsConnectionError
@@ -33,10 +33,8 @@ from autonomy.chain.constants import (
     GNOSIS_SAFE_MULTISIG_CONTRACT,
     SERVICE_MANAGER_CONTRACT,
     SERVICE_REGISTRY_CONTRACT,
-    SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT,
 )
 from autonomy.chain.exceptions import (
-    ChainInteractionError,
     InstanceRegistrationFailed,
     ServiceDeployFailed,
     ServiceRegistrationFailed,
@@ -106,46 +104,21 @@ def get_service_info(
     )
 
 
-def get_token_deposit_amount(
-    ledger_api: LedgerApi,
-    chain_type: ChainType,
-    service_id: int,
-    agent_id: Optional[int] = None,
-) -> int:
-    """Returns service info."""
-    if agent_id is None:
-        *_, (agent_id, *_) = get_service_info(
-            ledger_api=ledger_api, chain_type=chain_type, token_id=service_id
-        )
-    return registry_contracts.service_registry_token_utility.get_agent_bond(
-        ledger_api=ledger_api,
-        contract_address=ContractConfigs.get(
-            SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT.name
-        ).contracts[chain_type],
-        service_id=service_id,
-        agent_id=agent_id,
-    ).get("bond")
+def wait_for_success_event(
+    success_check: Callable[[], bool],
+    message: str = "Timeout error",
+    timeout: Optional[float] = None,
+    sleep: float = 1.0,
+) -> None:
+    """Wait for success event."""
 
-
-def get_activate_registration_amount(
-    ledger_api: LedgerApi,
-    chain_type: ChainType,
-    service_id: int,
-    agents: List[int],
-) -> int:
-    """Get activate registration amount."""
-    agent_to_deposit = {}
-    amount = 0
-    for agent in agents:
-        if agent not in agent_to_deposit:
-            agent_to_deposit[agent] = get_token_deposit_amount(
-                ledger_api=ledger_api,
-                chain_type=chain_type,
-                service_id=service_id,
-                agent_id=agent,
-            )
-        amount += agent_to_deposit[agent]
-    return amount
+    timeout = timeout or EVENT_VERIFICATION_TIMEOUT
+    deadline = datetime.datetime.now() + datetime.timedelta(seconds=timeout)
+    while datetime.datetime.now() < deadline:
+        if success_check():
+            return
+        time.sleep(sleep)
+    raise TimeoutError(message)
 
 
 def wait_for_agent_instance_registration(
@@ -180,85 +153,6 @@ def wait_for_agent_instance_registration(
     raise TimeoutError(
         f"Could not verify the instance registration for {instance_check} in given time"
     )
-
-
-def is_service_token_secured(
-    ledger_api: LedgerApi,
-    chain_type: ChainType,
-    service_id: int,
-) -> bool:
-    """Check if the service is token secured."""
-    response = (
-        registry_contracts.service_registry_token_utility.is_token_secured_service(
-            ledger_api=ledger_api,
-            contract_address=ContractConfigs.get(
-                SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT.name
-            ).contracts[chain_type],
-            service_id=service_id,
-        )
-    )
-    return response["is_token_secured_service"]
-
-
-def approve_erc20_usage(  # pylint: disable=too-many-arguments
-    ledger_api: LedgerApi,
-    crypto: Crypto,
-    contract_address: str,
-    spender: str,
-    amount: int,
-    sender: str,
-    timeout: Optional[float] = None,
-) -> None:
-    """Approve ERC20 token usage."""
-
-    try:
-        tx = registry_contracts.erc20.get_approve_tx(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-            spender=spender,
-            amount=amount,
-            sender=sender,
-        )
-        tx_receipt = transact(
-            ledger_api=ledger_api,
-            crypto=crypto,
-            tx=tx,
-            timeout=timeout,
-        )
-    except (ValueError, TimeoutError, RequestsConnectionError, Web3Exception) as e:
-        raise ChainInteractionError(f"Funds approval request failed; {e}") from e
-
-    events = registry_contracts.erc20.get_approval_events(
-        ledger_api=ledger_api, contract_address=contract_address, tx_receipt=tx_receipt
-    )
-
-    for event in events:
-        if event["args"]["spender"] == spender:
-            return
-
-    raise ChainInteractionError("Funds approval request failed")
-
-
-def verify_service_event(
-    ledger_api: LedgerApi,
-    chain_type: ChainType,
-    service_id: int,
-    event: str,
-    receipt: Dict,
-) -> bool:
-    """Verify service event."""
-    response = registry_contracts.service_registry.process_receipt(
-        ledger_api=ledger_api,
-        contract_address=ContractConfigs.get(SERVICE_REGISTRY_CONTRACT.name).contracts[
-            chain_type
-        ],
-        event=event,
-        receipt=receipt,
-    )
-    for _event in response["events"]:
-        if _event["args"]["serviceId"] == service_id:
-            return True
-    return False
 
 
 def activate_service(
@@ -307,23 +201,35 @@ def activate_service(
             security_deposit=cost_of_bond,
             raise_on_try=True,
         )
-        tx_receipt = transact(
-            ledger_api=ledger_api,
-            crypto=crypto,
-            tx=tx,
-            timeout=timeout,
-        )
-    except (ValueError, TimeoutError, RequestsConnectionError, Web3Exception) as e:
+        transact(ledger_api=ledger_api, crypto=crypto, tx=tx)
+    except RequestsConnectionError as e:
+        raise ServiceRegistrationFailed(
+            "Service activation failed; Error connecting to the RPC"
+        ) from e
+    except ValueError as e:
         raise ServiceRegistrationFailed(f"Service activation failed; {e}") from e
 
-    if not verify_service_event(
-        ledger_api=ledger_api,
-        chain_type=chain_type,
-        service_id=service_id,
-        event="ActivateRegistration",
-        receipt=tx_receipt,
-    ):
-        raise ServiceRegistrationFailed("Could not verify the activation event.")
+    try:
+
+        def success_check() -> bool:
+            """Success check"""
+            return (
+                registry_contracts.service_registry.verify_service_has_been_activated(
+                    ledger_api=ledger_api,
+                    contract_address=ContractConfigs.get(
+                        SERVICE_REGISTRY_CONTRACT.name
+                    ).contracts[chain_type],
+                    service_id=service_id,
+                )
+            )
+
+        wait_for_success_event(
+            success_check=success_check,
+            message="Could not verify the service activation in given time",
+            timeout=timeout,
+        )
+    except TimeoutError as e:
+        raise ServiceRegistrationFailed(e) from e
 
 
 def register_instance(  # pylint: disable=too-many-arguments
@@ -393,12 +299,8 @@ def register_instance(  # pylint: disable=too-many-arguments
             security_deposit=security_deposit,
             raise_on_try=True,
         )
-        tx_receipt = transact(
-            ledger_api=ledger_api,
-            crypto=crypto,
-            tx=tx,
-            timeout=timeout,
-        )
+
+        transact(ledger_api=ledger_api, crypto=crypto, tx=tx)
     except RequestsConnectionError as e:
         raise InstanceRegistrationFailed(
             "Instance registration failed; Error connecting to the RPC"
@@ -406,14 +308,16 @@ def register_instance(  # pylint: disable=too-many-arguments
     except (Web3Exception, ValueError) as e:  # pragma: nocover
         raise InstanceRegistrationFailed(f"Instance registration failed; {e}") from e
 
-    if not verify_service_event(
-        ledger_api=ledger_api,
-        chain_type=chain_type,
-        service_id=service_id,
-        event="RegisterInstance",
-        receipt=tx_receipt,
-    ):
-        raise InstanceRegistrationFailed("Could not verify the registration event.")
+    try:
+        wait_for_agent_instance_registration(
+            ledger_api=ledger_api,
+            chain_type=chain_type,
+            service_id=service_id,
+            instances=instances,
+            timeout=timeout,
+        )
+    except TimeoutError as e:
+        raise InstanceRegistrationFailed(e) from e
 
 
 def deploy_service(
@@ -469,27 +373,33 @@ def deploy_service(
             deployment_payload=deployment_payload,
             raise_on_try=True,
         )
-        tx_receipt = transact(
-            ledger_api=ledger_api,
-            crypto=crypto,
-            tx=tx,
-            timeout=timeout,
-        )
+        transact(ledger_api=ledger_api, crypto=crypto, tx=tx)
     except RequestsConnectionError as e:
         raise ServiceDeployFailed(
             "Service deployment failed; Cannot connect to the RPC"
         ) from e
-    except (ValueError, Web3Exception) as e:  # pragma: nocover
+    except ValueError as e:  # pragma: nocover
         raise ServiceDeployFailed(f"Service deployment failed; {e}") from e
 
-    if not verify_service_event(
-        ledger_api=ledger_api,
-        chain_type=chain_type,
-        service_id=service_id,
-        event="DeployService",
-        receipt=tx_receipt,
-    ):
-        raise ServiceDeployFailed("Could not verify the deploy event.")
+    try:
+
+        def success_check() -> bool:
+            """Success check"""
+            return registry_contracts.service_registry.verify_service_has_been_deployed(
+                ledger_api=ledger_api,
+                contract_address=ContractConfigs.get(
+                    SERVICE_REGISTRY_CONTRACT.name
+                ).contracts[chain_type],
+                service_id=service_id,
+            )
+
+        wait_for_success_event(
+            success_check=success_check,
+            message=f"Could not verify the service deployment for service {service_id} in given time",
+            timeout=timeout,
+        )
+    except TimeoutError as e:
+        raise ServiceDeployFailed(e) from e
 
 
 def terminate_service(
@@ -539,26 +449,13 @@ def terminate_service(
             service_id=service_id,
             raise_on_try=True,
         )
-        tx_receipt = transact(
-            ledger_api=ledger_api,
-            crypto=crypto,
-            tx=tx,
-        )
+        transact(ledger_api=ledger_api, crypto=crypto, tx=tx)
     except RequestsConnectionError as e:  # pragma: nocover
         raise TerminateServiceFailed(
             "Service termination failed; Cannot connect to the RPC"
         ) from e
     except ValueError as e:
         raise TerminateServiceFailed(f"Service termination failed; {e}") from e
-
-    if not verify_service_event(
-        ledger_api=ledger_api,
-        chain_type=chain_type,
-        service_id=service_id,
-        event="TerminateService",
-        receipt=tx_receipt,
-    ):
-        raise TerminateServiceFailed("Could not verify the terminate event.")
 
 
 def unbond_service(
@@ -605,23 +502,10 @@ def unbond_service(
             service_id=service_id,
             raise_on_try=True,
         )
-        tx_receipt = transact(
-            ledger_api=ledger_api,
-            crypto=crypto,
-            tx=tx,
-        )
+        transact(ledger_api=ledger_api, crypto=crypto, tx=tx)
     except RequestsConnectionError as e:  # pragma: nocover
         raise UnbondServiceFailed(
             "Service unbond failed; Cannot connect to the RPC"
         ) from e
     except ValueError as e:
         raise UnbondServiceFailed(f"Service unbond failed; {e}") from e
-
-    if not verify_service_event(
-        ledger_api=ledger_api,
-        chain_type=chain_type,
-        service_id=service_id,
-        event="OperatorUnbond",
-        receipt=tx_receipt,
-    ):
-        raise UnbondServiceFailed("Could not verify the unbond event.")

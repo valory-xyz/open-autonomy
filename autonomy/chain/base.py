@@ -30,11 +30,9 @@ from autonomy.chain.constants import (
     COMPONENT_REGISTRY_CONTRACT,
     CONTRACTS_DIR_FRAMEWORK,
     CONTRACTS_DIR_LOCAL,
-    ERC20_CONTRACT,
     REGISTRIES_MANAGER_CONTRACT,
     SERVICE_MANAGER_CONTRACT,
     SERVICE_REGISTRY_CONTRACT,
-    SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT,
 )
 
 
@@ -67,13 +65,11 @@ class ServiceState(Enum):
 class RegistryContracts:
     """On chain registry contracts helper"""
 
-    _erc20: Optional[Contract] = None
     _registries_manager: Optional[Contract] = None
     _service_manager: Optional[Contract] = None
     _component_registry: Optional[Contract] = None
     _agent_registry: Optional[Contract] = None
     _service_registry: Optional[Contract] = None
-    _service_registry_token_utility: Optional[Contract] = None
 
     @staticmethod
     def get_contract(public_id: PublicId) -> Contract:
@@ -152,30 +148,6 @@ class RegistryContracts:
             )
 
         return self._service_registry
-
-    @property
-    def service_registry_token_utility(
-        self,
-    ) -> Contract:
-        """Returns an instance of the service registry token utility contract."""
-        if self._service_registry_token_utility is None:
-            self._service_registry_token_utility = self.get_contract(
-                public_id=SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT,
-            )
-
-        return self._service_registry_token_utility
-
-    @property
-    def erc20(
-        self,
-    ) -> Contract:
-        """Returns an instance of the service registry token utility contract."""
-        if self._erc20 is None:
-            self._erc20 = self.get_contract(
-                public_id=ERC20_CONTRACT,
-            )
-
-        return self._erc20
 
 
 registry_contracts = RegistryContracts()

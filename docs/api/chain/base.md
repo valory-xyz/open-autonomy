@@ -104,25 +104,3 @@ def service_registry() -> Contract
 
 Returns an instance of the registries manager contract.
 
-<a id="autonomy.chain.base.RegistryContracts.service_registry_token_utility"></a>
-
-#### service`_`registry`_`token`_`utility
-
-```python
-@property
-def service_registry_token_utility() -> Contract
-```
-
-Returns an instance of the service registry token utility contract.
-
-<a id="autonomy.chain.base.RegistryContracts.erc20"></a>
-
-#### erc20
-
-```python
-@property
-def erc20() -> Contract
-```
-
-Returns an instance of the service registry token utility contract.
-

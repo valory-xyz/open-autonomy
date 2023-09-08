@@ -35,7 +35,7 @@ from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
 from autonomy.chain.service import get_agent_instances, get_service_info
 from autonomy.chain.utils import resolve_component_id
-from autonomy.cli.helpers.chain import OnChainHelper
+from autonomy.cli.helpers.chain import get_ledger_and_crypto_objects
 from autonomy.cli.helpers.registry import fetch_service_ipfs
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
 from autonomy.configurations.loader import load_service_config
@@ -239,7 +239,7 @@ def _resolve_on_chain_token_id(
 ) -> Tuple[Dict[str, str], List[str], str, int]:
     """Resolve service metadata from tokenID"""
 
-    ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(chain_type=chain_type)
+    ledger_api, _ = get_ledger_and_crypto_objects(chain_type=chain_type)
     contract_address = ContractConfigs.service_registry.contracts[chain_type]
 
     click.echo(f"Fetching service metadata using chain type {chain_type.value}")

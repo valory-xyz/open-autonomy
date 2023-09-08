@@ -182,7 +182,6 @@ Mint an agent.
 @nft_decorator
 @owner_flag
 @update_flag
-@token_flag
 @pass_ctx
 @click.option(
     "-a",
@@ -222,7 +221,6 @@ def service(ctx: Context,
             nft: Optional[Union[Path, IPFSHash]],
             owner: Optional[str],
             update: Optional[int],
-            token: Optional[str],
             hwi: bool = False) -> None
 ```
 
