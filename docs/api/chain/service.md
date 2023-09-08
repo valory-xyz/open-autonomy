@@ -58,18 +58,30 @@ security deposit, multisig address, IPFS hash for config,
 threshold, max number of agent instances, number of agent instances,
 service state, list of cannonical agents
 
-<a id="autonomy.chain.service.wait_for_success_event"></a>
+<a id="autonomy.chain.service.get_token_deposit_amount"></a>
 
-#### wait`_`for`_`success`_`event
+#### get`_`token`_`deposit`_`amount
 
 ```python
-def wait_for_success_event(success_check: Callable[[], bool],
-                           message: str = "Timeout error",
-                           timeout: Optional[float] = None,
-                           sleep: float = 1.0) -> None
+def get_token_deposit_amount(ledger_api: LedgerApi,
+                             chain_type: ChainType,
+                             service_id: int,
+                             agent_id: Optional[int] = None) -> int
 ```
 
-Wait for success event.
+Returns service info.
+
+<a id="autonomy.chain.service.get_activate_registration_amount"></a>
+
+#### get`_`activate`_`registration`_`amount
+
+```python
+def get_activate_registration_amount(ledger_api: LedgerApi,
+                                     chain_type: ChainType, service_id: int,
+                                     agents: List[int]) -> int
+```
+
+Get activate registration amount.
 
 <a id="autonomy.chain.service.wait_for_agent_instance_registration"></a>
 
@@ -85,6 +97,44 @@ def wait_for_agent_instance_registration(
 ```
 
 Wait for agent instance registration.
+
+<a id="autonomy.chain.service.is_service_token_secured"></a>
+
+#### is`_`service`_`token`_`secured
+
+```python
+def is_service_token_secured(ledger_api: LedgerApi, chain_type: ChainType,
+                             service_id: int) -> bool
+```
+
+Check if the service is token secured.
+
+<a id="autonomy.chain.service.approve_erc20_usage"></a>
+
+#### approve`_`erc20`_`usage
+
+```python
+def approve_erc20_usage(ledger_api: LedgerApi,
+                        crypto: Crypto,
+                        contract_address: str,
+                        spender: str,
+                        amount: int,
+                        sender: str,
+                        timeout: Optional[float] = None) -> None
+```
+
+Approve ERC20 token usage.
+
+<a id="autonomy.chain.service.verify_service_event"></a>
+
+#### verify`_`service`_`event
+
+```python
+def verify_service_event(ledger_api: LedgerApi, chain_type: ChainType,
+                         service_id: int, event: str, receipt: Dict) -> bool
+```
+
+Verify service event.
 
 <a id="autonomy.chain.service.activate_service"></a>
 

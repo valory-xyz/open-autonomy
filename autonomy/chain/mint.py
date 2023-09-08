@@ -20,6 +20,7 @@
 """Helpers for minting components"""
 
 import time
+from datetime import datetime
 from math import ceil
 from typing import Dict, List, Optional, Tuple
 
@@ -39,6 +40,7 @@ from autonomy.chain.exceptions import ComponentMintFailed, InvalidMintParameter
 
 
 DEFAULT_NFT_IMAGE_HASH = "bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm"
+DEFAULT_TRANSACTION_WAIT_TIMEOUT = 60.0
 
 
 def transact(
@@ -47,18 +49,26 @@ def transact(
     tx: Dict,
     max_retries: int = 5,
     sleep: float = 2.0,
-) -> Optional[Dict]:
+    timeout: Optional[float] = None,
+) -> Dict:
     """Make a transaction and return a receipt"""
     retries = 0
     tx_receipt = None
     tx_signed = crypto.sign_transaction(transaction=tx)
     tx_digest = ledger_api.send_signed_transaction(tx_signed=tx_signed)
-    while tx_receipt is None and retries < max_retries:
+    deadline = datetime.now().timestamp() + (
+        timeout or DEFAULT_TRANSACTION_WAIT_TIMEOUT
+    )
+    while (
+        tx_receipt is None
+        and retries < max_retries
+        and deadline >= datetime.now().timestamp()
+    ):
         tx_receipt = ledger_api.api.eth.get_transaction_receipt(tx_digest)
         if tx_receipt is not None:
-            break
+            return tx_receipt
         time.sleep(sleep)
-    return tx_receipt
+    raise TimeoutError("Timed out when waiting for transaction to go through")
 
 
 def sort_service_dependency_metadata(
@@ -212,6 +222,7 @@ def mint_service(  # pylint: disable=too-many-arguments,too-many-locals
     number_of_slots_per_agent: List[int],
     cost_of_bond_per_agent: List[int],
     threshold: int,
+    token: Optional[str] = None,
     owner: Optional[str] = None,
 ) -> Optional[int]:
     """Publish component on-chain."""
@@ -278,6 +289,7 @@ def mint_service(  # pylint: disable=too-many-arguments,too-many-locals
             agent_ids=agent_ids,
             agent_params=agent_params,
             threshold=threshold,
+            token=token,
             raise_on_try=True,
         )
         tx_receipt = transact(
