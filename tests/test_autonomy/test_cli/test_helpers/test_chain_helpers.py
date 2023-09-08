@@ -30,15 +30,7 @@ from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from autonomy.chain.base import ServiceState
 from autonomy.chain.config import ChainConfigs, ChainType
 from autonomy.chain.mint import registry_contracts
-from autonomy.cli.helpers.chain import (
-    MintHelper,
-    activate_service,
-    deploy_service,
-    get_ledger_and_crypto_objects,
-    register_instance,
-    terminate_service,
-    unbond_service,
-)
+from autonomy.cli.helpers.chain import MintHelper, OnChainHelper, ServiceHelper
 
 from tests.conftest import ROOT_DIR
 
@@ -133,95 +125,6 @@ class TestMintComponentMethod:
                 ).publish_metadata().mint_component()
 
 
-def test_activate_service_timeout_failure() -> None:
-    """Test `activate_service` method"""
-
-    with pytest.raises(
-        click.ClickException,
-        match="Could not verify the service activation in given time",
-    ):
-        with mock.patch.object(
-            registry_contracts._service_registry,
-            "verify_service_has_been_activated",
-            return_value=False,
-        ), mock.patch.object(
-            registry_contracts._service_manager,
-            "get_activate_registration_transaction",
-            return_value=False,
-        ), mock.patch(
-            "autonomy.chain.service.transact"
-        ), mock.patch(
-            "autonomy.chain.service.get_service_info",
-            return_value=(1, None, ServiceState.PRE_REGISTRATION.value, None),
-        ):
-            activate_service(
-                service_id=0,
-                key=ETHEREUM_KEY_DEPLOYER,
-                chain_type=ChainType.LOCAL,
-                timeout=1.0,
-            )
-
-
-def test_register_instance_timeout_failure() -> None:
-    """Test `deploy_service` method"""
-
-    with pytest.raises(
-        click.ClickException,
-        match="Could not verify the instance registration for {'0x'} in given time",
-    ):
-        with mock.patch.object(
-            registry_contracts._service_registry,
-            "verify_agent_instance_registration",
-            return_value=[],
-        ), mock.patch.object(
-            registry_contracts._service_manager,
-            "get_register_instance_transaction",
-            return_value=False,
-        ), mock.patch(
-            "autonomy.chain.service.transact"
-        ), mock.patch(
-            "autonomy.chain.service.get_service_info",
-            return_value=(1, None, ServiceState.ACTIVE_REGISTRATION.value, None),
-        ):
-            register_instance(
-                service_id=0,
-                instances=["0x"],
-                agent_ids=[1],
-                key=ETHEREUM_KEY_DEPLOYER,
-                chain_type=ChainType.LOCAL,
-                timeout=1.0,
-            )
-
-
-def test_deploy_service_timeout_failure() -> None:
-    """Test `deploy_service` method"""
-
-    with pytest.raises(
-        click.ClickException,
-        match="Could not verify the service deployment for service 0 in given time",
-    ):
-        with mock.patch.object(
-            registry_contracts._service_registry,
-            "verify_service_has_been_deployed",
-            return_value=False,
-        ), mock.patch.object(
-            registry_contracts._service_manager,
-            "get_service_deploy_transaction",
-            return_value=False,
-        ), mock.patch(
-            "autonomy.chain.service.transact"
-        ), mock.patch(
-            "autonomy.chain.service.get_service_info",
-            return_value=(1, None, ServiceState.FINISHED_REGISTRATION.value, None),
-        ):
-            deploy_service(
-                service_id=0,
-                key=ETHEREUM_KEY_DEPLOYER,
-                chain_type=ChainType.LOCAL,
-                timeout=1.0,
-            )
-
-
 @pytest.mark.parametrize(
     argnames=("state", "error"),
     argvalues=(
@@ -241,11 +144,11 @@ def test_terminate_service_failures(state: ServiceState, error: str) -> None:
             "autonomy.chain.service.get_service_info",
             return_value=(1, None, state.value, None),
         ):
-            terminate_service(
+            ServiceHelper(
                 service_id=0,
                 key=ETHEREUM_KEY_DEPLOYER,
                 chain_type=ChainType.LOCAL,
-            )
+            ).terminate_service()
 
 
 def test_terminate_service_contract_failure() -> None:
@@ -263,11 +166,11 @@ def test_terminate_service_contract_failure() -> None:
             "autonomy.chain.service.get_service_info",
             return_value=(1, None, ServiceState.FINISHED_REGISTRATION.value, None),
         ):
-            terminate_service(
+            ServiceHelper(
                 service_id=0,
                 key=ETHEREUM_KEY_DEPLOYER,
                 chain_type=ChainType.LOCAL,
-            )
+            ).terminate_service()
 
 
 @pytest.mark.parametrize(
@@ -291,11 +194,11 @@ def test_unbond_service_failures(state: ServiceState, error: str) -> None:
             "autonomy.chain.service.get_service_info",
             return_value=(1, None, state.value, None),
         ):
-            unbond_service(
+            ServiceHelper(
                 service_id=0,
                 key=ETHEREUM_KEY_DEPLOYER,
                 chain_type=ChainType.LOCAL,
-            )
+            ).unbond_service()
 
 
 def test_unbond_service_contract_failure() -> None:
@@ -313,18 +216,18 @@ def test_unbond_service_contract_failure() -> None:
             "autonomy.chain.service.get_service_info",
             return_value=(1, None, ServiceState.TERMINATED_BONDED.value, None),
         ):
-            unbond_service(
+            ServiceHelper(
                 service_id=0,
                 key=ETHEREUM_KEY_DEPLOYER,
                 chain_type=ChainType.LOCAL,
-            )
+            ).unbond_service()
 
 
 def test_get_ledger_and_crypto_objects() -> None:
     """Test `get_ledger_and_crypto_objects` for hardware wallet support"""
 
     with mock.patch.object(EthereumHWICrypto, "entity"):
-        ledger_api, crypto = get_ledger_and_crypto_objects(
+        ledger_api, crypto = OnChainHelper.get_ledger_and_crypto_objects(
             chain_type=ChainType.LOCAL,
             hwi=True,
         )

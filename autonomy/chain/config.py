@@ -39,7 +39,6 @@ def _get_chain_id_for_custom_chain() -> Optional[int]:
     chain_id = os.environ.get("CUSTOM_CHAIN_ID")
     if chain_id is None:
         return None
-
     return int(chain_id)
 
 
@@ -173,6 +172,17 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
         contracts={
             chain_type: getattr(
                 chain_constants, f"GNOSIS_SAFE_MULTISIG_ADDRESS_{chain_type.name}"
+            )
+            for chain_type in ChainType
+        },
+    )
+
+    service_registry_token_utility = ContractConfig(
+        name="service_registry_token_utility",
+        contracts={
+            chain_type: getattr(
+                chain_constants,
+                f"SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS_{chain_type.name}",
             )
             for chain_type in ChainType
         },

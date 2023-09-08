@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023 valory
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -28,9 +28,9 @@ from aea.crypto.base import LedgerApi
 
 
 class ERC20TokenContract(Contract):
-    """The scaffold contract class for a smart contract."""
+    """ERC20 token contract."""
 
-    contract_id = PublicId.from_str("open_aea/scaffold:0.1.0")
+    contract_id = PublicId.from_str("valory/erc20:0.1.0")
 
     @classmethod
     def get_raw_transaction(
@@ -82,3 +82,41 @@ class ERC20TokenContract(Contract):
         :return: the tx  # noqa: DAR202
         """
         raise NotImplementedError
+
+    @classmethod
+    def get_approve_tx(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        spender: str,
+        amount: int,
+        sender: str,
+    ) -> JSONLike:
+        """Get approve tx."""
+        instance = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        tx = instance.functions.approve(spender, amount).build_transaction(
+            {
+                "from": sender,
+                "gas": 1,
+                "gasPrice": ledger_api.api.eth.gas_price,
+                "nonce": ledger_api.api.eth.get_transaction_count(sender),
+            }
+        )
+        return ledger_api.update_with_gas_estimate(transaction=tx)
+
+    @classmethod
+    def get_approval_events(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        tx_receipt: JSONLike,
+    ) -> JSONLike:
+        """Get approve tx."""
+        instance = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        return instance.events.Approval().process_receipt(tx_receipt)

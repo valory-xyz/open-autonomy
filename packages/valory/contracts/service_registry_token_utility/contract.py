@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023 valory
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,10 +27,10 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 
 
-class ERC20TokenContract(Contract):
+class ServiceRegistryTokenUtilityContract(Contract):
     """The scaffold contract class for a smart contract."""
 
-    contract_id = PublicId.from_str("open_aea/scaffold:0.1.0")
+    contract_id = PublicId.from_str("valory/service_registry_token_utility:0.1.0")
 
     @classmethod
     def get_raw_transaction(
@@ -82,3 +82,36 @@ class ERC20TokenContract(Contract):
         :return: the tx  # noqa: DAR202
         """
         raise NotImplementedError
+
+    @classmethod
+    def is_token_secured_service(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        service_id: int,
+    ) -> JSONLike:
+        """Check if a service is secured service."""
+        instance = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        return dict(
+            is_token_secured_service=instance.functions.isTokenSecuredService(
+                service_id
+            ).call()
+        )
+
+    @classmethod
+    def get_agent_bond(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        service_id: int,
+        agent_id: int,
+    ) -> JSONLike:
+        """Check if a service is secured service."""
+        instance = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        return dict(bond=instance.functions.getAgentBond(service_id, agent_id).call())

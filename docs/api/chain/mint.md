@@ -13,7 +13,8 @@ def transact(ledger_api: LedgerApi,
              crypto: Crypto,
              tx: Dict,
              max_retries: int = 5,
-             sleep: float = 2.0) -> Optional[Dict]
+             sleep: float = 2.0,
+             timeout: Optional[float] = None) -> Dict
 ```
 
 Make a transaction and return a receipt
@@ -71,6 +72,7 @@ def mint_service(ledger_api: LedgerApi,
                  number_of_slots_per_agent: List[int],
                  cost_of_bond_per_agent: List[int],
                  threshold: int,
+                 token: Optional[str] = None,
                  owner: Optional[str] = None) -> Optional[int]
 ```
 
