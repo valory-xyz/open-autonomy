@@ -58,7 +58,7 @@ class ContractAddresses:  # pylint: disable=too-many-instance-attributes
         return cast(str, getattr(self, name))
 
 
-HardhatAddresses = ContractAddresses(
+HardhatAddresses = ContractAddresses(  # nosec
     component_registry="0x5FbDB2315678afecb367f032d93F642f64180aa3",
     agent_registry="0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
     registries_manager="0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
@@ -70,7 +70,7 @@ HardhatAddresses = ContractAddresses(
     multisend="0x9d4454B023096f34B160D6B654540c56A1F81688",
 )
 
-EthereumAddresses = ContractAddresses(
+EthereumAddresses = ContractAddresses(  # nosec
     component_registry="0x15bd56669F57192a97dF41A2aa8f4403e9491776",
     agent_registry="0x2F1f7D38e4772884b88f3eCd8B6b9faCdC319112",
     registries_manager="0x9eC9156dEF5C613B2a7D4c46C383F9B58DfcD6fE",
@@ -82,7 +82,7 @@ EthereumAddresses = ContractAddresses(
     multisend="0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
 )
 
-GoerliAddresses = ContractAddresses(
+GoerliAddresses = ContractAddresses(  # nosec
     component_registry="0x7Fd1F4b764fA41d19fe3f63C85d12bf64d2bbf68",
     agent_registry="0xEB5638eefE289691EcE01943f768EDBF96258a80",
     registries_manager="0x10c5525F77F13b28f42c5626240c001c2D57CAd4",
