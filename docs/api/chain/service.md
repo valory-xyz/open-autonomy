@@ -93,21 +93,6 @@ def get_activate_registration_amount(ledger_api: LedgerApi,
 
 Get activate registration amount.
 
-<a id="autonomy.chain.service.wait_for_agent_instance_registration"></a>
-
-#### wait`_`for`_`agent`_`instance`_`registration
-
-```python
-def wait_for_agent_instance_registration(
-        ledger_api: LedgerApi,
-        chain_type: ChainType,
-        service_id: int,
-        instances: List[str],
-        timeout: Optional[float] = None) -> None
-```
-
-Wait for agent instance registration.
-
 <a id="autonomy.chain.service.is_service_token_secured"></a>
 
 #### is`_`service`_`token`_`secured
