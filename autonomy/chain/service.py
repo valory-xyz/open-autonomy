@@ -19,12 +19,14 @@
 
 """Helper functions to manage on-chain services"""
 
+import binascii
 import datetime
 import time
 from enum import Enum
 from typing import Dict, List, Optional, Tuple, cast
 
 from aea.crypto.base import Crypto, LedgerApi
+from hexbytes import HexBytes
 from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from autonomy.chain.base import ServiceState, registry_contracts
@@ -661,25 +663,32 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
     service_id: int,
 ) -> Tuple[Optional[str], Optional[str]]:
     """Reuse multisig."""
-    _, old_multisig, _, threshold, *_ = get_service_info(
+    _, multisig_address, _, threshold, *_ = get_service_info(
         ledger_api=ledger_api,
         chain_type=chain_type,
         token_id=service_id,
     )
-    if old_multisig == NULL_ADDRESS:
+    if multisig_address == NULL_ADDRESS:
         return None, "Cannot reuse multisig, No previous deployment exist!"
 
     service_owner = crypto.address
+    multisend_address = ContractConfigs.get(MULTISEND_CONTRACT.name).contracts[
+        chain_type
+    ]
     multisig_instance = registry_contracts.gnosis_safe.get_instance(
         ledger_api=ledger_api,
-        contract_address=old_multisig,
+        contract_address=multisig_address,
     )
+
+    # Verify if the service was terminated properly or not
     old_owners = multisig_instance.functions.getOwners().call()
     if len(old_owners) != 1 or service_owner not in old_owners:
         return (
             None,
             "Service was not terminated properly, the service owner should be the only owner of the safe",
         )
+
+    # Build multisend tx to add new instances as owners
     txs = []
     new_owners = cast(
         List[str],
@@ -689,54 +698,104 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
             token_id=service_id,
         ).get("agentInstances"),
     )
-    for owner in new_owners:
+    for _owner in new_owners[1:]:
         txs.append(
             {
-                "to": old_multisig,
-                "data": multisig_instance.encodeABI(
-                    fn_name="addOwnerWithThreshold",
-                    args=[owner, 1],
-                )[2:],
+                "to": multisig_address,
+                "data": HexBytes(
+                    bytes.fromhex(
+                        multisig_instance.encodeABI(
+                            fn_name="addOwnerWithThreshold",
+                            args=[_owner, 1],
+                        )[2:]
+                    )
+                ),
                 "operation": MultiSendOperation.CALL,
                 "value": 0,
             }
         )
+
     txs.append(
         {
-            "to": old_multisig,
-            "data": multisig_instance.encodeABI(
-                fn_name="removeOwner",
-                args=[new_owners[0], service_owner, threshold],
-            )[2:],
+            "to": multisig_address,
+            "data": HexBytes(
+                bytes.fromhex(
+                    multisig_instance.encodeABI(
+                        fn_name="swapOwner",
+                        args=[new_owners[1], service_owner, new_owners[0]],
+                    )[2:]
+                )
+            ),
             "operation": MultiSendOperation.CALL,
             "value": 0,
         }
     )
-    safe_tx = registry_contracts.multisend.get_multisend_tx(
+
+    txs.append(
+        {
+            "to": multisig_address,
+            "data": HexBytes(
+                bytes.fromhex(
+                    multisig_instance.encodeABI(
+                        fn_name="changeThreshold",
+                        args=[threshold],
+                    )[2:]
+                )
+            ),
+            "operation": MultiSendOperation.CALL,
+            "value": 0,
+        }
+    )
+
+    multisend_tx = registry_contracts.multisend.get_multisend_tx(
         ledger_api=ledger_api,
-        contract_address=ContractConfigs.get(MULTISEND_CONTRACT.name).contracts[
-            chain_type
-        ],
+        contract_address=multisend_address,
         txs=txs,
     )
-    signature_bytes = f"0x{'00' * 24}{service_owner[2:]}{'00' * 64}01"
+    safe_tx_hash = registry_contracts.gnosis_safe.get_raw_safe_transaction_hash(
+        ledger_api=ledger_api,
+        contract_address=multisig_address,
+        to_address=multisend_address,
+        value=multisend_tx["value"],
+        data=multisend_tx["data"],
+        operation=1,
+    ).get("tx_hash")
+    approve_hash_tx = registry_contracts.gnosis_safe.get_approve_hash_tx(
+        ledger_api=ledger_api,
+        contract_address=multisig_address,
+        tx_hash=safe_tx_hash,
+        sender=crypto.address,
+    )
+    transact(
+        ledger_api=ledger_api,
+        crypto=crypto,
+        tx=approve_hash_tx,
+    )
+
+    safe_tx_bytes = binascii.unhexlify(safe_tx_hash[2:])
+    owner_to_signature = {
+        crypto.address: crypto.sign_message(
+            message=safe_tx_bytes,
+            is_deprecated_mode=True,
+        )[2:]
+    }
+    signature_bytes = registry_contracts.gnosis_safe.get_packed_signatures(
+        owners=tuple(old_owners), signatures_by_owner=owner_to_signature
+    )
     safe_exec_data = multisig_instance.encodeABI(
         fn_name="execTransaction",
         args=[
-            safe_tx["to"],
-            safe_tx["value"],
-            safe_tx["data"],
-            0,
-            0,
-            0,
-            0,
-            NULL_ADDRESS,
-            NULL_ADDRESS,
-            signature_bytes,
+            multisend_address,  # to address
+            multisend_tx["value"],  # value
+            multisend_tx["data"],  # data
+            1,  # operation
+            0,  # safe tx gas
+            0,  # bas gas
+            0,  # safe gas price
+            NULL_ADDRESS,  # gas token
+            NULL_ADDRESS,  # refund receiver
+            signature_bytes,  # signatures
         ],
     )
-    packed_data = ledger_api.api.solidity_keccak(
-        ["address", "bytes"],
-        [old_multisig, safe_exec_data],
-    )
-    return packed_data.hex(), None
+    payload = multisig_address + safe_exec_data[2:]
+    return payload, None
