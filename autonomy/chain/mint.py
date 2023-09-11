@@ -39,6 +39,12 @@ from autonomy.chain.constants import (
 from autonomy.chain.exceptions import ComponentMintFailed, InvalidMintParameter
 
 
+try:
+    from web3.exceptions import Web3Exception
+except (ModuleNotFoundError, ImportError):
+    Web3Exception = Exception
+
+
 DEFAULT_NFT_IMAGE_HASH = "bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm"
 DEFAULT_TRANSACTION_WAIT_TIMEOUT = 60.0
 
@@ -48,7 +54,7 @@ def transact(
     crypto: Crypto,
     tx: Dict,
     max_retries: int = 5,
-    sleep: float = 2.0,
+    sleep: float = 5.0,
     timeout: Optional[float] = None,
 ) -> Dict:
     """Make a transaction and return a receipt"""
@@ -64,10 +70,10 @@ def transact(
         and retries < max_retries
         and deadline >= datetime.now().timestamp()
     ):
-        tx_receipt = ledger_api.api.eth.get_transaction_receipt(tx_digest)
-        if tx_receipt is not None:
-            return tx_receipt
-        time.sleep(sleep)
+        try:
+            return ledger_api.api.eth.get_transaction_receipt(tx_digest)
+        except Web3Exception:  # pylint: disable=broad-except
+            time.sleep(sleep)
     raise TimeoutError("Timed out when waiting for transaction to go through")
 
 
