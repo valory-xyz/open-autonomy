@@ -346,7 +346,7 @@ class GnosisSafeContract(Contract):
         return dict(tx_hash=HexBytes(encode_typed_data(structured_data)).hex())
 
     @classmethod
-    def _get_packed_signatures(
+    def get_packed_signatures(
         cls, owners: Tuple[str], signatures_by_owner: Dict[str, str]
     ) -> bytes:
         """Get the packed signatures."""
@@ -414,7 +414,7 @@ class GnosisSafeContract(Contract):
         sender_address = ledger_api.api.to_checksum_address(sender_address)
         to_address = ledger_api.api.to_checksum_address(to_address)
         ledger_api = cast(EthereumApi, ledger_api)
-        signatures = cls._get_packed_signatures(owners, signatures_by_owner)
+        signatures = cls.get_packed_signatures(owners, signatures_by_owner)
         safe_contract = cls.get_instance(ledger_api, contract_address)
 
         w3_tx = safe_contract.functions.execTransaction(
@@ -535,7 +535,7 @@ class GnosisSafeContract(Contract):
         to_address = ledger_api.api.to_checksum_address(to_address)
         ledger_api = cast(EthereumApi, ledger_api)
         safe_contract = cls.get_instance(ledger_api, contract_address)
-        signatures = cls._get_packed_signatures(owners, signatures_by_owner)
+        signatures = cls.get_packed_signatures(owners, signatures_by_owner)
 
         if safe_version is None:
             safe_version = safe_contract.functions.VERSION().call(
@@ -981,3 +981,24 @@ class GnosisSafeContract(Contract):
             for owner in safe_contract.functions.getOwners().call()
         ]
         return dict(owners=owners)
+
+    @classmethod
+    def get_approve_hash_tx(
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        tx_hash: str,
+        sender: str,
+    ) -> JSONLike:
+        """Get approve has tx."""
+        ledger_api = cast(EthereumApi, ledger_api)
+        return ledger_api.build_transaction(
+            contract_instance=cls.get_instance(ledger_api, contract_address),
+            method_name="approveHash",
+            method_args={
+                "hashToApprove": tx_hash,
+            },
+            tx_args={
+                "sender_address": sender,
+            },
+        )
