@@ -19,26 +19,38 @@
 
 """Test service management."""
 
-from typing import Optional
+import binascii
+from typing import List, Optional, cast
 from unittest import mock
 
 from aea.contracts.base import Contract
+from aea.crypto.base import Crypto
 from aea.crypto.registries import make_crypto
 from aea_test_autonomy.configurations import ETHEREUM_KEY_PATH_5
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 from click.testing import Result
+from hexbytes import HexBytes
 
-from autonomy.chain.base import ServiceState
+from autonomy.chain.base import ServiceState, registry_contracts
 from autonomy.chain.config import ChainType
-from autonomy.chain.constants import ERC20_TOKEN_ADDRESS_LOCAL
+from autonomy.chain.constants import ERC20_TOKEN_ADDRESS_LOCAL, HardhatAddresses
 from autonomy.chain.service import (
     activate_service,
     deploy_service,
+    get_agent_instances,
+    get_service_info,
     register_instance,
     terminate_service,
     unbond_service,
 )
 from autonomy.cli.helpers.chain import ServiceHelper
+
+from packages.valory.contracts.gnosis_safe.contract import SafeOperation
+from packages.valory.contracts.multisend.contract import MultiSendOperation
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    hash_payload_to_hex,
+    skill_input_hex_to_payload,
+)
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_chain.base import (
@@ -104,7 +116,10 @@ class BaseServiceManagerTest(BaseChainInteractionTest):
         )
 
     def deploy_service(
-        self, service_id: int, deployment_payload: Optional[str] = None
+        self,
+        service_id: int,
+        deployment_payload: Optional[str] = None,
+        reuse_multisig: bool = False,
     ) -> None:
         """Deploy service."""
 
@@ -114,6 +129,7 @@ class BaseServiceManagerTest(BaseChainInteractionTest):
             chain_type=self.chain_type,
             service_id=service_id,
             deployment_payload=deployment_payload,
+            reuse_multisig=reuse_multisig,
         )
 
     def terminate_service(self, service_id: int) -> None:
@@ -561,3 +577,166 @@ class TestERC20AsBond(BaseServiceManagerTest):
             "Service is token secured, please provice token address using `--token` flag"
             in result.stderr
         )
+
+
+class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
+    """Test service deployment with same multisig."""
+
+    def fund(self, address: str, amount: int = 1) -> None:
+        """Fund an address."""
+        raw_tx = {
+            "to": address,
+            "from": self.crypto.address,
+            "value": self.ledger_api.api.to_wei(amount, "ether"),
+            "gas": 100000,
+            "chainId": self.ledger_api.api.eth.chain_id,
+            "gasPrice": self.ledger_api.api.eth.gas_price,
+            "nonce": self.ledger_api.api.eth.get_transaction_count(self.crypto.address),
+        }
+        signed_tx = self.crypto.entity.sign_transaction(raw_tx)
+        self.ledger_api.api.eth.send_raw_transaction(signed_tx.rawTransaction)
+
+    def generate_and_fund_keys(self, n: int = 4) -> List[Crypto]:
+        """Generate and fund keys."""
+        keys = []
+        for _ in range(n):
+            crypto = make_crypto("ethereum")
+            self.fund(address=crypto.address)
+            keys.append(crypto)
+        return keys
+
+    def remove_owners(self, multisig_address: str, owners: List[Crypto]) -> None:
+        """Remove owners."""
+
+        multisend_address = HardhatAddresses.multisend
+        threshold = 1
+        owner_to_swap = owners[0].address
+        owners_to_remove = reversed(owners[1:])
+        multisend_txs = []
+
+        for owner in owners_to_remove:
+            txd = registry_contracts.gnosis_safe.get_remove_owner_data(
+                ledger_api=self.ledger_api,
+                contract_address=multisig_address,
+                owner=owner.address,
+                threshold=threshold,
+            ).get("data")
+            multisend_txs.append(
+                {
+                    "operation": MultiSendOperation.CALL,
+                    "to": multisig_address,
+                    "value": 0,
+                    "data": HexBytes(bytes.fromhex(txd[2:])),
+                }
+            )
+        txd = registry_contracts.gnosis_safe.get_swap_owner_data(
+            ledger_api=self.ledger_api,
+            contract_address=multisig_address,
+            old_owner=self.ledger_api.api.to_checksum_address(owner_to_swap),
+            new_owner=self.ledger_api.api.to_checksum_address(self.crypto.address),
+        ).get("data")
+        multisend_txs.append(
+            {
+                "operation": MultiSendOperation.CALL,
+                "to": multisig_address,
+                "value": 0,
+                "data": HexBytes(txd[2:]),
+            }
+        )
+
+        multisend_txd = registry_contracts.multisend.get_tx_data(
+            ledger_api=self.ledger_api,
+            contract_address=multisend_address,
+            multi_send_txs=multisend_txs,
+        ).get("data")
+        multisend_data = bytes.fromhex(multisend_txd[2:])
+
+        safe_tx_hash = registry_contracts.gnosis_safe.get_raw_safe_transaction_hash(
+            ledger_api=self.ledger_api,
+            contract_address=multisig_address,
+            to_address=multisend_address,
+            value=0,
+            data=multisend_data,
+            safe_tx_gas=0,
+            operation=SafeOperation.DELEGATE_CALL.value,
+        ).get("tx_hash")[2:]
+
+        payload_data = hash_payload_to_hex(
+            safe_tx_hash=safe_tx_hash,
+            ether_value=0,
+            safe_tx_gas=0,
+            to_address=multisend_address,
+            data=multisend_data,
+        )
+
+        tx_params = skill_input_hex_to_payload(payload=payload_data)
+        safe_tx_bytes = binascii.unhexlify(tx_params["safe_tx_hash"])
+        owner_to_signature = {}
+        for owner_crypto in owners:
+            signature = owner_crypto.sign_message(
+                message=safe_tx_bytes,
+                is_deprecated_mode=True,
+            )
+            owner_to_signature[
+                self.ledger_api.api.to_checksum_address(owner_crypto.address)
+            ] = signature[2:]
+
+        tx = registry_contracts.gnosis_safe.get_raw_safe_transaction(
+            ledger_api=self.ledger_api,
+            contract_address=multisig_address,
+            sender_address=owners[0].address,
+            owners=tuple([owner.address for owner in owners]),
+            to_address=tx_params["to_address"],
+            value=tx_params["ether_value"],
+            data=tx_params["data"],
+            safe_tx_gas=tx_params["safe_tx_gas"],
+            signatures_by_owner=owner_to_signature,
+            operation=SafeOperation.DELEGATE_CALL.value,
+        )
+        stx = owners[0].sign_transaction(tx)
+        tx_digest = self.ledger_api.send_signed_transaction(stx)
+        self.ledger_api.get_transaction_receipt(tx_digest)
+
+    def test_redeploy(self) -> None:
+        """Test redeploy service with same multisig."""
+
+        instances = self.generate_and_fund_keys()
+        service_id = self.mint_service()
+        self.activate_service(service_id=service_id)
+        for instance in instances:
+            self.register_instances(
+                service_id=service_id, agent_instance=instance.address
+            )
+        self.deploy_service(service_id=service_id)
+        self.terminate_service(service_id=service_id)
+        self.unbond_service(service_id=service_id)
+        _, multisig_address, *_ = get_service_info(
+            ledger_api=self.ledger_api,
+            chain_type=ChainType.LOCAL,
+            token_id=service_id,
+        )
+        self.remove_owners(multisig_address=multisig_address, owners=instances)
+
+        new_instances = self.generate_and_fund_keys()
+        self.activate_service(service_id=service_id)
+        for instance in new_instances:
+            self.register_instances(
+                service_id=service_id, agent_instance=instance.address
+            )
+        self.deploy_service(service_id=service_id, reuse_multisig=True)
+        _, multisig_address_redeployed, *_ = get_service_info(
+            ledger_api=self.ledger_api,
+            chain_type=ChainType.LOCAL,
+            token_id=service_id,
+        )
+        assert multisig_address_redeployed == multisig_address
+        safe_owners = cast(
+            List[str],
+            get_agent_instances(
+                ledger_api=self.ledger_api,
+                chain_type=ChainType.LOCAL,
+                token_id=service_id,
+            ).get("agentInstances"),
+        )
+        for instance in new_instances:
+            assert instance.address in safe_owners
