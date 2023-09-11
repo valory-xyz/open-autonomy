@@ -22,12 +22,15 @@
 from typing import Optional
 from unittest import mock
 
+from aea.contracts.base import Contract
 from aea.crypto.registries import make_crypto
 from aea_test_autonomy.configurations import ETHEREUM_KEY_PATH_5
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 from click.testing import Result
 
 from autonomy.chain.base import ServiceState
+from autonomy.chain.config import ChainType
+from autonomy.chain.constants import ERC20_TOKEN_ADDRESS_LOCAL
 from autonomy.chain.service import (
     activate_service,
     deploy_service,
@@ -35,7 +38,9 @@ from autonomy.chain.service import (
     terminate_service,
     unbond_service,
 )
+from autonomy.cli.helpers.chain import ServiceHelper
 
+from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_chain.base import (
     AGENT_ID,
     BaseChainInteractionTest,
@@ -395,4 +400,164 @@ class TestServiceManager(BaseServiceManagerTest):
         self.unbond_service(service_id=service_id)
         _run_check(
             service_id=str(service_id), message=ServiceState.PRE_REGISTRATION.name
+        )
+
+
+class TestERC20AsBond(BaseServiceManagerTest):
+    """Test ERC20 token as bond."""
+
+    def setup(self) -> None:
+        """Setup test."""
+        super().setup()
+        instance = Contract.from_dir(
+            ROOT_DIR / "packages" / "valory" / "contracts" / "erc20"
+        ).get_instance(
+            ledger_api=self.ledger_api,
+            contract_address=ERC20_TOKEN_ADDRESS_LOCAL,
+        )
+        tx = instance.functions.mint(self.crypto.address, int(1e18)).build_transaction(
+            {
+                "from": self.crypto.address,
+                "gas": 200001,
+                "gasPrice": 30000,
+                "nonce": self.ledger_api.api.eth.get_transaction_count(
+                    self.crypto.address
+                ),
+            }
+        )
+        stx = self.crypto.entity.sign_transaction(tx)
+        tx_digext = self.ledger_api.api.eth.send_raw_transaction(stx.rawTransaction)
+        while True:
+            try:
+                return self.ledger_api.api.eth.get_transaction_receipt(tx_digext)
+            except Exception:
+                continue
+
+    def mint(self) -> int:
+        """Mint service with token"""
+        with mock.patch("autonomy.cli.helpers.chain.verify_service_dependencies"):
+            service_id = self.mint_component(
+                package_id=DUMMY_SERVICE,
+                service_mint_parameters=dict(
+                    agent_ids=[AGENT_ID],
+                    number_of_slots_per_agent=[NUMBER_OF_SLOTS_PER_AGENT],
+                    cost_of_bond_per_agent=[COST_OF_BOND_FOR_AGENT],
+                    threshold=THRESHOLD,
+                    token=ERC20_TOKEN_ADDRESS_LOCAL,
+                ),
+            )
+        assert isinstance(service_id, int)
+        return service_id
+
+    def test_mint(self) -> None:
+        """Test mint with ERC20 token as bond."""
+        service_id = self.mint()
+        assert (
+            ServiceHelper(
+                service_id=service_id,
+                chain_type=ChainType.LOCAL,
+                key=self.key_file,
+            )
+            .check_is_service_token_secured(token=ERC20_TOKEN_ADDRESS_LOCAL)
+            .token_secured
+            is True
+        )
+
+    def test_activate(self) -> None:
+        """Test activate with token."""
+        service_id = self.mint()
+        result = self.run_cli(
+            commands=(
+                "activate",
+                str(service_id),
+                "--key",
+                str(self.key_file),
+                "--token",
+                ERC20_TOKEN_ADDRESS_LOCAL,
+            )
+        )
+        assert result.exit_code == 0, result.output
+
+    def test_activate_failure(self) -> None:
+        """Test activate with token."""
+        service_id = self.mint()
+        result = self.run_cli(
+            commands=(
+                "activate",
+                str(service_id),
+                "--key",
+                str(self.key_file),
+            )
+        )
+
+        assert result.exit_code == 1, result.output
+        assert (
+            "Service is token secured, please provice token address using `--token` flag"
+            in result.stderr
+        )
+
+    def test_register_instances(self) -> None:
+        """Test register instances with token."""
+        service_id = self.mint()
+        result = self.run_cli(
+            commands=(
+                "activate",
+                str(service_id),
+                "--key",
+                str(self.key_file),
+                "--token",
+                ERC20_TOKEN_ADDRESS_LOCAL,
+            )
+        )
+        assert result.exit_code == 0, result.output
+
+        agent = make_crypto("ethereum")
+        result = self.run_cli(
+            commands=(
+                "register",
+                str(service_id),
+                "--key",
+                str(self.key_file),
+                "-a",
+                str(AGENT_ID),
+                "-i",
+                agent.address,
+                "--token",
+                ERC20_TOKEN_ADDRESS_LOCAL,
+            )
+        )
+        assert result.exit_code == 0, result.output
+
+    def test_register_instances_failure(self) -> None:
+        """Test register instances with token."""
+        service_id = self.mint()
+        result = self.run_cli(
+            commands=(
+                "activate",
+                str(service_id),
+                "--key",
+                str(self.key_file),
+                "--token",
+                ERC20_TOKEN_ADDRESS_LOCAL,
+            )
+        )
+        assert result.exit_code == 0, result.output
+
+        agent = make_crypto("ethereum")
+        result = self.run_cli(
+            commands=(
+                "register",
+                str(service_id),
+                "--key",
+                str(self.key_file),
+                "-a",
+                str(AGENT_ID),
+                "-i",
+                agent.address,
+            )
+        )
+        assert result.exit_code == 1, result.output
+        assert (
+            "Service is token secured, please provice token address using `--token` flag"
+            in result.stderr
         )
