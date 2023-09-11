@@ -51,7 +51,7 @@ from autonomy.chain.mint import transact
 
 try:
     from web3.exceptions import Web3Exception
-except (ModuleNotFoundError, ImportError):
+except (ModuleNotFoundError, ImportError):  # pragma: nocover
     Web3Exception = Exception
 
 NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
