@@ -430,7 +430,7 @@ class TestERC20AsBond(BaseServiceManagerTest):
         while True:
             try:
                 return self.ledger_api.api.eth.get_transaction_receipt(tx_digext)
-            except Exception:
+            except Exception:  # nosec
                 continue
 
     def mint(self) -> int:
