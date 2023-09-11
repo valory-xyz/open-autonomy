@@ -24,12 +24,26 @@ import typing as t
 import pytest
 import requests
 
-from autonomy.chain import constants
 from autonomy.chain.config import ChainType
+from autonomy.chain.constants import (
+    ContractAddresses,
+    EthereumAddresses,
+    GoerliAddresses,
+)
 
 
 ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/main/docs/configuration.json"
 CHAIN_SLUGS = {ChainType.ETHEREUM: "mainnet", ChainType.GOERLI: "goerli"}
+ADDRESSES_TO_CHECK = {
+    "ComponentRegistry": "component_registry",
+    "AgentRegistry": "agent_registry",
+    "RegistriesManager": "registries_manager",
+    "ServiceRegistry": "service_registry",
+    "ServiceRegistryTokenUtility": "service_registry_token_utility",
+    "ServiceManagerToken": "service_manager",
+    "GnosisSafeMultisig": "gnosis_safe_proxy_factory",
+    "GnosisSafeSameAddressMultisig": "gnosis_safe_same_address_multisig",
+}
 
 
 def camel_to_snake_case(string: str) -> str:
@@ -58,37 +72,23 @@ class TestAddresses:
         }
 
     @pytest.mark.parametrize(
-        argnames="chain",
+        argnames="chain,addresses",
         argvalues=(
-            ChainType.ETHEREUM,
-            ChainType.GOERLI,
+            (ChainType.ETHEREUM, EthereumAddresses),
+            (ChainType.GOERLI, GoerliAddresses),
         ),
     )
-    def test_addresses_match(self, chain: ChainType) -> None:
+    def test_addresses_match(
+        self, chain: ChainType, addresses: ContractAddresses
+    ) -> None:
         """Test addresses match with the remote file."""
-        l1_chain = chain in (
-            ChainType.ETHEREUM,
-            ChainType.GOERLI,
-        )
         contracts = self.contracts[CHAIN_SLUGS[chain]]
         for contract in contracts:
             name = contract["name"]
+            if name not in ADDRESSES_TO_CHECK:
+                continue
             address = contract["address"]
-            if name == "serviceManagerAddress" and l1_chain:
-                continue
-            if name == "serviceManagerTokenAddress" and l1_chain:
-                constant = (
-                    camel_to_snake_case(name.replace("Token", ""))
-                    + "_address_"
-                    + chain.value
-                ).upper()
-            else:
-                constant = (
-                    camel_to_snake_case(name) + "_address_" + chain.value
-                ).upper()
-            constant_address = getattr(constants, constant, None)
-            if constant_address is None:
-                continue
+            constant_address = addresses.get(name=ADDRESSES_TO_CHECK[name])
             assert (
                 address == constant_address
-            ), f"Constant value and remote value does not match for `{constant}`"
+            ), f"Constant value and remote value does not match for `{name}`"
