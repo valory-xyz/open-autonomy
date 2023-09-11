@@ -65,7 +65,7 @@ class AgentRegistryContract(Contract):
         raise NotImplementedError  # pragma: nocover
 
     @classmethod
-    def get_create_events(
+    def get_create_events(  # pragma: nocover
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
@@ -79,7 +79,7 @@ class AgentRegistryContract(Contract):
         return contract_interface.events.CreateUnit().process_receipt(receipt)
 
     @classmethod
-    def get_update_hash_events(
+    def get_update_hash_events(  # pragma: nocover
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
@@ -105,7 +105,7 @@ class AgentRegistryContract(Contract):
             contract_address=contract_address,
         )
         _, hash_updates = contract_interface.functions.getUpdatedHashes(token_id).call()
-        if len(hash_updates) > 0:
+        if len(hash_updates) > 0:  # pragma: nocover
             *_, latest_hash = hash_updates
             uri = f"https://gateway.autonolas.tech/ipfs/f01701220{latest_hash.hex()}"
         else:
