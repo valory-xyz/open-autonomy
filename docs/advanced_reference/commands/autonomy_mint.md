@@ -19,7 +19,7 @@ This command group consists of a number of functionalities to mint components, a
     - `GOERLI_CHAIN_RPC` : RPC endpoint for the Görli testnet chain.
 
 `--use-custom-chain`
-: Use the custom-chain profile to interact with the {{ autonolas_protocol }} registry contracts. This profile requires that you define some parameters and [contract addresses](../on_chain_addresses.md) as environment variables (see also the {{ autonolas_protocol }} documentation for more information):
+: Use the custom-chain profile to interact with the Autonolas Protocol registry contracts. This profile requires that you define some parameters and [contract addresses](../on_chain_addresses.md) as environment variables (see also the {{ autonolas_protocol }} documentation for more information):
 
     - `CUSTOM_CHAIN_RPC` : RPC endpoint for the custom chain.
     - `CUSTOM_CHAIN_ID` : chain ID.
@@ -34,8 +34,12 @@ This command group consists of a number of functionalities to mint components, a
     - `CUSTOM_MULTISEND_ADDRESS` : Custom Multisend address.
 
 !!! note
-
-    For L2 chains you will only require to set `CUSTOM_SERVICE_MANAGER_ADDRESS`, `CUSTOM_SERVICE_REGISTRY_ADDRESS`, `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS`, `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` and `CUSTOM_MULTISEND_ADDRESS`
+    For L2 chains you are only required to set
+    - `CUSTOM_SERVICE_MANAGER_ADDRESS`,
+    - `CUSTOM_SERVICE_REGISTRY_ADDRESS`,
+    - `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS`,
+    - `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` and
+    - `CUSTOM_MULTISEND_ADDRESS`.
 
 `--use-local`
 : Use the local chain profile to interact with the Autonolas Protocol registry contracts. This option requires that you have a local Hardhat node with the required contracts deployed.
@@ -135,7 +139,7 @@ autonomy mint agent [OPTIONS] PACKAGE_PATH
 : Owner address of the package.
 
 `--update TOKEN_ID`
-: Update the existing minted token with the latest package hash.
+: Update the already minted agent with on-chain `TOKEN_ID` with the current package hash.
 
 ### Examples
 
@@ -193,7 +197,7 @@ autonomy mint service [OPTIONS] PACKAGE_PATH
 : Use the ERC20 token for securing autonomous services.
 
 `--update TOKEN_ID`
-: Update the existing mint with the latest package hash.
+: Update the already minted service with on-chain `TOKEN_ID` with the current package hash.
 
 ### Examples
 
