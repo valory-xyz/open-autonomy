@@ -58,9 +58,9 @@ class ChainType(Enum):
 
 ADDRESS_CONTAINERS = {
     ChainType.LOCAL: HardhatAddresses,
-    ChainType.CUSTOM: GoerliAddresses,
-    ChainType.GOERLI: EthereumAddresses,
-    ChainType.ETHEREUM: CustomAddresses,
+    ChainType.CUSTOM: CustomAddresses,
+    ChainType.GOERLI: GoerliAddresses,
+    ChainType.ETHEREUM: EthereumAddresses,
 }
 
 
