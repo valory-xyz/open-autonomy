@@ -139,7 +139,7 @@ autonomy mint agent [OPTIONS] PACKAGE_PATH
 : Owner address of the package.
 
 `--update TOKEN_ID`
-: Update the existing minted token with the latest package hash.
+: Update the already minted agent with on-chain `TOKEN_ID` with the current package hash.
 
 ### Examples
 
@@ -197,7 +197,7 @@ autonomy mint service [OPTIONS] PACKAGE_PATH
 : Use the ERC20 token for securing autonomous services.
 
 `--update TOKEN_ID`
-: Update the existing mint with the latest package hash.
+: Update the already minted service with on-chain `TOKEN_ID` with the current package hash.
 
 ### Examples
 
