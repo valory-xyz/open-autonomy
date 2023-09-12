@@ -35,6 +35,7 @@ CONTRACT_TO_SLUG = {
     "ServiceRegistryL2": "SERVICE_REGISTRY",
     "ServiceRegistryTokenUtility": "SERVICE_REGISTRY_TOKEN_UTILITY",
     "ServiceManagerToken": "SERVICE_MANAGER",
+    "ServiceManager": "SERVICE_MANAGER",
     "GnosisSafeMultisig": "GNOSIS_SAFE_PROXY_FACTORY",
     "GnosisSafeSameAddressMultisig": "GNOSIS_SAFE_SAME_ADDRESS_MULTISIG",
 }
