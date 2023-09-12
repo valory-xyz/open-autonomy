@@ -46,18 +46,6 @@ ADDRESSES_TO_CHECK = {
 }
 
 
-def camel_to_snake_case(string: str) -> str:
-    """Convert camelCase to snake_case."""
-    _string = string[0].lower()
-    for char in string[1:]:
-        if char.islower():
-            _string += char
-        else:
-            _string += "_"
-            _string += char.lower()
-    return _string
-
-
 class TestAddresses:
     """Test addesses."""
 
