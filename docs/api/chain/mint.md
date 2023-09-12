@@ -13,7 +13,7 @@ def transact(ledger_api: LedgerApi,
              crypto: Crypto,
              tx: Dict,
              max_retries: int = 5,
-             sleep: float = 2.0,
+             sleep: float = 5.0,
              timeout: Optional[float] = None) -> Dict
 ```
 

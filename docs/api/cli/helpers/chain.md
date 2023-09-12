@@ -270,7 +270,8 @@ Register agents instances on an activated service
 #### deploy`_`service
 
 ```python
-def deploy_service(deployment_payload: Optional[str] = None,
+def deploy_service(reuse_multisig: bool = False,
+                   deployment_payload: Optional[str] = None,
                    timeout: Optional[float] = None) -> None
 ```
 

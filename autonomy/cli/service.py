@@ -131,6 +131,11 @@ def _register(  # pylint: disable=too-many-arguments
 
 
 @service.command("deploy")
+@click.option(
+    "--reuse-multisig",
+    is_flag=True,
+    help="Reuse mutlisig from previous deployment.",
+)
 @pass_ctx
 @service_id_flag
 @key_path_decorator
@@ -142,11 +147,12 @@ def _register(  # pylint: disable=too-many-arguments
     type=int,
     help="Deployment payload value",
 )
-def _deploy(
+def _deploy(  # pylint: disable=too-many-arguments
     ctx: Context,
     service_id: int,
     key: Path,
     hwi: bool,
+    reuse_multisig: bool,
     password: Optional[str],
     deployment_payload: Optional[str],
 ) -> None:
@@ -158,6 +164,7 @@ def _deploy(
         password=password,
         hwi=hwi,
     ).deploy_service(
+        reuse_multisig=reuse_multisig,
         deployment_payload=deployment_payload,
         timeout=ctx.config["timeout"],
     )

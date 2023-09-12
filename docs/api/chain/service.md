@@ -4,6 +4,16 @@
 
 Helper functions to manage on-chain services
 
+<a id="autonomy.chain.service.MultiSendOperation"></a>
+
+## MultiSendOperation Objects
+
+```python
+class MultiSendOperation(Enum)
+```
+
+Operation types.
+
 <a id="autonomy.chain.service.get_default_delployment_payload"></a>
 
 #### get`_`default`_`delployment`_`payload
@@ -206,6 +216,7 @@ def deploy_service(ledger_api: LedgerApi,
                    chain_type: ChainType,
                    service_id: int,
                    deployment_payload: Optional[str] = None,
+                   reuse_multisig: bool = False,
                    timeout: Optional[float] = None) -> None
 ```
 
@@ -222,6 +233,7 @@ the service and registered the required agent instances.
 - `service_id`: Service ID retrieved after minting a service
 - `deployment_payload`: Deployment payload to include when making the
 deployment transaction
+- `reuse_multisig`: Use multisig from the previous deployment
 - `timeout`: Time to wait for deploy event to emit
 
 <a id="autonomy.chain.service.terminate_service"></a>
@@ -265,4 +277,16 @@ the service.
 - `crypto`: `aea.crypto.Crypto` object which has a funded key
 - `chain_type`: Chain type
 - `service_id`: Service ID retrieved after minting a service
+
+<a id="autonomy.chain.service.get_reuse_multisig_payload"></a>
+
+#### get`_`reuse`_`multisig`_`payload
+
+```python
+def get_reuse_multisig_payload(
+        ledger_api: LedgerApi, crypto: Crypto, chain_type: ChainType,
+        service_id: int) -> Tuple[Optional[str], Optional[str]]
+```
+
+Reuse multisig.
 

@@ -126,3 +126,36 @@ def erc20() -> Contract
 
 Returns an instance of the service registry token utility contract.
 
+<a id="autonomy.chain.base.RegistryContracts.gnosis_safe"></a>
+
+#### gnosis`_`safe
+
+```python
+@property
+def gnosis_safe() -> Contract
+```
+
+Returns an instance of the service registry token utility contract.
+
+<a id="autonomy.chain.base.RegistryContracts.gnosis_safe_proxy_factory"></a>
+
+#### gnosis`_`safe`_`proxy`_`factory
+
+```python
+@property
+def gnosis_safe_proxy_factory() -> Contract
+```
+
+Returns an instance of the service registry token utility contract.
+
+<a id="autonomy.chain.base.RegistryContracts.multisend"></a>
+
+#### multisend
+
+```python
+@property
+def multisend() -> Contract
+```
+
+Returns an instance of the service registry token utility contract.
+

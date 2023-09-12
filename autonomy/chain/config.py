@@ -171,7 +171,18 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
         name="gnosis_safe_proxy_factory",
         contracts={
             chain_type: getattr(
-                chain_constants, f"GNOSIS_SAFE_MULTISIG_ADDRESS_{chain_type.name}"
+                chain_constants, f"GNOSIS_SAFE_PROXY_FACTORY_ADDRESS_{chain_type.name}"
+            )
+            for chain_type in ChainType
+        },
+    )
+
+    gnosis_safe_same_address_multisig = ContractConfig(
+        name="gnosis_safe_same_address_multisig",
+        contracts={
+            chain_type: getattr(
+                chain_constants,
+                f"GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS_{chain_type.name}",
             )
             for chain_type in ChainType
         },
@@ -183,6 +194,17 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
             chain_type: getattr(
                 chain_constants,
                 f"SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS_{chain_type.name}",
+            )
+            for chain_type in ChainType
+        },
+    )
+
+    multisend = ContractConfig(
+        name="multisend",
+        contracts={
+            chain_type: getattr(
+                chain_constants,
+                f"MULTISEND_ADDRESS_{chain_type.name}",
             )
             for chain_type in ChainType
         },
