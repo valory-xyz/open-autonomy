@@ -23,6 +23,9 @@ import binascii
 from typing import List, Optional, cast
 from unittest import mock
 
+from aea.components.base import load_aea_package
+from aea.configurations.data_types import PackageType
+from aea.configurations.loader import load_configuration_object
 from aea.contracts.base import Contract
 from aea.crypto.base import Crypto
 from aea.crypto.registries import make_crypto
@@ -44,13 +47,6 @@ from autonomy.chain.service import (
     unbond_service,
 )
 from autonomy.cli.helpers.chain import ServiceHelper
-
-from packages.valory.contracts.gnosis_safe.contract import SafeOperation
-from packages.valory.contracts.multisend.contract import MultiSendOperation
-from packages.valory.skills.transaction_settlement_abci.payload_tools import (
-    hash_payload_to_hex,
-    skill_input_hex_to_payload,
-)
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_chain.base import (
@@ -425,13 +421,15 @@ class TestERC20AsBond(BaseServiceManagerTest):
     def setup(self) -> None:
         """Setup test."""
         super().setup()
-        instance = Contract.from_dir(
+        erc20_instance = Contract.from_dir(
             ROOT_DIR / "packages" / "valory" / "contracts" / "erc20"
         ).get_instance(
             ledger_api=self.ledger_api,
             contract_address=ERC20_TOKEN_ADDRESS_LOCAL,
         )
-        tx = instance.functions.mint(self.crypto.address, int(1e18)).build_transaction(
+        tx = erc20_instance.functions.mint(
+            self.crypto.address, int(1e18)
+        ).build_transaction(
             {
                 "from": self.crypto.address,
                 "gas": 200001,
@@ -607,6 +605,33 @@ class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
 
     def remove_owners(self, multisig_address: str, owners: List[Crypto]) -> None:
         """Remove owners."""
+
+        # Load packages in the memory.
+        packages_dir = ROOT_DIR / "packages" / "valory"
+        for package_type, package_path in (
+            (
+                PackageType.CONTRACT,
+                packages_dir / "contracts" / "gnosis_safe_proxy_factory",
+            ),
+            (PackageType.CONTRACT, packages_dir / "contracts" / "gnosis_safe"),
+            (PackageType.CONTRACT, packages_dir / "contracts" / "multisend"),
+            (
+                PackageType.SKILL,
+                packages_dir / "skills" / "transaction_settlement_abci",
+            ),
+        ):
+            config_obj = load_configuration_object(
+                package_type=package_type, directory=package_path
+            )
+            config_obj.directory = package_path
+            load_aea_package(configuration=config_obj)
+
+        from packages.valory.contracts.gnosis_safe.contract import SafeOperation
+        from packages.valory.contracts.multisend.contract import MultiSendOperation
+        from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+            hash_payload_to_hex,
+            skill_input_hex_to_payload,
+        )
 
         multisend_address = HardhatAddresses.multisend
         threshold = 1
