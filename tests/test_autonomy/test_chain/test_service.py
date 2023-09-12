@@ -20,6 +20,8 @@
 """Test service helpers."""
 
 
+from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
+
 from autonomy.chain.service import get_reuse_multisig_payload
 
 from tests.test_autonomy.test_chain.base import (
@@ -33,7 +35,7 @@ from tests.test_autonomy.test_chain.base import (
 
 
 class TestReuseMultisigPayload(BaseChainInteractionTest):
-    """Test get_reuse_multisig_payload metho."""
+    """Test get_reuse_multisig_payload method."""
 
     def test_inproper_termination(self) -> None:
         """Test inproper termination failure"""

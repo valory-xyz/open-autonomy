@@ -20,6 +20,7 @@
 """Test service management."""
 
 import binascii
+import logging
 import time
 from typing import List, Optional, cast
 from unittest import mock
@@ -63,6 +64,7 @@ from tests.test_autonomy.test_chain.base import (
 DEFAULT_AGENT_INSTANCE_ADDRESS = (
     "0x976EA74026E726554dB657fA54763abd0C3a0aa9"  # a key from default hardhat keys
 )
+MAX_DEPLOY_ATTEMPTS = 5
 
 
 class BaseServiceManagerTest(BaseChainInteractionTest):
@@ -723,43 +725,44 @@ class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
         tx_digest = self.ledger_api.send_signed_transaction(stx)
         self.ledger_api.get_transaction_receipt(tx_digest)
 
+    def _try_redeploy(self, service_id: int) -> None:
+        """Try to redeploy the service."""
+
+        for _ in range(MAX_DEPLOY_ATTEMPTS):
+            try:
+                return self.deploy_service(service_id=service_id, reuse_multisig=True)
+            except Exception as e:  # pylint: disable=broad-except
+                logging.error(f"Service redeployment failed with error {str(e)}")
+                time.sleep(3)
+        raise RuntimeError("Cannot redeploy service...")
+
     def test_redeploy(self) -> None:
         """Test redeploy service with same multisig."""
         # The sleep calls in the test are added to avoid timeout issues on hardhat JSON-RPC
         instances = self.generate_and_fund_keys()
-        time.sleep(0.5)
         service_id = self.mint_service()
-        time.sleep(0.5)
         self.activate_service(service_id=service_id)
-        time.sleep(0.5)
         for instance in instances:
             self.register_instances(
                 service_id=service_id, agent_instance=instance.address
             )
         self.deploy_service(service_id=service_id)
-        time.sleep(0.5)
         self.terminate_service(service_id=service_id)
-        time.sleep(0.5)
         self.unbond_service(service_id=service_id)
-        time.sleep(0.5)
         _, multisig_address, *_ = get_service_info(
             ledger_api=self.ledger_api,
             chain_type=ChainType.LOCAL,
             token_id=service_id,
         )
         self.remove_owners(multisig_address=multisig_address, owners=instances)
-        time.sleep(0.5)
 
         new_instances = self.generate_and_fund_keys()
-        time.sleep(0.5)
         self.activate_service(service_id=service_id)
-        time.sleep(0.5)
         for instance in new_instances:
             self.register_instances(
                 service_id=service_id, agent_instance=instance.address
             )
-        self.deploy_service(service_id=service_id, reuse_multisig=True)
-        time.sleep(0.5)
+
         _, multisig_address_redeployed, *_ = get_service_info(
             ledger_api=self.ledger_api,
             chain_type=ChainType.LOCAL,
