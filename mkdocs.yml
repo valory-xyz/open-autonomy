@@ -98,6 +98,7 @@ nav:
     - Deployment:
       - Container Control Flow: 'control_flow.md'
     - Using custom images in a deployment: 'advanced_reference/use_custom_images.md'
+    - On Chain Addresses: 'advanced_reference/on_chain_addresses.md'
     - API:
       - Library:
         - Constants: 'api/constants.md'
