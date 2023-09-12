@@ -8,7 +8,7 @@ The following table shows which versions of `open-autonomy` are currently being 
 
 | Version   | Supported          |
 | --------- | ------------------ |
-| `0.12.0`   | :white_check_mark: |
+| `0.12.1`   | :white_check_mark: |
 | `< 0.12.x` | :x:                |
 
 ## Reporting a Vulnerability
