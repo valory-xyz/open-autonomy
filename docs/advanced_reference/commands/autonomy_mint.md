@@ -194,7 +194,7 @@ autonomy mint service [OPTIONS] PACKAGE_PATH
 : Threshold for the minimum number of agents required to run the service. The threshold has to be at least $\lceil(2N + 1) / 3\rceil$, where $N$ is total number of the agents in the service.
 
 `--token ERC20_TOKEN_ADDRESS`
-: Use the ERC20 token for securing autonomous services.
+: ERC20 token for securing the service.
 
 `--update TOKEN_ID`
 : Update the already minted service with on-chain `TOKEN_ID` with the current package hash.
@@ -218,12 +218,12 @@ autonomy mint --use-ethereum service --hwi --nft <nft_ipfs_hash_or_image_path> -
     You can specify more than one type of canonical agent in a service by appropriately defining the triplets `--agent-id`, `--number-of-slots` and `--cost-of-bond` for each canonical agent ID.
 
 
-You can also use a custom ERC20 token as token for secure the autonomous service, to do this use `--token` flag to provide the address to the token of your choice:
+You can also use a custom ERC20 token as token to secure the service. Use the `--token` flag to provide the address of the token of your choice:
 
 ```bash
 autonomy mint --use-ethereum service --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> --agent-id 3 --number-of-slots 4 --cost-of-bond 10000000000000000 --threshold 3 ./packages/valory/services/hello_world --token <erc20_token_address>
 ```
 
-!!! note
+!!! warning "Important"
 
-    When minting a service if an ERC20 token was used for bonding, you'll also have to use the same token when activating the service and registering the agent instances.
+    If you have minted a service using a custom ERC20 token, then you have to use the same token activate the service and to register the agent instances.
