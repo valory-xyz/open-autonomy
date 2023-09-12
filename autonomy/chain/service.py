@@ -416,6 +416,23 @@ def deploy_service(  # pylint: disable=too-many-arguments
     :param reuse_multisig: Use multisig from the previous deployment
     :param timeout: Time to wait for deploy event to emit
     """
+
+    (
+        *_,
+        service_state,
+        _,
+    ) = get_service_info(
+        ledger_api=ledger_api,
+        chain_type=chain_type,
+        token_id=service_id,
+    )
+
+    if service_state == ServiceState.NON_EXISTENT.value:
+        raise ServiceDeployFailed("Service does not exist")
+
+    if service_state != ServiceState.FINISHED_REGISTRATION.value:
+        raise ServiceDeployFailed("Service needs to be in finished registration state")
+
     deployment_payload = deployment_payload or get_default_delployment_payload()
     gnosis_safe_multisig = ContractConfigs.get(
         GNOSIS_SAFE_PROXY_FACTORY_CONTRACT.name
@@ -433,22 +450,6 @@ def deploy_service(  # pylint: disable=too-many-arguments
         gnosis_safe_multisig = ContractConfigs.get(
             GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT.name
         ).contracts[chain_type]
-
-    (
-        *_,
-        service_state,
-        _,
-    ) = get_service_info(
-        ledger_api=ledger_api,
-        chain_type=chain_type,
-        token_id=service_id,
-    )
-
-    if service_state == ServiceState.NON_EXISTENT.value:
-        raise ServiceDeployFailed("Service does not exist")
-
-    if service_state != ServiceState.FINISHED_REGISTRATION.value:
-        raise ServiceDeployFailed("Service needs to be in finished registration state")
 
     try:
         tx = registry_contracts.service_manager.get_service_deploy_transaction(
