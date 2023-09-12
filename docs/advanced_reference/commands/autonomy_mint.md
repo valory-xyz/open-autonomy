@@ -19,7 +19,7 @@ This command group consists of a number of functionalities to mint components, a
     - `GOERLI_CHAIN_RPC` : RPC endpoint for the Görli testnet chain.
 
 `--use-custom-chain`
-: Use the custom-chain chain profile to interact with the Autonolas Protocol registry contracts. This option requires that you define the following environment variables (see the {{ autonolas_protocol }} and [On Chain Contract Addresses](../on_chain_addresses.md) documentation for more information):
+: Use the custom-chain profile to interact with the {{ autonolas_protocol }} registry contracts. This profile requires that you define some parameters and [contract addresses](../on_chain_addresses.md) as environment variables (see also the {{ autonolas_protocol }} documentation for more information):
 
     - `CUSTOM_CHAIN_RPC` : RPC endpoint for the custom chain.
     - `CUSTOM_CHAIN_ID` : chain ID.
@@ -35,7 +35,7 @@ This command group consists of a number of functionalities to mint components, a
 
 !!! note
 
-    For L2 chains you will only require to set `CUSTOM_SERVICE_REGISTRY_ADDRESS`, `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS`, `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` and `CUSTOM_MULTISEND_ADDRESS`
+    For L2 chains you will only require to set `CUSTOM_SERVICE_MANAGER_ADDRESS`, `CUSTOM_SERVICE_REGISTRY_ADDRESS`, `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS`, `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` and `CUSTOM_MULTISEND_ADDRESS`
 
 `--use-local`
 : Use the local chain profile to interact with the Autonolas Protocol registry contracts. This option requires that you have a local Hardhat node with the required contracts deployed.
@@ -83,7 +83,7 @@ autonomy mint skill [OPTIONS] PACKAGE_PATH
 : Owner address of the package.
 
 `--update TOKEN_ID`
-: Update the existing mint with the latest package hash.
+: Update the existing minted token with the latest package hash.
 
 ### Examples
 
@@ -135,7 +135,7 @@ autonomy mint agent [OPTIONS] PACKAGE_PATH
 : Owner address of the package.
 
 `--update TOKEN_ID`
-: Update the existing mint with the latest package hash.
+: Update the existing minted token with the latest package hash.
 
 ### Examples
 
@@ -190,7 +190,7 @@ autonomy mint service [OPTIONS] PACKAGE_PATH
 : Threshold for the minimum number of agents required to run the service. The threshold has to be at least $\lceil(2N + 1) / 3\rceil$, where $N$ is total number of the agents in the service.
 
 `--token ERC20_TOKEN_ADDRESS`
-: Use the ERC20 token for bonding.
+: Use the ERC20 token for securing autonomous services.
 
 `--update TOKEN_ID`
 : Update the existing mint with the latest package hash.
@@ -214,7 +214,7 @@ autonomy mint --use-ethereum service --hwi --nft <nft_ipfs_hash_or_image_path> -
     You can specify more than one type of canonical agent in a service by appropriately defining the triplets `--agent-id`, `--number-of-slots` and `--cost-of-bond` for each canonical agent ID.
 
 
-You can also use a custom ERC20 token as bonding token for a service, to do this use `--token` flag to provide the address to the token of your choice:
+You can also use a custom ERC20 token as token for secure the autonomous service, to do this use `--token` flag to provide the address to the token of your choice:
 
 ```bash
 autonomy mint --use-ethereum service --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> --agent-id 3 --number-of-slots 4 --cost-of-bond 10000000000000000 --threshold 3 ./packages/valory/services/hello_world --token <erc20_token_address>
