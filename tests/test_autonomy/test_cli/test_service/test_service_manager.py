@@ -20,6 +20,7 @@
 """Test service management."""
 
 import binascii
+import time
 from typing import List, Optional, cast
 from unittest import mock
 
@@ -724,31 +725,41 @@ class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
 
     def test_redeploy(self) -> None:
         """Test redeploy service with same multisig."""
-
+        # The sleep calls in the test are added to avoid timeout issues on hardhat JSON-RPC
         instances = self.generate_and_fund_keys()
+        time.sleep(0.5)
         service_id = self.mint_service()
+        time.sleep(0.5)
         self.activate_service(service_id=service_id)
+        time.sleep(0.5)
         for instance in instances:
             self.register_instances(
                 service_id=service_id, agent_instance=instance.address
             )
         self.deploy_service(service_id=service_id)
+        time.sleep(0.5)
         self.terminate_service(service_id=service_id)
+        time.sleep(0.5)
         self.unbond_service(service_id=service_id)
+        time.sleep(0.5)
         _, multisig_address, *_ = get_service_info(
             ledger_api=self.ledger_api,
             chain_type=ChainType.LOCAL,
             token_id=service_id,
         )
         self.remove_owners(multisig_address=multisig_address, owners=instances)
+        time.sleep(0.5)
 
         new_instances = self.generate_and_fund_keys()
+        time.sleep(0.5)
         self.activate_service(service_id=service_id)
+        time.sleep(0.5)
         for instance in new_instances:
             self.register_instances(
                 service_id=service_id, agent_instance=instance.address
             )
         self.deploy_service(service_id=service_id, reuse_multisig=True)
+        time.sleep(0.5)
         _, multisig_address_redeployed, *_ = get_service_info(
             ledger_api=self.ledger_api,
             chain_type=ChainType.LOCAL,
