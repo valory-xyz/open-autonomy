@@ -20,9 +20,7 @@
 """Test service management."""
 
 import binascii
-import logging
-import time
-from typing import List, Optional, cast
+from typing import List, Optional
 from unittest import mock
 
 from aea.components.base import load_aea_package
@@ -35,6 +33,7 @@ from aea_test_autonomy.configurations import ETHEREUM_KEY_PATH_5
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 from click.testing import Result
 from hexbytes import HexBytes
+from web3 import HTTPProvider, Web3
 
 from autonomy.chain.base import ServiceState, registry_contracts
 from autonomy.chain.config import ChainType
@@ -42,7 +41,6 @@ from autonomy.chain.constants import ERC20_TOKEN_ADDRESS_LOCAL, HardhatAddresses
 from autonomy.chain.service import (
     activate_service,
     deploy_service,
-    get_agent_instances,
     get_service_info,
     register_instance,
     terminate_service,
@@ -75,6 +73,8 @@ class BaseServiceManagerTest(BaseChainInteractionTest):
 
     def mint_service(
         self,
+        number_of_slots_per_agent: int = NUMBER_OF_SLOTS_PER_AGENT,
+        threshold: int = THRESHOLD,
     ) -> int:
         """Mint service component"""
         with mock.patch("autonomy.cli.helpers.chain.verify_service_dependencies"):
@@ -82,9 +82,9 @@ class BaseServiceManagerTest(BaseChainInteractionTest):
                 package_id=DUMMY_SERVICE,
                 service_mint_parameters=dict(
                     agent_ids=[AGENT_ID],
-                    number_of_slots_per_agent=[NUMBER_OF_SLOTS_PER_AGENT],
+                    number_of_slots_per_agent=[number_of_slots_per_agent],
                     cost_of_bond_per_agent=[COST_OF_BOND_FOR_AGENT],
-                    threshold=THRESHOLD,
+                    threshold=threshold,
                 ),
             )
 
@@ -583,6 +583,19 @@ class TestERC20AsBond(BaseServiceManagerTest):
 class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
     """Test service deployment with same multisig."""
 
+    def setup(self) -> None:
+        """Setup class."""
+        super().setup()
+        self.ledger_api._api = Web3(
+            HTTPProvider(
+                endpoint_uri="http://127.0.0.1:8545",
+                request_kwargs={
+                    "timeout": 120,
+                },
+            ),
+        )
+        self.ledger_api.api.eth.default_account = self.crypto.address
+
     def fund(self, address: str, amount: int = 1) -> None:
         """Fund an address."""
         raw_tx = {
@@ -602,8 +615,8 @@ class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
         keys = []
         for _ in range(n):
             crypto = make_crypto("ethereum")
-            self.fund(address=crypto.address)
             keys.append(crypto)
+        self.fund(address=keys[0].address)
         return keys
 
     def remove_owners(self, multisig_address: str, owners: List[Crypto]) -> None:
@@ -725,22 +738,11 @@ class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
         tx_digest = self.ledger_api.send_signed_transaction(stx)
         self.ledger_api.get_transaction_receipt(tx_digest)
 
-    def _try_redeploy(self, service_id: int) -> None:
-        """Try to redeploy the service."""
-
-        for _ in range(MAX_DEPLOY_ATTEMPTS):
-            try:
-                return self.deploy_service(service_id=service_id, reuse_multisig=True)
-            except Exception as e:  # pylint: disable=broad-except
-                logging.error(f"Service redeployment failed with error {str(e)}")
-                time.sleep(3)
-        raise RuntimeError("Cannot redeploy service...")
-
     def test_redeploy(self) -> None:
         """Test redeploy service with same multisig."""
-        # The sleep calls in the test are added to avoid timeout issues on hardhat JSON-RPC
-        instances = self.generate_and_fund_keys()
-        service_id = self.mint_service()
+        n = 2
+        instances = self.generate_and_fund_keys(n=n)
+        service_id = self.mint_service(number_of_slots_per_agent=n, threshold=n)
         self.activate_service(service_id=service_id)
         for instance in instances:
             self.register_instances(
@@ -756,26 +758,22 @@ class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
         )
         self.remove_owners(multisig_address=multisig_address, owners=instances)
 
-        new_instances = self.generate_and_fund_keys()
+        new_instances = self.generate_and_fund_keys(n=n)
         self.activate_service(service_id=service_id)
         for instance in new_instances:
             self.register_instances(
                 service_id=service_id, agent_instance=instance.address
             )
 
+        self.deploy_service(service_id=service_id, reuse_multisig=True)
         _, multisig_address_redeployed, *_ = get_service_info(
             ledger_api=self.ledger_api,
             chain_type=ChainType.LOCAL,
             token_id=service_id,
         )
         assert multisig_address_redeployed == multisig_address
-        safe_owners = cast(
-            List[str],
-            get_agent_instances(
-                ledger_api=self.ledger_api,
-                chain_type=ChainType.LOCAL,
-                token_id=service_id,
-            ).get("agentInstances"),
-        )
-        for instance in new_instances:
-            assert instance.address in safe_owners
+        safe_owners = registry_contracts.gnosis_safe.get_owners(
+            ledger_api=self.ledger_api,
+            contract_address=multisig_address,
+        ).get("owners")
+        assert set(safe_owners) == set([instance.address for instance in new_instances])
