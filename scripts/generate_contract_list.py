@@ -79,9 +79,7 @@ def main() -> None:
             spaced_title = to_title(name)
             env_var = CONTRACT_TO_SLUG[name]
             address = contract["address"]
-            table += (
-                f"| `{spaced_title}` | `CUSTOM_{env_var}_ADDRESS` | [`{address}`]({blockscan_url}{address}) |\n"
-            )
+            table += f"| `{spaced_title}` | `CUSTOM_{env_var}_ADDRESS` | [`{address}`]({blockscan_url}{address}) |\n"
 
         # Multisend address is similar for all chains
         table += f"| `Multisend` | `CUSTOM_MULTISEND_ADDRESS` | [`0x40A2aCCbd92BCA938b02010E17A5b8929b49130D`]({blockscan_url}0x40A2aCCbd92BCA938b02010E17A5b8929b49130D) |\n"
