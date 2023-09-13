@@ -1,5 +1,18 @@
 # Release History - `open-autonomy`
 
+
+# 0.12.1 (2023-09-12)
+
+Autonomy:
+
+- Adds support for updating already minted components with latest hashes
+- Adds support for using ERC20 tokens for securing autonomous services
+- Adds support for reusing the same multisig for on-chain service redeployment
+
+Docs:
+- Updates documentation for the latest features
+- Adds a list of addresses across various chains in documentation
+
 # 0.12.0 (2023-08-24)
 
 Autonomy:

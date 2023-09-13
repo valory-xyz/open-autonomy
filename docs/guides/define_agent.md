@@ -120,9 +120,9 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
               propagate: true
         dependencies:
           open-aea-ledger-ethereum:
-            version: ==1.38.0
+            version: ==1.39.0
           open-aea-test-autonomy:
-            version: ==0.12.0
+            version: ==0.12.1
         default_connection: null
         ---
         public_id: valory/hello_world_abci:0.1.0
