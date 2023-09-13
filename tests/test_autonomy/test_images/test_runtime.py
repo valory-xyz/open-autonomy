@@ -38,7 +38,7 @@ from autonomy.constants import (
 )
 from autonomy.deploy.constants import DOCKERFILES
 
-from tests.conftest import ROOT_DIR, skip_docker_tests
+from tests.conftest import ROOT_DIR, get_package_hash_from_latest_tag, skip_docker_tests
 from tests.test_autonomy.test_images.base import BaseImageBuildTest
 
 
@@ -62,10 +62,11 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
         """Setup class."""
         super().setup_class()
 
-        # TODO: Replace this logic with logic to use hash from the previous release
-        # after v0.10.5.post1
-        package_hash = "bafybeigqyxqtg3stjlhswtvxqnu3iejvtigk3erqgsptlcjgevddtaq5c4"
-        cls.agent = str(AGENT.with_hash(package_hash).public_id)
+        cls.agent = str(
+            AGENT.with_hash(
+                get_package_hash_from_latest_tag(package=AGENT.to_uri_path)
+            ).public_id
+        )
 
     def test_image_fail(self) -> None:
         """Test image build fail."""
