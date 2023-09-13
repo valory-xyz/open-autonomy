@@ -22,7 +22,7 @@
 import binascii
 import logging
 import time
-from typing import List, Optional, cast
+from typing import List, Optional
 from unittest import mock
 
 from aea.components.base import load_aea_package
@@ -42,7 +42,6 @@ from autonomy.chain.constants import ERC20_TOKEN_ADDRESS_LOCAL, HardhatAddresses
 from autonomy.chain.service import (
     activate_service,
     deploy_service,
-    get_agent_instances,
     get_service_info,
     register_instance,
     terminate_service,
@@ -763,19 +762,15 @@ class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
                 service_id=service_id, agent_instance=instance.address
             )
 
+        self._try_redeploy(service_id=service_id)
         _, multisig_address_redeployed, *_ = get_service_info(
             ledger_api=self.ledger_api,
             chain_type=ChainType.LOCAL,
             token_id=service_id,
         )
         assert multisig_address_redeployed == multisig_address
-        safe_owners = cast(
-            List[str],
-            get_agent_instances(
-                ledger_api=self.ledger_api,
-                chain_type=ChainType.LOCAL,
-                token_id=service_id,
-            ).get("agentInstances"),
-        )
-        for instance in new_instances:
-            assert instance.address in safe_owners
+        safe_owners = registry_contracts.gnosis_safe.get_owners(
+            ledger_api=self.ledger_api,
+            contract_address=multisig_address,
+        ).get("owners")
+        assert set(safe_owners) == set([instance.address for instance in new_instances])
