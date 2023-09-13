@@ -39,6 +39,12 @@ CONTRACT_TO_SLUG = {
     "GnosisSafeMultisig": "GNOSIS_SAFE_PROXY_FACTORY",
     "GnosisSafeSameAddressMultisig": "GNOSIS_SAFE_SAME_ADDRESS_MULTISIG",
 }
+BLOCKSCAN_URLS = {
+    "polygon": "https://polygonscan.com/address/",
+    "polygonMumbai": "https://mumbai.polygonscan.com/address/",
+    "gnosis": "https://gnosisscan.io/address/",
+    "chiado": "https://gnosis-chiado.blockscout.com/address/",
+}
 
 
 def to_title(string: str) -> str:
@@ -62,6 +68,7 @@ def main() -> None:
         chain_id = chain["chainId"]
         if chain_id in ("1", "5"):
             continue
+        blockscan_url = BLOCKSCAN_URLS[chain_name]
         contracts = chain["contracts"]
         table = "| Name | Environment Variable | Address |\n"
         table += "| ---- | -------------------- | ------- |\n"
@@ -73,16 +80,18 @@ def main() -> None:
             env_var = CONTRACT_TO_SLUG[name]
             address = contract["address"]
             table += (
-                f"| `{spaced_title}` | `CUSTOM_{env_var}_ADDRESS` | `{address}` |\n"
+                f"| `{spaced_title}` | `CUSTOM_{env_var}_ADDRESS` | [`{address}`]({blockscan_url}{address}) |\n"
             )
 
         # Multisend address is similar for all chains
-        table += "| `Multisend` | `CUSTOM_MULTISEND_ADDRESS` | `0x40A2aCCbd92BCA938b02010E17A5b8929b49130D` |\n"
+        table += f"| `Multisend` | `CUSTOM_MULTISEND_ADDRESS` | [`0x40A2aCCbd92BCA938b02010E17A5b8929b49130D`]({blockscan_url}0x40A2aCCbd92BCA938b02010E17A5b8929b49130D) |\n"
         section = f"\n## {to_title(chain_name)} ({chain_id})\n"
         section += table
         data += section
     Path(DOC_FILE).write_text(data, encoding="utf-8")
 
+
+# [`0xeB49bE5DF00F74bd240DE4535DDe6Bc89CEfb994`](https://gnosis-chiado.blockscout.com/address/0xeB49bE5DF00F74bd240DE4535DDe6Bc89CEfb994)
 
 if __name__ == "__main__":
     main()

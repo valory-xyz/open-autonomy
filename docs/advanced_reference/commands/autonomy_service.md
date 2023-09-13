@@ -109,7 +109,7 @@ autonomy service activate [OPTIONS] SERVICE_ID
 : Use a hardware wallet to sign the transactions.
 
 `--token ERC20_TOKEN_ADDRESS`
-: ERC20 token to use for activating the service. You must specify the same token used when minitng the service. See the [`autonomy mint service`](./autonomy_mint.md#autonomy-mint-service) command.
+: ERC20 token to use for activating the service. You must specify the same token used when minting the service. See the [`autonomy mint service`](./autonomy_mint.md#autonomy-mint-service) command.
 
 `--password PASSWORD`
 : Password for the key file.
@@ -161,7 +161,7 @@ autonomy service register [OPTIONS] SERVICE_ID
 : Canonical agent ID.
 
 `--token ERC20_TOKEN_ADDRESS`
-: ERC20 token to use as bond for the agent instances. You must specify the same token used when minitng the service. See the [`autonomy mint service`](./autonomy_mint.md#autonomy-mint-service) command.
+: ERC20 token to use as bond for the agent instances. You must specify the same token used when minting the service. See the [`autonomy mint service`](./autonomy_mint.md#autonomy-mint-service) command.
 
 `--password PASSWORD`
 : Password for the key file.
