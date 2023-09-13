@@ -50,21 +50,21 @@ class ServiceManagerContract(Contract):
     contract_id = PUBLIC_ID
 
     @classmethod
-    def get_raw_transaction(
+    def get_raw_transaction(  # pragma: nocover
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get the Safe transaction."""
         raise NotImplementedError
 
     @classmethod
-    def get_raw_message(
+    def get_raw_message(  # pragma: nocover
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[bytes]:
         """Get raw message."""
         raise NotImplementedError
 
     @classmethod
-    def get_state(
+    def get_state(  # pragma: nocover
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get state."""
@@ -109,12 +109,51 @@ class ServiceManagerContract(Contract):
         agent_ids: List[int],
         agent_params: List[List[int]],
         threshold: int,
-        token: str = ETHEREUM_ERC20,
+        token: Optional[str] = None,
         raise_on_try: bool = False,
     ) -> Dict[str, Any]:
         """Retrieve the service owner."""
         method_args = {
             "serviceOwner": owner,
+            "configHash": metadata_hash,
+            "agentIds": agent_ids,
+            "agentParams": agent_params,
+            "threshold": threshold,
+        }
+        if cls.is_l1_chain(ledger_api=ledger_api):
+            method_args["token"] = ledger_api.api.to_checksum_address(
+                token or ETHEREUM_ERC20
+            )
+
+        return ledger_api.build_transaction(
+            contract_instance=cls.get_instance(
+                ledger_api=ledger_api, contract_address=contract_address
+            ),
+            method_name="create",
+            method_args=method_args,
+            tx_args={
+                "sender_address": sender,
+            },
+            raise_on_try=raise_on_try,
+        )
+
+    @classmethod
+    def get_update_transaction(  # pylint: disable=too-many-arguments
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        sender: str,
+        service_id: int,
+        metadata_hash: str,
+        agent_ids: List[int],
+        agent_params: List[List[int]],
+        threshold: int,
+        token: str = ETHEREUM_ERC20,
+        raise_on_try: bool = False,
+    ) -> Dict[str, Any]:
+        """Retrieve the service owner."""
+        method_args = {
+            "serviceId": service_id,
             "configHash": metadata_hash,
             "agentIds": agent_ids,
             "agentParams": agent_params,
@@ -127,7 +166,7 @@ class ServiceManagerContract(Contract):
             contract_instance=cls.get_instance(
                 ledger_api=ledger_api, contract_address=contract_address
             ),
-            method_name="create",
+            method_name="update",
             method_args=method_args,
             tx_args={
                 "sender_address": sender,

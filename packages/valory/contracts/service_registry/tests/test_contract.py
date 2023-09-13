@@ -19,7 +19,7 @@
 
 """Tests for valory/service_registry contract."""
 from pathlib import Path
-from typing import Any, List, Optional, Set
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -187,125 +187,6 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         assert number_of_agent_instances == 4
         assert service_state == 4
         assert list_of_cannonical_agents == [1]
-
-    @pytest.mark.parametrize(
-        ("return_value", "assert_value"),
-        (
-            ([], None),
-            (
-                [
-                    {
-                        "args": {
-                            "serviceId": 1,
-                        }
-                    }
-                ],
-                1,
-            ),
-        ),
-    )
-    def test_filter_token_id_from_emitted_events(
-        self, return_value: List, assert_value: Optional[int]
-    ) -> None:
-        """Test `filter_token_id_from_emitted_events` method"""
-
-        with event_filter_patch(event="CreateService", return_value=return_value):
-            token_id = self.contract.filter_token_id_from_emitted_events(
-                ledger_api=self.ledger_api,
-                contract_address=self.contract_address,
-            )
-
-            if assert_value is None:
-                assert token_id is None
-            else:
-                assert token_id == 1
-
-    @pytest.mark.parametrize(
-        ("return_value", "assert_value"),
-        (
-            ([], False),
-            (
-                [
-                    {
-                        "args": {
-                            "serviceId": 0,
-                        }
-                    }
-                ],
-                True,
-            ),
-        ),
-    )
-    def test_verify_service_has_been_activated(
-        self, return_value: List, assert_value: bool
-    ) -> None:
-        """Test `verify_service_has_been_activated` method."""
-
-        with event_filter_patch(
-            event="ActivateRegistration", return_value=return_value
-        ):
-            success = self.contract.verify_service_has_been_activated(
-                ledger_api=self.ledger_api,
-                contract_address=self.contract_address,
-                service_id=0,
-            )
-
-            assert success is assert_value
-
-    @pytest.mark.parametrize(
-        ("return_value", "assert_value"),
-        (
-            ([], set()),
-            (
-                [{"args": {"serviceId": 0, "agentInstance": "0x"}}],
-                {"0x"},
-            ),
-        ),
-    )
-    def test_verify_agent_instance_registration(
-        self, return_value: List, assert_value: Set[str]
-    ) -> None:
-        """Test `verify_agent_instance_registration` method."""
-
-        with event_filter_patch(event="RegisterInstance", return_value=return_value):
-            successful = self.contract.verify_agent_instance_registration(
-                ledger_api=self.ledger_api,
-                contract_address=self.contract_address,
-                service_id=0,
-                instance_check={"0x"},
-            )
-
-            assert successful == assert_value
-
-    @pytest.mark.parametrize(
-        ("return_value", "assert_value"),
-        (
-            ([], False),
-            (
-                [
-                    {
-                        "args": {
-                            "serviceId": 0,
-                        }
-                    }
-                ],
-                True,
-            ),
-        ),
-    )
-    def test_verify_service_has_been_deployed(
-        self, return_value: List, assert_value: bool
-    ) -> None:
-        """Test `verify_service_has_been_deployed` method."""
-
-        with event_filter_patch(event="DeployService", return_value=return_value):
-            success = self.contract.verify_service_has_been_deployed(
-                ledger_api=self.ledger_api,
-                contract_address=self.contract_address,
-                service_id=0,
-            )
-
-            assert success is assert_value
 
     def test_get_slash_data(self) -> None:
         """Test the `get_slash_data`."""

@@ -50,10 +50,8 @@ CUSTOM_OWNER = "0x8626F6940E2EB28930EFB4CEF49B2D1F2C9C1199"
 class DummyContract:
     """Dummy contract"""
 
-    def filter_token_id_from_emitted_events(self, *args: Any, **kwargs: Any) -> None:
+    def get_create_events(self, *args: Any, **kwargs: Any) -> None:
         """Dummy method implementation"""
-
-        raise RequestsConnectionError()
 
     def get_create_transaction(self, *args: Any, **kwargs: Any) -> None:
         """Dummy method implementation"""
@@ -122,12 +120,18 @@ class TestMintComponents(BaseChainInteractionTest):
         assert "Component minted with:" in result.output
         assert "Metadata Hash:" in result.output
         assert "Token ID:" in result.output
-
         token_id = self.extract_token_id_from_output(output=result.output)
         self.verify_minted_token_id(
             token_id=token_id,
             package_id=package_id,
         )
+
+        commands += ["--update", str(token_id)]
+        result = self.run_cli(commands=tuple(commands))
+
+        assert result.exit_code == 0, result.stderr
+        assert "Component hash updated:" in result.output
+        assert f"Token ID: {token_id}" in result.output
         self.verify_and_remove_metadata_file(token_id=token_id)
 
     def test_mint_component_with_owner(
@@ -169,7 +173,7 @@ class TestMintComponents(BaseChainInteractionTest):
         with mock.patch("autonomy.cli.helpers.chain.verify_component_dependencies"):
             agent_id = self.mint_component(package_id=DUMMY_AGENT, dependencies=[1])
 
-        commands = (
+        commands = [
             DUMMY_SERVICE.package_type.value,
             str(
                 DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
@@ -181,9 +185,9 @@ class TestMintComponents(BaseChainInteractionTest):
             "-a",
             str(agent_id),
             *DEFAULT_SERVICE_MINT_PARAMETERS[2:],
-        )
+        ]
 
-        result = self.run_cli(commands=commands)
+        result = self.run_cli(commands=tuple(commands))
 
         assert result.exit_code == 0, result
         assert "Service minted with:" in result.output
@@ -195,6 +199,12 @@ class TestMintComponents(BaseChainInteractionTest):
             token_id=token_id,
             package_id=DUMMY_SERVICE,
         )
+
+        commands += ["--update", str(token_id)]
+        result = self.run_cli(commands=tuple(commands))
+        assert result.exit_code == 0, result.stderr
+        assert "Service updated with:" in result.output
+        assert f"Token ID: {token_id}" in result.output
         self.verify_and_remove_metadata_file(token_id=token_id)
 
     def test_mint_service_with_owner(
@@ -403,65 +413,6 @@ class TestMintComponents(BaseChainInteractionTest):
             self.cli_runner.mix_stderr = True
             assert result.exit_code == 1, result.output
             assert "Invalid owner address 0xowner" in result.stderr
-
-    def test_fail_token_id_retrieve(
-        self,
-    ) -> None:
-        """Test token id retrieval failure."""
-
-        with mock.patch.object(
-            registry_contracts, "_component_registry", DummyContract()
-        ), mock.patch("autonomy.chain.mint.transact"):
-            result = self.run_cli(
-                commands=(
-                    DUMMY_PROTOCOL.package_type.value,
-                    str(
-                        DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
-                            package_id=DUMMY_PROTOCOL
-                        )
-                    ),
-                    "--key",
-                    str(ETHEREUM_KEY_DEPLOYER),
-                ),
-            )
-
-            assert result.exit_code == 1, result.output
-            assert (
-                "Component mint was successful but token ID retrieving failed with following error; "
-                "Connection interrupted while waiting for the unitId emit event"
-                in result.stderr
-            )
-
-    def test_fail_token_id_retrieve_service(
-        self,
-    ) -> None:
-        """Test token id retrieval failure."""
-
-        with mock.patch.object(
-            registry_contracts, "_service_registry", DummyContract()
-        ), mock.patch("autonomy.chain.mint.transact"), mock.patch(
-            "autonomy.cli.helpers.chain.verify_service_dependencies"
-        ):
-            result = self.run_cli(
-                commands=(
-                    DUMMY_SERVICE.package_type.value,
-                    str(
-                        DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
-                            DUMMY_SERVICE
-                        )
-                    ),
-                    "--key",
-                    str(ETHEREUM_KEY_DEPLOYER),
-                    *DEFAULT_SERVICE_MINT_PARAMETERS,
-                ),
-            )
-
-            assert result.exit_code == 1, result.output
-            assert (
-                "Service mint was successful but token ID retrieving failed with following error; "
-                "Connection interrupted while waiting for the unitId emit event"
-                in result.stderr
-            )
 
     def test_fail_dependency_does_not_match_service(
         self,

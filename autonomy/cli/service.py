@@ -27,27 +27,24 @@ from aea.cli.utils.context import Context
 from aea.cli.utils.decorators import pass_ctx
 
 from autonomy.chain.config import ChainType
-from autonomy.cli.helpers.chain import (
-    activate_service,
-    deploy_service,
-    print_service_info,
-    register_instance,
-    terminate_service,
-    unbond_service,
-)
+from autonomy.cli.helpers.chain import ServiceHelper, print_service_info
 from autonomy.cli.mint import (
     hwi_flag,
     key_path_decorator,
     password_decorator,
     timeout_flag,
+    token_flag,
 )
 from autonomy.cli.utils.click_utils import chain_selection_flag
 
 
+service_id_flag = click.argument("service_id", type=int)
+
+
 @click.group("service")
 @pass_ctx
-@chain_selection_flag()
 @timeout_flag
+@chain_selection_flag()
 def service(ctx: Context, chain_type: str, timeout: float) -> None:
     """Manage on-chain services."""
 
@@ -55,34 +52,40 @@ def service(ctx: Context, chain_type: str, timeout: float) -> None:
     ctx.config["timeout"] = timeout
 
 
-@service.command()
+@service.command(name="activate")
 @pass_ctx
-@click.argument("service_id", type=int)
+@service_id_flag
 @key_path_decorator
 @hwi_flag
+@token_flag
 @password_decorator
-def activate(
+def _activate(
     ctx: Context,
     service_id: int,
     key: Path,
     hwi: bool,
+    token: Optional[str],
     password: Optional[str],
 ) -> None:
     """Activate service."""
-
-    activate_service(
+    ServiceHelper(
         service_id=service_id,
-        key=key,
-        hwi=hwi,
         chain_type=ctx.config["chain_type"],
+        key=key,
         password=password,
-        timeout=ctx.config["timeout"],
-    )
+        hwi=hwi,
+    ).check_is_service_token_secured(
+        token=token,
+    ).activate_service()
 
 
-@service.command()
+@service.command("register")
 @pass_ctx
-@click.argument("service_id", type=int)
+@service_id_flag
+@key_path_decorator
+@hwi_flag
+@token_flag
+@password_decorator
 @click.option(
     "-i",
     "--instance",
@@ -101,67 +104,75 @@ def activate(
     multiple=True,
     help="Agent ID",
 )
-@key_path_decorator
-@hwi_flag
-@password_decorator
-def register(  # pylint: disable=too-many-arguments
+def _register(  # pylint: disable=too-many-arguments
     ctx: Context,
     service_id: int,
     instances: List[str],
     agent_ids: List[int],
+    token: Optional[str],
     key: Path,
     hwi: bool,
     password: Optional[str],
 ) -> None:
     """Register instances."""
-
-    register_instance(
+    ServiceHelper(
         service_id=service_id,
+        chain_type=ctx.config["chain_type"],
+        key=key,
+        password=password,
+        hwi=hwi,
+    ).check_is_service_token_secured(
+        token=token,
+    ).register_instance(
         instances=instances,
         agent_ids=agent_ids,
-        key=key,
-        hwi=hwi,
-        chain_type=ctx.config["chain_type"],
-        password=password,
         timeout=ctx.config["timeout"],
     )
 
 
-@service.command()
+@service.command("deploy")
+@click.option(
+    "--reuse-multisig",
+    is_flag=True,
+    help="Reuse mutlisig from previous deployment.",
+)
 @pass_ctx
-@click.argument("service_id", type=int)
+@service_id_flag
+@key_path_decorator
+@hwi_flag
+@password_decorator
 @click.option(
     "-d",
     "--deployment-payload",
     type=int,
     help="Deployment payload value",
 )
-@key_path_decorator
-@hwi_flag
-@password_decorator
-def deploy(
+def _deploy(  # pylint: disable=too-many-arguments
     ctx: Context,
     service_id: int,
     key: Path,
     hwi: bool,
+    reuse_multisig: bool,
     password: Optional[str],
     deployment_payload: Optional[str],
 ) -> None:
     """Deploy a service."""
-
-    deploy_service(
+    ServiceHelper(
         service_id=service_id,
-        key=key,
-        hwi=hwi,
         chain_type=ctx.config["chain_type"],
+        key=key,
         password=password,
+        hwi=hwi,
+    ).deploy_service(
+        reuse_multisig=reuse_multisig,
         deployment_payload=deployment_payload,
+        timeout=ctx.config["timeout"],
     )
 
 
 @service.command(name="terminate")
 @pass_ctx
-@click.argument("service_id", type=int)
+@service_id_flag
 @key_path_decorator
 @hwi_flag
 @password_decorator
@@ -173,19 +184,18 @@ def _terminate(
     password: Optional[str],
 ) -> None:
     """Terminate a service."""
-
-    terminate_service(
+    ServiceHelper(
         service_id=service_id,
-        key=key,
-        hwi=hwi,
         chain_type=ctx.config["chain_type"],
+        key=key,
         password=password,
-    )
+        hwi=hwi,
+    ).terminate_service()
 
 
 @service.command(name="unbond")
 @pass_ctx
-@click.argument("service_id", type=int)
+@service_id_flag
 @key_path_decorator
 @hwi_flag
 @password_decorator
@@ -197,25 +207,23 @@ def _unbond(
     password: Optional[str],
 ) -> None:
     """Unbond a service."""
-
-    unbond_service(
+    ServiceHelper(
         service_id=service_id,
-        key=key,
-        hwi=hwi,
         chain_type=ctx.config["chain_type"],
+        key=key,
         password=password,
-    )
+        hwi=hwi,
+    ).unbond_service()
 
 
 @service.command(name="info")
 @pass_ctx
-@click.argument("service_id", type=int)
+@service_id_flag
 def _info(
     ctx: Context,
     service_id: int,
 ) -> None:
     """Print service information."""
-
     print_service_info(
         service_id=service_id,
         chain_type=ctx.config["chain_type"],

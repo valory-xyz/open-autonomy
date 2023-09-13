@@ -152,6 +152,27 @@ class MultiSendContract(Contract):
         }
 
     @classmethod
+    def get_multisend_tx(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        txs: List[Dict],
+    ) -> Optional[JSONLike]:
+        """
+        Get a multisend transaction data from list.
+
+        :param ledger_api: ledger API object.
+        :param contract_address: the contract address.
+        :param multi_send_txs: the multisend transaction list.
+        :return: an optional JSON-like object.
+        """
+        multisend_contract = cls.get_instance(ledger_api, contract_address)
+        encoded_multisend_data = to_bytes(txs)
+        return multisend_contract.functions.multiSend(
+            encoded_multisend_data
+        ).build_transaction({"gas": MIN_GAS, "gasPrice": MIN_GASPRICE})
+
+    @classmethod
     def get_tx_list(
         cls, ledger_api: LedgerApi, contract_address: str, multi_send_data: str
     ) -> Optional[JSONLike]:

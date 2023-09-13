@@ -4,6 +4,16 @@
 
 Helper functions to manage on-chain services
 
+<a id="autonomy.chain.service.MultiSendOperation"></a>
+
+## MultiSendOperation Objects
+
+```python
+class MultiSendOperation(Enum)
+```
+
+Operation types.
+
 <a id="autonomy.chain.service.get_default_delployment_payload"></a>
 
 #### get`_`default`_`delployment`_`payload
@@ -58,33 +68,68 @@ security deposit, multisig address, IPFS hash for config,
 threshold, max number of agent instances, number of agent instances,
 service state, list of cannonical agents
 
-<a id="autonomy.chain.service.wait_for_success_event"></a>
+<a id="autonomy.chain.service.get_token_deposit_amount"></a>
 
-#### wait`_`for`_`success`_`event
-
-```python
-def wait_for_success_event(success_check: Callable[[], bool],
-                           message: str = "Timeout error",
-                           timeout: Optional[float] = None,
-                           sleep: float = 1.0) -> None
-```
-
-Wait for success event.
-
-<a id="autonomy.chain.service.wait_for_agent_instance_registration"></a>
-
-#### wait`_`for`_`agent`_`instance`_`registration
+#### get`_`token`_`deposit`_`amount
 
 ```python
-def wait_for_agent_instance_registration(
-        ledger_api: LedgerApi,
-        chain_type: ChainType,
-        service_id: int,
-        instances: List[str],
-        timeout: Optional[float] = None) -> None
+def get_token_deposit_amount(ledger_api: LedgerApi,
+                             chain_type: ChainType,
+                             service_id: int,
+                             agent_id: Optional[int] = None) -> int
 ```
 
-Wait for agent instance registration.
+Returns service info.
+
+<a id="autonomy.chain.service.get_activate_registration_amount"></a>
+
+#### get`_`activate`_`registration`_`amount
+
+```python
+def get_activate_registration_amount(ledger_api: LedgerApi,
+                                     chain_type: ChainType, service_id: int,
+                                     agents: List[int]) -> int
+```
+
+Get activate registration amount.
+
+<a id="autonomy.chain.service.is_service_token_secured"></a>
+
+#### is`_`service`_`token`_`secured
+
+```python
+def is_service_token_secured(ledger_api: LedgerApi, chain_type: ChainType,
+                             service_id: int) -> bool
+```
+
+Check if the service is token secured.
+
+<a id="autonomy.chain.service.approve_erc20_usage"></a>
+
+#### approve`_`erc20`_`usage
+
+```python
+def approve_erc20_usage(ledger_api: LedgerApi,
+                        crypto: Crypto,
+                        contract_address: str,
+                        spender: str,
+                        amount: int,
+                        sender: str,
+                        timeout: Optional[float] = None) -> None
+```
+
+Approve ERC20 token usage.
+
+<a id="autonomy.chain.service.verify_service_event"></a>
+
+#### verify`_`service`_`event
+
+```python
+def verify_service_event(ledger_api: LedgerApi, chain_type: ChainType,
+                         service_id: int, event: str, receipt: Dict) -> bool
+```
+
+Verify service event.
 
 <a id="autonomy.chain.service.activate_service"></a>
 
@@ -156,6 +201,7 @@ def deploy_service(ledger_api: LedgerApi,
                    chain_type: ChainType,
                    service_id: int,
                    deployment_payload: Optional[str] = None,
+                   reuse_multisig: bool = False,
                    timeout: Optional[float] = None) -> None
 ```
 
@@ -172,6 +218,7 @@ the service and registered the required agent instances.
 - `service_id`: Service ID retrieved after minting a service
 - `deployment_payload`: Deployment payload to include when making the
 deployment transaction
+- `reuse_multisig`: Use multisig from the previous deployment
 - `timeout`: Time to wait for deploy event to emit
 
 <a id="autonomy.chain.service.terminate_service"></a>
@@ -215,4 +262,16 @@ the service.
 - `crypto`: `aea.crypto.Crypto` object which has a funded key
 - `chain_type`: Chain type
 - `service_id`: Service ID retrieved after minting a service
+
+<a id="autonomy.chain.service.get_reuse_multisig_payload"></a>
+
+#### get`_`reuse`_`multisig`_`payload
+
+```python
+def get_reuse_multisig_payload(
+        ledger_api: LedgerApi, crypto: Crypto, chain_type: ChainType,
+        service_id: int) -> Tuple[Optional[str], Optional[str]]
+```
+
+Reuse multisig.
 
