@@ -142,7 +142,7 @@ class ServiceRegistryContract(Contract):
         deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
         sha512_hash = hashlib.sha512(deployed_bytecode.encode("utf-8")).hexdigest()
         verified = DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID[chain_id] == sha512_hash
-        if not verified:
+        if not verified:  # pragma: nocover
             _logger.error(
                 f"CONTRACT NOT VERIFIED! Contract address: {contract_address}, chain_id: {chain_id}."
             )
@@ -232,7 +232,7 @@ class ServiceRegistryContract(Contract):
         return contract_interface.functions.tokenURI(token_id).call()
 
     @classmethod
-    def get_create_events(
+    def get_create_events(  # pragma: nocover
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
@@ -246,7 +246,7 @@ class ServiceRegistryContract(Contract):
         return contract_interface.events.CreateService().process_receipt(receipt)
 
     @classmethod
-    def get_update_events(
+    def get_update_events(  # pragma: nocover
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
@@ -260,7 +260,7 @@ class ServiceRegistryContract(Contract):
         return contract_interface.events.UpdateService().process_receipt(receipt)
 
     @classmethod
-    def get_update_hash_events(
+    def get_update_hash_events(  # pragma: nocover
         cls,
         ledger_api: LedgerApi,
         contract_address: str,

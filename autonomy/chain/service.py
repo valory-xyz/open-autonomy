@@ -20,7 +20,6 @@
 """Helper functions to manage on-chain services"""
 
 import binascii
-import datetime
 import time
 from enum import Enum
 from typing import Dict, List, Optional, Tuple, cast
@@ -32,7 +31,6 @@ from requests.exceptions import ConnectionError as RequestsConnectionError
 from autonomy.chain.base import ServiceState, registry_contracts
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import (
-    EVENT_VERIFICATION_TIMEOUT,
     GNOSIS_SAFE_PROXY_FACTORY_CONTRACT,
     GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT,
     MULTISEND_CONTRACT,
@@ -53,7 +51,7 @@ from autonomy.chain.mint import transact
 
 try:
     from web3.exceptions import Web3Exception
-except (ModuleNotFoundError, ImportError):
+except (ModuleNotFoundError, ImportError):  # pragma: nocover
     Web3Exception = Exception
 
 NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
@@ -158,40 +156,6 @@ def get_activate_registration_amount(
             )
         amount += agent_to_deposit[agent]
     return amount
-
-
-def wait_for_agent_instance_registration(
-    ledger_api: LedgerApi,
-    chain_type: ChainType,
-    service_id: int,
-    instances: List[str],
-    timeout: Optional[float] = None,
-) -> None:
-    """Wait for agent instance registration."""
-
-    timeout = timeout or EVENT_VERIFICATION_TIMEOUT
-    deadline = datetime.datetime.now() + datetime.timedelta(seconds=timeout)
-    instance_check = set(instances)
-
-    while datetime.datetime.now() < deadline:
-        successful_instances = (
-            registry_contracts.service_registry.verify_agent_instance_registration(
-                ledger_api=ledger_api,
-                contract_address=ContractConfigs.get(
-                    SERVICE_REGISTRY_CONTRACT.name
-                ).contracts[chain_type],
-                service_id=service_id,
-                instance_check=instance_check,
-            )
-        )
-
-        instance_check = instance_check.difference(successful_instances)
-        if len(instance_check) == 0:
-            return
-
-    raise TimeoutError(
-        f"Could not verify the instance registration for {instance_check} in given time"
-    )
 
 
 def is_service_token_secured(
@@ -452,6 +416,23 @@ def deploy_service(  # pylint: disable=too-many-arguments
     :param reuse_multisig: Use multisig from the previous deployment
     :param timeout: Time to wait for deploy event to emit
     """
+
+    (
+        *_,
+        service_state,
+        _,
+    ) = get_service_info(
+        ledger_api=ledger_api,
+        chain_type=chain_type,
+        token_id=service_id,
+    )
+
+    if service_state == ServiceState.NON_EXISTENT.value:
+        raise ServiceDeployFailed("Service does not exist")
+
+    if service_state != ServiceState.FINISHED_REGISTRATION.value:
+        raise ServiceDeployFailed("Service needs to be in finished registration state")
+
     deployment_payload = deployment_payload or get_default_delployment_payload()
     gnosis_safe_multisig = ContractConfigs.get(
         GNOSIS_SAFE_PROXY_FACTORY_CONTRACT.name
@@ -469,22 +450,6 @@ def deploy_service(  # pylint: disable=too-many-arguments
         gnosis_safe_multisig = ContractConfigs.get(
             GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT.name
         ).contracts[chain_type]
-
-    (
-        *_,
-        service_state,
-        _,
-    ) = get_service_info(
-        ledger_api=ledger_api,
-        chain_type=chain_type,
-        token_id=service_id,
-    )
-
-    if service_state == ServiceState.NON_EXISTENT.value:
-        raise ServiceDeployFailed("Service does not exist")
-
-    if service_state != ServiceState.FINISHED_REGISTRATION.value:
-        raise ServiceDeployFailed("Service needs to be in finished registration state")
 
     try:
         tx = registry_contracts.service_manager.get_service_deploy_transaction(

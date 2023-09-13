@@ -10,7 +10,7 @@ fingerprint:
   build/RegistriesManager.json: bafybeigu6whhxx6zd7kqhmpjpak4ufj4az2jk4k4rwi4tshr25qzcb3e6q
   contract.py: bafybeiazlsfshosryjsdt5umzfxcagxcxlaarugok5mypadb7nvjhmvray
   tests/__init__.py: bafybeib4z5zjwvlk5x5shenb2hzkgh7qb6w236g6ygcbvezvo5dfxao4va
-  tests/test_contract.py: bafybeifmfuw3k7shrhmmdntladipccmvm4qlslqh65csjzo3rric2sv5ju
+  tests/test_contract.py: bafybeidio2tvmghemwy3gmwcsjrjrln6rgpe6dtzdxbz6miblnk7yfogmy
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: RegistriesManagerContract

@@ -44,7 +44,6 @@ from autonomy.chain.exceptions import (
     ComponentMintFailed,
     DependencyError,
     FailedToRetrieveComponentMetadata,
-    FailedToRetrieveTokenId,
     InstanceRegistrationFailed,
     InvalidMintParameter,
     ServiceDeployFailed,
@@ -137,7 +136,7 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
                 f"using `{ChainConfigs.get_rpc_env_var(chain_type)}` environment variable"
             )
 
-        if hwi and not HWI_PLUGIN_INSTALLED:
+        if hwi and not HWI_PLUGIN_INSTALLED:  # pragma: nocover
             raise click.ClickException(
                 "Hardware wallet plugin not installed, "
                 "Run `pip3 install open-aea-ledger-ethereum-hwi` to install the plugin"
@@ -146,7 +145,7 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
         if hwi:
             identifier = EthereumHWIApi.identifier
 
-        if not hwi and not ETHEREUM_PLUGIN_INSTALLED:
+        if not hwi and not ETHEREUM_PLUGIN_INSTALLED:  # pragma: nocover
             raise click.ClickException(
                 "Ethereum ledger plugin not installed, "
                 "Run `pip3 install open-aea-ledger-ethereum` to install the plugin"
@@ -181,7 +180,7 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
 
         try:
             ledger_api.api.eth.default_account = crypto.address
-        except HWIError as e:
+        except HWIError as e:  # pragma: nocover
             raise click.ClickException(e.message)
 
         return ledger_api, crypto
@@ -233,7 +232,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 f"Cannot find configuration file for {package_type}"
             ) from e
 
-    def load_metadata(self) -> "MintHelper":
+    def load_metadata(self) -> "MintHelper":  # pragma: nocover
         """Load metadata when updating a mint."""
         if self.update_token is None:
             return self
@@ -374,10 +373,6 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             raise click.ClickException(
                 f"Component mint failed with following error; {e}"
             ) from e
-        except FailedToRetrieveTokenId as e:
-            raise click.ClickException(
-                f"Component mint was successful but token ID retrieving failed with following error; {e}"
-            ) from e
 
         click.echo("Component minted with:")
         click.echo(f"\tPublic ID: {self.package_configuration.public_id}")
@@ -433,10 +428,6 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             raise click.ClickException(
                 f"Service mint failed with following error; {e}"
             ) from e
-        except FailedToRetrieveTokenId as e:
-            raise click.ClickException(
-                f"Service mint was successful but token ID retrieving failed with following error; {e}"
-            ) from e
 
         click.echo("Service minted with:")
         click.echo(f"\tPublic ID: {self.package_configuration.public_id}")
@@ -465,10 +456,6 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         except ComponentMintFailed as e:
             raise click.ClickException(
                 f"Component mint failed with following error; {e}"
-            ) from e
-        except FailedToRetrieveTokenId as e:
-            raise click.ClickException(
-                f"Component mint was successful but token ID retrieving failed with following error; {e}"
             ) from e
 
         click.echo("Component hash updated:")
@@ -515,10 +502,6 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         except ComponentMintFailed as e:
             raise click.ClickException(
                 f"Service mint failed with following error; {e}"
-            ) from e
-        except FailedToRetrieveTokenId as e:
-            raise click.ClickException(
-                f"Service mint was successful but token ID retrieving failed with following error; {e}"
             ) from e
 
         click.echo("Service updated with:")

@@ -50,21 +50,21 @@ class ServiceManagerContract(Contract):
     contract_id = PUBLIC_ID
 
     @classmethod
-    def get_raw_transaction(
+    def get_raw_transaction(  # pragma: nocover
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get the Safe transaction."""
         raise NotImplementedError
 
     @classmethod
-    def get_raw_message(
+    def get_raw_message(  # pragma: nocover
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[bytes]:
         """Get raw message."""
         raise NotImplementedError
 
     @classmethod
-    def get_state(
+    def get_state(  # pragma: nocover
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get state."""

@@ -20,6 +20,8 @@
 """Chain constants"""
 
 import os
+from dataclasses import dataclass
+from typing import cast
 
 from aea.configurations.constants import CONTRACTS, PACKAGES
 from aea.configurations.data_types import PublicId
@@ -29,8 +31,6 @@ from autonomy.constants import VALORY
 from autonomy.data import DATA_DIR
 
 
-EVENT_VERIFICATION_TIMEOUT = 60.0
-
 CONTRACTS_DIR_FRAMEWORK = DATA_DIR / CONTRACTS
 CONTRACTS_DIR_LOCAL = (
     AUTONOMY_DIR.parent / PACKAGES / VALORY / CONTRACTS
@@ -38,71 +38,85 @@ CONTRACTS_DIR_LOCAL = (
 
 ERC20_TOKEN_ADDRESS_LOCAL = "0x1291Be112d480055DaFd8a610b7d1e203891C274"  # nosec
 
-# contract addresses from `valory/autonolas-registries` image
-COMPONENT_REGISTRY_ADDRESS_LOCAL = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-AGENT_REGISTRY_ADDRESS_LOCAL = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
-REGISTRIES_MANAGER_ADDRESS_LOCAL = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
-SERVICE_REGISTRY_ADDRESS_LOCAL = "0x998abeb3E57409262aE5b751f60747921B33613E"
-SERVICE_MANAGER_ADDRESS_LOCAL = "0x4c5859f0F772848b2D91F1D83E2Fe57935348029"
-GNOSIS_SAFE_PROXY_FACTORY_ADDRESS_LOCAL = "0x0E801D84Fa97b50751Dbf25036d067dCf18858bF"
-GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS_LOCAL = (
-    "0x8f86403A4DE0BB5791fa46B8e795C547942fE4Cf"
-)
-SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS_LOCAL = (
-    "0x36C02dA8a0983159322a80FFE9F24b1acfF8B570"  # nosec
-)
-MULTISEND_ADDRESS_LOCAL = "0x9d4454B023096f34B160D6B654540c56A1F81688"
 
-# contract addresses from `https://github.com/valory-xyz/autonolas-registries/blob/main/docs/mainnet_addresses.json` file
-COMPONENT_REGISTRY_ADDRESS_ETHEREUM = "0x15bd56669F57192a97dF41A2aa8f4403e9491776"
-AGENT_REGISTRY_ADDRESS_ETHEREUM = "0x2F1f7D38e4772884b88f3eCd8B6b9faCdC319112"
-REGISTRIES_MANAGER_ADDRESS_ETHEREUM = "0x9eC9156dEF5C613B2a7D4c46C383F9B58DfcD6fE"
-SERVICE_MANAGER_ADDRESS_ETHEREUM = "0x2EA682121f815FBcF86EA3F3CaFdd5d67F2dB143"
-SERVICE_REGISTRY_ADDRESS_ETHEREUM = "0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA"
-GNOSIS_SAFE_PROXY_FACTORY_ADDRESS_ETHEREUM = (
-    "0x46C0D07F55d4F9B5Eed2Fc9680B5953e5fd7b461"
-)
-GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS_ETHEREUM = (
-    "0x26Ea2dC7ce1b41d0AD0E0521535655d7a94b684c"
-)
-SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS_ETHEREUM = (
-    "0x3Fb926116D454b95c669B6Bf2E7c3bad8d19affA"  # nosec
-)
-MULTISEND_ADDRESS_ETHEREUM = "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"
+@dataclass
+class ContractAddresses:  # pylint: disable=too-many-instance-attributes
+    """Contract addresses container for a chain."""
 
-# contract addresses from `https://raw.githubusercontent.com/valory-xyz/autonolas-registries/main/scripts/deployment/globals_goerli.json`
-COMPONENT_REGISTRY_ADDRESS_GOERLI = "0x7Fd1F4b764fA41d19fe3f63C85d12bf64d2bbf68"
-AGENT_REGISTRY_ADDRESS_GOERLI = "0xEB5638eefE289691EcE01943f768EDBF96258a80"
-REGISTRIES_MANAGER_ADDRESS_GOERLI = "0x10c5525F77F13b28f42c5626240c001c2D57CAd4"
-SERVICE_MANAGER_ADDRESS_GOERLI = "0x1d333b46dB6e8FFd271b6C2D2B254868BD9A2dbd"
-SERVICE_REGISTRY_ADDRESS_GOERLI = "0x1cEe30D08943EB58EFF84DD1AB44a6ee6FEff63a"
-GNOSIS_SAFE_PROXY_FACTORY_ADDRESS_GOERLI = "0x65dD51b02049ad1B6FF7fa9Ea3322E1D2CAb1176"
-GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS_GOERLI = (
-    "0x92499E80f50f06C4078794C179986907e7822Ea1"
-)
-SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS_GOERLI = (
-    "0x6d9b08701Af43D68D991c074A27E4d90Af7f2276"  # nosec
-)
-MULTISEND_ADDRESS_GOERLI = "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"
+    component_registry: str
+    agent_registry: str
+    registries_manager: str
+    service_registry: str
+    service_registry_token_utility: str
+    service_manager: str
+    gnosis_safe_proxy_factory: str
+    gnosis_safe_same_address_multisig: str
+    multisend: str
 
-# contract addressed for a custom chain
-COMPONENT_REGISTRY_ADDRESS_CUSTOM = os.environ.get("CUSTOM_COMPONENT_REGISTRY_ADDRESS")
-AGENT_REGISTRY_ADDRESS_CUSTOM = os.environ.get("CUSTOM_AGENT_REGISTRY_ADDRESS")
-REGISTRIES_MANAGER_ADDRESS_CUSTOM = os.environ.get("CUSTOM_REGISTRIES_MANAGER_ADDRESS")
-SERVICE_MANAGER_ADDRESS_CUSTOM = os.environ.get("CUSTOM_SERVICE_MANAGER_ADDRESS")
-SERVICE_REGISTRY_ADDRESS_CUSTOM = os.environ.get("CUSTOM_SERVICE_REGISTRY_ADDRESS")
-GNOSIS_SAFE_PROXY_FACTORY_ADDRESS_CUSTOM = os.environ.get(
-    "CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS"
+    def get(self, name: str) -> str:
+        """Returns the contract address."""
+        return cast(str, getattr(self, name))
+
+
+HardhatAddresses = ContractAddresses(  # nosec
+    component_registry="0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    agent_registry="0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    registries_manager="0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+    service_registry="0x998abeb3E57409262aE5b751f60747921B33613E",
+    service_manager="0x4c5859f0F772848b2D91F1D83E2Fe57935348029",
+    gnosis_safe_proxy_factory="0x0E801D84Fa97b50751Dbf25036d067dCf18858bF",
+    gnosis_safe_same_address_multisig="0x8f86403A4DE0BB5791fa46B8e795C547942fE4Cf",
+    service_registry_token_utility="0x36C02dA8a0983159322a80FFE9F24b1acfF8B570",
+    multisend="0x9d4454B023096f34B160D6B654540c56A1F81688",
 )
-GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS_CUSTOM = os.environ.get(
-    "CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS"
+
+EthereumAddresses = ContractAddresses(  # nosec
+    component_registry="0x15bd56669F57192a97dF41A2aa8f4403e9491776",
+    agent_registry="0x2F1f7D38e4772884b88f3eCd8B6b9faCdC319112",
+    registries_manager="0x9eC9156dEF5C613B2a7D4c46C383F9B58DfcD6fE",
+    service_registry="0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA",
+    service_registry_token_utility="0x3Fb926116D454b95c669B6Bf2E7c3bad8d19affA",
+    service_manager="0x2EA682121f815FBcF86EA3F3CaFdd5d67F2dB143",
+    gnosis_safe_proxy_factory="0x46C0D07F55d4F9B5Eed2Fc9680B5953e5fd7b461",
+    gnosis_safe_same_address_multisig="0x26Ea2dC7ce1b41d0AD0E0521535655d7a94b684c",
+    multisend="0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
 )
-SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS_CUSTOM = os.environ.get(
-    "CUSTOM_SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS"
+
+GoerliAddresses = ContractAddresses(  # nosec
+    component_registry="0x7Fd1F4b764fA41d19fe3f63C85d12bf64d2bbf68",
+    agent_registry="0xEB5638eefE289691EcE01943f768EDBF96258a80",
+    registries_manager="0x10c5525F77F13b28f42c5626240c001c2D57CAd4",
+    service_registry="0x1cEe30D08943EB58EFF84DD1AB44a6ee6FEff63a",
+    service_registry_token_utility="0x6d9b08701Af43D68D991c074A27E4d90Af7f2276",
+    service_manager="0x1d333b46dB6e8FFd271b6C2D2B254868BD9A2dbd",
+    gnosis_safe_proxy_factory="0x65dD51b02049ad1B6FF7fa9Ea3322E1D2CAb1176",
+    gnosis_safe_same_address_multisig="0x92499E80f50f06C4078794C179986907e7822Ea1",
+    multisend="0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
 )
-MULTISEND_ADDRESS_CUSTOM = os.environ.get(
-    "CUSTOM_MULTISEND_ADDRESS", "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"
+
+CustomAddresses = ContractAddresses(
+    component_registry=cast(str, os.environ.get("CUSTOM_COMPONENT_REGISTRY_ADDRESS")),
+    agent_registry=cast(str, os.environ.get("CUSTOM_AGENT_REGISTRY_ADDRESS")),
+    registries_manager=cast(str, os.environ.get("CUSTOM_REGISTRIES_MANAGER_ADDRESS")),
+    service_manager=cast(str, os.environ.get("CUSTOM_SERVICE_MANAGER_ADDRESS")),
+    service_registry=cast(str, os.environ.get("CUSTOM_SERVICE_REGISTRY_ADDRESS")),
+    gnosis_safe_proxy_factory=cast(
+        str, os.environ.get("CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS")
+    ),
+    gnosis_safe_same_address_multisig=cast(
+        str, os.environ.get("CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS")
+    ),
+    service_registry_token_utility=cast(
+        str, os.environ.get("CUSTOM_SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS")
+    ),
+    multisend=cast(
+        str,
+        os.environ.get(
+            "CUSTOM_MULTISEND_ADDRESS", "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"
+        ),
+    ),
 )
+
 
 # Contract PublicIds
 COMPONENT_REGISTRY_CONTRACT = PublicId.from_str("valory/component_registry")

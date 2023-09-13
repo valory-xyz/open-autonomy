@@ -24,16 +24,6 @@ class ComponentMintFailed(ChainInteractionError)
 
 Raise when component minting fails.
 
-<a id="autonomy.chain.exceptions.FailedToRetrieveTokenId"></a>
-
-## FailedToRetrieveTokenId Objects
-
-```python
-class FailedToRetrieveTokenId(ChainInteractionError)
-```
-
-Raise when token ID retrieving fails for minted component.
-
 <a id="autonomy.chain.exceptions.FailedToRetrieveComponentMetadata"></a>
 
 ## FailedToRetrieveComponentMetadata Objects
