@@ -58,7 +58,6 @@ base_deps = [
     "valory-docker-compose==1.29.3",
     "werkzeug==2.0.3",
     "docker==6.1.2",
-    "hexbytes",
 ]
 base_deps.extend(all_extras["cli"])
 
