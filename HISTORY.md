@@ -1,6 +1,12 @@
 # Release History - `open-autonomy`
 
 
+# 0.12.1.post1 (2023-09-14)
+
+Autonomy:
+
+- Pin `hexbytes` as framework dependency
+
 # 0.12.1 (2023-09-12)
 
 Autonomy:
