@@ -140,13 +140,13 @@ class TestRequiredEnvVars:
     _component_failure = (
         "Addresses for following contracts are None, please set them using their respective environment variables\n"
         "- Set `registries_manager` address using `CUSTOM_REGISTRIES_MANAGER_ADDRESS`\n"
-        "- Set `component_registry` address using `CUSTOM_COMPONENT_REGISTRY_ADDRESS`\n"
+        "- Set `component_registry` address using `CUSTOM_COMPONENT_REGISTRY_ADDRESS`"
     )
 
     _service_failure = (
         "Addresses for following contracts are None, please set them using their respective environment variables\n"
         "- Set `service_manager` address using `CUSTOM_SERVICE_MANAGER_ADDRESS`\n"
-        "- Set `service_registry` address using `CUSTOM_SERVICE_REGISTRY_ADDRESS`\n"
+        "- Set `service_registry` address using `CUSTOM_SERVICE_REGISTRY_ADDRESS`"
     )
 
     def test_component_mint(self) -> None:
@@ -232,7 +232,7 @@ class TestRequiredEnvVars:
                 "- Set `service_manager` address using `CUSTOM_SERVICE_MANAGER_ADDRESS`\n"
                 "- Set `service_registry` address using `CUSTOM_SERVICE_REGISTRY_ADDRESS`\n"
                 "- Set `gnosis_safe_proxy_factory` address using `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS`\n"
-                "- Set `gnosis_safe_same_address_multisig` address using `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS`\n"
+                "- Set `gnosis_safe_same_address_multisig` address using `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS`"
             ),
         ):
             mint_helper = ServiceHelper(

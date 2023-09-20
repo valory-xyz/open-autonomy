@@ -207,7 +207,7 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
         error = "Addresses for following contracts are None, please set them using their respective environment variables\n"
         for config in missing:
             error += f"- Set `{config.name}` address using `CUSTOM_{config.name.upper()}_ADDRESS`\n"
-        raise click.ClickException(error)
+        raise click.ClickException(error[:-1])
 
 
 class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
@@ -267,18 +267,27 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             contract_address = ContractConfigs.get(
                 SERVICE_REGISTRY_CONTRACT.name
             ).contracts[self.chain_type]
+            self.check_required_enviroment_variables(
+                configs=(ContractConfigs.service_registry,)
+            )
         elif self.package_type == PackageType.AGENT:
             is_service = False
             is_agent = True
             contract_address = ContractConfigs.get(
                 AGENT_REGISTRY_CONTRACT.name
             ).contracts[self.chain_type]
+            self.check_required_enviroment_variables(
+                configs=(ContractConfigs.agent_registry,)
+            )
         else:
             is_service = False
             is_agent = False
             contract_address = ContractConfigs.get(
                 COMPONENT_REGISTRY_CONTRACT.name
             ).contracts[self.chain_type]
+            self.check_required_enviroment_variables(
+                configs=(ContractConfigs.component_registry,)
+            )
 
         self.old_metadata = resolve_component_id(
             ledger_api=self.ledger_api,
