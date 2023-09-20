@@ -403,11 +403,16 @@ packages/valory/protocols/contract_api
 packages/valory/protocols/http
 packages/valory/protocols/ledger_api
 
-autonomy/data/contracts/registries_manager
-autonomy/data/contracts/component_registry
-autonomy/data/contracts/service_registry
 autonomy/data/contracts/agent_registry
+autonomy/data/contracts/component_registry
+autonomy/data/contracts/erc20
+autonomy/data/contracts/gnosis_safe
+autonomy/data/contracts/gnosis_safe_proxy_factory
+autonomy/data/contracts/multisend
+autonomy/data/contracts/registries_manager
 autonomy/data/contracts/service_manager
+autonomy/data/contracts/service_registry
+autonomy/data/contracts/service_registry_token_utility
 
 .vscode/
 
