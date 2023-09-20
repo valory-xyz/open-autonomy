@@ -1,7 +1,7 @@
 # Release History - `open-autonomy`
 
 
-# 0.12.1.post2 (2023-09-14)
+# 0.12.1.post2 (2023-09-20)
 
 Autonomy:
 
