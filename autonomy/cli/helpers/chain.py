@@ -32,7 +32,12 @@ from aea.helpers.base import IPFSHash
 from texttable import Texttable
 
 from autonomy.chain.base import ServiceState, UnitType
-from autonomy.chain.config import ChainConfigs, ChainType, ContractConfigs
+from autonomy.chain.config import (
+    ChainConfigs,
+    ChainType,
+    ContractConfig,
+    ContractConfigs,
+)
 from autonomy.chain.constants import (
     AGENT_REGISTRY_CONTRACT,
     COMPONENT_REGISTRY_CONTRACT,
@@ -184,6 +189,25 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
             raise click.ClickException(e.message)
 
         return ledger_api, crypto
+
+    def check_required_enviroment_variables(
+        self, configs: Tuple[ContractConfig, ...]
+    ) -> None:
+        """Check for required enviroment variables when working with the custom chain."""
+        if self.chain_type != ChainType.CUSTOM:
+            return
+        missing = []
+        for config in configs:
+            if config.contracts[self.chain_type] is None:
+                missing.append(config)
+
+        if len(missing) == 0:
+            return
+
+        error = "Addresses for following contracts are None, please set them using their respective environment variables\n"
+        for config in missing:
+            error += f"- Set `{config.name}` address using `CUSTOM_{config.name.upper()}_ADDRESS`\n"
+        raise click.ClickException(error)
 
 
 class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
@@ -357,6 +381,18 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         component_type: UnitType = UnitType.COMPONENT,
     ) -> None:
         """Mint component."""
+
+        self.check_required_enviroment_variables(
+            configs=(
+                ContractConfigs.registries_manager,
+                (
+                    ContractConfigs.component_registry
+                    if component_type == UnitType.COMPONENT
+                    else ContractConfigs.agent_registry
+                ),
+            )
+        )
+
         try:
             self.token_id = _mint_component(
                 ledger_api=self.ledger_api,
@@ -405,6 +441,18 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
     ) -> None:
         """Mint service"""
 
+        if self.chain_type == ChainType.CUSTOM and token is not None:
+            raise click.ClickException(
+                "Cannot use custom token for bonding on L2 chains"
+            )
+
+        self.check_required_enviroment_variables(
+            configs=(
+                ContractConfigs.service_manager,
+                ContractConfigs.service_registry,
+            )
+        )
+
         try:
             token_id = _mint_service(
                 ledger_api=self.ledger_api,
@@ -442,6 +490,16 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
 
     def update_component(self, component_type: UnitType = UnitType.COMPONENT) -> None:
         """Update component."""
+        self.check_required_enviroment_variables(
+            configs=(
+                ContractConfigs.registries_manager,
+                (
+                    ContractConfigs.component_registry
+                    if component_type == UnitType.COMPONENT
+                    else ContractConfigs.agent_registry
+                ),
+            )
+        )
         try:
             self.token_id = _update_component(
                 ledger_api=self.ledger_api,
@@ -480,6 +538,13 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         threshold: int,
     ) -> None:
         """Update service"""
+
+        self.check_required_enviroment_variables(
+            configs=(
+                ContractConfigs.service_manager,
+                ContractConfigs.service_registry,
+            )
+        )
 
         *_, state, _ = get_service_info(
             ledger_api=self.ledger_api,
@@ -550,6 +615,11 @@ class ServiceHelper(OnChainHelper):
         token: Optional[str] = None,
     ) -> "ServiceHelper":
         """Check if service"""
+        if self.chain_type == ChainType.CUSTOM:
+            self.token = token
+            self.token_secured = False
+            return self
+
         self.token = token
         self.token_secured = is_service_token_secured(
             ledger_api=self.ledger_api,
@@ -595,6 +665,13 @@ class ServiceHelper(OnChainHelper):
                 spender=spender,
             )
 
+        self.check_required_enviroment_variables(
+            configs=(
+                ContractConfigs.service_manager,
+                ContractConfigs.service_registry,
+            )
+        )
+
         try:
             _activate_service(
                 ledger_api=self.ledger_api,
@@ -630,6 +707,13 @@ class ServiceHelper(OnChainHelper):
                 spender=spender,
             )
 
+        self.check_required_enviroment_variables(
+            configs=(
+                ContractConfigs.service_manager,
+                ContractConfigs.service_registry,
+            )
+        )
+
         try:
             _register_instance(
                 ledger_api=self.ledger_api,
@@ -653,6 +737,16 @@ class ServiceHelper(OnChainHelper):
     ) -> None:
         """Deploy a service with registration activated"""
 
+        self.check_required_enviroment_variables(
+            configs=(
+                ContractConfigs.service_manager,
+                ContractConfigs.service_registry,
+                ContractConfigs.gnosis_safe_proxy_factory,
+                ContractConfigs.gnosis_safe_same_address_multisig,
+                ContractConfigs.multisend,
+            )
+        )
+
         try:
             _deploy_service(
                 ledger_api=self.ledger_api,
@@ -671,6 +765,13 @@ class ServiceHelper(OnChainHelper):
     def terminate_service(self) -> None:
         """Terminate a service"""
 
+        self.check_required_enviroment_variables(
+            configs=(
+                ContractConfigs.service_manager,
+                ContractConfigs.service_registry,
+            )
+        )
+
         try:
             _terminate_service(
                 ledger_api=self.ledger_api,
@@ -685,6 +786,13 @@ class ServiceHelper(OnChainHelper):
 
     def unbond_service(self) -> None:
         """Unbond a service"""
+
+        self.check_required_enviroment_variables(
+            configs=(
+                ContractConfigs.service_manager,
+                ContractConfigs.service_registry,
+            )
+        )
 
         try:
             _unbond_service(
