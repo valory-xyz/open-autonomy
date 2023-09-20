@@ -454,6 +454,11 @@ def test_mint_with_token_on_custom_chain() -> None:
     with _get_ledger_and_crypto_objects_patch(), pytest.raises(
         click.ClickException, match="Cannot use custom token for bonding on L2 chains"
     ):
-        MintHelper(chain_type=ChainType.CUSTOM, key=ETHEREUM_KEY_DEPLOYER).mint_service(
-            number_of_slots=1, cost_of_bond=1, threshold=1, token="0x"
+        MintHelper(  # nosec
+            chain_type=ChainType.CUSTOM, key=ETHEREUM_KEY_DEPLOYER
+        ).mint_service(
+            number_of_slots=1,
+            cost_of_bond=1,
+            threshold=1,
+            token="0x",
         )
