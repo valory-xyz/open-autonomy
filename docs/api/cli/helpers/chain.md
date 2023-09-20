@@ -42,6 +42,17 @@ def get_ledger_and_crypto_objects(
 
 Create ledger_api and crypto objects
 
+<a id="autonomy.cli.helpers.chain.OnChainHelper.check_required_enviroment_variables"></a>
+
+#### check`_`required`_`enviroment`_`variables
+
+```python
+def check_required_enviroment_variables(
+        configs: Tuple[ContractConfig, ...]) -> None
+```
+
+Check for required enviroment variables when working with the custom chain.
+
 <a id="autonomy.cli.helpers.chain.MintHelper"></a>
 
 ## MintHelper Objects

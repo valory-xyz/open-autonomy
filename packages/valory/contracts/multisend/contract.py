@@ -163,7 +163,7 @@ class MultiSendContract(Contract):
 
         :param ledger_api: ledger API object.
         :param contract_address: the contract address.
-        :param multi_send_txs: the multisend transaction list.
+        :param txs: the multisend transaction list.
         :return: an optional JSON-like object.
         """
         multisend_contract = cls.get_instance(ledger_api, contract_address)

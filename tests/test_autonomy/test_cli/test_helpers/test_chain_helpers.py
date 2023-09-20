@@ -54,6 +54,14 @@ _ = registry_contracts.component_registry
 _ = registry_contracts.service_manager
 
 
+def _get_ledger_and_crypto_objects_patch() -> mock._patch:
+    return mock.patch.object(
+        OnChainHelper,
+        "get_ledger_and_crypto_objects",
+        return_value=(mock.MagicMock(), mock.MagicMock()),
+    )
+
+
 class TestMintComponentMethod:
     """Test `mint_component` method."""
 
@@ -124,6 +132,128 @@ class TestMintComponentMethod:
                 ).verify_nft().verify_component_dependencies(
                     dependencies=(),  # type: ignore
                 ).publish_metadata().mint_component()
+
+
+class TestRequiredEnvVars:
+    """Test required env var check works."""
+
+    _component_failure = (
+        "Addresses for following contracts are None, please set them using their respective environment variables\n"
+        "- Set `registries_manager` address using `CUSTOM_REGISTRIES_MANAGER_ADDRESS`\n"
+        "- Set `component_registry` address using `CUSTOM_COMPONENT_REGISTRY_ADDRESS`"
+    )
+
+    _service_failure = (
+        "Addresses for following contracts are None, please set them using their respective environment variables\n"
+        "- Set `service_manager` address using `CUSTOM_SERVICE_MANAGER_ADDRESS`\n"
+        "- Set `service_registry` address using `CUSTOM_SERVICE_REGISTRY_ADDRESS`"
+    )
+
+    def test_component_mint(self) -> None:
+        """Test component mint env vars."""
+        with _get_ledger_and_crypto_objects_patch(), pytest.raises(
+            click.ClickException,
+            match=self._component_failure,
+        ):
+            mint_helper = MintHelper(
+                chain_type=ChainType.CUSTOM,
+                key=ETHEREUM_KEY_DEPLOYER,
+            )
+            mint_helper.mint_component()
+
+    def test_component_update(self) -> None:
+        """Test component update env vars."""
+        with _get_ledger_and_crypto_objects_patch(), pytest.raises(
+            click.ClickException,
+            match=self._component_failure,
+        ):
+            mint_helper = MintHelper(
+                chain_type=ChainType.CUSTOM,
+                key=ETHEREUM_KEY_DEPLOYER,
+            )
+            mint_helper.update_component()
+
+    def test_servic_mint(self) -> None:
+        """Test component update env vars."""
+        with _get_ledger_and_crypto_objects_patch(), pytest.raises(
+            click.ClickException,
+            match=self._service_failure,
+        ):
+            mint_helper = MintHelper(
+                chain_type=ChainType.CUSTOM,
+                key=ETHEREUM_KEY_DEPLOYER,
+            )
+            mint_helper.mint_service(1, 1, 1)
+
+    def test_service_update(self) -> None:
+        """Test component update env vars."""
+        with _get_ledger_and_crypto_objects_patch(), pytest.raises(
+            click.ClickException,
+            match=self._service_failure,
+        ):
+            mint_helper = MintHelper(
+                chain_type=ChainType.CUSTOM,
+                key=ETHEREUM_KEY_DEPLOYER,
+            )
+            mint_helper.update_service(1, 1, 1)
+
+    def test_activate_service(self) -> None:
+        """Test component update env vars."""
+        with _get_ledger_and_crypto_objects_patch(), pytest.raises(
+            click.ClickException,
+            match=self._service_failure,
+        ):
+            mint_helper = ServiceHelper(
+                service_id=1,
+                chain_type=ChainType.CUSTOM,
+                key=ETHEREUM_KEY_DEPLOYER,
+            )
+            mint_helper.check_is_service_token_secured().activate_service()
+
+    def test_register_instances(self) -> None:
+        """Test component update env vars."""
+        with _get_ledger_and_crypto_objects_patch(), pytest.raises(
+            click.ClickException,
+            match=self._service_failure,
+        ):
+            mint_helper = ServiceHelper(
+                service_id=1,
+                chain_type=ChainType.CUSTOM,
+                key=ETHEREUM_KEY_DEPLOYER,
+            )
+            mint_helper.check_is_service_token_secured().register_instance(["0x"], [1])
+
+    def test_deploy_instances(self) -> None:
+        """Test component update env vars."""
+        with _get_ledger_and_crypto_objects_patch(), pytest.raises(
+            click.ClickException,
+            match=(
+                "Addresses for following contracts are None, please set them using their respective environment variables\n"
+                "- Set `service_manager` address using `CUSTOM_SERVICE_MANAGER_ADDRESS`\n"
+                "- Set `service_registry` address using `CUSTOM_SERVICE_REGISTRY_ADDRESS`\n"
+                "- Set `gnosis_safe_proxy_factory` address using `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS`\n"
+                "- Set `gnosis_safe_same_address_multisig` address using `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS`"
+            ),
+        ):
+            mint_helper = ServiceHelper(
+                service_id=1,
+                chain_type=ChainType.CUSTOM,
+                key=ETHEREUM_KEY_DEPLOYER,
+            )
+            mint_helper.check_is_service_token_secured().deploy_service()
+
+    def test_unbond(self) -> None:
+        """Test component update env vars."""
+        with _get_ledger_and_crypto_objects_patch(), pytest.raises(
+            click.ClickException,
+            match=self._service_failure,
+        ):
+            mint_helper = ServiceHelper(
+                service_id=1,
+                chain_type=ChainType.CUSTOM,
+                key=ETHEREUM_KEY_DEPLOYER,
+            )
+            mint_helper.check_is_service_token_secured().unbond_service()
 
 
 @pytest.mark.parametrize(
@@ -305,4 +435,30 @@ def test_verify_service_dependencies_failures() -> None:
             nft=DEFAULT_NFT_IMAGE_HASH,
         ).verify_service_dependencies(
             agent_id=1
+        )
+
+
+def test_token_secure_check_on_custom_chain() -> None:
+    """Test token_secure is False on custom chain."""
+
+    with _get_ledger_and_crypto_objects_patch():
+        service_helper = ServiceHelper(
+            service_id=1, chain_type=ChainType.CUSTOM, key=ETHEREUM_KEY_DEPLOYER
+        )
+        assert service_helper.check_is_service_token_secured().token_secured is False
+
+
+def test_mint_with_token_on_custom_chain() -> None:
+    """Test minting with token on L2 chains fail."""
+
+    with _get_ledger_and_crypto_objects_patch(), pytest.raises(
+        click.ClickException, match="Cannot use custom token for bonding on L2 chains"
+    ):
+        MintHelper(  # nosec
+            chain_type=ChainType.CUSTOM, key=ETHEREUM_KEY_DEPLOYER
+        ).mint_service(
+            number_of_slots=1,
+            cost_of_bond=1,
+            threshold=1,
+            token="0x",
         )
