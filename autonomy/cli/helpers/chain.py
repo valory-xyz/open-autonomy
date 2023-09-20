@@ -455,7 +455,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             raise click.ClickException(f"Invalid parameters provided; {e}") from e
         except ComponentMintFailed as e:
             raise click.ClickException(
-                f"Component mint failed with following error; {e}"
+                f"Component update failed with following error; {e}"
             ) from e
 
         click.echo("Component hash updated:")
@@ -481,6 +481,17 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
     ) -> None:
         """Update service"""
 
+        *_, state, _ = get_service_info(
+            ledger_api=self.ledger_api,
+            chain_type=self.chain_type,
+            token_id=cast(int, self.update_token),
+        )
+
+        if ServiceState(state) != ServiceState.PRE_REGISTRATION:
+            raise click.ClickException(
+                "Cannot update service hash, service needs to be in the pre-registration state"
+            )
+
         try:
             token_id = _update_service(
                 ledger_api=self.ledger_api,
@@ -501,7 +512,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             )
         except ComponentMintFailed as e:
             raise click.ClickException(
-                f"Service mint failed with following error; {e}"
+                f"Service update failed with following error; {e}"
             ) from e
 
         click.echo("Service updated with:")
