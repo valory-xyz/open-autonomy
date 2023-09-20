@@ -5,9 +5,14 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
-## `v0.12.1` to `v0.12.1.post1`
+
+## `v0.12.1.post1` to `v0.12.1.post2`
 
 No backwards incompatible changes
+
+## `v0.12.1` to `v0.12.1.post1`
+
+- Environment variable names have changed for custom contract address, refer to the `mint/service` CLI tools documentation regarding the changes.
 
 ## `v0.12.0` to `v0.12.1`
 

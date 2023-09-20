@@ -1,6 +1,13 @@
 # Release History - `open-autonomy`
 
 
+# 0.12.1.post2 (2023-09-14)
+
+Autonomy:
+
+- Adds missing contract packages to the `eject-contracts` make target
+- Adds check to make sure service is in `pre-registration` before updating the service hash
+
 # 0.12.1.post1 (2023-09-14)
 
 Autonomy:
