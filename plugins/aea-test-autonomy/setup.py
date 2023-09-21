@@ -32,7 +32,7 @@ base_deps = [
 
 setup(
     name="open-aea-test-autonomy",
-    version="0.12.1.post2",
+    version="0.12.1.post3",
     author="Valory AG",
     license="Apache-2.0",
     description="Plugin containing test tools for open-autonomy packages.",
