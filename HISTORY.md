@@ -1,6 +1,12 @@
 # Release History - `open-autonomy`
 
 
+# 0.12.1.post3 (2023-09-21)
+
+Autonomy:
+
+- Pins `jsonschema<=4.19.0,>=4.16.0`
+
 # 0.12.1.post2 (2023-09-20)
 
 Autonomy:
