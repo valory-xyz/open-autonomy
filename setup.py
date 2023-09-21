@@ -59,6 +59,7 @@ base_deps = [
     "werkzeug==2.0.3",
     "docker==6.1.2",
     "hexbytes",
+    "jsonschema<=4.19.0,>=4.16.0",
 ]
 base_deps.extend(all_extras["cli"])
 
