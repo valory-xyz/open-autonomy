@@ -75,7 +75,7 @@ This is roughly how your workspace should look like:
     You can override the default registry in use (set up with `autonomy init`) for a particular command through the flags `--registry-path` and `--local`. For example, if the framework was initialized with the remote registry, the following command will fetch a runtime folder for the `hello_world` agent from the remote registry:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeifulc2gc4fqeyimb5hihvx3bjrbr437xdbb52rfjz4sgp67zajtfq
+    autonomy fetch valory/hello_world:0.1.0:bafybeih6rocssjyqnajso5uaw4f52alyyqvvabjv7xbdef3qqjhbgbvyfu
     ```
 
     On the other hand, if you want to fetch the copy stored in your local registry, then you can use:
@@ -106,13 +106,13 @@ If you plan to follow the guides in the next sections, you need to populate the 
     "dev": {
     },
     "third_party": {
-        "service/valory/hello_world/0.1.0": "bafybeia3r5ulvcgux6cfdk6atja75h4r6nzazqs4v4xewuhohhvxg5gzla",
-        "agent/valory/hello_world/0.1.0": "bafybeifulc2gc4fqeyimb5hihvx3bjrbr437xdbb52rfjz4sgp67zajtfq",
+        "service/valory/hello_world/0.1.0": "bafybeia56ql6fahijcevoy7fokyghckkhxehoa2mwitjt7aabrf5qfd2bq",
+        "agent/valory/hello_world/0.1.0": "bafybeih6rocssjyqnajso5uaw4f52alyyqvvabjv7xbdef3qqjhbgbvyfu",
         "connection/valory/abci/0.1.0": "bafybeihtcupik5qk27qnvbc5ep2oqgrka2y7e5pqzxp3v2bidpbxxachyq",
         "connection/valory/http_client/0.23.0": "bafybeieoeuy4brzimtnubmokwirhrx27ezls6cdnl5qik4rkykfle3nn2y",
-        "connection/valory/ipfs/0.1.0": "bafybeighbvg6if7bwswosgajlzgz36pwuyttu3vyfqgwi3xayvdxtl53lq",
+        "connection/valory/ipfs/0.1.0": "bafybeidu3xd6rd5zysv2due2cnrc3sxx5vss2usxwaxxtxxuyha2kuhd3e",
         "connection/valory/ledger/0.19.0": "bafybeigfoz7d7si7s4jehvloq2zmiiocpbxcaathl3bxkyarxoerxq7g3a",
-        "contract/valory/service_registry/0.1.0": "bafybeihnlcu4tnnfrict3z7kclcba7hnniqomamnsoio3bjytshzrxovsm",
+        "contract/valory/service_registry/0.1.0": "bafybeictcmpzj4sxjbkztjj6lqcnk63llp4d5cpz44outuw6jxmbermmza",
         "protocol/open_aea/signing/1.0.0": "bafybeifuxs7gdg2okbn7uofymenjlmnih2wxwkym44lsgwmklgwuckxm2m",
         "protocol/valory/abci/0.1.0": "bafybeigootsvqpk6th5xpdtzanxum3earifrrezfyhylfrit7yvqdrtgpe",
         "protocol/valory/acn/1.1.0": "bafybeiapa5ilsobggnspoqhspftwolrx52udrwmaxdxgrk26heuvl4oooa",
@@ -122,8 +122,8 @@ If you plan to follow the guides in the next sections, you need to populate the 
         "protocol/valory/ledger_api/1.0.0": "bafybeigsvceac33asd6ecbqev34meyyjwu3rangenv6xp5rkxyz4krvcby",
         "protocol/valory/tendermint/0.1.0": "bafybeidjqmwvgi4rqgp65tbkhmi45fwn2odr5ecezw6q47hwitsgyw4jpa",
         "skill/valory/abstract_abci/0.1.0": "bafybeicvw6rteuzd2kfj6u4rwsrqbwipfwwhzafttviii3twzqzjokcl2i",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeifnqddpl3rui4gzh7x75feptzlxwzvix72kbqo5t5yvof2r62jzke",
-        "skill/valory/hello_world_abci/0.1.0": "bafybeigvearu2pcf7oepxpfj64lbzgm2oxcbgxarxxbqkgd44dvarmij74",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeiexv2t2v3bwe2mwbfb6tbtzl76jxii3va5hzxjsmdncpzl7b6s4xe",
+        "skill/valory/hello_world_abci/0.1.0": "bafybeiddnmeogxw3suh5adwjqays7nxiomyg7incf33qto2hwv5b6n5eey",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihdnfdth3qgltefgrem7xyi4b3ejzaz67xglm2hbma2rfvpl2annq"
     }
 }
