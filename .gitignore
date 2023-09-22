@@ -424,4 +424,5 @@ leak_report
 temp/
 
 logs.db
+benchmarks.html
 agent/

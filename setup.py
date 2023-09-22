@@ -35,6 +35,8 @@ def get_all_extras() -> Dict:
         "open-aea-cli-ipfs==1.39.0.post1",
         "texttable==1.6.7",
         "python-dotenv>=0.14.0,<0.18.0",
+        "pytest>=7.0.0,<7.3.0",
+        "coverage>=6.4.4,<8.0.0",
     ]
 
     extras = {
@@ -52,7 +54,6 @@ all_extras = get_all_extras()
 base_deps = [
     "Flask>=2.0.2,<3.0.0",
     "open-aea[all]==1.39.0.post1",
-    "pandas>=1.5.3",
     "watchdog>=2.1.6",
     "pytest==7.2.1",
     "valory-docker-compose==1.29.3",
