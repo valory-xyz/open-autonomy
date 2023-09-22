@@ -20,12 +20,25 @@
 """Tools for aggregating benchmark results."""
 
 import json
+import statistics
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Callable, Dict, List, Tuple, cast
 
-import pandas as pd
+from autonomy.analyse.benchmark.html import (
+    BLOCK_TEMPLATE,
+    HTML_TEMPLATE,
+    TABLE_TEMPLATE,
+    TD_TEMPLATE,
+    TH_TEMPLATE,
+    TROW_TEMPLATE,
+)
 
-from autonomy.analyse.benchmark.html import HTML_TEMPLATE, TABLE_TEMPLATE
+
+STATISTICS = {
+    "Mean": statistics.mean,
+    "Maximum": max,
+    "Minimum": min,
+}
 
 
 class BlockTypes:  # pylint: disable=too-few-public-methods
@@ -39,95 +52,149 @@ class BlockTypes:  # pylint: disable=too-few-public-methods
     types = (LOCAL, CONSENSUS, TOTAL)
 
 
-def read_benchmark_data(path: Path) -> List[Dict]:
+def read_benchmark_data(
+    path: Path,
+    block_type: str = BlockTypes.ALL,
+    period: int = -1,
+) -> Dict[str, Dict[str, List[Dict]]]:
     """Returns logs."""
-    benchmark_data = []
+    benchmark_data: Dict[str, Dict[str, List[Dict]]] = {}
     for agent_dir in path.iterdir():
-        agent_benchmark_data: Dict[str, Any] = {}
-        agent_benchmark_data["name"] = agent_dir.name
-        agent_benchmark_data["data"] = dict(
-            map(
-                lambda path: (
-                    int(path.name.replace(".json", "")),
-                    json.loads(path.read_text()),
-                ),
-                agent_dir.glob("*.json"),
-            )
+        benchmark_data[agent_dir.name] = {}
+        benchmark_data_files = list(agent_dir.glob("*.json"))
+        periods = sorted(
+            tuple(map(lambda x: x.name, benchmark_data_files))
+            if period == -1
+            else (f"{period}.json",)
         )
-        benchmark_data.append(agent_benchmark_data)
+        for _period in periods:
+            period_name, _ = _period.split(".")
+            period_data = json.loads((agent_dir / _period).read_text())
+            if block_type == BlockTypes.ALL:
+                benchmark_data[agent_dir.name][period_name] = period_data
+                continue
+
+            benchmark_data[agent_dir.name][period_name] = [
+                {
+                    "behaviour": behaviour["behaviour"],
+                    "data": {block_type: behaviour["data"][block_type]},
+                }
+                for behaviour in period_data
+            ]
+
     return benchmark_data
 
 
-def create_dataframe(data: List[Dict]) -> pd.DataFrame:
-    """Create pandas.DataFrame object from benchmark data."""
-
-    rows = []
-    behaviours = [behaviour_data["behaviour"] for behaviour_data in data[0]["data"][0]]
-    cols = ["agent", "period", "block_type", *behaviours]
-
-    for agent in data:
-        for period_n, period_data in agent["data"].items():
-            for block_t in BlockTypes.types:
-                rows.append(
-                    {
-                        "agent": agent["name"],
-                        "period": period_n,
-                        "block_type": block_t,
-                        **{
-                            behaviour_data["behaviour"]: behaviour_data["data"].get(
-                                block_t, 0.0
-                            )
-                            for behaviour_data in period_data
-                        },
-                    }
-                )
-
-    return pd.DataFrame(
-        data=rows,
-    )[cols]
+def add_statistic(
+    name: str,
+    aggregator: Callable,
+    behaviours: List[str],
+    behaviour_history: Dict[str, List[float]],
+) -> str:
+    """Add a stastic column."""
+    rows = TD_TEMPLATE.format(name)
+    for behaviour in behaviours:
+        rows += TD_TEMPLATE.format(aggregator(behaviour_history[behaviour]))
+    return TROW_TEMPLATE.format(rows)
 
 
-def format_output(df: pd.DataFrame, period: int, block_type: str) -> str:
-    """Format output from given dataframe and parameters"""
-
-    df = df.copy(deep=True).fillna(value=0.0)
-    df = df[df["period"] == period]
-    df = df[df["block_type"] == block_type]
-
-    del df["period"]
-    del df["block_type"]
-
-    time_df = df[df.columns[1:]]
-    stats_df = pd.DataFrame(
-        data=[
-            ["mean", *time_df.mean().values],
-            ["median", *time_df.median().values],
-            ["std_dev", *time_df.std().values],
-        ],
-        columns=df.columns,
+def add_statistics(
+    behaviours: List[str],
+    behaviour_history: Dict[str, List[float]],
+) -> str:
+    """Add statistics."""
+    tbody = TROW_TEMPLATE.format(
+        f"""<td style="text-align: center;" colspan="{len(behaviours)}">Statistics</td>"""
     )
+    for name, aggregator in STATISTICS.items():
+        tbody += add_statistic(
+            name=name,
+            aggregator=cast(Callable, aggregator),
+            behaviour_history=behaviour_history,
+            behaviours=behaviours,
+        )
+    return tbody
 
-    output_df = pd.concat((df, stats_df))
-    return output_df.to_html(index=False, justify="left")
+
+def create_table_data(
+    data: Dict[str, List[Dict]],
+    blocks: Tuple[str, ...],
+) -> Tuple[List[str], List[str], Dict[str, Dict]]:
+    """Create table data."""
+    periods: List[str] = []
+    header_columns: List[str] = ["Period"]
+    tables_data: Dict[str, Dict] = {}
+    for block in blocks:
+        if block not in tables_data:
+            tables_data[block] = {}
+        for period, behaviours in data.items():
+            for behaviour in behaviours:
+                if period not in tables_data[block]:
+                    tables_data[block][period] = {}
+                tables_data[block][period][behaviour["behaviour"]] = behaviour["data"][
+                    block
+                ]
+                if behaviour["behaviour"] not in header_columns:
+                    header_columns.append(behaviour["behaviour"])
+            if period not in periods:
+                periods.append(period)
+    return periods, header_columns, tables_data
+
+
+def create_agent_table(
+    agent: str, data: Dict[str, List[Dict]], blocks: Tuple[str, ...]
+) -> str:
+    """Create agent table."""
+    tables = f"""<div style="width: 100%; text-align: center"> Benchmark data for agent {agent}</div>\n"""
+    periods, header_columns, tables_data = create_table_data(
+        data=data,
+        blocks=blocks,
+    )
+    behaviour_history: Dict[str, List[float]] = {
+        behaviour: [] for behaviour in header_columns[1:]
+    }
+    for block, block_data in tables_data.items():
+        thead = "".join(map(TH_TEMPLATE.format, header_columns))
+        tbody = ""
+        for period in sorted(periods):
+            rows = TD_TEMPLATE.format(period)
+            for behaviour_name in header_columns[1:]:
+                behaviour_history[behaviour_name].append(
+                    block_data[period][behaviour_name]
+                )
+                rows += TD_TEMPLATE.format(block_data[period][behaviour_name])
+            tbody += TROW_TEMPLATE.format(rows)
+        tbody += add_statistics(
+            behaviours=header_columns[1:], behaviour_history=behaviour_history
+        )
+        tables += BLOCK_TEMPLATE.format(
+            table=TABLE_TEMPLATE.format(
+                colspan=len(header_columns),
+                block_type=block,
+                thead=thead,
+                tbody=tbody,
+            ),
+        )
+    return tables
 
 
 def aggregate(path: Path, block_type: str, period: int, output: Path) -> None:
     """Benchmark Aggregator."""
-
     path = Path(path)
-    benchmark_data = read_benchmark_data(path)
-    dataframe = create_dataframe(benchmark_data)
+    benchmark_data = read_benchmark_data(
+        path,
+        block_type=block_type,
+        period=period,
+    )
+    tables = [
+        create_agent_table(
+            agent=agent,
+            data=data,
+            blocks=(
+                BlockTypes.types if block_type == BlockTypes.ALL else (block_type,)
+            ),
+        )
+        for agent, data in benchmark_data.items()
+    ]
 
-    periods = range(dataframe.period.max()) if period == -1 else (period,)
-    blocks = BlockTypes.types if block_type == BlockTypes.ALL else (block_type,)
-
-    tables = ""
-    for period_n in periods:
-        for block_t in blocks:
-            tables += TABLE_TEMPLATE.format(
-                table=format_output(dataframe, period_n, block_t),
-                period=period_n,
-                block=block_t,
-            )
-
-    output.write_text(HTML_TEMPLATE.format(tables=tables), encoding="utf-8")
+    output.write_text(HTML_TEMPLATE.format(tables="".join(tables)), encoding="utf-8")

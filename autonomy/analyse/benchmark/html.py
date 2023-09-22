@@ -54,10 +54,28 @@ HTML_TEMPLATE = """<html>
 </body>
 </hmtl>"""
 
+BLOCK_TEMPLATE = """
+    <div style="margin: 16px 8px;">
+        {table}
+    </div>"""
+
 TABLE_TEMPLATE = """
-<div style="margin: 16px 8px;">
-    <div style="height: 3vh; width: 100%; font-size: 14px;">
-        Period: {period} | Block: {block}
-    </div>
-    {table}
-</div>"""
+<table border="1" style="width: 100%; border: 1px solid black; border-collapse: collapse;">
+    <thead>
+        <th style="text-align: center;" colspan="{colspan}">Block: {block_type}</th>
+    </thead>
+    <thead>{thead}</thead>
+    <tbody>{tbody}</tbody>
+</table>"""
+
+TROW_TEMPLATE = """
+<tr style="text-align: left;">
+{}
+</tr>
+"""
+
+TH_TEMPLATE = """
+        <th>{}</th>"""
+
+TD_TEMPLATE = """
+        <td>{}</td>"""
