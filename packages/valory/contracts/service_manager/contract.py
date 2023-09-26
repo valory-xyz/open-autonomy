@@ -37,6 +37,7 @@ L1_CHAINS = (
     1,
     5,
     31337,
+    100,
 )
 L2_BUILD_FILENAME = "ServiceManager.json"
 _logger = logging.getLogger(
