@@ -23,6 +23,7 @@ import binascii
 from typing import List, Optional
 from unittest import mock
 
+import pytest
 from aea.components.base import load_aea_package
 from aea.configurations.data_types import PackageType
 from aea.configurations.loader import load_configuration_object
@@ -738,11 +739,16 @@ class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
         tx_digest = self.ledger_api.send_signed_transaction(stx)
         self.ledger_api.get_transaction_receipt(tx_digest)
 
-    def test_redeploy(self) -> None:
+    @pytest.mark.parametrize(
+        argnames="n_owners",
+        argvalues=(1, 2),
+    )
+    def test_redeploy(self, n_owners: int) -> None:
         """Test redeploy service with same multisig."""
-        n = 2
-        instances = self.generate_and_fund_keys(n=n)
-        service_id = self.mint_service(number_of_slots_per_agent=n, threshold=n)
+        instances = self.generate_and_fund_keys(n=n_owners)
+        service_id = self.mint_service(
+            number_of_slots_per_agent=n_owners, threshold=n_owners
+        )
         self.activate_service(service_id=service_id)
         for instance in instances:
             self.register_instances(
@@ -758,7 +764,7 @@ class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
         )
         self.remove_owners(multisig_address=multisig_address, owners=instances)
 
-        new_instances = self.generate_and_fund_keys(n=n)
+        new_instances = self.generate_and_fund_keys(n=n_owners)
         self.activate_service(service_id=service_id)
         for instance in new_instances:
             self.register_instances(

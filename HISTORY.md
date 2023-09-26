@@ -1,6 +1,12 @@
 # Release History - `open-autonomy`
 
 
+# 0.12.1.post4 (2023-09-25)
+
+Autonomy:
+
+- Update the reuse multisig transaction builder to account for services with only one operator
+
 # 0.12.1.post3 (2023-09-21)
 
 Autonomy:

@@ -663,7 +663,8 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
             token_id=service_id,
         ).get("agentInstances"),
     )
-    for _owner in new_owners[1:]:
+
+    for _owner in new_owners:
         txs.append(
             {
                 "to": multisig_address,
@@ -686,8 +687,8 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
             "data": HexBytes(
                 bytes.fromhex(
                     multisig_instance.encodeABI(
-                        fn_name="swapOwner",
-                        args=[new_owners[1], service_owner, new_owners[0]],
+                        fn_name="removeOwner",
+                        args=[new_owners[0], service_owner, 1],
                     )[2:]
                 )
             ),
