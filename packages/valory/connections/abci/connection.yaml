@@ -12,7 +12,7 @@ fingerprint:
   connection.py: bafybeig3e43a44isn6ixvu43vp5orpbauv6jkma7w3fn52jjw3mk5agh6u
   dialogues.py: bafybeibpdsphu5vqjpieczrb3ulhqfcq4l73qnx6j3zhbz4dpunwegboxq
   gogoproto/__init__.py: bafybeifmpcbkrpygdt7uvhpq6gaxgskofpczxktoalp2cwyouay46drcke
-  gogoproto/gogo_pb2.py: bafybeihmydjloaskfrzqztpzkfzvgqjsxd4nunjtunvg7eba23o5ey6z2y
+  gogoproto/gogo_pb2.py: bafybeidomdqxyy6ov343ceu6noyt7edmxukvjayhu6eb3jwwbh63oqqcde
   protos/gogoproto/gogo.proto: bafybeieg7yu62cx25ssjgvjnsc2alececsgush6l5adpxuscaf6ksh6dou
   protos/tendermint/abci/types.proto: bafybeigimbf3rrfavl2o2jakr5c6dfm652lzxsddcmho7w5ytxo33sgrm4
   protos/tendermint/crypto/keys.proto: bafybeiar5g76sw7wgiyvaczpfgmw2bqkuillti7lnibmmmenz5zdofm6xe
@@ -24,14 +24,14 @@ fingerprint:
   readme.md: bafybeierlmc7t4dwpgc3sgmn5m5l3r4fwnwzbf6agna3igndsogk3iqlv4
   scripts/genproto.py: bafybeicfgwktvlrzqwfbvbld6bor3qd2rcfcgmk5rzfcfl6oj3jrr2mequ
   tendermint/__init__.py: bafybeifayxyjcebekkn62sucyupfcuwzlj57kuiwafynpw4nrbocqxe6ya
-  tendermint/abci/types_pb2.py: bafybeibp2zpyflih72mfvtdxwuhzmuvh3fo6q7up4im2fi7sxh7k6kuqhy
+  tendermint/abci/types_pb2.py: bafybeibux5csmk56iojxca6qboxvbncbavy45er5smzxvpjwrb6uedpi3y
   tendermint/abci/types_pb2_grpc.py: bafybeihmecy4uas7itftoaslrqvrjb3m2jewojuzxvie7pjzsrw5exnu6u
-  tendermint/crypto/keys_pb2.py: bafybeib4fyi5nlp663f4qyaphtoxyvefk6m6hfmgxvmcftl4lyxvm5babi
-  tendermint/crypto/proof_pb2.py: bafybeigbj6o6gkmrtypgx55p7fqwfq37si3cfq3eo6dbxlkv2sawjrrqnm
-  tendermint/types/params_pb2.py: bafybeifkwasxesjabxehcf3bl4fmccdtrjjezksanhyuojwvxhveoj4f4m
-  tendermint/types/types_pb2.py: bafybeiafuxiqynxirj4egqx4ctzz2h3t5rmj3ewp4tqzlrouy3aehmz7r4
-  tendermint/types/validator_pb2.py: bafybeid57xeefsjanw7zblv7znxss76g4z5dhbna5o4kqyk3kjmcx5mqva
-  tendermint/version/types_pb2.py: bafybeigl2knh4qgq4pxwjft44nqjjni4myq3aceuikydlscxo433igvqs4
+  tendermint/crypto/keys_pb2.py: bafybeidhswll3jdkgasfu3tr2ag4zvekcipxtiebaiobfcedgpec5uq3yq
+  tendermint/crypto/proof_pb2.py: bafybeiawvuybyxztqtgt74mkqx7jhiz3jgekb4z26rcuwtulq3lanjimsm
+  tendermint/types/params_pb2.py: bafybeicuk3lpttevkhn4cfkmxn4cevfdvlxoqoavz62tfarqbjzlail6ya
+  tendermint/types/types_pb2.py: bafybeihcb5lgxllxmucbowidmxq5idvmewllb5qc3k4qb7bycioj657z6m
+  tendermint/types/validator_pb2.py: bafybeie7b23lhoppt4qmxposc4srksksk72umjiag3dcok4f2ugpj2fisq
+  tendermint/version/types_pb2.py: bafybeih3dnjfjaxfpspisbtfp4npbgntclkz6s42ed47bfh77si2kd35pu
   tendermint_decoder.py: bafybeidal3n3q4lka4zwbrt277lmlhht5nlxnpnmc4rwi6zb5halnksomu
   tendermint_encoder.py: bafybeibpnofkac6jizpbezlo7rdsbijloovsuz5rjysshjrims7x44wxv4
   tests/__init__.py: bafybeid67ezzjsfsukyqdjtlnd3ra5yy73jnobm4setddgagd3u4vqboyu

@@ -6,6 +6,8 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
+
+
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -14,96 +16,132 @@ _sym_db = _symbol_database.Default()
 from gogoproto import gogo_pb2 as gogoproto_dot_gogo__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 from tendermint.crypto import proof_pb2 as tendermint_dot_crypto_dot_proof__pb2
-from tendermint.version import types_pb2 as tendermint_dot_version_dot_types__pb2
 from tendermint.types import validator_pb2 as tendermint_dot_types_dot_validator__pb2
+from tendermint.version import types_pb2 as tendermint_dot_version_dot_types__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0btypes.proto\x12\x10tendermint.types\x1a\x14gogoproto/gogo.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dtendermint/crypto/proof.proto\x1a\x1etendermint/version/types.proto\x1a tendermint/types/validator.proto\",\n\rPartSetHeader\x12\r\n\x05total\x18\x01 \x01(\r\x12\x0c\n\x04hash\x18\x02 \x01(\x0c\"S\n\x04Part\x12\r\n\x05index\x18\x01 \x01(\r\x12\r\n\x05\x62ytes\x18\x02 \x01(\x0c\x12-\n\x05proof\x18\x03 \x01(\x0b\x32\x18.tendermint.crypto.ProofB\x04\xc8\xde\x1f\x00\"W\n\x07\x42lockID\x12\x0c\n\x04hash\x18\x01 \x01(\x0c\x12>\n\x0fpart_set_header\x18\x02 \x01(\x0b\x32\x1f.tendermint.types.PartSetHeaderB\x04\xc8\xde\x1f\x00\"\xb3\x03\n\x06Header\x12\x34\n\x07version\x18\x01 \x01(\x0b\x32\x1d.tendermint.version.ConsensusB\x04\xc8\xde\x1f\x00\x12\x1d\n\x08\x63hain_id\x18\x02 \x01(\tB\x0b\xe2\xde\x1f\x07\x43hainID\x12\x0e\n\x06height\x18\x03 \x01(\x03\x12\x32\n\x04time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x08\xc8\xde\x1f\x00\x90\xdf\x1f\x01\x12\x36\n\rlast_block_id\x18\x05 \x01(\x0b\x32\x19.tendermint.types.BlockIDB\x04\xc8\xde\x1f\x00\x12\x18\n\x10last_commit_hash\x18\x06 \x01(\x0c\x12\x11\n\tdata_hash\x18\x07 \x01(\x0c\x12\x17\n\x0fvalidators_hash\x18\x08 \x01(\x0c\x12\x1c\n\x14next_validators_hash\x18\t \x01(\x0c\x12\x16\n\x0e\x63onsensus_hash\x18\n \x01(\x0c\x12\x10\n\x08\x61pp_hash\x18\x0b \x01(\x0c\x12\x19\n\x11last_results_hash\x18\x0c \x01(\x0c\x12\x15\n\revidence_hash\x18\r \x01(\x0c\x12\x18\n\x10proposer_address\x18\x0e \x01(\x0c\"\x13\n\x04\x44\x61ta\x12\x0b\n\x03txs\x18\x01 \x03(\x0c\"\x92\x02\n\x04Vote\x12-\n\x04type\x18\x01 \x01(\x0e\x32\x1f.tendermint.types.SignedMsgType\x12\x0e\n\x06height\x18\x02 \x01(\x03\x12\r\n\x05round\x18\x03 \x01(\x05\x12<\n\x08\x62lock_id\x18\x04 \x01(\x0b\x32\x19.tendermint.types.BlockIDB\x0f\xc8\xde\x1f\x00\xe2\xde\x1f\x07\x42lockID\x12\x37\n\ttimestamp\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x08\xc8\xde\x1f\x00\x90\xdf\x1f\x01\x12\x19\n\x11validator_address\x18\x06 \x01(\x0c\x12\x17\n\x0fvalidator_index\x18\x07 \x01(\x05\x12\x11\n\tsignature\x18\x08 \x01(\x0c\"\x9c\x01\n\x06\x43ommit\x12\x0e\n\x06height\x18\x01 \x01(\x03\x12\r\n\x05round\x18\x02 \x01(\x05\x12<\n\x08\x62lock_id\x18\x03 \x01(\x0b\x32\x19.tendermint.types.BlockIDB\x0f\xc8\xde\x1f\x00\xe2\xde\x1f\x07\x42lockID\x12\x35\n\nsignatures\x18\x04 \x03(\x0b\x32\x1b.tendermint.types.CommitSigB\x04\xc8\xde\x1f\x00\"\xa8\x01\n\tCommitSig\x12\x34\n\rblock_id_flag\x18\x01 \x01(\x0e\x32\x1d.tendermint.types.BlockIDFlag\x12\x19\n\x11validator_address\x18\x02 \x01(\x0c\x12\x37\n\ttimestamp\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x08\xc8\xde\x1f\x00\x90\xdf\x1f\x01\x12\x11\n\tsignature\x18\x04 \x01(\x0c\"\xf5\x01\n\x08Proposal\x12-\n\x04type\x18\x01 \x01(\x0e\x32\x1f.tendermint.types.SignedMsgType\x12\x0e\n\x06height\x18\x02 \x01(\x03\x12\r\n\x05round\x18\x03 \x01(\x05\x12\x11\n\tpol_round\x18\x04 \x01(\x05\x12<\n\x08\x62lock_id\x18\x05 \x01(\x0b\x32\x19.tendermint.types.BlockIDB\x0f\xc8\xde\x1f\x00\xe2\xde\x1f\x07\x42lockID\x12\x37\n\ttimestamp\x18\x06 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x08\xc8\xde\x1f\x00\x90\xdf\x1f\x01\x12\x11\n\tsignature\x18\x07 \x01(\x0c\"b\n\x0cSignedHeader\x12(\n\x06header\x18\x01 \x01(\x0b\x32\x18.tendermint.types.Header\x12(\n\x06\x63ommit\x18\x02 \x01(\x0b\x32\x18.tendermint.types.Commit\"z\n\nLightBlock\x12\x35\n\rsigned_header\x18\x01 \x01(\x0b\x32\x1e.tendermint.types.SignedHeader\x12\x35\n\rvalidator_set\x18\x02 \x01(\x0b\x32\x1e.tendermint.types.ValidatorSet\"\x9e\x01\n\tBlockMeta\x12<\n\x08\x62lock_id\x18\x01 \x01(\x0b\x32\x19.tendermint.types.BlockIDB\x0f\xc8\xde\x1f\x00\xe2\xde\x1f\x07\x42lockID\x12\x12\n\nblock_size\x18\x02 \x01(\x03\x12.\n\x06header\x18\x03 \x01(\x0b\x32\x18.tendermint.types.HeaderB\x04\xc8\xde\x1f\x00\x12\x0f\n\x07num_txs\x18\x04 \x01(\x03\"S\n\x07TxProof\x12\x11\n\troot_hash\x18\x01 \x01(\x0c\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\'\n\x05proof\x18\x03 \x01(\x0b\x32\x18.tendermint.crypto.Proof*\xd7\x01\n\x0b\x42lockIDFlag\x12\x31\n\x15\x42LOCK_ID_FLAG_UNKNOWN\x10\x00\x1a\x16\x8a\x9d \x12\x42lockIDFlagUnknown\x12/\n\x14\x42LOCK_ID_FLAG_ABSENT\x10\x01\x1a\x15\x8a\x9d \x11\x42lockIDFlagAbsent\x12/\n\x14\x42LOCK_ID_FLAG_COMMIT\x10\x02\x1a\x15\x8a\x9d \x11\x42lockIDFlagCommit\x12)\n\x11\x42LOCK_ID_FLAG_NIL\x10\x03\x1a\x12\x8a\x9d \x0e\x42lockIDFlagNil\x1a\x08\x88\xa3\x1e\x00\xa8\xa4\x1e\x01*\xd7\x01\n\rSignedMsgType\x12,\n\x17SIGNED_MSG_TYPE_UNKNOWN\x10\x00\x1a\x0f\x8a\x9d \x0bUnknownType\x12,\n\x17SIGNED_MSG_TYPE_PREVOTE\x10\x01\x1a\x0f\x8a\x9d \x0bPrevoteType\x12\x30\n\x19SIGNED_MSG_TYPE_PRECOMMIT\x10\x02\x1a\x11\x8a\x9d \rPrecommitType\x12.\n\x18SIGNED_MSG_TYPE_PROPOSAL\x10 \x1a\x10\x8a\x9d \x0cProposalType\x1a\x08\x88\xa3\x1e\x00\xa8\xa4\x1e\x01\x42\x39Z7github.com/tendermint/tendermint/proto/tendermint/typesb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
+    b'\n\x0btypes.proto\x12\x10tendermint.types\x1a\x14gogoproto/gogo.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dtendermint/crypto/proof.proto\x1a\x1etendermint/version/types.proto\x1a tendermint/types/validator.proto",\n\rPartSetHeader\x12\r\n\x05total\x18\x01 \x01(\r\x12\x0c\n\x04hash\x18\x02 \x01(\x0c"S\n\x04Part\x12\r\n\x05index\x18\x01 \x01(\r\x12\r\n\x05\x62ytes\x18\x02 \x01(\x0c\x12-\n\x05proof\x18\x03 \x01(\x0b\x32\x18.tendermint.crypto.ProofB\x04\xc8\xde\x1f\x00"W\n\x07\x42lockID\x12\x0c\n\x04hash\x18\x01 \x01(\x0c\x12>\n\x0fpart_set_header\x18\x02 \x01(\x0b\x32\x1f.tendermint.types.PartSetHeaderB\x04\xc8\xde\x1f\x00"\xb3\x03\n\x06Header\x12\x34\n\x07version\x18\x01 \x01(\x0b\x32\x1d.tendermint.version.ConsensusB\x04\xc8\xde\x1f\x00\x12\x1d\n\x08\x63hain_id\x18\x02 \x01(\tB\x0b\xe2\xde\x1f\x07\x43hainID\x12\x0e\n\x06height\x18\x03 \x01(\x03\x12\x32\n\x04time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x08\xc8\xde\x1f\x00\x90\xdf\x1f\x01\x12\x36\n\rlast_block_id\x18\x05 \x01(\x0b\x32\x19.tendermint.types.BlockIDB\x04\xc8\xde\x1f\x00\x12\x18\n\x10last_commit_hash\x18\x06 \x01(\x0c\x12\x11\n\tdata_hash\x18\x07 \x01(\x0c\x12\x17\n\x0fvalidators_hash\x18\x08 \x01(\x0c\x12\x1c\n\x14next_validators_hash\x18\t \x01(\x0c\x12\x16\n\x0e\x63onsensus_hash\x18\n \x01(\x0c\x12\x10\n\x08\x61pp_hash\x18\x0b \x01(\x0c\x12\x19\n\x11last_results_hash\x18\x0c \x01(\x0c\x12\x15\n\revidence_hash\x18\r \x01(\x0c\x12\x18\n\x10proposer_address\x18\x0e \x01(\x0c"\x13\n\x04\x44\x61ta\x12\x0b\n\x03txs\x18\x01 \x03(\x0c"\x92\x02\n\x04Vote\x12-\n\x04type\x18\x01 \x01(\x0e\x32\x1f.tendermint.types.SignedMsgType\x12\x0e\n\x06height\x18\x02 \x01(\x03\x12\r\n\x05round\x18\x03 \x01(\x05\x12<\n\x08\x62lock_id\x18\x04 \x01(\x0b\x32\x19.tendermint.types.BlockIDB\x0f\xc8\xde\x1f\x00\xe2\xde\x1f\x07\x42lockID\x12\x37\n\ttimestamp\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x08\xc8\xde\x1f\x00\x90\xdf\x1f\x01\x12\x19\n\x11validator_address\x18\x06 \x01(\x0c\x12\x17\n\x0fvalidator_index\x18\x07 \x01(\x05\x12\x11\n\tsignature\x18\x08 \x01(\x0c"\x9c\x01\n\x06\x43ommit\x12\x0e\n\x06height\x18\x01 \x01(\x03\x12\r\n\x05round\x18\x02 \x01(\x05\x12<\n\x08\x62lock_id\x18\x03 \x01(\x0b\x32\x19.tendermint.types.BlockIDB\x0f\xc8\xde\x1f\x00\xe2\xde\x1f\x07\x42lockID\x12\x35\n\nsignatures\x18\x04 \x03(\x0b\x32\x1b.tendermint.types.CommitSigB\x04\xc8\xde\x1f\x00"\xa8\x01\n\tCommitSig\x12\x34\n\rblock_id_flag\x18\x01 \x01(\x0e\x32\x1d.tendermint.types.BlockIDFlag\x12\x19\n\x11validator_address\x18\x02 \x01(\x0c\x12\x37\n\ttimestamp\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x08\xc8\xde\x1f\x00\x90\xdf\x1f\x01\x12\x11\n\tsignature\x18\x04 \x01(\x0c"\xf5\x01\n\x08Proposal\x12-\n\x04type\x18\x01 \x01(\x0e\x32\x1f.tendermint.types.SignedMsgType\x12\x0e\n\x06height\x18\x02 \x01(\x03\x12\r\n\x05round\x18\x03 \x01(\x05\x12\x11\n\tpol_round\x18\x04 \x01(\x05\x12<\n\x08\x62lock_id\x18\x05 \x01(\x0b\x32\x19.tendermint.types.BlockIDB\x0f\xc8\xde\x1f\x00\xe2\xde\x1f\x07\x42lockID\x12\x37\n\ttimestamp\x18\x06 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x08\xc8\xde\x1f\x00\x90\xdf\x1f\x01\x12\x11\n\tsignature\x18\x07 \x01(\x0c"b\n\x0cSignedHeader\x12(\n\x06header\x18\x01 \x01(\x0b\x32\x18.tendermint.types.Header\x12(\n\x06\x63ommit\x18\x02 \x01(\x0b\x32\x18.tendermint.types.Commit"z\n\nLightBlock\x12\x35\n\rsigned_header\x18\x01 \x01(\x0b\x32\x1e.tendermint.types.SignedHeader\x12\x35\n\rvalidator_set\x18\x02 \x01(\x0b\x32\x1e.tendermint.types.ValidatorSet"\x9e\x01\n\tBlockMeta\x12<\n\x08\x62lock_id\x18\x01 \x01(\x0b\x32\x19.tendermint.types.BlockIDB\x0f\xc8\xde\x1f\x00\xe2\xde\x1f\x07\x42lockID\x12\x12\n\nblock_size\x18\x02 \x01(\x03\x12.\n\x06header\x18\x03 \x01(\x0b\x32\x18.tendermint.types.HeaderB\x04\xc8\xde\x1f\x00\x12\x0f\n\x07num_txs\x18\x04 \x01(\x03"S\n\x07TxProof\x12\x11\n\troot_hash\x18\x01 \x01(\x0c\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\'\n\x05proof\x18\x03 \x01(\x0b\x32\x18.tendermint.crypto.Proof*\xd7\x01\n\x0b\x42lockIDFlag\x12\x31\n\x15\x42LOCK_ID_FLAG_UNKNOWN\x10\x00\x1a\x16\x8a\x9d \x12\x42lockIDFlagUnknown\x12/\n\x14\x42LOCK_ID_FLAG_ABSENT\x10\x01\x1a\x15\x8a\x9d \x11\x42lockIDFlagAbsent\x12/\n\x14\x42LOCK_ID_FLAG_COMMIT\x10\x02\x1a\x15\x8a\x9d \x11\x42lockIDFlagCommit\x12)\n\x11\x42LOCK_ID_FLAG_NIL\x10\x03\x1a\x12\x8a\x9d \x0e\x42lockIDFlagNil\x1a\x08\x88\xa3\x1e\x00\xa8\xa4\x1e\x01*\xd7\x01\n\rSignedMsgType\x12,\n\x17SIGNED_MSG_TYPE_UNKNOWN\x10\x00\x1a\x0f\x8a\x9d \x0bUnknownType\x12,\n\x17SIGNED_MSG_TYPE_PREVOTE\x10\x01\x1a\x0f\x8a\x9d \x0bPrevoteType\x12\x30\n\x19SIGNED_MSG_TYPE_PRECOMMIT\x10\x02\x1a\x11\x8a\x9d \rPrecommitType\x12.\n\x18SIGNED_MSG_TYPE_PROPOSAL\x10 \x1a\x10\x8a\x9d \x0cProposalType\x1a\x08\x88\xa3\x1e\x00\xa8\xa4\x1e\x01\x42\x39Z7github.com/tendermint/tendermint/proto/tendermint/typesb\x06proto3'
+)
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
-_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'types_pb2', _globals)
+_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "types_pb2", _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
-  DESCRIPTOR._options = None
-  DESCRIPTOR._serialized_options = b'Z7github.com/tendermint/tendermint/proto/tendermint/types'
-  _BLOCKIDFLAG._options = None
-  _BLOCKIDFLAG._serialized_options = b'\210\243\036\000\250\244\036\001'
-  _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_UNKNOWN"]._options = None
-  _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_UNKNOWN"]._serialized_options = b'\212\235 \022BlockIDFlagUnknown'
-  _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_ABSENT"]._options = None
-  _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_ABSENT"]._serialized_options = b'\212\235 \021BlockIDFlagAbsent'
-  _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_COMMIT"]._options = None
-  _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_COMMIT"]._serialized_options = b'\212\235 \021BlockIDFlagCommit'
-  _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_NIL"]._options = None
-  _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_NIL"]._serialized_options = b'\212\235 \016BlockIDFlagNil'
-  _SIGNEDMSGTYPE._options = None
-  _SIGNEDMSGTYPE._serialized_options = b'\210\243\036\000\250\244\036\001'
-  _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_UNKNOWN"]._options = None
-  _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_UNKNOWN"]._serialized_options = b'\212\235 \013UnknownType'
-  _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_PREVOTE"]._options = None
-  _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_PREVOTE"]._serialized_options = b'\212\235 \013PrevoteType'
-  _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_PRECOMMIT"]._options = None
-  _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_PRECOMMIT"]._serialized_options = b'\212\235 \rPrecommitType'
-  _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_PROPOSAL"]._options = None
-  _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_PROPOSAL"]._serialized_options = b'\212\235 \014ProposalType'
-  _PART.fields_by_name['proof']._options = None
-  _PART.fields_by_name['proof']._serialized_options = b'\310\336\037\000'
-  _BLOCKID.fields_by_name['part_set_header']._options = None
-  _BLOCKID.fields_by_name['part_set_header']._serialized_options = b'\310\336\037\000'
-  _HEADER.fields_by_name['version']._options = None
-  _HEADER.fields_by_name['version']._serialized_options = b'\310\336\037\000'
-  _HEADER.fields_by_name['chain_id']._options = None
-  _HEADER.fields_by_name['chain_id']._serialized_options = b'\342\336\037\007ChainID'
-  _HEADER.fields_by_name['time']._options = None
-  _HEADER.fields_by_name['time']._serialized_options = b'\310\336\037\000\220\337\037\001'
-  _HEADER.fields_by_name['last_block_id']._options = None
-  _HEADER.fields_by_name['last_block_id']._serialized_options = b'\310\336\037\000'
-  _VOTE.fields_by_name['block_id']._options = None
-  _VOTE.fields_by_name['block_id']._serialized_options = b'\310\336\037\000\342\336\037\007BlockID'
-  _VOTE.fields_by_name['timestamp']._options = None
-  _VOTE.fields_by_name['timestamp']._serialized_options = b'\310\336\037\000\220\337\037\001'
-  _COMMIT.fields_by_name['block_id']._options = None
-  _COMMIT.fields_by_name['block_id']._serialized_options = b'\310\336\037\000\342\336\037\007BlockID'
-  _COMMIT.fields_by_name['signatures']._options = None
-  _COMMIT.fields_by_name['signatures']._serialized_options = b'\310\336\037\000'
-  _COMMITSIG.fields_by_name['timestamp']._options = None
-  _COMMITSIG.fields_by_name['timestamp']._serialized_options = b'\310\336\037\000\220\337\037\001'
-  _PROPOSAL.fields_by_name['block_id']._options = None
-  _PROPOSAL.fields_by_name['block_id']._serialized_options = b'\310\336\037\000\342\336\037\007BlockID'
-  _PROPOSAL.fields_by_name['timestamp']._options = None
-  _PROPOSAL.fields_by_name['timestamp']._serialized_options = b'\310\336\037\000\220\337\037\001'
-  _BLOCKMETA.fields_by_name['block_id']._options = None
-  _BLOCKMETA.fields_by_name['block_id']._serialized_options = b'\310\336\037\000\342\336\037\007BlockID'
-  _BLOCKMETA.fields_by_name['header']._options = None
-  _BLOCKMETA.fields_by_name['header']._serialized_options = b'\310\336\037\000'
-  _globals['_BLOCKIDFLAG']._serialized_start=2190
-  _globals['_BLOCKIDFLAG']._serialized_end=2405
-  _globals['_SIGNEDMSGTYPE']._serialized_start=2408
-  _globals['_SIGNEDMSGTYPE']._serialized_end=2623
-  _globals['_PARTSETHEADER']._serialized_start=185
-  _globals['_PARTSETHEADER']._serialized_end=229
-  _globals['_PART']._serialized_start=231
-  _globals['_PART']._serialized_end=314
-  _globals['_BLOCKID']._serialized_start=316
-  _globals['_BLOCKID']._serialized_end=403
-  _globals['_HEADER']._serialized_start=406
-  _globals['_HEADER']._serialized_end=841
-  _globals['_DATA']._serialized_start=843
-  _globals['_DATA']._serialized_end=862
-  _globals['_VOTE']._serialized_start=865
-  _globals['_VOTE']._serialized_end=1139
-  _globals['_COMMIT']._serialized_start=1142
-  _globals['_COMMIT']._serialized_end=1298
-  _globals['_COMMITSIG']._serialized_start=1301
-  _globals['_COMMITSIG']._serialized_end=1469
-  _globals['_PROPOSAL']._serialized_start=1472
-  _globals['_PROPOSAL']._serialized_end=1717
-  _globals['_SIGNEDHEADER']._serialized_start=1719
-  _globals['_SIGNEDHEADER']._serialized_end=1817
-  _globals['_LIGHTBLOCK']._serialized_start=1819
-  _globals['_LIGHTBLOCK']._serialized_end=1941
-  _globals['_BLOCKMETA']._serialized_start=1944
-  _globals['_BLOCKMETA']._serialized_end=2102
-  _globals['_TXPROOF']._serialized_start=2104
-  _globals['_TXPROOF']._serialized_end=2187
+    DESCRIPTOR._options = None
+    DESCRIPTOR._serialized_options = (
+        b"Z7github.com/tendermint/tendermint/proto/tendermint/types"
+    )
+    _BLOCKIDFLAG._options = None
+    _BLOCKIDFLAG._serialized_options = b"\210\243\036\000\250\244\036\001"
+    _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_UNKNOWN"]._options = None
+    _BLOCKIDFLAG.values_by_name[
+        "BLOCK_ID_FLAG_UNKNOWN"
+    ]._serialized_options = b"\212\235 \022BlockIDFlagUnknown"
+    _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_ABSENT"]._options = None
+    _BLOCKIDFLAG.values_by_name[
+        "BLOCK_ID_FLAG_ABSENT"
+    ]._serialized_options = b"\212\235 \021BlockIDFlagAbsent"
+    _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_COMMIT"]._options = None
+    _BLOCKIDFLAG.values_by_name[
+        "BLOCK_ID_FLAG_COMMIT"
+    ]._serialized_options = b"\212\235 \021BlockIDFlagCommit"
+    _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_NIL"]._options = None
+    _BLOCKIDFLAG.values_by_name[
+        "BLOCK_ID_FLAG_NIL"
+    ]._serialized_options = b"\212\235 \016BlockIDFlagNil"
+    _SIGNEDMSGTYPE._options = None
+    _SIGNEDMSGTYPE._serialized_options = b"\210\243\036\000\250\244\036\001"
+    _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_UNKNOWN"]._options = None
+    _SIGNEDMSGTYPE.values_by_name[
+        "SIGNED_MSG_TYPE_UNKNOWN"
+    ]._serialized_options = b"\212\235 \013UnknownType"
+    _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_PREVOTE"]._options = None
+    _SIGNEDMSGTYPE.values_by_name[
+        "SIGNED_MSG_TYPE_PREVOTE"
+    ]._serialized_options = b"\212\235 \013PrevoteType"
+    _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_PRECOMMIT"]._options = None
+    _SIGNEDMSGTYPE.values_by_name[
+        "SIGNED_MSG_TYPE_PRECOMMIT"
+    ]._serialized_options = b"\212\235 \rPrecommitType"
+    _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_PROPOSAL"]._options = None
+    _SIGNEDMSGTYPE.values_by_name[
+        "SIGNED_MSG_TYPE_PROPOSAL"
+    ]._serialized_options = b"\212\235 \014ProposalType"
+    _PART.fields_by_name["proof"]._options = None
+    _PART.fields_by_name["proof"]._serialized_options = b"\310\336\037\000"
+    _BLOCKID.fields_by_name["part_set_header"]._options = None
+    _BLOCKID.fields_by_name["part_set_header"]._serialized_options = b"\310\336\037\000"
+    _HEADER.fields_by_name["version"]._options = None
+    _HEADER.fields_by_name["version"]._serialized_options = b"\310\336\037\000"
+    _HEADER.fields_by_name["chain_id"]._options = None
+    _HEADER.fields_by_name["chain_id"]._serialized_options = b"\342\336\037\007ChainID"
+    _HEADER.fields_by_name["time"]._options = None
+    _HEADER.fields_by_name[
+        "time"
+    ]._serialized_options = b"\310\336\037\000\220\337\037\001"
+    _HEADER.fields_by_name["last_block_id"]._options = None
+    _HEADER.fields_by_name["last_block_id"]._serialized_options = b"\310\336\037\000"
+    _VOTE.fields_by_name["block_id"]._options = None
+    _VOTE.fields_by_name[
+        "block_id"
+    ]._serialized_options = b"\310\336\037\000\342\336\037\007BlockID"
+    _VOTE.fields_by_name["timestamp"]._options = None
+    _VOTE.fields_by_name[
+        "timestamp"
+    ]._serialized_options = b"\310\336\037\000\220\337\037\001"
+    _COMMIT.fields_by_name["block_id"]._options = None
+    _COMMIT.fields_by_name[
+        "block_id"
+    ]._serialized_options = b"\310\336\037\000\342\336\037\007BlockID"
+    _COMMIT.fields_by_name["signatures"]._options = None
+    _COMMIT.fields_by_name["signatures"]._serialized_options = b"\310\336\037\000"
+    _COMMITSIG.fields_by_name["timestamp"]._options = None
+    _COMMITSIG.fields_by_name[
+        "timestamp"
+    ]._serialized_options = b"\310\336\037\000\220\337\037\001"
+    _PROPOSAL.fields_by_name["block_id"]._options = None
+    _PROPOSAL.fields_by_name[
+        "block_id"
+    ]._serialized_options = b"\310\336\037\000\342\336\037\007BlockID"
+    _PROPOSAL.fields_by_name["timestamp"]._options = None
+    _PROPOSAL.fields_by_name[
+        "timestamp"
+    ]._serialized_options = b"\310\336\037\000\220\337\037\001"
+    _BLOCKMETA.fields_by_name["block_id"]._options = None
+    _BLOCKMETA.fields_by_name[
+        "block_id"
+    ]._serialized_options = b"\310\336\037\000\342\336\037\007BlockID"
+    _BLOCKMETA.fields_by_name["header"]._options = None
+    _BLOCKMETA.fields_by_name["header"]._serialized_options = b"\310\336\037\000"
+    _globals["_BLOCKIDFLAG"]._serialized_start = 2190
+    _globals["_BLOCKIDFLAG"]._serialized_end = 2405
+    _globals["_SIGNEDMSGTYPE"]._serialized_start = 2408
+    _globals["_SIGNEDMSGTYPE"]._serialized_end = 2623
+    _globals["_PARTSETHEADER"]._serialized_start = 185
+    _globals["_PARTSETHEADER"]._serialized_end = 229
+    _globals["_PART"]._serialized_start = 231
+    _globals["_PART"]._serialized_end = 314
+    _globals["_BLOCKID"]._serialized_start = 316
+    _globals["_BLOCKID"]._serialized_end = 403
+    _globals["_HEADER"]._serialized_start = 406
+    _globals["_HEADER"]._serialized_end = 841
+    _globals["_DATA"]._serialized_start = 843
+    _globals["_DATA"]._serialized_end = 862
+    _globals["_VOTE"]._serialized_start = 865
+    _globals["_VOTE"]._serialized_end = 1139
+    _globals["_COMMIT"]._serialized_start = 1142
+    _globals["_COMMIT"]._serialized_end = 1298
+    _globals["_COMMITSIG"]._serialized_start = 1301
+    _globals["_COMMITSIG"]._serialized_end = 1469
+    _globals["_PROPOSAL"]._serialized_start = 1472
+    _globals["_PROPOSAL"]._serialized_end = 1717
+    _globals["_SIGNEDHEADER"]._serialized_start = 1719
+    _globals["_SIGNEDHEADER"]._serialized_end = 1817
+    _globals["_LIGHTBLOCK"]._serialized_start = 1819
+    _globals["_LIGHTBLOCK"]._serialized_end = 1941
+    _globals["_BLOCKMETA"]._serialized_start = 1944
+    _globals["_BLOCKMETA"]._serialized_end = 2102
+    _globals["_TXPROOF"]._serialized_start = 2104
+    _globals["_TXPROOF"]._serialized_end = 2187
 # @@protoc_insertion_point(module_scope)
