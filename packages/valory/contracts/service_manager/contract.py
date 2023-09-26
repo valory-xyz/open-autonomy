@@ -33,13 +33,13 @@ from aea.crypto.base import LedgerApi
 PUBLIC_ID = PublicId.from_str("valory/service_manager:0.1.0")
 ETHEREUM_ERC20 = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
 ETHEREUM_IDENTIFIER = "ethereum"
-L1_CHAINS = (
+SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS = (
     1,
     5,
     31337,
     100,
 )
-L2_BUILD_FILENAME = "ServiceManager.json"
+SERVICE_MANAGER_BUILD = "ServiceManager.json"
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
 )
@@ -72,15 +72,15 @@ class ServiceManagerContract(Contract):
         raise NotImplementedError
 
     @staticmethod
-    def load_l2_build() -> JSONLike:
+    def load_service_manager_abi() -> JSONLike:
         """Load L2 ABI"""
-        path = Path(__file__).parent / "build" / L2_BUILD_FILENAME
+        path = Path(__file__).parent / "build" / SERVICE_MANAGER_BUILD
         return json.loads(path.read_text(encoding="utf-8"))
 
     @staticmethod
-    def is_l1_chain(ledger_api: LedgerApi) -> bool:
+    def is_service_manager_token_compatible_chain(ledger_api: LedgerApi) -> bool:
         """Check if we're interecting with an L1 chain"""
-        return ledger_api.api.eth.chain_id in L1_CHAINS
+        return ledger_api.api.eth.chain_id in SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS
 
     @classmethod
     def get_instance(
@@ -93,10 +93,10 @@ class ServiceManagerContract(Contract):
             return super().get_instance(
                 ledger_api=ledger_api, contract_address=contract_address
             )
-        if cls.is_l1_chain(ledger_api=ledger_api):
+        if cls.is_service_manager_token_compatible_chain(ledger_api=ledger_api):
             contract_interface = cls.contract_interface.get(ledger_api.identifier, {})
         else:
-            contract_interface = cls.load_l2_build()
+            contract_interface = cls.load_service_manager_abi()
         return ledger_api.get_contract_instance(contract_interface, contract_address)
 
     @classmethod
@@ -121,7 +121,7 @@ class ServiceManagerContract(Contract):
             "agentParams": agent_params,
             "threshold": threshold,
         }
-        if cls.is_l1_chain(ledger_api=ledger_api):
+        if cls.is_service_manager_token_compatible_chain(ledger_api=ledger_api):
             method_args["token"] = ledger_api.api.to_checksum_address(
                 token or ETHEREUM_ERC20
             )
@@ -160,7 +160,7 @@ class ServiceManagerContract(Contract):
             "agentParams": agent_params,
             "threshold": threshold,
         }
-        if cls.is_l1_chain(ledger_api=ledger_api):
+        if cls.is_service_manager_token_compatible_chain(ledger_api=ledger_api):
             method_args["token"] = ledger_api.api.to_checksum_address(token)
 
         return ledger_api.build_transaction(
