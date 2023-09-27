@@ -24,7 +24,6 @@ from unittest import mock
 import click
 import pytest
 from aea.configurations.data_types import PackageType
-from aea_ledger_ethereum_hwi.hwi import EthereumHWIApi, EthereumHWICrypto
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 
 from autonomy.chain.base import ServiceState
@@ -354,8 +353,10 @@ def test_unbond_service_contract_failure() -> None:
             ).unbond_service()
 
 
+@pytest.mark.skip(reason="https://github.com/valory-xyz/open-aea/issues/671")
 def test_get_ledger_and_crypto_objects() -> None:
     """Test `get_ledger_and_crypto_objects` for hardware wallet support"""
+    from aea_ledger_ethereum_hwi.hwi import EthereumHWIApi, EthereumHWICrypto
 
     with mock.patch.object(EthereumHWICrypto, "entity"):
         ledger_api, crypto = OnChainHelper.get_ledger_and_crypto_objects(
