@@ -1,6 +1,24 @@
 # Release History - `open-autonomy`
 
 
+# 0.13.0 (2023-09-27)
+
+Autonomy:
+- Replaces `open-aea-web3` with `web3py<7,>=6.0.0`
+- Bumps `protobuf<5.0.0,>=4.21.6`
+- Fixes `protobuf` incompatibility issue when importing hardware wallet plugin
+- Refactors autonomy and agent images to
+  - Include install and build scripts in the base image
+  - Remove unwanted layers
+  - Remove unwanted data files
+
+Packages:
+- Generates protocols using the latest compatible `protobuf` compiler
+- Compiles the tendermint connection protocol buffers using the latest compatible `protobuf` compiler
+
+Chores:
+- Bumps `protobuf` compiler to `24.3`
+
 # 0.12.1.post4 (2023-09-25)
 
 Autonomy:
