@@ -122,7 +122,7 @@ class TcpChannel(BaseChannel):
         asyncio.set_event_loop(loop)
         loop.run_forever()
 
-    def _get_response(self) -> abci_types.Response:
+    def _get_response(self) -> abci_types.Response:  # type: ignore
         """
         Gets the response for a request.
 
@@ -138,7 +138,7 @@ class TcpChannel(BaseChannel):
             cast(AbstractEventLoop, self.loop),
         )
         message_bytes = future.result()
-        message = abci_types.Response()
+        message = abci_types.Response()  # type: ignore
         message.ParseFromString(message_bytes)
         return message
 
@@ -151,7 +151,7 @@ class TcpChannel(BaseChannel):
         )
         future.result()
 
-    def send_info(self, request: abci_types.RequestInfo) -> abci_types.ResponseInfo:
+    def send_info(self, request: abci_types.RequestInfo) -> abci_types.ResponseInfo:  # type: ignore
         """
         Sends an info request.
 
@@ -159,7 +159,7 @@ class TcpChannel(BaseChannel):
         :return: ResponseInfo pb object
         """
 
-        message = abci_types.Request()
+        message = abci_types.Request()  # type: ignore
         message.info.CopyFrom(request)
 
         data = _TendermintABCISerializer.write_message(message)
@@ -176,14 +176,14 @@ class TcpChannel(BaseChannel):
 
         return response.info
 
-    def send_echo(self, request: abci_types.RequestEcho) -> abci_types.ResponseEcho:
+    def send_echo(self, request: abci_types.RequestEcho) -> abci_types.ResponseEcho:  # type: ignore
         """
         Sends an echo request.
 
         :param: request: RequestEcho pb object
         :return: ResponseEcho pb object
         """
-        message = abci_types.Request()
+        message = abci_types.Request()  # type: ignore
         message.echo.CopyFrom(request)
 
         data = _TendermintABCISerializer.write_message(message)
@@ -200,14 +200,14 @@ class TcpChannel(BaseChannel):
 
         return response.echo
 
-    def send_flush(self, request: abci_types.RequestFlush) -> abci_types.ResponseFlush:
+    def send_flush(self, request: abci_types.RequestFlush) -> abci_types.ResponseFlush:  # type: ignore
         """
         Sends an flush request.
 
         :param: request: RequestFlush pb object
         :return: ResponseFlush pb object
         """
-        message = abci_types.Request()
+        message = abci_types.Request()  # type: ignore
         message.flush.CopyFrom(request)
 
         data = _TendermintABCISerializer.write_message(message)
@@ -225,15 +225,15 @@ class TcpChannel(BaseChannel):
         return response.flush
 
     def send_set_option(
-        self, request: abci_types.RequestSetOption
-    ) -> abci_types.ResponseSetOption:
+        self, request: abci_types.RequestSetOption  # type: ignore
+    ) -> abci_types.ResponseSetOption:  # type: ignore
         """
         Sends an setOption request.
 
         :param: request: RequestSetOption pb object
         :return: ResponseSetOption pb object
         """
-        message = abci_types.Request()
+        message = abci_types.Request()  # type: ignore
         message.set_option.CopyFrom(request)
 
         data = _TendermintABCISerializer.write_message(message)
@@ -251,15 +251,15 @@ class TcpChannel(BaseChannel):
         return response.set_option
 
     def send_deliver_tx(
-        self, request: abci_types.RequestDeliverTx
-    ) -> abci_types.ResponseDeliverTx:
+        self, request: abci_types.RequestDeliverTx  # type: ignore
+    ) -> abci_types.ResponseDeliverTx:  # type: ignore
         """
         Sends an deliverTx request.
 
         :param: request: RequestDeliverTx pb object
         :return: ResponseDeliverTx pb object
         """
-        message = abci_types.Request()
+        message = abci_types.Request()  # type: ignore
         message.deliver_tx.CopyFrom(request)
 
         data = _TendermintABCISerializer.write_message(message)
@@ -277,15 +277,15 @@ class TcpChannel(BaseChannel):
         return response.deliver_tx
 
     def send_check_tx(
-        self, request: abci_types.RequestCheckTx
-    ) -> abci_types.ResponseCheckTx:
+        self, request: abci_types.RequestCheckTx  # type: ignore
+    ) -> abci_types.ResponseCheckTx:  # type: ignore
         """
         Sends an checkTx request.
 
         :param: request: RequestCheckTx pb object
         :return: ResponseCheckTx pb object
         """
-        message = abci_types.Request()
+        message = abci_types.Request()  # type: ignore
         message.check_tx.CopyFrom(request)
 
         data = _TendermintABCISerializer.write_message(message)
@@ -302,14 +302,14 @@ class TcpChannel(BaseChannel):
 
         return response.check_tx
 
-    def send_query(self, request: abci_types.RequestQuery) -> abci_types.ResponseQuery:
+    def send_query(self, request: abci_types.RequestQuery) -> abci_types.ResponseQuery:  # type: ignore
         """
         Sends an query request.
 
         :param: request: RequestQuery pb object
         :return: ResponseQuery pb object
         """
-        message = abci_types.Request()
+        message = abci_types.Request()  # type: ignore
         message.query.CopyFrom(request)
 
         data = _TendermintABCISerializer.write_message(message)
@@ -327,15 +327,15 @@ class TcpChannel(BaseChannel):
         return response.query
 
     def send_commit(
-        self, request: abci_types.RequestCommit
-    ) -> abci_types.ResponseCommit:
+        self, request: abci_types.RequestCommit  # type: ignore
+    ) -> abci_types.ResponseCommit:  # type: ignore
         """
         Sends an commit request.
 
         :param: request: RequestCommit pb object
         :return: ResponseCommit pb object
         """
-        message = abci_types.Request()
+        message = abci_types.Request()  # type: ignore
         message.commit.CopyFrom(request)
 
         data = _TendermintABCISerializer.write_message(message)
@@ -353,15 +353,15 @@ class TcpChannel(BaseChannel):
         return response.commit
 
     def send_init_chain(
-        self, request: abci_types.RequestInitChain
-    ) -> abci_types.ResponseInitChain:
+        self, request: abci_types.RequestInitChain  # type: ignore
+    ) -> abci_types.ResponseInitChain:  # type: ignore
         """
         Sends an initChain request.
 
         :param: request: RequestInitChain pb object
         :return: ResponseInitChain pb object
         """
-        message = abci_types.Request()
+        message = abci_types.Request()  # type: ignore
         message.init_chain.CopyFrom(request)
 
         data = _TendermintABCISerializer.write_message(message)
@@ -379,15 +379,15 @@ class TcpChannel(BaseChannel):
         return response.init_chain
 
     def send_begin_block(
-        self, request: abci_types.RequestBeginBlock
-    ) -> abci_types.ResponseBeginBlock:
+        self, request: abci_types.RequestBeginBlock  # type: ignore
+    ) -> abci_types.ResponseBeginBlock:  # type: ignore
         """
         Sends an beginBlock request.
 
         :param: request: RequestBeginBlock pb object
         :return: ResponseBeginBlock pb object
         """
-        message = abci_types.Request()
+        message = abci_types.Request()  # type: ignore
         message.begin_block.CopyFrom(request)
 
         data = _TendermintABCISerializer.write_message(message)
@@ -405,15 +405,15 @@ class TcpChannel(BaseChannel):
         return response.begin_block
 
     def send_end_block(
-        self, request: abci_types.RequestEndBlock
-    ) -> abci_types.ResponseEndBlock:
+        self, request: abci_types.RequestEndBlock  # type: ignore
+    ) -> abci_types.ResponseEndBlock:  # type: ignore
         """
         Sends an endBlock request.
 
         :param: request: RequestEndBlock pb object
         :return: ResponseEndBlock pb object
         """
-        message = abci_types.Request()
+        message = abci_types.Request()  # type: ignore
         message.end_block.CopyFrom(request)
 
         data = _TendermintABCISerializer.write_message(message)
@@ -431,15 +431,15 @@ class TcpChannel(BaseChannel):
         return response.end_block
 
     def send_list_snapshots(
-        self, request: abci_types.RequestListSnapshots
-    ) -> abci_types.ResponseListSnapshots:
+        self, request: abci_types.RequestListSnapshots  # type: ignore
+    ) -> abci_types.ResponseListSnapshots:  # type: ignore
         """
         Sends an listSnapshots request.
 
         :param: request: RequestListSnapshots pb object
         :return: ResponseListSnapshots pb object
         """
-        message = abci_types.Request()
+        message = abci_types.Request()  # type: ignore
         message.list_snapshots.CopyFrom(request)
 
         data = _TendermintABCISerializer.write_message(message)
@@ -457,15 +457,15 @@ class TcpChannel(BaseChannel):
         return response.list_snapshots
 
     def send_offer_snapshot(
-        self, request: abci_types.RequestOfferSnapshot
-    ) -> abci_types.ResponseOfferSnapshot:
+        self, request: abci_types.RequestOfferSnapshot  # type: ignore
+    ) -> abci_types.ResponseOfferSnapshot:  # type: ignore
         """
         Sends an offerSnapshot request.
 
         :param: request: RequestOfferSnapshot pb object
         :return: ResponseOfferSnapshot pb object
         """
-        message = abci_types.Request()
+        message = abci_types.Request()  # type: ignore
         message.offer_snapshot.CopyFrom(request)
 
         data = _TendermintABCISerializer.write_message(message)
@@ -483,15 +483,15 @@ class TcpChannel(BaseChannel):
         return response.offer_snapshot
 
     def send_load_snapshot_chunk(
-        self, request: abci_types.RequestLoadSnapshotChunk
-    ) -> abci_types.ResponseLoadSnapshotChunk:
+        self, request: abci_types.RequestLoadSnapshotChunk  # type: ignore
+    ) -> abci_types.ResponseLoadSnapshotChunk:  # type: ignore
         """
         Sends an loadSnapshotChunk request.
 
         :param: request: RequestLoadSnapshotChunk pb object
         :return: ResponseLoadSnapshotChunk pb object
         """
-        message = abci_types.Request()
+        message = abci_types.Request()  # type: ignore
         message.load_snapshot_chunk.CopyFrom(request)
 
         data = _TendermintABCISerializer.write_message(message)
@@ -509,15 +509,15 @@ class TcpChannel(BaseChannel):
         return response.load_snapshot_chunk
 
     def send_apply_snapshot_chunk(
-        self, request: abci_types.RequestApplySnapshotChunk
-    ) -> abci_types.ResponseApplySnapshotChunk:
+        self, request: abci_types.RequestApplySnapshotChunk  # type: ignore
+    ) -> abci_types.ResponseApplySnapshotChunk:  # type: ignore
         """
         Sends an applySnapshotChunk request.
 
         :param: request: RequestApplySnapshotChunk pb object
         :return: ResponseApplySnapshotChunk pb object
         """
-        message = abci_types.Request()
+        message = abci_types.Request()  # type: ignore
         message.apply_snapshot_chunk.CopyFrom(request)
 
         data = _TendermintABCISerializer.write_message(message)

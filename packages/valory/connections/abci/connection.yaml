@@ -32,7 +32,7 @@ fingerprint:
   tendermint/types/types_pb2.py: bafybeihcb5lgxllxmucbowidmxq5idvmewllb5qc3k4qb7bycioj657z6m
   tendermint/types/validator_pb2.py: bafybeie7b23lhoppt4qmxposc4srksksk72umjiag3dcok4f2ugpj2fisq
   tendermint/version/types_pb2.py: bafybeih3dnjfjaxfpspisbtfp4npbgntclkz6s42ed47bfh77si2kd35pu
-  tendermint_decoder.py: bafybeidal3n3q4lka4zwbrt277lmlhht5nlxnpnmc4rwi6zb5halnksomu
+  tendermint_decoder.py: bafybeig3teywhof2vztwaiqj36nx5bv6fysxzmu7i5ewqxa2w7rdf3wa7i
   tendermint_encoder.py: bafybeibpnofkac6jizpbezlo7rdsbijloovsuz5rjysshjrims7x44wxv4
   tests/__init__.py: bafybeid67ezzjsfsukyqdjtlnd3ra5yy73jnobm4setddgagd3u4vqboyu
   tests/helper.py: bafybeiewqp7ulsc5n6hrcoj5bvqp2pz5f5sadrfyrm2nywzeazi443b5ba
@@ -43,10 +43,10 @@ fingerprint:
   tests/test_fuzz/base.py: bafybeig6lmn5rol63szc7cilati2l37ckppskcb46ximno32nnwnad2mji
   tests/test_fuzz/mock_node/__init__.py: bafybeibt3bm4l3wethryy564mzcbhqmnztsbko4c5bt5ila5ghq2e7vz7u
   tests/test_fuzz/mock_node/channels/__init__.py: bafybeifjjnlxtqd4pz76aq6w642n5d6pa635ehkhjxgzyjidakza27adja
-  tests/test_fuzz/mock_node/channels/base.py: bafybeiewnctbkmmnnqwsrlwy2rfaypmva7xuclgwzfuwwrua3xpqf43f54
-  tests/test_fuzz/mock_node/channels/grpc_channel.py: bafybeid2na2emvcgvax46mghr6nb4cimtskp4phtvokuyt3pymsbiohjnq
-  tests/test_fuzz/mock_node/channels/tcp_channel.py: bafybeibxpapyxatsnfnzixemmdp7lfhyrugl2rlvp73tv3d7mjkdphbccu
-  tests/test_fuzz/mock_node/node.py: bafybeieyq4vbddnk5qnvwttmralv6soadz276rapembzjp5sbhcnmvaida
+  tests/test_fuzz/mock_node/channels/base.py: bafybeictka5ua22rqia6s4f7aiiepgqxsf4xcos5dekbkewja2rdpeuuje
+  tests/test_fuzz/mock_node/channels/grpc_channel.py: bafybeidita6lkds4urwrt3jwpou22js7ngruoof7kynuhkultdytx5taua
+  tests/test_fuzz/mock_node/channels/tcp_channel.py: bafybeiehlihhp7itiypkilugorwa2rytz2fm3awkm7vhti5p2v7fcvvajq
+  tests/test_fuzz/mock_node/node.py: bafybeia2oz4rz4oow2mwa53q74hyx3xbeh4h46dl2re4423iecsmt6uhja
   tests/test_fuzz/test_fuzz.py: bafybeigpgbo6afvhhkyh2yxv64awpnxbxyfaqp5fifgdsm5v7grbzjrk2i
   tests/test_tendermint_decoder.py: bafybeihogt3aopyln5newihm3rbiqimoc4aw6za2cngplnjnwatv6nakea
   tests/test_tendermint_encoder.py: bafybeigpun2ybwr5tu7b52his3b5apyrlmdytlgofcszbctsmmabo3sjg4
