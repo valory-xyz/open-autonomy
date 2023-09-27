@@ -241,27 +241,14 @@ release-images:
 # Usage: INCLUDE=PATH_TO_PROTOC_INCLUDE_DIRECTORY make build-proto
 .PHONY: build-proto
 build-proto:
-	@echo "Building  packages/valory/connections/abci/protos/gogoproto/gogo.proto"
-	@protoc --proto_path=packages/valory/connections/abci/protos/gogoproto/ --python_out=packages/valory/connections/abci/gogoproto packages/valory/connections/abci/protos/gogoproto/gogo.proto -I $$INCLUDE
-
-	@echo "Building  packages/valory/connections/abci/protos/tendermint/crypto/proof.proto"
-	@protoc --proto_path=packages/valory/connections/abci/protos/tendermint/crypto/ --python_out=packages/valory/connections/abci/tendermint/crypto packages/valory/connections/abci/protos/tendermint/crypto/proof.proto -I $$INCLUDE -I packages/valory/connections/abci/protos/
-
-	@echo "Building  packages/valory/connections/abci/protos/tendermint/crypto/keys.proto"
-	@protoc --proto_path=packages/valory/connections/abci/protos/tendermint/crypto/ --python_out=packages/valory/connections/abci/tendermint/crypto packages/valory/connections/abci/protos/tendermint/crypto/keys.proto -I $$INCLUDE -I packages/valory/connections/abci/protos/
-
-	@echo "Building  packages/valory/connections/abci/protos/tendermint/abci/types.proto"
-	@protoc --proto_path=packages/valory/connections/abci/protos/tendermint/abci/ --python_out=packages/valory/connections/abci/tendermint/abci packages/valory/connections/abci/protos/tendermint/abci/types.proto -I $$INCLUDE -I packages/valory/connections/abci/protos/
-
-	@echo "Building  packages/valory/connections/abci/protos/tendermint/types/types.proto"
-	@protoc --proto_path=packages/valory/connections/abci/protos/tendermint/types/ --python_out=packages/valory/connections/abci/tendermint/types packages/valory/connections/abci/protos/tendermint/types/types.proto -I $$INCLUDE -I packages/valory/connections/abci/protos/
-
-	@echo "Building  packages/valory/connections/abci/protos/tendermint/types/validator.proto"
-	@protoc --proto_path=packages/valory/connections/abci/protos/tendermint/types/ --python_out=packages/valory/connections/abci/tendermint/types packages/valory/connections/abci/protos/tendermint/types/validator.proto -I $$INCLUDE -I packages/valory/connections/abci/protos/
-
-	@echo "Building  packages/valory/connections/abci/protos/tendermint/types/params.proto"
-	@protoc --proto_path=packages/valory/connections/abci/protos/tendermint/types/ --python_out=packages/valory/connections/abci/tendermint/types packages/valory/connections/abci/protos/tendermint/types/params.proto -I $$INCLUDE -I packages/valory/connections/abci/protos/
-
-	@echo "Building  packages/valory/connections/abci/protos/tendermint/version/types.proto"
-	@protoc --proto_path=packages/valory/connections/abci/protos/tendermint/version/ --python_out=packages/valory/connections/abci/tendermint/version packages/valory/connections/abci/protos/tendermint/version/types.proto -I $$INCLUDE -I packages/valory/connections/abci/protos/
-
+	@protoc -I $$INCLUDE \
+		--proto_path=packages/valory/connections/abci/protos/ \
+		--python_out=packages/valory/connections/abci/ \
+		packages/valory/connections/abci/protos/gogoproto/gogo.proto \
+		packages/valory/connections/abci/protos/tendermint/crypto/proof.proto \
+		packages/valory/connections/abci/protos/tendermint/crypto/keys.proto \
+		packages/valory/connections/abci/protos/tendermint/abci/types.proto \
+		packages/valory/connections/abci/protos/tendermint/types/types.proto \
+		packages/valory/connections/abci/protos/tendermint/types/validator.proto \
+		packages/valory/connections/abci/protos/tendermint/types/params.proto \
+		packages/valory/connections/abci/protos/tendermint/version/types.proto 
