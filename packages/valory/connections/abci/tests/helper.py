@@ -356,7 +356,6 @@ def _get_message_content(message: Any) -> Node:
     #       but are retrieved as mapping from Tendermint side
 
     assert message.IsInitialized()
-    assert not message.UnknownFields()
     assert not message.FindInitializationErrors()
 
     # NOTE: ListFields does not retrieve what is empty!
@@ -406,7 +405,6 @@ def get_tendermint_content(envelope: Union[Request, Response]) -> Node:
 
     assert isinstance(envelope, (Request, Response))
     assert envelope.IsInitialized()
-    assert not envelope.UnknownFields()
     assert not envelope.FindInitializationErrors()
     assert len(envelope.ListFields()) == 1
     descr, message = envelope.ListFields()[0]

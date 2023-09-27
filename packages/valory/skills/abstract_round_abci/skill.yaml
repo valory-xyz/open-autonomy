@@ -60,7 +60,7 @@ fingerprint:
   utils.py: bafybeienx5y7er37rvluz5x5oirsephs6td4werjett5vaavrv6ohymzpm
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeibyr4pif6w55wauvhz5yfv4sudwyv5ejpj6726l7xri446aqtgera
+- valory/abci:0.1.0:bafybeidcqst5lspyaq3jxivjfo5ff4zv3yrhskepzazc7lnpf3ic4feh64
 - valory/http_client:0.23.0:bafybeifgeqgryx6b3s6eseyzyezygmeitcpt3tkor2eiycozoi6clgdrny
 - valory/ipfs:0.1.0:bafybeiaddby5hxegt2fk772fzn34zpwndyfk45rc3jqtblhtr2tbzcicua
 - valory/ledger:0.19.0:bafybeiauyqzizmocjldnfuzvnihrqubfqzn5u2hp6ue7v3ka5kj54kd3zm
@@ -76,7 +76,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeige5agrztgzfevyglf7mb4o7pzfttmq4f6zi765y4g2zvftbyowru
 - valory/tendermint:0.1.0:bafybeig6g6twajlwssfbfp5rlnu5mwzuu5kgak5cs4fich7rlkx6whesnu
 skills:
-- valory/abstract_abci:0.1.0:bafybeicrugwpe5wrwuy64i2zepkvboqnexkbougaplszu7syjfcuftzngm
+- valory/abstract_abci:0.1.0:bafybeidwlao2lkpnxlphwapizip4cxemfy3iw4p2zpbjly4b26iukprpwe
 behaviours:
   main:
     args: {}
