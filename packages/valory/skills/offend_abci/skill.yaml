@@ -27,7 +27,7 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihh7st2pmutpodau3u53i4kkexa6xj5d3ry3lnsehfb5s53u4he2q
+- valory/abstract_round_abci:0.1.0:bafybeibrrgdzbpdqyirkfulg5bgkrdwlynezdheplm55xfhkrnlxgvluo4
 behaviours:
   main:
     args: {}
@@ -76,6 +76,7 @@ models:
     class_name: LedgerApiDialogues
   params:
     args:
+      blacklisted: false
       cleanup_history_depth: 1
       cleanup_history_depth_current: null
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
@@ -96,9 +97,14 @@ models:
             - ed25519
           version: {}
         voting_power: '10'
+      invalid_payload: false
       keeper_timeout: 30.0
+      light_slash_unit_amount: 5000000000000000
       max_attempts: 10
       max_healthcheck: 120
+      num_double_signed: 0
+      num_light_client_attack: 0
+      num_unknown: 0
       on_chain_service_id: null
       request_retry_delay: 1.0
       request_timeout: 10.0
@@ -107,6 +113,7 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
+      serious_slash_unit_amount: 8000000000000000
       service_id: offend_abci
       service_registry_address: null
       setup:
@@ -115,26 +122,19 @@ models:
         safe_contract_address: '0x0000000000000000000000000000000000000000'
         consensus_threshold: null
       share_tm_config_on_startup: false
+      slash_cooldown_hours: 3
+      slash_threshold_amount: 10000000000000000
       sleep_time: 1
+      suspected: false
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
       tx_timeout: 10.0
-      use_termination: false
       use_slashing: false
-      slash_cooldown_hours: 3
-      slash_threshold_amount: 10000000000000000
-      light_slash_unit_amount: 5000000000000000
-      serious_slash_unit_amount: 8000000000000000
+      use_termination: false
       validator_downtime: false
-      invalid_payload: false
-      blacklisted: false
-      suspected: false
-      num_unknown: 0
-      num_double_signed: 0
-      num_light_client_attack: 0
     class_name: OffendParams
   requests:
     args: {}
