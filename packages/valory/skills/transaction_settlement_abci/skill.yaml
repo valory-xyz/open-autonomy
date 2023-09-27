@@ -31,14 +31,14 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeig45ovqjke7vbjgs7yz24xo53auohr4xhjjhuxg2dkjjaq6s6wcxi
+- valory/gnosis_safe:0.1.0:bafybeid6xubev76wj2nbxwvdoei5n4cri4w3owmtrm73k5jwipk5jzs22m
 protocols:
 - open_aea/signing:1.0.0:bafybeie7xyems76v5b4wc2lmaidcujizpxfzjnnwdeokmhje53g7ym25ii
 - valory/abci:0.1.0:bafybeihmzlmmb4pdo3zkhg6ehuyaa4lhw7bfpclln2o2z7v3o6fcep26iu
 - valory/contract_api:1.0.0:bafybeialhbjvwiwcnqq3ysxcyemobcbie7xza66gaofcvla5njezkvhcka
 - valory/ledger_api:1.0.0:bafybeige5agrztgzfevyglf7mb4o7pzfttmq4f6zi765y4g2zvftbyowru
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihh7st2pmutpodau3u53i4kkexa6xj5d3ry3lnsehfb5s53u4he2q
+- valory/abstract_round_abci:0.1.0:bafybeidoo5nzpmwfugwaxu4yfsepdaevjcahy7n7szn5h2jhhrzwpzbrr4
 behaviours:
   main:
     args: {}
@@ -112,6 +112,7 @@ models:
       init_fallback_gas: 0
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
+      light_slash_unit_amount: 5000000000000000
       max_attempts: 10
       max_healthcheck: 120
       on_chain_service_id: null
@@ -122,10 +123,13 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
+      serious_slash_unit_amount: 8000000000000000
       service_id: registration
       service_registry_address: null
       setup: {}
       share_tm_config_on_startup: false
+      slash_cooldown_hours: 3
+      slash_threshold_amount: 10000000000000000
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
@@ -133,12 +137,8 @@ models:
       tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
       tx_timeout: 10.0
-      use_termination: false
       use_slashing: false
-      slash_cooldown_hours: 3
-      slash_threshold_amount: 10000000000000000
-      light_slash_unit_amount: 5000000000000000
-      serious_slash_unit_amount: 8000000000000000
+      use_termination: false
       validate_timeout: 1205
     class_name: TransactionParams
   randomness_api:
@@ -168,5 +168,5 @@ dependencies:
   open-aea-test-autonomy:
     version: ==0.12.1.post4
   web3:
-    version: '>=6.0.0,<7'
+    version: <7,>=6.0.0
 is_abstract: true

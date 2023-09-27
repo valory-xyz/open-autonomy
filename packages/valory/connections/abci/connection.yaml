@@ -79,6 +79,6 @@ dependencies:
   open-aea-test-autonomy:
     version: ==0.12.1.post4
   protobuf:
-    version: '>=4.21.6,<5.0.0'
+    version: <5.0.0,>=4.21.6
 is_abstract: false
 cert_requests: []

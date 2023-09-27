@@ -23,10 +23,10 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihh7st2pmutpodau3u53i4kkexa6xj5d3ry3lnsehfb5s53u4he2q
-- valory/registration_abci:0.1.0:bafybeihqlpbqvgfilocisb6c6qj26edo3hjlwygirgqvvvhe2o56o66jg4
-- valory/reset_pause_abci:0.1.0:bafybeid3dyt5t3q4nf2aebi3j6ppflavka4j7zophhrvnohqwkijh3tsyi
-- valory/termination_abci:0.1.0:bafybeidepelszmppd4oodn7jyxgdq555hbkc5jy54p42ddksclcsylh76e
+- valory/abstract_round_abci:0.1.0:bafybeidoo5nzpmwfugwaxu4yfsepdaevjcahy7n7szn5h2jhhrzwpzbrr4
+- valory/registration_abci:0.1.0:bafybeie2seoxrzqvcxyvd4cyazac77nqjancraxe3zsnb7lfe2ihalamj4
+- valory/reset_pause_abci:0.1.0:bafybeib5xlexhtp4xbzaqxefqrltq4zkwgq6qljkcj25jfbay6ykfkudse
+- valory/termination_abci:0.1.0:bafybeigstuw6zyabd3guuflu3oxb2ntwyvn2jsxzpd7ud7fc6wbqd6nh2m
 behaviours:
   main:
     args: {}
@@ -97,6 +97,7 @@ models:
       init_fallback_gas: 0
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
+      light_slash_unit_amount: 5000000000000000
       max_attempts: 10
       max_healthcheck: 120
       multisend_address: null
@@ -108,6 +109,7 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 15.0
+      serious_slash_unit_amount: 8000000000000000
       service_id: register_termination_abci
       service_registry_address: null
       setup:
@@ -116,6 +118,8 @@ models:
         safe_contract_address: '0x77b783e911F4398D75908Cc60C7138Bd1eFe35Fd'
         consensus_threshold: null
       share_tm_config_on_startup: false
+      slash_cooldown_hours: 3
+      slash_threshold_amount: 10000000000000000
       sleep_time: 300
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
@@ -124,12 +128,8 @@ models:
       tendermint_url: http://localhost:26657
       termination_sleep: 900
       tx_timeout: 10.0
-      use_termination: false
       use_slashing: false
-      slash_cooldown_hours: 3
-      slash_threshold_amount: 10000000000000000
-      light_slash_unit_amount: 5000000000000000
-      serious_slash_unit_amount: 8000000000000000
+      use_termination: false
       validate_timeout: 1205
     class_name: Params
   randomness_api:
