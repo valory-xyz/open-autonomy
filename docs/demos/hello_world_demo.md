@@ -22,14 +22,14 @@ You can find the instructions on how to run the Hello World service in the [quic
 If you have [set up the framework](../guides/set_up.md#set-up-the-framework), you can fetch the source code of the Hello World agent:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeigrruzmls4utaqsexvaaasaswwl3wvtduzwhobjchpzzn27xmtcya
+autonomy fetch valory/hello_world:0.1.0:bafybeiauhof6irpyiz5wim7kini35bzhpohezuf7pcgjkeczprrnlf6di4
 mv hello_world hello_world_agent
 ```
 
 and the Hello World service:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeihymuw3ttt5326bapwx4irtrtnfxwm3sdowwzyyq7y45i63fznjqe --service
+autonomy fetch valory/hello_world:0.1.0:bafybeigbs3ykjomm54wdch2p54fneivhhi5qec27cysu4jsyiqdxwi3eh4 --service
 mv hello_world hello_world_service
 ```
 
