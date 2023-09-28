@@ -212,8 +212,8 @@ autonomy service deploy [OPTIONS] SERVICE_ID
 `--hwi`
 : Use a hardware wallet to sign the transactions.
 
-`-d, --deployment-payload PAYLOAD`
-: Deployment payload value.
+`-f, --fallback-handler ADDRESS`
+: Fallback handler address for the gnosis safe multisig.
 
 `--password PASSWORD`
 : Password for the key file.
