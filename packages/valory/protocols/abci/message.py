@@ -25,7 +25,7 @@ from typing import Any, Optional, Set, Tuple, cast
 
 from aea.configurations.base import PublicId
 from aea.exceptions import AEAEnforceError, enforce
-from aea.protocols.base import Message
+from aea.protocols.base import Message  # type: ignore
 
 from packages.valory.protocols.abci.custom_types import CheckTxType as CustomCheckTxType
 from packages.valory.protocols.abci.custom_types import (

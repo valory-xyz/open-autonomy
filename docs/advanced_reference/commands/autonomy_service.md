@@ -203,6 +203,9 @@ autonomy service deploy [OPTIONS] SERVICE_ID
 ```
 ### Options
 
+`--reuse-multisig`
+: Reuse `mutlisig` from previous deployment.
+
 `--key FILE`
 : Use a private key from a file to sign the transactions.
 

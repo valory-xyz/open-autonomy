@@ -62,4 +62,4 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
 
         container.wait()
 
-        assert b"requirements.txt" in container.logs()
+        assert b"scripts" in container.logs()

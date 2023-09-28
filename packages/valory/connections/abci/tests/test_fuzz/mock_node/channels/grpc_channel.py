@@ -55,7 +55,7 @@ class GrpcChannel(BaseChannel):
         grpc_channel = grpc.insecure_channel(f"{host}:{port}")
         self.grpc_client = tendermint_grpc.ABCIApplicationStub(grpc_channel)
 
-    def send_info(self, request: abci_types.RequestInfo) -> abci_types.ResponseInfo:
+    def send_info(self, request: abci_types.RequestInfo) -> abci_types.ResponseInfo:  # type: ignore
         """
         Sends an info request.
 
@@ -64,7 +64,7 @@ class GrpcChannel(BaseChannel):
         """
         return self.grpc_client.Info(request)
 
-    def send_echo(self, request: abci_types.RequestEcho) -> abci_types.ResponseEcho:
+    def send_echo(self, request: abci_types.RequestEcho) -> abci_types.ResponseEcho:  # type: ignore
         """
         Sends an echo request.
 
@@ -73,7 +73,7 @@ class GrpcChannel(BaseChannel):
         """
         return self.grpc_client.Echo(request)
 
-    def send_flush(self, request: abci_types.RequestFlush) -> abci_types.ResponseFlush:
+    def send_flush(self, request: abci_types.RequestFlush) -> abci_types.ResponseFlush:  # type: ignore
         """
         Sends an flush request.
 
@@ -83,8 +83,8 @@ class GrpcChannel(BaseChannel):
         return self.grpc_client.Flush(request)
 
     def send_set_option(
-        self, request: abci_types.RequestSetOption
-    ) -> abci_types.ResponseSetOption:
+        self, request: abci_types.RequestSetOption  # type: ignore
+    ) -> abci_types.ResponseSetOption:  # type: ignore
         """
         Sends an setOption request.
 
@@ -94,8 +94,8 @@ class GrpcChannel(BaseChannel):
         return self.grpc_client.SetOption(request)
 
     def send_deliver_tx(
-        self, request: abci_types.RequestDeliverTx
-    ) -> abci_types.ResponseDeliverTx:
+        self, request: abci_types.RequestDeliverTx  # type: ignore
+    ) -> abci_types.ResponseDeliverTx:  # type: ignore
         """
         Sends an deliverTx request.
 
@@ -105,8 +105,8 @@ class GrpcChannel(BaseChannel):
         return self.grpc_client.DeliverTx(request)
 
     def send_check_tx(
-        self, request: abci_types.RequestCheckTx
-    ) -> abci_types.ResponseCheckTx:
+        self, request: abci_types.RequestCheckTx  # type: ignore
+    ) -> abci_types.ResponseCheckTx:  # type: ignore
         """
         Sends an checkTx request.
 
@@ -115,7 +115,7 @@ class GrpcChannel(BaseChannel):
         """
         return self.grpc_client.CheckTx(request)
 
-    def send_query(self, request: abci_types.RequestQuery) -> abci_types.ResponseQuery:
+    def send_query(self, request: abci_types.RequestQuery) -> abci_types.ResponseQuery:  # type: ignore
         """
         Sends an query request.
 
@@ -125,8 +125,8 @@ class GrpcChannel(BaseChannel):
         return self.grpc_client.Query(request)
 
     def send_commit(
-        self, request: abci_types.RequestCommit
-    ) -> abci_types.ResponseCommit:
+        self, request: abci_types.RequestCommit  # type: ignore
+    ) -> abci_types.ResponseCommit:  # type: ignore
         """
         Sends an commit request.
 
@@ -136,8 +136,8 @@ class GrpcChannel(BaseChannel):
         return self.grpc_client.Commit(request)
 
     def send_init_chain(
-        self, request: abci_types.RequestInitChain
-    ) -> abci_types.ResponseInitChain:
+        self, request: abci_types.RequestInitChain  # type: ignore
+    ) -> abci_types.ResponseInitChain:  # type: ignore
         """
         Sends an initChain request.
 
@@ -147,8 +147,8 @@ class GrpcChannel(BaseChannel):
         return self.grpc_client.InitChain(request)
 
     def send_begin_block(
-        self, request: abci_types.RequestBeginBlock
-    ) -> abci_types.ResponseBeginBlock:
+        self, request: abci_types.RequestBeginBlock  # type: ignore
+    ) -> abci_types.ResponseBeginBlock:  # type: ignore
         """
         Sends an beginBlock request.
 
@@ -158,8 +158,8 @@ class GrpcChannel(BaseChannel):
         return self.grpc_client.BeginBlock(request)
 
     def send_end_block(
-        self, request: abci_types.RequestEndBlock
-    ) -> abci_types.ResponseEndBlock:
+        self, request: abci_types.RequestEndBlock  # type: ignore
+    ) -> abci_types.ResponseEndBlock:  # type: ignore
         """
         Sends an endBlock request.
 
@@ -169,8 +169,8 @@ class GrpcChannel(BaseChannel):
         return self.grpc_client.EndBlock(request)
 
     def send_list_snapshots(
-        self, request: abci_types.RequestListSnapshots
-    ) -> abci_types.ResponseListSnapshots:
+        self, request: abci_types.RequestListSnapshots  # type: ignore
+    ) -> abci_types.ResponseListSnapshots:  # type: ignore
         """
         Sends an listSnapshots request.
 
@@ -180,8 +180,8 @@ class GrpcChannel(BaseChannel):
         return self.grpc_client.ListSnapshots(request)
 
     def send_offer_snapshot(
-        self, request: abci_types.RequestOfferSnapshot
-    ) -> abci_types.ResponseOfferSnapshot:
+        self, request: abci_types.RequestOfferSnapshot  # type: ignore
+    ) -> abci_types.ResponseOfferSnapshot:  # type: ignore
         """
         Sends an offerSnapshot request.
 
@@ -191,8 +191,8 @@ class GrpcChannel(BaseChannel):
         return self.grpc_client.OfferSnapshot(request)
 
     def send_load_snapshot_chunk(
-        self, request: abci_types.RequestLoadSnapshotChunk
-    ) -> abci_types.ResponseLoadSnapshotChunk:
+        self, request: abci_types.RequestLoadSnapshotChunk  # type: ignore
+    ) -> abci_types.ResponseLoadSnapshotChunk:  # type: ignore
         """
         Sends an loadSnapshotChunk request.
 
@@ -202,8 +202,8 @@ class GrpcChannel(BaseChannel):
         return self.grpc_client.LoadSnapshotChunk(request)
 
     def send_apply_snapshot_chunk(
-        self, request: abci_types.RequestApplySnapshotChunk
-    ) -> abci_types.ResponseApplySnapshotChunk:
+        self, request: abci_types.RequestApplySnapshotChunk  # type: ignore
+    ) -> abci_types.ResponseApplySnapshotChunk:  # type: ignore
         """
         Sends an applySnapshotChunk request.
 

@@ -27,13 +27,25 @@ def __init__(chain_type: ChainType,
 
 Initialize object.
 
+<a id="autonomy.cli.helpers.chain.OnChainHelper.load_hwi_plugin"></a>
+
+#### load`_`hwi`_`plugin
+
+```python
+@staticmethod
+def load_hwi_plugin() -> Type[LedgerApi]
+```
+
+Load HWI Plugin.
+
 <a id="autonomy.cli.helpers.chain.OnChainHelper.get_ledger_and_crypto_objects"></a>
 
 #### get`_`ledger`_`and`_`crypto`_`objects
 
 ```python
-@staticmethod
+@classmethod
 def get_ledger_and_crypto_objects(
+        cls,
         chain_type: ChainType,
         key: Optional[Path] = None,
         password: Optional[str] = None,
