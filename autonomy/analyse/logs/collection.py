@@ -77,7 +77,7 @@ class LogCollection(ABC):
     @classmethod
     def parse(cls, file: Path) -> Generator[LogRow, None, None]:
         """Parse logs and yield rows."""
-        with file.open(mode="r") as fp:
+        with file.open(mode="r", encoding="utf-8") as fp:
             prev_line: Optional[str] = fp.readline()
             current_period = 0
             current_round = "agent_startup"
