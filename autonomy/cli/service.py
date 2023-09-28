@@ -142,10 +142,10 @@ def _register(  # pylint: disable=too-many-arguments
 @hwi_flag
 @password_decorator
 @click.option(
-    "-d",
-    "--deployment-payload",
-    type=int,
-    help="Deployment payload value",
+    "-f",
+    "--fallback-handler",
+    type=str,
+    help="Fallback handler address for the gnosis safe multisig",
 )
 def _deploy(  # pylint: disable=too-many-arguments
     ctx: Context,
@@ -154,7 +154,7 @@ def _deploy(  # pylint: disable=too-many-arguments
     hwi: bool,
     reuse_multisig: bool,
     password: Optional[str],
-    deployment_payload: Optional[str],
+    fallback_handler: Optional[str],
 ) -> None:
     """Deploy a service."""
     ServiceHelper(
@@ -165,7 +165,7 @@ def _deploy(  # pylint: disable=too-many-arguments
         hwi=hwi,
     ).deploy_service(
         reuse_multisig=reuse_multisig,
-        deployment_payload=deployment_payload,
+        fallback_handler=fallback_handler,
         timeout=ctx.config["timeout"],
     )
 

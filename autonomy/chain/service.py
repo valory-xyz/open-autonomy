@@ -55,7 +55,8 @@ except (ModuleNotFoundError, ImportError):  # pragma: nocover
     Web3Exception = Exception
 
 NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
-DEFAULT_DEPLOY_PAYLOAD = "0x0000000000000000000000000000000000000000f48f2b2d2a534e402487b3ee7c18c33aec0fe5e4000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+DEFAULT_FALLBACK_HANDLER = "0xf48f2b2d2a534e402487b3ee7c18c33aec0fe5e4"
+DEFAULT_DEPLOY_PAYLOAD = "0x0000000000000000000000000000000000000000{fallback_handler}000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 
 ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
 
@@ -67,9 +68,14 @@ class MultiSendOperation(Enum):
     DELEGATE_CALL = 1
 
 
-def get_default_delployment_payload() -> str:
-    """Return default deployment payload."""
-    return DEFAULT_DEPLOY_PAYLOAD + int(time.time()).to_bytes(32, "big").hex()
+def get_delployment_payload(fallback_handler: Optional[str] = None) -> str:
+    """Calculates deployment payload."""
+    return (
+        DEFAULT_DEPLOY_PAYLOAD.format(
+            fallback_handler=(fallback_handler or DEFAULT_FALLBACK_HANDLER)[2:]
+        )
+        + int(time.time()).to_bytes(32, "big").hex()
+    )
 
 
 def get_agent_instances(
@@ -392,12 +398,12 @@ def register_instance(  # pylint: disable=too-many-arguments
         raise InstanceRegistrationFailed("Could not verify the registration event.")
 
 
-def deploy_service(  # pylint: disable=too-many-arguments
+def deploy_service(  # pylint: disable=too-many-arguments,too-many-locals
     ledger_api: LedgerApi,
     crypto: Crypto,
     chain_type: ChainType,
     service_id: int,
-    deployment_payload: Optional[str] = None,
+    fallback_handler: Optional[str] = None,
     reuse_multisig: bool = False,
     timeout: Optional[float] = None,
 ) -> None:
@@ -411,8 +417,7 @@ def deploy_service(  # pylint: disable=too-many-arguments
     :param crypto: `aea.crypto.Crypto` object which has a funded key
     :param chain_type: Chain type
     :param service_id: Service ID retrieved after minting a service
-    :param deployment_payload: Deployment payload to include when making the
-                            deployment transaction
+    :param fallback_handler: Fallback handler address for gnosis safe multisig
     :param reuse_multisig: Use multisig from the previous deployment
     :param timeout: Time to wait for deploy event to emit
     """
@@ -433,10 +438,6 @@ def deploy_service(  # pylint: disable=too-many-arguments
     if service_state != ServiceState.FINISHED_REGISTRATION.value:
         raise ServiceDeployFailed("Service needs to be in finished registration state")
 
-    deployment_payload = deployment_payload or get_default_delployment_payload()
-    gnosis_safe_multisig = ContractConfigs.get(
-        GNOSIS_SAFE_PROXY_FACTORY_CONTRACT.name
-    ).contracts[chain_type]
     if reuse_multisig:
         _deployment_payload, error = get_reuse_multisig_payload(
             ledger_api=ledger_api,
@@ -449,6 +450,11 @@ def deploy_service(  # pylint: disable=too-many-arguments
         deployment_payload = _deployment_payload
         gnosis_safe_multisig = ContractConfigs.get(
             GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT.name
+        ).contracts[chain_type]
+    else:
+        deployment_payload = get_delployment_payload(fallback_handler=fallback_handler)
+        gnosis_safe_multisig = ContractConfigs.get(
+            GNOSIS_SAFE_PROXY_FACTORY_CONTRACT.name
         ).contracts[chain_type]
 
     try:
