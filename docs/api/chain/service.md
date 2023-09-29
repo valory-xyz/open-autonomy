@@ -14,15 +14,15 @@ class MultiSendOperation(Enum)
 
 Operation types.
 
-<a id="autonomy.chain.service.get_default_delployment_payload"></a>
+<a id="autonomy.chain.service.get_delployment_payload"></a>
 
-#### get`_`default`_`delployment`_`payload
+#### get`_`delployment`_`payload
 
 ```python
-def get_default_delployment_payload() -> str
+def get_delployment_payload(fallback_handler: Optional[str] = None) -> str
 ```
 
-Return default deployment payload.
+Calculates deployment payload.
 
 <a id="autonomy.chain.service.get_agent_instances"></a>
 
@@ -200,7 +200,7 @@ def deploy_service(ledger_api: LedgerApi,
                    crypto: Crypto,
                    chain_type: ChainType,
                    service_id: int,
-                   deployment_payload: Optional[str] = None,
+                   fallback_handler: Optional[str] = None,
                    reuse_multisig: bool = False,
                    timeout: Optional[float] = None) -> None
 ```
@@ -216,8 +216,7 @@ the service and registered the required agent instances.
 - `crypto`: `aea.crypto.Crypto` object which has a funded key
 - `chain_type`: Chain type
 - `service_id`: Service ID retrieved after minting a service
-- `deployment_payload`: Deployment payload to include when making the
-deployment transaction
+- `fallback_handler`: Fallback handler address for gnosis safe multisig
 - `reuse_multisig`: Use multisig from the previous deployment
 - `timeout`: Time to wait for deploy event to emit
 

@@ -118,7 +118,6 @@ class BaseServiceManagerTest(BaseChainInteractionTest):
     def deploy_service(
         self,
         service_id: int,
-        deployment_payload: Optional[str] = None,
         reuse_multisig: bool = False,
     ) -> None:
         """Deploy service."""
@@ -128,7 +127,6 @@ class BaseServiceManagerTest(BaseChainInteractionTest):
             crypto=self.crypto,
             chain_type=self.chain_type,
             service_id=service_id,
-            deployment_payload=deployment_payload,
             reuse_multisig=reuse_multisig,
         )
 
