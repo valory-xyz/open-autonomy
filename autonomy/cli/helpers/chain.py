@@ -152,7 +152,7 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
                 "Cannot load private key for following possible reasons\n"
                 "- Wrong key format\n"
                 "- Wrong key length\n"
-                "- Trailing new line character"
+                "- Trailing spaces or new line characters"
             ) from e
 
     @classmethod
