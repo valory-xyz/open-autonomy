@@ -19,6 +19,7 @@
 
 """On-chain interaction helpers."""
 
+import binascii
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Type, cast
 
@@ -135,6 +136,25 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
                 "to use the hardware wallet without any issues"
             ) from e
 
+    @staticmethod
+    def load_crypto(
+        file: Path,
+        password: Optional[str] = None,
+    ) -> Crypto:
+        """Load crypto object."""
+        try:
+            return EthereumCrypto(
+                private_key_path=file,
+                password=password,
+            )
+        except (binascii.Error, ValueError) as e:
+            raise click.ClickException(
+                "Cannot load private key for following possible reasons\n"
+                "- Wrong key format\n"
+                "- Wrong key length\n"
+                "- Trailing new line character"
+            ) from e
+
     @classmethod
     def get_ledger_and_crypto_objects(
         cls,
@@ -167,8 +187,8 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
         if key is None:
             crypto = crypto_registry.make(identifier)
         else:
-            crypto = EthereumCrypto(
-                private_key_path=key,
+            crypto = cls.load_crypto(
+                file=key,
                 password=password,
             )
 
