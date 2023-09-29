@@ -136,3 +136,10 @@ SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT = PublicId.from_str(
 )
 MULTISEND_CONTRACT = PublicId.from_str("valory/multisend")
 ERC20_CONTRACT = PublicId.from_str("valory/erc20")
+
+SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS = (
+    1,
+    5,
+    31337,
+    100,
+)

@@ -76,6 +76,7 @@ from autonomy.chain.service import register_instance as _register_instance
 from autonomy.chain.service import terminate_service as _terminate_service
 from autonomy.chain.service import unbond_service as _unbond_service
 from autonomy.chain.utils import (
+    is_service_manager_token_compatible_chain,
     resolve_component_id,
     verify_component_dependencies,
     verify_service_dependencies,
@@ -450,7 +451,10 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
     ) -> None:
         """Mint service"""
 
-        if self.chain_type == ChainType.CUSTOM and token is not None:
+        if (
+            not is_service_manager_token_compatible_chain(ledger_api=self.ledger_api)
+            and token is not None
+        ):
             raise click.ClickException(
                 "Cannot use custom token for bonding on L2 chains"
             )
@@ -624,7 +628,7 @@ class ServiceHelper(OnChainHelper):
         token: Optional[str] = None,
     ) -> "ServiceHelper":
         """Check if service"""
-        if self.chain_type == ChainType.CUSTOM:
+        if not is_service_manager_token_compatible_chain(ledger_api=self.ledger_api):
             self.token = token
             self.token_secured = False
             return self
