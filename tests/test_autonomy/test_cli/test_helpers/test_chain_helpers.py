@@ -483,7 +483,7 @@ def test_wrong_private_key_format(key: str) -> None:
             "Cannot load private key for following possible reasons\n"
             "- Wrong key format\n"
             "- Wrong key length\n"
-            "- Trailing new line character"
+            "- Trailing spaces or new line characters"
         ),
     ):
         file = Path(temp_dir, "key.txt")
