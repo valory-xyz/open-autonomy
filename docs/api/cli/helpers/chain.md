@@ -38,6 +38,17 @@ def load_hwi_plugin() -> Type[LedgerApi]
 
 Load HWI Plugin.
 
+<a id="autonomy.cli.helpers.chain.OnChainHelper.load_crypto"></a>
+
+#### load`_`crypto
+
+```python
+@staticmethod
+def load_crypto(file: Path, password: Optional[str] = None) -> Crypto
+```
+
+Load crypto object.
+
 <a id="autonomy.cli.helpers.chain.OnChainHelper.get_ledger_and_crypto_objects"></a>
 
 #### get`_`ledger`_`and`_`crypto`_`objects
