@@ -35,7 +35,7 @@ from aea.configurations.data_types import (
 )
 from aea.crypto.base import LedgerApi
 from aea.helpers.cid import to_v0
-from aea.helpers.env_vars import ENV_VARIABLE_RE, apply_env_variables
+from aea.helpers.env_vars import apply_env_variables
 from aea.helpers.logging import setup_logger
 from jsonschema.exceptions import ValidationError as SchemaValidationError
 from jsonschema.validators import Draft4Validator
@@ -184,6 +184,9 @@ ABCI_SKILL_MODEL_PARAMS_SCHEMA = {
 ABCI = "abci"
 LEDGER = "ledger"
 
+ENV_VAR_RE = re.compile(
+    r"^\$\{(?P<name>[A-Z_0-9]+)?:?(?P<type>bool|int|float|str|list|dict)?:?(?P<value>.+)?\}$"
+)
 REQUIRED_PROPERTY_RE = re.compile(r"'(.*)' is a required property")
 PROPERTY_NOT_ALLOWED_RE = re.compile(
     r"Additional properties are not allowed \((('(.*)'(,)? )+)(was|were) unexpected\)"
@@ -540,19 +543,32 @@ class ServiceAnalyser:
             else:
                 json_path_str = ".".join(_json_path)
                 try:
-                    re_result = ENV_VARIABLE_RE.match(value)
+                    re_result = ENV_VAR_RE.match(value)
                     if re_result is None:
                         errors.append(
-                            f"`{json_path_str}` needs to be defined as a environment variable"
+                            f"`{json_path_str}` needs environment variable defined in following format "
+                            "${ENV_VAR_NAME:DATA_TYPE:DEFAULT_VALUE}"
                         )
                         continue
-                    if validate_env_var_name:
-                        _, env_var_name, *_ = re_result.groups()
-                        if env_var_name is None:
-                            errors.append(
-                                f"`{json_path_str}` needs environment variable defined in following format "
-                                "${ENV_VAR_NAME:DATA_TYPE:DEFAULT_VALUE}"
-                            )
+
+                    result = re_result.groupdict()
+                    if validate_env_var_name and result.get("name") is None:
+                        errors.append(
+                            f"Enviroment variable template for `{json_path_str}` does not have variable name defined"
+                        )
+
+                    if result.get("type") is None:
+                        errors.append(
+                            f"Enviroment variable template for `{json_path_str}` does not have type defined"
+                        )
+                        continue
+
+                    if result.get("value") is None:
+                        errors.append(
+                            f"Enviroment variable template for `{json_path_str}` does not have default value defined"
+                        )
+                        continue
+
                     apply_env_variables(
                         data={key: value}, env_variables=os.environ.copy()
                     )
