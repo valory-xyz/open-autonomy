@@ -61,18 +61,21 @@ class LogCollection(ABC):
 
     @staticmethod
     def get_next_log_block(
-        fp: TextIO, prev_line: str
+        fp: TextIO,
+        prev_line: Optional[str],
     ) -> Tuple[Optional[str], Optional[str]]:
         """Get next log block."""
+        if prev_line is None:
+            return None, None
 
         line = prev_line
         while True:
             _line = fp.readline()
             if _line == "":
-                return None, None
+                return prev_line, None
             if TIMESTAMP_REGEX.match(_line) is not None:
                 return line, _line
-            line += line
+            line += _line
 
     @classmethod
     def parse(cls, file: Path) -> Generator[LogRow, None, None]:
@@ -83,16 +86,13 @@ class LogCollection(ABC):
             current_round = "agent_startup"
             current_behaviour = "agent_startup"
             while True:
-                line, prev_line = cls.get_next_log_block(
-                    fp=fp, prev_line=cast(str, prev_line)
-                )
+                line, prev_line = cls.get_next_log_block(fp=fp, prev_line=prev_line)
                 if line is None and prev_line is None:
                     break
 
                 match = LOG_ROW_REGEX.match(string=cast(str, line))
-                _timestamp, log_level, _, log_block = cast(re.Match, match).groups()
+                _timestamp, log_level, _, log_block, _ = cast(re.Match, match).groups()
                 timestamp = datetime.strptime(_timestamp, TIME_FORMAT)
-
                 match = ENTER_BEHAVIOUR_REGEX.match(string=log_block)
                 if match is not None:
                     (current_behaviour,) = match.groups()
