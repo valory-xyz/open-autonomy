@@ -203,7 +203,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             )
             if component_id in processed:
                 raise AEAValidationError(
-                    f"Overrides for component {component_id} are defined more than once"
+                    f"Overrides for component {component_id} are defined more than once in the service `{self.public_id}`"
                 )
             if has_multiple_overrides:
                 for idx in range(self.number_of_agents):
