@@ -95,6 +95,7 @@ nav:
       - Execution replay: 'advanced_reference/developer_tooling/execution_replay.md'
       - Benchmarking: 'advanced_reference/developer_tooling/benchmarking.md'
       - Debugging in the cluster: 'advanced_reference/developer_tooling/debugging_in_the_cluster.md'
+      - Debugging using Tenderly: 'advanced_reference/developer_tooling/debugging_using_tenderly.md'
     - Deployment:
       - Container Control Flow: 'control_flow.md'
     - Using custom images in a deployment: 'advanced_reference/use_custom_images.md'
@@ -254,11 +255,7 @@ nav:
           - Payload Tools: 'api/skills/transaction_settlement_abci/payload_tools.md'
           - Test Tools: 'api/skills/transaction_settlement_abci/test_tools/integration.md'
       - Exceptions: 'exceptions.md'
-    - Miscellaneous:
-      - Ethereum: 'ethereum_specifics.md'
-      - Delegate call vs call: 'delegate_call.md'
-      - Debugging Using Tenderly: 'debugging.md'
-      - Package list: 'package_list.md'
+    - Package list: 'package_list.md'
   - Version: 'version.md'
   - Upgrading: 'upgrading.md'
   - FAQ: 'questions-and-answers.md'
