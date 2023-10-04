@@ -855,7 +855,7 @@ class TestCheckOnChainState(BaseAnalyseServiceTest):
 class TestCheckSuccessful(BaseAnalyseServiceTest):
     """Test a successful check"""
 
-    def test_run(self) -> None:
+    def test_run(self, caplog: Any) -> None:
         """Test run."""
 
         skill_config = get_dummy_overrides_skill(env_vars_with_name=True)
@@ -900,8 +900,11 @@ class TestCheckSuccessful(BaseAnalyseServiceTest):
         ), self.patch_get_on_chain_service_id(), mock.patch(
             "autonomy.analyse.service.get_service_info",
             return_value=(None, 4, None),
+        ), caplog.at_level(
+            logging.WARNING
         ):
             result = self.run_cli(commands=self.token_id_option)
 
         assert result.exit_code == 0, result.stderr
         assert "Service is ready to be deployed" in result.output
+        assert "Termination skill is not defined as a dependency" in caplog.text
