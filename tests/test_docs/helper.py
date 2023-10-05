@@ -20,6 +20,7 @@
 """This module contains helper function to extract code from the .md files."""
 import os
 import re
+import requests
 from enum import Enum
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
@@ -83,6 +84,15 @@ def read_file(filepath: str) -> str:
     with open(filepath, "r") as file_:
         file_str = file_.read()
     return file_str
+
+
+def read_file_from_url(url):
+    """Loads a file into a string"""
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.text
+    else:
+        raise Exception(f"Failed to fetch data from URL: {url}")
 
 
 def remove_line_comments(string: str) -> str:
@@ -151,8 +161,12 @@ def check_code_blocks_exist(
         code_file = code_file.replace("by_line::", "")
 
         # Load the code file and process it
-        code_path = os.path.join(ROOT_DIR, code_file)
-        code = read_file(code_path)
+        if code_file.startswith("http://") or code_file.startswith("https://"):
+            code = read_file_from_url(code_file)
+        else:
+            code_path = os.path.join(ROOT_DIR, code_file)
+            code = read_file(code_path)
+
         code = code_process_fn(code) if code_process_fn else code
 
         # Perform the check
