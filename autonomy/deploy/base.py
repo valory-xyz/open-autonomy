@@ -54,6 +54,7 @@ ENV_VAR_ID = "ID"
 ENV_VAR_AEA_AGENT = "AEA_AGENT"
 ENV_VAR_LOG_LEVEL = "LOG_LEVEL"
 ENV_VAR_AEA_PASSWORD = "AEA_PASSWORD"  # nosec
+ENV_VAR_DEPENDENCIES = "DEPENDENCIES"  # nosec
 
 PARAM_ARGS_PATH = ("models", "params", "args")
 SETUP_PARAM_PATH = (*PARAM_ARGS_PATH, "setup")
@@ -618,6 +619,15 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         ]
         return [self.generate_agent(i, idx) for i, idx in agent_override_idx]
 
+    def generate_dependency_flag_var(self) -> str:
+        """Generate dependency flag env var"""
+        args = []
+        for dep in self.service.dependencies.values():
+            # Flag for `aea install` command
+            args += ["-e"]
+            args += dep.get_pip_install_args()
+        return " ".join(args)
+
     def generate_common_vars(self, agent_n: int) -> Dict:
         """Retrieve vars common for agent."""
         agent_vars = {
@@ -625,6 +635,9 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
             ENV_VAR_AEA_AGENT: self.service.agent,
             ENV_VAR_LOG_LEVEL: self.log_level,
         }
+
+        if len(self.service.dependencies) > 0:
+            agent_vars[ENV_VAR_DEPENDENCIES] = self.generate_dependency_flag_var()
 
         if self.private_keys_password is not None:
             agent_vars[ENV_VAR_AEA_PASSWORD] = self.private_keys_password

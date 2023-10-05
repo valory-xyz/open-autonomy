@@ -13,10 +13,10 @@ aea fetch $AEA_AGENT --alias agent || exit 1
 cd agent
 
 echo "Installing the necessary dependencies!"
-aea install || exit 1
+aea -v debug install $DEPENDENCIES || exit 1
 
 echo "Building the deployment"
-aea build || exit 1
+aea -v debug build || exit 1
 
 echo "Successfully built the agent"
 
