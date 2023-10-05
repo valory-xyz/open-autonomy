@@ -265,7 +265,9 @@ class TestJsonSnippets(BaseTestDocCode):
 
     md_to_code = {
         "docs/guides/set_up.md": {
-            "code_files": ["by_line::https://raw.githubusercontent.com/valory-xyz/hello-world-world/main/packages/packages.json"],
+            "code_files": [
+                "by_line::https://raw.githubusercontent.com/valory-xyz/hello-world-world/main/packages/packages.json"
+            ],
         },
         "docs/guides/deploy_service.md": {
             "code_files": [

@@ -73,18 +73,21 @@ def get_packages() -> Dict[str, str]:
         return {**data["dev"], **data["third_party"]}
     return data
 
+
 def get_packages_from_repository(repo_url: str) -> Dict[str, str]:
     """Retrieve packages.json from the latest release from a repository."""
     repo_url = repo_url.strip("/").replace("https://github.com/", "")
-    repo_api_url = f'https://api.github.com/repos/{repo_url}/releases/latest'
+    repo_api_url = f"https://api.github.com/repos/{repo_url}/releases/latest"
     response = requests.get(repo_api_url)
-    
+
     if response.status_code == 200:
         repo_info = response.json()
-        latest_release_tag = repo_info['tag_name']
-        url = f'https://raw.githubusercontent.com/{repo_url}/{latest_release_tag}/packages/packages.json'
+        latest_release_tag = repo_info["tag_name"]
+        url = f"https://raw.githubusercontent.com/{repo_url}/{latest_release_tag}/packages/packages.json"
     else:
-        raise Exception(f"Failed to fetch repository information from GitHub API for: {repo_url}")
+        raise Exception(
+            f"Failed to fetch repository information from GitHub API for: {repo_url}"
+        )
 
     response = requests.get(url)
 
@@ -96,10 +99,16 @@ def get_packages_from_repository(repo_url: str) -> Dict[str, str]:
     else:
         raise Exception(f"Failed to fetch data from URL: {url}")
 
+
 class Package:  # pylint: disable=too-few-public-methods
     """Class that represents a package in packages.json"""
 
-    def __init__(self, package_id_str: str, package_hash: str, ignore_file_load_errors: bool=False) -> None:
+    def __init__(
+        self,
+        package_id_str: str,
+        package_hash: str,
+        ignore_file_load_errors: bool = False,
+    ) -> None:
         """Constructor"""
 
         self.package_id = PackageId.from_uri_path(package_id_str)
@@ -174,13 +183,15 @@ class PackageHashManager:
         self.packages = [Package(key, value) for key, value in packages.items()]
 
         package_json_urls = [
-           "https://github.com/jmoreira-valory/my-hello-world",
+            "https://github.com/jmoreira-valory/my-hello-world",
         ]
 
         for url in package_json_urls:
             packages_from_url = get_packages_from_repository(url)
             packages.update(packages_from_url)
-            self.packages.extend([Package(key, value, True) for key, value in packages_from_url.items()])
+            self.packages.extend(
+                [Package(key, value, True) for key, value in packages_from_url.items()]
+            )
 
         self.package_tree: Dict = {}
         for p in self.packages:
