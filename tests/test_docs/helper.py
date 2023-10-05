@@ -20,10 +20,11 @@
 """This module contains helper function to extract code from the .md files."""
 import os
 import re
-import requests
 from enum import Enum
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
+
+import requests
 
 from tests.conftest import ROOT_DIR
 
