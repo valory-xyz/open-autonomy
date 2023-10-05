@@ -10,6 +10,7 @@ fingerprint_ignore_patterns: []
 agent: valory/hello_world:0.1.0:bafybeicboowk3mblq2xrtbj7ugmkq423cfzapjo27jmpifkq3p6fmcoupq
 number_of_agents: 4
 deployment: {}
+dependencies: {}
 ---
 extra:
   benchmark_persistence_params:
