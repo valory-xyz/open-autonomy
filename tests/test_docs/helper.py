@@ -87,7 +87,7 @@ def read_file(filepath: str) -> str:
     return file_str
 
 
-def read_file_from_repository(url):
+def read_file_from_repository(url: str) -> str:
     """Loads the latest release version of a file into a string"""
     match = re.match(r"https://github.com/([^/]+)/([^/]+)/blob/([^/]+)/(.+)", url)
     if not match:
@@ -109,7 +109,7 @@ def read_file_from_repository(url):
         )
 
 
-def read_file_from_url(url):
+def read_file_from_url(url: str) -> str:
     """Loads a file into a string"""
     response = requests.get(url)
     if response.status_code == 200:
