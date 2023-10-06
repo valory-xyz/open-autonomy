@@ -162,8 +162,8 @@ class TestYamlSnippets(BaseTestDocCode):
     md_to_code = {
         "docs/demos/hello_world_demo.md": {
             "code_files": [
-                "https://raw.githubusercontent.com/valory-xyz/hello-world-world/main/packages/valory/skills/hello_world_abci/fsm_specification.yaml",
-                "https://raw.githubusercontent.com/valory-xyz/hello-world-world/main/packages/valory/agents/hello_world/aea-config.yaml",
+                "https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/skills/hello_world_abci/fsm_specification.yaml",
+                "https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/agents/hello_world/aea-config.yaml",
             ],
         },
         "docs/demos/price_oracle_fsms.md": {
@@ -178,7 +178,7 @@ class TestYamlSnippets(BaseTestDocCode):
         },
         "docs/guides/draft_service_idea_and_define_fsm_specification.md": {
             "code_files": [
-                "https://raw.githubusercontent.com/valory-xyz/hello-world-world/main/packages/valory/skills/hello_world_abci/fsm_specification.yaml"
+                "https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/skills/hello_world_abci/fsm_specification.yaml"
             ]
         },
     }
@@ -227,11 +227,11 @@ class TestPythonSnippets(BaseTestDocCode):
         },
         "docs/demos/hello_world_demo.md": {
             "code_files": [
-                "https://raw.githubusercontent.com/valory-xyz/hello-world-world/main/packages/valory/skills/hello_world_abci/behaviours.py",
-                "https://raw.githubusercontent.com/valory-xyz/hello-world-world/main/packages/valory/skills/hello_world_abci/behaviours.py",
-                "https://raw.githubusercontent.com/valory-xyz/hello-world-world/main/packages/valory/skills/hello_world_abci/payloads.py",
-                "https://raw.githubusercontent.com/valory-xyz/hello-world-world/main/packages/valory/skills/hello_world_abci/rounds.py",
-                "by_line::https://raw.githubusercontent.com/valory-xyz/hello-world-world/main/packages/valory/skills/hello_world_abci/rounds.py",
+                "https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/skills/hello_world_abci/behaviours.py",
+                "https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/skills/hello_world_abci/behaviours.py",
+                "https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/skills/hello_world_abci/payloads.py",
+                "https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/skills/hello_world_abci/rounds.py",
+                "by_line::https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/skills/hello_world_abci/rounds.py",
             ],
         },
         "docs/advanced_reference/commands/autonomy_analyse.md": {"skip_blocks": [0]},
@@ -264,11 +264,6 @@ class TestJsonSnippets(BaseTestDocCode):
     # instead of checking the code block as a whole.
 
     md_to_code = {
-        "docs/guides/set_up.md": {
-            "code_files": [
-                "by_line::https://raw.githubusercontent.com/valory-xyz/hello-world-world/main/packages/packages.json"
-            ],
-        },
         "docs/guides/deploy_service.md": {
             "code_files": [
                 "by_line::deployments/keys/hardhat_keys.json",
@@ -288,6 +283,7 @@ class TestJsonSnippets(BaseTestDocCode):
 
     skipped_files = [
         "docs/advanced_reference/commands/autonomy_deploy.md",
+        "docs/guides/set_up.md",
     ]
 
 

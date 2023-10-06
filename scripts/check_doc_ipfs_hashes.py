@@ -151,7 +151,7 @@ class Package:  # pylint: disable=too-few-public-methods
                     if "version" in resource:
                         self.last_version = resource["version"]
                         break
-        except:
+        except Exception:
             if not self.ignore_file_load_errors:
                 raise
             else:
@@ -183,7 +183,7 @@ class PackageHashManager:
         self.packages = [Package(key, value) for key, value in packages.items()]
 
         package_json_urls = [
-            "https://github.com/jmoreira-valory/my-hello-world",
+            "https://github.com/valory-xyz/hello-world",
         ]
 
         for url in package_json_urls:
