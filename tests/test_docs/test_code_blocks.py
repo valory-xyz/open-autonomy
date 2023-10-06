@@ -160,12 +160,6 @@ class TestYamlSnippets(BaseTestDocCode):
     # instead of checking the code block as a whole.
 
     md_to_code = {
-        "docs/demos/hello_world_demo.md": {
-            "code_files": [
-                "https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/skills/hello_world_abci/fsm_specification.yaml",
-                "https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/agents/hello_world/aea-config.yaml",
-            ],
-        },
         "docs/demos/price_oracle_fsms.md": {
             "code_files": [
                 "packages/valory/skills/registration_abci/fsm_specification.yaml",
@@ -224,15 +218,6 @@ class TestPythonSnippets(BaseTestDocCode):
                 "by_line::packages/valory/skills/abstract_round_abci/base.py"
             ],
             "skip_blocks": [1],
-        },
-        "docs/demos/hello_world_demo.md": {
-            "code_files": [
-                "https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/skills/hello_world_abci/behaviours.py",
-                "https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/skills/hello_world_abci/behaviours.py",
-                "https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/skills/hello_world_abci/payloads.py",
-                "https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/skills/hello_world_abci/rounds.py",
-                "by_line::https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/skills/hello_world_abci/rounds.py",
-            ],
         },
         "docs/advanced_reference/commands/autonomy_analyse.md": {"skip_blocks": [0]},
         "docs/key_concepts/aea.md": {"code_files": [], "skip_blocks": [0, 1]},
