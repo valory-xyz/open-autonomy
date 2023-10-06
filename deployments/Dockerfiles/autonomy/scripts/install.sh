@@ -12,12 +12,13 @@ echo "Loading $AEA_AGENT"
 aea fetch $AEA_AGENT --alias agent || exit 1
 cd agent
 
-echo "Building the deployment"
+echo "Building the deployments host dependencies."
 aea build || exit 1
+echo "Successfully built the host dependencies."
 
-echo "Installing the necessary dependencies!"
+echo "Installing the necessary python dependencies!"
 aea install || exit 1
+echo "Successfully Installed the python dependecies."
 
-echo "Successfully built the agent"
-
+echo "Done."
 cd ..
