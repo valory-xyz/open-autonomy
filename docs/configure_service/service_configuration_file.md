@@ -7,7 +7,7 @@ The service configuration file `service.yaml` is typically composed of service-s
 
 ???+ example
 
-    Here is an example of the service configuration file of the [Hello World service](https://docs.autonolas.network/demo/hello-world/):
+    Here is an example of the service configuration file of the [Hello World service](https://docs.autonolas.network/demos/hello-world/):
 
     ```yaml title="service.yaml"
     name: hello_world
@@ -163,7 +163,7 @@ type: skill
 
 ???+ example
 
-    If you wish that each agent outputs a different message in the [Hello World service](https://docs.autonolas.network/demo/hello-world/) with four agents, you can define the following multiple override in the `service.yaml` file:
+    If you wish that each agent outputs a different message in the [Hello World service](https://docs.autonolas.network/demos/hello-world/) with four agents, you can define the following multiple override in the `service.yaml` file:
 
     ```yaml title="service.yaml"
     # (...)
