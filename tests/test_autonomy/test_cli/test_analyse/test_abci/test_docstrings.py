@@ -28,7 +28,7 @@ from autonomy.analyse.abci.docstrings import (
     docstring_abci_app,
 )
 
-from packages.valory.skills.reset_pause.rounds import ResetPauseAbciApp
+from packages.valory.skills.reset_pause.rounds import ResetPauseAbciApp  # type: ignore
 
 
 def test_docstring_abci_app() -> None:
