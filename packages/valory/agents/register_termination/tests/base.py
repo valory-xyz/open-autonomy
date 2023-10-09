@@ -85,8 +85,10 @@ class BaseTestTerminationEnd2End(
         """
         instance = web3.Web3(web3.HTTPProvider(self.NETWORK_ENDPOINT))
         zero_eth = Wei(0)
-        checksum_sender_address = instance.toChecksumAddress(self.SERVICE_OWNER_ADDRESS)
-        checksum_receiver_address = instance.toChecksumAddress(
+        checksum_sender_address = instance.to_checksum_address(
+            self.SERVICE_OWNER_ADDRESS
+        )
+        checksum_receiver_address = instance.to_checksum_address(
             self.SAFE_CONTRACT_ADDRESS
         )
 
@@ -97,9 +99,9 @@ class BaseTestTerminationEnd2End(
             "gas": 100000,
             "chainId": self.CHAIN_ID,
             "gasPrice": instance.eth.gas_price,
-            "nonce": instance.eth.getTransactionCount(checksum_sender_address),
+            "nonce": instance.eth.get_transaction_count(checksum_sender_address),
         }
-        signed_tx = instance.eth.account.signTransaction(
+        signed_tx = instance.eth.account.sign_transaction(
             raw_tx, private_key=self.SERVICE_OWNER_PK
         )
         instance.eth.send_raw_transaction(signed_tx.rawTransaction)

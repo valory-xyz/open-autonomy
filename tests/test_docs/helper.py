@@ -29,7 +29,8 @@ from tests.conftest import ROOT_DIR
 
 IPFS_HASH_REGEX = r"bafybei[A-Za-z0-9]{52}"
 PYTHON_LINE_COMMENT_REGEX = r"^#.*\n"
-DOC_ELLIPSIS_REGEX = r"\s*#\s...\n"
+DOC_ELLIPSIS_REGEX = r"(\s*#\s*...\s*?\n)|(\s*#\s*\(...\)\s*?\n)"
+YAML_HASH_REGEX = rf":{IPFS_HASH_REGEX}"
 PYTHON_COMMAND = r"^pyt(hon|est) (?P<file_name>.*\.py).*$"
 MAKE_COMMAND = r"^make (?P<cmd_name>.*)$"
 AUTONOMY_COMMAND = r"^(?P<cmd_name>autonomy .*)$"
@@ -92,6 +93,11 @@ def remove_line_comments(string: str) -> str:
 def remove_doc_ellipsis(string: str) -> str:
     """Removes # ... from a python string"""
     return re.sub(DOC_ELLIPSIS_REGEX, "", string)
+
+
+def remove_yaml_hashes(string: str) -> str:
+    """Removes YAML ":bafybei..." hashes after a public ID"""
+    return re.sub(YAML_HASH_REGEX, "", string)
 
 
 def remove_ips_hashes(string: str) -> str:
@@ -186,7 +192,6 @@ def check_bash_commands_exist(md_file: str, make_commands: List[str]) -> None:
 
     for code_block in code_blocks:
         for line in code_block.split("\n"):
-
             # Python/pytest commands
             match = re.match(PYTHON_COMMAND, line)
             if match:

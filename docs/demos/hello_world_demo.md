@@ -22,14 +22,14 @@ You can find the instructions on how to run the Hello World service in the [quic
 If you have [set up the framework](../guides/set_up.md#set-up-the-framework), you can fetch the source code of the Hello World agent:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeihqd4jozturtsjqlbfh3jy66sztfx3psdjyqvfbhwah35q57ublve
+autonomy fetch valory/hello_world:0.1.0:bafybeicboowk3mblq2xrtbj7ugmkq423cfzapjo27jmpifkq3p6fmcoupq
 mv hello_world hello_world_agent
 ```
 
 and the Hello World service:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeicfi3pxkpuo5qgwwqsmxxsm3mmnuhhgaj5ay7wap2jrnuauvf7icy --service
+autonomy fetch valory/hello_world:0.1.0:bafybeib3vqi7wltpffz6eoahzwivpf7p4zwuhoeq6ljok6f42o47uvt7yu --service
 mv hello_world hello_world_service
 ```
 
@@ -105,7 +105,7 @@ Given the description of the service, it is immediate to obtain the FSM specific
 
 ???+ example "The Hello World service `fsm_specification.yaml` file"
 
-    ```yaml
+    ```yaml title="fsm_specification.yaml"
     alphabet_in:
     - DONE
     - NO_MAJORITY
@@ -505,25 +505,25 @@ Agents are defined through the {{open_aea}} library as YAML files, which specify
 
 This is an excerpt of the `aea-config.yaml` file:
 
-```yaml
-# ...
+```yaml title="aea-config.yaml"
+# (...)
 connections:
-- valory/abci:0.1.0:bafybeieogrpktpxfq74leeeeylfx33sob2hovhpl5coxlswae6xblzbezy
-- valory/http_client:0.23.0:bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi
-- valory/ipfs:0.1.0:bafybeifkzgdzuoxqovcjswsnzsehjh7bjwbska26ufmcrk7hbufk4c4dae
-- valory/ledger:0.19.0:bafybeicgfupeudtmvehbwziqfxiz6ztsxr5rxzvalzvsdsspzz73o5fzfi
-- valory/p2p_libp2p_client:0.1.0:bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva
+- valory/abci:0.1.0
+- valory/http_client:0.23.0
+- valory/ipfs:0.1.0
+- valory/ledger:0.19.0
+- valory/p2p_libp2p_client:0.1.0
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4
-- valory/abci:0.1.0:bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4
-- valory/http:1.0.0:bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty
-- valory/ipfs:0.1.0:bafybeic72ncgqbzoz2guj4p4yjqulid7mv6yroeh65hxznloamoveeg7hq
+- open_aea/signing:1.0.0
+- valory/abci:0.1.0
+- valory/http:1.0.0
+- valory/ipfs:0.1.0
 skills:
-- valory/abstract_abci:0.1.0:bafybeihgerjeq4u4apuue7zzhpb3wmntuju34dbdijbbvl4wclww2gy7di
-- valory/abstract_round_abci:0.1.0:bafybeicensk7a2vpqj52iyhf6yhc6z2iwulb2txbym546qvwgsxm3skvcm
-- valory/hello_world_abci:0.1.0:bafybeihrmk5sjbauqal4ozk6r5cchkhonxquuwtyavz4wg4fgljut5cqsa
-# ...
+- valory/abstract_abci:0.1.0
+- valory/abstract_round_abci:0.1.0
+- valory/hello_world_abci:0.1.0
+# (...)
 ```
 
 It is mandatory that service agents include some of mandatory components: the `abci` connection, the `abci` protocol, the `abstract_abci` skill and the `abstract_round_abci` skill.

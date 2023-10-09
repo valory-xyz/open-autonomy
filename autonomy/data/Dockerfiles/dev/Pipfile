@@ -10,7 +10,7 @@ requests = {version = "==2.27.1"}
 
 [dev-packages]
 asn1crypto = {version = "==1.4.0"}
-cosmpy = {version = "==0.3.1"}
+open-aea-cosmpy = {version = "==0.6.6"}
 open-aea = {editable = true, extras=["all"], path = "/open-aea"}
 open-aea-cli-ipfs = {editable = true, path = "/open-aea/plugins/aea-cli-ipfs"}
 open-aea-ledger-cosmos = {editable = true, path = "/open-aea/plugins/aea-ledger-cosmos"}

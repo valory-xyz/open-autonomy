@@ -30,7 +30,7 @@ jobs:
     - if: matrix.os != 'windows-latest'
       name: Pipenv install requirements and check it can be locked
       run: |
-        pip install pipenv
+        pip install pipenv==2023.7.23
         pipenv --clear
         time pipenv install --verbose --dev --skip-lock
         time pipenv run pip install -e .[all]
@@ -39,13 +39,13 @@ jobs:
       name: Pipenv install requirements and check it can be locked
       run: |
         choco install ptime
-        pip install pipenv
+        pip install pipenv==2023.7.23
         pipenv --clear
         ptime pipenv install --verbose --dev --skip-lock
         ptime pipenv run pip install -e .[all]
         ptime pipenv lock
 
-  copyright_doc_and_pipfile_check:
+  copyright_doc_and_dependencies_check:
     continue-on-error: False
     runs-on: ${{ matrix.os }}
 
@@ -68,18 +68,20 @@ jobs:
         sudo apt-get update --fix-missing
         sudo apt-get autoremove
         sudo apt-get autoclean
-        pip install tomte[tox]==0.2.4
+        pip install tomte[tox,cli]==0.2.13
         pip install --user --upgrade setuptools
     - name: Check copyright headers
-      run: tox -e check-copyright
+      run: tomte format-copyright --author valory --author fetchai
     - name: License compatibility check
       run: tox -e liccheck
     - name: Check docs
       run: tox -e check-api-docs
-    - name: Check doc links and IPFS hashes
-      run: tox -e check-doc-links-hashes
-    - name: Check pipfiles
-      run: tox -e check-pipfiles
+    - name: Check doc links
+      run: tomte check-doc-links --http-skips http://host.docker.internal:8545 --http-skips http://www.fipa.org/repository/ips.php3 --url-skips "https://gateway.autonolas.tech/ipfs/<hash>," --url-skips "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure" --url-skips "http://host.docker.internal:8545" --url-skips "https://github.com/valory-xyz/open-operator"
+    - name: Check doc IPFS hashes
+      run: tox -e check-doc-hashes
+    - name: Check dependencies
+      run: tox -e check-dependencies
 
   linter_checks:
     continue-on-error: False
@@ -105,11 +107,11 @@ jobs:
         sudo apt-get update --fix-missing
         sudo apt-get autoremove
         sudo apt-get autoclean
-        pip install tomte[tox]==0.2.4
+        pip install tomte[tox]==0.2.13
         pip install --user --upgrade setuptools
         # install Protobuf compiler
-        wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-        unzip protoc-3.19.4-linux-x86_64.zip -d protoc
+        wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-linux-x86_64.zip
+        unzip protoc-24.3-linux-x86_64.zip -d protoc
         sudo mv protoc/bin/protoc /usr/local/bin/protoc
         # install IPFS
         sudo apt-get install -y wget
@@ -170,14 +172,14 @@ jobs:
     continue-on-error: True
     needs:
       - lock_check
-      - copyright_doc_and_pipfile_check
+      - copyright_doc_and_dependencies_check
       - linter_checks
     runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-        python-version: [ "3.7", "3.8", "3.9", "3.10.9" ]
+        python-version: [ "3.8", "3.9", "3.10.9", "3.11" ]
 
     timeout-minutes: 90
 
@@ -198,12 +200,12 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          pip install tomte[tox]==0.2.4
+          pip install tomte[tox]==0.2.13
           pip install --user --upgrade setuptools
 
           # install Protobuf compiler
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-          unzip protoc-3.19.4-linux-x86_64.zip -d protoc
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-linux-x86_64.zip
+          unzip protoc-24.3-linux-x86_64.zip -d protoc
           sudo mv protoc/bin/protoc /usr/local/bin/protoc
 
           # install IPFS
@@ -252,12 +254,12 @@ jobs:
       - if: matrix.os == 'macos-latest'
         name: Install dependencies (macos-latest)
         run: |
-          pip install tomte[tox]==0.2.4
+          pip install tomte[tox]==0.2.13
           brew install gcc
           # brew install protobuf
           # brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/72457f0166d5619a83f508f2345b22d0617b5021/Formula/protobuf.rb
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-osx-x86_64.zip
-          unzip protoc-3.19.4-osx-x86_64.zip -d protoc
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-osx-x86_64.zip
+          unzip protoc-24.3-osx-x86_64.zip -d protoc
           sudo mv protoc/bin/protoc /usr/local/bin/protoc
           brew tap yoheimuta/protolint
           brew install protolint
@@ -300,14 +302,14 @@ jobs:
           python -m pip install -U pip
           echo "::add-path::C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64"
           choco install wget -y
-          choco install protoc --version 3.19.4
+          choco install protoc --version 24.3
           choco install mingw -y
           choco install make -y
           # to check make was installed
           make --version
-          pip install tomte[tox]==0.2.4
-          # wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-win64.zip
-          # unzip protoc-3.19.4-win64.zip -d protoc
+          pip install tomte[tox]==0.2.13
+          # wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-win64.zip
+          # unzip protoc-24.3-win64.zip -d protoc
           # sudo mv protoc/bin/protoc /usr/local/bin/protoc
 
           # TODO: install protolint
@@ -357,7 +359,7 @@ jobs:
     continue-on-error: True
     needs:
       - lock_check
-      - copyright_doc_and_pipfile_check
+      - copyright_doc_and_dependencies_check
       - linter_checks
     runs-on: ${{ matrix.os }}
 
@@ -380,12 +382,12 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          pip install tomte[tox]==0.2.4
+          pip install tomte[tox]==0.2.13
           pip install --user --upgrade setuptools
 
           # install Protobuf compiler
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-          unzip protoc-3.19.4-linux-x86_64.zip -d protoc
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-linux-x86_64.zip
+          unzip protoc-24.3-linux-x86_64.zip -d protoc
           sudo mv protoc/bin/protoc /usr/local/bin/protoc
 
           # install IPFS

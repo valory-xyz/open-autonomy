@@ -20,14 +20,14 @@ fingerprint:
   tests/test_handlers.py: bafybeigwsx5yhtxruoqai3cckiupm3wbu3vucxyxnc6us27oa3nnqgs2xe
   tests/test_models.py: bafybeib7zrd37egmdmoobiahzchur2df2uwyy4hd55dh7l52szzfsb2pwu
   tests/test_payloads.py: bafybeig54fcpcrxnakyyna6bkxb4dmd7arazsnpvve7tol6rdgkoybluve
-  tests/test_rounds.py: bafybeifkxbhfcintdvmsgxilnxpfw7kjgst24caznp2moqgfzaah3bztvu
+  tests/test_rounds.py: bafybeieb3cuobkffsxu7wloerotwo5mowd5x4zsr5b7etvocyf5f32cavq
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_abci:0.1.0:bafybeihgerjeq4u4apuue7zzhpb3wmntuju34dbdijbbvl4wclww2gy7di
-- valory/abstract_round_abci:0.1.0:bafybeicensk7a2vpqj52iyhf6yhc6z2iwulb2txbym546qvwgsxm3skvcm
+- valory/abstract_abci:0.1.0:bafybeidwlao2lkpnxlphwapizip4cxemfy3iw4p2zpbjly4b26iukprpwe
+- valory/abstract_round_abci:0.1.0:bafybeibrrgdzbpdqyirkfulg5bgkrdwlynezdheplm55xfhkrnlxgvluo4
 behaviours:
   main:
     args: {}
@@ -97,6 +97,7 @@ models:
           version: {}
         voting_power: '10'
       keeper_timeout: 30.0
+      light_slash_unit_amount: 5000000000000000
       max_attempts: 10
       max_healthcheck: 120
       on_chain_service_id: null
@@ -107,6 +108,7 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
+      serious_slash_unit_amount: 8000000000000000
       service_id: test_abci
       service_registry_address: null
       setup:
@@ -115,6 +117,8 @@ models:
         safe_contract_address: '0x0000000000000000000000000000000000000000'
         consensus_threshold: null
       share_tm_config_on_startup: false
+      slash_cooldown_hours: 3
+      slash_threshold_amount: 10000000000000000
       sleep_time: 1
       tendermint_check_sleep_delay: 10
       tendermint_com_url: http://localhost:8080
@@ -122,6 +126,7 @@ models:
       tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
       tx_timeout: 10.0
+      use_slashing: false
       use_termination: false
     class_name: Params
   randomness_api:

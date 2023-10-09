@@ -53,7 +53,7 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
         license: Apache-2.0
         fingerprint: {}
         fingerprint_ignore_patterns: []
-        agent: valory/hello_world:0.1.0:bafybeictqwn5cqmistwfoq2h3igmytqyfi5jfbei24bofrnhs7deixoily
+        agent: valory/hello_world:0.1.0
         number_of_agents: 4
         deployment: {}
         ---
@@ -79,7 +79,7 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
         config:
           ledger_apis:
             ethereum:
-              address: ${SERVICE_HELLO_WORLD_RPC:str:http://host.docker.internal:8545}
+              address: ${SERVICE_HELLO_WORLD_RPC:str:"http://host.docker.internal:8545"}
               chain_id: 31337
               poa_chain: false
               default_gas_price_strategy: eip1559
@@ -127,4 +127,4 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
     Service is ready to be deployed.
     ```
 
-5. **Use a local deployment to test the service.** This is the recommended approach in order to test your agent service before you publish it to a remote registry. Follow the instructions in the [local deployment guide](./deploy_service.md#local-deployment). Note that this process should be somewhat familiar to you if you have followed the [quick start guide](./quick_start.md).
+5. **Use a local deployment to test the service.** This is the recommended approach in order to test your agent service before you publish it to a remote registry. Follow the instructions in the [local deployment guide](./deploy_service.md#local-deployment-full-workflow). Note that this process should be somewhat familiar to you if you have followed the [quick start guide](./quick_start.md).

@@ -59,6 +59,15 @@ class MutableParams(TypeCheckMixin):
     late_messages: List[ContractApiMessage] = field(default_factory=list)
 
 
+@dataclass
+class GasParams(BaseParams):
+    """Gas parameters."""
+
+    gas_price: Optional[int] = None
+    max_fee_per_gas: Optional[int] = None
+    max_priority_fee_per_gas: Optional[int] = None
+
+
 class TransactionParams(BaseParams):  # pylint: disable=too-many-instance-attributes
     """Transaction settlement agent-specific parameters."""
 
@@ -93,7 +102,21 @@ class TransactionParams(BaseParams):  # pylint: disable=too-many-instance-attrib
         self.history_check_timeout: int = self._ensure(
             "history_check_timeout", kwargs, int
         )
+        self.gas_params = self._get_gas_params(kwargs)
         super().__init__(*args, **kwargs)
+
+    @staticmethod
+    def _get_gas_params(kwargs: Dict[str, Any]) -> GasParams:
+        """Get the gas parameters."""
+        gas_params = kwargs.pop("gas_params", {})
+        gas_price = gas_params.get("gas_price", None)
+        max_fee_per_gas = gas_params.get("max_fee_per_gas", None)
+        max_priority_fee_per_gas = gas_params.get("max_priority_fee_per_gas", None)
+        return GasParams(
+            gas_price=gas_price,
+            max_fee_per_gas=max_fee_per_gas,
+            max_priority_fee_per_gas=max_priority_fee_per_gas,
+        )
 
 
 RandomnessApi = ApiSpecs

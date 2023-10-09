@@ -74,7 +74,7 @@ class SimpleBehaviour(Behaviour, ABC):
 
     def act(self) -> None:
         """Do the action."""
-    # ...
+    # (...)
 ```
 
 The `AsyncBehaviour` utility class allows to wrap the execution
@@ -102,7 +102,7 @@ class AsyncBehaviour(ABC):
     @abstractmethod
     def async_act_wrapper(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
-    # ...
+    # (...)
 ```
 
 The abstract methods the developer should implement are called
@@ -214,7 +214,7 @@ As explained above, one of the common tasks for a behaviour is
 to interact with other services and/or agents via message-based
 communication. In this section, we focus on a sequence of
 request-response interactions through agent interaction protocols.
-We consider the `fetchai/generic_buyer` skill as an example ([link to code](https://github.com/valory-xyz/open-aea/tree/v1.33.0/packages/fetchai/skills/generic_buyer)).
+We consider the `fetchai/generic_buyer` skill as an example ([link to code](https://github.com/valory-xyz/open-aea/tree/v1.37.0/packages/fetchai/skills/generic_buyer)).
 
 ### The idiomatic approach
 
@@ -321,7 +321,7 @@ class GenericBuyerBehaviour(OneShotBehaviour, AsyncBehaviour):
 
         # here there should be the buyer strategy
         # for the negotiation with the seller...
-        # ...
+        # (...)
 
         # in case both parties accept the negotiation outcome:
         tx = build_tx(...)

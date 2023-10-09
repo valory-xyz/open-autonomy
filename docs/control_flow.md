@@ -69,7 +69,7 @@ sequenceDiagram
    FlaskServer-->+TendermintProcess: starts_tendermint_process
 </div>
 
-This can viewed in the logs as;
+This can be viewed in the logs as;
 ```bash
 
 tail -f /logs/node_0.txt

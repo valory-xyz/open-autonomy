@@ -8,12 +8,12 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeidv64ed7ljvsggruwj3onb7dj7b5nyx4ngohacztdreujjztsuns4
-  __init__.py: bafybeibxzovsffa3l2ac5h7yrhmbq2oplsteqtlhsgzvu2wvx7qvkyrkle
+  __init__.py: bafybeigtro2qlct3wc6dhtshv4sbh2myabruyb3mhadbcif46waylhtpga
   dialogues.py: bafybeihlnjaqvq5765hqttoqe3aeql572veyfbawsrcyko4wvds5wv7gwe
   ipfs.proto: bafybeifpe6szd3m2zjlvn5zwiy7mbimur7pu46lobxvyyarozabxpmhcs4
-  ipfs_pb2.py: bafybeiaulqlxfb5uxthorlasrdrqjgt7obxpwzqfioswqsqmyxp4npjjze
-  message.py: bafybeihufe4v6jlwrzz5doeesr3tdsjgksi2shymrcdngfhmi3h6rsqoie
-  serialization.py: bafybeifi5snrp4knrxwftskyjb5zuipjfqeipqw6nxn4mbk42vdwkstxd4
+  ipfs_pb2.py: bafybeihzspjtj2zoy3owb5itbz2lrintf7odanhvsi4qooxuqxu3ar6qpu
+  message.py: bafybeiaxoans2zu6g4zjmkoqmv4vck2t5ftwn74cejuds3ll5z7tno22dm
+  serialization.py: bafybeib54rauxqkzaaudz22fbiotryc7cg2i3r7x5qtw6eoui6sw26kt7e
   tests/test_ipfs_dialogues.py: bafybeigqi2cal5m252qf3ry75mldfd5kyqj3bgstvyzpjgpjgxhi2otpoa
   tests/test_ipfs_messages.py: bafybeiasgajluoijzuln3s4gcbv5xenzazejt5kgbs54momozsntzrudw4
 fingerprint_ignore_patterns: []

@@ -306,7 +306,6 @@ class TestTendermintServerApp(BaseTendermintServerTest):
         genesis_config = load_genesis()
 
         with self.app.test_client() as client:
-
             # 1. check params are in validator set
             response = client.get("/params")
             assert response.status_code == 200

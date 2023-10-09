@@ -71,3 +71,32 @@ class TestRegistriesManager(BaseRegistriesContractsTest):
                 for key in tx.keys()
             ]
         )
+
+    def test_get_update_hash_transaction(self) -> None:
+        """Test `get_update_hash_transaction` method."""
+
+        tx = self.contract.get_update_hash_transaction(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            metadata_hash=METADATA_HASH,
+            component_type=RegistriesManagerContract.UnitType.COMPONENT,
+            unit_id=3,
+            sender=self.deployer_crypto.address,
+        )
+
+        assert all(
+            [
+                key
+                in [
+                    "chainId",
+                    "nonce",
+                    "value",
+                    "gas",
+                    "maxFeePerGas",
+                    "maxPriorityFeePerGas",
+                    "to",
+                    "data",
+                ]
+                for key in tx.keys()
+            ]
+        )

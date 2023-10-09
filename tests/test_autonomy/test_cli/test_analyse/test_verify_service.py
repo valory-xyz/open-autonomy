@@ -268,6 +268,11 @@ def get_dummy_skill_config() -> Dict:
                     "tendermint_url": "http://localhost:26657",
                     "tx_timeout": 10,
                     "use_termination": False,
+                    "use_slashing": False,
+                    "slash_cooldown_hours": 3,
+                    "slash_threshold_amount": 10_000_000_000_000_000,
+                    "light_slash_unit_amount": 5_000_000_000_000_000,
+                    "serious_slash_unit_amount": 8_000_000_000_000_000,
                 },
                 "class_name": "Params",
             },
@@ -389,6 +394,50 @@ class BaseAnalyseServiceTest(BaseCliTest):
                 package_type=PackageType.SERVICE,
                 public_id=PublicId.from_str(f"valory/service:{DUMMY_SERVICE_HASH}"),
             ),
+        )
+
+
+class TestVerifySkillConfig(BaseAnalyseServiceTest):
+    """Test verify overrides method."""
+
+    def test_abci_skill_not_found(self) -> None:
+        """Test run."""
+
+        skill_config = get_dummy_skill_config()
+        skill_config["skills"] = []
+        with self.patch_loader(
+            service_data=[
+                get_dummy_service_config(),
+                get_dummy_overrides_skill(env_vars_with_name=True),
+            ],
+            agent_data=[get_dummy_agent_config(), get_dummy_overrides_skill()],
+            skill_data=skill_config,
+        ), self.patch_ipfs_tool([]):
+            result = self.run_cli(commands=self.public_id_option)
+
+        assert result.exit_code == 1, result.stdout
+        assert "Chained ABCI skill package not found" in result.stderr
+
+    def test_params_model_not_found(self) -> None:
+        """Test run."""
+
+        skill_config = get_dummy_skill_config()
+        del skill_config["models"]["params"]
+
+        with self.patch_loader(
+            service_data=[
+                get_dummy_service_config(),
+                get_dummy_overrides_skill(env_vars_with_name=True),
+            ],
+            agent_data=[get_dummy_agent_config(), get_dummy_overrides_skill()],
+            skill_data=skill_config,
+        ), self.patch_ipfs_tool([]):
+            result = self.run_cli(commands=self.public_id_option)
+
+        assert result.exit_code == 1, result.stdout
+        assert (
+            "The chained ABCI skill `valory/abci_skill:0.1.0` does not contain `params` model"
+            in result.stderr
         )
 
 
@@ -625,8 +674,8 @@ class TestEnvVarValidation(BaseAnalyseServiceTest):
 
         assert result.exit_code == 1, result.stdout
         assert (
-            "(skill, valory/abci_skill:0.1.0) envrionment variable validation failed with following error"
-            "\n\t- `models.params.args.message` needs to be defined as a environment variable"
+            "(skill, valory/abci_skill:0.1.0) envrionment variable validation failed with following error\n\t- "
+            "`models.params.args.message` needs environment variable defined in following format ${ENV_VAR_NAME:DATA_TYPE:DEFAULT_VALUE}\n"
             in result.stderr
         ), result.stdout
 
@@ -806,7 +855,7 @@ class TestCheckOnChainState(BaseAnalyseServiceTest):
 class TestCheckSuccessful(BaseAnalyseServiceTest):
     """Test a successful check"""
 
-    def test_run(self) -> None:
+    def test_run(self, caplog: Any) -> None:
         """Test run."""
 
         skill_config = get_dummy_overrides_skill(env_vars_with_name=True)
@@ -851,8 +900,14 @@ class TestCheckSuccessful(BaseAnalyseServiceTest):
         ), self.patch_get_on_chain_service_id(), mock.patch(
             "autonomy.analyse.service.get_service_info",
             return_value=(None, 4, None),
+        ), caplog.at_level(
+            logging.WARNING
         ):
             result = self.run_cli(commands=self.token_id_option)
 
         assert result.exit_code == 0, result.stderr
         assert "Service is ready to be deployed" in result.output
+        assert (
+            "valory/termination_abci:any is not defined as a dependency" in caplog.text
+        )
+        assert "valory/slashing_abci:any is not defined as a dependency" in caplog.text

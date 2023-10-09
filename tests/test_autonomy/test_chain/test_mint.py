@@ -30,7 +30,7 @@ from autonomy.chain.base import registry_contracts
 from autonomy.chain.config import ChainType
 from autonomy.chain.constants import COMPONENT_REGISTRY_CONTRACT, CONTRACTS_DIR_LOCAL
 from autonomy.chain.exceptions import InvalidMintParameter
-from autonomy.chain.mint import mint_service, sort_service_dependency_metadata
+from autonomy.chain.mint import mint_service, sort_service_dependency_metadata, transact
 
 from tests.test_autonomy.test_chain.base import DUMMY_HASH
 
@@ -165,3 +165,15 @@ def test_sort_service_dependency_metadata() -> None:
     assert cal_agent_ids == expected_agent_ids
     assert cal_number_of_slots_per_agents == expected_number_of_slots_per_agents
     assert cal_cost_of_bond_per_agent == expected_cost_of_bond_per_agent
+
+
+def test_transaction_timeout() -> None:
+    """Test transaction timeout."""
+    with pytest.raises(TimeoutError):
+        transact(
+            ledger_api=mock.MagicMock(),
+            crypto=mock.MagicMock(),
+            tx={},
+            sleep=1.0,
+            timeout=-1.0,
+        )

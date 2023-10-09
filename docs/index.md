@@ -18,7 +18,7 @@ The framework provides:
 
 !!! abstract "Read the Whitepaper"
 
-    The [Autonolas Whitepaper](https://autonolas.network/whitepaper/autonolas-whitepaper.pdf), presents a comprehensive discussion on the architecture of the Autonolas stack. The Open Autonomy framework connects with the **Technical Architecture** section therein as a facilitator to build autonomous services.
+    The {{ autonolas_whitepaper }}, presents a comprehensive discussion on the architecture of the Autonolas stack. The Open Autonomy framework connects with the **Technical Architecture** section therein as a facilitator to build autonomous services.
 
 ## Building with Open Autonomy
 
@@ -44,7 +44,7 @@ Follow the guides to learn how to use the framework to **create and deploy agent
 
 ------
 
-A tour to **existing agent services** that you can explore and use them as a reference
+A tour to **existing agent services** that you can explore and use as a reference
 for your implementations.
 
 [Demos](./demos/index.md){ .md-button }

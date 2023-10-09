@@ -85,7 +85,7 @@ terraform apply # deploy resources and approve when prompted.
 
 ### Post Cluster Deployment Setup
 
-Once the cluster has been deployed, we need to go ahead and actually deploy our application the cluster. We have included a number of convenience commands to speed this process up.
+Once the cluster has been deployed, we need to go ahead and actually deploy our application to the cluster. We have included a number of convenience commands to speed this process up.
 
 Depending upon the Cloud Provider selected above, the user must now point their Kubectl at the newly deployed cluster as so;
 

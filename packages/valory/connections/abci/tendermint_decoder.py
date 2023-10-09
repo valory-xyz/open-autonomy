@@ -31,11 +31,11 @@ from packages.valory.connections.abci.dialogues import AbciDialogue, AbciDialogu
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
     Evidence as EvidencePb,
 )
-from packages.valory.connections.abci.tendermint.abci.types_pb2 import (
+from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
     LastCommitInfo as LastCommitInfoPb,
 )
-from packages.valory.connections.abci.tendermint.abci.types_pb2 import Request
-from packages.valory.connections.abci.tendermint.abci.types_pb2 import (
+from packages.valory.connections.abci.tendermint.abci.types_pb2 import Request  # type: ignore
+from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
     Validator as ValidatorPb,
 )
 from packages.valory.connections.abci.tendermint.types.types_pb2 import (  # type: ignore
@@ -60,10 +60,10 @@ from packages.valory.protocols.abci.custom_types import (
 )
 
 
-from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # isort:skip
+from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore # isort:skip
     ConsensusParams as ConsensusParamsPb,
 )
-from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # isort:skip
+from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore # isort:skip
     ValidatorUpdate as ValidatorUpdatePb,
 )
 

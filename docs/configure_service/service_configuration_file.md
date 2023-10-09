@@ -9,7 +9,7 @@ The service configuration file `service.yaml` is typically composed of service-s
 
     Here is an example of the service configuration file of the [Hello World service](../demos/hello_world_demo.md):
 
-    ```yaml
+    ```yaml title="service.yaml"
     name: hello_world
     author: valory
     version: 0.1.0
@@ -87,7 +87,7 @@ There are a number of mandatory attributes that define the service, which are su
 | `fingerprint_ignore_patterns` | Filename patterns to be ignored.                                                                                                                                                                      |
 | `agent`                       | Canonical agent, in the form `<agent_public_id>:<version>:<hash>`.                                                                                                                                    |
 | `number_of_agents`            | Number of agent instances that the service is composed of.                                                                                                                                            |                                                                                                                                         |
-| `deployment`            | External deployment configuration for [publishing agent container ports](#publish-agent-container-ports).                                                                                                                                            |                                                                                                                                         |
+| `deployment`            | External deployment configuration for [publishing container ports](#publish-container-ports).                                                                                                                                            |                                                                                                                                         |
 
 ## Service-level overrides
 
@@ -98,7 +98,7 @@ Similarly, the {{open_autonomy}} framework has the notion of service-level overr
 Service-level overrides follow the mandatory service-specific attributes, separated by `---`.
 You can, for example, override the default `HELLO_WORLD!` string that each agent prints on their console in the [Hello World service](../demos/hello_world_demo.md), which is originally defined in the `hello_world_abci` skill.
 
-```yaml
+```yaml title="service.yaml"
 name: hello_world
 author: valory
 version: 0.1.0
@@ -149,8 +149,8 @@ You can define values for overridden attributes in two ways:
 
 You can override different values for different agents in the service configuration file with the multiple override feature, using the pattern below:
 
-```yaml
-(...)
+```yaml title="service.yaml"
+# (...)
 ---
 public_id: valory/hello_world_abci:0.1.0
 type: skill
@@ -165,8 +165,8 @@ type: skill
 
     If you wish that each agent outputs a different message in the [Hello World service](../demos/hello_world_demo.md) with four agents, you can define the following multiple override in the `service.yaml` file:
 
-    ```yaml
-    (...)
+    ```yaml title="service.yaml"
+    # (...)
     ---
     public_id: valory/hello_world_abci:0.1.0
     type: skill
@@ -198,8 +198,8 @@ If you have repetitive overridden parameters, you can define them using [YAML an
 
     In this example, we define a YAML anchor with label `&id001` to avoid repeating the same configuration of the `args` parameter in all the agents.
 
-    ```yaml
-    (...)
+    ```yaml title="service.yaml"
+    # (...)
     ---
     extra:
       benchmark_tool:
@@ -250,8 +250,8 @@ Note that when deploying an agent service, environment variables are defined sep
 ???+ example
 
     If you have an override like
-    ```yaml
-    (...)
+    ```yaml title="service.yaml"
+    # (...)
     ---
     public_id: valory/hello_world_abci:0.1.0
     type: skill
@@ -263,8 +263,8 @@ Note that when deploying an agent service, environment variables are defined sep
     it will export the environment variable `SKILL_MODELS_PARAM_ARGS_HELLO_WORLD_MESSAGE`.
 
     On the other hand, if you use the multiple override feature and you have something like
-    ```yaml
-    (...)
+    ```yaml title="service.yaml"
+    # (...)
     ---
     public_id: valory/hello_world_abci:0.1.0
     type: skill
@@ -300,8 +300,8 @@ If you have nested lists the environment export rules will differ as per the inn
 ???+ example
 
     If you have an override like
-    ```yaml
-    (...)
+    ```yaml title="service.yaml"
+    # (...)
     ---
     public_id: vendor/hello_world_abci:0.1.0
     type: skill
@@ -332,8 +332,8 @@ If an overridden list contains mapping values, it will be exported as
 ???+ example
 
     If you have an override like
-    ```yaml
-    (...)
+    ```yaml title="service.yaml"
+    # (...)
     ---
     public_id: valory/hello_world_abci:0.1.0
     type: skill
@@ -351,8 +351,8 @@ If an overridden list contains mapping values, it will be exported as
 
 So when defining the agent/component level overrides you will have to explicitly define all the elements of the list like this:
 
-```yaml
-(...)
+```yaml title="service.yaml"
+# (...)
 ---
 public_id: valory/hello_world_abci:0.1.0
 type: skill
@@ -364,37 +364,49 @@ models:
         - key: ${<env_var_name>:<type>:<default_value>}
 ```
 
-## Publish agent container ports
+## Publish container ports
 
 We use a syntax similar to Docker for [port publishing](https://docs.docker.com/config/containers/container-networking/#published-ports). To expose agent container ports to host machine ports use the following configuration:
 
-```yaml
-(...)
+```yaml title="service.yaml"
+# (...)
 deployment:
   agent:
     ports:
       <agent_id>:
         <host_machine_port>: <agent_container_port>
+  tendermint:
+    ports:
+      <node_id>:
+        <host_machine_port>: <node_container_port>
 ```
 
 Port publishing also works with [multiple overrides](#multiple-overrides). For example if you want to map port `8080` of agent 0 to port `8081` of the host machine, use:
 
-```yaml
-(...)
+```yaml title="service.yaml"
+# (...)
 deployment:
   agent:
     ports:
       0:
         8081: 8080
+  tendermint:
+    ports:
+      0:
+        26656: 26656
 ```
 
 You can also configure these mappings using environment variables:
 
-```yaml
-(...)
+```yaml title="service.yaml"
+# (...)
 deployment:
   agent:
     ports:
       0:
         8081: ${AGENT_0_HTTP_PORT:int:8080}
+  tendermint:
+    ports:
+      0:
+        26656: ${TM_NODE_0_P2P_PORT:int:26656}
 ```

@@ -46,6 +46,7 @@ from autonomy.deploy.constants import (
     INFO,
     KEY_SCHEMA_ADDRESS,
     KEY_SCHEMA_PRIVATE_KEY,
+    KEY_SCHEMA_TYPE,
 )
 
 
@@ -62,7 +63,7 @@ CONSENSUS_THRESHOLD = "consensus_threshold"
 
 
 DEFAULT_ABCI_PORT = 26658
-ABCI_HOST_TEMPLATE = "abci{}"
+
 
 KUBERNETES_DEPLOYMENT = "kubernetes"
 DOCKER_COMPOSE_DEPLOYMENT = "docker-compose"
@@ -70,8 +71,8 @@ DOCKER_COMPOSE_DEPLOYMENT = "docker-compose"
 LOCALHOST = "localhost"
 TENDERMINT_P2P_PORT = 26656
 
-TENDERMINT_NODE = "http://node{}:26657"
-TENDERMINT_COM = "http://node{}:8080"
+TENDERMINT_NODE = "http://{host}:26657"
+TENDERMINT_COM = "http://{host}:8080"
 
 TENDERMINT_NODE_LOCAL = f"http://{LOCALHOST}:26657"
 TENDERMINT_COM_LOCAL = f"http://{LOCALHOST}:8080"
@@ -79,7 +80,7 @@ TENDERMINT_COM_LOCAL = f"http://{LOCALHOST}:8080"
 TENDERMINT_URL_PARAM = "tendermint_url"
 TENDERMINT_COM_URL_PARAM = "tendermint_com_url"
 
-TENDERMINT_P2P_URL = "node{}:{}"
+TENDERMINT_P2P_URL = "{host}:{port}"
 TENDERMINT_P2P_URL_PARAM = "tendermint_p2p_url"
 TENDERMINT_P2P_URL_ENV_VAR = "TM_P2P_NODE_URL_{}"
 
@@ -98,7 +99,7 @@ class NotValidKeysFile(Exception):
     """Raise when provided keys file is not valid."""
 
 
-class ServiceBuilder:
+class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
     """Class to assist with generating deployments."""
 
     deplopyment_type: str = DOCKER_COMPOSE_DEPLOYMENT
@@ -123,10 +124,19 @@ class ServiceBuilder:
 
         self.service = service
 
+        self._service_name_clean = self.service.name.replace("_", "")
         self._keys = keys or []
         self._agent_instances = agent_instances
         self._private_keys_password = private_keys_password
         self._all_participants = self.try_get_all_participants()
+
+    def get_abci_container_name(self, index: int) -> str:
+        """Format ABCI container name."""
+        return f"{self._service_name_clean}_abci_{index}"
+
+    def get_tm_container_name(self, index: int) -> str:
+        """Format tendermint container name."""
+        return f"{self._service_name_clean}_tm_{index}"
 
     def try_get_all_participants(self) -> Optional[List[str]]:
         """Try get all participants from the ABCI overrides"""
@@ -265,7 +275,11 @@ class ServiceBuilder:
             ) from e
 
         for key in keys:
-            if {KEY_SCHEMA_ADDRESS, KEY_SCHEMA_PRIVATE_KEY} != set(key.keys()):
+            if {KEY_SCHEMA_ADDRESS, KEY_SCHEMA_PRIVATE_KEY} != set(key.keys()) and {
+                KEY_SCHEMA_ADDRESS,
+                KEY_SCHEMA_PRIVATE_KEY,
+                KEY_SCHEMA_TYPE,
+            } != set(key.keys()):
                 raise NotValidKeysFile("Key file incorrectly formatted.")
 
         if self.agent_instances is not None:
@@ -365,13 +379,20 @@ class ServiceBuilder:
                 param_args[TENDERMINT_URL_PARAM] = TENDERMINT_NODE_LOCAL
                 param_args[TENDERMINT_COM_URL_PARAM] = TENDERMINT_COM_LOCAL
             else:
-                param_args[TENDERMINT_URL_PARAM] = TENDERMINT_NODE.format(idx)
-                param_args[TENDERMINT_COM_URL_PARAM] = TENDERMINT_COM.format(idx)
+                param_args[TENDERMINT_URL_PARAM] = TENDERMINT_NODE.format(
+                    host=self.get_tm_container_name(index=idx)
+                )
+                param_args[TENDERMINT_COM_URL_PARAM] = TENDERMINT_COM.format(
+                    host=self.get_tm_container_name(index=idx)
+                )
 
             if TENDERMINT_P2P_URL_PARAM not in param_args:
                 tm_p2p_url = os.environ.get(
                     TENDERMINT_P2P_URL_ENV_VAR.format(idx),
-                    TENDERMINT_P2P_URL.format(idx, TENDERMINT_P2P_PORT),
+                    TENDERMINT_P2P_URL.format(
+                        host=self.get_tm_container_name(index=idx),
+                        port=TENDERMINT_P2P_PORT,
+                    ),
                 )
                 param_args[TENDERMINT_P2P_URL_PARAM] = tm_p2p_url
 
@@ -483,7 +504,7 @@ class ServiceBuilder:
             processed_overrides["config"]["host"] = (
                 LOCALHOST
                 if self.deplopyment_type == KUBERNETES_DEPLOYMENT
-                else ABCI_HOST_TEMPLATE.format(0)
+                else self.get_abci_container_name(index=0)
             )
             processed_overrides["config"]["port"] = processed_overrides["config"].get(
                 "port", DEFAULT_ABCI_PORT
@@ -499,7 +520,7 @@ class ServiceBuilder:
             override["config"]["host"] = (
                 LOCALHOST
                 if self.deplopyment_type == KUBERNETES_DEPLOYMENT
-                else ABCI_HOST_TEMPLATE.format(idx)
+                else self.get_abci_container_name(index=idx)
             )
             override["config"]["port"] = override["config"].get(
                 "port", DEFAULT_ABCI_PORT

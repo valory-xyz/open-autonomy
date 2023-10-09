@@ -57,6 +57,7 @@ URL_SKIPS = [
     "https://gateway.autonolas.tech/ipfs/<hash>,",  # non link (400)
     "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure",  # svn link (404)
     "http://host.docker.internal:8545",  # internal (ERR_NAME_NOT_RESOLVED)
+    "https://github.com/valory-xyz/open-operator",  # Until public
 ]
 
 # Define here custom timeouts for some edge cases
@@ -89,7 +90,6 @@ def check_file(
     broken_links = []
 
     for url in m:
-
         # Add the closing parenthesis if it is missing, as the REGEX is too strict sometimes
         if "(" in url and ")" not in url:
             url += ")"

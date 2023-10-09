@@ -313,6 +313,10 @@ def check(  # pylint: disable=too-many-return-statements
                 return AutonomyTypeError(ty=ty, value=value)
         elif issubclass(ty, int):  # For boolean
             return check_int(value, ty)
+        elif ty is typing.Any:
+            # `isinstance(value, typing.Any) fails on python 3.11`
+            # https://stackoverflow.com/questions/68031358/typeerror-typing-any-cannot-be-used-with-isinstance
+            pass
         elif not isinstance(value, ty):
             return AutonomyTypeError(ty=ty, value=value)
     return None
@@ -486,3 +490,15 @@ def consensus_threshold(nb: int) -> int:
     :return: the consensus threshold
     """
     return ceil((2 * nb + 1) / 3)
+
+
+KeyType = TypeVar("KeyType")
+ValueType = TypeVar("ValueType")
+
+
+def inverse(dict_: Dict[KeyType, ValueType]) -> Dict[ValueType, List[KeyType]]:
+    """Get the inverse of a dictionary."""
+    inverse_: Dict[ValueType, List[KeyType]] = {val: [] for val in dict_.values()}
+    for key, value in dict_.items():
+        inverse_[value].append(key)
+    return inverse_

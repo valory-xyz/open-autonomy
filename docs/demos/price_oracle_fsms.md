@@ -39,7 +39,7 @@ The summary of the constituent FSMs is as follows:
 
 #### `AgentRegistrationAbciApp` FSM
 
-```yaml
+```yaml title="fsm_specification.yaml"
 alphabet_in:
 - DONE
 - NO_MAJORITY
@@ -72,7 +72,7 @@ stateDiagram-v2
 
 
 #### `OracleDeploymentAbciApp` FSM
-```yaml
+```yaml title="fsm_specification.yaml"
 alphabet_in:
 - DEPLOY_TIMEOUT
 - DONE
@@ -127,7 +127,7 @@ stateDiagram-v2
 </figure>
 
 #### `PriceAggregationAbciApp` FSM
-```yaml
+```yaml title="fsm_specification.yaml"
 alphabet_in:
 - DONE
 - NONE
@@ -172,7 +172,7 @@ stateDiagram-v2
 </figure>
 
 #### `TransactionSubmissionAbciApp` FSM
-```yaml
+```yaml title="fsm_specification.yaml"
 alphabet_in:
 - CHECK_HISTORY
 - CHECK_LATE_ARRIVING_MESSAGE
@@ -306,7 +306,7 @@ stateDiagram-v2
 
 #### `ResetPauseAbciApp` FSM
 
-```yaml
+```yaml title="fsm_specification.yaml"
 alphabet_in:
 - DONE
 - NO_MAJORITY
@@ -376,7 +376,7 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
 
 The complete specification of the composed FSM is therefore:
 
-```yaml
+```yaml title="fsm_specification.yaml"
 alphabet_in:
 - CHECK_HISTORY
 - CHECK_LATE_ARRIVING_MESSAGE

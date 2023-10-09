@@ -305,6 +305,7 @@ class TestBaseCollectDifferentUntilAllRoundTest(BaseTestBase):
         test_round = DummyCollectDifferentUntilAllRoundWithEndBlock(
             exit_event,
             self.base_round_test.synchronized_data,
+            context=MagicMock(),
         )
         round_payloads = [
             DummyTxPayload(f"agent_{i}", str(i)) for i in range(MAX_PARTICIPANTS)
@@ -369,6 +370,7 @@ class TestBaseCollectSameUntilAllRoundTest(BaseTestBase):
         test_round = DummyCollectSameUntilAllRoundWithEndBlock(
             exit_event,
             self.base_round_test.synchronized_data,
+            context=MagicMock(),
         )
         round_payloads = {
             f"test{i}": DummyTxPayload(f"agent_{i}", common_value)
@@ -437,6 +439,7 @@ class TestBaseCollectSameUntilThresholdRoundTest(BaseTestBase):
         test_round = DummyCollectSameUntilThresholdRoundWithEndBlock(
             exit_event,
             self.base_round_test.synchronized_data,
+            context=MagicMock(),
         )
         round_payloads = {
             f"test{i}": DummyTxPayload(f"agent_{i}", most_voted_payload)
@@ -508,6 +511,7 @@ class TestBaseOnlyKeeperSendsRoundTest(BaseTestBase):
         test_round = DummyOnlyKeeperSendsRoundTest(
             exit_event,
             self.base_round_test.synchronized_data,
+            context=MagicMock(),
         )
         keeper_payload = DummyTxPayload(self.most_voted_keeper_address, keeper_value)
         synchronized_data_attr_checks = [
@@ -572,6 +576,7 @@ class TestBaseVotingRoundTest(BaseTestBase):
 
         test_round = DummyBaseVotingRoundTestWithEndBlock(
             self.base_round_test.synchronized_data,
+            context=MagicMock(),
         )
         round_payloads = {
             f"test{i}": DummyTxPayload(f"agent_{i}", value="", vote=is_keeper_set)
@@ -631,6 +636,7 @@ class TestBaseCollectDifferentUntilThresholdRoundTest(BaseTestBase):
         test_round = DummyCollectDifferentUntilThresholdRoundWithEndBlock(
             exit_event,
             self.base_round_test.synchronized_data,
+            context=MagicMock(),
         )
         round_payloads = {
             f"test{i}": DummyTxPayload(f"agent_{i}", str(i))

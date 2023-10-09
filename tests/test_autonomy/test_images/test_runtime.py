@@ -99,6 +99,7 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
         )
 
         assert success, output
+        assert "Successfully built the agent" in output
         assert f"Successfully tagged {self.tag}" in output
 
         # check runtime

@@ -1537,6 +1537,42 @@ class ResultType(Enum)
 
 This class represents an instance of ResultType.
 
+<a id="packages.valory.protocols.abci.custom_types.ResultType.UNKNOWN"></a>
+
+#### UNKNOWN
+
+Unknown result, abort all snapshot restoration
+
+<a id="packages.valory.protocols.abci.custom_types.ResultType.ACCEPT"></a>
+
+#### ACCEPT
+
+Snapshot accepted, apply chunks
+
+<a id="packages.valory.protocols.abci.custom_types.ResultType.ABORT"></a>
+
+#### ABORT
+
+Abort all snapshot restoration
+
+<a id="packages.valory.protocols.abci.custom_types.ResultType.REJECT"></a>
+
+#### REJECT
+
+Reject this specific snapshot, try others
+
+<a id="packages.valory.protocols.abci.custom_types.ResultType.REJECT_FORMAT"></a>
+
+#### REJECT`_`FORMAT
+
+Reject all snapshots of this format, try others
+
+<a id="packages.valory.protocols.abci.custom_types.ResultType.REJECT_SENDER"></a>
+
+#### REJECT`_`SENDER
+
+Reject all snapshots from the sender(s), try others
+
 <a id="packages.valory.protocols.abci.custom_types.Result"></a>
 
 ## Result Objects

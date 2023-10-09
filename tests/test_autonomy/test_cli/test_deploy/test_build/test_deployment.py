@@ -19,6 +19,7 @@
 
 """Test deployment command."""
 
+import json
 import os
 import shutil
 from pathlib import Path
@@ -27,13 +28,14 @@ from unittest import mock
 
 import yaml
 from aea.cli.utils.config import get_default_author_from_cli_config
-from aea.configurations.constants import PACKAGES
+from aea.configurations.constants import DEFAULT_ENV_DOTFILE, PACKAGES
 from aea_test_autonomy.configurations import (
     ETHEREUM_ENCRYPTED_KEYS,
     ETHEREUM_ENCRYPTION_PASSWORD,
 )
 
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_DOCKER_IMAGE_AUTHOR
+from autonomy.deploy.base import ServiceBuilder
 from autonomy.deploy.constants import (
     DEBUG,
     DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
@@ -57,9 +59,8 @@ class BaseDeployBuildTest(BaseCliTest):
     """Test `autonomy deply build deployment` command."""
 
     cli_options: Tuple[str, ...] = ("deploy", "build")
-    service_id: str = "valory/oracle_hardhat"
-
     keys_file: Path
+    spec: ServiceBuilder
 
     def setup(self) -> None:
         """Setup test method."""
@@ -75,6 +76,11 @@ class BaseDeployBuildTest(BaseCliTest):
             self.t / PACKAGES / "valory" / "services" / "hello_world",
             self.t / "hello_world",
         )
+        with OS_ENV_PATCH:
+            self.spec = ServiceBuilder.from_dir(
+                self.t / "hello_world",
+                self.keys_file,
+            )
         os.chdir(self.t / "hello_world")
 
     @staticmethod
@@ -95,8 +101,8 @@ class BaseDeployBuildTest(BaseCliTest):
             child in build_tree for child in ["persistent_storage", "build.yaml"]
         )
 
-    @staticmethod
     def load_and_check_docker_compose_file(
+        self,
         path: Path,
     ) -> Dict:
         """Load docker compose config."""
@@ -111,8 +117,8 @@ class BaseDeployBuildTest(BaseCliTest):
             [
                 service in docker_compose["services"]
                 for service in [
-                    *map(lambda i: f"abci{i}", range(4)),
-                    *map(lambda i: f"node0{i}", range(4)),
+                    *map(lambda i: self.spec.get_abci_container_name(i), range(4)),
+                    *map(lambda i: self.spec.get_tm_container_name(i), range(4)),
                 ]
             ]
         )
@@ -218,10 +224,16 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         )
 
         assert (
-            f"LOG_LEVEL={DEBUG}" in docker_compose["services"]["abci0"]["environment"]
+            f"LOG_LEVEL={DEBUG}"
+            in docker_compose["services"][self.spec.get_abci_container_name(0)][
+                "environment"
+            ]
         )
         assert (
-            f"LOG_LEVEL={DEBUG}" in docker_compose["services"]["node0"]["environment"]
+            f"LOG_LEVEL={DEBUG}"
+            in docker_compose["services"][self.spec.get_tm_container_name(0)][
+                "environment"
+            ]
         )
 
     def test_docker_compose_build_dev(
@@ -260,12 +272,21 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
 
         assert (
             f"{ROOT_DIR}:/home/ubuntu/packages:rw"
-            in docker_compose["services"]["abci0"]["volumes"]
+            in docker_compose["services"][self.spec.get_abci_container_name(index=0)][
+                "volumes"
+            ]
         )
-        assert f"{ROOT_DIR}:/open-aea" in docker_compose["services"]["abci0"]["volumes"]
+        assert (
+            f"{ROOT_DIR}:/open-aea"
+            in docker_compose["services"][self.spec.get_abci_container_name(index=0)][
+                "volumes"
+            ]
+        )
         assert (
             f"{ROOT_DIR}:/open-autonomy"
-            in docker_compose["services"]["abci0"]["volumes"]
+            in docker_compose["services"][self.spec.get_abci_container_name(index=0)][
+                "volumes"
+            ]
         )
 
     def test_docker_compose_password(
@@ -314,7 +335,9 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
             env = dict(
                 [
                     f.split("=")
-                    for f in docker_compose["services"][f"abci{x}"]["environment"]
+                    for f in docker_compose["services"][
+                        self.spec.get_abci_container_name(x)
+                    ]["environment"]
                 ]
             )
             assert "AEA_PASSWORD" in env.keys()
@@ -425,7 +448,9 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         )
 
         assert (
-            docker_compose["services"]["abci0"]["image"].split("/")[0]
+            docker_compose["services"][self.spec.get_abci_container_name(0)][
+                "image"
+            ].split("/")[0]
             == get_default_author_from_cli_config()
             or DEFAULT_DOCKER_IMAGE_AUTHOR
         )
@@ -463,7 +488,10 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         )
 
         assert (
-            docker_compose["services"]["abci0"]["image"].split("/")[0] == image_author
+            docker_compose["services"][self.spec.get_abci_container_name(0)][
+                "image"
+            ].split("/")[0]
+            == image_author
         )
 
 
@@ -698,10 +726,19 @@ class TestExposePorts(BaseDeployBuildTest):
         super().setup()
 
         service_data = get_dummy_service_config(file_number=1)
-        service_data[0]["deployment"] = {"agent": {"ports": {0: {8080: 8081}}}}
+        service_data[0]["deployment"] = {
+            "agent": {"ports": {0: {8080: 8081}}},
+            "tendermint": {"ports": {0: {26656: 26666}}},
+        }
 
         with open("./service.yaml", "w+") as fp:
             yaml.dump_all(service_data, fp)
+
+        with OS_ENV_PATCH:
+            self.spec = ServiceBuilder.from_dir(
+                self.t / "hello_world",
+                self.keys_file,
+            )
 
     def test_expose_agent_ports_docker_compose(self) -> None:
         """Test expose agent ports"""
@@ -722,12 +759,16 @@ class TestExposePorts(BaseDeployBuildTest):
         self.check_docker_compose_build(
             build_dir=build_dir,
         )
-
         docker_compose = self.load_and_check_docker_compose_file(
             path=build_dir / DockerComposeGenerator.output_name
         )
 
-        assert docker_compose["services"]["abci0"]["ports"] == ["8080:8081"]
+        assert docker_compose["services"][self.spec.get_abci_container_name(0)][
+            "ports"
+        ] == ["8080:8081"]
+        assert docker_compose["services"][self.spec.get_tm_container_name(0)][
+            "ports"
+        ] == ["26656:26666"]
 
     def test_expose_agent_ports_kubernetes(self) -> None:
         """Test expose agent ports"""
@@ -754,3 +795,71 @@ class TestExposePorts(BaseDeployBuildTest):
         assert build_config[1]["spec"]["template"]["spec"]["containers"][1][
             "ports"
         ] == [{"containerPort": 8080}]
+
+
+class TestLoadEnvVars(BaseDeployBuildTest):
+    """Test expose ports from service config."""
+
+    env_var = "SERVICE_HELLO_WORLD_HELLO_WORLD_STRING"
+    env_var_path = "SKILL_DUMMY_SKILL_MODELS_PARAMS_ARGS_HELLO_WORLD_MESSAGE"
+    env_var_value = "ENV_VAR_VALUE"
+
+    def setup(self) -> None:
+        """Setup test."""
+        super().setup()
+        service_data = get_dummy_service_config(file_number=4)
+        with open("./service.yaml", "w+") as fp:
+            yaml.dump_all(service_data, fp)
+        with OS_ENV_PATCH:
+            self.spec = ServiceBuilder.from_dir(
+                self.t / "hello_world",
+                self.keys_file,
+            )
+
+    def _run_test(self) -> None:
+        """Run test."""
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"), OS_ENV_PATCH:
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_docker_compose_build(
+            build_dir=build_dir,
+        )
+
+        docker_compose = self.load_and_check_docker_compose_file(
+            path=build_dir / DockerComposeGenerator.output_name
+        )
+
+        assert (
+            f"{self.env_var_path}={self.env_var_value}"
+            in docker_compose["services"][self.spec.get_abci_container_name(0)][
+                "environment"
+            ]
+        )
+
+    def test_load_dot_env(self) -> None:
+        """Test load `.env` file"""
+
+        (self.t / "hello_world" / DEFAULT_ENV_DOTFILE).write_text(
+            f"{self.env_var}={self.env_var_value}"
+        )
+        self._run_test()
+
+    def test_load_json(self) -> None:
+        """Test load `.json` file"""
+
+        env_var_value = "ENV_VAR_VALUE"
+        env_file = self.t / "hello_world" / "env.json"
+        env_file.write_text(json.dumps({self.env_var: env_var_value}))
+        self.cli_options = ("deploy", "--env-file", str(env_file.resolve()), "build")
+
+        self._run_test()

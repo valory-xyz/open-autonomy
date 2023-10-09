@@ -28,10 +28,6 @@ class ComponentMintFailed(ChainInteractionError):
     """Raise when component minting fails."""
 
 
-class FailedToRetrieveTokenId(ChainInteractionError):
-    """Raise when token ID retrieving fails for minted component."""
-
-
 class FailedToRetrieveComponentMetadata(ChainInteractionError):
     """Raise when component metadata retrieving fails."""
 
@@ -54,3 +50,11 @@ class InstanceRegistrationFailed(ChainInteractionError):
 
 class ServiceDeployFailed(ChainInteractionError):
     """Raise when service activation fails."""
+
+
+class TerminateServiceFailed(ChainInteractionError):
+    """Raise when service termination fails."""
+
+
+class UnbondServiceFailed(ChainInteractionError):
+    """Raise when service unbond call fails."""

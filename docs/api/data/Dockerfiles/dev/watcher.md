@@ -38,6 +38,12 @@ class AEARunner()
 
 AEA Runner.
 
+<a id="autonomy.data.Dockerfiles.dev.watcher.AEARunner.process"></a>
+
+#### process
+
+nosec
+
 <a id="autonomy.data.Dockerfiles.dev.watcher.AEARunner.__init__"></a>
 
 #### `__`init`__`

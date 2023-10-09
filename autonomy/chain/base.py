@@ -30,9 +30,14 @@ from autonomy.chain.constants import (
     COMPONENT_REGISTRY_CONTRACT,
     CONTRACTS_DIR_FRAMEWORK,
     CONTRACTS_DIR_LOCAL,
+    ERC20_CONTRACT,
+    GNOSIS_SAFE_CONTRACT,
+    GNOSIS_SAFE_PROXY_FACTORY_CONTRACT,
+    MULTISEND_CONTRACT,
     REGISTRIES_MANAGER_CONTRACT,
     SERVICE_MANAGER_CONTRACT,
     SERVICE_REGISTRY_CONTRACT,
+    SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT,
 )
 
 
@@ -62,14 +67,19 @@ class ServiceState(Enum):
     TERMINATED_BONDED = 5
 
 
-class RegistryContracts:
+class RegistryContracts:  # pylint: disable=too-many-instance-attributes
     """On chain registry contracts helper"""
 
+    _erc20: Optional[Contract] = None
     _registries_manager: Optional[Contract] = None
     _service_manager: Optional[Contract] = None
     _component_registry: Optional[Contract] = None
     _agent_registry: Optional[Contract] = None
     _service_registry: Optional[Contract] = None
+    _service_registry_token_utility: Optional[Contract] = None
+    _gnosis_safe: Optional[Contract] = None
+    _gnosis_safe_proxy_factory: Optional[Contract] = None
+    _multisend: Optional[Contract] = None
 
     @staticmethod
     def get_contract(public_id: PublicId) -> Contract:
@@ -148,6 +158,67 @@ class RegistryContracts:
             )
 
         return self._service_registry
+
+    @property
+    def service_registry_token_utility(
+        self,
+    ) -> Contract:
+        """Returns an instance of the service registry token utility contract."""
+        if self._service_registry_token_utility is None:
+            self._service_registry_token_utility = self.get_contract(
+                public_id=SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT,
+            )
+
+        return self._service_registry_token_utility
+
+    @property
+    def erc20(
+        self,
+    ) -> Contract:
+        """Returns an instance of the service registry token utility contract."""
+        if self._erc20 is None:
+            self._erc20 = self.get_contract(
+                public_id=ERC20_CONTRACT,
+            )
+
+        return self._erc20
+
+    @property
+    def gnosis_safe(
+        self,
+    ) -> Contract:
+        """Returns an instance of the service registry token utility contract."""
+        if self._gnosis_safe is None:
+            _ = self.gnosis_safe_proxy_factory
+            self._gnosis_safe = self.get_contract(
+                public_id=GNOSIS_SAFE_CONTRACT,
+            )
+
+        return self._gnosis_safe
+
+    @property
+    def gnosis_safe_proxy_factory(
+        self,
+    ) -> Contract:
+        """Returns an instance of the service registry token utility contract."""
+        if self._gnosis_safe_proxy_factory is None:
+            self._gnosis_safe_proxy_factory = self.get_contract(
+                public_id=GNOSIS_SAFE_PROXY_FACTORY_CONTRACT,
+            )
+
+        return self._gnosis_safe_proxy_factory
+
+    @property
+    def multisend(
+        self,
+    ) -> Contract:
+        """Returns an instance of the service registry token utility contract."""
+        if self._multisend is None:
+            self._multisend = self.get_contract(
+                public_id=MULTISEND_CONTRACT,
+            )
+
+        return self._multisend
 
 
 registry_contracts = RegistryContracts()

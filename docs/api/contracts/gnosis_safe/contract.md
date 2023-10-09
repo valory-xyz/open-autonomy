@@ -143,6 +143,18 @@ Note, because safe_nonce is included in the tx_hash the agents implicitly agree 
 
 the hash of the raw Safe transaction
 
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_packed_signatures"></a>
+
+#### get`_`packed`_`signatures
+
+```python
+@classmethod
+def get_packed_signatures(cls, owners: Tuple[str],
+                          signatures_by_owner: Dict[str, str]) -> bytes
+```
+
+Get the packed signatures.
+
 <a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_raw_safe_transaction"></a>
 
 #### get`_`raw`_`safe`_`transaction
@@ -534,4 +546,16 @@ Get the safe owners.
 **Returns**:
 
 the safe owners
+
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_approve_hash_tx"></a>
+
+#### get`_`approve`_`hash`_`tx
+
+```python
+@classmethod
+def get_approve_hash_tx(cls, ledger_api: EthereumApi, contract_address: str,
+                        tx_hash: str, sender: str) -> JSONLike
+```
+
+Get approve has tx.
 

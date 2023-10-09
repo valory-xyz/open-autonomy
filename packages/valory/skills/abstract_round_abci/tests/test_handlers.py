@@ -24,6 +24,7 @@
 import json
 import logging
 from dataclasses import asdict
+from datetime import datetime
 from typing import Any, Dict, cast
 from unittest import mock
 from unittest.mock import MagicMock
@@ -53,6 +54,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     ERROR_CODE,
     OK_CODE,
     SignatureNotValidError,
+    TransactionNotValidError,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
     AbciDialogue,
@@ -89,6 +91,9 @@ class TestABCIRoundHandler:
         self.handler = ABCIRoundHandler(name="", skill_context=self.context)
         self.context.state.round_sequence.height = 0
         self.context.state.round_sequence.root_hash = b"root_hash"
+        self.context.state.round_sequence.last_round_transition_timestamp = (
+            datetime.now()
+        )
 
     def test_info(self) -> None:
         """Test the 'info' handler method."""
@@ -188,9 +193,14 @@ class TestABCIRoundHandler:
             performative=AbciMessage.Performative.REQUEST_DELIVER_TX,
             tx=b"",
         )
-        response = self.handler.deliver_tx(
-            cast(AbciMessage, message), cast(AbciDialogue, dialogue)
-        )
+        with mock.patch.object(
+            self.context.state.round_sequence, "add_pending_offence"
+        ) as mock_add_pending_offence:
+            response = self.handler.deliver_tx(
+                cast(AbciMessage, message), cast(AbciDialogue, dialogue)
+            )
+            mock_add_pending_offence.assert_called_once()
+
         assert response.performative == AbciMessage.Performative.RESPONSE_DELIVER_TX
         assert response.code == OK_CODE
 
@@ -206,9 +216,37 @@ class TestABCIRoundHandler:
             performative=AbciMessage.Performative.REQUEST_DELIVER_TX,
             tx=b"",
         )
-        response = self.handler.deliver_tx(
-            cast(AbciMessage, message), cast(AbciDialogue, dialogue)
+        with mock.patch.object(
+            self.context.state.round_sequence, "add_pending_offence"
+        ) as mock_add_pending_offence:
+            response = self.handler.deliver_tx(
+                cast(AbciMessage, message), cast(AbciDialogue, dialogue)
+            )
+            mock_add_pending_offence.assert_not_called()
+
+        assert response.performative == AbciMessage.Performative.RESPONSE_DELIVER_TX
+        assert response.code == ERROR_CODE
+
+    @mock.patch.object(handlers, "Transaction")
+    def test_deliver_bad_tx(self, *_: Any) -> None:
+        """Test the 'deliver_tx' handler method, when the transaction is not ok."""
+        message, dialogue = self.dialogues.create(
+            counterparty="",
+            performative=AbciMessage.Performative.REQUEST_DELIVER_TX,
+            tx=b"",
         )
+        with mock.patch.object(
+            self.context.state.round_sequence,
+            "check_is_finished",
+            side_effect=TransactionNotValidError,
+        ), mock.patch.object(
+            self.context.state.round_sequence, "add_pending_offence"
+        ) as mock_add_pending_offence:
+            response = self.handler.deliver_tx(
+                cast(AbciMessage, message), cast(AbciDialogue, dialogue)
+            )
+            mock_add_pending_offence.assert_called_once()
+
         assert response.performative == AbciMessage.Performative.RESPONSE_DELIVER_TX
         assert response.code == ERROR_CODE
 

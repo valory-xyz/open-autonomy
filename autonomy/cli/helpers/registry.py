@@ -25,7 +25,7 @@ import tempfile
 from distutils.dir_util import copy_tree  # pylint: disable=deprecated-module
 from pathlib import Path
 from shutil import copytree
-from typing import cast
+from typing import Optional, cast
 
 import click
 from aea.cli.registry.settings import REGISTRY_LOCAL, REGISTRY_REMOTE, REMOTE_IPFS
@@ -58,36 +58,50 @@ except ImportError:  # pragma: nocover
     IS_IPFS_PLUGIN_INSTALLED = False
 
 
-def fetch_service(ctx: Context, public_id: PublicId) -> Path:
+def fetch_service(
+    ctx: Context,
+    public_id: PublicId,
+    alias: Optional[str] = None,
+) -> Path:
     """Fetch service."""
 
     if ctx.registry_type == REGISTRY_REMOTE:
-        return fetch_service_remote(public_id)
+        return fetch_service_remote(public_id, alias=alias)
     if ctx.registry_type == REGISTRY_LOCAL:
-        return fetch_service_local(ctx, public_id)
-    return fetch_service_mixed(ctx, public_id)
+        return fetch_service_local(ctx, public_id, alias=alias)
+    return fetch_service_mixed(ctx, public_id, alias=alias)
 
 
-def fetch_service_mixed(ctx: Context, public_id: PublicId) -> Path:
+def fetch_service_mixed(
+    ctx: Context,
+    public_id: PublicId,
+    alias: Optional[str] = None,
+) -> Path:
     """Fetch service in mixed mode."""
     try:
-        return fetch_service_local(ctx, public_id)
+        return fetch_service_local(ctx, public_id, alias=alias)
     except Exception as e:  # pylint: disable=broad-except
         click.echo(
             f"Fetch from local registry failed (reason={str(e)}), trying remote registry..."
         )
-        return fetch_service_remote(public_id)
+        return fetch_service_remote(public_id, alias=alias)
 
 
-def fetch_service_remote(public_id: PublicId) -> Path:
+def fetch_service_remote(
+    public_id: PublicId,
+    alias: Optional[str] = None,
+) -> Path:
     """Fetch service in remote mode."""
     if get_default_remote_registry() == REMOTE_IPFS:
-        return fetch_service_ipfs(public_id)
+        return fetch_service_ipfs(public_id, alias=alias)
 
     raise Exception("HTTP registry not supported.")  # pragma: nocover
 
 
-def fetch_service_ipfs(public_id: PublicId) -> Path:
+def fetch_service_ipfs(
+    public_id: PublicId,
+    alias: Optional[str] = None,
+) -> Path:
     """Fetch service from IPFS node."""
 
     if not IS_IPFS_PLUGIN_INSTALLED:
@@ -96,7 +110,7 @@ def fetch_service_ipfs(public_id: PublicId) -> Path:
     with tempfile.TemporaryDirectory() as temp_dir:
         ipfs_tool = IPFSTool(get_ipfs_node_multiaddr())
         download_path = Path(ipfs_tool.download(public_id.hash, temp_dir))
-        package_path = Path.cwd() / download_path.name
+        package_path = Path.cwd() / (alias or download_path.name)
         shutil.copytree(download_path, package_path)
 
     if not Path(package_path, DEFAULT_SERVICE_CONFIG_FILE).exists():
@@ -117,7 +131,11 @@ def fetch_service_ipfs(public_id: PublicId) -> Path:
     return package_path
 
 
-def fetch_service_local(ctx: Context, public_id: PublicId) -> Path:
+def fetch_service_local(
+    ctx: Context,
+    public_id: PublicId,
+    alias: Optional[str] = None,
+) -> Path:
     """Fetch service from local directory."""
 
     with reraise_as_click_exception(ValueError):
@@ -127,7 +145,7 @@ def fetch_service_local(ctx: Context, public_id: PublicId) -> Path:
         registry_path, public_id.author, SERVICES, public_id.name
     )
 
-    target_path = Path(ctx.cwd, public_id.name)
+    target_path = Path(ctx.cwd, alias or public_id.name)
     if target_path.exists():
         raise click.ClickException(
             f'Item "{target_path.name}" already exists in target folder "{target_path.parent}".'

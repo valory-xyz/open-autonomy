@@ -31,12 +31,15 @@ from hypothesis import strategies as st
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 from packages.valory.skills.abstract_round_abci.utils import (
     DEFAULT_TENDERMINT_P2P_PORT,
+    KeyType,
     MAX_UINT64,
+    ValueType,
     VerifyDrand,
     consensus_threshold,
     filter_negative,
     get_data_from_nested_dict,
     get_value_with_type,
+    inverse,
     is_json_serializable,
     is_primitive_or_none,
     parse_tendermint_p2p_url,
@@ -269,3 +272,36 @@ def test_filter_negative(positive: Dict[str, int], negative: Dict[str, int]) -> 
 def test_consensus_threshold(nb: int, threshold: int) -> None:
     """Test `consensus_threshold`."""
     assert consensus_threshold(nb) == threshold
+
+
+@pytest.mark.parametrize(
+    "dict_, expected",
+    (
+        ({}, {}),
+        (
+            {"test": "this", "which?": "this"},
+            {"this": ["test", "which?"]},
+        ),
+        (
+            {"test": "this", "which?": "this", "hm": "ok"},
+            {"this": ["test", "which?"], "ok": ["hm"]},
+        ),
+        (
+            {"test": "this", "hm": "ok"},
+            {"this": ["test"], "ok": ["hm"]},
+        ),
+        (
+            {"test": "this", "hm": "ok", "ok": "ok"},
+            {"this": ["test"], "ok": ["hm", "ok"]},
+        ),
+        (
+            {"test": "this", "which?": "this", "hm": "ok", "ok": "ok"},
+            {"this": ["test", "which?"], "ok": ["hm", "ok"]},
+        ),
+    ),
+)
+def test_inverse(
+    dict_: Dict[KeyType, ValueType], expected: Dict[ValueType, List[KeyType]]
+) -> None:
+    """Test `inverse`."""
+    assert inverse(dict_) == expected

@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the shared state for the price estimation ABCI application."""
+"""This module contains the core models for all the ABCI apps."""
 
 import inspect
 import json
@@ -49,6 +49,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppDB,
     BaseSynchronizedData,
+    OffenceStatus,
     ROUND_COUNT_DEFAULT,
     RoundSequence,
     VALUE_NOT_PROVIDED,
@@ -303,6 +304,19 @@ class BaseParams(
         )
         self.tendermint_p2p_url: str = self._ensure("tendermint_p2p_url", kwargs, str)
         self.use_termination: bool = self._ensure("use_termination", kwargs, bool)
+        self.use_slashing: bool = self._ensure("use_slashing", kwargs, bool)
+        self.slash_cooldown_hours: int = self._ensure(
+            "slash_cooldown_hours", kwargs, int
+        )
+        self.slash_threshold_amount: int = self._ensure(
+            "slash_threshold_amount", kwargs, int
+        )
+        self.light_slash_unit_amount: int = self._ensure(
+            "light_slash_unit_amount", kwargs, int
+        )
+        self.serious_slash_unit_amount: int = self._ensure(
+            "serious_slash_unit_amount", kwargs, int
+        )
         self.setup_params: Dict[str, Any] = self._ensure("setup", kwargs, dict)
 
         # we sanitize for null values as these are just kept for schema definitions
@@ -427,6 +441,50 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
         kwargs["skill_context"] = skill_context
         super().__init__(*args, **kwargs)
 
+    def setup_slashing(self, validator_to_agent: Dict[str, str]) -> None:
+        """Initialize the structures required for slashing."""
+        configured_agents = set(self.initial_tm_configs.keys())
+        agents_mapped = set(validator_to_agent.values())
+        diff = agents_mapped.symmetric_difference(configured_agents)
+        if diff:
+            raise ValueError(
+                f"Trying to use the mapping `{validator_to_agent}`, which contains validators for non-configured "
+                "agents and/or does not contain validators for some configured agents. "
+                f"The agents which have been configured via ACN are `{configured_agents}` and the diff was for {diff}."
+            )
+        self.round_sequence.validator_to_agent = validator_to_agent
+        self.round_sequence.offence_status = {
+            agent: OffenceStatus() for agent in agents_mapped
+        }
+
+    def get_validator_address(self, agent_address: str) -> str:
+        """Get the validator address of an agent."""
+        if agent_address not in self.synchronized_data.all_participants:
+            raise ValueError(
+                f"The validator address of non-participating agent `{agent_address}` was requested."
+            )
+
+        try:
+            agent_config = self.initial_tm_configs[agent_address]
+        except KeyError as e:
+            raise ValueError(
+                "SharedState's setup was not performed successfully."
+            ) from e
+
+        if agent_config is None:
+            raise ValueError(
+                f"ACN registration has not been successfully performed for agent `{agent_address}`. "
+                "Have you set the `share_tm_config_on_startup` flag to `true` in the configuration?"
+            )
+
+        validator_address = agent_config.get("address", None)
+        if validator_address is None:
+            raise ValueError(
+                f"The tendermint configuration for agent `{agent_address}` is invalid: `{agent_config}`."
+            )
+
+        return validator_address
+
     def acn_container(self) -> Dict[str, Any]:
         """Create a container for ACN results, i.e., a mapping from others' addresses to `None`."""
         ourself = {self.context.agent_address}
@@ -436,7 +494,7 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
 
     def setup(self) -> None:
         """Set up the model."""
-        self._round_sequence = RoundSequence(self.abci_app_cls)
+        self._round_sequence = RoundSequence(self.context, self.abci_app_cls)
         setup_params = cast(BaseParams, self.context.params).setup_params
         self.round_sequence.setup(
             BaseSynchronizedData(

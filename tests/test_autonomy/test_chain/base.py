@@ -34,11 +34,7 @@ from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F4
 
 from autonomy.chain.base import registry_contracts
 from autonomy.chain.config import ChainType
-from autonomy.chain.constants import (
-    AGENT_REGISTRY_ADDRESS_LOCAL,
-    COMPONENT_REGISTRY_ADDRESS_LOCAL,
-    SERVICE_REGISTRY_ADDRESS_LOCAL,
-)
+from autonomy.chain.constants import HardhatAddresses
 from autonomy.chain.metadata import publish_metadata
 from autonomy.chain.mint import (
     DEFAULT_NFT_IMAGE_HASH,
@@ -47,7 +43,7 @@ from autonomy.chain.mint import (
     mint_service,
 )
 from autonomy.chain.utils import parse_public_id_from_metadata, resolve_component_id
-from autonomy.cli.helpers.chain import get_ledger_and_crypto_objects
+from autonomy.cli.helpers.chain import OnChainHelper
 from autonomy.cli.packages import get_package_manager
 
 from tests.conftest import DATA_DIR
@@ -121,7 +117,7 @@ class BaseChainInteractionTest(BaseCliTest):
         """Setup class."""
         super().setup_class()
 
-        cls.ledger_api, cls.crypto = get_ledger_and_crypto_objects(
+        cls.ledger_api, cls.crypto = OnChainHelper.get_ledger_and_crypto_objects(
             chain_type=cls.chain_type,
             key=cls.key_file,
         )
@@ -145,7 +141,7 @@ class BaseChainInteractionTest(BaseCliTest):
             on_chain_owner = (
                 registry_contracts.service_registry.get_instance(
                     ledger_api=self.ledger_api,
-                    contract_address=SERVICE_REGISTRY_ADDRESS_LOCAL,
+                    contract_address=HardhatAddresses.service_registry,
                 )
                 .functions.ownerOf(token_id)
                 .call()
@@ -154,7 +150,7 @@ class BaseChainInteractionTest(BaseCliTest):
             on_chain_owner = (
                 registry_contracts.component_registry.get_instance(
                     ledger_api=self.ledger_api,
-                    contract_address=AGENT_REGISTRY_ADDRESS_LOCAL,
+                    contract_address=HardhatAddresses.agent_registry,
                 )
                 .functions.ownerOf(token_id)
                 .call()
@@ -163,7 +159,7 @@ class BaseChainInteractionTest(BaseCliTest):
             on_chain_owner = (
                 registry_contracts.component_registry.get_instance(
                     ledger_api=self.ledger_api,
-                    contract_address=COMPONENT_REGISTRY_ADDRESS_LOCAL,
+                    contract_address=HardhatAddresses.component_registry,
                 )
                 .functions.ownerOf(token_id)
                 .call()
@@ -180,11 +176,11 @@ class BaseChainInteractionTest(BaseCliTest):
         is_service = package_id.package_type == PackageType.SERVICE
 
         if is_service:
-            contract_address = SERVICE_REGISTRY_ADDRESS_LOCAL
+            contract_address = HardhatAddresses.service_registry
         elif is_agent:
-            contract_address = AGENT_REGISTRY_ADDRESS_LOCAL
+            contract_address = HardhatAddresses.agent_registry
         else:
-            contract_address = COMPONENT_REGISTRY_ADDRESS_LOCAL
+            contract_address = HardhatAddresses.component_registry
 
         metadata = resolve_component_id(
             ledger_api=self.ledger_api,

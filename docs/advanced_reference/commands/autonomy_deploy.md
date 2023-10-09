@@ -2,6 +2,40 @@ Build or run agent service deployments.
 
 This command group consists of a number of functionalities for building service deployments, run locally stored service deployments, and run service deployments defined in the on-chain protocol. See the appropriate subcommands for more information.
 
+### Options
+  
+`--env-file FILE`
+:   File containing environment variable mappings
+
+### Examples
+
+If you have an `.env` file in the working directory, `autonomy deploy` will load the `.env` file automatically. If the file is not present in the working directory you can provide the path to the file using `--env-file` flag
+
+```bash
+autonomy deploy --env-file <path_to_dotenv> COMMAND [ARGS]
+```
+
+For loading the environment variables you can use a `json` file as well. While using a `json` file you can either use `json` serialized strings like 
+
+```json title="env.json"
+{
+    "ALL_PARTICIPANTS": "[\"0x0000000000000000000000000000000000000000\"]"
+}
+```
+
+Or the `json` objects
+
+```json title="env.json"
+{
+    "ALL_PARTICIPANTS": ["0x0000000000000000000000000000000000000000"]
+}
+```
+
+The framework will handle both of these cases automatically.
+
+```bash
+autonomy deploy --env-file <path_to_json> COMMAND [ARGS]
+```
 
 ## `autonomy deploy build`
 
@@ -76,6 +110,7 @@ autonomy deploy build [OPTIONS] [KEYS_FILE]
 
 
 ### Examples
+
 ```bash
 autonomy deploy build keys.json -ltm
 ```
@@ -106,6 +141,9 @@ autonomy deploy run [OPTIONS]
 `--remove-orphans`
 :   Remove containers for services not defined in the Compose file.
 
+`--detach`
+:   Run service in the background.
+
 `--help`
 :   Show the help message and exit.
 
@@ -121,7 +159,7 @@ Runs the service deployment stored locally in the directory `./abci_build`.
 
 Run a service deployment minted on-chain protocol.
 
-This command allows to deploy services directly without having the need to explicitly fetch them locally (also known as "one-click deployment"). The command requires the `TOKEN_ID` which can be checked in the {{on_chain_frontend}}. See the [mint a service on-chain](../../guides/publish_mint_packages.md) guide for more information.
+This command allows to deploy services directly without having the need to explicitly fetch them locally (also known as "one-click deployment"). The command requires the `TOKEN_ID` which can be checked in the {{ autonolas_protocol_registry_dapp }}. See the [mint a service on-chain](../../guides/publish_mint_packages.md) guide for more information.
 
 To understand how to use various chain profiles refer to `Chain Selection` section on the `autonomy mint` command documentation.
 
@@ -174,3 +212,22 @@ autonomy deploy from-token --use-goerli 2 keys.json
 ```
 
 Runs the service deployment registered with `TOKEN_ID`=2 in the Görli on-chain protocol. The deployment will be run for as many agents as keys are defined in the `keys.json` file. 
+
+
+## `autonomy deploy stop`
+
+Stop a deployment running in background, if you use `--detach` flag on `autonomy deploy run` or `autonomy deploy from-token` the service will run in background. You can stop this service using `autonomy deploy stop` command.
+
+### Usage
+
+```bash
+autonomy deploy stop --build-dir BUILD_DIR
+```
+
+### Options:
+
+`--build-dir PATH`
+:   Path to the deployment build directory.
+
+`--help`
+:   Show this message and exit.

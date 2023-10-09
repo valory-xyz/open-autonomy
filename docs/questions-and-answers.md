@@ -31,7 +31,7 @@
 
 
 ??? note "How do agents communicate with other agents?"
-    Different forms of communication are used depending on the service status. Before the agents can establish a temporary blockchain (Tendermint network) that serves as consensus engine they need to exchange the necessary information with others in order to be able to do so. This information includes the network address of their Tendermint node and the associated public key. They do so by connecting to the Agent Communication Network (ACN), where they can send messages to other agents, in this case requesting their Tendermint configuration details, using their on-chain registered address. The list of registered addresses is retrieved from the the service registry smart contract and can be used to filter out request coming from any party that is not registered to operate in this service as well. Once all configurations have been exchanged the Tendermint network can be established and is used as a consensus engine.
+    Different forms of communication are used depending on the service status. Before the agents can establish a temporary blockchain (Tendermint network) that serves as consensus engine they need to exchange the necessary information with others in order to be able to do so. This information includes the network address of their Tendermint node and the associated public key. They do so by connecting to the Agent Communication Network (ACN), where they can send messages to other agents, in this case requesting their Tendermint configuration details, using their on-chain registered address. The list of registered addresses is retrieved from the service registry smart contract and can be used to filter out request coming from any party that is not registered to operate in this service as well. Once all configurations have been exchanged the Tendermint network can be established and is used as a consensus engine.
 
 
 ??? note "Can services use other services?"
@@ -43,7 +43,7 @@
 
 
 ??? note "What happens when agents are deployed?"
-    Agents are be able to interact with the Autonolas on-chain Protocol so they can monetize their work and connect to other services. Apart from that, "island deployments" can also be operated, which are services that run as one-off services, not anchored in the protocol.
+    Agents are able to interact with the Autonolas on-chain Protocol so they can monetize their work and connect to other services. Apart from that, "island deployments" can also be operated, which are services that run as one-off services, not anchored in the protocol.
 
 
 ??? note "How many composition levels does Open Autonomy offer?"

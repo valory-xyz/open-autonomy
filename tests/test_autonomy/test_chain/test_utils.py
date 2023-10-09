@@ -159,7 +159,9 @@ def test_verify_component_dependencies_multiple_component_with_same_public_id() 
         )
 
 
-def test_verify_component_dependencies_multiple_component_with_same_public_id_skip_hash_check() -> None:
+def test_verify_component_dependencies_multiple_component_with_same_public_id_skip_hash_check() -> (
+    None
+):
     """Test `verify_component_dependencies`"""
 
     phash_1 = DUMMY_HASH.replace("0", "1")
@@ -190,7 +192,9 @@ def test_verify_component_dependencies_multiple_component_with_same_public_id_sk
         )
 
 
-def test_verify_component_dependencies_multiple_component_with_same_public_id_fail() -> None:
+def test_verify_component_dependencies_multiple_component_with_same_public_id_fail() -> (
+    None
+):
     """Test `verify_component_dependencies`"""
 
     phash_1 = DUMMY_HASH.replace("0", "1")
