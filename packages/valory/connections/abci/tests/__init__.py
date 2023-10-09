@@ -18,3 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """Tests package for valory/abci connection."""
+
+from hypothesis import settings
+
+
+CI = "CI"  # pragma: nocover
+
+settings.register_profile(CI, deadline=5000)  # pragma: nocover

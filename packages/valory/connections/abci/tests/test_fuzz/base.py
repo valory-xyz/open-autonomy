@@ -30,7 +30,7 @@ from aea.test_tools.test_cases import AEATestCaseMany
 from hypothesis import given, settings
 from hypothesis.strategies import binary, booleans, integers, lists, text, tuples
 
-from packages.valory.connections.abci import CI
+from packages.valory.connections.abci.tests import CI
 from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.base import (
     BaseChannel,
 )
