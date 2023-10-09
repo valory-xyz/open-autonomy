@@ -183,7 +183,8 @@ ABCI_SKILL_MODEL_PARAMS_SCHEMA = {
 
 ABCI = "abci"
 LEDGER = "ledger"
-
+TERMINATION_ABCI = PublicId(author="valory", name="termination_abci", version="any")
+SLASHING_ABCI = PublicId(author="valory", name="slashing_abci", version="any")
 ENV_VAR_RE = re.compile(
     r"^\$\{(?P<name>[A-Z_0-9]+)?:?(?P<type>bool|int|float|str|list|dict)?:?(?P<value>.+)?\}$"
 )
@@ -728,6 +729,15 @@ class ServiceAnalyser:
                         )
                     )
 
+    def _check_for_dependency(
+        self, dependencies: Set[PublicId], dependency: PublicId
+    ) -> None:
+        """Check termination ABCI skill is an dependency for the agent"""
+        for _dependency in dependencies:
+            if _dependency.to_any() == dependency:
+                return
+        self.logger.warning(f"{dependency} is not defined as a dependency")
+
     def validate_skill_config(self, skill_config: SkillConfig) -> None:
         """Check required overrides."""
 
@@ -744,6 +754,8 @@ class ServiceAnalyser:
             has_multiple_overrides=False,
             error_message="ABCI skill validation failed; {error}",
         )
+        self._check_for_dependency(skill_config.skills, TERMINATION_ABCI)
+        self._check_for_dependency(skill_config.skills, SLASHING_ABCI)
         self.logger.info("No issues found in the ABCI skill configuration")
 
     def validate_agent_overrides(self, agent_config: AgentConfig) -> None:
@@ -771,6 +783,8 @@ class ServiceAnalyser:
                 f"\n\t- {error_string}"
             )
 
+        self._check_for_dependency(agent_config.skills, TERMINATION_ABCI)
+        self._check_for_dependency(agent_config.skills, SLASHING_ABCI)
         self.logger.info("No issues found in the agent overrides")
 
     def validate_service_overrides(self) -> None:

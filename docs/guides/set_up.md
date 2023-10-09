@@ -106,9 +106,15 @@ If you plan to follow the guides in the next sections, you need to populate the 
     "dev": {
     },
     "third_party": {
+<<<<<<< HEAD
         "service/valory/hello_world/0.1.0": "bafybeicdcrhpekqbwzeam2fi7npnl6qfwejgo73ftwoy4tofwbrsl5ene4",
         "agent/valory/hello_world/0.1.0": "bafybeiakoj6jpj5gqyjk5qz2ibgvplgd4azqwxmi56aei7xpu5z47np3e4",
         "connection/valory/abci/0.1.0": "bafybeidcqst5lspyaq3jxivjfo5ff4zv3yrhskepzazc7lnpf3ic4feh64",
+=======
+        "service/valory/hello_world/0.1.0": "bafybeieoqhbwqmg5oiqgkxf6dlizncjvaermwtun4aijqcbyc6ulfl7o4q",
+        "agent/valory/hello_world/0.1.0": "bafybeibwluqq2yywd3stax2kuiqnv4zxxu3rprfkbn7f7e6sf2gelpkdqa",
+        "connection/valory/abci/0.1.0": "bafybeih6ei7q3vdsj57nb3f6dirccorj7izrxccjzys3seirzoalsj2fwq",
+>>>>>>> refs/remotes/origin/main
         "connection/valory/http_client/0.23.0": "bafybeifgeqgryx6b3s6eseyzyezygmeitcpt3tkor2eiycozoi6clgdrny",
         "connection/valory/ipfs/0.1.0": "bafybeiaddby5hxegt2fk772fzn34zpwndyfk45rc3jqtblhtr2tbzcicua",
         "connection/valory/ledger/0.19.0": "bafybeiauyqzizmocjldnfuzvnihrqubfqzn5u2hp6ue7v3ka5kj54kd3zm",
@@ -121,9 +127,15 @@ If you plan to follow the guides in the next sections, you need to populate the 
         "protocol/valory/ipfs/0.1.0": "bafybeiedxeismnx3k5ty4mvvhlqideixlhqmi5mtcki4lxqfa7uqh7p33u",
         "protocol/valory/ledger_api/1.0.0": "bafybeige5agrztgzfevyglf7mb4o7pzfttmq4f6zi765y4g2zvftbyowru",
         "protocol/valory/tendermint/0.1.0": "bafybeig6g6twajlwssfbfp5rlnu5mwzuu5kgak5cs4fich7rlkx6whesnu",
+<<<<<<< HEAD
         "skill/valory/abstract_abci/0.1.0": "bafybeidwlao2lkpnxlphwapizip4cxemfy3iw4p2zpbjly4b26iukprpwe",
         "skill/valory/abstract_round_abci/0.1.0": "bafybeibrrgdzbpdqyirkfulg5bgkrdwlynezdheplm55xfhkrnlxgvluo4",
         "skill/valory/hello_world_abci/0.1.0": "bafybeibu3fdkjmawysvbwcn77pzpfw2d4the4ok7jod3jmdiqn4rzms37e",
+=======
+        "skill/valory/abstract_abci/0.1.0": "bafybeidek3doh6cs3qw3hzgnqw65st2g5vhx5bgkdztyrer45wewttagui",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeiavfdmszwpotgdw5wd2imxcwsigygczvttxk5onswt72ipbdyjp3q",
+        "skill/valory/hello_world_abci/0.1.0": "bafybeideckfxmkvdnjfvfgbcit6x4gxxwtbalttyxfslh22czxsb7zkstm",
+>>>>>>> refs/remotes/origin/main
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihge56dn3xep2dzomu7rtvbgo4uc2qqh7ljl3fubqdi2lq44gs5lq"
     }
 }
