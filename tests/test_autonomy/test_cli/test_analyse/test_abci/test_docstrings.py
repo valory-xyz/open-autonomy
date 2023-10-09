@@ -28,45 +28,34 @@ from autonomy.analyse.abci.docstrings import (
     docstring_abci_app,
 )
 
-from packages.valory.skills.hello_world_abci.rounds import HelloWorldAbciApp
+from packages.valory.skills.reset_pause.rounds import ResetPauseAbciApp
 
 
 def test_docstring_abci_app() -> None:
     """Test docstring_abci_app"""
 
-    expected = """\"\"\"HelloWorldAbciApp
+    expected = """\"\"\"ResetPauseAbciApp
 
-        Initial round: RegistrationRound
+    Initial round: ResetAndPauseRound
 
-        Initial states: {RegistrationRound}
+    Initial states: {ResetAndPauseRound}
 
-        Transition states:
-            0. RegistrationRound
-                - done: 1.
-            1. CollectRandomnessRound
-                - done: 2.
-                - no majority: 1.
-                - round timeout: 1.
-            2. SelectKeeperRound
-                - done: 3.
-                - no majority: 0.
-                - round timeout: 0.
-            3. PrintMessageRound
-                - done: 4.
-                - round timeout: 0.
-            4. ResetAndPauseRound
-                - done: 1.
-                - no majority: 0.
-                - reset timeout: 0.
+    Transition states:
+        0. ResetAndPauseRound
+            - done: 1.
+            - reset and pause timeout: 2.
+            - no majority: 2.
+        1. FinishedResetAndPauseRound
+        2. FinishedResetAndPauseErrorRound
 
-        Final states: {}
+    Final states: {FinishedResetAndPauseErrorRound, FinishedResetAndPauseRound}
 
-        Timeouts:
-            round timeout: 30.0
-            reset timeout: 30.0
+    Timeouts:
+        round timeout: 30.0
+        reset and pause timeout: 30.0
     \"\"\""""
 
-    docstring = docstring_abci_app(HelloWorldAbciApp)
+    docstring = docstring_abci_app(ResetPauseAbciApp)
     differences = "\n".join(difflib.unified_diff(docstring.split(), expected.split()))
     assert not differences, differences
 
@@ -78,9 +67,9 @@ def test_compare_docstring_content() -> None:
     assert compare_docstring_content("", "", "") == (False, "")
 
     # identical - no update
-    docstring = docstring_abci_app(HelloWorldAbciApp)
-    abci_app_name = HelloWorldAbciApp.__name__
-    file_content = Path(inspect.getfile(HelloWorldAbciApp)).read_text()
+    docstring = docstring_abci_app(ResetPauseAbciApp)
+    abci_app_name = ResetPauseAbciApp.__name__
+    file_content = Path(inspect.getfile(ResetPauseAbciApp)).read_text()
     result = compare_docstring_content(file_content, docstring, abci_app_name)
     assert result == (True, file_content)
 
