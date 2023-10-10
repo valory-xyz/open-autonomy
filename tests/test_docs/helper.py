@@ -24,6 +24,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
+import requests
+
 from tests.conftest import ROOT_DIR
 
 
@@ -83,6 +85,37 @@ def read_file(filepath: str) -> str:
     with open(filepath, "r") as file_:
         file_str = file_.read()
     return file_str
+
+
+def read_file_from_repository(url: str) -> str:
+    """Loads the latest release version of a file into a string"""
+    match = re.match(r"https://github.com/([^/]+)/([^/]+)/blob/([^/]+)/(.+)", url)
+    if not match:
+        raise ValueError("Invalid GitHub file URL")
+
+    owner, repo, _, file_path = match.groups()
+
+    repo_api_url = f"https://api.github.com/repos/{owner}/{repo}/releases/latest"
+    response = requests.get(repo_api_url)
+
+    if response.status_code == 200:
+        release_info = response.json()
+        latest_release_tag = release_info["tag_name"]
+        raw_github_url = f"https://raw.githubusercontent.com/{owner}/{repo}/{latest_release_tag}/{file_path}"
+        return read_file_from_url(raw_github_url)
+    else:
+        raise Exception(
+            f"Failed to fetch release information from GitHub API for {owner}/{repo}: {response.text}."
+        )
+
+
+def read_file_from_url(url: str) -> str:
+    """Loads a file into a string"""
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.text
+    else:
+        raise Exception(f"Failed to fetch data from URL {url}: {response.text}.")
 
 
 def remove_line_comments(string: str) -> str:
@@ -151,8 +184,14 @@ def check_code_blocks_exist(
         code_file = code_file.replace("by_line::", "")
 
         # Load the code file and process it
-        code_path = os.path.join(ROOT_DIR, code_file)
-        code = read_file(code_path)
+        if code_file.startswith("https://github.com/"):
+            code = read_file_from_repository(code_file)
+        elif code_file.startswith("http://") or code_file.startswith("https://"):
+            code = read_file_from_url(code_file)
+        else:
+            code_path = os.path.join(ROOT_DIR, code_file)
+            code = read_file(code_path)
+
         code = code_process_fn(code) if code_process_fn else code
 
         # Perform the check

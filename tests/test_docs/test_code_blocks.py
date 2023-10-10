@@ -170,6 +170,11 @@ class TestYamlSnippets(BaseTestDocCode):
         "docs/advanced_reference/developer_tooling/benchmarking.md": {
             "skip_blocks": [0]
         },
+        "docs/guides/draft_service_idea_and_define_fsm_specification.md": {
+            "code_files": [
+                "https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/skills/hello_world_abci/fsm_specification.yaml"
+            ]
+        },
     }
 
     skipped_files = [
@@ -179,8 +184,6 @@ class TestYamlSnippets(BaseTestDocCode):
         "docs/configure_service/on-chain_deployment_checklist.md",  # just placeholder examples
         "docs/configure_service/configure_access_external_chains.md",  # just placeholder examples
         "docs/advanced_reference/developer_tooling/dev_mode.md",  # just placeholder examples
-        "docs/demos/hello_world_demo.md",
-        "docs/guides/draft_service_idea_and_define_fsm_specification.md",
     ]
 
 
@@ -228,8 +231,6 @@ class TestPythonSnippets(BaseTestDocCode):
         "docs/demos/price_oracle_technical_details.md",  # price oracle has been extracted to a separate repo on #1441
         "docs/advanced_reference/developer_tooling/benchmarking.md",  # just placeholder examples
         "docs/configure_service/on-chain_deployment_checklist.md",  # just placeholder examples
-        "docs/demos/hello_world_demo.md",
-        "docs/guides/draft_service_idea_and_define_fsm_specification.md",
     ]
 
 
@@ -248,9 +249,6 @@ class TestJsonSnippets(BaseTestDocCode):
     # instead of checking the code block as a whole.
 
     md_to_code = {
-        "docs/guides/set_up.md": {
-            "code_files": ["by_line::packages/packages.json"],
-        },
         "docs/guides/deploy_service.md": {
             "code_files": [
                 "by_line::deployments/keys/hardhat_keys.json",
@@ -270,8 +268,7 @@ class TestJsonSnippets(BaseTestDocCode):
 
     skipped_files = [
         "docs/advanced_reference/commands/autonomy_deploy.md",
-        "docs/demos/hello_world_demo.md",
-        "docs/guides/draft_service_idea_and_define_fsm_specification.md",
+        "docs/guides/set_up.md",
     ]
 
 
