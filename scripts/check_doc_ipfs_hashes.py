@@ -90,14 +90,13 @@ def get_packages_from_repository(repo_url: str) -> Dict[str, str]:
         )
 
     response = requests.get(url)
-
     if response.status_code == 200:
         data = response.json()
         if "dev" in data:
             return {**data["dev"], **data["third_party"]}
         return data
-    else:
-        raise Exception(f"Failed to fetch data from URL: {url}")
+
+    raise Exception(f"Failed to fetch data from URL: {url}")
 
 
 class Package:  # pylint: disable=too-few-public-methods
@@ -151,11 +150,10 @@ class Package:  # pylint: disable=too-few-public-methods
                     if "version" in resource:
                         self.last_version = resource["version"]
                         break
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             if not self.ignore_file_load_errors:
                 raise
-            else:
-                self.last_version = self.package_id.version
+            self.last_version = self.package_id.version
 
     def get_command(
         self, cmd: str, include_version: bool = True, flags: str = ""
