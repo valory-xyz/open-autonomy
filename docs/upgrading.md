@@ -5,9 +5,28 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
-## `v0.12.1` to `v0.12.1.post1`
+
+## `v0.12.1.post4` to `v0.13.0`
+
+- `open-aea-web3` has been replaced with `web3py`
+- `protobuf` has been bumped to `protobuf>=4.21.6,<5.0.0`, this means you will have to bump your protocol generator to `v24.3` and generate your protocol packages again.
+- The `valory/open-autonomy` image will use Python 3.11 as default interpreter for running agents
+
+## `v0.12.1.post3` to `v0.12.1.post4`
 
 No backwards incompatible changes
+
+## `v0.12.1.post2` to `v0.12.1.post3`
+
+No backwards incompatible changes
+
+## `v0.12.1.post1` to `v0.12.1.post2`
+
+No backwards incompatible changes
+
+## `v0.12.1` to `v0.12.1.post1`
+
+- Environment variable names have changed for custom contract address, refer to the `mint/service` CLI tools documentation regarding the changes.
 
 ## `v0.12.0` to `v0.12.1`
 

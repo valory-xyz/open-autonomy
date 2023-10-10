@@ -19,6 +19,7 @@
 
 """Deployment helpers."""
 import os
+import shutil
 import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -80,7 +81,7 @@ def _build_dirs(build_dir: Path) -> None:
 
 def _print_log(compose_app: docker_compose.TopLevelCommand) -> None:
     """Print docker container logs."""
-    terminal_width, _ = os.get_terminal_size()
+    terminal_width, _ = shutil.get_terminal_size()
     for service in compose_app.project.service_names:
         try:
             click.echo("=" * terminal_width)

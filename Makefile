@@ -130,7 +130,7 @@ install: clean
 
 .PHONY: eject-contracts
 eject-contracts:
-	@for contract in registries_manager service_manager component_registry agent_registry service_registry ; do \
+	@for contract in component_registry agent_registry registries_manager service_manager service_registry gnosis_safe gnosis_safe_proxy_factory service_registry_token_utility multisend erc20 ; do \
 		echo Updating $$contract contract; \
     	rm -rf autonomy/data/contracts/$$contract ; \
 		cp -r packages/valory/contracts/$$contract autonomy/data/contracts/$$contract ; \
@@ -235,3 +235,19 @@ fix-abci-app-specs:
 
 release-images:
 	skaffold build -p release --cache-artifacts=false && skaffold build -p release-latest
+
+
+# Usage: INCLUDE=PATH_TO_PROTOC_INCLUDE_DIRECTORY make build-proto
+.PHONY: build-proto
+build-proto:
+	@protoc -I $$INCLUDE \
+		--proto_path=packages/valory/connections/abci/protos/ \
+		--python_out=packages/valory/connections/abci/ \
+		packages/valory/connections/abci/protos/gogoproto/gogo.proto \
+		packages/valory/connections/abci/protos/tendermint/crypto/proof.proto \
+		packages/valory/connections/abci/protos/tendermint/crypto/keys.proto \
+		packages/valory/connections/abci/protos/tendermint/abci/types.proto \
+		packages/valory/connections/abci/protos/tendermint/types/types.proto \
+		packages/valory/connections/abci/protos/tendermint/types/validator.proto \
+		packages/valory/connections/abci/protos/tendermint/types/params.proto \
+		packages/valory/connections/abci/protos/tendermint/version/types.proto 

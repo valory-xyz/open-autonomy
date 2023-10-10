@@ -27,13 +27,36 @@ def __init__(chain_type: ChainType,
 
 Initialize object.
 
+<a id="autonomy.cli.helpers.chain.OnChainHelper.load_hwi_plugin"></a>
+
+#### load`_`hwi`_`plugin
+
+```python
+@staticmethod
+def load_hwi_plugin() -> Type[LedgerApi]
+```
+
+Load HWI Plugin.
+
+<a id="autonomy.cli.helpers.chain.OnChainHelper.load_crypto"></a>
+
+#### load`_`crypto
+
+```python
+@staticmethod
+def load_crypto(file: Path, password: Optional[str] = None) -> Crypto
+```
+
+Load crypto object.
+
 <a id="autonomy.cli.helpers.chain.OnChainHelper.get_ledger_and_crypto_objects"></a>
 
 #### get`_`ledger`_`and`_`crypto`_`objects
 
 ```python
-@staticmethod
+@classmethod
 def get_ledger_and_crypto_objects(
+        cls,
         chain_type: ChainType,
         key: Optional[Path] = None,
         password: Optional[str] = None,
@@ -41,6 +64,17 @@ def get_ledger_and_crypto_objects(
 ```
 
 Create ledger_api and crypto objects
+
+<a id="autonomy.cli.helpers.chain.OnChainHelper.check_required_enviroment_variables"></a>
+
+#### check`_`required`_`enviroment`_`variables
+
+```python
+def check_required_enviroment_variables(
+        configs: Tuple[ContractConfig, ...]) -> None
+```
+
+Check for required enviroment variables when working with the custom chain.
 
 <a id="autonomy.cli.helpers.chain.MintHelper"></a>
 
@@ -271,7 +305,7 @@ Register agents instances on an activated service
 
 ```python
 def deploy_service(reuse_multisig: bool = False,
-                   deployment_payload: Optional[str] = None,
+                   fallback_handler: Optional[str] = None,
                    timeout: Optional[float] = None) -> None
 ```
 

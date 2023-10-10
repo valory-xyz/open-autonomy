@@ -203,14 +203,17 @@ autonomy service deploy [OPTIONS] SERVICE_ID
 ```
 ### Options
 
+`--reuse-multisig`
+: Reuse `mutlisig` from previous deployment.
+
 `--key FILE`
 : Use a private key from a file to sign the transactions.
 
 `--hwi`
 : Use a hardware wallet to sign the transactions.
 
-`-d, --deployment-payload PAYLOAD`
-: Deployment payload value.
+`-f, --fallback-handler ADDRESS`
+: Fallback handler address for the gnosis safe multisig.
 
 `--password PASSWORD`
 : Password for the key file.

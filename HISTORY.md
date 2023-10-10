@@ -1,6 +1,44 @@
 # Release History - `open-autonomy`
 
 
+# 0.13.0 (2023-09-27)
+
+Autonomy:
+- Replaces `open-aea-web3` with `web3py<7,>=6.0.0`
+- Bumps `protobuf<5.0.0,>=4.21.6`
+- Fixes `protobuf` incompatibility issue when importing hardware wallet plugin
+- Refactors autonomy and agent images to
+  - Include install and build scripts in the base image
+  - Remove unwanted layers
+  - Remove unwanted data files
+
+Packages:
+- Generates protocols using the latest compatible `protobuf` compiler
+- Compiles the tendermint connection protocol buffers using the latest compatible `protobuf` compiler
+
+Chores:
+- Bumps `protobuf` compiler to `24.3`
+
+# 0.12.1.post4 (2023-09-25)
+
+Autonomy:
+
+- Update the reuse multisig transaction builder to account for services with only one operator
+
+# 0.12.1.post3 (2023-09-21)
+
+Autonomy:
+
+- Pins `jsonschema<=4.19.0,>=4.16.0`
+
+# 0.12.1.post2 (2023-09-20)
+
+Autonomy:
+
+- Adds missing contract packages to the `eject-contracts` make target
+- Adds check to make sure service is in `pre-registration` before updating the service hash
+- Adds check to make sure all required environment variables are present for on-chain interactions
+
 # 0.12.1.post1 (2023-09-14)
 
 Autonomy:

@@ -30,6 +30,7 @@ from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from autonomy.chain.config import ChainConfigs
 from autonomy.chain.mint import registry_contracts
+from autonomy.chain.service import activate_service
 
 from tests.test_autonomy.test_chain.base import (
     BaseChainInteractionTest,
@@ -205,6 +206,55 @@ class TestMintComponents(BaseChainInteractionTest):
         assert result.exit_code == 0, result.stderr
         assert "Service updated with:" in result.output
         assert f"Token ID: {token_id}" in result.output
+        self.verify_and_remove_metadata_file(token_id=token_id)
+
+    def test_update_service_failure(
+        self,
+    ) -> None:
+        """Test mint components."""
+        with mock.patch("autonomy.cli.helpers.chain.verify_component_dependencies"):
+            agent_id = self.mint_component(package_id=DUMMY_AGENT, dependencies=[1])
+
+        commands = [
+            DUMMY_SERVICE.package_type.value,
+            str(
+                DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
+                    package_id=DUMMY_SERVICE
+                )
+            ),
+            "--key",
+            str(ETHEREUM_KEY_DEPLOYER),
+            "-a",
+            str(agent_id),
+            *DEFAULT_SERVICE_MINT_PARAMETERS[2:],
+        ]
+
+        result = self.run_cli(commands=tuple(commands))
+
+        assert result.exit_code == 0, result
+        assert "Service minted with:" in result.output
+        assert "Metadata Hash:" in result.output
+        assert "Token ID:" in result.output
+
+        token_id = self.extract_token_id_from_output(output=result.output)
+        self.verify_minted_token_id(
+            token_id=token_id,
+            package_id=DUMMY_SERVICE,
+        )
+        activate_service(
+            ledger_api=self.ledger_api,
+            crypto=self.crypto,
+            chain_type=self.chain_type,
+            service_id=token_id,
+        )
+
+        commands += ["--update", str(token_id)]
+        result = self.run_cli(commands=tuple(commands))
+        assert result.exit_code == 1, result.stdout
+        assert (
+            "Cannot update service hash, service needs to be in the pre-registration state"
+            in result.stderr
+        )
         self.verify_and_remove_metadata_file(token_id=token_id)
 
     def test_mint_service_with_owner(
