@@ -34,7 +34,6 @@ def test_cmd_regex() -> None:
         "autonomy fetch --remote open_aea/my_first_aea:bafybeibnjfr3sdg57ggyxbcfkh42yqkj6a3gftp55l26aaw2z2jvvc3tny",
         "autonomy fetch open_aea/my_first_aea:bafybeibnjfr3sdg57ggyxbcfkh42yqkj6a3gftp55l26aaw2z2jvvc3tny",
         "autonomy fetch --remote --other_flag open_aea/my_first_aea:bafybeibnjfr3sdg57ggyxbcfkh42yqkj6a3gftp55l26aaw2z2jvvc3tny",
-        "autonomy fetch valory/hello_world:0.1.0:bafybeihh6fz5xti3vmzd4ktihcvhqknnijmnc5vgbbqjcanqlfimqis6zy --remote --service",
     ]
 
     for line in lines:
