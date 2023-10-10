@@ -116,9 +116,7 @@ def test_check_one_raises() -> None:
 
     target = "autonomy.cli.helpers.fsm_spec.check_unreferenced_events"
     with mock.patch(target, return_value=["Event.WIN_LOTTERY"]):
-        expected = (
-            "Unreferenced events found in `OffendAbciApp`\n- Event.WIN_LOTTERY"
-        )
+        expected = "Unreferenced events found in `OffendAbciApp`\n- Event.WIN_LOTTERY"
         with pytest.raises(DFASpecificationError, match=expected):
             check_one(package_path)
 
