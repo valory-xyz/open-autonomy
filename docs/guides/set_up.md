@@ -106,8 +106,6 @@ If you plan to follow the guides in the next sections, you need to populate the 
     "dev": {
     },
     "third_party": {
-        "service/valory/hello_world/0.1.0": "bafybeieoqhbwqmg5oiqgkxf6dlizncjvaermwtun4aijqcbyc6ulfl7o4q",
-        "agent/valory/hello_world/0.1.0": "bafybeibwluqq2yywd3stax2kuiqnv4zxxu3rprfkbn7f7e6sf2gelpkdqa",
         "connection/valory/abci/0.1.0": "bafybeih6ei7q3vdsj57nb3f6dirccorj7izrxccjzys3seirzoalsj2fwq",
         "connection/valory/http_client/0.23.0": "bafybeifgeqgryx6b3s6eseyzyezygmeitcpt3tkor2eiycozoi6clgdrny",
         "connection/valory/ipfs/0.1.0": "bafybeiaddby5hxegt2fk772fzn34zpwndyfk45rc3jqtblhtr2tbzcicua",
@@ -123,7 +121,6 @@ If you plan to follow the guides in the next sections, you need to populate the 
         "protocol/valory/tendermint/0.1.0": "bafybeig6g6twajlwssfbfp5rlnu5mwzuu5kgak5cs4fich7rlkx6whesnu",
         "skill/valory/abstract_abci/0.1.0": "bafybeidek3doh6cs3qw3hzgnqw65st2g5vhx5bgkdztyrer45wewttagui",
         "skill/valory/abstract_round_abci/0.1.0": "bafybeiavfdmszwpotgdw5wd2imxcwsigygczvttxk5onswt72ipbdyjp3q",
-        "skill/valory/hello_world_abci/0.1.0": "bafybeideckfxmkvdnjfvfgbcit6x4gxxwtbalttyxfslh22czxsb7zkstm",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihge56dn3xep2dzomu7rtvbgo4uc2qqh7ljl3fubqdi2lq44gs5lq"
     }
 }
