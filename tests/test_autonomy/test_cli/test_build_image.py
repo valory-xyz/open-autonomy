@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test build image."""
-import json
+
 import os
 from pathlib import Path
 from random import choices
@@ -34,7 +34,7 @@ from aea.helpers.io import open_file
 from autonomy.configurations.base import Service
 from autonomy.constants import DEFAULT_DOCKER_IMAGE_AUTHOR
 
-from tests.conftest import get_file_from_tag, skip_docker_tests
+from tests.conftest import skip_docker_tests
 from tests.test_autonomy.base import get_dummy_service_config
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
@@ -59,8 +59,8 @@ class TestBuildImage(BaseCliTest):
             public_id=PublicId(author="valory", name="test_abci", version="0.1.0"),
         )
 
-        packages_json = json.loads(get_file_from_tag("packages/packages.json"))
-        package_hash = packages_json["dev"][self.package_id.to_uri_path]
+        # TODO: Revert after release
+        package_hash = "bafybeibe6kgnwkuhcydk5gr3wvsybdlc7gfuzt2ia24czudsvxlbmdlrwe"
         self.package_id = self.package_id.with_hash(package_hash=package_hash)
 
         os.chdir(self.t)
