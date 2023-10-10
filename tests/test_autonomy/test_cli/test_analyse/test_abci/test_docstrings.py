@@ -28,7 +28,9 @@ from autonomy.analyse.abci.docstrings import (
     docstring_abci_app,
 )
 
-from packages.valory.skills.reset_pause.rounds import ResetPauseAbciApp  # type: ignore
+from packages.valory.skills.reset_pause_abci.rounds import (
+    ResetPauseAbciApp,  # type: ignore
+)
 
 
 def test_docstring_abci_app() -> None:
@@ -74,7 +76,7 @@ def test_compare_docstring_content() -> None:
     assert result == (True, file_content)
 
     # mutated - update
-    mutated_content = file_content.replace("Initial round: RegistrationRound", "")
+    mutated_content = file_content.replace("Initial round: ResetAndPauseRound", "")
     assert not mutated_content == file_content
     result = compare_docstring_content(mutated_content, docstring, abci_app_name)
     assert result == (True, file_content)
