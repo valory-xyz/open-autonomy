@@ -19,8 +19,9 @@
 
 """On-chain interaction helpers."""
 
+import binascii
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple, Type, cast
 
 import click
 from aea.configurations.base import PackageConfiguration
@@ -91,14 +92,6 @@ try:
 except ImportError:  # pragma: nocover
     ETHEREUM_PLUGIN_INSTALLED = False
 
-try:
-    from aea_ledger_ethereum_hwi.exceptions import HWIError
-    from aea_ledger_ethereum_hwi.hwi import EthereumHWIApi
-
-    HWI_PLUGIN_INSTALLED = True
-except ImportError:  # pragma: nocover
-    HWI_PLUGIN_INSTALLED = False
-
 
 class OnChainHelper:  # pylint: disable=too-few-public-methods
     """On-chain interaction helper."""
@@ -125,7 +118,47 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
         )
 
     @staticmethod
+    def load_hwi_plugin() -> Type[LedgerApi]:  # pragma: nocover
+        """Load HWI Plugin."""
+        try:
+            from aea_ledger_ethereum_hwi.hwi import (  # pylint: disable=import-outside-toplevel
+                EthereumHWIApi,
+            )
+
+            return EthereumHWIApi
+        except ImportError as e:
+            raise click.ClickException(
+                "Hardware wallet plugin not installed, "
+                "Run `pip3 install open-aea-ledger-ethereum-hwi` to install the plugin"
+            ) from e
+        except TypeError as e:
+            raise click.ClickException(
+                'Protobuf compatibility error; Please export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION="python" '
+                "to use the hardware wallet without any issues"
+            ) from e
+
+    @staticmethod
+    def load_crypto(
+        file: Path,
+        password: Optional[str] = None,
+    ) -> Crypto:
+        """Load crypto object."""
+        try:
+            return EthereumCrypto(
+                private_key_path=file,
+                password=password,
+            )
+        except (binascii.Error, ValueError) as e:
+            raise click.ClickException(
+                "Cannot load private key for following possible reasons\n"
+                "- Wrong key format\n"
+                "- Wrong key length\n"
+                "- Trailing spaces or new line characters"
+            ) from e
+
+    @classmethod
     def get_ledger_and_crypto_objects(
+        cls,
         chain_type: ChainType,
         key: Optional[Path] = None,
         password: Optional[str] = None,
@@ -142,13 +175,8 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
                 f"using `{ChainConfigs.get_rpc_env_var(chain_type)}` environment variable"
             )
 
-        if hwi and not HWI_PLUGIN_INSTALLED:  # pragma: nocover
-            raise click.ClickException(
-                "Hardware wallet plugin not installed, "
-                "Run `pip3 install open-aea-ledger-ethereum-hwi` to install the plugin"
-            )
-
         if hwi:
+            EthereumHWIApi = cls.load_hwi_plugin()
             identifier = EthereumHWIApi.identifier
 
         if not hwi and not ETHEREUM_PLUGIN_INSTALLED:  # pragma: nocover
@@ -160,8 +188,8 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
         if key is None:
             crypto = crypto_registry.make(identifier)
         else:
-            crypto = EthereumCrypto(
-                private_key_path=key,
+            crypto = cls.load_crypto(
+                file=key,
                 password=password,
             )
 
@@ -186,8 +214,8 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
 
         try:
             ledger_api.api.eth.default_account = crypto.address
-        except HWIError as e:  # pragma: nocover
-            raise click.ClickException(e.message)
+        except Exception as e:  # pragma: nocover
+            raise click.ClickException(str(e))
 
         return ledger_api, crypto
 
@@ -745,7 +773,7 @@ class ServiceHelper(OnChainHelper):
     def deploy_service(
         self,
         reuse_multisig: bool = False,
-        deployment_payload: Optional[str] = None,
+        fallback_handler: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> None:
         """Deploy a service with registration activated"""
@@ -767,7 +795,7 @@ class ServiceHelper(OnChainHelper):
                 chain_type=self.chain_type,
                 service_id=self.service_id,
                 reuse_multisig=reuse_multisig,
-                deployment_payload=deployment_payload,
+                fallback_handler=fallback_handler,
                 timeout=timeout,
             )
         except ServiceDeployFailed as e:

@@ -23,11 +23,11 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeih2fyfb6kkf7r45pvdk7pyyebr5xloia4xiqxtb3qsrasnstqmepq
-- valory/registration_abci:0.1.0:bafybeibndt6vxiwc2edgtaxpjbhwto3eyu33ujz3zmvtygvo2qz7xme5li
-- valory/offend_abci:0.1.0:bafybeicy2tdc6zskxyemn7hyyz5w6tljixkvjcygez5i7ieou4rntjghgy
-- valory/slashing_abci:0.1.0:bafybeieibak5jf7zlpsp7v27nucrugaad3v5nsowkpj3ufvqtwagov66i4
-- valory/reset_pause_abci:0.1.0:bafybeigeoc363gv3wp2rrmk6p2fdxney33nxd3owtpfugzapgruwe4klyu
+- valory/abstract_round_abci:0.1.0:bafybeiavfdmszwpotgdw5wd2imxcwsigygczvttxk5onswt72ipbdyjp3q
+- valory/offend_abci:0.1.0:bafybeicawxz5lvz3jjwyv772bwz44dqu333hb24r4e24fophrvq4bj3gw4
+- valory/registration_abci:0.1.0:bafybeifco5irvmx5kf76yiubaa42qkdx5kfph763vszwtwnqq2tqsic6wm
+- valory/reset_pause_abci:0.1.0:bafybeiakssljjjlv4767hhsj6jzsy3bjyvp3xkgvugazfytjkygeuoedfi
+- valory/slashing_abci:0.1.0:bafybeihpvmyzw2lbifvenn7r3qvh46njokrnji4gck4vfak6s7zhe3scqq
 behaviours:
   main:
     args: {}
@@ -73,6 +73,7 @@ models:
     class_name: LedgerApiDialogues
   params:
     args:
+      blacklisted: false
       cleanup_history_depth: 1
       cleanup_history_depth_current: null
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
@@ -96,11 +97,16 @@ models:
         voting_power: '10'
       history_check_timeout: 1205
       init_fallback_gas: 0
+      invalid_payload: false
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
+      light_slash_unit_amount: 5000000000000000
       max_attempts: 10
       max_healthcheck: 120
       multisend_address: null
+      num_double_signed: 0
+      num_light_client_attack: 0
+      num_unknown: 0
       on_chain_service_id: null
       request_retry_delay: 1.0
       request_timeout: 10.0
@@ -109,6 +115,7 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 15.0
+      serious_slash_unit_amount: 8000000000000000
       service_id: register_termination_abci
       service_registry_address: null
       setup:
@@ -117,7 +124,10 @@ models:
         safe_contract_address: '0x77b783e911F4398D75908Cc60C7138Bd1eFe35Fd'
         consensus_threshold: null
       share_tm_config_on_startup: false
+      slash_cooldown_hours: 3
+      slash_threshold_amount: 10000000000000000
       sleep_time: 1
+      suspected: false
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
@@ -125,20 +135,10 @@ models:
       tendermint_url: http://localhost:26657
       termination_sleep: 900
       tx_timeout: 10.0
-      use_termination: false
       use_slashing: true
-      slash_cooldown_hours: 3
-      slash_threshold_amount: 10000000000000000
-      light_slash_unit_amount: 5000000000000000
-      serious_slash_unit_amount: 8000000000000000
+      use_termination: false
       validate_timeout: 1205
       validator_downtime: false
-      invalid_payload: false
-      blacklisted: false
-      suspected: false
-      num_unknown: 0
-      num_double_signed: 0
-      num_light_client_attack: 0
     class_name: Params
   randomness_api:
     args:

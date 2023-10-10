@@ -110,8 +110,8 @@ jobs:
         pip install tomte[tox]==0.2.13
         pip install --user --upgrade setuptools
         # install Protobuf compiler
-        wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-        unzip protoc-3.19.4-linux-x86_64.zip -d protoc
+        wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-linux-x86_64.zip
+        unzip protoc-24.3-linux-x86_64.zip -d protoc
         sudo mv protoc/bin/protoc /usr/local/bin/protoc
         # install IPFS
         sudo apt-get install -y wget
@@ -204,8 +204,8 @@ jobs:
           pip install --user --upgrade setuptools
 
           # install Protobuf compiler
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-          unzip protoc-3.19.4-linux-x86_64.zip -d protoc
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-linux-x86_64.zip
+          unzip protoc-24.3-linux-x86_64.zip -d protoc
           sudo mv protoc/bin/protoc /usr/local/bin/protoc
 
           # install IPFS
@@ -258,8 +258,8 @@ jobs:
           brew install gcc
           # brew install protobuf
           # brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/72457f0166d5619a83f508f2345b22d0617b5021/Formula/protobuf.rb
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-osx-x86_64.zip
-          unzip protoc-3.19.4-osx-x86_64.zip -d protoc
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-osx-x86_64.zip
+          unzip protoc-24.3-osx-x86_64.zip -d protoc
           sudo mv protoc/bin/protoc /usr/local/bin/protoc
           brew tap yoheimuta/protolint
           brew install protolint
@@ -302,14 +302,14 @@ jobs:
           python -m pip install -U pip
           echo "::add-path::C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64"
           choco install wget -y
-          choco install protoc --version 3.19.4
+          choco install protoc --version 24.3
           choco install mingw -y
           choco install make -y
           # to check make was installed
           make --version
           pip install tomte[tox]==0.2.13
-          # wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-win64.zip
-          # unzip protoc-3.19.4-win64.zip -d protoc
+          # wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-win64.zip
+          # unzip protoc-24.3-win64.zip -d protoc
           # sudo mv protoc/bin/protoc /usr/local/bin/protoc
 
           # TODO: install protolint
@@ -386,8 +386,8 @@ jobs:
           pip install --user --upgrade setuptools
 
           # install Protobuf compiler
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-          unzip protoc-3.19.4-linux-x86_64.zip -d protoc
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-linux-x86_64.zip
+          unzip protoc-24.3-linux-x86_64.zip -d protoc
           sudo mv protoc/bin/protoc /usr/local/bin/protoc
 
           # install IPFS

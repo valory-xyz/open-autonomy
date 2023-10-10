@@ -19,12 +19,13 @@
 
 """Test chain helpers."""
 
+import tempfile
+from pathlib import Path
 from unittest import mock
 
 import click
 import pytest
 from aea.configurations.data_types import PackageType
-from aea_ledger_ethereum_hwi.hwi import EthereumHWIApi, EthereumHWICrypto
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 
 from autonomy.chain.base import ServiceState
@@ -354,8 +355,10 @@ def test_unbond_service_contract_failure() -> None:
             ).unbond_service()
 
 
+@pytest.mark.skip(reason="https://github.com/valory-xyz/open-aea/issues/671")
 def test_get_ledger_and_crypto_objects() -> None:
     """Test `get_ledger_and_crypto_objects` for hardware wallet support"""
+    from aea_ledger_ethereum_hwi.hwi import EthereumHWIApi, EthereumHWICrypto
 
     with mock.patch.object(EthereumHWICrypto, "entity"):
         ledger_api, crypto = OnChainHelper.get_ledger_and_crypto_objects(
@@ -462,3 +465,27 @@ def test_mint_with_token_on_custom_chain() -> None:
             threshold=1,
             token="0x",
         )
+
+
+@pytest.mark.parametrize(
+    argnames="key",
+    argvalues=(
+        "0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e\n",
+        "df57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656",
+        "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0",
+    ),
+)
+def test_wrong_private_key_format(key: str) -> None:
+    """Test an error is raised if the private key format is wrong."""
+    with tempfile.TemporaryDirectory() as temp_dir, pytest.raises(
+        click.ClickException,
+        match=(
+            "Cannot load private key for following possible reasons\n"
+            "- Wrong key format\n"
+            "- Wrong key length\n"
+            "- Trailing spaces or new line characters"
+        ),
+    ):
+        file = Path(temp_dir, "key.txt")
+        file.write_text(key)
+        OnChainHelper.load_crypto(file=file)

@@ -674,8 +674,8 @@ class TestEnvVarValidation(BaseAnalyseServiceTest):
 
         assert result.exit_code == 1, result.stdout
         assert (
-            "(skill, valory/abci_skill:0.1.0) envrionment variable validation failed with following error"
-            "\n\t- `models.params.args.message` needs to be defined as a environment variable"
+            "(skill, valory/abci_skill:0.1.0) envrionment variable validation failed with following error\n\t- "
+            "`models.params.args.message` needs environment variable defined in following format ${ENV_VAR_NAME:DATA_TYPE:DEFAULT_VALUE}\n"
             in result.stderr
         ), result.stdout
 
@@ -855,7 +855,7 @@ class TestCheckOnChainState(BaseAnalyseServiceTest):
 class TestCheckSuccessful(BaseAnalyseServiceTest):
     """Test a successful check"""
 
-    def test_run(self) -> None:
+    def test_run(self, caplog: Any) -> None:
         """Test run."""
 
         skill_config = get_dummy_overrides_skill(env_vars_with_name=True)
@@ -900,8 +900,14 @@ class TestCheckSuccessful(BaseAnalyseServiceTest):
         ), self.patch_get_on_chain_service_id(), mock.patch(
             "autonomy.analyse.service.get_service_info",
             return_value=(None, 4, None),
+        ), caplog.at_level(
+            logging.WARNING
         ):
             result = self.run_cli(commands=self.token_id_option)
 
         assert result.exit_code == 0, result.stderr
         assert "Service is ready to be deployed" in result.output
+        assert (
+            "valory/termination_abci:any is not defined as a dependency" in caplog.text
+        )
+        assert "valory/slashing_abci:any is not defined as a dependency" in caplog.text
