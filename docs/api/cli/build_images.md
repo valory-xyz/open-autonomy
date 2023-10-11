@@ -20,6 +20,14 @@ Build images.
     type=click.Path(dir_okay=True),
     help="Path to service dir.",
 )
+@click.option(
+    "-e",
+    "--extra-dependency",
+    "extra_dependencies",
+    type=PyPiDependency(),
+    help="Provide extra dependency.",
+    multiple=True,
+)
 @click.option("--version", type=str, help="Specify tag version for the image.")
 @click.option("--dev",
               is_flag=True,
@@ -32,6 +40,7 @@ Build images.
 @image_author_option
 def build_image(agent: Optional[PublicId],
                 service_dir: Optional[Path],
+                extra_dependencies: Tuple[Dependency, ...],
                 pull: bool = False,
                 dev: bool = False,
                 version: Optional[str] = None,

@@ -34,7 +34,7 @@ from aea.helpers.env_vars import apply_env_variables
 from aea.helpers.io import open_file
 from aea.helpers.yaml_utils import yaml_load_all
 
-from autonomy.configurations.base import Service
+from autonomy.configurations.base import Service, load_dependencies
 
 
 COMPONENT_CONFIGS: Dict = {
@@ -74,10 +74,24 @@ def load_service_config(
     service_config = apply_env_variables(
         service_config, env_variables=os.environ.copy()
     )
+
+    if "dependencies" in service_config:
+        dependencies = load_dependencies(
+            dependencies=service_config.pop("dependencies")
+        )
+    else:
+        dependencies = {}
+        warn(
+            "`dependencies` parameter not defined in the service",
+            FutureWarning,
+            stacklevel=2,
+        )
+        print("WARNING: `dependencies` parameter not defined in the service")
+
     Service.validate_config_data(service_config)
     service_config["license_"] = service_config.pop("license")
 
-    service = Service(**service_config)
+    service = Service(**service_config, dependencies=dependencies)
     service.overrides = overrides
 
     return service
