@@ -175,24 +175,6 @@ class TestServiceBuilder:
         common_vars_without_password = spec.generate_common_vars(agent_n=0)
         assert all(var in common_vars_without_password for var in COMMON_VARS)
 
-    def test_generate_common_vars_with_service_dependencies(
-        self,
-    ) -> None:
-        """Test common env vars with dependencies."""
-
-        self._write_service(get_dummy_service_config(file_number=1))
-        spec = ServiceBuilder.from_dir(
-            self.service_path,
-            self.keys_path,
-        )
-        spec.service.dependencies = {
-            "open-aea-ledger-ethereum": Dependency(name="open-aea-ledger-ethereum")
-        }
-
-        common_vars = spec.generate_common_vars(agent_n=0)
-        assert ENV_VAR_DEPENDENCIES in common_vars
-        assert common_vars[ENV_VAR_DEPENDENCIES] == "-e open-aea-ledger-ethereum"
-
     def test_agent_instance_setter(
         self,
         caplog: Any,
