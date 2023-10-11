@@ -28,6 +28,7 @@ from requests import get as r_get
 from requests.exceptions import ConnectionError as RequestConnectionError
 
 from autonomy.chain.base import registry_contracts
+from autonomy.chain.constants import SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS
 from autonomy.chain.exceptions import DependencyError, FailedToRetrieveComponentMetadata
 from autonomy.chain.metadata import IPFS_URI_PREFIX
 from autonomy.configurations.base import Service
@@ -182,3 +183,8 @@ def verify_service_dependencies(
         raise DependencyError(
             f"Package hash does not match for the on chain package and the local package; Dependency={agent}"
         )
+
+
+def is_service_manager_token_compatible_chain(ledger_api: LedgerApi) -> bool:
+    """Verify package dependencies using on-chain metadata."""
+    return ledger_api.api.eth.chain_id in SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS

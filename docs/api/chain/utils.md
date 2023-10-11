@@ -66,3 +66,13 @@ def verify_service_dependencies(ledger_api: LedgerApi,
 
 Verify package dependencies using on-chain metadata.
 
+<a id="autonomy.chain.utils.is_service_manager_token_compatible_chain"></a>
+
+#### is`_`service`_`manager`_`token`_`compatible`_`chain
+
+```python
+def is_service_manager_token_compatible_chain(ledger_api: LedgerApi) -> bool
+```
+
+Verify package dependencies using on-chain metadata.
+
