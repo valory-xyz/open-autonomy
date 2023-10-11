@@ -12,7 +12,7 @@ This command verifies that the [`AbciApp` class](../../key_concepts/abci_app_cla
 
 ??? example
 
-    The docstring corresponding to the [Hello World agent service](../../demos/hello_world_demo.md) is
+    The docstring corresponding to the [Hello World agent service](https://docs.autonolas.network/demos/hello-world/) is
 
 
     ```python
@@ -23,20 +23,20 @@ This command verifies that the [`AbciApp` class](../../key_concepts/abci_app_cla
     Initial states: {RegistrationRound}
 
     Transition states:
-        0. RegistrationRound
+        1. RegistrationRound
             - done: 1.
-        1. CollectRandomnessRound
+        2. CollectRandomnessRound
             - done: 2.
             - no majority: 1.
             - round timeout: 1.
-        2. SelectKeeperRound
+        3. SelectKeeperRound
             - done: 3.
             - no majority: 0.
             - round timeout: 0.
-        3. PrintMessageRound
+        4. PrintMessageRound
             - done: 4.
             - round timeout: 0.
-        4. ResetAndPauseRound
+        5. ResetAndPauseRound
             - done: 1.
             - no majority: 0.
             - reset timeout: 0.
