@@ -51,9 +51,6 @@
     },
     "deployment": {
       "type": "object"
-    },
-    "dependencies": {
-      "type": "object"
     }
   }
 }

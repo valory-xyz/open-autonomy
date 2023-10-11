@@ -110,7 +110,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         build_entrypoint: Optional[str] = None,
         overrides: Optional[List] = None,
         deployment: Optional[Dict] = None,
-        dependencies: Optional[Dict] = None,
+        dependencies: Optional[Dependencies] = None,
     ) -> None:
         """Initialise object."""
 
@@ -129,7 +129,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         self.description = description
         self.number_of_agents = number_of_agents
         self.deployment_config = deployment or {}
-        self.dependencies = load_dependencies(dependencies=dependencies or {})
+        self.dependencies = dependencies or {}
 
         self._overrides = [] if overrides is None else overrides
 
