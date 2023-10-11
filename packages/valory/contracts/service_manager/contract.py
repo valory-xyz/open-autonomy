@@ -38,6 +38,7 @@ SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS = (
     5,
     31337,
     100,
+    10200,
 )
 SERVICE_MANAGER_BUILD = "ServiceManager.json"
 _logger = logging.getLogger(
@@ -79,7 +80,7 @@ class ServiceManagerContract(Contract):
 
     @staticmethod
     def is_service_manager_token_compatible_chain(ledger_api: LedgerApi) -> bool:
-        """Check if we're interecting with an L1 chain"""
+        """Check if we're interacting with a ServiceManagerToken compatible chain"""
         return ledger_api.api.eth.chain_id in SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS
 
     @classmethod

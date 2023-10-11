@@ -9,7 +9,7 @@ fingerprint:
   __init__.py: bafybeiao4aiyvkvg75zfi2nf34hidx2uzcbqibc2bukyutisg5zhxskhlq
   build/ServiceManager.json: bafybeiefm53534jhy5tfjgcmx4rbjrcn6tzbghw4ptggh5or6vuohdgau4
   build/ServiceManagerToken.json: bafybeidjyr2wqsiorb3u5pnfiqkzff5rgewbr5kgawev2zlah4i4f6fcom
-  contract.py: bafybeiab66zz5rehtfauht3pkjk7xewstyhnatyetl6eu5w5q7vxsd6it4
+  contract.py: bafybeifskgjmkkhl64ce7v3nqayp6aglngipyoiecjh7ncduuzptyhgs64
   tests/__init__.py: bafybeifehip3omosjvpq3uqvxomtgrmqjoqdttyzhvu2qysybjf6btwkpi
   tests/test_contract.py: bafybeicqdkxo3aygm6ljjpvk6fdstelbuotxayvxwgeirqiiooclab5m34
 fingerprint_ignore_patterns: []
