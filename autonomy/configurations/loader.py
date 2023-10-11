@@ -19,12 +19,10 @@
 
 """Service component base."""
 
-import logging
 import os
 from pathlib import Path
 from typing import Dict
 from warnings import warn
-import warnings
 
 from aea.configurations.base import (
     ConnectionConfig,
