@@ -907,4 +907,7 @@ class TestCheckSuccessful(BaseAnalyseServiceTest):
 
         assert result.exit_code == 0, result.stderr
         assert "Service is ready to be deployed" in result.output
-        assert "Termination skill is not defined as a dependency" in caplog.text
+        assert (
+            "valory/termination_abci:any is not defined as a dependency" in caplog.text
+        )
+        assert "valory/slashing_abci:any is not defined as a dependency" in caplog.text
