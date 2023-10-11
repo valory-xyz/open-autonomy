@@ -73,15 +73,15 @@ class BaseDeployBuildTest(BaseCliTest):
         )
 
         shutil.copytree(
-            self.t / PACKAGES / "valory" / "services" / "hello_world",
-            self.t / "hello_world",
+            self.t / PACKAGES / "valory" / "services" / "register_reset",
+            self.t / "register_reset",
         )
         with OS_ENV_PATCH:
             self.spec = ServiceBuilder.from_dir(
-                self.t / "hello_world",
+                self.t / "register_reset",
                 self.keys_file,
             )
-        os.chdir(self.t / "hello_world")
+        os.chdir(self.t / "register_reset")
 
     @staticmethod
     def load_kubernetes_config(
@@ -192,7 +192,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
             )
 
         assert result.exit_code == 0, result.output
-        assert (build_dir / "nodes").exists()
+        assert (build_dir / "nodes").exists(), result.stderr
 
     def test_docker_compose_build_log_level(
         self,
@@ -736,7 +736,7 @@ class TestExposePorts(BaseDeployBuildTest):
 
         with OS_ENV_PATCH:
             self.spec = ServiceBuilder.from_dir(
-                self.t / "hello_world",
+                self.t / "register_reset",
                 self.keys_file,
             )
 
@@ -812,7 +812,7 @@ class TestLoadEnvVars(BaseDeployBuildTest):
             yaml.dump_all(service_data, fp)
         with OS_ENV_PATCH:
             self.spec = ServiceBuilder.from_dir(
-                self.t / "hello_world",
+                self.t / "register_reset",
                 self.keys_file,
             )
 
@@ -849,7 +849,7 @@ class TestLoadEnvVars(BaseDeployBuildTest):
     def test_load_dot_env(self) -> None:
         """Test load `.env` file"""
 
-        (self.t / "hello_world" / DEFAULT_ENV_DOTFILE).write_text(
+        (self.t / "register_reset" / DEFAULT_ENV_DOTFILE).write_text(
             f"{self.env_var}={self.env_var_value}"
         )
         self._run_test()
@@ -858,7 +858,7 @@ class TestLoadEnvVars(BaseDeployBuildTest):
         """Test load `.json` file"""
 
         env_var_value = "ENV_VAR_VALUE"
-        env_file = self.t / "hello_world" / "env.json"
+        env_file = self.t / "register_reset" / "env.json"
         env_file.write_text(json.dumps({self.env_var: env_var_value}))
         self.cli_options = ("deploy", "--env-file", str(env_file.resolve()), "build")
 

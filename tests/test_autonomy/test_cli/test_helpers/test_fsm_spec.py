@@ -39,7 +39,7 @@ from autonomy.cli.helpers.fsm_spec import (
 )
 
 import packages
-from packages.valory.skills import hello_world_abci, test_abci
+from packages.valory.skills import offend_abci, test_abci
 
 from tests.conftest import ROOT_DIR
 
@@ -72,7 +72,7 @@ def test_import_and_validate_app_class_raises() -> None:
 def test_update_one() -> None:
     """Test update_one"""
 
-    package_path = Path(hello_world_abci.__file__).parent.relative_to(ROOT_DIR)
+    package_path = Path(offend_abci.__file__).parent.relative_to(ROOT_DIR)
     with mock.patch.object(FSMSpecificationLoader, "dump") as m:
         update_one(package_path)
         m.assert_called_once()
@@ -86,7 +86,7 @@ def test_update_one_raises() -> None:
     with pytest.raises(ClickException, match=expected):
         update_one(package_path)
 
-    package_path = Path(hello_world_abci.__file__).parent.relative_to(ROOT_DIR)
+    package_path = Path(offend_abci.__file__).parent.relative_to(ROOT_DIR)
     expected = "Please provide name for the app class or make sure FSM specification file is properly defined."
     with mock.patch.object(FSMSpecificationLoader, "load", return_value={}):
         with pytest.raises(ValueError, match=expected):
@@ -96,29 +96,27 @@ def test_update_one_raises() -> None:
 def test_check_one() -> None:
     """Test check_one"""
 
-    package_path = Path(hello_world_abci.__file__).parent.relative_to(ROOT_DIR)
+    package_path = Path(offend_abci.__file__).parent.relative_to(ROOT_DIR)
     check_one(package_path)
 
 
 def test_check_one_raises() -> None:
     """Test check_one raises"""
 
-    package_path = Path(hello_world_abci.__file__).parent.relative_to(ROOT_DIR)
+    package_path = Path(offend_abci.__file__).parent.relative_to(ROOT_DIR)
 
     expected = "Please provide name for the app class or make sure FSM specification file is properly defined."
     with mock.patch.object(FSMSpecificationLoader, "load", return_value={}):
         with pytest.raises(ValueError, match=expected):
             update_one(package_path)
 
-    expected = 'Class .* is not in "packages.valory.skills.hello_world_abci.rounds"'
+    expected = 'Class .* is not in "packages.valory.skills.offend_abci.rounds"'
     with pytest.raises(ClickException, match=expected):
         check_one(package_path, app_class="DummyAbciApp")
 
     target = "autonomy.cli.helpers.fsm_spec.check_unreferenced_events"
     with mock.patch(target, return_value=["Event.WIN_LOTTERY"]):
-        expected = (
-            "Unreferenced events found in `HelloWorldAbciApp`\n- Event.WIN_LOTTERY"
-        )
+        expected = "Unreferenced events found in `OffendAbciApp`\n- Event.WIN_LOTTERY"
         with pytest.raises(DFASpecificationError, match=expected):
             check_one(package_path)
 

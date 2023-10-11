@@ -28,6 +28,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import requests
 import yaml
 from aea.cli.packages import get_package_manager
 from aea.configurations.data_types import PackageId
@@ -73,10 +74,40 @@ def get_packages() -> Dict[str, str]:
     return data
 
 
+def get_packages_from_repository(repo_url: str) -> Dict[str, str]:
+    """Retrieve packages.json from the latest release from a repository."""
+    repo_url = repo_url.strip("/").replace("https://github.com/", "")
+    repo_api_url = f"https://api.github.com/repos/{repo_url}/releases/latest"
+    response = requests.get(repo_api_url)
+
+    if response.status_code == 200:
+        repo_info = response.json()
+        latest_release_tag = repo_info["tag_name"]
+        url = f"https://raw.githubusercontent.com/{repo_url}/{latest_release_tag}/packages/packages.json"
+    else:
+        raise Exception(
+            f"Failed to fetch repository information from GitHub API for: {repo_url}"
+        )
+
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        if "dev" in data:
+            return {**data["dev"], **data["third_party"]}
+        return data
+
+    raise Exception(f"Failed to fetch data from URL: {url}")
+
+
 class Package:  # pylint: disable=too-few-public-methods
     """Class that represents a package in packages.json"""
 
-    def __init__(self, package_id_str: str, package_hash: str) -> None:
+    def __init__(
+        self,
+        package_id_str: str,
+        package_hash: str,
+        ignore_file_load_errors: bool = False,
+    ) -> None:
         """Constructor"""
 
         self.package_id = PackageId.from_uri_path(package_id_str)
@@ -84,6 +115,7 @@ class Package:  # pylint: disable=too-few-public-methods
         self.type = self.package_id.package_type.to_plural()
         self.name = self.package_id.name
         self.hash = package_hash
+        self.ignore_file_load_errors = ignore_file_load_errors
 
         if self.name == "scaffold":
             return
@@ -110,12 +142,18 @@ class Package:  # pylint: disable=too-few-public-methods
             self.name,
             f"{'aea-config' if self.type == 'agent' else self.type}.yaml",
         )
-        with open(yaml_file_path, "r", encoding="utf-8") as file:
-            content = yaml.load_all(file, Loader=yaml.FullLoader)
-            for resource in content:
-                if "version" in resource:
-                    self.last_version = resource["version"]
-                    break
+
+        try:
+            with open(yaml_file_path, "r", encoding="utf-8") as file:
+                content = yaml.load_all(file, Loader=yaml.FullLoader)
+                for resource in content:
+                    if "version" in resource:
+                        self.last_version = resource["version"]
+                        break
+        except Exception:  # pylint: disable=broad-except
+            if not self.ignore_file_load_errors:
+                raise
+            self.last_version = self.package_id.version
 
     def get_command(
         self, cmd: str, include_version: bool = True, flags: str = ""
@@ -141,6 +179,17 @@ class PackageHashManager:
         """Constructor"""
         packages = get_packages()
         self.packages = [Package(key, value) for key, value in packages.items()]
+
+        package_json_urls = [
+            "https://github.com/valory-xyz/hello-world",
+        ]
+
+        for url in package_json_urls:
+            packages_from_url = get_packages_from_repository(url)
+            packages.update(packages_from_url)
+            self.packages.extend(
+                [Package(key, value, True) for key, value in packages_from_url.items()]
+            )
 
         self.package_tree: Dict = {}
         for p in self.packages:

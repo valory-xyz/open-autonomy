@@ -27,7 +27,7 @@ from unittest import mock
 
 from aea.configurations.constants import PACKAGES
 
-from packages.valory.skills.hello_world_abci import rounds
+from packages.valory.skills.offend_abci import rounds
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
@@ -38,7 +38,7 @@ class TestDocstrings(BaseCliTest):
 
     rounds_file_original: Path
     rounds_file_temp: Path
-    skill_name: str = "hello_world_abci"
+    skill_name: str = "offend_abci"
     cli_options: Tuple[str, ...] = ("analyse", "docstrings")
     rounds_file = Path(PACKAGES, "valory", "skills", skill_name, "rounds.py")
 
@@ -76,10 +76,7 @@ class TestDocstrings(BaseCliTest):
     ) -> None:
         """Corrupt a round file."""
 
-        string_to_replace = """4. ResetAndPauseRound
-            - done: 1.
-            - no majority: 0.
-            - reset timeout: 0.\n"""
+        string_to_replace = """1. FinishedOffendRound\n"""
 
         rounds_file_content = self.rounds_file_original.read_text()
         rounds_file_content = rounds_file_content.replace(string_to_replace, "")
