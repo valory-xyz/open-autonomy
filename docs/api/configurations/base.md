@@ -42,7 +42,7 @@ def __init__(name: SimpleIdOrStr,
              build_entrypoint: Optional[str] = None,
              overrides: Optional[List] = None,
              deployment: Optional[Dict] = None,
-             dependencies: Optional[Dict] = None) -> None
+             dependencies: Optional[Dependencies] = None) -> None
 ```
 
 Initialise object.

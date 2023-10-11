@@ -216,16 +216,6 @@ def generate_agents() -> List
 
 Generate multiple agent.
 
-<a id="autonomy.deploy.base.ServiceBuilder.generate_dependency_flag_var"></a>
-
-#### generate`_`dependency`_`flag`_`var
-
-```python
-def generate_dependency_flag_var() -> str
-```
-
-Generate dependency flag env var
-
 <a id="autonomy.deploy.base.ServiceBuilder.generate_common_vars"></a>
 
 #### generate`_`common`_`vars
