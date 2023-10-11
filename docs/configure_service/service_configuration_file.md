@@ -423,7 +423,7 @@ dependencies:
   pypi-package:
     version: ==1.0.0
   git-package:
-    git: https://github.com/author/git_package
+    git: https://github.com/valory-xyz/open-autonomy
     ref: 79342a93079648ef03ab5aaf14978068fc96587a
 ```
 
