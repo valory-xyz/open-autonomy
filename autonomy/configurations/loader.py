@@ -19,10 +19,12 @@
 
 """Service component base."""
 
+import logging
 import os
 from pathlib import Path
 from typing import Dict
 from warnings import warn
+import warnings
 
 from aea.configurations.base import (
     ConnectionConfig,
@@ -74,9 +76,22 @@ def load_service_config(
     service_config = apply_env_variables(
         service_config, env_variables=os.environ.copy()
     )
+
+    if "dependencies" in service_config:
+        dependencies = load_dependencies(
+            dependencies=service_config.pop("dependencies")
+        )
+    else:
+        dependencies = {}
+        warn(
+            "`dependencies` parameter not defined in the service",
+            FutureWarning,
+            stacklevel=2,
+        )
+        print("WARNING: `dependencies` parameter not defined in the service")
+
     Service.validate_config_data(service_config)
     service_config["license_"] = service_config.pop("license")
-    dependencies = load_dependencies(dependencies=service_config.pop("license", {}))
 
     service = Service(**service_config, dependencies=dependencies)
     service.overrides = overrides

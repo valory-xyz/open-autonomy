@@ -6,6 +6,11 @@ Below we describe the additional manual steps required to upgrade between differ
 # Open Autonomy
 
 
+## `v0.13.0` to `v0.13.1`
+
+- This release indroduces support for defining service level dependencies, which means you can define python dependencies at the service level which will take priority over the agent or component level dependencies. The `dependencies` parameter is currently optional to make the upgrading easier. But this will be required in the next release, so please update your services accordingly.
+
+
 ## `v0.12.1.post4` to `v0.13.0`
 
 - `open-aea-web3` has been replaced with `web3py`
