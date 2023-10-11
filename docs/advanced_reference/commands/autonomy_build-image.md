@@ -23,6 +23,10 @@ autonomy build-image [OPTIONS] [AGENT_PUBLIC_ID]
 `--service-dir PATH`
 :   Path to the service directory.
 
+`-e, --extra-dependency DEPENDENCY`
+
+:   Provide extra dependency.
+
 `--version TEXT`
 :   Version tag for the image.
 
@@ -84,3 +88,11 @@ autonomy build-image [OPTIONS] [AGENT_PUBLIC_ID]
     ```
 
     This will tag the image as `<author>/oar-<agent_package>:dev`.
+
+* Include extra python packages:
+
+    ```bash
+    autonomy build-image ... -e open-aea-ledger-flashbots==1.41.0
+    ```
+
+    This will tag the image as `<author>/oar-<agent_package>:<version>`.
