@@ -88,15 +88,15 @@ class TestTendermintRunner(BaseCliTest):
         """Setup."""
         super().setup()
         shutil.copytree(
-            self.packages_dir / "valory" / "services" / "hello_world",
-            self.t / "hello_world",
+            self.packages_dir / "valory" / "services" / "register_reset",
+            self.t / "register_reset",
         )
         os.chdir(self.t)
 
     def test_run(self) -> None:
         """Test run."""
 
-        os.chdir(self.t / "hello_world")
+        os.chdir(self.t / "register_reset")
         with OS_ENV_PATCH:
             result = self.cli_runner.invoke(
                 cli,
