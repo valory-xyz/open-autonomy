@@ -427,4 +427,4 @@ dependencies:
     ref: 79342a93079648ef03ab5aaf14978068fc96587a
 ```
 
-The depedencies defined at the service level will take priority over the dependencies defined at the agent or component level. This means, if you define some dependency `pypi-package==1.0.0` at the agent/component level and re-define it as `py-package==1.1.0` at the service level, `py-package==1.1.0` will get installed when building the agent image following the `service > agent > skill > connection > contract > protocol` priority order.
+The dependencies defined at the service level will take priority over the dependencies defined at the agent or component level. This means, if you define some dependency `pypi-package==1.0.0` at the agent/component level and re-define it as `py-package==1.1.0` at the service level, `py-package==1.1.0` will get installed when building the agent image following the `service > agent > skill > connection > contract > protocol` priority order.
