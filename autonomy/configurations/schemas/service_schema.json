@@ -14,8 +14,7 @@
     "fingerprint_ignore_patterns",
     "agent",
     "number_of_agents",
-    "deployment",
-    "dependencies"
+    "deployment"
   ],
   "properties": {
     "name": {
