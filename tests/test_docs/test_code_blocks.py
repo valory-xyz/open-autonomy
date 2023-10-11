@@ -160,12 +160,6 @@ class TestYamlSnippets(BaseTestDocCode):
     # instead of checking the code block as a whole.
 
     md_to_code = {
-        "docs/demos/price_oracle_fsms.md": {
-            "code_files": [
-                "packages/valory/skills/registration_abci/fsm_specification.yaml",
-            ],
-            "skip_blocks": [1, 2, 3, 4, 5],
-        },
         "docs/guides/deploy_service.md": {"skip_blocks": [0]},
         "docs/advanced_reference/developer_tooling/benchmarking.md": {
             "skip_blocks": [0]
