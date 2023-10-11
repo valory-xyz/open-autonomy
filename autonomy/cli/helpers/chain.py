@@ -661,6 +661,11 @@ class ServiceHelper(OnChainHelper):
             self.token_secured = False
             return self
 
+        if self.chain_type == ChainType.CUSTOM:
+            self.check_required_enviroment_variables(
+                configs=(ContractConfigs.service_registry_token_utility,)
+            )
+
         self.token = token
         self.token_secured = is_service_token_secured(
             ledger_api=self.ledger_api,
