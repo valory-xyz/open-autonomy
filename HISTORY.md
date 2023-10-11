@@ -4,6 +4,26 @@
 # 0.13.0 (2023-09-27)
 
 Autonomy:
+- Updates the on-chain tools to use service manager token contract for managing services on gnosis
+- Makes fallback handler address configurable when deploying a service
+- Updates the log parser to use `utf-8` encoding to avoid decoding issues on windows
+- Fixes the log parser multiline parsing
+- Fixes the deployment exits on windows
+- Updates error handling for invalid private keys
+- Fixes error messages for unreferenced events in the FSM check
+- Updates the environment variable validation to
+  - Validate data type
+  - Validate default value
+- Updates the service analyser to warn if the termination skill or the slashing skill is missing as a dependency
+- Adds support for service level dependencies
+
+Packages:
+- Moves the hypothesis imports to test modules to avoid import errors at runtime
+- Removes the hello world service
+
+# 0.13.0 (2023-09-27)
+
+Autonomy:
 - Replaces `open-aea-web3` with `web3py<7,>=6.0.0`
 - Bumps `protobuf<5.0.0,>=4.21.6`
 - Fixes `protobuf` incompatibility issue when importing hardware wallet plugin
