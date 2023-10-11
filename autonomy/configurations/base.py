@@ -35,7 +35,12 @@ from aea.configurations.base import (
     PACKAGE_TYPE_TO_CONFIG_CLASS as _PACKAGE_TYPE_TO_CONFIG_CLASS,
 )
 from aea.configurations.base import PackageConfiguration, ProtocolConfig, SkillConfig
-from aea.configurations.data_types import PackageType, PublicId
+from aea.configurations.data_types import (
+    Dependencies,
+    Dependency,
+    PackageType,
+    PublicId,
+)
 from aea.exceptions import AEAValidationError
 from aea.helpers.base import SimpleIdOrStr
 from aea.helpers.env_vars import apply_env_variables, generate_env_vars_recursively
@@ -53,6 +58,13 @@ COMPONENT_CONFIGS: Dict = {
         ConnectionConfig,
     ]
 }
+
+
+def load_dependencies(dependencies: Dict) -> Dependencies:
+    """Load dependencies."""
+    return {
+        name: Dependency.from_json({name: spec}) for name, spec in dependencies.items()
+    }
 
 
 class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attributes
@@ -75,6 +87,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         "agent",
         "number_of_agents",
         "description",
+        "dependencies",
         "deployment_config",
         "_aea_version",
         "_aea_version_specifiers",
@@ -97,6 +110,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         build_entrypoint: Optional[str] = None,
         overrides: Optional[List] = None,
         deployment: Optional[Dict] = None,
+        dependencies: Optional[Dependencies] = None,
     ) -> None:
         """Initialise object."""
 
@@ -115,6 +129,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         self.description = description
         self.number_of_agents = number_of_agents
         self.deployment_config = deployment or {}
+        self.dependencies = dependencies or {}
 
         self._overrides = [] if overrides is None else overrides
 

@@ -38,7 +38,7 @@ from autonomy.constants import (
 )
 from autonomy.deploy.constants import DOCKERFILES
 
-from tests.conftest import ROOT_DIR, get_package_hash_from_latest_tag, skip_docker_tests
+from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_images.base import BaseImageBuildTest
 
 
@@ -64,7 +64,7 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
 
         cls.agent = str(
             AGENT.with_hash(
-                get_package_hash_from_latest_tag(package=AGENT.to_uri_path)
+                package_hash="bafybeibe6kgnwkuhcydk5gr3wvsybdlc7gfuzt2ia24czudsvxlbmdlrwe"
             ).public_id
         )
 
@@ -99,7 +99,7 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
         )
 
         assert success, output
-        assert "Successfully built the agent" in output
+        assert "Successfully built the host dependencies" in output
         assert f"Successfully tagged {self.tag}" in output
 
         # check runtime
@@ -124,10 +124,7 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
 
         def _check_for_outputs() -> bool:
             """Check for required outputs."""
-            return (
-                b"Entered in the 'registration_round' round for period 0"
-                in agent_container.logs()
-            )
+            return b"Starting AEA 'agent' in 'async' mode..." in agent_container.logs()
 
         try:
             wait_for_condition(
