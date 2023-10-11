@@ -31,13 +31,11 @@ from unittest import mock
 
 import pytest
 import yaml
-from aea.configurations.data_types import Dependency
 
 from autonomy.deploy.base import (
     DEFAULT_ABCI_PORT,
     ENV_VAR_AEA_AGENT,
     ENV_VAR_AEA_PASSWORD,
-    ENV_VAR_DEPENDENCIES,
     ENV_VAR_ID,
     ENV_VAR_LOG_LEVEL,
     KUBERNETES_DEPLOYMENT,
