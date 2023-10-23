@@ -42,7 +42,8 @@ ADDRESSES_TO_CHECK = {
     "ServiceRegistryTokenUtility": "service_registry_token_utility",
     "ServiceManagerToken": "service_manager",
     "GnosisSafeMultisig": "gnosis_safe_proxy_factory",
-    "GnosisSafeSameAddressMultisig": "gnosis_safe_same_address_multisig",
+    # TODO: Enable after the proposal passes
+    # "GnosisSafeSameAddressMultisig": "gnosis_safe_same_address_multisig", # noqa: E800
 }
 
 
