@@ -29,13 +29,13 @@ Image build profiles.
 #### build`_`image
 
 ```python
-def build_image(
-        agent: PublicId,
-        pull: bool = False,
-        dev: bool = False,
-        version: Optional[str] = None,
-        image_author: Optional[str] = None,
-        extra_dependencies: Optional[Tuple[Dependency, ...]] = None) -> None
+def build_image(agent: PublicId,
+                pull: bool = False,
+                dev: bool = False,
+                version: Optional[str] = None,
+                image_author: Optional[str] = None,
+                extra_dependencies: Optional[Tuple[Dependency, ...]] = None,
+                dockerfile: Optional[Path] = None) -> None
 ```
 
 Command to build images from for skaffold deployment.
