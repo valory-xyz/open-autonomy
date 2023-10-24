@@ -40,7 +40,7 @@ autonomy build-image [OPTIONS] [AGENT_PUBLIC_ID]
 :   Pull the latest dependencies when building the image.
 
 `-f, --dockerfile FILE`
-:   Specify custom dockerfile for building the agent
+:   Specify custom `Dockerfile` for building the agent
 
 `--help`
 :   Show the help message and exit.

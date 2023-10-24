@@ -1,7 +1,12 @@
 # Release History - `open-autonomy`
 
 
-# 0.13.0 (2023-09-27)
+# 0.13.1.post1 (2023-10-24)
+
+Chore:
+- Bumps `open-aea@1.41.0.post1`
+
+# 0.13.1 (2023-10-11)
 
 Autonomy:
 - Updates the on-chain tools to use service manager token contract for managing services on gnosis
