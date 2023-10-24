@@ -62,11 +62,11 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeibtnfu6skrpducj2fzjzw7lrwj3et63xx6u5dryrabec26utzxsf4
 - valory/http_client:0.23.0:bafybeifgeqgryx6b3s6eseyzyezygmeitcpt3tkor2eiycozoi6clgdrny
-- valory/ipfs:0.1.0:bafybeigkn27u7m5atju6a724clycyfshbgcbwheztil2bky7krfa46ub2a
-- valory/ledger:0.19.0:bafybeigo5vst3zlltkouenwxuzn6c47yr2fbbml6dl2o32rfnsezmalgnu
+- valory/ipfs:0.1.0:bafybeigfmqvlzbp67fttccpl4hsu3zaztbxv6vd7ikzra2hfppfkalgpji
+- valory/ledger:0.19.0:bafybeigdckv3e6bz6kfloz4ucqrsufft6k4jp6bwkbbcvh4fxvgbmzq3dm
 - valory/p2p_libp2p_client:0.1.0:bafybeihge56dn3xep2dzomu7rtvbgo4uc2qqh7ljl3fubqdi2lq44gs5lq
 contracts:
-- valory/service_registry:0.1.0:bafybeiebuuhs7fmigfh4c5dvzt6rbm5ekwrcnz7zouyjey7yyyqmpa6dyu
+- valory/service_registry:0.1.0:bafybeifv5fhwo2bybpkzikyianpmicprqdcszrnefl5nlohykpv5k5un6m
 protocols:
 - open_aea/signing:1.0.0:bafybeie7xyems76v5b4wc2lmaidcujizpxfzjnnwdeokmhje53g7ym25ii
 - valory/abci:0.1.0:bafybeihmzlmmb4pdo3zkhg6ehuyaa4lhw7bfpclln2o2z7v3o6fcep26iu

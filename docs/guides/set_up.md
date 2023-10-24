@@ -110,9 +110,9 @@ If you plan to follow the guides in the next sections, you need to populate the 
         "agent/valory/hello_world/0.1.0": "bafybeiakoj6jpj5gqyjk5qz2ibgvplgd4azqwxmi56aei7xpu5z47np3e4",
         "connection/valory/abci/0.1.0": "bafybeibtnfu6skrpducj2fzjzw7lrwj3et63xx6u5dryrabec26utzxsf4",
         "connection/valory/http_client/0.23.0": "bafybeifgeqgryx6b3s6eseyzyezygmeitcpt3tkor2eiycozoi6clgdrny",
-        "connection/valory/ipfs/0.1.0": "bafybeigkn27u7m5atju6a724clycyfshbgcbwheztil2bky7krfa46ub2a",
-        "connection/valory/ledger/0.19.0": "bafybeigo5vst3zlltkouenwxuzn6c47yr2fbbml6dl2o32rfnsezmalgnu",
-        "contract/valory/service_registry/0.1.0": "bafybeiebuuhs7fmigfh4c5dvzt6rbm5ekwrcnz7zouyjey7yyyqmpa6dyu",
+        "connection/valory/ipfs/0.1.0": "bafybeigfmqvlzbp67fttccpl4hsu3zaztbxv6vd7ikzra2hfppfkalgpji",
+        "connection/valory/ledger/0.19.0": "bafybeigdckv3e6bz6kfloz4ucqrsufft6k4jp6bwkbbcvh4fxvgbmzq3dm",
+        "contract/valory/service_registry/0.1.0": "bafybeifv5fhwo2bybpkzikyianpmicprqdcszrnefl5nlohykpv5k5un6m",
         "protocol/open_aea/signing/1.0.0": "bafybeie7xyems76v5b4wc2lmaidcujizpxfzjnnwdeokmhje53g7ym25ii",
         "protocol/valory/abci/0.1.0": "bafybeihmzlmmb4pdo3zkhg6ehuyaa4lhw7bfpclln2o2z7v3o6fcep26iu",
         "protocol/valory/acn/1.1.0": "bafybeic2pxzfc3voxl2ejhcqyf2ehm4wm5gxvgx7bliloiqi2uppmq6weu",
@@ -122,7 +122,7 @@ If you plan to follow the guides in the next sections, you need to populate the 
         "protocol/valory/ledger_api/1.0.0": "bafybeige5agrztgzfevyglf7mb4o7pzfttmq4f6zi765y4g2zvftbyowru",
         "protocol/valory/tendermint/0.1.0": "bafybeig6g6twajlwssfbfp5rlnu5mwzuu5kgak5cs4fich7rlkx6whesnu",
         "skill/valory/abstract_abci/0.1.0": "bafybeihgemn2gwjc2wyxuh7rttg5pk5gec7dxhet3ih2tmg75vsdbgad7a",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeid7neqpxxe4ualp23gxgrtpf6r5u3myr2mmc4uvwameyqshfdoydq",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeifnulxc35tuvnjv37mp4wpmvicesqe2bbqy2vilece2dzrecdghcy",
         "skill/valory/hello_world_abci/0.1.0": "bafybeibu3fdkjmawysvbwcn77pzpfw2d4the4ok7jod3jmdiqn4rzms37e",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihge56dn3xep2dzomu7rtvbgo4uc2qqh7ljl3fubqdi2lq44gs5lq"
     }
