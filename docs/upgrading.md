@@ -6,6 +6,10 @@ Below we describe the additional manual steps required to upgrade between differ
 # Open Autonomy
 
 
+## `v0.13.1` to `v0.13.1.post1`
+
+No backwards incompatible changes
+
 ## `v0.13.0` to `v0.13.1`
 
 - This release introduces support for defining service level dependencies, which means you can define python dependencies at the service level which will take priority over the agent or component level dependencies. The `dependencies` parameter is currently optional to make the upgrading easier. But this will be required in the next release, so please update your services accordingly.
