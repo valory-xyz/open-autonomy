@@ -57,10 +57,21 @@ from autonomy.deploy.image import ImageBuildFailed
 @click.option("--version", type=str, help="Specify tag version for the image.")
 @click.option("--dev", is_flag=True, help="Build development image.", default=False)
 @click.option("--pull", is_flag=True, help="Pull latest dependencies.", default=False)
+@click.option(
+    "-f",
+    "--dockerfile",
+    type=click.Path(
+        file_okay=True,
+        dir_okay=False,
+        exists=False,
+    ),
+    help="Specify custom dockerfile for building the agent",
+)
 @image_author_option
 def build_image(  # pylint: disable=too-many-arguments
     agent: Optional[PublicId],
     service_dir: Optional[Path],
+    dockerfile: Optional[Path],
     extra_dependencies: Tuple[Dependency, ...],
     pull: bool = False,
     dev: bool = False,
@@ -78,4 +89,5 @@ def build_image(  # pylint: disable=too-many-arguments
             dev=dev,
             version=version,
             image_author=image_author,
+            dockerfile=dockerfile,
         )

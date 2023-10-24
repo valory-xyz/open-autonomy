@@ -5,8 +5,8 @@ repo_url: https://github.com/valory-xyz/open-autonomy
 site_author: developer@valory.xyz
 edit_uri: edit/main/docs/
 
-
-strict: true
+# TODO: Set true after fixing the material dependency
+strict: false
 
 
 theme:
@@ -92,6 +92,7 @@ nav:
     - Deployment:
       - Container Control Flow: 'control_flow.md'
     - Using custom images in a deployment: 'advanced_reference/use_custom_images.md'
+    - Using custom dockerfile: advanced_reference/developer_tooling/custom_agent_image.md
     - On Chain Addresses: 'advanced_reference/on_chain_addresses.md'
     - API:
       - Library:

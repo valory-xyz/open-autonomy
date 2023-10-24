@@ -37,6 +37,7 @@ def build_image(  # pylint: disable=too-many-arguments
     version: Optional[str] = None,
     image_author: Optional[str] = None,
     extra_dependencies: Optional[Tuple[Dependency, ...]] = None,
+    dockerfile: Optional[Path] = None,
 ) -> None:
     """Build agent/service image."""
     extra_dependencies = extra_dependencies or ()
@@ -54,4 +55,5 @@ def build_image(  # pylint: disable=too-many-arguments
         version=version,
         image_author=image_author,
         extra_dependencies=extra_dependencies,
+        dockerfile=dockerfile,
     )
