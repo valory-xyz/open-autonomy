@@ -110,7 +110,6 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         self,
         service: Service,
         keys: Optional[List[Dict[str, str]]] = None,
-        private_keys_password: Optional[str] = None,
         agent_instances: Optional[List[str]] = None,
         apply_environment_variables: bool = False,
     ) -> None:
@@ -128,7 +127,6 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         self._service_name_clean = self.service.name.replace("_", "")
         self._keys = keys or []
         self._agent_instances = agent_instances
-        self._private_keys_password = private_keys_password
         self._all_participants = self.try_get_all_participants()
 
     def get_abci_container_name(self, index: int) -> str:
@@ -170,18 +168,6 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         return None
 
     @property
-    def private_keys_password(
-        self,
-    ) -> Optional[str]:
-        """Service password for agent keys."""
-
-        password = self._private_keys_password
-        if password is None:
-            password = os.environ.get("AUTONOLAS_SERVICE_PASSWORD")
-
-        return password
-
-    @property
     def agent_instances(
         self,
     ) -> Optional[List[str]]:
@@ -214,7 +200,6 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         path: Path,
         keys_file: Optional[Path] = None,
         number_of_agents: Optional[int] = None,
-        private_keys_password: Optional[str] = None,
         agent_instances: Optional[List[str]] = None,
         apply_environment_variables: bool = False,
     ) -> "ServiceBuilder":
@@ -228,7 +213,6 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         service_builder = cls(
             service=service,
             apply_environment_variables=apply_environment_variables,
-            private_keys_password=private_keys_password,
         )
 
         if keys_file is not None:
@@ -626,10 +610,12 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
             ENV_VAR_AEA_AGENT: self.service.agent,
             ENV_VAR_LOG_LEVEL: self.log_level,
         }
-
-        if self.private_keys_password is not None:
-            agent_vars[ENV_VAR_AEA_PASSWORD] = self.private_keys_password
-
+        if self.deplopyment_type == DOCKER_COMPOSE_DEPLOYMENT:
+            agent_vars[ENV_VAR_AEA_PASSWORD] = "$OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD"
+        else:
+            agent_vars[ENV_VAR_AEA_PASSWORD] = os.environ.get(
+                "OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD", ""
+            )
         return agent_vars
 
     def generate_agent(
