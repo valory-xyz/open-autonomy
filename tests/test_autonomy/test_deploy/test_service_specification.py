@@ -125,7 +125,6 @@ class TestServiceBuilder:
             self.keys_path,
         )
 
-        assert spec.private_keys_password is None
         assert spec.agent_instances is None
         assert len(spec.keys) == 1
 
@@ -144,11 +143,11 @@ class TestServiceBuilder:
         assert len(agents) == 1, agents
 
         agent = spec.generate_agent(0)
-        assert len(agent.keys()) == 10, agent
+        assert len(agent.keys()) == 11, agent
 
         spec.service.overrides = []
         agent = spec.generate_agent(0)
-        assert len(agent.keys()) == 3, agent
+        assert len(agent.keys()) == 4, agent
 
     def test_generate_common_vars(
         self,
@@ -165,11 +164,7 @@ class TestServiceBuilder:
         assert all(var in common_vars_without_password for var in COMMON_VARS[:-1])
         assert common_vars_without_password[ENV_VAR_AEA_AGENT] == spec.service.agent
 
-        spec = ServiceBuilder.from_dir(  # nosec
-            self.service_path,
-            self.keys_path,
-            private_keys_password="some_password",
-        )
+        spec = ServiceBuilder.from_dir(self.service_path, self.keys_path)  # nosec
         common_vars_without_password = spec.generate_common_vars(agent_n=0)
         assert all(var in common_vars_without_password for var in COMMON_VARS)
 
