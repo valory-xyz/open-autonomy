@@ -102,9 +102,6 @@ autonomy deploy build [OPTIONS] [KEYS_FILE]
 `-p`
 :   Ask for password interactively.
 
-`--password PASSWORD`
-:   Set password for key encryption/decryption.
-
 `--help`
 :   Show the help message and exit.
 
@@ -148,12 +145,18 @@ autonomy deploy run [OPTIONS]
 :   Show the help message and exit.
 
 ### Examples
+
 ```bash
 autonomy deploy run --build-dir ./abci_build
 ```
 
 Runs the service deployment stored locally in the directory `./abci_build`.
 
+To provide password for the private keys
+
+```bash
+OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD=PASSWORD autonomy deploy run --build-dir ./abci_build
+```
 
 ## `autonomy deploy from-token`
 

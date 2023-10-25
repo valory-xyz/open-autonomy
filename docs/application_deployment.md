@@ -38,7 +38,6 @@ Options:
   --remote                        To use a remote registry.
   --local                         To use a local registry.
   -p                              Ask for password interactively
-  --password PASSWORD             Set password for key encryption/decryption
   --help                          Show this message and exit.
 
 ```
