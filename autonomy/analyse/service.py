@@ -424,7 +424,13 @@ class ServiceAnalyser:
             for component_override in self.service_config.overrides
         }
 
-        missing_from_service = agent_overrides - service_overrides
+        # Skip abci connection since it's not required to be manually overwridden
+        missing_from_service = [
+            cid
+            for cid in agent_overrides - service_overrides
+            if cid.public_id.name != ABCI
+            and cid.component_type != ComponentType.CONNECTION
+        ]
         if len(missing_from_service) > 0:
             self._warn(
                 "\n\t- ".join(

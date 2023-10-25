@@ -581,7 +581,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
                 override
                 for override in service_overrides
                 if override["public_id"] != str(component_id.public_id)
-                and override["type"] != PackageType.CONNECTION.value
+                or override["type"] != PackageType.CONNECTION.value
             ]
 
         service_overrides.append(processed_overrides)
