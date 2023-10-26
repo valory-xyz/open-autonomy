@@ -308,20 +308,20 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
             )
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
-
-        assert result.exit_code == 0, result.output
+        assert result.exit_code == 0, result.stderr
+        assert (
+            "WARNING: `--password` flag has been deprecated, use `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` to export the password value"
+            in result.stdout
+        )
         assert build_dir.exists()
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
-
         assert result.exit_code == 0, result.output
         assert build_dir.exists()
 
         docker_compose_file = build_dir / DockerComposeGenerator.output_name
         with open(docker_compose_file, "r", encoding="utf-8") as fp:
             docker_compose = yaml.safe_load(fp)
-
-        agents = int(len(docker_compose["services"]) / 2)
 
         def _file_check(n: int) -> bool:
             return (
@@ -330,6 +330,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                 / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=n)
             ).exists()
 
+        agents = int(len(docker_compose["services"]) / 2)
         assert all(_file_check(i) for i in range(agents))
         for x in range(agents):
             env = dict(
@@ -341,7 +342,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                 ]
             )
             assert "AEA_PASSWORD" in env.keys()
-            assert env["AEA_PASSWORD"] == ETHEREUM_ENCRYPTION_PASSWORD
+            assert env["AEA_PASSWORD"] == "$OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD"
 
     def test_include_acn_and_hardhat_nodes(
         self,
@@ -601,6 +602,10 @@ class TestKubernetesBuild(BaseDeployBuildTest):
             )
 
         assert result.exit_code == 0, result.output
+        assert (
+            "WARNING: `--password` flag has been deprecated, use `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` to export the password value"
+            in result.stdout
+        )
         assert build_dir.exists()
 
         kubernetes_config = self.load_kubernetes_config(
@@ -613,7 +618,7 @@ class TestKubernetesBuild(BaseDeployBuildTest):
             except (KeyError, IndexError):
                 continue
 
-            assert agent_vars["AEA_PASSWORD"] == ETHEREUM_ENCRYPTION_PASSWORD
+            assert agent_vars["AEA_PASSWORD"] == ""
 
         assert all(
             (
