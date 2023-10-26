@@ -187,7 +187,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     image_author: Optional[str] = None,
 ) -> None:
     """Build deployment setup for n agents."""
-    if password is not None:
+    if password is not None:  # pragma: nocover
         click.echo(
             "WARNING: `--password` flag has been deprecated, "
             "use `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` to export the password value"
@@ -347,7 +347,7 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     password: Optional[str] = None,
 ) -> None:
     """Run service deployment."""
-    if password is not None:
+    if password is not None:  # pragma: nocover
         click.echo(
             "WARNING: `--password` flag has been deprecated, "
             "use `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` to export the password value"

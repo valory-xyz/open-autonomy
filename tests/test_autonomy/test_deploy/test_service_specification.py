@@ -149,6 +149,24 @@ class TestServiceBuilder:
         agent = spec.generate_agent(0)
         assert len(agent.keys()) == 4, agent
 
+    def test_get_maximum_participants(
+        self,
+    ) -> None:
+        """Test get_maximum_participants."""
+        self._write_service(get_dummy_service_config(file_number=0))
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+            self.keys_path,
+        )
+
+        spec._all_participants = list(map(str, range(2)))
+        assert spec.get_maximum_participants() == 2
+
+        with mock.patch.object(spec, attribute="verify_agent_instances"):
+            spec._all_participants = []
+            spec.agent_instances = list(map(str, range(2)))
+            assert spec.get_maximum_participants() == 3
+
     def test_generate_common_vars(
         self,
     ) -> None:
