@@ -164,7 +164,7 @@ class TestServiceBuilder:
 
         with mock.patch.object(spec, attribute="verify_agent_instances"):
             spec._all_participants = []
-            spec.agent_instances = list(map(str, range(2)))
+            spec.agent_instances = list(map(str, range(3)))
             assert spec.get_maximum_participants() == 3
 
     def test_generate_common_vars(
