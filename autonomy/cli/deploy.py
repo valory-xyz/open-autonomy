@@ -187,6 +187,11 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     image_author: Optional[str] = None,
 ) -> None:
     """Build deployment setup for n agents."""
+    if password is not None:  # pragma: nocover
+        click.echo(
+            "WARNING: `--password` flag has been deprecated, "
+            "use `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` to export the password value"
+        )
 
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
     if not keys_file.exists():
@@ -222,7 +227,6 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             deployment_type=deployment_type,
             dev_mode=dev_mode,
             number_of_agents=number_of_agents,
-            password=password,
             packages_dir=packages_dir,
             open_aea_dir=open_aea_dir,
             open_autonomy_dir=open_autonomy_dir,
@@ -343,11 +347,15 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     password: Optional[str] = None,
 ) -> None:
     """Run service deployment."""
+    if password is not None:  # pragma: nocover
+        click.echo(
+            "WARNING: `--password` flag has been deprecated, "
+            "use `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` to export the password value"
+        )
 
     ctx = cast(Context, click_context.obj)
     ctx.registry_type = REGISTRY_REMOTE
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
-
     with reraise_as_click_exception(
         NotValidKeysFile, FileNotFoundError, FileExistsError
     ):
@@ -359,7 +367,6 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
             n=n,
             deployment_type=deployment_type,
             aev=aev,
-            password=password,
             no_deploy=no_deploy,
             detach=detach,
         )

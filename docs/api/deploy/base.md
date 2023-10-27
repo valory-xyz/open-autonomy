@@ -43,7 +43,6 @@ Class to assist with generating deployments.
 ```python
 def __init__(service: Service,
              keys: Optional[List[Dict[str, str]]] = None,
-             private_keys_password: Optional[str] = None,
              agent_instances: Optional[List[str]] = None,
              apply_environment_variables: bool = False) -> None
 ```
@@ -79,17 +78,6 @@ def try_get_all_participants() -> Optional[List[str]]
 ```
 
 Try get all participants from the ABCI overrides
-
-<a id="autonomy.deploy.base.ServiceBuilder.private_keys_password"></a>
-
-#### private`_`keys`_`password
-
-```python
-@property
-def private_keys_password() -> Optional[str]
-```
-
-Service password for agent keys.
 
 <a id="autonomy.deploy.base.ServiceBuilder.agent_instances"></a>
 
@@ -134,7 +122,6 @@ def from_dir(cls,
              path: Path,
              keys_file: Optional[Path] = None,
              number_of_agents: Optional[int] = None,
-             private_keys_password: Optional[str] = None,
              agent_instances: Optional[List[str]] = None,
              apply_environment_variables: bool = False) -> "ServiceBuilder"
 ```

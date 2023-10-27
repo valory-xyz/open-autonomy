@@ -180,7 +180,6 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     deployment_type: str,
     dev_mode: bool,
     number_of_agents: Optional[int] = None,
-    password: Optional[str] = None,
     packages_dir: Optional[Path] = None,
     open_aea_dir: Optional[Path] = None,
     open_autonomy_dir: Optional[Path] = None,
@@ -213,7 +212,6 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         service_path=Path.cwd(),
         type_of_deployment=deployment_type,
         keys_file=keys_file,
-        private_keys_password=password,
         number_of_agents=number_of_agents,
         build_dir=build_dir,
         dev_mode=dev_mode,
@@ -280,7 +278,6 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
     n: Optional[int],
     deployment_type: str,
     aev: bool = False,
-    password: Optional[str] = None,
     no_deploy: bool = False,
     detach: bool = False,
 ) -> None:
@@ -314,7 +311,6 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
             multisig_address=multisig_address,
             consensus_threshold=consensus_threshold,
             apply_environment_variables=aev,
-            password=password,
         )
         if not skip_image:
             click.echo("Building required images.")

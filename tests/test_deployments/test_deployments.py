@@ -281,7 +281,6 @@ class TestDeploymentGenerators(BaseDeploymentTests):
         builder = ServiceBuilder(
             service=service,
             keys=None,
-            private_keys_password=None,
             agent_instances=list("abcdefg"),
         )
         assert builder.service.number_of_agents == 1_000_000
