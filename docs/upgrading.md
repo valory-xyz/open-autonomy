@@ -8,6 +8,10 @@ Below we describe the additional manual steps required to upgrade between differ
 
 ## `v0.13.1` to `v0.13.1.post1`
 
+- The usage `--password` of flag has been deprecated on `autonomy deploy` command group. Use `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` environment variable to export the private key password string when running `autonomy deploy build/run` commands.
+
+## `v0.13.1` to `v0.13.1.post1`
+
 No backwards incompatible changes
 
 ## `v0.13.0` to `v0.13.1`
