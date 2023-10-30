@@ -1,6 +1,13 @@
 # Release History - `open-autonomy`
 
 
+# 0.13.2 (2023-10-30)
+
+- Adds support for specifying custom `Dockerfile` for building agent images
+- Deprecates `--password` flag on `autonomy deploy build/from-token` commands
+- Introduces `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` as environment variable for providing private key passwords to deployments
+- Updates the service analyser to skip `abci` connection since it's not required to be manually overridden
+
 # 0.13.1.post1 (2023-10-24)
 
 Chore:

@@ -424,7 +424,7 @@ class ServiceAnalyser:
             for component_override in self.service_config.overrides
         }
 
-        # Skip abci connection since it's not required to be manually overwridden
+        # Skip abci connection since it's not required to be manually overridden
         missing_from_service = [
             cid
             for cid in agent_overrides - service_overrides
