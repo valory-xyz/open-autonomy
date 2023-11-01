@@ -577,6 +577,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         number_of_slots: int,
         cost_of_bond: int,
         threshold: int,
+        token: Optional[str] = None,
     ) -> None:
         """Update service"""
 
