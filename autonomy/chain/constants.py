@@ -78,7 +78,7 @@ EthereumAddresses = ContractAddresses(  # nosec
     service_registry_token_utility="0x3Fb926116D454b95c669B6Bf2E7c3bad8d19affA",
     service_manager="0x2EA682121f815FBcF86EA3F3CaFdd5d67F2dB143",
     gnosis_safe_proxy_factory="0x46C0D07F55d4F9B5Eed2Fc9680B5953e5fd7b461",
-    gnosis_safe_same_address_multisig="0x26Ea2dC7ce1b41d0AD0E0521535655d7a94b684c",
+    gnosis_safe_same_address_multisig="0xfa517d01DaA100cB1932FA4345F68874f7E7eF46",
     multisend="0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
 )
 
@@ -90,7 +90,7 @@ GoerliAddresses = ContractAddresses(  # nosec
     service_registry_token_utility="0x6d9b08701Af43D68D991c074A27E4d90Af7f2276",
     service_manager="0x1d333b46dB6e8FFd271b6C2D2B254868BD9A2dbd",
     gnosis_safe_proxy_factory="0x65dD51b02049ad1B6FF7fa9Ea3322E1D2CAb1176",
-    gnosis_safe_same_address_multisig="0x92499E80f50f06C4078794C179986907e7822Ea1",
+    gnosis_safe_same_address_multisig="0x06467Cb835da623384a22aa902647784C1c9f5Ae",
     multisend="0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
 )
 
