@@ -1,5 +1,8 @@
 # Release History - `open-autonomy`
 
+# 0.13.3 (2023-11-01)
+
+- Synchronises the `on-chain` addresses with the latest protocol release
 
 # 0.13.2 (2023-10-30)
 
