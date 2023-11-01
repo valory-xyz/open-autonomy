@@ -616,6 +616,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                     cost_of_bond,
                 ],
                 threshold=threshold,
+                token=token,
             )
         except ComponentMintFailed as e:
             raise click.ClickException(
