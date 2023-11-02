@@ -57,6 +57,44 @@ def get_gas_price_params(tx_body: dict) -> List[str]
 
 Guess the gas strategy from the transaction params
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.TransactionSettlementBaseBehaviour.send_raw_transaction"></a>
+
+#### send`_`raw`_`transaction
+
+```python
+def send_raw_transaction(
+    transaction: RawTransaction,
+    use_flashbots: bool = False,
+    target_block_numbers: Optional[List[int]] = None
+) -> Generator[
+        None,
+        Union[None, SigningMessage, LedgerApiMessage],
+        Tuple[Optional[str], RPCResponseStatus],
+]
+```
+
+Send raw transactions to the ledger for mining.
+
+Happy-path full flow of the messages.
+
+_send_transaction_signing_request:
+        AbstractRoundAbci skill -> (SigningMessage | SIGN_TRANSACTION) -> DecisionMaker
+        DecisionMaker -> (SigningMessage | SIGNED_TRANSACTION) -> AbstractRoundAbci skill
+
+_send_transaction_request:
+    AbstractRoundAbci skill -> (LedgerApiMessage | SEND_SIGNED_TRANSACTION) -> Ledger connection
+    Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
+
+**Arguments**:
+
+- `transaction`: transaction data
+- `use_flashbots`: whether to use flashbots for the transaction or not
+- `target_block_numbers`: the target block numbers in case we are using flashbots
+
+**Returns**:
+
+SigningMessage object
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.RandomnessTransactionSubmissionBehaviour"></a>
 
 ## RandomnessTransactionSubmissionBehaviour Objects
