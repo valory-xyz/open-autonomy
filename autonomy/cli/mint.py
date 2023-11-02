@@ -438,6 +438,7 @@ def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-a
             number_of_slots=number_of_slots,
             cost_of_bond=cost_of_bond,
             threshold=threshold,
+            token=token,
         )
     return mint_helper.mint_service(
         number_of_slots=number_of_slots,

@@ -83,11 +83,16 @@ Publish component on-chain.
 #### update`_`service
 
 ```python
-def update_service(ledger_api: LedgerApi, crypto: Crypto, service_id: int,
-                   metadata_hash: str, chain_type: ChainType,
-                   agent_ids: List[int], number_of_slots_per_agent: List[int],
+def update_service(ledger_api: LedgerApi,
+                   crypto: Crypto,
+                   service_id: int,
+                   metadata_hash: str,
+                   chain_type: ChainType,
+                   agent_ids: List[int],
+                   number_of_slots_per_agent: List[int],
                    cost_of_bond_per_agent: List[int],
-                   threshold: int) -> Optional[int]
+                   threshold: int,
+                   token: Optional[str] = None) -> Optional[int]
 ```
 
 Publish component on-chain.

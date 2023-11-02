@@ -226,8 +226,10 @@ Update agent.
 #### update`_`service
 
 ```python
-def update_service(number_of_slots: int, cost_of_bond: int,
-                   threshold: int) -> None
+def update_service(number_of_slots: int,
+                   cost_of_bond: int,
+                   threshold: int,
+                   token: Optional[str] = None) -> None
 ```
 
 Update service

@@ -331,6 +331,7 @@ def update_service(  # pylint: disable=too-many-arguments,too-many-locals
     number_of_slots_per_agent: List[int],
     cost_of_bond_per_agent: List[int],
     threshold: int,
+    token: Optional[str] = None,
 ) -> Optional[int]:
     """Publish component on-chain."""
 
@@ -379,6 +380,8 @@ def update_service(  # pylint: disable=too-many-arguments,too-many-locals
         [n, c] for n, c in zip(number_of_slots_per_agent, cost_of_bond_per_agent)
     ]
 
+    print(token)
+
     try:
         tx = registry_contracts.service_manager.get_update_transaction(
             ledger_api=ledger_api,
@@ -391,6 +394,7 @@ def update_service(  # pylint: disable=too-many-arguments,too-many-locals
             agent_ids=agent_ids,
             agent_params=agent_params,
             threshold=threshold,
+            token=token,
             raise_on_try=True,
         )
         tx_receipt = transact(

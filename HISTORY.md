@@ -1,5 +1,9 @@
 # Release History - `open-autonomy`
 
+# 0.13.4 (2023-11-01)
+
+- Updates the mint tools to propogate `token` address to update service transactions
+
 # 0.13.3 (2023-11-01)
 
 - Synchronises the `on-chain` addresses with the latest protocol release
