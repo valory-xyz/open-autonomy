@@ -380,6 +380,8 @@ def update_service(  # pylint: disable=too-many-arguments,too-many-locals
         [n, c] for n, c in zip(number_of_slots_per_agent, cost_of_bond_per_agent)
     ]
 
+    print(token)
+
     try:
         tx = registry_contracts.service_manager.get_update_transaction(
             ledger_api=ledger_api,
