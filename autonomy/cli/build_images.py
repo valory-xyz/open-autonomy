@@ -19,18 +19,20 @@
 
 """Build images."""
 
-
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 import click
-from aea.cli.utils.click_utils import PublicIdParameter, reraise_as_click_exception
-from aea.configurations.data_types import PublicId
+from aea.cli.utils.click_utils import (
+    PublicIdParameter,
+    PyPiDependency,
+    reraise_as_click_exception,
+)
+from aea.configurations.data_types import Dependency, PublicId
 
+from autonomy.cli.helpers.image import build_image as _build_image
 from autonomy.cli.utils.click_utils import image_author_option
-from autonomy.configurations.loader import load_service_config
 from autonomy.deploy.image import ImageBuildFailed
-from autonomy.deploy.image import build_image as _build_image
 
 
 @click.command(name="build-image")
@@ -44,13 +46,33 @@ from autonomy.deploy.image import build_image as _build_image
     type=click.Path(dir_okay=True),
     help="Path to service dir.",
 )
+@click.option(
+    "-e",
+    "--extra-dependency",
+    "extra_dependencies",
+    type=PyPiDependency(),
+    help="Provide extra dependency.",
+    multiple=True,
+)
 @click.option("--version", type=str, help="Specify tag version for the image.")
 @click.option("--dev", is_flag=True, help="Build development image.", default=False)
 @click.option("--pull", is_flag=True, help="Pull latest dependencies.", default=False)
+@click.option(
+    "-f",
+    "--dockerfile",
+    type=click.Path(
+        file_okay=True,
+        dir_okay=False,
+        exists=False,
+    ),
+    help="Specify custom dockerfile for building the agent",
+)
 @image_author_option
-def build_image(
+def build_image(  # pylint: disable=too-many-arguments
     agent: Optional[PublicId],
     service_dir: Optional[Path],
+    dockerfile: Optional[Path],
+    extra_dependencies: Tuple[Dependency, ...],
     pull: bool = False,
     dev: bool = False,
     version: Optional[str] = None,
@@ -58,14 +80,14 @@ def build_image(
 ) -> None:
     """Build runtime images for autonomous agents."""
 
-    with reraise_as_click_exception(FileNotFoundError):
-        if agent is None:
-            service_dir = Path(service_dir or Path.cwd()).absolute()
-            service = load_service_config(service_dir)
-            agent = service.agent
-
-    with reraise_as_click_exception(ImageBuildFailed):
-        click.echo(f"Building image with agent: {agent}\n")
+    with reraise_as_click_exception(ImageBuildFailed, FileNotFoundError):
         _build_image(
-            agent=agent, pull=pull, dev=dev, version=version, image_author=image_author
+            agent=agent,
+            service_dir=service_dir,
+            extra_dependencies=extra_dependencies,
+            pull=pull,
+            dev=dev,
+            version=version,
+            image_author=image_author,
+            dockerfile=dockerfile,
         )

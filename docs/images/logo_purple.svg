@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   id="Layer_1"
+   viewBox="0 0 576 576"
+   version="1.1"
+   sodipodi:docname="Autonolas logo no text.svg"
+   inkscape:version="1.2.2 (732a01da63, 2022-12-09, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs21996" />
+  <sodipodi:namedview
+     id="namedview21994"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="1.7395833"
+     inkscape:cx="189.12575"
+     inkscape:cy="288.57485"
+     inkscape:window-width="1452"
+     inkscape:window-height="1205"
+     inkscape:window-x="26"
+     inkscape:window-y="23"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="Layer_1" />
+  <polygon
+     points="479.66 169.92 486.9 169.92 501.38 198.89 501.38 350.96 486.9 379.92 479.66 379.92 479.66 329.23 486.9 321.99 486.9 256.82 479.66 249.58 479.66 169.92"
+     id="polygon21971"
+     style="fill:#7200d6;fill-opacity:1" />
+  <polygon
+     points="103.3 379.92 96.06 379.92 81.58 350.96 81.58 198.89 96.06 169.92 103.3 169.92 103.3 220.61 96.06 227.85 96.06 293.03 103.3 300.27 103.3 379.92"
+     id="polygon21973"
+     style="fill:#7200d6;fill-opacity:1" />
+  <polygon
+     points="107.15 163.92 103.3 157.79 120.16 130.14 249.04 49.41 281.27 46.31 285.12 52.45 242.16 79.36 232.18 77.06 176.95 111.66 174.65 121.64 107.15 163.92"
+     id="polygon21975"
+     style="fill:#7200d6;fill-opacity:1" />
+  <polygon
+     points="475.81 163.92 479.66 157.79 462.8 130.14 333.92 49.41 301.69 46.31 297.84 52.45 340.8 79.36 350.78 77.06 406.01 111.66 408.31 121.64 475.81 163.92"
+     id="polygon21977"
+     style="fill:#7200d6;fill-opacity:1" />
+  <polygon
+     points="475.81 388.92 479.66 395.06 462.8 422.71 333.92 503.43 301.69 506.53 297.84 500.4 340.8 473.49 350.78 475.78 406.01 441.19 408.31 431.2 475.81 388.92"
+     id="polygon21979"
+     style="fill:#7200d6;fill-opacity:1" />
+  <polygon
+     points="107.15 388.92 103.3 395.06 120.16 422.71 249.04 503.43 281.27 506.53 285.12 500.4 242.16 473.49 232.18 475.78 176.95 441.19 174.65 431.2 107.15 388.92"
+     id="polygon21981"
+     style="fill:#7200d6;fill-opacity:1" />
+  <g
+     id="g21991"
+     style="fill:#7200d6;fill-opacity:1">
+    <polygon
+       points="189.58 223.03 257.08 223.03 270.58 209.53 329.08 209.53 338.08 218.53 383.08 218.53 396.58 232.03 347.08 232.03 338.08 241.03 284.08 241.03 279.58 236.53 207.58 236.53 203.08 241.03 189.58 241.03 180.58 232.03 189.58 223.03"
+       id="polygon21983"
+       style="fill:#7200d6;fill-opacity:1" />
+    <path
+       d="M188.47,270.28h55.78c.21,0,.42-.09,.57-.24l10.39-10.77c.15-.15,.35-.24,.57-.24h79.67c.21,0,.41,.09,.56,.24l13.65,14.15c.15,.15,.35,.24,.57,.24h45.57c.43,0,.78,.35,.78,.78v13.07c0,.43-.35,.78-.78,.78h-55.34c-.21,0-.42,.09-.57,.24l-3.88,4.02c-.15,.15-.35,.24-.57,.24h-60.27c-.13,0-.25-.03-.36-.09l-8.34-4.32c-.11-.06-.24-.09-.36-.09h-77.64c-.21,0-.41-.09-.56-.24l-7.95-8.24c-.28-.29-.28-.76,0-1.05l7.95-8.23c.15-.15,.35-.24,.57-.24Z"
+       id="path21985"
+       style="fill:#7200d6;fill-opacity:1" />
+    <polygon
+       points="305.83 317.53 396.58 317.53 396.58 335.53 370.65 335.53 366.33 340.03 344.72 340.03 340.4 335.53 310.15 335.53 305.83 331.03 305.83 317.53"
+       id="polygon21987"
+       style="fill:#7200d6;fill-opacity:1" />
+    <polygon
+       points="270.65 316.78 237.89 316.78 233.8 313.03 205.14 313.03 201.05 316.78 180.58 316.78 180.58 335.53 278.83 335.53 278.83 320.53 270.65 316.78"
+       id="polygon21989"
+       style="fill:#7200d6;fill-opacity:1" />
+  </g>
+</svg>

@@ -19,7 +19,7 @@
 
 """Tests for valory/service_registry contract."""
 from pathlib import Path
-from typing import Any, List, Optional, Set
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -40,6 +40,14 @@ SERVICE_REGISTRY_INVALID = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed"
 VALID_SERVICE_ID = 1
 INVALID_SERVICE_ID = 0
 CHAIN_ID = 31337
+AGENT_INSTANCES = [
+    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+    "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+]
+OPERATOR = "0xBcd4042DE499D14e55001CcbB24a551F3b954096"
+OPERATORS_MAPPING = dict.fromkeys(AGENT_INSTANCES, OPERATOR)
 
 
 def event_filter_patch(event: str, return_value: Any) -> mock._patch:
@@ -51,7 +59,7 @@ def event_filter_patch(event: str, return_value: Any) -> mock._patch:
             events=mock.MagicMock(
                 **{
                     event: mock.MagicMock(
-                        createFilter=lambda **_: mock.MagicMock(
+                        create_filter=lambda **_: mock.MagicMock(
                             get_all_entries=lambda *_: return_value
                         )
                     )
@@ -112,12 +120,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
 
         return_value = {
             "numAgentInstances": 4,
-            "agentInstances": [
-                "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-                "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-                "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-                "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-            ],
+            "agentInstances": AGENT_INSTANCES,
         }
 
         assert self.contract_address is not None
@@ -132,7 +135,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
 
     def test_get_service_owner(self) -> None:
         """Test service owner retrieval."""
-        service_owner = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+        service_owner = AGENT_INSTANCES[0]
         assert self.contract_address is not None
 
         actual = self.contract.get_service_owner(
@@ -177,7 +180,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         )
 
         assert security_deposit == 10000000000000000
-        assert multisig_address == "0xD8dE647170163a981bb3Fdb2063583eAcF7D55AC"
+        assert multisig_address == "0x77b783e911F4398D75908Cc60C7138Bd1eFe35Fd"
         assert ipfs_hash_for_config == b"UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
         assert threshold == 3
         assert max_number_of_agent_instances == 4
@@ -185,121 +188,52 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         assert service_state == 4
         assert list_of_cannonical_agents == [1]
 
-    @pytest.mark.parametrize(
-        ("return_value", "assert_value"),
-        (
-            ([], None),
-            (
-                [
-                    {
-                        "args": {
-                            "serviceId": 1,
-                        }
-                    }
-                ],
-                1,
-            ),
-        ),
-    )
-    def test_filter_token_id_from_emitted_events(
-        self, return_value: List, assert_value: Optional[int]
-    ) -> None:
-        """Test `filter_token_id_from_emitted_events` method"""
+    def test_get_slash_data(self) -> None:
+        """Test the `get_slash_data`."""
+        result = self.contract.get_slash_data(
+            self.ledger_api,
+            self.contract_address,
+            AGENT_INSTANCES,
+            [0, 0, 0, 1],
+            service_id=1,
+        )
 
-        with event_filter_patch(event="CreateService", return_value=return_value):
-            token_id = self.contract.filter_token_id_from_emitted_events(
-                ledger_api=self.ledger_api,
-                contract_address=self.contract_address,
+        assert result.get("data", b"") == (
+            b"s\xb8\xb6\xa2\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00`\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf3\x9f\xd6\xe5\x1a\xad\x88\xf6\xf4\xcej\xb8\x82ry\xcf"
+            b'\xff\xb9"f\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00p\x99yp\xc5\x18\x12\xdc:\x01\x0c}\x01\xb5\x0e\r'
+            b"\x17\xdcy\xc8\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00<D\xcd\xdd\xb6\xa9\x00\xfa+X]\xd2\x99\xe0="
+            b"\x12\xfaB\x93\xbc\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x90\xf7\x9b\xf6\xeb,O\x87\x03e\xe7\x85"
+            b"\x98.\x1f\x10\x1e\x93\xb9\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01"
+        ), "Contract did not return the expected data."
+
+    def test_get_operator(self) -> None:
+        """Test `get_operator` method."""
+        for agent_instance, expected_operator in OPERATORS_MAPPING.items():
+            actual_operator = (
+                self.contract._get_operator(  # pylint: disable=protected-access
+                    self.ledger_api,
+                    self.contract_address,
+                    agent_instance,
+                )
             )
+            assert actual_operator == expected_operator
 
-            if assert_value is None:
-                assert token_id is None
-            else:
-                assert token_id == 1
-
-    @pytest.mark.parametrize(
-        ("return_value", "assert_value"),
-        (
-            ([], False),
-            (
-                [
-                    {
-                        "args": {
-                            "serviceId": 0,
-                        }
-                    }
-                ],
-                True,
-            ),
-        ),
-    )
-    def test_verify_service_has_been_activated(
-        self, return_value: List, assert_value: bool
-    ) -> None:
-        """Test `verify_service_has_been_activated` method."""
-
-        with event_filter_patch(
-            event="ActivateRegistration", return_value=return_value
-        ):
-            success = self.contract.verify_service_has_been_activated(
-                ledger_api=self.ledger_api,
-                contract_address=self.contract_address,
-                service_id=0,
-            )
-
-            assert success is assert_value
-
-    @pytest.mark.parametrize(
-        ("return_value", "assert_value"),
-        (
-            ([], set()),
-            (
-                [{"args": {"serviceId": 0, "agentInstance": "0x"}}],
-                {"0x"},
-            ),
-        ),
-    )
-    def test_verify_agent_instance_registration(
-        self, return_value: List, assert_value: Set[str]
-    ) -> None:
-        """Test `verify_agent_instance_registration` method."""
-
-        with event_filter_patch(event="RegisterInstance", return_value=return_value):
-            successful = self.contract.verify_agent_instance_registration(
-                ledger_api=self.ledger_api,
-                contract_address=self.contract_address,
-                service_id=0,
-                instance_check={"0x"},
-            )
-
-            assert successful == assert_value
-
-    @pytest.mark.parametrize(
-        ("return_value", "assert_value"),
-        (
-            ([], False),
-            (
-                [
-                    {
-                        "args": {
-                            "serviceId": 0,
-                        }
-                    }
-                ],
-                True,
-            ),
-        ),
-    )
-    def test_verify_service_has_been_deployed(
-        self, return_value: List, assert_value: bool
-    ) -> None:
-        """Test `verify_service_has_been_deployed` method."""
-
-        with event_filter_patch(event="DeployService", return_value=return_value):
-            success = self.contract.verify_service_has_been_deployed(
-                ledger_api=self.ledger_api,
-                contract_address=self.contract_address,
-                service_id=0,
-            )
-
-            assert success is assert_value
+    def test_get_operators_mapping(self) -> None:
+        """Test `get_operator` method."""
+        actual_mapping = self.contract.get_operators_mapping(
+            self.ledger_api,
+            self.contract_address,
+            frozenset(OPERATORS_MAPPING.keys()),
+        )
+        assert actual_mapping == OPERATORS_MAPPING

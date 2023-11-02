@@ -35,7 +35,7 @@ from aea.configurations.data_types import (
 )
 from aea.crypto.base import LedgerApi
 from aea.helpers.cid import to_v0
-from aea.helpers.env_vars import ENV_VARIABLE_RE, apply_env_variables
+from aea.helpers.env_vars import apply_env_variables
 from aea.helpers.logging import setup_logger
 from jsonschema.exceptions import ValidationError as SchemaValidationError
 from jsonschema.validators import Draft4Validator
@@ -172,13 +172,22 @@ ABCI_SKILL_MODEL_PARAMS_SCHEMA = {
         "on_chain_service_id",
         "share_tm_config_on_startup",
         "use_termination",
+        "use_slashing",
+        "slash_cooldown_hours",
+        "slash_threshold_amount",
+        "light_slash_unit_amount",
+        "serious_slash_unit_amount",
         "setup",
     ],
 }
 
 ABCI = "abci"
 LEDGER = "ledger"
-
+TERMINATION_ABCI = PublicId(author="valory", name="termination_abci", version="any")
+SLASHING_ABCI = PublicId(author="valory", name="slashing_abci", version="any")
+ENV_VAR_RE = re.compile(
+    r"^\$\{(?P<name>[A-Z_0-9]+)?:?(?P<type>bool|int|float|str|list|dict)?:?(?P<value>.+)?\}$"
+)
 REQUIRED_PROPERTY_RE = re.compile(r"'(.*)' is a required property")
 PROPERTY_NOT_ALLOWED_RE = re.compile(
     r"Additional properties are not allowed \((('(.*)'(,)? )+)(was|were) unexpected\)"
@@ -415,7 +424,13 @@ class ServiceAnalyser:
             for component_override in self.service_config.overrides
         }
 
-        missing_from_service = agent_overrides - service_overrides
+        # Skip abci connection since it's not required to be manually overridden
+        missing_from_service = [
+            cid
+            for cid in agent_overrides - service_overrides
+            if cid.public_id.name != ABCI
+            and cid.component_type != ComponentType.CONNECTION
+        ]
         if len(missing_from_service) > 0:
             self._warn(
                 "\n\t- ".join(
@@ -447,14 +462,14 @@ class ServiceAnalyser:
             agent_config.component_configurations[skill_config.package_id],
             env_variables=os.environ.copy(),
         )
-        skill_config_to_check = {
-            "models": {
-                "params": {"args": skill_config.json["models"]["params"]["args"]},
-            }
+        skill_config_to_check: Dict[str, Dict] = {"models": {}}
+        skill_config_json = copy.deepcopy(skill_config.json)
+        skill_config_to_check["models"]["params"] = {
+            "args": skill_config_json["models"]["params"]["args"]
         }
-        if "benchmark_tool" in skill_config.json["models"]:
+        if "benchmark_tool" in skill_config_json["models"]:
             skill_config_to_check["models"]["benchmark_tool"] = {
-                "args": skill_config.json["models"]["benchmark_tool"]["args"]
+                "args": skill_config_json["models"]["benchmark_tool"]["args"]
             }
 
         for override in self.service_config.overrides:
@@ -535,19 +550,32 @@ class ServiceAnalyser:
             else:
                 json_path_str = ".".join(_json_path)
                 try:
-                    re_result = ENV_VARIABLE_RE.match(value)
+                    re_result = ENV_VAR_RE.match(value)
                     if re_result is None:
                         errors.append(
-                            f"`{json_path_str}` needs to be defined as a environment variable"
+                            f"`{json_path_str}` needs environment variable defined in following format "
+                            "${ENV_VAR_NAME:DATA_TYPE:DEFAULT_VALUE}"
                         )
                         continue
-                    if validate_env_var_name:
-                        _, env_var_name, *_ = re_result.groups()
-                        if env_var_name is None:
-                            errors.append(
-                                f"`{json_path_str}` needs environment variable defined in following format "
-                                "${ENV_VAR_NAME:DATA_TYPE:DEFAULT_VALUE}"
-                            )
+
+                    result = re_result.groupdict()
+                    if validate_env_var_name and result.get("name") is None:
+                        errors.append(
+                            f"Enviroment variable template for `{json_path_str}` does not have variable name defined"
+                        )
+
+                    if result.get("type") is None:
+                        errors.append(
+                            f"Enviroment variable template for `{json_path_str}` does not have type defined"
+                        )
+                        continue
+
+                    if result.get("value") is None:
+                        errors.append(
+                            f"Enviroment variable template for `{json_path_str}` does not have default value defined"
+                        )
+                        continue
+
                     apply_env_variables(
                         data={key: value}, env_variables=os.environ.copy()
                     )
@@ -707,17 +735,33 @@ class ServiceAnalyser:
                         )
                     )
 
+    def _check_for_dependency(
+        self, dependencies: Set[PublicId], dependency: PublicId
+    ) -> None:
+        """Check termination ABCI skill is an dependency for the agent"""
+        for _dependency in dependencies:
+            if _dependency.to_any() == dependency:
+                return
+        self.logger.warning(f"{dependency} is not defined as a dependency")
+
     def validate_skill_config(self, skill_config: SkillConfig) -> None:
         """Check required overrides."""
 
         self.logger.info(f"Validating ABCI skill {skill_config.public_id}")
         model_params = skill_config.models.read("params")
+        if model_params is None:
+            raise ServiceValidationFailed(
+                f"The chained ABCI skill `{skill_config.public_id}` does not contain `params` model"
+            )
+
         self._validate_override(
             validator=ABCI_SKILL_MODEL_PARAMS_VALIDATOR,
             overrides=model_params.args,
             has_multiple_overrides=False,
             error_message="ABCI skill validation failed; {error}",
         )
+        self._check_for_dependency(skill_config.skills, TERMINATION_ABCI)
+        self._check_for_dependency(skill_config.skills, SLASHING_ABCI)
         self.logger.info("No issues found in the ABCI skill configuration")
 
     def validate_agent_overrides(self, agent_config: AgentConfig) -> None:
@@ -745,6 +789,8 @@ class ServiceAnalyser:
                 f"\n\t- {error_string}"
             )
 
+        self._check_for_dependency(agent_config.skills, TERMINATION_ABCI)
+        self._check_for_dependency(agent_config.skills, SLASHING_ABCI)
         self.logger.info("No issues found in the agent overrides")
 
     def validate_service_overrides(self) -> None:

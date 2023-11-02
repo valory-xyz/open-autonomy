@@ -46,7 +46,6 @@ IGNORE_SKILLS = (
     "abstract_abci",
     "counter",
     "counter_client",
-    "hello_world_abci",
 )
 
 

@@ -1,11 +1,11 @@
 {
     "dev": {
         "protocol/dummy_author/dummy_protocol/0.1.0": "bafybeifuoztgfa2772jfvx5kyosgz7vrjfu6w6lo2mj3prziomdd3tp5xi",
-        "contract/dummy_author/dummy_contract/0.1.0": "bafybeigjwno7m7qthgybxwfglwfebnfghadcpmtzsn5kiw7f27ezcb7fyq",
-        "connection/dummy_author/dummy_connection/0.1.0": "bafybeiezr7lccxkfv2fslmrngmn6fmjkck6ukah7qfpioobpzuyam2xb2m",
-        "skill/dummy_author/dummy_skill/0.1.0": "bafybeibku44tyjantfk3344gjrwhc2pk3estuose4ewnvf72fjuphe7fjm",
-        "agent/dummy_author/dummy_agent/0.1.0": "bafybeihjl5fgwnfecwknnhulebj3e7ktyz6ba6flbjwmpibzj2ih3gweo4",
-        "service/dummy_author/dummy_service/0.1.0": "bafybeiehaezsrmyhndukl4cts75nlx2rtkoomwn26vqxbtsa4crzwj3lje"
+        "contract/dummy_author/dummy_contract/0.1.0": "bafybeifdf4blo6lse4ejlwtqpwzbufg3kh6ttdgde2ilag7ojwauyz6cbm",
+        "connection/dummy_author/dummy_connection/0.1.0": "bafybeic25zmtz5fpbtnr7mycmxqjqhym2uz3jsvfhccbu6lsn3btndx5hq",
+        "skill/dummy_author/dummy_skill/0.1.0": "bafybeiaqnmp4fo336za5q245a2sbd3tqqlglnno2ps6kdzrz6764t4mf5e",
+        "agent/dummy_author/dummy_agent/0.1.0": "bafybeigqqikxfon7lddqux2qocdf2vlpq2zrjhmtpve5j3z5lijeapodsu",
+        "service/dummy_author/dummy_service/0.1.0": "bafybeibw4gtticok3fbis2fndtz2flxwycylk4wd4n7c5tshjfp6vlrfxi"
     },
     "third_party": {}
 }

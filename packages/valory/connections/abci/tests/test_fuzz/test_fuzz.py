@@ -22,7 +22,7 @@ import os
 
 from hypothesis import settings
 
-from packages.valory.connections.abci import CI
+from packages.valory.connections.abci.tests import CI
 from packages.valory.connections.abci.tests.test_fuzz.base import BaseFuzzyTests
 from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.grpc_channel import (
     GrpcChannel,

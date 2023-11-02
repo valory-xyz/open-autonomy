@@ -666,7 +666,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - done: 11.
             - negative: 5.
             - none: 6.
-            - validate timeout: 6.
+            - validate timeout: 5.
             - no majority: 4.
         5. CheckTransactionHistoryRound
             - done: 11.
@@ -747,7 +747,9 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: CheckTransactionHistoryRound,
             Event.NONE: SelectKeeperTransactionSubmissionBRound,
-            Event.VALIDATE_TIMEOUT: SelectKeeperTransactionSubmissionBRound,
+            # even in case of timeout we might've sent the transaction
+            # so we need to check the history
+            Event.VALIDATE_TIMEOUT: CheckTransactionHistoryRound,
             Event.NO_MAJORITY: ValidateTransactionRound,
         },
         CheckTransactionHistoryRound: {

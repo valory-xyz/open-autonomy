@@ -9,13 +9,13 @@ fingerprint:
   readme.md: bafybeiacryxttipf4w4frfczygcyxyxhpobbywnybkpbtuuzzsffl2tczy
 fingerprint_ignore_patterns: []
 connections:
-- dummy_author/dummy_connection:0.1.0:bafybeiezr7lccxkfv2fslmrngmn6fmjkck6ukah7qfpioobpzuyam2xb2m
+- dummy_author/dummy_connection:0.1.0:bafybeic25zmtz5fpbtnr7mycmxqjqhym2uz3jsvfhccbu6lsn3btndx5hq
 contracts:
-- dummy_author/dummy_contract:0.1.0:bafybeigjwno7m7qthgybxwfglwfebnfghadcpmtzsn5kiw7f27ezcb7fyq
+- dummy_author/dummy_contract:0.1.0:bafybeifdf4blo6lse4ejlwtqpwzbufg3kh6ttdgde2ilag7ojwauyz6cbm
 protocols:
 - dummy_author/dummy_protocol:0.1.0:bafybeifuoztgfa2772jfvx5kyosgz7vrjfu6w6lo2mj3prziomdd3tp5xi
 skills:
-- dummy_author/dummy_skill:0.1.0:bafybeibku44tyjantfk3344gjrwhc2pk3estuose4ewnvf72fjuphe7fjm
+- dummy_author/dummy_skill:0.1.0:bafybeiaqnmp4fo336za5q245a2sbd3tqqlglnno2ps6kdzrz6764t4mf5e
 default_ledger: ethereum
 required_ledgers:
 - ethereum

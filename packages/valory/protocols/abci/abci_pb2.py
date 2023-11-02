@@ -4,9 +4,8 @@
 """Generated protocol buffer code."""
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import descriptor_pool as _descriptor_pool
-from google.protobuf import message as _message
-from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
+from google.protobuf.internal import builder as _builder
 
 
 # @@protoc_insertion_point(imports)
@@ -18,905 +17,161 @@ DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
     b'\n\nabci.proto\x12\x16\x61\x65\x61.valory.abci.v0_1_0"\x86P\n\x0b\x41\x62\x63iMessage\x12G\n\x05\x64ummy\x18\x05 \x01(\x0b\x32\x36.aea.valory.abci.v0_1_0.AbciMessage.Dummy_PerformativeH\x00\x12u\n\x1crequest_apply_snapshot_chunk\x18\x06 \x01(\x0b\x32M.aea.valory.abci.v0_1_0.AbciMessage.Request_Apply_Snapshot_Chunk_PerformativeH\x00\x12\x63\n\x13request_begin_block\x18\x07 \x01(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.Request_Begin_Block_PerformativeH\x00\x12]\n\x10request_check_tx\x18\x08 \x01(\x0b\x32\x41.aea.valory.abci.v0_1_0.AbciMessage.Request_Check_Tx_PerformativeH\x00\x12Y\n\x0erequest_commit\x18\t \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.Request_Commit_PerformativeH\x00\x12\x61\n\x12request_deliver_tx\x18\n \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Request_Deliver_Tx_PerformativeH\x00\x12U\n\x0crequest_echo\x18\x0b \x01(\x0b\x32=.aea.valory.abci.v0_1_0.AbciMessage.Request_Echo_PerformativeH\x00\x12_\n\x11request_end_block\x18\x0c \x01(\x0b\x32\x42.aea.valory.abci.v0_1_0.AbciMessage.Request_End_Block_PerformativeH\x00\x12W\n\rrequest_flush\x18\r \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Request_Flush_PerformativeH\x00\x12U\n\x0crequest_info\x18\x0e \x01(\x0b\x32=.aea.valory.abci.v0_1_0.AbciMessage.Request_Info_PerformativeH\x00\x12\x61\n\x12request_init_chain\x18\x0f \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Request_Init_Chain_PerformativeH\x00\x12i\n\x16request_list_snapshots\x18\x10 \x01(\x0b\x32G.aea.valory.abci.v0_1_0.AbciMessage.Request_List_Snapshots_PerformativeH\x00\x12s\n\x1brequest_load_snapshot_chunk\x18\x11 \x01(\x0b\x32L.aea.valory.abci.v0_1_0.AbciMessage.Request_Load_Snapshot_Chunk_PerformativeH\x00\x12i\n\x16request_offer_snapshot\x18\x12 \x01(\x0b\x32G.aea.valory.abci.v0_1_0.AbciMessage.Request_Offer_Snapshot_PerformativeH\x00\x12W\n\rrequest_query\x18\x13 \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Request_Query_PerformativeH\x00\x12\x61\n\x12request_set_option\x18\x14 \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Request_Set_Option_PerformativeH\x00\x12w\n\x1dresponse_apply_snapshot_chunk\x18\x15 \x01(\x0b\x32N.aea.valory.abci.v0_1_0.AbciMessage.Response_Apply_Snapshot_Chunk_PerformativeH\x00\x12\x65\n\x14response_begin_block\x18\x16 \x01(\x0b\x32\x45.aea.valory.abci.v0_1_0.AbciMessage.Response_Begin_Block_PerformativeH\x00\x12_\n\x11response_check_tx\x18\x17 \x01(\x0b\x32\x42.aea.valory.abci.v0_1_0.AbciMessage.Response_Check_Tx_PerformativeH\x00\x12[\n\x0fresponse_commit\x18\x18 \x01(\x0b\x32@.aea.valory.abci.v0_1_0.AbciMessage.Response_Commit_PerformativeH\x00\x12\x63\n\x13response_deliver_tx\x18\x19 \x01(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.Response_Deliver_Tx_PerformativeH\x00\x12W\n\rresponse_echo\x18\x1a \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Response_Echo_PerformativeH\x00\x12\x61\n\x12response_end_block\x18\x1b \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Response_End_Block_PerformativeH\x00\x12\x61\n\x12response_exception\x18\x1c \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Response_Exception_PerformativeH\x00\x12Y\n\x0eresponse_flush\x18\x1d \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.Response_Flush_PerformativeH\x00\x12W\n\rresponse_info\x18\x1e \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.Response_Info_PerformativeH\x00\x12\x63\n\x13response_init_chain\x18\x1f \x01(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.Response_Init_Chain_PerformativeH\x00\x12k\n\x17response_list_snapshots\x18  \x01(\x0b\x32H.aea.valory.abci.v0_1_0.AbciMessage.Response_List_Snapshots_PerformativeH\x00\x12u\n\x1cresponse_load_snapshot_chunk\x18! \x01(\x0b\x32M.aea.valory.abci.v0_1_0.AbciMessage.Response_Load_Snapshot_Chunk_PerformativeH\x00\x12k\n\x17response_offer_snapshot\x18" \x01(\x0b\x32H.aea.valory.abci.v0_1_0.AbciMessage.Response_Offer_Snapshot_PerformativeH\x00\x12Y\n\x0eresponse_query\x18# \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.Response_Query_PerformativeH\x00\x12\x63\n\x13response_set_option\x18$ \x01(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.Response_Set_Option_PerformativeH\x00\x1a\x7f\n\x0b\x43heckTxType\x12J\n\x04type\x18\x01 \x01(\x0e\x32<.aea.valory.abci.v0_1_0.AbciMessage.CheckTxType._CheckTxType"$\n\x0c_CheckTxType\x12\x07\n\x03NEW\x10\x00\x12\x0b\n\x07RECHECK\x10\x01\x1a\xac\x05\n\x0f\x43onsensusParams\x12N\n\x05\x62lock\x18\x01 \x01(\x0b\x32?.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.BlockParams\x12T\n\x08\x65vidence\x18\x02 \x01(\x0b\x32\x42.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.EvidenceParams\x12V\n\tvalidator\x18\x03 \x01(\x0b\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.ValidatorParams\x12R\n\x07version\x18\x04 \x01(\x0b\x32\x41.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.VersionParams\x1a*\n\x08\x44uration\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\x1a\x31\n\x0b\x42lockParams\x12\x11\n\tmax_bytes\x18\x01 \x01(\x03\x12\x0f\n\x07max_gas\x18\x02 \x01(\x03\x1a\x97\x01\n\x0e\x45videnceParams\x12\x1a\n\x12max_age_num_blocks\x18\x01 \x01(\x03\x12V\n\x10max_age_duration\x18\x02 \x01(\x0b\x32<.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.Duration\x12\x11\n\tmax_bytes\x18\x03 \x01(\x03\x1a(\n\x0fValidatorParams\x12\x15\n\rpub_key_types\x18\x01 \x03(\t\x1a$\n\rVersionParams\x12\x13\n\x0b\x61pp_version\x18\x01 \x01(\x04\x1a\xed\x01\n\x06\x45vents\x12@\n\x06\x65vents\x18\x01 \x03(\x0b\x32\x30.aea.valory.abci.v0_1_0.AbciMessage.Events.Event\x1a;\n\x0e\x45ventAttribute\x12\x0b\n\x03key\x18\x01 \x01(\x0c\x12\r\n\x05value\x18\x02 \x01(\x0c\x12\r\n\x05index\x18\x03 \x01(\x08\x1a\x64\n\x05\x45vent\x12\x0c\n\x04type\x18\x01 \x01(\t\x12M\n\nattributes\x18\x02 \x03(\x0b\x32\x39.aea.valory.abci.v0_1_0.AbciMessage.Events.EventAttribute\x1a\xc5\x03\n\tEvidences\x12T\n\x14\x62yzantine_validators\x18\x01 \x03(\x0b\x32\x36.aea.valory.abci.v0_1_0.AbciMessage.Evidences.Evidence\x1a\xe1\x02\n\x08\x45vidence\x12Q\n\x04type\x18\x01 \x01(\x0e\x32\x43.aea.valory.abci.v0_1_0.AbciMessage.Evidences.Evidence.EvidenceType\x12O\n\tvalidator\x18\x02 \x01(\x0b\x32<.aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.Validator\x12\x0e\n\x06height\x18\x03 \x01(\x03\x12;\n\x04time\x18\x04 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.Timestamp\x12\x1a\n\x12total_voting_power\x18\x05 \x01(\x03"H\n\x0c\x45videnceType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x12\n\x0e\x44UPLICATE_VOTE\x10\x01\x12\x17\n\x13LIGHT_CLIENT_ATTACK\x10\x02\x1a\xa4\x05\n\x06Header\x12L\n\x07version\x18\x01 \x01(\x0b\x32;.aea.valory.abci.v0_1_0.AbciMessage.Header.ConsensusVersion\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\t\x12\x0e\n\x06height\x18\x03 \x01(\x03\x12;\n\x04time\x18\x04 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.Timestamp\x12I\n\rlast_block_id\x18\x05 \x01(\x0b\x32\x32.aea.valory.abci.v0_1_0.AbciMessage.Header.BlockID\x12\x18\n\x10last_commit_hash\x18\x06 \x01(\x0c\x12\x11\n\tdata_hash\x18\x07 \x01(\x0c\x12\x17\n\x0fvalidators_hash\x18\x08 \x01(\x0c\x12\x1c\n\x14next_validators_hash\x18\t \x01(\x0c\x12\x16\n\x0e\x63onsensus_hash\x18\n \x01(\x0c\x12\x10\n\x08\x61pp_hash\x18\x0b \x01(\x0c\x12\x19\n\x11last_results_hash\x18\x0c \x01(\x0c\x12\x15\n\revidence_hash\x18\r \x01(\x0c\x12\x18\n\x10proposer_address\x18\x0e \x01(\x0c\x1a.\n\x10\x43onsensusVersion\x12\r\n\x05\x62lock\x18\x01 \x01(\x04\x12\x0b\n\x03\x61pp\x18\x02 \x01(\x04\x1aj\n\x07\x42lockID\x12\x0c\n\x04hash\x18\x01 \x01(\x0c\x12Q\n\x0fpart_set_header\x18\x02 \x01(\x0b\x32\x38.aea.valory.abci.v0_1_0.AbciMessage.Header.PartSetHeader\x1a,\n\rPartSetHeader\x12\r\n\x05total\x18\x01 \x01(\r\x12\x0c\n\x04hash\x18\x02 \x01(\x0c\x1a\x90\x02\n\x0eLastCommitInfo\x12\r\n\x05round\x18\x01 \x01(\x05\x12J\n\x05votes\x18\x02 \x03(\x0b\x32;.aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.VoteInfo\x1a+\n\tValidator\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\r\n\x05power\x18\x03 \x01(\x03\x1av\n\x08VoteInfo\x12O\n\tvalidator\x18\x01 \x01(\x0b\x32<.aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.Validator\x12\x19\n\x11signed_last_block\x18\x02 \x01(\x08\x1a\x81\x01\n\x08ProofOps\x12\x41\n\x03ops\x18\x01 \x03(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ProofOps.ProofOp\x1a\x32\n\x07ProofOp\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x0b\n\x03key\x18\x02 \x01(\x0c\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x1a\xb8\x01\n\x06Result\x12J\n\x0bresult_type\x18\x01 \x01(\x0e\x32\x35.aea.valory.abci.v0_1_0.AbciMessage.Result.ResultType"b\n\nResultType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\n\n\x06\x41\x43\x43\x45PT\x10\x01\x12\t\n\x05\x41\x42ORT\x10\x02\x12\n\n\x06REJECT\x10\x03\x12\x11\n\rREJECT_FORMAT\x10\x04\x12\x11\n\rREJECT_SENDER\x10\x05\x1aL\n\tSnapShots\x12?\n\tsnapshots\x18\x01 \x03(\x0b\x32,.aea.valory.abci.v0_1_0.AbciMessage.Snapshot\x1aZ\n\x08Snapshot\x12\x0e\n\x06height\x18\x01 \x01(\x04\x12\x0e\n\x06\x66ormat\x18\x02 \x01(\r\x12\x0e\n\x06\x63hunks\x18\x03 \x01(\r\x12\x0c\n\x04hash\x18\x04 \x01(\x0c\x12\x10\n\x08metadata\x18\x05 \x01(\x0c\x1a+\n\tTimestamp\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x05\x1a\x9b\x02\n\x10ValidatorUpdates\x12X\n\nvalidators\x18\x01 \x03(\x0b\x32\x44.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates.ValidatorUpdate\x1a:\n\tPublicKey\x12\x11\n\x07\x65\x64\x32\x35\x35\x31\x39\x18\x01 \x01(\x0cH\x00\x12\x13\n\tsecp256k1\x18\x02 \x01(\x0cH\x00\x42\x05\n\x03sum\x1aq\n\x0fValidatorUpdate\x12O\n\x07pub_key\x18\x01 \x01(\x0b\x32>.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates.PublicKey\x12\r\n\x05power\x18\x02 \x01(\x03\x1a,\n\x19Request_Echo_Performative\x12\x0f\n\x07message\x18\x01 \x01(\t\x1a\x1c\n\x1aRequest_Flush_Performative\x1aX\n\x19Request_Info_Performative\x12\x0f\n\x07version\x18\x01 \x01(\t\x12\x15\n\rblock_version\x18\x02 \x01(\x05\x12\x13\n\x0bp2p_version\x18\x03 \x01(\x05\x1aK\n\x1fRequest_Set_Option_Performative\x12\x12\n\noption_key\x18\x01 \x01(\t\x12\x14\n\x0coption_value\x18\x02 \x01(\t\x1a\xdb\x02\n\x1fRequest_Init_Chain_Performative\x12;\n\x04time\x18\x01 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.Timestamp\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\t\x12M\n\x10\x63onsensus_params\x18\x03 \x01(\x0b\x32\x33.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams\x12\x1f\n\x17\x63onsensus_params_is_set\x18\x04 \x01(\x08\x12H\n\nvalidators\x18\x05 \x01(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates\x12\x17\n\x0f\x61pp_state_bytes\x18\x06 \x01(\x0c\x12\x16\n\x0einitial_height\x18\x07 \x01(\x05\x1a]\n\x1aRequest_Query_Performative\x12\x12\n\nquery_data\x18\x01 \x01(\x0c\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x0e\n\x06height\x18\x03 \x01(\x05\x12\r\n\x05prove\x18\x04 \x01(\x08\x1a\x87\x02\n Request_Begin_Block_Performative\x12\x0c\n\x04hash\x18\x01 \x01(\x0c\x12:\n\x06header\x18\x02 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Header\x12L\n\x10last_commit_info\x18\x03 \x01(\x0b\x32\x32.aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo\x12K\n\x14\x62yzantine_validators\x18\x04 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.Evidences\x1aj\n\x1dRequest_Check_Tx_Performative\x12\n\n\x02tx\x18\x01 \x01(\x0c\x12=\n\x04type\x18\x02 \x01(\x0b\x32/.aea.valory.abci.v0_1_0.AbciMessage.CheckTxType\x1a-\n\x1fRequest_Deliver_Tx_Performative\x12\n\n\x02tx\x18\x01 \x01(\x0c\x1a\x30\n\x1eRequest_End_Block_Performative\x12\x0e\n\x06height\x18\x01 \x01(\x05\x1a\x1d\n\x1bRequest_Commit_Performative\x1a%\n#Request_List_Snapshots_Performative\x1aw\n#Request_Offer_Snapshot_Performative\x12>\n\x08snapshot\x18\x01 \x01(\x0b\x32,.aea.valory.abci.v0_1_0.AbciMessage.Snapshot\x12\x10\n\x08\x61pp_hash\x18\x02 \x01(\x0c\x1a_\n(Request_Load_Snapshot_Chunk_Performative\x12\x0e\n\x06height\x18\x01 \x01(\x05\x12\x0e\n\x06\x66ormat\x18\x02 \x01(\x05\x12\x13\n\x0b\x63hunk_index\x18\x03 \x01(\x05\x1a_\n)Request_Apply_Snapshot_Chunk_Performative\x12\r\n\x05index\x18\x01 \x01(\x05\x12\r\n\x05\x63hunk\x18\x02 \x01(\x0c\x12\x14\n\x0c\x63hunk_sender\x18\x03 \x01(\t\x1a\x30\n\x1fResponse_Exception_Performative\x12\r\n\x05\x65rror\x18\x01 \x01(\t\x1a-\n\x1aResponse_Echo_Performative\x12\x0f\n\x07message\x18\x01 \x01(\t\x1a\x1d\n\x1bResponse_Flush_Performative\x1a\x8d\x01\n\x1aResponse_Info_Performative\x12\x11\n\tinfo_data\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\t\x12\x13\n\x0b\x61pp_version\x18\x03 \x01(\x05\x12\x19\n\x11last_block_height\x18\x04 \x01(\x05\x12\x1b\n\x13last_block_app_hash\x18\x05 \x01(\x0c\x1aK\n Response_Set_Option_Performative\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0b\n\x03log\x18\x02 \x01(\t\x12\x0c\n\x04info\x18\x03 \x01(\t\x1a\xee\x01\n Response_Init_Chain_Performative\x12M\n\x10\x63onsensus_params\x18\x01 \x01(\x0b\x32\x33.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams\x12\x1f\n\x17\x63onsensus_params_is_set\x18\x02 \x01(\x08\x12H\n\nvalidators\x18\x03 \x01(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates\x12\x10\n\x08\x61pp_hash\x18\x04 \x01(\x0c\x1a\xd5\x01\n\x1bResponse_Query_Performative\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0b\n\x03log\x18\x02 \x01(\t\x12\x0c\n\x04info\x18\x03 \x01(\t\x12\r\n\x05index\x18\x04 \x01(\x05\x12\x0b\n\x03key\x18\x05 \x01(\x0c\x12\r\n\x05value\x18\x06 \x01(\x0c\x12?\n\tproof_ops\x18\x07 \x01(\x0b\x32,.aea.valory.abci.v0_1_0.AbciMessage.ProofOps\x12\x0e\n\x06height\x18\x08 \x01(\x05\x12\x11\n\tcodespace\x18\t \x01(\t\x1a_\n!Response_Begin_Block_Performative\x12:\n\x06\x65vents\x18\x01 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Events\x1a\xcc\x01\n\x1eResponse_Check_Tx_Performative\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x0b\n\x03log\x18\x03 \x01(\t\x12\x0c\n\x04info\x18\x04 \x01(\t\x12\x12\n\ngas_wanted\x18\x05 \x01(\x05\x12\x10\n\x08gas_used\x18\x06 \x01(\x05\x12:\n\x06\x65vents\x18\x07 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Events\x12\x11\n\tcodespace\x18\x08 \x01(\t\x1a\xce\x01\n Response_Deliver_Tx_Performative\x12\x0c\n\x04\x63ode\x18\x01 \x01(\x05\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x0b\n\x03log\x18\x03 \x01(\t\x12\x0c\n\x04info\x18\x04 \x01(\t\x12\x12\n\ngas_wanted\x18\x05 \x01(\x05\x12\x10\n\x08gas_used\x18\x06 \x01(\x05\x12:\n\x06\x65vents\x18\x07 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Events\x12\x11\n\tcodespace\x18\x08 \x01(\t\x1a\xac\x02\n\x1fResponse_End_Block_Performative\x12O\n\x11validator_updates\x18\x01 \x01(\x0b\x32\x34.aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates\x12T\n\x17\x63onsensus_param_updates\x18\x02 \x01(\x0b\x32\x33.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams\x12&\n\x1e\x63onsensus_param_updates_is_set\x18\x03 \x01(\x08\x12:\n\x06\x65vents\x18\x04 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Events\x1a\x43\n\x1cResponse_Commit_Performative\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12\x15\n\rretain_height\x18\x02 \x01(\x05\x1ah\n$Response_List_Snapshots_Performative\x12@\n\tsnapshots\x18\x01 \x01(\x0b\x32-.aea.valory.abci.v0_1_0.AbciMessage.SnapShots\x1a\x62\n$Response_Offer_Snapshot_Performative\x12:\n\x06result\x18\x01 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Result\x1a:\n)Response_Load_Snapshot_Chunk_Performative\x12\r\n\x05\x63hunk\x18\x01 \x01(\x0c\x1a\x98\x01\n*Response_Apply_Snapshot_Chunk_Performative\x12:\n\x06result\x18\x01 \x01(\x0b\x32*.aea.valory.abci.v0_1_0.AbciMessage.Result\x12\x16\n\x0erefetch_chunks\x18\x02 \x03(\x05\x12\x16\n\x0ereject_senders\x18\x03 \x03(\t\x1ai\n\x12\x44ummy_Performative\x12S\n\x16\x64ummy_consensus_params\x18\x01 \x01(\x0b\x32\x33.aea.valory.abci.v0_1_0.AbciMessage.ConsensusParamsB\x0e\n\x0cperformativeb\x06proto3'
 )
 
-
-_ABCIMESSAGE = DESCRIPTOR.message_types_by_name["AbciMessage"]
-_ABCIMESSAGE_CHECKTXTYPE = _ABCIMESSAGE.nested_types_by_name["CheckTxType"]
-_ABCIMESSAGE_CONSENSUSPARAMS = _ABCIMESSAGE.nested_types_by_name["ConsensusParams"]
-_ABCIMESSAGE_CONSENSUSPARAMS_DURATION = (
-    _ABCIMESSAGE_CONSENSUSPARAMS.nested_types_by_name["Duration"]
-)
-_ABCIMESSAGE_CONSENSUSPARAMS_BLOCKPARAMS = (
-    _ABCIMESSAGE_CONSENSUSPARAMS.nested_types_by_name["BlockParams"]
-)
-_ABCIMESSAGE_CONSENSUSPARAMS_EVIDENCEPARAMS = (
-    _ABCIMESSAGE_CONSENSUSPARAMS.nested_types_by_name["EvidenceParams"]
-)
-_ABCIMESSAGE_CONSENSUSPARAMS_VALIDATORPARAMS = (
-    _ABCIMESSAGE_CONSENSUSPARAMS.nested_types_by_name["ValidatorParams"]
-)
-_ABCIMESSAGE_CONSENSUSPARAMS_VERSIONPARAMS = (
-    _ABCIMESSAGE_CONSENSUSPARAMS.nested_types_by_name["VersionParams"]
-)
-_ABCIMESSAGE_EVENTS = _ABCIMESSAGE.nested_types_by_name["Events"]
-_ABCIMESSAGE_EVENTS_EVENTATTRIBUTE = _ABCIMESSAGE_EVENTS.nested_types_by_name[
-    "EventAttribute"
-]
-_ABCIMESSAGE_EVENTS_EVENT = _ABCIMESSAGE_EVENTS.nested_types_by_name["Event"]
-_ABCIMESSAGE_EVIDENCES = _ABCIMESSAGE.nested_types_by_name["Evidences"]
-_ABCIMESSAGE_EVIDENCES_EVIDENCE = _ABCIMESSAGE_EVIDENCES.nested_types_by_name[
-    "Evidence"
-]
-_ABCIMESSAGE_HEADER = _ABCIMESSAGE.nested_types_by_name["Header"]
-_ABCIMESSAGE_HEADER_CONSENSUSVERSION = _ABCIMESSAGE_HEADER.nested_types_by_name[
-    "ConsensusVersion"
-]
-_ABCIMESSAGE_HEADER_BLOCKID = _ABCIMESSAGE_HEADER.nested_types_by_name["BlockID"]
-_ABCIMESSAGE_HEADER_PARTSETHEADER = _ABCIMESSAGE_HEADER.nested_types_by_name[
-    "PartSetHeader"
-]
-_ABCIMESSAGE_LASTCOMMITINFO = _ABCIMESSAGE.nested_types_by_name["LastCommitInfo"]
-_ABCIMESSAGE_LASTCOMMITINFO_VALIDATOR = (
-    _ABCIMESSAGE_LASTCOMMITINFO.nested_types_by_name["Validator"]
-)
-_ABCIMESSAGE_LASTCOMMITINFO_VOTEINFO = _ABCIMESSAGE_LASTCOMMITINFO.nested_types_by_name[
-    "VoteInfo"
-]
-_ABCIMESSAGE_PROOFOPS = _ABCIMESSAGE.nested_types_by_name["ProofOps"]
-_ABCIMESSAGE_PROOFOPS_PROOFOP = _ABCIMESSAGE_PROOFOPS.nested_types_by_name["ProofOp"]
-_ABCIMESSAGE_RESULT = _ABCIMESSAGE.nested_types_by_name["Result"]
-_ABCIMESSAGE_SNAPSHOTS = _ABCIMESSAGE.nested_types_by_name["SnapShots"]
-_ABCIMESSAGE_SNAPSHOT = _ABCIMESSAGE.nested_types_by_name["Snapshot"]
-_ABCIMESSAGE_TIMESTAMP = _ABCIMESSAGE.nested_types_by_name["Timestamp"]
-_ABCIMESSAGE_VALIDATORUPDATES = _ABCIMESSAGE.nested_types_by_name["ValidatorUpdates"]
-_ABCIMESSAGE_VALIDATORUPDATES_PUBLICKEY = (
-    _ABCIMESSAGE_VALIDATORUPDATES.nested_types_by_name["PublicKey"]
-)
-_ABCIMESSAGE_VALIDATORUPDATES_VALIDATORUPDATE = (
-    _ABCIMESSAGE_VALIDATORUPDATES.nested_types_by_name["ValidatorUpdate"]
-)
-_ABCIMESSAGE_REQUEST_ECHO_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Request_Echo_Performative"
-]
-_ABCIMESSAGE_REQUEST_FLUSH_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Request_Flush_Performative"
-]
-_ABCIMESSAGE_REQUEST_INFO_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Request_Info_Performative"
-]
-_ABCIMESSAGE_REQUEST_SET_OPTION_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Request_Set_Option_Performative"
-]
-_ABCIMESSAGE_REQUEST_INIT_CHAIN_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Request_Init_Chain_Performative"
-]
-_ABCIMESSAGE_REQUEST_QUERY_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Request_Query_Performative"
-]
-_ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Request_Begin_Block_Performative"
-]
-_ABCIMESSAGE_REQUEST_CHECK_TX_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Request_Check_Tx_Performative"
-]
-_ABCIMESSAGE_REQUEST_DELIVER_TX_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Request_Deliver_Tx_Performative"
-]
-_ABCIMESSAGE_REQUEST_END_BLOCK_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Request_End_Block_Performative"
-]
-_ABCIMESSAGE_REQUEST_COMMIT_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Request_Commit_Performative"
-]
-_ABCIMESSAGE_REQUEST_LIST_SNAPSHOTS_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Request_List_Snapshots_Performative"
-]
-_ABCIMESSAGE_REQUEST_OFFER_SNAPSHOT_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Request_Offer_Snapshot_Performative"
-]
-_ABCIMESSAGE_REQUEST_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE = (
-    _ABCIMESSAGE.nested_types_by_name["Request_Load_Snapshot_Chunk_Performative"]
-)
-_ABCIMESSAGE_REQUEST_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE = (
-    _ABCIMESSAGE.nested_types_by_name["Request_Apply_Snapshot_Chunk_Performative"]
-)
-_ABCIMESSAGE_RESPONSE_EXCEPTION_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Response_Exception_Performative"
-]
-_ABCIMESSAGE_RESPONSE_ECHO_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Response_Echo_Performative"
-]
-_ABCIMESSAGE_RESPONSE_FLUSH_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Response_Flush_Performative"
-]
-_ABCIMESSAGE_RESPONSE_INFO_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Response_Info_Performative"
-]
-_ABCIMESSAGE_RESPONSE_SET_OPTION_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Response_Set_Option_Performative"
-]
-_ABCIMESSAGE_RESPONSE_INIT_CHAIN_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Response_Init_Chain_Performative"
-]
-_ABCIMESSAGE_RESPONSE_QUERY_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Response_Query_Performative"
-]
-_ABCIMESSAGE_RESPONSE_BEGIN_BLOCK_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Response_Begin_Block_Performative"
-]
-_ABCIMESSAGE_RESPONSE_CHECK_TX_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Response_Check_Tx_Performative"
-]
-_ABCIMESSAGE_RESPONSE_DELIVER_TX_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Response_Deliver_Tx_Performative"
-]
-_ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Response_End_Block_Performative"
-]
-_ABCIMESSAGE_RESPONSE_COMMIT_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Response_Commit_Performative"
-]
-_ABCIMESSAGE_RESPONSE_LIST_SNAPSHOTS_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Response_List_Snapshots_Performative"
-]
-_ABCIMESSAGE_RESPONSE_OFFER_SNAPSHOT_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Response_Offer_Snapshot_Performative"
-]
-_ABCIMESSAGE_RESPONSE_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE = (
-    _ABCIMESSAGE.nested_types_by_name["Response_Load_Snapshot_Chunk_Performative"]
-)
-_ABCIMESSAGE_RESPONSE_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE = (
-    _ABCIMESSAGE.nested_types_by_name["Response_Apply_Snapshot_Chunk_Performative"]
-)
-_ABCIMESSAGE_DUMMY_PERFORMATIVE = _ABCIMESSAGE.nested_types_by_name[
-    "Dummy_Performative"
-]
-_ABCIMESSAGE_CHECKTXTYPE__CHECKTXTYPE = _ABCIMESSAGE_CHECKTXTYPE.enum_types_by_name[
-    "_CheckTxType"
-]
-_ABCIMESSAGE_EVIDENCES_EVIDENCE_EVIDENCETYPE = (
-    _ABCIMESSAGE_EVIDENCES_EVIDENCE.enum_types_by_name["EvidenceType"]
-)
-_ABCIMESSAGE_RESULT_RESULTTYPE = _ABCIMESSAGE_RESULT.enum_types_by_name["ResultType"]
-AbciMessage = _reflection.GeneratedProtocolMessageType(
-    "AbciMessage",
-    (_message.Message,),
-    {
-        "CheckTxType": _reflection.GeneratedProtocolMessageType(
-            "CheckTxType",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_CHECKTXTYPE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.CheckTxType)
-            },
-        ),
-        "ConsensusParams": _reflection.GeneratedProtocolMessageType(
-            "ConsensusParams",
-            (_message.Message,),
-            {
-                "Duration": _reflection.GeneratedProtocolMessageType(
-                    "Duration",
-                    (_message.Message,),
-                    {
-                        "DESCRIPTOR": _ABCIMESSAGE_CONSENSUSPARAMS_DURATION,
-                        "__module__": "abci_pb2"
-                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.Duration)
-                    },
-                ),
-                "BlockParams": _reflection.GeneratedProtocolMessageType(
-                    "BlockParams",
-                    (_message.Message,),
-                    {
-                        "DESCRIPTOR": _ABCIMESSAGE_CONSENSUSPARAMS_BLOCKPARAMS,
-                        "__module__": "abci_pb2"
-                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.BlockParams)
-                    },
-                ),
-                "EvidenceParams": _reflection.GeneratedProtocolMessageType(
-                    "EvidenceParams",
-                    (_message.Message,),
-                    {
-                        "DESCRIPTOR": _ABCIMESSAGE_CONSENSUSPARAMS_EVIDENCEPARAMS,
-                        "__module__": "abci_pb2"
-                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.EvidenceParams)
-                    },
-                ),
-                "ValidatorParams": _reflection.GeneratedProtocolMessageType(
-                    "ValidatorParams",
-                    (_message.Message,),
-                    {
-                        "DESCRIPTOR": _ABCIMESSAGE_CONSENSUSPARAMS_VALIDATORPARAMS,
-                        "__module__": "abci_pb2"
-                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.ValidatorParams)
-                    },
-                ),
-                "VersionParams": _reflection.GeneratedProtocolMessageType(
-                    "VersionParams",
-                    (_message.Message,),
-                    {
-                        "DESCRIPTOR": _ABCIMESSAGE_CONSENSUSPARAMS_VERSIONPARAMS,
-                        "__module__": "abci_pb2"
-                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams.VersionParams)
-                    },
-                ),
-                "DESCRIPTOR": _ABCIMESSAGE_CONSENSUSPARAMS,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.ConsensusParams)
-            },
-        ),
-        "Events": _reflection.GeneratedProtocolMessageType(
-            "Events",
-            (_message.Message,),
-            {
-                "EventAttribute": _reflection.GeneratedProtocolMessageType(
-                    "EventAttribute",
-                    (_message.Message,),
-                    {
-                        "DESCRIPTOR": _ABCIMESSAGE_EVENTS_EVENTATTRIBUTE,
-                        "__module__": "abci_pb2"
-                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Events.EventAttribute)
-                    },
-                ),
-                "Event": _reflection.GeneratedProtocolMessageType(
-                    "Event",
-                    (_message.Message,),
-                    {
-                        "DESCRIPTOR": _ABCIMESSAGE_EVENTS_EVENT,
-                        "__module__": "abci_pb2"
-                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Events.Event)
-                    },
-                ),
-                "DESCRIPTOR": _ABCIMESSAGE_EVENTS,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Events)
-            },
-        ),
-        "Evidences": _reflection.GeneratedProtocolMessageType(
-            "Evidences",
-            (_message.Message,),
-            {
-                "Evidence": _reflection.GeneratedProtocolMessageType(
-                    "Evidence",
-                    (_message.Message,),
-                    {
-                        "DESCRIPTOR": _ABCIMESSAGE_EVIDENCES_EVIDENCE,
-                        "__module__": "abci_pb2"
-                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Evidences.Evidence)
-                    },
-                ),
-                "DESCRIPTOR": _ABCIMESSAGE_EVIDENCES,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Evidences)
-            },
-        ),
-        "Header": _reflection.GeneratedProtocolMessageType(
-            "Header",
-            (_message.Message,),
-            {
-                "ConsensusVersion": _reflection.GeneratedProtocolMessageType(
-                    "ConsensusVersion",
-                    (_message.Message,),
-                    {
-                        "DESCRIPTOR": _ABCIMESSAGE_HEADER_CONSENSUSVERSION,
-                        "__module__": "abci_pb2"
-                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Header.ConsensusVersion)
-                    },
-                ),
-                "BlockID": _reflection.GeneratedProtocolMessageType(
-                    "BlockID",
-                    (_message.Message,),
-                    {
-                        "DESCRIPTOR": _ABCIMESSAGE_HEADER_BLOCKID,
-                        "__module__": "abci_pb2"
-                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Header.BlockID)
-                    },
-                ),
-                "PartSetHeader": _reflection.GeneratedProtocolMessageType(
-                    "PartSetHeader",
-                    (_message.Message,),
-                    {
-                        "DESCRIPTOR": _ABCIMESSAGE_HEADER_PARTSETHEADER,
-                        "__module__": "abci_pb2"
-                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Header.PartSetHeader)
-                    },
-                ),
-                "DESCRIPTOR": _ABCIMESSAGE_HEADER,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Header)
-            },
-        ),
-        "LastCommitInfo": _reflection.GeneratedProtocolMessageType(
-            "LastCommitInfo",
-            (_message.Message,),
-            {
-                "Validator": _reflection.GeneratedProtocolMessageType(
-                    "Validator",
-                    (_message.Message,),
-                    {
-                        "DESCRIPTOR": _ABCIMESSAGE_LASTCOMMITINFO_VALIDATOR,
-                        "__module__": "abci_pb2"
-                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.Validator)
-                    },
-                ),
-                "VoteInfo": _reflection.GeneratedProtocolMessageType(
-                    "VoteInfo",
-                    (_message.Message,),
-                    {
-                        "DESCRIPTOR": _ABCIMESSAGE_LASTCOMMITINFO_VOTEINFO,
-                        "__module__": "abci_pb2"
-                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo.VoteInfo)
-                    },
-                ),
-                "DESCRIPTOR": _ABCIMESSAGE_LASTCOMMITINFO,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.LastCommitInfo)
-            },
-        ),
-        "ProofOps": _reflection.GeneratedProtocolMessageType(
-            "ProofOps",
-            (_message.Message,),
-            {
-                "ProofOp": _reflection.GeneratedProtocolMessageType(
-                    "ProofOp",
-                    (_message.Message,),
-                    {
-                        "DESCRIPTOR": _ABCIMESSAGE_PROOFOPS_PROOFOP,
-                        "__module__": "abci_pb2"
-                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.ProofOps.ProofOp)
-                    },
-                ),
-                "DESCRIPTOR": _ABCIMESSAGE_PROOFOPS,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.ProofOps)
-            },
-        ),
-        "Result": _reflection.GeneratedProtocolMessageType(
-            "Result",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESULT,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Result)
-            },
-        ),
-        "SnapShots": _reflection.GeneratedProtocolMessageType(
-            "SnapShots",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_SNAPSHOTS,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.SnapShots)
-            },
-        ),
-        "Snapshot": _reflection.GeneratedProtocolMessageType(
-            "Snapshot",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_SNAPSHOT,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Snapshot)
-            },
-        ),
-        "Timestamp": _reflection.GeneratedProtocolMessageType(
-            "Timestamp",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_TIMESTAMP,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Timestamp)
-            },
-        ),
-        "ValidatorUpdates": _reflection.GeneratedProtocolMessageType(
-            "ValidatorUpdates",
-            (_message.Message,),
-            {
-                "PublicKey": _reflection.GeneratedProtocolMessageType(
-                    "PublicKey",
-                    (_message.Message,),
-                    {
-                        "DESCRIPTOR": _ABCIMESSAGE_VALIDATORUPDATES_PUBLICKEY,
-                        "__module__": "abci_pb2"
-                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates.PublicKey)
-                    },
-                ),
-                "ValidatorUpdate": _reflection.GeneratedProtocolMessageType(
-                    "ValidatorUpdate",
-                    (_message.Message,),
-                    {
-                        "DESCRIPTOR": _ABCIMESSAGE_VALIDATORUPDATES_VALIDATORUPDATE,
-                        "__module__": "abci_pb2"
-                        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates.ValidatorUpdate)
-                    },
-                ),
-                "DESCRIPTOR": _ABCIMESSAGE_VALIDATORUPDATES,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.ValidatorUpdates)
-            },
-        ),
-        "Request_Echo_Performative": _reflection.GeneratedProtocolMessageType(
-            "Request_Echo_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_ECHO_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Echo_Performative)
-            },
-        ),
-        "Request_Flush_Performative": _reflection.GeneratedProtocolMessageType(
-            "Request_Flush_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_FLUSH_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Flush_Performative)
-            },
-        ),
-        "Request_Info_Performative": _reflection.GeneratedProtocolMessageType(
-            "Request_Info_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_INFO_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Info_Performative)
-            },
-        ),
-        "Request_Set_Option_Performative": _reflection.GeneratedProtocolMessageType(
-            "Request_Set_Option_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_SET_OPTION_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Set_Option_Performative)
-            },
-        ),
-        "Request_Init_Chain_Performative": _reflection.GeneratedProtocolMessageType(
-            "Request_Init_Chain_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_INIT_CHAIN_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Init_Chain_Performative)
-            },
-        ),
-        "Request_Query_Performative": _reflection.GeneratedProtocolMessageType(
-            "Request_Query_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_QUERY_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Query_Performative)
-            },
-        ),
-        "Request_Begin_Block_Performative": _reflection.GeneratedProtocolMessageType(
-            "Request_Begin_Block_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Begin_Block_Performative)
-            },
-        ),
-        "Request_Check_Tx_Performative": _reflection.GeneratedProtocolMessageType(
-            "Request_Check_Tx_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_CHECK_TX_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Check_Tx_Performative)
-            },
-        ),
-        "Request_Deliver_Tx_Performative": _reflection.GeneratedProtocolMessageType(
-            "Request_Deliver_Tx_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_DELIVER_TX_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Deliver_Tx_Performative)
-            },
-        ),
-        "Request_End_Block_Performative": _reflection.GeneratedProtocolMessageType(
-            "Request_End_Block_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_END_BLOCK_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_End_Block_Performative)
-            },
-        ),
-        "Request_Commit_Performative": _reflection.GeneratedProtocolMessageType(
-            "Request_Commit_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_COMMIT_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Commit_Performative)
-            },
-        ),
-        "Request_List_Snapshots_Performative": _reflection.GeneratedProtocolMessageType(
-            "Request_List_Snapshots_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_LIST_SNAPSHOTS_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_List_Snapshots_Performative)
-            },
-        ),
-        "Request_Offer_Snapshot_Performative": _reflection.GeneratedProtocolMessageType(
-            "Request_Offer_Snapshot_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_OFFER_SNAPSHOT_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Offer_Snapshot_Performative)
-            },
-        ),
-        "Request_Load_Snapshot_Chunk_Performative": _reflection.GeneratedProtocolMessageType(
-            "Request_Load_Snapshot_Chunk_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Load_Snapshot_Chunk_Performative)
-            },
-        ),
-        "Request_Apply_Snapshot_Chunk_Performative": _reflection.GeneratedProtocolMessageType(
-            "Request_Apply_Snapshot_Chunk_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_REQUEST_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Request_Apply_Snapshot_Chunk_Performative)
-            },
-        ),
-        "Response_Exception_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_Exception_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_EXCEPTION_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Exception_Performative)
-            },
-        ),
-        "Response_Echo_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_Echo_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_ECHO_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Echo_Performative)
-            },
-        ),
-        "Response_Flush_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_Flush_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_FLUSH_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Flush_Performative)
-            },
-        ),
-        "Response_Info_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_Info_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_INFO_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Info_Performative)
-            },
-        ),
-        "Response_Set_Option_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_Set_Option_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_SET_OPTION_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Set_Option_Performative)
-            },
-        ),
-        "Response_Init_Chain_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_Init_Chain_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_INIT_CHAIN_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Init_Chain_Performative)
-            },
-        ),
-        "Response_Query_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_Query_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_QUERY_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Query_Performative)
-            },
-        ),
-        "Response_Begin_Block_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_Begin_Block_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_BEGIN_BLOCK_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Begin_Block_Performative)
-            },
-        ),
-        "Response_Check_Tx_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_Check_Tx_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_CHECK_TX_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Check_Tx_Performative)
-            },
-        ),
-        "Response_Deliver_Tx_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_Deliver_Tx_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_DELIVER_TX_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Deliver_Tx_Performative)
-            },
-        ),
-        "Response_End_Block_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_End_Block_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_End_Block_Performative)
-            },
-        ),
-        "Response_Commit_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_Commit_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_COMMIT_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Commit_Performative)
-            },
-        ),
-        "Response_List_Snapshots_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_List_Snapshots_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_LIST_SNAPSHOTS_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_List_Snapshots_Performative)
-            },
-        ),
-        "Response_Offer_Snapshot_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_Offer_Snapshot_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_OFFER_SNAPSHOT_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Offer_Snapshot_Performative)
-            },
-        ),
-        "Response_Load_Snapshot_Chunk_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_Load_Snapshot_Chunk_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Load_Snapshot_Chunk_Performative)
-            },
-        ),
-        "Response_Apply_Snapshot_Chunk_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_Apply_Snapshot_Chunk_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_RESPONSE_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Response_Apply_Snapshot_Chunk_Performative)
-            },
-        ),
-        "Dummy_Performative": _reflection.GeneratedProtocolMessageType(
-            "Dummy_Performative",
-            (_message.Message,),
-            {
-                "DESCRIPTOR": _ABCIMESSAGE_DUMMY_PERFORMATIVE,
-                "__module__": "abci_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage.Dummy_Performative)
-            },
-        ),
-        "DESCRIPTOR": _ABCIMESSAGE,
-        "__module__": "abci_pb2"
-        # @@protoc_insertion_point(class_scope:aea.valory.abci.v0_1_0.AbciMessage)
-    },
-)
-_sym_db.RegisterMessage(AbciMessage)
-_sym_db.RegisterMessage(AbciMessage.CheckTxType)
-_sym_db.RegisterMessage(AbciMessage.ConsensusParams)
-_sym_db.RegisterMessage(AbciMessage.ConsensusParams.Duration)
-_sym_db.RegisterMessage(AbciMessage.ConsensusParams.BlockParams)
-_sym_db.RegisterMessage(AbciMessage.ConsensusParams.EvidenceParams)
-_sym_db.RegisterMessage(AbciMessage.ConsensusParams.ValidatorParams)
-_sym_db.RegisterMessage(AbciMessage.ConsensusParams.VersionParams)
-_sym_db.RegisterMessage(AbciMessage.Events)
-_sym_db.RegisterMessage(AbciMessage.Events.EventAttribute)
-_sym_db.RegisterMessage(AbciMessage.Events.Event)
-_sym_db.RegisterMessage(AbciMessage.Evidences)
-_sym_db.RegisterMessage(AbciMessage.Evidences.Evidence)
-_sym_db.RegisterMessage(AbciMessage.Header)
-_sym_db.RegisterMessage(AbciMessage.Header.ConsensusVersion)
-_sym_db.RegisterMessage(AbciMessage.Header.BlockID)
-_sym_db.RegisterMessage(AbciMessage.Header.PartSetHeader)
-_sym_db.RegisterMessage(AbciMessage.LastCommitInfo)
-_sym_db.RegisterMessage(AbciMessage.LastCommitInfo.Validator)
-_sym_db.RegisterMessage(AbciMessage.LastCommitInfo.VoteInfo)
-_sym_db.RegisterMessage(AbciMessage.ProofOps)
-_sym_db.RegisterMessage(AbciMessage.ProofOps.ProofOp)
-_sym_db.RegisterMessage(AbciMessage.Result)
-_sym_db.RegisterMessage(AbciMessage.SnapShots)
-_sym_db.RegisterMessage(AbciMessage.Snapshot)
-_sym_db.RegisterMessage(AbciMessage.Timestamp)
-_sym_db.RegisterMessage(AbciMessage.ValidatorUpdates)
-_sym_db.RegisterMessage(AbciMessage.ValidatorUpdates.PublicKey)
-_sym_db.RegisterMessage(AbciMessage.ValidatorUpdates.ValidatorUpdate)
-_sym_db.RegisterMessage(AbciMessage.Request_Echo_Performative)
-_sym_db.RegisterMessage(AbciMessage.Request_Flush_Performative)
-_sym_db.RegisterMessage(AbciMessage.Request_Info_Performative)
-_sym_db.RegisterMessage(AbciMessage.Request_Set_Option_Performative)
-_sym_db.RegisterMessage(AbciMessage.Request_Init_Chain_Performative)
-_sym_db.RegisterMessage(AbciMessage.Request_Query_Performative)
-_sym_db.RegisterMessage(AbciMessage.Request_Begin_Block_Performative)
-_sym_db.RegisterMessage(AbciMessage.Request_Check_Tx_Performative)
-_sym_db.RegisterMessage(AbciMessage.Request_Deliver_Tx_Performative)
-_sym_db.RegisterMessage(AbciMessage.Request_End_Block_Performative)
-_sym_db.RegisterMessage(AbciMessage.Request_Commit_Performative)
-_sym_db.RegisterMessage(AbciMessage.Request_List_Snapshots_Performative)
-_sym_db.RegisterMessage(AbciMessage.Request_Offer_Snapshot_Performative)
-_sym_db.RegisterMessage(AbciMessage.Request_Load_Snapshot_Chunk_Performative)
-_sym_db.RegisterMessage(AbciMessage.Request_Apply_Snapshot_Chunk_Performative)
-_sym_db.RegisterMessage(AbciMessage.Response_Exception_Performative)
-_sym_db.RegisterMessage(AbciMessage.Response_Echo_Performative)
-_sym_db.RegisterMessage(AbciMessage.Response_Flush_Performative)
-_sym_db.RegisterMessage(AbciMessage.Response_Info_Performative)
-_sym_db.RegisterMessage(AbciMessage.Response_Set_Option_Performative)
-_sym_db.RegisterMessage(AbciMessage.Response_Init_Chain_Performative)
-_sym_db.RegisterMessage(AbciMessage.Response_Query_Performative)
-_sym_db.RegisterMessage(AbciMessage.Response_Begin_Block_Performative)
-_sym_db.RegisterMessage(AbciMessage.Response_Check_Tx_Performative)
-_sym_db.RegisterMessage(AbciMessage.Response_Deliver_Tx_Performative)
-_sym_db.RegisterMessage(AbciMessage.Response_End_Block_Performative)
-_sym_db.RegisterMessage(AbciMessage.Response_Commit_Performative)
-_sym_db.RegisterMessage(AbciMessage.Response_List_Snapshots_Performative)
-_sym_db.RegisterMessage(AbciMessage.Response_Offer_Snapshot_Performative)
-_sym_db.RegisterMessage(AbciMessage.Response_Load_Snapshot_Chunk_Performative)
-_sym_db.RegisterMessage(AbciMessage.Response_Apply_Snapshot_Chunk_Performative)
-_sym_db.RegisterMessage(AbciMessage.Dummy_Performative)
-
+_globals = globals()
+_builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
+_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "abci_pb2", _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
-
     DESCRIPTOR._options = None
-    _ABCIMESSAGE._serialized_start = 39
-    _ABCIMESSAGE._serialized_end = 10285
-    _ABCIMESSAGE_CHECKTXTYPE._serialized_start = 3222
-    _ABCIMESSAGE_CHECKTXTYPE._serialized_end = 3349
-    _ABCIMESSAGE_CHECKTXTYPE__CHECKTXTYPE._serialized_start = 3313
-    _ABCIMESSAGE_CHECKTXTYPE__CHECKTXTYPE._serialized_end = 3349
-    _ABCIMESSAGE_CONSENSUSPARAMS._serialized_start = 3352
-    _ABCIMESSAGE_CONSENSUSPARAMS._serialized_end = 4036
-    _ABCIMESSAGE_CONSENSUSPARAMS_DURATION._serialized_start = 3709
-    _ABCIMESSAGE_CONSENSUSPARAMS_DURATION._serialized_end = 3751
-    _ABCIMESSAGE_CONSENSUSPARAMS_BLOCKPARAMS._serialized_start = 3753
-    _ABCIMESSAGE_CONSENSUSPARAMS_BLOCKPARAMS._serialized_end = 3802
-    _ABCIMESSAGE_CONSENSUSPARAMS_EVIDENCEPARAMS._serialized_start = 3805
-    _ABCIMESSAGE_CONSENSUSPARAMS_EVIDENCEPARAMS._serialized_end = 3956
-    _ABCIMESSAGE_CONSENSUSPARAMS_VALIDATORPARAMS._serialized_start = 3958
-    _ABCIMESSAGE_CONSENSUSPARAMS_VALIDATORPARAMS._serialized_end = 3998
-    _ABCIMESSAGE_CONSENSUSPARAMS_VERSIONPARAMS._serialized_start = 4000
-    _ABCIMESSAGE_CONSENSUSPARAMS_VERSIONPARAMS._serialized_end = 4036
-    _ABCIMESSAGE_EVENTS._serialized_start = 4039
-    _ABCIMESSAGE_EVENTS._serialized_end = 4276
-    _ABCIMESSAGE_EVENTS_EVENTATTRIBUTE._serialized_start = 4115
-    _ABCIMESSAGE_EVENTS_EVENTATTRIBUTE._serialized_end = 4174
-    _ABCIMESSAGE_EVENTS_EVENT._serialized_start = 4176
-    _ABCIMESSAGE_EVENTS_EVENT._serialized_end = 4276
-    _ABCIMESSAGE_EVIDENCES._serialized_start = 4279
-    _ABCIMESSAGE_EVIDENCES._serialized_end = 4732
-    _ABCIMESSAGE_EVIDENCES_EVIDENCE._serialized_start = 4379
-    _ABCIMESSAGE_EVIDENCES_EVIDENCE._serialized_end = 4732
-    _ABCIMESSAGE_EVIDENCES_EVIDENCE_EVIDENCETYPE._serialized_start = 4660
-    _ABCIMESSAGE_EVIDENCES_EVIDENCE_EVIDENCETYPE._serialized_end = 4732
-    _ABCIMESSAGE_HEADER._serialized_start = 4735
-    _ABCIMESSAGE_HEADER._serialized_end = 5411
-    _ABCIMESSAGE_HEADER_CONSENSUSVERSION._serialized_start = 5211
-    _ABCIMESSAGE_HEADER_CONSENSUSVERSION._serialized_end = 5257
-    _ABCIMESSAGE_HEADER_BLOCKID._serialized_start = 5259
-    _ABCIMESSAGE_HEADER_BLOCKID._serialized_end = 5365
-    _ABCIMESSAGE_HEADER_PARTSETHEADER._serialized_start = 5367
-    _ABCIMESSAGE_HEADER_PARTSETHEADER._serialized_end = 5411
-    _ABCIMESSAGE_LASTCOMMITINFO._serialized_start = 5414
-    _ABCIMESSAGE_LASTCOMMITINFO._serialized_end = 5686
-    _ABCIMESSAGE_LASTCOMMITINFO_VALIDATOR._serialized_start = 5523
-    _ABCIMESSAGE_LASTCOMMITINFO_VALIDATOR._serialized_end = 5566
-    _ABCIMESSAGE_LASTCOMMITINFO_VOTEINFO._serialized_start = 5568
-    _ABCIMESSAGE_LASTCOMMITINFO_VOTEINFO._serialized_end = 5686
-    _ABCIMESSAGE_PROOFOPS._serialized_start = 5689
-    _ABCIMESSAGE_PROOFOPS._serialized_end = 5818
-    _ABCIMESSAGE_PROOFOPS_PROOFOP._serialized_start = 5768
-    _ABCIMESSAGE_PROOFOPS_PROOFOP._serialized_end = 5818
-    _ABCIMESSAGE_RESULT._serialized_start = 5821
-    _ABCIMESSAGE_RESULT._serialized_end = 6005
-    _ABCIMESSAGE_RESULT_RESULTTYPE._serialized_start = 5907
-    _ABCIMESSAGE_RESULT_RESULTTYPE._serialized_end = 6005
-    _ABCIMESSAGE_SNAPSHOTS._serialized_start = 6007
-    _ABCIMESSAGE_SNAPSHOTS._serialized_end = 6083
-    _ABCIMESSAGE_SNAPSHOT._serialized_start = 6085
-    _ABCIMESSAGE_SNAPSHOT._serialized_end = 6175
-    _ABCIMESSAGE_TIMESTAMP._serialized_start = 6177
-    _ABCIMESSAGE_TIMESTAMP._serialized_end = 6220
-    _ABCIMESSAGE_VALIDATORUPDATES._serialized_start = 6223
-    _ABCIMESSAGE_VALIDATORUPDATES._serialized_end = 6506
-    _ABCIMESSAGE_VALIDATORUPDATES_PUBLICKEY._serialized_start = 6333
-    _ABCIMESSAGE_VALIDATORUPDATES_PUBLICKEY._serialized_end = 6391
-    _ABCIMESSAGE_VALIDATORUPDATES_VALIDATORUPDATE._serialized_start = 6393
-    _ABCIMESSAGE_VALIDATORUPDATES_VALIDATORUPDATE._serialized_end = 6506
-    _ABCIMESSAGE_REQUEST_ECHO_PERFORMATIVE._serialized_start = 6508
-    _ABCIMESSAGE_REQUEST_ECHO_PERFORMATIVE._serialized_end = 6552
-    _ABCIMESSAGE_REQUEST_FLUSH_PERFORMATIVE._serialized_start = 6554
-    _ABCIMESSAGE_REQUEST_FLUSH_PERFORMATIVE._serialized_end = 6582
-    _ABCIMESSAGE_REQUEST_INFO_PERFORMATIVE._serialized_start = 6584
-    _ABCIMESSAGE_REQUEST_INFO_PERFORMATIVE._serialized_end = 6672
-    _ABCIMESSAGE_REQUEST_SET_OPTION_PERFORMATIVE._serialized_start = 6674
-    _ABCIMESSAGE_REQUEST_SET_OPTION_PERFORMATIVE._serialized_end = 6749
-    _ABCIMESSAGE_REQUEST_INIT_CHAIN_PERFORMATIVE._serialized_start = 6752
-    _ABCIMESSAGE_REQUEST_INIT_CHAIN_PERFORMATIVE._serialized_end = 7099
-    _ABCIMESSAGE_REQUEST_QUERY_PERFORMATIVE._serialized_start = 7101
-    _ABCIMESSAGE_REQUEST_QUERY_PERFORMATIVE._serialized_end = 7194
-    _ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE._serialized_start = 7197
-    _ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE._serialized_end = 7460
-    _ABCIMESSAGE_REQUEST_CHECK_TX_PERFORMATIVE._serialized_start = 7462
-    _ABCIMESSAGE_REQUEST_CHECK_TX_PERFORMATIVE._serialized_end = 7568
-    _ABCIMESSAGE_REQUEST_DELIVER_TX_PERFORMATIVE._serialized_start = 7570
-    _ABCIMESSAGE_REQUEST_DELIVER_TX_PERFORMATIVE._serialized_end = 7615
-    _ABCIMESSAGE_REQUEST_END_BLOCK_PERFORMATIVE._serialized_start = 7617
-    _ABCIMESSAGE_REQUEST_END_BLOCK_PERFORMATIVE._serialized_end = 7665
-    _ABCIMESSAGE_REQUEST_COMMIT_PERFORMATIVE._serialized_start = 7667
-    _ABCIMESSAGE_REQUEST_COMMIT_PERFORMATIVE._serialized_end = 7696
-    _ABCIMESSAGE_REQUEST_LIST_SNAPSHOTS_PERFORMATIVE._serialized_start = 7698
-    _ABCIMESSAGE_REQUEST_LIST_SNAPSHOTS_PERFORMATIVE._serialized_end = 7735
-    _ABCIMESSAGE_REQUEST_OFFER_SNAPSHOT_PERFORMATIVE._serialized_start = 7737
-    _ABCIMESSAGE_REQUEST_OFFER_SNAPSHOT_PERFORMATIVE._serialized_end = 7856
-    _ABCIMESSAGE_REQUEST_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_start = 7858
-    _ABCIMESSAGE_REQUEST_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_end = 7953
-    _ABCIMESSAGE_REQUEST_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_start = 7955
-    _ABCIMESSAGE_REQUEST_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_end = 8050
-    _ABCIMESSAGE_RESPONSE_EXCEPTION_PERFORMATIVE._serialized_start = 8052
-    _ABCIMESSAGE_RESPONSE_EXCEPTION_PERFORMATIVE._serialized_end = 8100
-    _ABCIMESSAGE_RESPONSE_ECHO_PERFORMATIVE._serialized_start = 8102
-    _ABCIMESSAGE_RESPONSE_ECHO_PERFORMATIVE._serialized_end = 8147
-    _ABCIMESSAGE_RESPONSE_FLUSH_PERFORMATIVE._serialized_start = 8149
-    _ABCIMESSAGE_RESPONSE_FLUSH_PERFORMATIVE._serialized_end = 8178
-    _ABCIMESSAGE_RESPONSE_INFO_PERFORMATIVE._serialized_start = 8181
-    _ABCIMESSAGE_RESPONSE_INFO_PERFORMATIVE._serialized_end = 8322
-    _ABCIMESSAGE_RESPONSE_SET_OPTION_PERFORMATIVE._serialized_start = 8324
-    _ABCIMESSAGE_RESPONSE_SET_OPTION_PERFORMATIVE._serialized_end = 8399
-    _ABCIMESSAGE_RESPONSE_INIT_CHAIN_PERFORMATIVE._serialized_start = 8402
-    _ABCIMESSAGE_RESPONSE_INIT_CHAIN_PERFORMATIVE._serialized_end = 8640
-    _ABCIMESSAGE_RESPONSE_QUERY_PERFORMATIVE._serialized_start = 8643
-    _ABCIMESSAGE_RESPONSE_QUERY_PERFORMATIVE._serialized_end = 8856
-    _ABCIMESSAGE_RESPONSE_BEGIN_BLOCK_PERFORMATIVE._serialized_start = 8858
-    _ABCIMESSAGE_RESPONSE_BEGIN_BLOCK_PERFORMATIVE._serialized_end = 8953
-    _ABCIMESSAGE_RESPONSE_CHECK_TX_PERFORMATIVE._serialized_start = 8956
-    _ABCIMESSAGE_RESPONSE_CHECK_TX_PERFORMATIVE._serialized_end = 9160
-    _ABCIMESSAGE_RESPONSE_DELIVER_TX_PERFORMATIVE._serialized_start = 9163
-    _ABCIMESSAGE_RESPONSE_DELIVER_TX_PERFORMATIVE._serialized_end = 9369
-    _ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE._serialized_start = 9372
-    _ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE._serialized_end = 9672
-    _ABCIMESSAGE_RESPONSE_COMMIT_PERFORMATIVE._serialized_start = 9674
-    _ABCIMESSAGE_RESPONSE_COMMIT_PERFORMATIVE._serialized_end = 9741
-    _ABCIMESSAGE_RESPONSE_LIST_SNAPSHOTS_PERFORMATIVE._serialized_start = 9743
-    _ABCIMESSAGE_RESPONSE_LIST_SNAPSHOTS_PERFORMATIVE._serialized_end = 9847
-    _ABCIMESSAGE_RESPONSE_OFFER_SNAPSHOT_PERFORMATIVE._serialized_start = 9849
-    _ABCIMESSAGE_RESPONSE_OFFER_SNAPSHOT_PERFORMATIVE._serialized_end = 9947
-    _ABCIMESSAGE_RESPONSE_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_start = 9949
-    _ABCIMESSAGE_RESPONSE_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_end = 10007
-    _ABCIMESSAGE_RESPONSE_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_start = 10010
-    _ABCIMESSAGE_RESPONSE_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE._serialized_end = 10162
-    _ABCIMESSAGE_DUMMY_PERFORMATIVE._serialized_start = 10164
-    _ABCIMESSAGE_DUMMY_PERFORMATIVE._serialized_end = 10269
+    _globals["_ABCIMESSAGE"]._serialized_start = 39
+    _globals["_ABCIMESSAGE"]._serialized_end = 10285
+    _globals["_ABCIMESSAGE_CHECKTXTYPE"]._serialized_start = 3222
+    _globals["_ABCIMESSAGE_CHECKTXTYPE"]._serialized_end = 3349
+    _globals["_ABCIMESSAGE_CHECKTXTYPE__CHECKTXTYPE"]._serialized_start = 3313
+    _globals["_ABCIMESSAGE_CHECKTXTYPE__CHECKTXTYPE"]._serialized_end = 3349
+    _globals["_ABCIMESSAGE_CONSENSUSPARAMS"]._serialized_start = 3352
+    _globals["_ABCIMESSAGE_CONSENSUSPARAMS"]._serialized_end = 4036
+    _globals["_ABCIMESSAGE_CONSENSUSPARAMS_DURATION"]._serialized_start = 3709
+    _globals["_ABCIMESSAGE_CONSENSUSPARAMS_DURATION"]._serialized_end = 3751
+    _globals["_ABCIMESSAGE_CONSENSUSPARAMS_BLOCKPARAMS"]._serialized_start = 3753
+    _globals["_ABCIMESSAGE_CONSENSUSPARAMS_BLOCKPARAMS"]._serialized_end = 3802
+    _globals["_ABCIMESSAGE_CONSENSUSPARAMS_EVIDENCEPARAMS"]._serialized_start = 3805
+    _globals["_ABCIMESSAGE_CONSENSUSPARAMS_EVIDENCEPARAMS"]._serialized_end = 3956
+    _globals["_ABCIMESSAGE_CONSENSUSPARAMS_VALIDATORPARAMS"]._serialized_start = 3958
+    _globals["_ABCIMESSAGE_CONSENSUSPARAMS_VALIDATORPARAMS"]._serialized_end = 3998
+    _globals["_ABCIMESSAGE_CONSENSUSPARAMS_VERSIONPARAMS"]._serialized_start = 4000
+    _globals["_ABCIMESSAGE_CONSENSUSPARAMS_VERSIONPARAMS"]._serialized_end = 4036
+    _globals["_ABCIMESSAGE_EVENTS"]._serialized_start = 4039
+    _globals["_ABCIMESSAGE_EVENTS"]._serialized_end = 4276
+    _globals["_ABCIMESSAGE_EVENTS_EVENTATTRIBUTE"]._serialized_start = 4115
+    _globals["_ABCIMESSAGE_EVENTS_EVENTATTRIBUTE"]._serialized_end = 4174
+    _globals["_ABCIMESSAGE_EVENTS_EVENT"]._serialized_start = 4176
+    _globals["_ABCIMESSAGE_EVENTS_EVENT"]._serialized_end = 4276
+    _globals["_ABCIMESSAGE_EVIDENCES"]._serialized_start = 4279
+    _globals["_ABCIMESSAGE_EVIDENCES"]._serialized_end = 4732
+    _globals["_ABCIMESSAGE_EVIDENCES_EVIDENCE"]._serialized_start = 4379
+    _globals["_ABCIMESSAGE_EVIDENCES_EVIDENCE"]._serialized_end = 4732
+    _globals["_ABCIMESSAGE_EVIDENCES_EVIDENCE_EVIDENCETYPE"]._serialized_start = 4660
+    _globals["_ABCIMESSAGE_EVIDENCES_EVIDENCE_EVIDENCETYPE"]._serialized_end = 4732
+    _globals["_ABCIMESSAGE_HEADER"]._serialized_start = 4735
+    _globals["_ABCIMESSAGE_HEADER"]._serialized_end = 5411
+    _globals["_ABCIMESSAGE_HEADER_CONSENSUSVERSION"]._serialized_start = 5211
+    _globals["_ABCIMESSAGE_HEADER_CONSENSUSVERSION"]._serialized_end = 5257
+    _globals["_ABCIMESSAGE_HEADER_BLOCKID"]._serialized_start = 5259
+    _globals["_ABCIMESSAGE_HEADER_BLOCKID"]._serialized_end = 5365
+    _globals["_ABCIMESSAGE_HEADER_PARTSETHEADER"]._serialized_start = 5367
+    _globals["_ABCIMESSAGE_HEADER_PARTSETHEADER"]._serialized_end = 5411
+    _globals["_ABCIMESSAGE_LASTCOMMITINFO"]._serialized_start = 5414
+    _globals["_ABCIMESSAGE_LASTCOMMITINFO"]._serialized_end = 5686
+    _globals["_ABCIMESSAGE_LASTCOMMITINFO_VALIDATOR"]._serialized_start = 5523
+    _globals["_ABCIMESSAGE_LASTCOMMITINFO_VALIDATOR"]._serialized_end = 5566
+    _globals["_ABCIMESSAGE_LASTCOMMITINFO_VOTEINFO"]._serialized_start = 5568
+    _globals["_ABCIMESSAGE_LASTCOMMITINFO_VOTEINFO"]._serialized_end = 5686
+    _globals["_ABCIMESSAGE_PROOFOPS"]._serialized_start = 5689
+    _globals["_ABCIMESSAGE_PROOFOPS"]._serialized_end = 5818
+    _globals["_ABCIMESSAGE_PROOFOPS_PROOFOP"]._serialized_start = 5768
+    _globals["_ABCIMESSAGE_PROOFOPS_PROOFOP"]._serialized_end = 5818
+    _globals["_ABCIMESSAGE_RESULT"]._serialized_start = 5821
+    _globals["_ABCIMESSAGE_RESULT"]._serialized_end = 6005
+    _globals["_ABCIMESSAGE_RESULT_RESULTTYPE"]._serialized_start = 5907
+    _globals["_ABCIMESSAGE_RESULT_RESULTTYPE"]._serialized_end = 6005
+    _globals["_ABCIMESSAGE_SNAPSHOTS"]._serialized_start = 6007
+    _globals["_ABCIMESSAGE_SNAPSHOTS"]._serialized_end = 6083
+    _globals["_ABCIMESSAGE_SNAPSHOT"]._serialized_start = 6085
+    _globals["_ABCIMESSAGE_SNAPSHOT"]._serialized_end = 6175
+    _globals["_ABCIMESSAGE_TIMESTAMP"]._serialized_start = 6177
+    _globals["_ABCIMESSAGE_TIMESTAMP"]._serialized_end = 6220
+    _globals["_ABCIMESSAGE_VALIDATORUPDATES"]._serialized_start = 6223
+    _globals["_ABCIMESSAGE_VALIDATORUPDATES"]._serialized_end = 6506
+    _globals["_ABCIMESSAGE_VALIDATORUPDATES_PUBLICKEY"]._serialized_start = 6333
+    _globals["_ABCIMESSAGE_VALIDATORUPDATES_PUBLICKEY"]._serialized_end = 6391
+    _globals["_ABCIMESSAGE_VALIDATORUPDATES_VALIDATORUPDATE"]._serialized_start = 6393
+    _globals["_ABCIMESSAGE_VALIDATORUPDATES_VALIDATORUPDATE"]._serialized_end = 6506
+    _globals["_ABCIMESSAGE_REQUEST_ECHO_PERFORMATIVE"]._serialized_start = 6508
+    _globals["_ABCIMESSAGE_REQUEST_ECHO_PERFORMATIVE"]._serialized_end = 6552
+    _globals["_ABCIMESSAGE_REQUEST_FLUSH_PERFORMATIVE"]._serialized_start = 6554
+    _globals["_ABCIMESSAGE_REQUEST_FLUSH_PERFORMATIVE"]._serialized_end = 6582
+    _globals["_ABCIMESSAGE_REQUEST_INFO_PERFORMATIVE"]._serialized_start = 6584
+    _globals["_ABCIMESSAGE_REQUEST_INFO_PERFORMATIVE"]._serialized_end = 6672
+    _globals["_ABCIMESSAGE_REQUEST_SET_OPTION_PERFORMATIVE"]._serialized_start = 6674
+    _globals["_ABCIMESSAGE_REQUEST_SET_OPTION_PERFORMATIVE"]._serialized_end = 6749
+    _globals["_ABCIMESSAGE_REQUEST_INIT_CHAIN_PERFORMATIVE"]._serialized_start = 6752
+    _globals["_ABCIMESSAGE_REQUEST_INIT_CHAIN_PERFORMATIVE"]._serialized_end = 7099
+    _globals["_ABCIMESSAGE_REQUEST_QUERY_PERFORMATIVE"]._serialized_start = 7101
+    _globals["_ABCIMESSAGE_REQUEST_QUERY_PERFORMATIVE"]._serialized_end = 7194
+    _globals["_ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE"]._serialized_start = 7197
+    _globals["_ABCIMESSAGE_REQUEST_BEGIN_BLOCK_PERFORMATIVE"]._serialized_end = 7460
+    _globals["_ABCIMESSAGE_REQUEST_CHECK_TX_PERFORMATIVE"]._serialized_start = 7462
+    _globals["_ABCIMESSAGE_REQUEST_CHECK_TX_PERFORMATIVE"]._serialized_end = 7568
+    _globals["_ABCIMESSAGE_REQUEST_DELIVER_TX_PERFORMATIVE"]._serialized_start = 7570
+    _globals["_ABCIMESSAGE_REQUEST_DELIVER_TX_PERFORMATIVE"]._serialized_end = 7615
+    _globals["_ABCIMESSAGE_REQUEST_END_BLOCK_PERFORMATIVE"]._serialized_start = 7617
+    _globals["_ABCIMESSAGE_REQUEST_END_BLOCK_PERFORMATIVE"]._serialized_end = 7665
+    _globals["_ABCIMESSAGE_REQUEST_COMMIT_PERFORMATIVE"]._serialized_start = 7667
+    _globals["_ABCIMESSAGE_REQUEST_COMMIT_PERFORMATIVE"]._serialized_end = 7696
+    _globals[
+        "_ABCIMESSAGE_REQUEST_LIST_SNAPSHOTS_PERFORMATIVE"
+    ]._serialized_start = 7698
+    _globals["_ABCIMESSAGE_REQUEST_LIST_SNAPSHOTS_PERFORMATIVE"]._serialized_end = 7735
+    _globals[
+        "_ABCIMESSAGE_REQUEST_OFFER_SNAPSHOT_PERFORMATIVE"
+    ]._serialized_start = 7737
+    _globals["_ABCIMESSAGE_REQUEST_OFFER_SNAPSHOT_PERFORMATIVE"]._serialized_end = 7856
+    _globals[
+        "_ABCIMESSAGE_REQUEST_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE"
+    ]._serialized_start = 7858
+    _globals[
+        "_ABCIMESSAGE_REQUEST_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE"
+    ]._serialized_end = 7953
+    _globals[
+        "_ABCIMESSAGE_REQUEST_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE"
+    ]._serialized_start = 7955
+    _globals[
+        "_ABCIMESSAGE_REQUEST_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE"
+    ]._serialized_end = 8050
+    _globals["_ABCIMESSAGE_RESPONSE_EXCEPTION_PERFORMATIVE"]._serialized_start = 8052
+    _globals["_ABCIMESSAGE_RESPONSE_EXCEPTION_PERFORMATIVE"]._serialized_end = 8100
+    _globals["_ABCIMESSAGE_RESPONSE_ECHO_PERFORMATIVE"]._serialized_start = 8102
+    _globals["_ABCIMESSAGE_RESPONSE_ECHO_PERFORMATIVE"]._serialized_end = 8147
+    _globals["_ABCIMESSAGE_RESPONSE_FLUSH_PERFORMATIVE"]._serialized_start = 8149
+    _globals["_ABCIMESSAGE_RESPONSE_FLUSH_PERFORMATIVE"]._serialized_end = 8178
+    _globals["_ABCIMESSAGE_RESPONSE_INFO_PERFORMATIVE"]._serialized_start = 8181
+    _globals["_ABCIMESSAGE_RESPONSE_INFO_PERFORMATIVE"]._serialized_end = 8322
+    _globals["_ABCIMESSAGE_RESPONSE_SET_OPTION_PERFORMATIVE"]._serialized_start = 8324
+    _globals["_ABCIMESSAGE_RESPONSE_SET_OPTION_PERFORMATIVE"]._serialized_end = 8399
+    _globals["_ABCIMESSAGE_RESPONSE_INIT_CHAIN_PERFORMATIVE"]._serialized_start = 8402
+    _globals["_ABCIMESSAGE_RESPONSE_INIT_CHAIN_PERFORMATIVE"]._serialized_end = 8640
+    _globals["_ABCIMESSAGE_RESPONSE_QUERY_PERFORMATIVE"]._serialized_start = 8643
+    _globals["_ABCIMESSAGE_RESPONSE_QUERY_PERFORMATIVE"]._serialized_end = 8856
+    _globals["_ABCIMESSAGE_RESPONSE_BEGIN_BLOCK_PERFORMATIVE"]._serialized_start = 8858
+    _globals["_ABCIMESSAGE_RESPONSE_BEGIN_BLOCK_PERFORMATIVE"]._serialized_end = 8953
+    _globals["_ABCIMESSAGE_RESPONSE_CHECK_TX_PERFORMATIVE"]._serialized_start = 8956
+    _globals["_ABCIMESSAGE_RESPONSE_CHECK_TX_PERFORMATIVE"]._serialized_end = 9160
+    _globals["_ABCIMESSAGE_RESPONSE_DELIVER_TX_PERFORMATIVE"]._serialized_start = 9163
+    _globals["_ABCIMESSAGE_RESPONSE_DELIVER_TX_PERFORMATIVE"]._serialized_end = 9369
+    _globals["_ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE"]._serialized_start = 9372
+    _globals["_ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE"]._serialized_end = 9672
+    _globals["_ABCIMESSAGE_RESPONSE_COMMIT_PERFORMATIVE"]._serialized_start = 9674
+    _globals["_ABCIMESSAGE_RESPONSE_COMMIT_PERFORMATIVE"]._serialized_end = 9741
+    _globals[
+        "_ABCIMESSAGE_RESPONSE_LIST_SNAPSHOTS_PERFORMATIVE"
+    ]._serialized_start = 9743
+    _globals["_ABCIMESSAGE_RESPONSE_LIST_SNAPSHOTS_PERFORMATIVE"]._serialized_end = 9847
+    _globals[
+        "_ABCIMESSAGE_RESPONSE_OFFER_SNAPSHOT_PERFORMATIVE"
+    ]._serialized_start = 9849
+    _globals["_ABCIMESSAGE_RESPONSE_OFFER_SNAPSHOT_PERFORMATIVE"]._serialized_end = 9947
+    _globals[
+        "_ABCIMESSAGE_RESPONSE_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE"
+    ]._serialized_start = 9949
+    _globals[
+        "_ABCIMESSAGE_RESPONSE_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE"
+    ]._serialized_end = 10007
+    _globals[
+        "_ABCIMESSAGE_RESPONSE_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE"
+    ]._serialized_start = 10010
+    _globals[
+        "_ABCIMESSAGE_RESPONSE_APPLY_SNAPSHOT_CHUNK_PERFORMATIVE"
+    ]._serialized_end = 10162
+    _globals["_ABCIMESSAGE_DUMMY_PERFORMATIVE"]._serialized_start = 10164
+    _globals["_ABCIMESSAGE_DUMMY_PERFORMATIVE"]._serialized_end = 10269
 # @@protoc_insertion_point(module_scope)

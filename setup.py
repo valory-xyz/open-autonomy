@@ -19,7 +19,6 @@
 # ------------------------------------------------------------------------------
 
 import os
-import platform
 import re
 from typing import Dict
 
@@ -31,11 +30,13 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 
 def get_all_extras() -> Dict:
-
     cli_deps = [
         "click==8.0.2",
-        "open-aea-cli-ipfs==1.33.0",
-        "open-aea-ledger-ethereum-hwi==1.33.0",
+        "open-aea-cli-ipfs==1.41.0.post1",
+        "texttable==1.6.7",
+        "python-dotenv>=0.14.0,<0.18.0",
+        "pytest>=7.0.0,<7.3.0",
+        "coverage>=6.4.4,<8.0.0",
     ]
 
     extras = {
@@ -52,14 +53,14 @@ all_extras = get_all_extras()
 
 base_deps = [
     "Flask>=2.0.2,<3.0.0",
-    "open-aea[all]==1.33.0",
-    "pandas<1.4,>=1.3.4",
-    "watchdog >=2.1.6",
+    "open-aea[all]==1.41.0.post1",
+    "watchdog>=2.1.6",
     "pytest==7.2.1",
-    "open-aea-ledger-ethereum==1.33.0",
-    "docker-compose==1.29.2",
+    "valory-docker-compose==1.29.3",
     "werkzeug==2.0.3",
-    "docker==6.0.0",
+    "docker==6.1.2",
+    "hexbytes",
+    "jsonschema<=4.19.0,>=4.16.0",
 ]
 base_deps.extend(all_extras["cli"])
 
@@ -123,10 +124,10 @@ if __name__ == "__main__":
             "Operating System :: MacOS",
             "Operating System :: Microsoft",
             "Operating System :: Unix",
-            "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",
+            "Programming Language :: Python :: 3.11",
             "Topic :: Communications",
             "Topic :: Internet",
             "Topic :: Scientific/Engineering",
@@ -140,7 +141,7 @@ if __name__ == "__main__":
         zip_safe=False,
         include_package_data=True,
         license=about["__license__"],
-        python_requires=">=3.7",
+        python_requires=">=3.8",
         keywords="autonomy open-autonomy aea open-aea autonomous-economic-agents agent-framework multi-agent-systems multi-agent cryptocurrency cryptocurrencies dezentralized dezentralized-network",
         project_urls={
             "Bug Reports": "https://github.com/valory-xyz/open-autonomy/issues",

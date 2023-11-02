@@ -1148,6 +1148,22 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
                 contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,
+                    callable="get_safe_nonce",
+                    state=TrState(
+                        ledger_id="ethereum",
+                        body={
+                            "safe_nonce": 0,
+                        },
+                    ),
+                ),
+            )
+            self.mock_contract_api_request(
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE
+                ),
+                contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
                     callable="verify_tx",
                     state=TrState(
                         ledger_id="ethereum",
@@ -1174,6 +1190,50 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
                         ),
                     ),
                 )
+        self.behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(TransactionSettlementEvent.DONE)
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        assert (
+            behaviour.behaviour_id
+            == make_degenerate_behaviour(
+                FinishedTransactionSubmissionRound
+            ).auto_behaviour_id()
+        )
+
+    @pytest.mark.parametrize(
+        "verified, status, hashes_history, revert_reason",
+        ((False, 0, "0x" + "t" * 64, "test"),),
+    )
+    def test_check_tx_history_behaviour_negative(
+        self,
+        verified: bool,
+        status: int,
+        hashes_history: str,
+        revert_reason: str,
+    ) -> None:
+        """Test CheckTransactionHistoryBehaviour."""
+        self._fast_forward(hashes_history)
+        self.behaviour.act_wrapper()
+        self.behaviour.context.params.mutable_params.nonce = 1
+        if hashes_history:
+            self.mock_contract_api_request(
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE
+                ),
+                contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    callable="get_safe_nonce",
+                    state=TrState(
+                        ledger_id="ethereum",
+                        body={
+                            "safe_nonce": 1,
+                        },
+                    ),
+                ),
+            )
         self.behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()

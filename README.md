@@ -57,7 +57,7 @@ Read the [Open Autonomy documentation](https://docs.autonolas.network/open-auton
 
 - Ensure your machine satisfies the following requirements:
 
-    - Python `>= 3.7`
+    - Python `>= 3.8`
     - [Tendermint](https://docs.tendermint.com/v0.34/introduction/install.html) `==0.34.19`
     - [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `==v0.6.0`
     - [Pip](https://pip.pypa.io/en/stable/installation/)

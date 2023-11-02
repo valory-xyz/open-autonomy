@@ -24,7 +24,12 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Optional, cast
 
-from autonomy.chain import constants as chain_constants
+from autonomy.chain.constants import (
+    CustomAddresses,
+    EthereumAddresses,
+    GoerliAddresses,
+    HardhatAddresses,
+)
 
 
 DEFAULT_LOCAL_RPC = "http://127.0.0.1:8545"
@@ -39,7 +44,6 @@ def _get_chain_id_for_custom_chain() -> Optional[int]:
     chain_id = os.environ.get("CUSTOM_CHAIN_ID")
     if chain_id is None:
         return None
-
     return int(chain_id)
 
 
@@ -50,6 +54,14 @@ class ChainType(Enum):
     CUSTOM = "custom_chain"
     GOERLI = "goerli"
     ETHEREUM = "ethereum"
+
+
+ADDRESS_CONTAINERS = {
+    ChainType.LOCAL: HardhatAddresses,
+    ChainType.CUSTOM: CustomAddresses,
+    ChainType.GOERLI: GoerliAddresses,
+    ChainType.ETHEREUM: EthereumAddresses,
+}
 
 
 @dataclass
@@ -121,65 +133,76 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
     component_registry = ContractConfig(
         name="component_registry",
         contracts={
-            chain_type: getattr(
-                chain_constants, f"COMPONENT_REGISTRY_ADDRESS_{chain_type.name}"
-            )
-            for chain_type in ChainType
+            chain_type: container.get("component_registry")
+            for chain_type, container in ADDRESS_CONTAINERS.items()
         },
     )
 
     agent_registry = ContractConfig(
         name="agent_registry",
         contracts={
-            chain_type: getattr(
-                chain_constants, f"AGENT_REGISTRY_ADDRESS_{chain_type.name}"
-            )
-            for chain_type in ChainType
+            chain_type: container.get("agent_registry")
+            for chain_type, container in ADDRESS_CONTAINERS.items()
         },
     )
 
     service_registry = ContractConfig(
         name="service_registry",
         contracts={
-            chain_type: getattr(
-                chain_constants, f"SERVICE_REGISTRY_ADDRESS_{chain_type.name}"
-            )
-            for chain_type in ChainType
+            chain_type: container.get("service_registry")
+            for chain_type, container in ADDRESS_CONTAINERS.items()
         },
     )
 
     service_manager = ContractConfig(
         name="service_manager",
         contracts={
-            chain_type: getattr(
-                chain_constants, f"SERVICE_MANAGER_ADDRESS_{chain_type.name}"
-            )
-            for chain_type in ChainType
+            chain_type: container.get("service_manager")
+            for chain_type, container in ADDRESS_CONTAINERS.items()
         },
     )
 
     registries_manager = ContractConfig(
         name="registries_manager",
         contracts={
-            chain_type: getattr(
-                chain_constants, f"REGISTRIES_MANAGER_ADDRESS_{chain_type.name}"
-            )
-            for chain_type in ChainType
+            chain_type: container.get("registries_manager")
+            for chain_type, container in ADDRESS_CONTAINERS.items()
         },
     )
 
     gnosis_safe_proxy_factory = ContractConfig(
         name="gnosis_safe_proxy_factory",
         contracts={
-            chain_type: getattr(
-                chain_constants, f"GNOSIS_SAFE_MULTISIG_ADDRESS_{chain_type.name}"
-            )
-            for chain_type in ChainType
+            chain_type: container.get("gnosis_safe_proxy_factory")
+            for chain_type, container in ADDRESS_CONTAINERS.items()
+        },
+    )
+
+    gnosis_safe_same_address_multisig = ContractConfig(
+        name="gnosis_safe_same_address_multisig",
+        contracts={
+            chain_type: container.get("gnosis_safe_same_address_multisig")
+            for chain_type, container in ADDRESS_CONTAINERS.items()
+        },
+    )
+
+    service_registry_token_utility = ContractConfig(
+        name="service_registry_token_utility",
+        contracts={
+            chain_type: container.get("service_registry_token_utility")
+            for chain_type, container in ADDRESS_CONTAINERS.items()
+        },
+    )
+
+    multisend = ContractConfig(
+        name="multisend",
+        contracts={
+            chain_type: container.get("multisend")
+            for chain_type, container in ADDRESS_CONTAINERS.items()
         },
     )
 
     @classmethod
     def get(cls, name: str) -> ContractConfig:
         """Return chain config for given chain type."""
-
         return cast(ContractConfig, getattr(cls, name))

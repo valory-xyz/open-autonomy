@@ -99,7 +99,6 @@ def _translate(aea_type_node: Node, tender_type_node: Node) -> Node:
     """
 
     for key, type_child in aea_type_node.items():
-
         if is_enum(type_child):
             continue
         if key == "pub_key":
@@ -325,7 +324,6 @@ def make_tendermint_test_method(message_key: str, strategy: Node) -> Callable:
     @settings(deadline=5000, suppress_health_check=[HealthCheck.too_slow])
     @given(st.fixed_dictionaries({message_key: strategy}))
     def test_method(self: Any, conjecture: Node) -> None:
-
         request = Request(**conjecture)
         assert decode(request)
 

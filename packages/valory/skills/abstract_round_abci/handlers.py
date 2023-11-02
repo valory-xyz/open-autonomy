@@ -18,9 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the handler for the 'abstract_round_abci' skill."""
+
 import ipaddress
 import json
 from abc import ABC
+from calendar import timegm
 from dataclasses import asdict
 from enum import Enum
 from typing import Any, Callable, Dict, FrozenSet, List, Optional, cast
@@ -46,9 +48,12 @@ from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AddBlockError,
+    DEFAULT_PENDING_OFFENCE_TTL,
     ERROR_CODE,
     LateArrivingTransaction,
     OK_CODE,
+    OffenseType,
+    PendingOffense,
     SignatureNotValidError,
     Transaction,
     TransactionNotValidError,
@@ -73,9 +78,7 @@ class ABCIRoundHandler(ABCIHandler):
 
     SUPPORTED_PROTOCOL = AbciMessage.protocol_id
 
-    def info(  # pylint: disable=no-self-use,useless-super-delegation
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def info(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """
         Handle the 'info' request.
 
@@ -143,16 +146,14 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
-    def begin_block(  # pylint: disable=no-self-use
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def begin_block(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """Handle the 'begin_block' request."""
-        cast(SharedState, self.context.state).round_sequence.begin_block(message.header)
+        cast(SharedState, self.context.state).round_sequence.begin_block(
+            message.header, message.byzantine_validators, message.last_commit_info
+        )
         return super().begin_block(message, dialogue)
 
-    def check_tx(  # pylint: disable=no-self-use
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def check_tx(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """Handle the 'check_tx' request."""
         transaction_bytes = message.tx
         # check we can decode the transaction
@@ -190,23 +191,56 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
-    def deliver_tx(  # pylint: disable=no-self-use
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def settle_pending_offence(
+        self, accused_agent_address: Optional[str], invalid: bool
+    ) -> None:
+        """Add an invalid pending offence or a no-offence for the given accused agent address, if possible."""
+        if accused_agent_address is None:
+            # only add the offence if we know and can verify the sender,
+            # otherwise someone could pretend to be someone else, which may lead to wrong punishments
+            return
+
+        round_sequence = cast(SharedState, self.context.state).round_sequence
+
+        try:
+            last_round_transition_timestamp = timegm(
+                round_sequence.last_round_transition_timestamp.utctimetuple()
+            )
+        except ValueError:  # pragma: no cover
+            # do not add an offence if no round transition has been completed yet
+            return
+
+        offence_type = (
+            OffenseType.INVALID_PAYLOAD if invalid else OffenseType.NO_OFFENCE
+        )
+        pending_offense = PendingOffense(
+            accused_agent_address,
+            round_sequence.current_round_height,
+            offence_type,
+            last_round_transition_timestamp,
+            DEFAULT_PENDING_OFFENCE_TTL,
+        )
+        round_sequence.add_pending_offence(pending_offense)
+
+    def deliver_tx(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """Handle the 'deliver_tx' request."""
         transaction_bytes = message.tx
-        shared_state = cast(SharedState, self.context.state)
+        round_sequence = cast(SharedState, self.context.state).round_sequence
+        payload_sender: Optional[str] = None
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify(self.context.default_ledger_id)
-            shared_state.round_sequence.check_is_finished()
-            shared_state.round_sequence.deliver_tx(transaction)
+            payload_sender = transaction.payload.sender
+            round_sequence.check_is_finished()
+            round_sequence.deliver_tx(transaction)
         except (
             SignatureNotValidError,
             TransactionNotValidError,
             TransactionTypeNotRecognizedError,
         ) as exception:
             self._log_exception(exception)
+            # the transaction is invalid, it's potentially an offence, so we add it to the list of pending offences
+            self.settle_pending_offence(payload_sender, invalid=True)
             return self._deliver_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
@@ -215,6 +249,9 @@ class ABCIRoundHandler(ABCIHandler):
             return self._deliver_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
+
+        # the invalid payloads' availability window needs to be populated with the negative values as well
+        self.settle_pending_offence(payload_sender, invalid=False)
 
         # return deliver_tx success
         reply = dialogue.reply(
@@ -231,17 +268,13 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
-    def end_block(  # pylint: disable=no-self-use
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def end_block(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """Handle the 'end_block' request."""
         self.context.state.round_sequence.tm_height = message.height
         cast(SharedState, self.context.state).round_sequence.end_block()
         return super().end_block(message, dialogue)
 
-    def commit(  # pylint: disable=no-self-use
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def commit(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """
         Handle the 'commit' request.
 

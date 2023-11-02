@@ -10,8 +10,18 @@ Deploy CLI module.
 
 ```python
 @click.group(name="deploy")
+@click.option(
+    "--env-file",
+    type=PathArgument(
+        exists=True,
+        dir_okay=False,
+        file_okay=True,
+    ),
+    help="File containing environment variable mappings",
+)
 @click.pass_context
-def deploy_group(click_context: click.Context) -> None
+def deploy_group(click_context: click.Context,
+                 env_file: Optional[Path]) -> None
 ```
 
 Deploy an agent service.
@@ -139,6 +149,7 @@ Build deployment setup for n agents.
 @click.option(
     "--build-dir",
     type=click.Path(),
+    help="Path to the deployment build directory.",
 )
 @click.option(
     "--no-recreate",
@@ -152,10 +163,35 @@ Build deployment setup for n agents.
     default=False,
     help="Remove containers for services not defined in the Compose file.",
 )
-def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None
+@click.option(
+    "--detach",
+    is_flag=True,
+    default=False,
+    help="Run service in the background.",
+)
+def run(build_dir: Path,
+        no_recreate: bool,
+        remove_orphans: bool,
+        detach: bool = False) -> None
 ```
 
 Run deployment.
+
+<a id="autonomy.cli.deploy.stop"></a>
+
+#### stop
+
+```python
+@deploy_group.command(name="stop")
+@click.option(
+    "--build-dir",
+    type=click.Path(),
+    help="Path to the deployment build directory.",
+)
+def stop(build_dir: Path) -> None
+```
+
+Stop a running deployment.
 
 <a id="autonomy.cli.deploy.run_deployment_from_token"></a>
 
@@ -196,6 +232,12 @@ Run deployment.
     is_flag=True,
     help="If set to true, the deployment won't run automatically",
 )
+@click.option(
+    "--detach",
+    is_flag=True,
+    default=False,
+    help="Run service in the background.",
+)
 @chain_selection_flag(
     help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
@@ -208,6 +250,7 @@ def run_deployment_from_token(click_context: click.Context,
                               n: Optional[int],
                               deployment_type: str,
                               no_deploy: bool,
+                              detach: bool,
                               aev: bool = False,
                               password: Optional[str] = None) -> None
 ```

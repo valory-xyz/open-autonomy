@@ -7,14 +7,14 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeiao4aiyvkvg75zfi2nf34hidx2uzcbqibc2bukyutisg5zhxskhlq
-  build/ServiceManager.json: bafybeiaykphmrdujhb7knvivig2qhm7ksj7sa4cppqrgbh3efq4z5yv4jm
-  contract.py: bafybeic2eqeygvxg45ocz3tcabam4qsulqosnkb5hi35zurght2r47aq5m
+  build/ServiceManager.json: bafybeiefm53534jhy5tfjgcmx4rbjrcn6tzbghw4ptggh5or6vuohdgau4
+  build/ServiceManagerToken.json: bafybeidjyr2wqsiorb3u5pnfiqkzff5rgewbr5kgawev2zlah4i4f6fcom
+  contract.py: bafybeifskgjmkkhl64ce7v3nqayp6aglngipyoiecjh7ncduuzptyhgs64
   tests/__init__.py: bafybeifehip3omosjvpq3uqvxomtgrmqjoqdttyzhvu2qysybjf6btwkpi
-  tests/test_contract.py: bafybeifpacyxye3woxhimstciwhhqh2x357jqc3u5ex5dbyxfwoelludam
+  tests/test_contract.py: bafybeicqdkxo3aygm6ljjpvk6fdstelbuotxayvxwgeirqiiooclab5m34
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: ServiceManagerContract
 contract_interface_paths:
-  ethereum: build/ServiceManager.json
-  ethereum_hwi: build/ServiceManager.json
+  ethereum: build/ServiceManagerToken.json
 dependencies: {}
