@@ -245,10 +245,9 @@ class SynchronizedData(
         deserialized = CollectionRound.deserialize_collection(serialized)
         return cast(Mapping[str, SynchronizeLateMessagesPayload], deserialized)
 
-    def get_chain_id(self, default_chain_id: Optional[str] = None) -> str:
+    def get_chain_id(self, default_chain_id: str) -> str:
         """Get the chain id."""
-        default_chain_id = default_chain_id if default_chain_id else "ethereum"
-        return cast(str, self.db.get("chain_id", default_chain_id))
+        return self.db.get("chain_id", default_chain_id)
 
 
 class FailedRound(DegenerateRound, ABC):
