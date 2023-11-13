@@ -38,6 +38,7 @@ class VerificationStatus(Enum):
     PENDING = 4
     ERROR = 5
     INSUFFICIENT_FUNDS = 6
+    BAD_SAFE_NONCE = 7
 
 
 class PayloadDeserializationError(Exception):
