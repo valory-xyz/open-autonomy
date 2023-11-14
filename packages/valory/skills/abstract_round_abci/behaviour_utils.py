@@ -1067,7 +1067,7 @@ class BaseBehaviour(
                 }
             )
             if target_block_numbers is not None:
-                kwargs["target_block_numbers"] = target_block_numbers
+                kwargs["target_block_numbers"] = target_block_numbers  # type: ignore
             create_kwargs.update(
                 dict(
                     performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTIONS,

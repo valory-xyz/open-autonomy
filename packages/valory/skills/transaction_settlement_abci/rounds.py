@@ -247,7 +247,7 @@ class SynchronizedData(
 
     def get_chain_id(self, default_chain_id: str) -> str:
         """Get the chain id."""
-        return self.db.get("chain_id", default_chain_id)
+        return cast(str, self.db.get("chain_id", default_chain_id))
 
 
 class FailedRound(DegenerateRound, ABC):

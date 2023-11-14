@@ -9,8 +9,8 @@ fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeibc6jsxgjjteyocsu45hu754dc2aqf5dc5bj7qyogx64ogg7qz7ni
   abci_app_chain.py: bafybeiflgwhyzkoqpgrvx3eol6p37l6jymccfqgz4hs35gh7zuptvetmh4
-  base.py: bafybeicaxcub5pbm24crg7qni4ls3mmtarm567mvxmbgw7ph2mtis6fd2q
-  behaviour_utils.py: bafybeif5inyc6jwse4asqy7n2ulgbuut3a77rfme54b3sltv6a5ybcqjly
+  base.py: bafybeifi7vzso5qzcb7g65qen2uqz7ixy4okywdranhiuocwzi4i62ol3a
+  behaviour_utils.py: bafybeibtvgbflwfcqe6eekmmwo4qspfbwae56bh6yvx6u3erpk4hxtkzcu
   behaviours.py: bafybeic7rnt4fo3falirgepw4akun5xh3mna7didul6daitlk5xwsza7lm
   common.py: bafybeidzqdfvwf226d5qeqcyzpkqsjy6kiawoz5ldsfvzzhtym3f73giia
   dialogues.py: bafybeid5sgrfa7ghnnjpssltgtey5gzt5kc2jlaitffaukvhhdbhrzcjti
@@ -20,7 +20,7 @@ fingerprint:
   io_/load.py: bafybeigkywwlsheqvd4gpyfwaxqzkkb2ih2poyicqk7e7n2mrsghxzyns4
   io_/paths.py: bafybeicfno2l4vwtmjcm3rzpp6tqi3xlkof47pypf5teecad22d44u2ple
   io_/store.py: bafybeig24lslvhf7amim55ig5zzre4z45pcx3r2ozlagg3mtbr6rry2wpu
-  models.py: bafybeibyo6c3jkrmz2xnwz37orbyk4oig5weiongx6dysx5pi7vnq5wn5q
+  models.py: bafybeidxx4pcipbuogvdzurpawz7peryud3tlfvfwzl3nnj7v756f5q6xq
   test_tools/__init__.py: bafybeibayeahoo73eztt2chpwi45taj2uv3dxbpyn47ksqfjoepjyaoca4
   test_tools/abci_app.py: bafybeigmrjzxfoc63xgecyngdecz4msvze4aw2iejcjewatjefjbvdlmce
   test_tools/base.py: bafybeiero67d4rs7bsnu5wlxu7fagtxekqguplw4dl3wd5pjskwhy4dkye
@@ -57,7 +57,7 @@ fingerprint:
   tests/test_tools/test_integration.py: bafybeidxkvb2kizi7djrpuw446dqxo2v5s7j2dbdrdpfmnd2ggezaxbnkm
   tests/test_tools/test_rounds.py: bafybeibaoj4miysneipgukz7xufs47vpv5rds3ptgmu3yxlcl7gjss6ccm
   tests/test_utils.py: bafybeift6igxoan2bnuexps7rrdl25jmlniqujw3odnir3cgjy4oukjjfq
-  utils.py: bafybeienx5y7er37rvluz5x5oirsephs6td4werjett5vaavrv6ohymzpm
+  utils.py: bafybeidbha3c3tcxo4lhucyx2x6yra4z2p2fp6sucqqzhxanbvgrraykbi
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeigzgupmh6kwwx4jbqkw7qri5vr6vz53xbi4uksulh6oiovdplmviu

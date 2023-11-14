@@ -44,9 +44,7 @@ from web3.types import Nonce, TxData, Wei
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.behaviour_utils import (
-    RPCResponseStatus,
-)
+from packages.valory.skills.abstract_round_abci.behaviour_utils import RPCResponseStatus
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
@@ -87,6 +85,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     TransactionSubmissionAbciApp,
     ValidateTransactionRound,
 )
+
 
 TxDataType = Dict[str, Union[VerificationStatus, Deque[str], int, Set[str], str]]
 
