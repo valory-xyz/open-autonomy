@@ -61,6 +61,7 @@ base_deps = [
     "docker==6.1.2",
     "hexbytes",
     "jsonschema<=4.19.0,>=4.16.0",
+    "protobuf<4.25.0,>=4.21.6"
 ]
 base_deps.extend(all_extras["cli"])
 
