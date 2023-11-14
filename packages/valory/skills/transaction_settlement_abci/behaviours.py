@@ -581,6 +581,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
         self.context.logger.info(
             f"Starting check for the transaction history: {self.history}. "
         )
+        was_nonce_reused = False
         for tx_hash in self.history[::-1]:
             self.context.logger.info(f"Checking hash {tx_hash}...")
             contract_api_msg = yield from self._verify_tx(tx_hash)
@@ -623,6 +624,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
                         f"The safe's nonce has been reused for {tx_hash}. "
                         f"{self.check_expected_to_be_verified} is expected to be verified!"
                     )
+                    was_nonce_reused = True
                     # this loop might take a long time
                     # we do not want to starve the rest of the behaviour
                     # we yield which freezes this loop here until the
@@ -635,6 +637,13 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
                 )
 
             return VerificationStatus.INVALID_PAYLOAD, tx_hash
+
+        if was_nonce_reused:
+            self.context.logger.info(
+                f"Safe nonce {safe_nonce} was used, but no valid transaction was found. "
+                f"We cannot resend the transaction with the same nonce."
+            )
+            return VerificationStatus.BAD_SAFE_NONCE, None
 
         return VerificationStatus.NOT_VERIFIED, None
 

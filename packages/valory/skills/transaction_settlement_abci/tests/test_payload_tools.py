@@ -67,7 +67,7 @@ class TestTxHistPayloadEncodingDecoding:
     @staticmethod
     @pytest.mark.parametrize(
         "payload",
-        ("0000000000000000000000000000000000000000000000000000000000000007", ""),
+        ("0000000000000000000000000000000000000000000000000000000000000008", ""),
     )
     def test_invalid_payloads_during_deserialization(payload: str) -> None:
         """Test decoding payload is invalid."""
