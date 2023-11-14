@@ -1059,15 +1059,13 @@ class BaseBehaviour(
             create_kwargs.update(dict(kwargs=kwargs))
 
         if use_flashbots:
-            kwargs = LedgerApiMessage.Kwargs(
-                {
-                    "chain_name": chain_name,
-                    "raise_on_failed_simulation": raise_on_failed_simulation,
-                    "use_all_builders": True,  # TODO: make this a proper parameter
-                }
-            )
+            _kwargs = {
+                "chain_name": chain_name,
+                "raise_on_failed_simulation": raise_on_failed_simulation,
+                "use_all_builders": True,  # TODO: make this a proper parameter
+            }
             if target_block_numbers is not None:
-                kwargs["target_block_numbers"] = target_block_numbers  # type: ignore
+                _kwargs["target_block_numbers"] = target_block_numbers  # type: ignore
             create_kwargs.update(
                 dict(
                     performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTIONS,
@@ -1076,7 +1074,7 @@ class BaseBehaviour(
                         ledger_id=FLASHBOTS_LEDGER_ID,
                         signed_transactions=[signing_msg.signed_transaction.body],
                     ),
-                    kwargs=LedgerApiMessage.Kwargs(kwargs),
+                    kwargs=LedgerApiMessage.Kwargs(_kwargs),
                 )
             )
         else:

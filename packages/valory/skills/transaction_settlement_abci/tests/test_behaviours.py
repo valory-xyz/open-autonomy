@@ -341,7 +341,7 @@ class TestTransactionSettlementBaseBehaviour(TransactionSettlementFSMBehaviourBa
 
         # patch the `send_raw_transaction` method
         def dummy_send_raw_transaction(
-            *_: Any,
+            *_: Any, **kwargs: Any
         ) -> Generator[None, None, Tuple[Optional[str], RPCResponseStatus]]:
             """Dummy `send_raw_transaction` method."""
             yield
