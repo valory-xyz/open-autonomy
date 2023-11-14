@@ -3061,7 +3061,9 @@ class OffenseStatusDecoder(json.JSONDecoder):
             return AvailabilityWindow.from_dict(data)
 
         # if this is an `OffenceStatus`
-        status_attributes = OffenceStatus.__annotations__.keys()
+        status_attributes = (
+            OffenceStatus.__annotations__.keys()  # pylint: disable=no-member
+        )
         if sorted(status_attributes) == sorted(data.keys()):
             return OffenceStatus(**data)
 

@@ -8,22 +8,22 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeihvqvbj2tiiyimz3e27gqhb7ku5rut7hycfahi4qle732kvj5fs7q
   __init__.py: bafybeicyrp6x2efg43gfdekxuofrlidc3w6aubzmyioqwnryropp6u7sby
-  behaviours.py: bafybeihrmlrhupcgdjq6xzs67eei4d6o7s67ayrjsalttfc3r6kpg5gxou
+  behaviours.py: bafybeia7sn5cpgovgyke6rose5zjqr2wo3knbj2hsdsdalsx4outm5chyu
   dialogues.py: bafybeigabhaykiyzbluu4mk6bbrmqhzld2kyp32pg24bvjmzrrb74einwm
   fsm_specification.yaml: bafybeigdj64py4zjihcxdkvtrydbxyeh4slr2kkghltz3upnupdgad4et4
   handlers.py: bafybeie42qa3csgy6oompuqs2qnkat5mnslepbbwmgoxv6ljme4jofa5pe
   models.py: bafybeiguxishqvtvlyznok3xjnzm4t6vfflamcvz5vtecq5esbldsxuc5e
-  payload_tools.py: bafybeibqair4zwmm5qbgn3mjf7uqelsag3532466i7c74ujxn67oggw2tm
+  payload_tools.py: bafybeiatlbw3vyo5ppjhxf4psdvkwubmrjolsprf44lis5ozfkjo7o3cba
   payloads.py: bafybeiclhjnsgylqzfnu2azlqxor3vyldaoof757dnfwz5xbwejk2ro2cm
-  rounds.py: bafybeig6wbhmzyjs3nw4x5j3axrhvcng2fl662lhhrfpw573scuq25puiq
+  rounds.py: bafybeieo5l6gh276hhtztphloyknb5ew66hvqhzzjiv26isaz7ptvtqjgu
   test_tools/__init__.py: bafybeibj2blgxzvcgdi5gzcnlzs2nt7bpdifzvjjlxlrkeutjy2qrqbwau
   test_tools/integration.py: bafybeictb7ym4xsbo3ti5y2a2fpg344graa4d7352oozsea5rbab3kq4ae
   tests/__init__.py: bafybeifukcwmf2ewkjqdu7j6xzmaovgrul7jnea5lrl4o3ianoofje6vfa
-  tests/test_behaviours.py: bafybeifppv6hpmh4h7ebwycqiyxh7ye35hn2eaouq7kma7bmrjrj6hedwq
+  tests/test_behaviours.py: bafybeicl7herernmo7hyoa4i6445hk4doda3gbniea3shp2du6xc33hwg4
   tests/test_dialogues.py: bafybeictrjf6jzsj4y6u2ftdrb2nyriiipia5b7wc4fsli3lwbjpd3mbam
   tests/test_handlers.py: bafybeievntkwacpfaom3qabvrlworjqyd4sgfjknjlhys7f5tuq7725xli
   tests/test_models.py: bafybeihvrv7vtaei64nv7okkfz2gg2g4ey4nei27ayc74h5bdlqpbk4xde
-  tests/test_payload_tools.py: bafybeidl5lyesruwvhypgglz7fodkxbpt2hxucufjcel3rz4qbthd5mc2e
+  tests/test_payload_tools.py: bafybeihmgkcrlqhz4ncak276lnccmilig6gx3crmn33n46jcco6g5pzrje
   tests/test_payloads.py: bafybeidvjqvjvnuw5vt4zgnqwzopvprznmefosqy3wcxukvobaiishygze
   tests/test_rounds.py: bafybeic3kzqy3pe6d4skntnfc5443y6dshcustiuv2d6cw4z56gw2ewehy
   tests/test_tools/__init__.py: bafybeiaq2ftmklvu5vqq6vdfa7mrlmrnusluki35jm5n2yzf57ox5dif74
@@ -38,7 +38,7 @@ protocols:
 - valory/contract_api:1.0.0:bafybeialhbjvwiwcnqq3ysxcyemobcbie7xza66gaofcvla5njezkvhcka
 - valory/ledger_api:1.0.0:bafybeige5agrztgzfevyglf7mb4o7pzfttmq4f6zi765y4g2zvftbyowru
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigrqhygo2hl2owisj5rqyh3acdvee773ajije64snlzalcgtaac7q
+- valory/abstract_round_abci:0.1.0:bafybeifh6bw7ebfdbklp6rc3yr3fxkenc26xp4h3uuch5hxmgtwkw2a2by
 behaviours:
   main:
     args: {}
@@ -140,6 +140,7 @@ models:
       use_slashing: false
       use_termination: false
       validate_timeout: 1205
+      default_chain_name: ethereum
     class_name: TransactionParams
   randomness_api:
     args:

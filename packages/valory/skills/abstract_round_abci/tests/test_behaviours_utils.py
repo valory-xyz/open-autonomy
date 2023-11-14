@@ -1273,7 +1273,13 @@ class TestBaseBehaviour:
                         ledger_id="ethereum_flashbots",
                         signed_transactions=[{"test_tx": "test_tx"}],
                     ),
-                    kwargs=LedgerApiMessage.Kwargs({}),
+                    kwargs=LedgerApiMessage.Kwargs(
+                        {
+                            "chain_name": None,
+                            "raise_on_failed_simulation": False,
+                            "use_all_builders": True,
+                        }
+                    ),
                 ),
             ),
             (
@@ -1286,7 +1292,14 @@ class TestBaseBehaviour:
                         ledger_id="ethereum_flashbots",
                         signed_transactions=[{"test_tx": "test_tx"}],
                     ),
-                    kwargs=LedgerApiMessage.Kwargs({"target_block_numbers": [1, 2, 3]}),
+                    kwargs=LedgerApiMessage.Kwargs(
+                        {
+                            "chain_name": None,
+                            "raise_on_failed_simulation": False,
+                            "use_all_builders": True,
+                            "target_block_numbers": [1, 2, 3],
+                        }
+                    ),
                 ),
             ),
             (

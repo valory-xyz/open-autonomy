@@ -229,7 +229,7 @@ def get_args(tp):  # type: ignore
 
 def is_pep604_union(ty: Type[Any]) -> bool:
     """Check if a type is a PEP 604 union."""
-    return sys.version_info >= (3, 10) and ty is types.UnionType  # type: ignore # noqa: E721
+    return sys.version_info >= (3, 10) and ty is types.UnionType  # type: ignore # noqa: E721 # pylint: disable=no-member
 
 
 def _path_to_str(path: List[str]) -> str:

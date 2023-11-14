@@ -2,7 +2,13 @@
 
 # 0.13.4 (2023-11-01)
 
-- Updates the mint tools to propogate `token` address to update service transactions
+- Pins `protobuf<4.25.0,>=4.21.6`
+
+Autonomy:
+- Updates the mint tools to propagate `token` address to update service transactions
+
+Packages:
+- Ports changes on transaction settlement skill from `IEKit`
 
 # 0.13.3 (2023-11-01)
 

@@ -68,6 +68,7 @@ MIN_RESET_PAUSE_DURATION = 10
 NUMBER_OF_RETRIES: int = 5
 DEFAULT_BACKOFF_FACTOR: float = 2.0
 DEFAULT_TYPE_NAME: str = "str"
+DEFAULT_CHAIN = "ethereum"
 
 
 class FrozenMixin:  # pylint: disable=too-few-public-methods
@@ -318,6 +319,8 @@ class BaseParams(
             "serious_slash_unit_amount", kwargs, int
         )
         self.setup_params: Dict[str, Any] = self._ensure("setup", kwargs, dict)
+        # TODO add to all configs
+        self.default_chain_name: str = kwargs.get("default_chain_name", DEFAULT_CHAIN)
 
         # we sanitize for null values as these are just kept for schema definitions
         skill_id = kwargs["skill_context"].skill_id
