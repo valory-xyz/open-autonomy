@@ -282,7 +282,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         tx_params = skill_input_hex_to_payload(
             self.synchronized_data.most_voted_tx_hash
         )
-        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_id)
+        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_name)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.synchronized_data.safe_contract_address,
@@ -330,7 +330,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
 
     def _get_safe_nonce(self) -> Generator[None, None, ContractApiMessage]:
         """Get the safe nonce."""
-        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_id)
+        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_name)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.synchronized_data.safe_contract_address,
@@ -649,7 +649,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
 
     def _get_revert_reason(self, tx: TxData) -> Generator[None, None, Optional[str]]:
         """Get the revert reason of the given transaction."""
-        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_id)
+        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_name)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.synchronized_data.safe_contract_address,
@@ -887,7 +887,7 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
         tx_params = skill_input_hex_to_payload(
             self.synchronized_data.most_voted_tx_hash
         )
-        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_id)
+        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_name)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.synchronized_data.safe_contract_address,

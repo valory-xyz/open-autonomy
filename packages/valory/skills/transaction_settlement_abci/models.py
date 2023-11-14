@@ -102,7 +102,6 @@ class TransactionParams(BaseParams):  # pylint: disable=too-many-instance-attrib
         self.history_check_timeout: int = self._ensure(
             "history_check_timeout", kwargs, int
         )
-        self.default_chain_id: str = self._ensure("default_chain_id", kwargs, str)
         self.gas_params = self._get_gas_params(kwargs)
         super().__init__(*args, **kwargs)
 
