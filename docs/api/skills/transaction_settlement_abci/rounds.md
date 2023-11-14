@@ -262,7 +262,7 @@ Get the mapping from participants to checks.
 #### get`_`chain`_`id
 
 ```python
-def get_chain_id(default_chain_id: Optional[str] = None) -> str
+def get_chain_id(default_chain_id: str) -> str
 ```
 
 Get the chain id.
