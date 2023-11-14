@@ -282,9 +282,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         tx_params = skill_input_hex_to_payload(
             self.synchronized_data.most_voted_tx_hash
         )
-
         chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_id)
-
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.synchronized_data.safe_contract_address,
@@ -303,7 +301,6 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
             operation=tx_params["operation"],
             chain_id=chain_id,
         )
-
         return contract_api_msg
 
     @staticmethod
