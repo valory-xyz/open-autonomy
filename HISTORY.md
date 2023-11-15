@@ -1,14 +1,19 @@
 # Release History - `open-autonomy`
 
-# 0.13.4 (2023-11-01)
 
+# 0.13.5 (2023-11-14)
+
+Autonomy:
 - Pins `protobuf<4.25.0,>=4.21.6`
+
+Packages:
+- Ports changes on transaction settlement skill from `IEKit` and `agent-academy-2`
+- Updates the transaction settlement ABCI to handle safe-nonce reuse
+
+# 0.13.4 (2023-11-01)
 
 Autonomy:
 - Updates the mint tools to propagate `token` address to update service transactions
-
-Packages:
-- Ports changes on transaction settlement skill from `IEKit`
 
 # 0.13.3 (2023-11-01)
 
