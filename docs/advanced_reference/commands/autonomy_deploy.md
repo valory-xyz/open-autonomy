@@ -116,7 +116,7 @@ Builds a service deployment using the keys stored in the file `keys.json` and ap
 
 ### Private key security
 
-When building deployments, you can use password protected privates keys (eg. generated using `aea generate-key LEDGER --password PASSWORD`) to avoid exposing them. 
+When building deployments, you can use password protected privates keys (eg. generated using `autonomy generate-key LEDGER --password PASSWORD`) to avoid exposing them. 
 
 #### Docker Compose
 
