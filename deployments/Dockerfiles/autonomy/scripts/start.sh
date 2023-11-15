@@ -52,8 +52,14 @@ function handleCosmosConnectionKeyAndCerts() {
     if [ ! -f "cosmos_private_key.txt" ]; then
         generateKey cosmos
     fi
-    aea add-key cosmos --connection
-    aea issue-certificates
+
+    if [[ "$AEA_PASSWORD" != "" ]]; then
+        aea add-key cosmos --connection --password $AEA_PASSWORD
+        aea issue-certificates --password $AEA_PASSWORD
+    else
+        aea add-key cosmos --connection
+        aea issue-certificates
+    fi
 }
 
 function runAgent() {
