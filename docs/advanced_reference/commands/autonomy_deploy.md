@@ -123,13 +123,15 @@ When building deployments, you can use password protected privates keys (eg. gen
 In a `docker-compose` deployment you can just export `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` environment variable before running the deployment like
 
 ```bash
-OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD=PASSWORD autonomy deploy run --build-dir PATH_TO_BUILD_DIR
+export OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD=PASSWORD
+autonomy deploy run --build-dir PATH_TO_BUILD_DIR
 ```
 
 or 
 
 ```bash
-OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD=PASSWORD docker-compose -f PATH_TO_BUILD_DIR/docker-compose.yaml up
+export OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD=PASSWORD
+docker-compose -f PATH_TO_BUILD_DIR/docker-compose.yaml up
 ```
 
 #### Kubernetes
@@ -137,7 +139,8 @@ OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD=PASSWORD docker-compose -f PATH_TO_BUILD_DIR/
 In a `kubernetes` deployment, you'll have to export the `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` variable when building the deployment, not when running.
 
 ```bash
-OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD=PASSWORD autonomy deploy build (...)
+export OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD=PASSWORD
+autonomy deploy build (...)
 ```
 
 ## `autonomy deploy run`
@@ -180,7 +183,8 @@ Runs the service deployment stored locally in the directory `./abci_build`.
 To provide password for the private keys
 
 ```bash
-OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD=PASSWORD autonomy deploy run --build-dir ./abci_build
+export OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD=PASSWORD
+autonomy deploy run --build-dir ./abci_build
 ```
 
 ## `autonomy deploy from-token`
