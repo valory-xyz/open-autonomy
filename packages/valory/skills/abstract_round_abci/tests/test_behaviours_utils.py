@@ -1275,7 +1275,7 @@ class TestBaseBehaviour:
                     ),
                     kwargs=LedgerApiMessage.Kwargs(
                         {
-                            "chain_name": None,
+                            "chain_id": None,
                             "raise_on_failed_simulation": False,
                             "use_all_builders": True,
                         }
@@ -1294,7 +1294,7 @@ class TestBaseBehaviour:
                     ),
                     kwargs=LedgerApiMessage.Kwargs(
                         {
-                            "chain_name": None,
+                            "chain_id": None,
                             "raise_on_failed_simulation": False,
                             "use_all_builders": True,
                             "target_block_numbers": [1, 2, 3],

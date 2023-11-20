@@ -1027,7 +1027,7 @@ class BaseBehaviour(
         signing_msg: SigningMessage,
         use_flashbots: bool = False,
         target_block_numbers: Optional[List[int]] = None,
-        chain_name: Optional[str] = None,
+        chain_id: Optional[str] = None,
         raise_on_failed_simulation: bool = False,
     ) -> None:
         """
@@ -1041,7 +1041,7 @@ class BaseBehaviour(
         :param signing_msg: signing message
         :param use_flashbots: whether to use flashbots for the transaction or not
         :param target_block_numbers: the target block numbers in case we are using flashbots
-        :param chain_name: the chain name to use for the ledger call
+        :param chain_id: the chain name to use for the ledger call
         :param raise_on_failed_simulation: whether to raise an exception if the simulation fails or not.
         """
         ledger_api_dialogues = cast(
@@ -1054,13 +1054,13 @@ class BaseBehaviour(
             counterparty=LEDGER_API_ADDRESS,
             performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION,
         )
-        if chain_name:
-            kwargs = LedgerApiMessage.Kwargs({"chain_name": chain_name})
+        if chain_id:
+            kwargs = LedgerApiMessage.Kwargs({"chain_id": chain_id})
             create_kwargs.update(dict(kwargs=kwargs))
 
         if use_flashbots:
             _kwargs = {
-                "chain_name": chain_name,
+                "chain_id": chain_id,
                 "raise_on_failed_simulation": raise_on_failed_simulation,
                 "use_all_builders": True,  # TODO: make this a proper parameter
             }
@@ -1510,7 +1510,7 @@ class BaseBehaviour(
         use_flashbots: bool = False,
         target_block_numbers: Optional[List[int]] = None,
         raise_on_failed_simulation: bool = False,
-        chain_name: Optional[str] = None,
+        chain_id: Optional[str] = None,
     ) -> Generator[
         None,
         Union[None, SigningMessage, LedgerApiMessage],
@@ -1533,15 +1533,15 @@ class BaseBehaviour(
         :param use_flashbots: whether to use flashbots for the transaction or not
         :param target_block_numbers: the target block numbers in case we are using flashbots
         :param raise_on_failed_simulation: whether to raise an exception if the transaction fails the simulation or not
-        :param chain_name: the chain name to use for the ledger call
+        :param chain_id: the chain name to use for the ledger call
         :yield: SigningMessage object
         :return: transaction hash
         """
-        if chain_name is None:
-            chain_name = self.params.default_chain_name
+        if chain_id is None:
+            chain_id = self.params.default_chain_id
 
         terms = Terms(
-            chain_name,
+            chain_id,
             self.context.agent_address,
             counterparty_address="",
             amount_by_currency_id={},
@@ -1549,7 +1549,7 @@ class BaseBehaviour(
             nonce="",
         )
         self.context.logger.info(
-            f"Sending signing request to ledger '{chain_name}' for transaction: {transaction}..."
+            f"Sending signing request to ledger '{chain_id}' for transaction: {transaction}..."
         )
         self._send_transaction_signing_request(transaction, terms)
         signature_response = yield from self.wait_for_message()
@@ -1568,7 +1568,7 @@ class BaseBehaviour(
             signature_response,
             use_flashbots,
             target_block_numbers,
-            chain_name,
+            chain_id,
             raise_on_failed_simulation,
         )
         transaction_digest_msg = yield from self.wait_for_message()

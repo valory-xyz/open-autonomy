@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeihvqvbj2tiiyimz3e27gqhb7ku5rut7hycfahi4qle732kvj5fs7q
   __init__.py: bafybeicyrp6x2efg43gfdekxuofrlidc3w6aubzmyioqwnryropp6u7sby
-  behaviours.py: bafybeia7sn5cpgovgyke6rose5zjqr2wo3knbj2hsdsdalsx4outm5chyu
+  behaviours.py: bafybeibsbeclxwxgbcqd7gorsr2sf2mgsrkcxb5kioglzfzvkcstb7biwe
   dialogues.py: bafybeigabhaykiyzbluu4mk6bbrmqhzld2kyp32pg24bvjmzrrb74einwm
   fsm_specification.yaml: bafybeigdj64py4zjihcxdkvtrydbxyeh4slr2kkghltz3upnupdgad4et4
   handlers.py: bafybeie42qa3csgy6oompuqs2qnkat5mnslepbbwmgoxv6ljme4jofa5pe
@@ -38,7 +38,7 @@ protocols:
 - valory/contract_api:1.0.0:bafybeialhbjvwiwcnqq3ysxcyemobcbie7xza66gaofcvla5njezkvhcka
 - valory/ledger_api:1.0.0:bafybeige5agrztgzfevyglf7mb4o7pzfttmq4f6zi765y4g2zvftbyowru
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifcq2nwd6m5tgxooe7436bc6lwo73xcreedmhcwauzhp5jic6jeq4
+- valory/abstract_round_abci:0.1.0:bafybeidkbodq4mkpr4hc6hatilbnwfkplggfovv5w6h3ottvkc2jphkmsa
 behaviours:
   main:
     args: {}
@@ -140,7 +140,7 @@ models:
       use_slashing: false
       use_termination: false
       validate_timeout: 1205
-      default_chain_name: ethereum
+      default_chain_id: ethereum
     class_name: TransactionParams
   randomness_api:
     args:

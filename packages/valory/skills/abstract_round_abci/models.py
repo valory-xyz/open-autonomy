@@ -320,7 +320,7 @@ class BaseParams(
         )
         self.setup_params: Dict[str, Any] = self._ensure("setup", kwargs, dict)
         # TODO add to all configs
-        self.default_chain_name: str = kwargs.get("default_chain_name", DEFAULT_CHAIN)
+        self.default_chain_id: str = kwargs.get("default_chain_id", DEFAULT_CHAIN)
 
         # we sanitize for null values as these are just kept for schema definitions
         skill_id = kwargs["skill_context"].skill_id
