@@ -54,9 +54,11 @@ function handleCosmosConnectionKeyAndCerts() {
     fi
 
     if [[ "$AEA_PASSWORD" != "" ]]; then
+        echo "Issuing certificates with password"
         aea add-key cosmos --connection --password $AEA_PASSWORD
         aea issue-certificates --password $AEA_PASSWORD
     else
+        echo "Issuing certificates without password"
         aea add-key cosmos --connection
         aea issue-certificates
     fi
