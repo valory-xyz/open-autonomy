@@ -22,10 +22,10 @@ fingerprint:
   tests/test_register_reset.py: bafybeiecdipytoorhfpecbzd5pyx7e5zjpxsjc6yyqxezq2q6bhz7yuk7i
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeieaubma622ql6docwzsuzbhlq4jb65rdwnxefl3bfzwsqceae724e
-- valory/http_client:0.23.0:bafybeifgeqgryx6b3s6eseyzyezygmeitcpt3tkor2eiycozoi6clgdrny
-- valory/ipfs:0.1.0:bafybeigfmqvlzbp67fttccpl4hsu3zaztbxv6vd7ikzra2hfppfkalgpji
-- valory/ledger:0.19.0:bafybeigdckv3e6bz6kfloz4ucqrsufft6k4jp6bwkbbcvh4fxvgbmzq3dm
+- valory/abci:0.1.0:bafybeifaq5afclxuco2mp76h4mviktrpe3pjm3b5zs2ufheeby3ziapjma
+- valory/http_client:0.23.0:bafybeiddrfvomrmgvh5yuv2coq7ci72wcdf663stayi3m5aawnj4srggce
+- valory/ipfs:0.1.0:bafybeihx7wb5hngjobw2salzqqryrhxvmxfuw7o2npjyqd2talmh2flqeq
+- valory/ledger:0.19.0:bafybeia47rr37ianvwsh77tjjpv3nwif5sywhhy2fbdshnz4a2icwln76a
 - valory/p2p_libp2p_client:0.1.0:bafybeihge56dn3xep2dzomu7rtvbgo4uc2qqh7ljl3fubqdi2lq44gs5lq
 contracts: []
 protocols:
@@ -34,11 +34,11 @@ protocols:
 - valory/http:1.0.0:bafybeiejoqgv7finfxo3rcvvovrlj5ccrbgxodjq43uo26ylpowsa3llfe
 - valory/ipfs:0.1.0:bafybeiedxeismnx3k5ty4mvvhlqideixlhqmi5mtcki4lxqfa7uqh7p33u
 skills:
-- valory/abstract_abci:0.1.0:bafybeiepqk36zjnqkwkajqwwarq2upqqy5pzv6oy3gdof2tm6w2ciwlmzi
-- valory/abstract_round_abci:0.1.0:bafybeicrz3dxrichprwot5u6a6ero4zm5kg263xp4a5m3desnjlsjt3h4q
-- valory/register_reset_abci:0.1.0:bafybeieqabkn63z5apdqj3zscndz2blxwbcbqhbyzuir7erzesjufhv6gm
-- valory/registration_abci:0.1.0:bafybeibltc7xkfbksu37i3ps6je3yb5rvu7267akan75dwklbublt7b7iy
-- valory/reset_pause_abci:0.1.0:bafybeigarp5ibvdw3ng72tbqngw5r56zm6id3ixjx4straopcxdbhnvzwy
+- valory/abstract_abci:0.1.0:bafybeibrnhif75ox3eb2ynx4monskmgzcfxp4zo5ed55k5axdirjhpnn54
+- valory/abstract_round_abci:0.1.0:bafybeiakyxt7ndt2jjgvkf4kjp5wr6lx3b2pkje4ryfj3mg3cuweev6nqu
+- valory/register_reset_abci:0.1.0:bafybeigqff63gyy3censn3krai5thggnepzjrsmlfxcyjkn4kiecx2s4fy
+- valory/registration_abci:0.1.0:bafybeigwzer2qyyvndou2edkajmlpkmtexl5oll3g5nhh2ptj53kcjipca
+- valory/reset_pause_abci:0.1.0:bafybeia27ornjqdldmfuj3rpw42u5aq5ux4rxc42gfgxojhgzrlt5y46zu
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -69,9 +69,9 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.41.0.post1
+    version: ==1.42.0
   open-aea-test-autonomy:
-    version: ==0.13.5
+    version: ==0.13.6
 default_connection: null
 ---
 public_id: valory/abci:0.1.0

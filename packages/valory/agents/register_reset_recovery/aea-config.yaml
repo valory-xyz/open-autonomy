@@ -12,10 +12,10 @@ fingerprint:
   tests/test_register_reset_recovery.py: bafybeiajrzfeqcdvapjhdjggyxya2g3gdxboodpagld6uyclrsrfsiri7u
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeieaubma622ql6docwzsuzbhlq4jb65rdwnxefl3bfzwsqceae724e
-- valory/http_client:0.23.0:bafybeifgeqgryx6b3s6eseyzyezygmeitcpt3tkor2eiycozoi6clgdrny
-- valory/ipfs:0.1.0:bafybeigfmqvlzbp67fttccpl4hsu3zaztbxv6vd7ikzra2hfppfkalgpji
-- valory/ledger:0.19.0:bafybeigdckv3e6bz6kfloz4ucqrsufft6k4jp6bwkbbcvh4fxvgbmzq3dm
+- valory/abci:0.1.0:bafybeifaq5afclxuco2mp76h4mviktrpe3pjm3b5zs2ufheeby3ziapjma
+- valory/http_client:0.23.0:bafybeiddrfvomrmgvh5yuv2coq7ci72wcdf663stayi3m5aawnj4srggce
+- valory/ipfs:0.1.0:bafybeihx7wb5hngjobw2salzqqryrhxvmxfuw7o2npjyqd2talmh2flqeq
+- valory/ledger:0.19.0:bafybeia47rr37ianvwsh77tjjpv3nwif5sywhhy2fbdshnz4a2icwln76a
 - valory/p2p_libp2p_client:0.1.0:bafybeihge56dn3xep2dzomu7rtvbgo4uc2qqh7ljl3fubqdi2lq44gs5lq
 contracts: []
 protocols:
@@ -24,10 +24,10 @@ protocols:
 - valory/http:1.0.0:bafybeiejoqgv7finfxo3rcvvovrlj5ccrbgxodjq43uo26ylpowsa3llfe
 - valory/ipfs:0.1.0:bafybeiedxeismnx3k5ty4mvvhlqideixlhqmi5mtcki4lxqfa7uqh7p33u
 skills:
-- valory/abstract_abci:0.1.0:bafybeiepqk36zjnqkwkajqwwarq2upqqy5pzv6oy3gdof2tm6w2ciwlmzi
-- valory/abstract_round_abci:0.1.0:bafybeicrz3dxrichprwot5u6a6ero4zm5kg263xp4a5m3desnjlsjt3h4q
-- valory/register_reset_recovery_abci:0.1.0:bafybeiahlqa4lsj6lfnhzbzoe2si3qgcrvfmulre6zmlgoub5hphulmtgq
-- valory/registration_abci:0.1.0:bafybeibltc7xkfbksu37i3ps6je3yb5rvu7267akan75dwklbublt7b7iy
+- valory/abstract_abci:0.1.0:bafybeibrnhif75ox3eb2ynx4monskmgzcfxp4zo5ed55k5axdirjhpnn54
+- valory/abstract_round_abci:0.1.0:bafybeiakyxt7ndt2jjgvkf4kjp5wr6lx3b2pkje4ryfj3mg3cuweev6nqu
+- valory/register_reset_recovery_abci:0.1.0:bafybeia4234b5b6qtqgei7552hyaz76rhtz3hwxz7wlqbs2mutaclyl3kq
+- valory/registration_abci:0.1.0:bafybeigwzer2qyyvndou2edkajmlpkmtexl5oll3g5nhh2ptj53kcjipca
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -59,11 +59,11 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-cosmos:
-    version: ==1.41.0.post1
+    version: ==1.42.0
   open-aea-ledger-ethereum:
-    version: ==1.41.0.post1
+    version: ==1.42.0
   open-aea-test-autonomy:
-    version: ==0.13.5
+    version: ==0.13.6
 skill_exception_policy: stop_and_exit
 default_connection: null
 ---

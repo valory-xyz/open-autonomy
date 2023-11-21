@@ -60,13 +60,13 @@ fingerprint:
   utils.py: bafybeidbha3c3tcxo4lhucyx2x6yra4z2p2fp6sucqqzhxanbvgrraykbi
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeieaubma622ql6docwzsuzbhlq4jb65rdwnxefl3bfzwsqceae724e
-- valory/http_client:0.23.0:bafybeifgeqgryx6b3s6eseyzyezygmeitcpt3tkor2eiycozoi6clgdrny
-- valory/ipfs:0.1.0:bafybeigfmqvlzbp67fttccpl4hsu3zaztbxv6vd7ikzra2hfppfkalgpji
-- valory/ledger:0.19.0:bafybeigdckv3e6bz6kfloz4ucqrsufft6k4jp6bwkbbcvh4fxvgbmzq3dm
+- valory/abci:0.1.0:bafybeifaq5afclxuco2mp76h4mviktrpe3pjm3b5zs2ufheeby3ziapjma
+- valory/http_client:0.23.0:bafybeiddrfvomrmgvh5yuv2coq7ci72wcdf663stayi3m5aawnj4srggce
+- valory/ipfs:0.1.0:bafybeihx7wb5hngjobw2salzqqryrhxvmxfuw7o2npjyqd2talmh2flqeq
+- valory/ledger:0.19.0:bafybeia47rr37ianvwsh77tjjpv3nwif5sywhhy2fbdshnz4a2icwln76a
 - valory/p2p_libp2p_client:0.1.0:bafybeihge56dn3xep2dzomu7rtvbgo4uc2qqh7ljl3fubqdi2lq44gs5lq
 contracts:
-- valory/service_registry:0.1.0:bafybeib6eed4u2dqggq7jpnb4lury6ylqzdxp6oxxvgrouhcvtmwsbsjbq
+- valory/service_registry:0.1.0:bafybeicwp7b4wrxcko66cfylhnaiwzdupo75ixlcol73ww6vxapx33gtpi
 protocols:
 - open_aea/signing:1.0.0:bafybeie7xyems76v5b4wc2lmaidcujizpxfzjnnwdeokmhje53g7ym25ii
 - valory/abci:0.1.0:bafybeihmzlmmb4pdo3zkhg6ehuyaa4lhw7bfpclln2o2z7v3o6fcep26iu
@@ -76,7 +76,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeige5agrztgzfevyglf7mb4o7pzfttmq4f6zi765y4g2zvftbyowru
 - valory/tendermint:0.1.0:bafybeig6g6twajlwssfbfp5rlnu5mwzuu5kgak5cs4fich7rlkx6whesnu
 skills:
-- valory/abstract_abci:0.1.0:bafybeiepqk36zjnqkwkajqwwarq2upqqy5pzv6oy3gdof2tm6w2ciwlmzi
+- valory/abstract_abci:0.1.0:bafybeibrnhif75ox3eb2ynx4monskmgzcfxp4zo5ed55k5axdirjhpnn54
 behaviours:
   main:
     args: {}
@@ -145,9 +145,9 @@ dependencies:
   ipfshttpclient:
     version: ==0.8.0a2
   open-aea-cli-ipfs:
-    version: ==1.41.0.post1
+    version: ==1.42.0
   open-aea-test-autonomy:
-    version: ==0.13.5
+    version: ==0.13.6
   protobuf:
     version: <4.25.0,>=4.21.6
   py-ecc:
@@ -157,7 +157,7 @@ dependencies:
   pytz:
     version: ==2022.2.1
   requests:
-    version: ==2.28.2
+    version: ==2.28.1
   typing_extensions:
     version: '>=3.10.0.2'
 is_abstract: true
