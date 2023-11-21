@@ -63,7 +63,7 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==1.41.0.post1
   open-aea-test-autonomy:
-    version: ==0.13.5
+    version: ==0.13.6
 skill_exception_policy: stop_and_exit
 default_connection: null
 ---
