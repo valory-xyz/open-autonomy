@@ -1,6 +1,17 @@
 # Release History - `open-autonomy`
 
 
+# 0.13.6 (2023-11-21)
+
+Autonomy:
+- Fixes the start.sh script to use password if provided when issuing certificates
+
+Packages:
+- Renames the `chain_name` parameter to `chain_id` on transaction settlement skill
+
+Docs:
+- Updates the documentation on private key security in deployments
+
 # 0.13.5 (2023-11-14)
 
 Autonomy:
