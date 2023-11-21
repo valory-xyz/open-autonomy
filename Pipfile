@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-aiohttp = "<3.8,>=3.7.4"
+aiohttp = "<4.0.0,>=3.8.5"
 docker = "==6.1.2"
 Flask = "==2.0.2"
 open-aea = {version = "==1.42.0", extras = ["all"]}
@@ -20,7 +20,7 @@ valory-docker-compose = "==1.29.3"
 
 [dev-packages]
 ### package deps
-aiohttp = "<3.8,>=3.7.4"
+aiohttp = "<4.0.0,>=3.8.5"
 asn1crypto = "<1.5.0,>=1.4.0"
 ecdsa = ">=0.15"
 web3 = "<7,>=6.0.0"
