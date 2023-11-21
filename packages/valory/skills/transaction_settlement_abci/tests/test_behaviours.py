@@ -1342,6 +1342,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
             def _dummy_get_tx_data(
                 _current_message: ContractApiMessage,
                 _use_flashbots: bool,
+                chain_id: Optional[str] = None,
             ) -> Generator[None, None, TxDataType]:
                 yield
                 return {

@@ -170,6 +170,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         use_flashbots: bool,
         manual_gas_limit: int = 0,
         raise_on_failed_simulation: bool = False,
+        chain_id: Optional[str] = None,
     ) -> Generator[None, None, TxDataType]:
         """Get the transaction data from a `ContractApiMessage`."""
         tx_data: TxDataType = {
@@ -207,6 +208,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
             message.raw_transaction,
             use_flashbots,
             raise_on_failed_simulation=raise_on_failed_simulation,
+            chain_id=chain_id,
         )
 
         # Handle transaction results
@@ -282,7 +284,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         tx_params = skill_input_hex_to_payload(
             self.synchronized_data.most_voted_tx_hash
         )
-        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_name)
+        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_id)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.synchronized_data.safe_contract_address,
@@ -330,7 +332,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
 
     def _get_safe_nonce(self) -> Generator[None, None, ContractApiMessage]:
         """Get the safe nonce."""
-        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_name)
+        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_id)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.synchronized_data.safe_contract_address,
@@ -649,7 +651,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
 
     def _get_revert_reason(self, tx: TxData) -> Generator[None, None, Optional[str]]:
         """Get the revert reason of the given transaction."""
-        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_name)
+        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_id)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.synchronized_data.safe_contract_address,
@@ -717,8 +719,13 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             current_message = next(self._messages_iterator, None)
             if current_message is not None:
+                chain_id = self.synchronized_data.get_chain_id(
+                    self.params.default_chain_id
+                )
                 tx_data = yield from self._get_tx_data(
-                    current_message, self.use_flashbots
+                    current_message,
+                    self.use_flashbots,
+                    chain_id=chain_id,
                 )
                 self.context.logger.info(
                     f"Found a late arriving message {current_message}. Result data: {tx_data}"
@@ -887,7 +894,7 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
         tx_params = skill_input_hex_to_payload(
             self.synchronized_data.most_voted_tx_hash
         )
-        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_name)
+        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_id)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.synchronized_data.safe_contract_address,
@@ -918,6 +925,7 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
             tx_params["use_flashbots"],
             tx_params["gas_limit"],
             tx_params["raise_on_failed_simulation"],
+            chain_id,
         )
         return tx_data
 

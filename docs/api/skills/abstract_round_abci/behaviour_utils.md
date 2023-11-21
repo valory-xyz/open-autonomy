@@ -748,7 +748,7 @@ def send_raw_transaction(
     use_flashbots: bool = False,
     target_block_numbers: Optional[List[int]] = None,
     raise_on_failed_simulation: bool = False,
-    chain_name: Optional[str] = None
+    chain_id: Optional[str] = None
 ) -> Generator[
         None,
         Union[None, SigningMessage, LedgerApiMessage],
@@ -774,7 +774,7 @@ _send_transaction_request:
 - `use_flashbots`: whether to use flashbots for the transaction or not
 - `target_block_numbers`: the target block numbers in case we are using flashbots
 - `raise_on_failed_simulation`: whether to raise an exception if the transaction fails the simulation or not
-- `chain_name`: the chain name to use for the ledger call
+- `chain_id`: the chain name to use for the ledger call
 
 **Returns**:
 
