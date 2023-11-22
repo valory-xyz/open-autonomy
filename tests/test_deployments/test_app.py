@@ -143,6 +143,7 @@ class BaseTendermintServerTest(BaseTendermintTest):
         os.environ["CREATE_EMPTY_BLOCKS"] = "true"
         os.environ["USE_GRPC"] = "false"
         os.environ["LOG_FILE"] = str(cls.path / "tendermint.log")
+        os.environ["WRITE_TO_LOG"] = "true"
         cls.dump_dir = Path(tempfile.mkdtemp())
         cls.app, cls.tendermint_node = create_app(
             dump_dir=cls.dump_dir,
