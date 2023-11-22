@@ -192,8 +192,7 @@ def create_app(  # pylint: disable=too-many-statements
     debug: bool = False,
 ) -> Tuple[Flask, TendermintNode]:
     """Create the Tendermint server app"""
-    # TODO: Set false as default once the grafana is functional
-    write_to_log = os.environ.get("WRITE_TO_LOG", "true").lower() == "true"
+    write_to_log = os.environ.get("WRITE_TO_LOG", "false").lower() == "true"
     tendermint_params = TendermintParams(
         proxy_app=os.environ["PROXY_APP"],
         consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",

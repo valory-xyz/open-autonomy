@@ -80,6 +80,7 @@ TENDERMINT_NODE_TEMPLATE: str = """
       - DEV_MODE=0
       - LOG_FILE=/logs/node_{node_id}.txt
       - LOG_LEVEL={log_level}
+      - WRITE_TO_LOG={write_to_log}
     working_dir: /tendermint
     command: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080",]
     depends_on:
