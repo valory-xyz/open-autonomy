@@ -16,6 +16,16 @@ nosec
 
 nosec
 
+<a id="autonomy.deploy.base.tm_write_to_log"></a>
+
+#### tm`_`write`_`to`_`log
+
+```python
+def tm_write_to_log() -> bool
+```
+
+Check the environment variable to see if the user wants to write to log file or not.
+
 <a id="autonomy.deploy.base.NotValidKeysFile"></a>
 
 ## NotValidKeysFile Objects

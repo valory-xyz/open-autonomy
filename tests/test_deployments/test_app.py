@@ -52,9 +52,6 @@ from deployments.Dockerfiles.tendermint.app import (  # type: ignore
     override_config_toml,
     update_peers,
 )
-from deployments.Dockerfiles.tendermint.tendermint import (  # type: ignore
-    TendermintParams,
-)
 
 
 ENCODING = "utf-8"
@@ -134,7 +131,6 @@ class BaseTendermintServerTest(BaseTendermintTest):
     app: flask.app.Flask
     app_context: flask.ctx.AppContext
     tendermint_node: TendermintNode
-    perform_monitoring = True
     debug_tendermint = False
     tm_status_endpoint = "http://localhost:26657/status"
     dump_dir: Path
@@ -147,10 +143,10 @@ class BaseTendermintServerTest(BaseTendermintTest):
         os.environ["CREATE_EMPTY_BLOCKS"] = "true"
         os.environ["USE_GRPC"] = "false"
         os.environ["LOG_FILE"] = str(cls.path / "tendermint.log")
+        os.environ["WRITE_TO_LOG"] = "true"
         cls.dump_dir = Path(tempfile.mkdtemp())
         cls.app, cls.tendermint_node = create_app(
             dump_dir=cls.dump_dir,
-            perform_monitoring=cls.perform_monitoring,
             debug=cls.debug_tendermint,
         )
         cls.app.config["TESTING"] = True
@@ -425,64 +421,6 @@ class TestTendermintLogMessages(BaseTendermintServerTest):
             timeout=10,
             period=1,
         )
-
-
-def mock_get_node_command_kwargs() -> Dict:
-    """Get the node command kwargs"""
-    kwargs = {
-        "bufsize": 1,
-        "universal_newlines": True,
-    }
-
-    # Pipe stdout and stderr even if we're not going to read to provoke the buffer fill
-    kwargs["stdout"] = subprocess.PIPE
-    kwargs["stderr"] = subprocess.STDOUT
-
-    if platform.system() == "Windows":  # pragma: nocover
-        kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
-    else:
-        kwargs["preexec_fn"] = os.setsid  # type: ignore
-
-    return kwargs
-
-
-class TestTendermintBufferFailing(BaseTendermintServerTest):
-    """Test Tendermint buffer"""
-
-    perform_monitoring = False  # Setting this flag to False and not monitoring makes the buffer to fill and freeze Tendermint
-    debug_tendermint = True  # This will cause more logging -> faster failure
-
-    @classmethod
-    def setup_class(cls) -> None:
-        """Setup the test."""
-        with mock.patch.object(
-            TendermintParams,
-            "get_node_command_kwargs",
-            return_value=mock_get_node_command_kwargs(),
-        ):
-            super().setup_class()
-
-    @wait_for_occupied_rpc_port
-    def test_tendermint_buffer(self) -> None:
-        """Test Tendermint buffer"""
-
-        with pytest.raises(requests.exceptions.Timeout):
-            # Give the test 30 seconds for it to throw a timeout
-            for _ in range(30):
-                # If it hangs for 5 seconds, we assume it's not working.
-                # Increasing the timeout should have no effect,
-                # the node is unresponsive at this point.
-                requests.get(self.tm_status_endpoint, timeout=5)
-                time.sleep(1)
-
-    @classmethod
-    def teardown_class(cls) -> None:
-        """Teardown the test."""
-        # After the test, the node has hanged. We need to kill it and not stop it.
-        if cls.tendermint_node._process:
-            cls.tendermint_node._process.kill()
-        cls.app_context.pop()
-        shutil.rmtree(cls.tm_home, ignore_errors=True, onerror=readonly_handler)
 
 
 class TestTendermintBufferWorking(BaseTendermintServerTest):
