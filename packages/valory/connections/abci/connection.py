@@ -1197,6 +1197,8 @@ class TendermintNode:
                         "Stopping abci.socketClient for error: read message: EOF",
                     ]:
                         if line.find(trigger) >= 0:
+                            if self._process is None:
+                                break
                             self._stop_tm_process()
                             # we can only reach this step if monitoring was activated
                             # so we make sure that after reset the monitoring continues
@@ -1239,6 +1241,8 @@ class TendermintNode:
 
         if platform.system() == "Windows":
             os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
+            if self._process is None:
+                return
             try:
                 self._process.wait(timeout=5)
             except subprocess.TimeoutExpired:  # nosec
@@ -1246,6 +1250,8 @@ class TendermintNode:
         else:
             self._process.send_signal(signal.SIGTERM)
             self._process.wait(timeout=5)
+            if self._process is None:
+                return
             poll = self._process.poll()
             if poll is None:  # pragma: nocover
                 self._process.terminate()

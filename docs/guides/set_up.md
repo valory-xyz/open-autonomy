@@ -108,7 +108,7 @@ If you plan to follow the guides in the next sections, you need to populate the 
     "third_party": {
         "service/valory/hello_world/0.1.0": "bafybeicdcrhpekqbwzeam2fi7npnl6qfwejgo73ftwoy4tofwbrsl5ene4",
         "agent/valory/hello_world/0.1.0": "bafybeiakoj6jpj5gqyjk5qz2ibgvplgd4azqwxmi56aei7xpu5z47np3e4",
-        "connection/valory/abci/0.1.0": "bafybeihsfo7frj2pv6rqmv75nwxc5cnhawtvtzxtn34dgzjxglgkwkumvy",
+        "connection/valory/abci/0.1.0": "bafybeid23nskedu6ilfcuk72fdh2ckvouvjzdf27dnvhfydi6uyjnhkeua",
         "connection/valory/http_client/0.23.0": "bafybeiddrfvomrmgvh5yuv2coq7ci72wcdf663stayi3m5aawnj4srggce",
         "connection/valory/ipfs/0.1.0": "bafybeihx7wb5hngjobw2salzqqryrhxvmxfuw7o2npjyqd2talmh2flqeq",
         "connection/valory/ledger/0.19.0": "bafybeia47rr37ianvwsh77tjjpv3nwif5sywhhy2fbdshnz4a2icwln76a",
@@ -121,8 +121,8 @@ If you plan to follow the guides in the next sections, you need to populate the 
         "protocol/valory/ipfs/0.1.0": "bafybeiedxeismnx3k5ty4mvvhlqideixlhqmi5mtcki4lxqfa7uqh7p33u",
         "protocol/valory/ledger_api/1.0.0": "bafybeige5agrztgzfevyglf7mb4o7pzfttmq4f6zi765y4g2zvftbyowru",
         "protocol/valory/tendermint/0.1.0": "bafybeig6g6twajlwssfbfp5rlnu5mwzuu5kgak5cs4fich7rlkx6whesnu",
-        "skill/valory/abstract_abci/0.1.0": "bafybeidqj5za47v5fgveterzfzdnajodqhqhjempmb7ea6nh7tfukqeog4",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeihlw6rz6ibz63gxvj4e22hybtgcxbl5n4dkbf4qmoz4licieoszou",
+        "skill/valory/abstract_abci/0.1.0": "bafybeica4t4ejki7bdqysq7ann5izp5yty26qthynpvklrn5y6hsaud6e4",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeiaw5yiqzs3ntqfjrn5sieej7qygyt7usxni77itg75m6p74am73k4",
         "skill/valory/hello_world_abci/0.1.0": "bafybeibu3fdkjmawysvbwcn77pzpfw2d4the4ok7jod3jmdiqn4rzms37e",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihge56dn3xep2dzomu7rtvbgo4uc2qqh7ljl3fubqdi2lq44gs5lq"
     }
