@@ -183,7 +183,7 @@ class TendermintNode:
         if self._monitoring is None:
             raise ValueError("Monitoring is not running")
         self.log("Monitoring thread started\n")
-        while True:
+        while True:  # pylint: disable=too-many-nested-blocks
             try:
                 if self._monitoring.stopped():
                     break  # break from the loop immediately.
