@@ -120,7 +120,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             ledger=self.service_builder.keys[agent_ix].get(
                 KEY_SCHEMA_TYPE, DEFAULT_LEDGER
             ),
-            write_to_log=tm_write_to_log(),
+            write_to_log=str(tm_write_to_log()).lower(),
         )
         agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
         resources = []

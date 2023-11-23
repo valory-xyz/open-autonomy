@@ -1,4 +1,4 @@
-open-autonomy[all]==0.13.6
+open-autonomy[all]==0.13.7
 open-aea[all]==1.42.0
 open-aea-cli-ipfs==1.42.0
 open-aea-ledger-ethereum==1.42.0
