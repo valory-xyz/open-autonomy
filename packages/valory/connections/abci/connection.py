@@ -1262,8 +1262,8 @@ class TendermintNode:
 
     def stop(self) -> None:
         """Stop a Tendermint node process."""
-        self._stop_monitoring_thread()
         self._stop_tm_process()
+        self._stop_monitoring_thread()
 
     @staticmethod
     def _write_to_console(line: str) -> None:
