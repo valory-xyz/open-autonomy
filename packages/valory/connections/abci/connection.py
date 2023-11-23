@@ -1181,7 +1181,7 @@ class TendermintNode:
         if self._monitoring is None:
             raise ValueError("Monitoring is not running")
         self.log("Monitoring thread started\n")
-        while True:
+        while True:  # pylint: disable=too-many-nested-blocks
             try:
                 if self._monitoring.stopped():
                     break  # break from the loop immediately.
@@ -1197,6 +1197,8 @@ class TendermintNode:
                         "Stopping abci.socketClient for error: read message: EOF",
                     ]:
                         if line.find(trigger) >= 0:
+                            if self._process is None:
+                                break
                             self._stop_tm_process()
                             # we can only reach this step if monitoring was activated
                             # so we make sure that after reset the monitoring continues
@@ -1239,6 +1241,8 @@ class TendermintNode:
 
         if platform.system() == "Windows":
             os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
+            if self._process is None:
+                return
             try:
                 self._process.wait(timeout=5)
             except subprocess.TimeoutExpired:  # nosec
@@ -1246,6 +1250,8 @@ class TendermintNode:
         else:
             self._process.send_signal(signal.SIGTERM)
             self._process.wait(timeout=5)
+            if self._process is None:
+                return
             poll = self._process.poll()
             if poll is None:  # pragma: nocover
                 self._process.terminate()
@@ -1262,8 +1268,8 @@ class TendermintNode:
 
     def stop(self) -> None:
         """Stop a Tendermint node process."""
-        self._stop_monitoring_thread()
         self._stop_tm_process()
+        self._stop_monitoring_thread()
 
     @staticmethod
     def _write_to_console(line: str) -> None:
