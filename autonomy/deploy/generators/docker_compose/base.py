@@ -86,7 +86,7 @@ def build_tendermint_node_config(  # pylint: disable=too-many-arguments
         tendermint_image_name=TENDERMINT_IMAGE_NAME,
         tendermint_image_version=TENDERMINT_IMAGE_VERSION,
         network_name=network_name,
-        write_to_log=tm_write_to_log(),
+        write_to_log=str(tm_write_to_log()).lower(),
     )
 
     if dev_mode:
