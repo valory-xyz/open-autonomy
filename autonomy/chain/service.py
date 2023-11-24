@@ -280,11 +280,9 @@ class ServiceManager:
                 service state, list of cannonical agents
         """
 
-        return registry_contracts.service_registry.get_service_information(
+        return get_service_info(
             ledger_api=self.ledger_api,
-            contract_address=ContractConfigs.get(
-                SERVICE_REGISTRY_CONTRACT.name
-            ).contracts[self.chain_type],
+            chain_type=self.chain_type,
             token_id=token_id,
         )
 
