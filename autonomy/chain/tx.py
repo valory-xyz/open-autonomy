@@ -50,7 +50,7 @@ ERRORS_TO_RETRY = (
 
 def should_raise(error: str) -> bool:
     """Check an error message to check if we should raise an error or retry the tx"""
-    return not any(map(lambda x: x in error, ERRORS_TO_RETRY))
+    return any(map(lambda x: x in error, ERRORS_TO_RETRY))
 
 
 class TxSettler:
@@ -94,6 +94,7 @@ class TxSettler:
                 print(
                     f"Error occured when interacting with chain: {e}; will retry in {self.sleep}..."
                 )
+            retries += 1
         return None
 
     def build(
