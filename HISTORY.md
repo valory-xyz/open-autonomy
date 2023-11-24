@@ -1,6 +1,11 @@
 # Release History - `open-autonomy`
 
 
+# 0.13.7 (2023-11-23)
+
+Autonomy:
+- Adds support for logging to console on tendermint server
+
 # 0.13.6 (2023-11-21)
 
 Autonomy:

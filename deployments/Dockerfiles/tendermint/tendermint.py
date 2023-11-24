@@ -24,6 +24,7 @@ import os
 import platform
 import signal
 import subprocess  # nosec:
+import sys
 from logging import Logger
 from pathlib import Path
 from threading import Event, Thread
@@ -117,47 +118,48 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         ]
         if debug:
             cmd.append("--log_level=debug")
-
         if self.home is not None:  # pragma: nocover
             cmd += ["--home", self.home]
         return cmd
 
     @staticmethod
-    def get_node_command_kwargs(monitoring: bool = False) -> Dict:
+    def get_node_command_kwargs() -> Dict:
         """Get the node command kwargs"""
         kwargs = {
             "bufsize": 1,
             "universal_newlines": True,
+            "stdout": subprocess.PIPE,
+            "stderr": subprocess.STDOUT,
         }
-
-        # Only redirect stdout and stderr if we're going to read
-        if monitoring:
-            kwargs["stdout"] = subprocess.PIPE
-            kwargs["stderr"] = subprocess.STDOUT
-
         if platform.system() == "Windows":  # pragma: nocover
             kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
         else:
             kwargs["preexec_fn"] = os.setsid  # type: ignore
-
         return kwargs
 
 
 class TendermintNode:
     """A class to manage a Tendermint node."""
 
-    def __init__(self, params: TendermintParams, logger: Optional[Logger] = None):
+    def __init__(
+        self,
+        params: TendermintParams,
+        logger: Optional[Logger] = None,
+        write_to_log: bool = False,
+    ):
         """
         Initialize a Tendermint node.
 
         :param params: the parameters.
         :param logger: the logger.
+        :param write_to_log: Write to log file.
         """
         self.params = params
         self._process: Optional[subprocess.Popen] = None
         self._monitoring: Optional[StoppableThread] = None
         self.logger = logger or logging.getLogger()
         self.log_file = os.environ.get("LOG_FILE", DEFAULT_TENDERMINT_LOG_FILE)
+        self.write_to_log = write_to_log
 
     def _build_init_command(self) -> List[str]:
         """Build the 'init' command."""
@@ -174,93 +176,20 @@ class TendermintNode:
         cmd = self._build_init_command()
         subprocess.call(cmd)  # nosec
 
-    def start(self, start_monitoring: bool = False, debug: bool = False) -> None:
-        """Start a Tendermint node process."""
-        self._start_tm_process(start_monitoring, debug)
-        if start_monitoring:
-            self._start_monitoring_thread()
-
-    def _start_tm_process(self, monitoring: bool = False, debug: bool = False) -> None:
-        """Start a Tendermint node process."""
-
-        if self._process is not None:  # pragma: nocover
-            return
-
-        cmd = self.params.build_node_command(debug)
-        kwargs = self.params.get_node_command_kwargs(monitoring)
-
-        logging.info(f"Starting Tendermint: {cmd}")
-        self._process = (
-            subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
-                cmd, **kwargs
-            )
-        )
-
-        self.write_line("Tendermint process started\n")
-
-    def _start_monitoring_thread(self) -> None:
-        """Start a monitoring thread."""
-        self._monitoring = StoppableThread(target=self.check_server_status)
-        self._monitoring.start()
-
-    def _stop_tm_process(self) -> None:
-        """Stop a Tendermint node process."""
-        if self._process is None:
-            return
-
-        if platform.system() == "Windows":
-            os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
-            try:
-                self._process.wait(timeout=5)
-            except subprocess.TimeoutExpired:  # nosec
-                os.kill(self._process.pid, signal.CTRL_BREAK_EVENT)  # type: ignore  # pylint: disable=no-member
-        else:
-            self._process.send_signal(signal.SIGTERM)
-            self._process.wait(timeout=5)
-            poll = self._process.poll()
-            if poll is None:  # pragma: nocover
-                self._process.terminate()
-                self._process.wait(3)
-
-        self._process = None
-        self.write_line("Tendermint process stopped\n")
-
-    def _stop_monitoring_thread(self) -> None:
-        """Stop a monitoring process."""
-        if self._monitoring is not None:
-            self._monitoring.stop()  # set stop event
-            self._monitoring.join()
-
-    def stop(self) -> None:
-        """Stop a Tendermint node process."""
-        self._stop_monitoring_thread()
-        self._stop_tm_process()
-
-    def prune_blocks(self) -> int:
-        """Prune blocks from the Tendermint state"""
-        return subprocess.call(  # nosec:
-            ["tendermint", "--home", str(self.params.home), "unsafe-reset-all"]
-        )
-
-    def write_line(self, line: str) -> None:
-        """Open and write a line to the log file."""
-        with open(self.log_file, "a", encoding=ENCODING) as file:
-            file.write(line)
-
-    def check_server_status(
+    def _monitor_tendermint_process(
         self,
     ) -> None:
         """Check server status."""
         if self._monitoring is None:
             raise ValueError("Monitoring is not running")
-        self.write_line("Monitoring thread started\n")
-        while True:
+        self.log("Monitoring thread started\n")
+        while True:  # pylint: disable=too-many-nested-blocks
             try:
                 if self._monitoring.stopped():
                     break  # break from the loop immediately.
                 if self._process is not None and self._process.stdout is not None:
                     line = self._process.stdout.readline()
-                    self.write_line(line)
+                    self.log(line)
                     for trigger in [
                         # this occurs when we lose connection from the tm side
                         "RPC HTTP server stopped",
@@ -270,17 +199,102 @@ class TendermintNode:
                         "Stopping abci.socketClient for error: read message: EOF",
                     ]:
                         if line.find(trigger) >= 0:
+                            if self._process is None:
+                                break
                             self._stop_tm_process()
                             # we can only reach this step if monitoring was activated
                             # so we make sure that after reset the monitoring continues
-                            monitoring = True
-                            self._start_tm_process(monitoring)
-                            self.write_line(
+                            self._start_tm_process()
+                            self.log(
                                 f"Restarted the HTTP RPC server, as a connection was dropped with message:\n\t\t {line}\n"
                             )
             except Exception as e:  # pylint: disable=broad-except
-                self.write_line(f"Error!: {str(e)}")
-        self.write_line("Monitoring thread terminated\n")
+                self.log(f"Error!: {str(e)}")
+        self.log("Monitoring thread terminated\n")
+
+    def _start_tm_process(self, debug: bool = False) -> None:
+        """Start a Tendermint node process."""
+        if self._process is not None:  # pragma: nocover
+            return
+        cmd = self.params.build_node_command(debug)
+        kwargs = self.params.get_node_command_kwargs()
+        self.log(f"Starting Tendermint: {cmd}\n")
+        self._process = (
+            subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+                cmd, **kwargs
+            )
+        )
+        self.log("Tendermint process started\n")
+
+    def _start_monitoring_thread(self) -> None:
+        """Start a monitoring thread."""
+        self._monitoring = StoppableThread(target=self._monitor_tendermint_process)
+        self._monitoring.start()
+
+    def start(self, debug: bool = False) -> None:
+        """Start a Tendermint node process."""
+        self._start_tm_process(debug)
+        self._start_monitoring_thread()
+
+    def _stop_tm_process(self) -> None:
+        """Stop a Tendermint node process."""
+        if self._process is None:
+            return
+
+        if platform.system() == "Windows":
+            os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
+            if self._process is None:
+                return
+            try:
+                self._process.wait(timeout=5)
+            except subprocess.TimeoutExpired:  # nosec
+                os.kill(self._process.pid, signal.CTRL_BREAK_EVENT)  # type: ignore  # pylint: disable=no-member
+        else:
+            self._process.send_signal(signal.SIGTERM)
+            self._process.wait(timeout=5)
+            if self._process is None:
+                return
+            poll = self._process.poll()
+            if poll is None:  # pragma: nocover
+                self._process.terminate()
+                self._process.wait(3)
+
+        self._process = None
+        self.log("Tendermint process stopped\n")
+
+    def _stop_monitoring_thread(self) -> None:
+        """Stop a monitoring process."""
+        if self._monitoring is not None:
+            self._monitoring.stop()  # set stop event
+            self._monitoring.join()
+
+    def stop(self) -> None:
+        """Stop a Tendermint node process."""
+        self._stop_tm_process()
+        self._stop_monitoring_thread()
+
+    @staticmethod
+    def _write_to_console(line: str) -> None:
+        """Write line to console."""
+        sys.stdout.write(str(line))
+        sys.stdout.flush()
+
+    def _write_to_file(self, line: str) -> None:
+        """Write line to console."""
+        with open(self.log_file, "a", encoding=ENCODING) as file:
+            file.write(line)
+
+    def log(self, line: str) -> None:
+        """Open and write a line to the log file."""
+        self._write_to_console(line=line)
+        if self.write_to_log:
+            self._write_to_file(line=line)
+
+    def prune_blocks(self) -> int:
+        """Prune blocks from the Tendermint state"""
+        return subprocess.call(  # nosec:
+            ["tendermint", "--home", str(self.params.home), "unsafe-reset-all"]
+        )
 
     def reset_genesis_file(
         self, genesis_time: str, initial_height: str, period_count: str

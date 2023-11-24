@@ -55,6 +55,7 @@ ENV_VAR_AEA_AGENT = "AEA_AGENT"
 ENV_VAR_LOG_LEVEL = "LOG_LEVEL"
 ENV_VAR_AEA_PASSWORD = "AEA_PASSWORD"  # nosec
 ENV_VAR_DEPENDENCIES = "DEPENDENCIES"  # nosec
+ENV_VAR_OPEN_AUTONOMY_TM_WRITE_TO_LOG = "OPEN_AUTONOMY_TM_WRITE_TO_LOG"
 
 PARAM_ARGS_PATH = ("models", "params", "args")
 SETUP_PARAM_PATH = (*PARAM_ARGS_PATH, "setup")
@@ -94,6 +95,11 @@ COMPONENT_CONFIGS: Dict = {
         ConnectionConfig,
     ]
 }
+
+
+def tm_write_to_log() -> bool:
+    """Check the environment variable to see if the user wants to write to log file or not."""
+    return os.getenv(ENV_VAR_OPEN_AUTONOMY_TM_WRITE_TO_LOG, "true").lower() == "true"
 
 
 class NotValidKeysFile(Exception):

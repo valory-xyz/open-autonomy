@@ -231,6 +231,8 @@ spec:
             value: "/logs/node_{validator_ix}.txt"
           - name: LOG_LEVEL
             value: {log_level}
+          - name: WRITE_TO_LOG
+            value: "{write_to_log}"
         args: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
         volumeMounts:
           - mountPath: /tm_state

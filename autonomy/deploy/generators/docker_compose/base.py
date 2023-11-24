@@ -35,7 +35,7 @@ from autonomy.constants import (
     TENDERMINT_IMAGE_NAME,
     TENDERMINT_IMAGE_VERSION,
 )
-from autonomy.deploy.base import BaseDeploymentGenerator
+from autonomy.deploy.base import BaseDeploymentGenerator, tm_write_to_log
 from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
     DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
@@ -76,7 +76,6 @@ def build_tendermint_node_config(  # pylint: disable=too-many-arguments
     tendermint_ports: Optional[Dict[int, int]] = None,
 ) -> str:
     """Build tendermint node config for docker compose."""
-
     config = TENDERMINT_NODE_TEMPLATE.format(
         node_id=node_id,
         container_name=container_name,
@@ -87,6 +86,7 @@ def build_tendermint_node_config(  # pylint: disable=too-many-arguments
         tendermint_image_name=TENDERMINT_IMAGE_NAME,
         tendermint_image_version=TENDERMINT_IMAGE_VERSION,
         network_name=network_name,
+        write_to_log=str(tm_write_to_log()).lower(),
     )
 
     if dev_mode:
