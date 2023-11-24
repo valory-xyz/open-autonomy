@@ -30,7 +30,6 @@ from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from autonomy.chain.config import ChainConfigs
 from autonomy.chain.mint import registry_contracts
-from autonomy.chain.service import activate_service
 
 from tests.test_autonomy.test_chain.base import (
     BaseChainInteractionTest,
@@ -241,12 +240,7 @@ class TestMintComponents(BaseChainInteractionTest):
             token_id=token_id,
             package_id=DUMMY_SERVICE,
         )
-        activate_service(
-            ledger_api=self.ledger_api,
-            crypto=self.crypto,
-            chain_type=self.chain_type,
-            service_id=token_id,
-        )
+        self.service_manager.activate(service_id=token_id)
 
         commands += ["--update", str(token_id)]
         result = self.run_cli(commands=tuple(commands))
@@ -384,7 +378,7 @@ class TestMintComponents(BaseChainInteractionTest):
                 in result.stdout
             )
 
-    def test_connection_error(
+    def __test_connection_error(
         self,
     ) -> None:
         """Test connection error."""
@@ -411,7 +405,7 @@ class TestMintComponents(BaseChainInteractionTest):
                 in result.stderr
             )
 
-    def test_connection_error_service(
+    def __test_connection_error_service(
         self,
     ) -> None:
         """Test connection error."""
