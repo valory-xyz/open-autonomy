@@ -66,7 +66,7 @@ connections:
 - valory/ledger:0.19.0:bafybeia47rr37ianvwsh77tjjpv3nwif5sywhhy2fbdshnz4a2icwln76a
 - valory/p2p_libp2p_client:0.1.0:bafybeihge56dn3xep2dzomu7rtvbgo4uc2qqh7ljl3fubqdi2lq44gs5lq
 contracts:
-- valory/service_registry:0.1.0:bafybeicwp7b4wrxcko66cfylhnaiwzdupo75ixlcol73ww6vxapx33gtpi
+- valory/service_registry:0.1.0:bafybeifig7knmfigqo7tqumvijjnur3uq5qr4524msbp4fx2klhs3raely
 protocols:
 - open_aea/signing:1.0.0:bafybeie7xyems76v5b4wc2lmaidcujizpxfzjnnwdeokmhje53g7ym25ii
 - valory/abci:0.1.0:bafybeihmzlmmb4pdo3zkhg6ehuyaa4lhw7bfpclln2o2z7v3o6fcep26iu

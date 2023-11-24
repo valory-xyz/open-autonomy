@@ -112,7 +112,7 @@ If you plan to follow the guides in the next sections, you need to populate the 
         "connection/valory/http_client/0.23.0": "bafybeiddrfvomrmgvh5yuv2coq7ci72wcdf663stayi3m5aawnj4srggce",
         "connection/valory/ipfs/0.1.0": "bafybeihx7wb5hngjobw2salzqqryrhxvmxfuw7o2npjyqd2talmh2flqeq",
         "connection/valory/ledger/0.19.0": "bafybeia47rr37ianvwsh77tjjpv3nwif5sywhhy2fbdshnz4a2icwln76a",
-        "contract/valory/service_registry/0.1.0": "bafybeicwp7b4wrxcko66cfylhnaiwzdupo75ixlcol73ww6vxapx33gtpi",
+        "contract/valory/service_registry/0.1.0": "bafybeifig7knmfigqo7tqumvijjnur3uq5qr4524msbp4fx2klhs3raely",
         "protocol/open_aea/signing/1.0.0": "bafybeie7xyems76v5b4wc2lmaidcujizpxfzjnnwdeokmhje53g7ym25ii",
         "protocol/valory/abci/0.1.0": "bafybeihmzlmmb4pdo3zkhg6ehuyaa4lhw7bfpclln2o2z7v3o6fcep26iu",
         "protocol/valory/acn/1.1.0": "bafybeic2pxzfc3voxl2ejhcqyf2ehm4wm5gxvgx7bliloiqi2uppmq6weu",
@@ -122,7 +122,7 @@ If you plan to follow the guides in the next sections, you need to populate the 
         "protocol/valory/ledger_api/1.0.0": "bafybeige5agrztgzfevyglf7mb4o7pzfttmq4f6zi765y4g2zvftbyowru",
         "protocol/valory/tendermint/0.1.0": "bafybeig6g6twajlwssfbfp5rlnu5mwzuu5kgak5cs4fich7rlkx6whesnu",
         "skill/valory/abstract_abci/0.1.0": "bafybeiazmtcljyffmxzbiiq7aw6dhsgcbahpwixbtjeqoqfrcqw3ypzrf4",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeidau7loztcfy3mxvoqrv7otbpciemd2wf3lsxyjraq4dcvuvib25e",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeihvq4aoxql6nzrg4g3yuyq536bvnv4jophqru2c6t6fmoseodydxe",
         "skill/valory/hello_world_abci/0.1.0": "bafybeibu3fdkjmawysvbwcn77pzpfw2d4the4ok7jod3jmdiqn4rzms37e",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihge56dn3xep2dzomu7rtvbgo4uc2qqh7ljl3fubqdi2lq44gs5lq"
     }
