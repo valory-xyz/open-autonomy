@@ -22,7 +22,10 @@ On-chain interaction helper.
 def __init__(chain_type: ChainType,
              key: Optional[Path] = None,
              password: Optional[str] = None,
-             hwi: bool = False) -> None
+             hwi: bool = False,
+             timeout: Optional[float] = None,
+             retries: Optional[int] = None,
+             sleep: Optional[float] = None) -> None
 ```
 
 Initialize object.
@@ -95,7 +98,10 @@ def __init__(chain_type: ChainType,
              key: Optional[Path] = None,
              password: Optional[str] = None,
              hwi: bool = False,
-             update_token: Optional[int] = None) -> None
+             update_token: Optional[int] = None,
+             timeout: Optional[float] = None,
+             retries: Optional[int] = None,
+             sleep: Optional[float] = None) -> None
 ```
 
 Initialize object.
@@ -253,7 +259,10 @@ def __init__(service_id: int,
              chain_type: ChainType,
              key: Optional[Path] = None,
              password: Optional[str] = None,
-             hwi: bool = False) -> None
+             hwi: bool = False,
+             timeout: Optional[float] = None,
+             retries: Optional[int] = None,
+             sleep: Optional[float] = None) -> None
 ```
 
 Initialize object.
@@ -294,9 +303,7 @@ Activate on-chain service
 #### register`_`instance
 
 ```python
-def register_instance(instances: List[str],
-                      agent_ids: List[int],
-                      timeout: Optional[float] = None) -> None
+def register_instance(instances: List[str], agent_ids: List[int]) -> None
 ```
 
 Register agents instances on an activated service
@@ -307,8 +314,7 @@ Register agents instances on an activated service
 
 ```python
 def deploy_service(reuse_multisig: bool = False,
-                   fallback_handler: Optional[str] = None,
-                   timeout: Optional[float] = None) -> None
+                   fallback_handler: Optional[str] = None) -> None
 ```
 
 Deploy a service with registration activated
