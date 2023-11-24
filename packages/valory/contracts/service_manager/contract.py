@@ -101,6 +101,24 @@ class ServiceManagerContract(Contract):
         return ledger_api.get_contract_instance(contract_interface, contract_address)
 
     @classmethod
+    def get_events(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        event: str,
+        receipt: JSONLike,
+    ) -> Dict:
+        """Process receipt for events."""
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        Event = getattr(contract_interface.events, event, None)
+        if Event is None:
+            return {"events": []}
+        return {"events": Event().process_receipt(receipt)}
+
+    @classmethod
     def get_create_transaction(  # pylint: disable=too-many-arguments
         cls,
         ledger_api: LedgerApi,
