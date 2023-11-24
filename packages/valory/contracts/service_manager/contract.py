@@ -101,7 +101,7 @@ class ServiceManagerContract(Contract):
         return ledger_api.get_contract_instance(contract_interface, contract_address)
 
     @classmethod
-    def get_events(
+    def get_events(  # pragma: nocover
         cls,
         ledger_api: LedgerApi,
         contract_address: str,

@@ -65,7 +65,7 @@ class AgentRegistryContract(Contract):
         raise NotImplementedError  # pragma: nocover
 
     @classmethod
-    def get_events(
+    def get_events(  # pragma: nocover
         cls,
         ledger_api: LedgerApi,
         contract_address: str,

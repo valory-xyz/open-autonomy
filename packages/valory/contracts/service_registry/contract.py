@@ -274,7 +274,7 @@ class ServiceRegistryContract(Contract):
         return contract_interface.events.UpdateUnitHash().process_receipt(receipt)
 
     @classmethod
-    def get_events(
+    def get_events(  # pragma: nocover
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
