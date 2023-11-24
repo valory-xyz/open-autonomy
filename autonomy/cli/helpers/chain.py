@@ -47,35 +47,23 @@ from autonomy.chain.constants import (
 )
 from autonomy.chain.exceptions import (
     ChainInteractionError,
-    ComponentMintFailed,
     DependencyError,
     FailedToRetrieveComponentMetadata,
-    InstanceRegistrationFailed,
-    InvalidMintParameter,
     ServiceDeployFailed,
-    ServiceRegistrationFailed,
     TerminateServiceFailed,
     UnbondServiceFailed,
 )
 from autonomy.chain.metadata import NFTHashOrPath, publish_metadata
-from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH
-from autonomy.chain.mint import mint_component as _mint_component
-from autonomy.chain.mint import mint_service as _mint_service
-from autonomy.chain.mint import update_component as _update_component
-from autonomy.chain.mint import update_service as _update_service
-from autonomy.chain.service import activate_service as _activate_service
-from autonomy.chain.service import approve_erc20_usage
-from autonomy.chain.service import deploy_service as _deploy_service
+from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH, MintManager
 from autonomy.chain.service import (
+    ServiceManager,
+    approve_erc20_usage,
     get_activate_registration_amount,
     get_agent_instances,
     get_service_info,
     get_token_deposit_amount,
     is_service_token_secured,
 )
-from autonomy.chain.service import register_instance as _register_instance
-from autonomy.chain.service import terminate_service as _terminate_service
-from autonomy.chain.service import unbond_service as _unbond_service
 from autonomy.chain.utils import (
     is_service_manager_token_compatible_chain,
     resolve_component_id,
@@ -96,12 +84,15 @@ except ImportError:  # pragma: nocover
 class OnChainHelper:  # pylint: disable=too-few-public-methods
     """On-chain interaction helper."""
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         chain_type: ChainType,
         key: Optional[Path] = None,
         password: Optional[str] = None,
         hwi: bool = False,
+        timeout: Optional[float] = None,
+        retries: Optional[int] = None,
+        sleep: Optional[float] = None,
     ) -> None:
         """Initialize object."""
         if key is None and not hwi:
@@ -116,6 +107,9 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
             password=password,
             hwi=hwi,
         )
+        self.timeout = timeout
+        self.retries = retries
+        self.sleep = sleep
 
     @staticmethod
     def load_hwi_plugin() -> Type[LedgerApi]:  # pragma: nocover
@@ -253,17 +247,36 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
     metadata_string: str
     token_id: Optional[int]
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         chain_type: ChainType,
         key: Optional[Path] = None,
         password: Optional[str] = None,
         hwi: bool = False,
         update_token: Optional[int] = None,
+        timeout: Optional[float] = None,
+        retries: Optional[int] = None,
+        sleep: Optional[float] = None,
     ) -> None:
         """Initialize object."""
-        super().__init__(chain_type, key, password, hwi)
+        super().__init__(
+            chain_type,
+            key,
+            password,
+            hwi,
+            timeout=timeout,
+            retries=retries,
+            sleep=sleep,
+        )
         self.update_token = update_token
+        self.manager = MintManager(
+            ledger_api=self.ledger_api,
+            crypto=self.crypto,
+            chain_type=chain_type,
+            timeout=timeout,
+            retries=retries,
+            sleep=sleep,
+        )
 
     def load_package_configuration(
         self,
@@ -432,20 +445,15 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         )
 
         try:
-            self.token_id = _mint_component(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
+            self.token_id = self.manager.mint_component(
                 metadata_hash=self.metadata_hash,
-                owner=owner,
                 component_type=component_type,
-                chain_type=self.chain_type,
+                owner=owner,
                 dependencies=self.dependencies,
             )
-        except InvalidMintParameter as e:
-            raise click.ClickException(f"Invalid parameters provided; {e}") from e
-        except ComponentMintFailed as e:
+        except ChainInteractionError as e:
             raise click.ClickException(
-                f"Component mint failed with following error; {e}"
+                f"Component mint failed with following error; {e.__class__.__name__}({e})"
             ) from e
 
         click.echo("Component minted with:")
@@ -495,11 +503,8 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         )
 
         try:
-            token_id = _mint_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
+            token_id = self.manager.mint_service(
                 metadata_hash=self.metadata_hash,
-                chain_type=self.chain_type,
                 agent_ids=[
                     self.agent_id,
                 ],
@@ -513,9 +518,9 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 token=token,
                 owner=owner,
             )
-        except ComponentMintFailed as e:
+        except ChainInteractionError as e:
             raise click.ClickException(
-                f"Service mint failed with following error; {e}"
+                f"Component mint failed with following error; {e.__class__.__name__}({e})"
             ) from e
 
         click.echo("Service minted with:")
@@ -542,19 +547,14 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             )
         )
         try:
-            self.token_id = _update_component(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                unit_id=cast(int, self.update_token),
+            self.token_id = self.manager.update_component(
                 metadata_hash=self.metadata_hash,
+                unit_id=cast(int, self.update_token),
                 component_type=component_type,
-                chain_type=self.chain_type,
             )
-        except InvalidMintParameter as e:
-            raise click.ClickException(f"Invalid parameters provided; {e}") from e
-        except ComponentMintFailed as e:
+        except ChainInteractionError as e:
             raise click.ClickException(
-                f"Component update failed with following error; {e}"
+                f"Component update failed with following error; {e.__class__.__name__}({e})"
             ) from e
 
         click.echo("Component hash updated:")
@@ -600,12 +600,9 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             )
 
         try:
-            token_id = _update_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
+            token_id = self.manager.update_service(
                 metadata_hash=self.metadata_hash,
                 service_id=cast(int, self.update_token),
-                chain_type=self.chain_type,
                 agent_ids=[
                     self.agent_id,
                 ],
@@ -618,9 +615,9 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 threshold=threshold,
                 token=token,
             )
-        except ComponentMintFailed as e:
+        except ChainInteractionError as e:
             raise click.ClickException(
-                f"Service update failed with following error; {e}"
+                f"Component mint failed with following error; {e.__class__.__name__}({e})"
             ) from e
 
         click.echo("Service updated with:")
@@ -641,17 +638,36 @@ class ServiceHelper(OnChainHelper):
     token: Optional[str]
     token_secured: bool
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         service_id: int,
         chain_type: ChainType,
         key: Optional[Path] = None,
         password: Optional[str] = None,
         hwi: bool = False,
+        timeout: Optional[float] = None,
+        retries: Optional[int] = None,
+        sleep: Optional[float] = None,
     ) -> None:
         """Initialize object."""
         self.service_id = service_id
-        super().__init__(chain_type, key, password, hwi)
+        super().__init__(
+            chain_type,
+            key,
+            password,
+            hwi,
+            timeout=timeout,
+            retries=retries,
+            sleep=sleep,
+        )
+        self.manager = ServiceManager(
+            ledger_api=self.ledger_api,
+            crypto=self.crypto,
+            chain_type=self.chain_type,
+            timeout=self.timeout,
+            retries=self.retries,
+            sleep=self.sleep,
+        )
 
     def check_is_service_token_secured(
         self,
@@ -687,6 +703,7 @@ class ServiceHelper(OnChainHelper):
             approve_erc20_usage(
                 ledger_api=self.ledger_api,
                 crypto=self.crypto,
+                chain_type=self.chain_type,
                 contract_address=cast(str, self.token),
                 spender=spender,
                 amount=amount,
@@ -721,23 +738,14 @@ class ServiceHelper(OnChainHelper):
         )
 
         try:
-            _activate_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                chain_type=self.chain_type,
-                service_id=self.service_id,
-            )
-        except ServiceRegistrationFailed as e:
-            raise click.ClickException(str(e)) from e
-
+            self.manager.activate(service_id=self.service_id)
+        except ChainInteractionError as e:
+            raise click.ClickException(
+                f"Service activation failed with following error; {e.__class__.__name__}({e})"
+            ) from e
         click.echo("Service activated succesfully")
 
-    def register_instance(
-        self,
-        instances: List[str],
-        agent_ids: List[int],
-        timeout: Optional[float] = None,
-    ) -> None:
+    def register_instance(self, instances: List[str], agent_ids: List[int]) -> None:
         """Register agents instances on an activated service"""
 
         if self.token_secured:
@@ -763,25 +771,21 @@ class ServiceHelper(OnChainHelper):
         )
 
         try:
-            _register_instance(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                chain_type=self.chain_type,
+            self.manager.register_instance(
                 service_id=self.service_id,
                 instances=instances,
                 agent_ids=agent_ids,
-                timeout=timeout,
             )
-        except InstanceRegistrationFailed as e:
-            raise click.ClickException(str(e)) from e
-
+        except ChainInteractionError as e:
+            raise click.ClickException(
+                f"Service activation failed with following error; {e.__class__.__name__}({e})"
+            ) from e
         click.echo("Agent instance registered succesfully")
 
     def deploy_service(
         self,
         reuse_multisig: bool = False,
         fallback_handler: Optional[str] = None,
-        timeout: Optional[float] = None,
     ) -> None:
         """Deploy a service with registration activated"""
 
@@ -796,14 +800,10 @@ class ServiceHelper(OnChainHelper):
         )
 
         try:
-            _deploy_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                chain_type=self.chain_type,
+            self.manager.deploy(
                 service_id=self.service_id,
                 reuse_multisig=reuse_multisig,
                 fallback_handler=fallback_handler,
-                timeout=timeout,
             )
         except ServiceDeployFailed as e:
             raise click.ClickException(str(e)) from e
@@ -821,15 +821,9 @@ class ServiceHelper(OnChainHelper):
         )
 
         try:
-            _terminate_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                chain_type=self.chain_type,
-                service_id=self.service_id,
-            )
+            self.manager.terminate(service_id=self.service_id)
         except TerminateServiceFailed as e:
             raise click.ClickException(str(e)) from e
-
         click.echo("Service terminated succesfully")
 
     def unbond_service(self) -> None:
@@ -843,15 +837,9 @@ class ServiceHelper(OnChainHelper):
         )
 
         try:
-            _unbond_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                chain_type=self.chain_type,
-                service_id=self.service_id,
-            )
+            self.manager.unbond(service_id=self.service_id)
         except UnbondServiceFailed as e:
             raise click.ClickException(str(e)) from e
-
         click.echo("Service unbonded succesfully")
 
 
