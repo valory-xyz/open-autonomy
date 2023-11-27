@@ -45,6 +45,7 @@ ERRORS_TO_RETRY = (
     "FeeTooLow",
     "wrong transaction nonce",
     "INTERNAL_ERROR: nonce too low",
+    "AgentInstanceRegistered",
 )
 
 
