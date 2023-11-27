@@ -49,7 +49,13 @@ This command group consists of a number of functionalities to manage [the life c
     The options `--use-ethereum`, `--use-goerli`, `--use-custom-chain` and `--use-local` are mutually exclusive.
 
 `-t, --timeout FLOAT`
-: Timeout for verifying emitted events
+: Timeout for on-chain interactions
+
+`-r, --retries INTEGER`
+: Max retries for on-chain interactions
+
+`--sleep FLOAT`
+: Sleep period between retries
 
 ## `autonomy service info`
 
