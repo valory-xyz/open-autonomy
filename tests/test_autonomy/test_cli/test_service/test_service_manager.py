@@ -383,6 +383,21 @@ class TestServiceManager(BaseServiceManagerTest):
             service_id=str(service_id), message=ServiceState.PRE_REGISTRATION.name
         )
 
+    def test_dry_run(self) -> None:
+        """Test dry run."""
+        service_id = self.mint_service()
+        result = self.run_cli(
+            commands=(
+                "--dry-run",
+                "activate",
+                str(service_id),
+                "--key",
+                str(self.key_file),
+            )
+        )
+        assert result.exit_code == 0, result.stderr
+        assert "=== Dry run output ===" in result.output
+
 
 class TestERC20AsBond(BaseServiceManagerTest):
     """Test ERC20 token as bond."""
