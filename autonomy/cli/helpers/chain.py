@@ -49,9 +49,6 @@ from autonomy.chain.exceptions import (
     ChainInteractionError,
     DependencyError,
     FailedToRetrieveComponentMetadata,
-    ServiceDeployFailed,
-    TerminateServiceFailed,
-    UnbondServiceFailed,
 )
 from autonomy.chain.metadata import NFTHashOrPath, publish_metadata
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH, MintManager
@@ -805,8 +802,10 @@ class ServiceHelper(OnChainHelper):
                 reuse_multisig=reuse_multisig,
                 fallback_handler=fallback_handler,
             )
-        except ServiceDeployFailed as e:
-            raise click.ClickException(str(e)) from e
+        except ChainInteractionError as e:
+            raise click.ClickException(
+                f"Service deployment failed with following error; {e.__class__.__name__}({e})"
+            ) from e
 
         click.echo("Service deployed succesfully")
 
@@ -822,8 +821,10 @@ class ServiceHelper(OnChainHelper):
 
         try:
             self.manager.terminate(service_id=self.service_id)
-        except TerminateServiceFailed as e:
-            raise click.ClickException(str(e)) from e
+        except ChainInteractionError as e:
+            raise click.ClickException(
+                f"Service terminatation failed with following error; {e.__class__.__name__}({e})"
+            ) from e
         click.echo("Service terminated succesfully")
 
     def unbond_service(self) -> None:
@@ -838,8 +839,10 @@ class ServiceHelper(OnChainHelper):
 
         try:
             self.manager.unbond(service_id=self.service_id)
-        except UnbondServiceFailed as e:
-            raise click.ClickException(str(e)) from e
+        except ChainInteractionError as e:
+            raise click.ClickException(
+                f"Service unbonding failed with following error; {e.__class__.__name__}({e})"
+            ) from e
         click.echo("Service unbonded succesfully")
 
 

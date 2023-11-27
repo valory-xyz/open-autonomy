@@ -45,13 +45,15 @@ ERRORS_TO_RETRY = (
     "FeeTooLow",
     "wrong transaction nonce",
     "INTERNAL_ERROR: nonce too low",
-    "AgentInstanceRegistered",
 )
 
 
-def should_raise(error: str) -> bool:
+def should_retry(error: str) -> bool:
     """Check an error message to check if we should raise an error or retry the tx"""
-    return any(map(lambda x: x in error, ERRORS_TO_RETRY))
+    for _error in ERRORS_TO_RETRY:
+        if _error in error:
+            return True
+    return False
 
 
 class TxSettler:
@@ -90,11 +92,14 @@ class TxSettler:
             except RequestsConnectionError as e:
                 raise RPCError("Cannot connect to the given RPC") from e
             except Web3Exception as e:  # pylint: disable=broad-except
-                if should_raise(str(e)):
-                    raise TxBuildError(f"Error building transaction: {e}") from e
-                print(
-                    f"Error occured when interacting with chain: {e}; will retry in {self.sleep}..."
-                )
+                if should_retry(str(e)):
+                    print(
+                        f"Error occured when interacting with chain: {e}; "
+                        f"will retry in {self.sleep}..."
+                    )
+                    time.sleep(self.sleep)
+                    continue
+                raise TxBuildError(f"Error building transaction: {e}") from e
             retries += 1
         return None
 
