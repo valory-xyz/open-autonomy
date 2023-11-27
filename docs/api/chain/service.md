@@ -109,9 +109,16 @@ Check if the service is token secured.
 #### approve`_`erc20`_`usage
 
 ```python
-def approve_erc20_usage(ledger_api: LedgerApi, crypto: Crypto,
-                        chain_type: ChainType, contract_address: str,
-                        spender: str, amount: int, sender: str) -> None
+def approve_erc20_usage(ledger_api: LedgerApi,
+                        crypto: Crypto,
+                        chain_type: ChainType,
+                        contract_address: str,
+                        spender: str,
+                        amount: int,
+                        sender: str,
+                        timeout: Optional[float] = None,
+                        retries: Optional[int] = None,
+                        sleep: Optional[float] = None) -> None
 ```
 
 Approve ERC20 token usage.

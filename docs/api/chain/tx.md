@@ -44,7 +44,8 @@ Initialize object.
 #### wait
 
 ```python
-def wait(waitable: Callable) -> Any
+def wait(waitable: Callable, w3_error_handler: Callable[[Exception],
+                                                        Any]) -> Any
 ```
 
 Wait for a chain interaction.
