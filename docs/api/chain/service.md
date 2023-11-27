@@ -134,6 +134,7 @@ Service manager.
 def __init__(ledger_api: LedgerApi,
              crypto: Crypto,
              chain_type: ChainType,
+             dry_run: bool = False,
              timeout: Optional[float] = None,
              retries: Optional[int] = None,
              sleep: Optional[float] = None) -> None
