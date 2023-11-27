@@ -45,7 +45,7 @@ class TestWait:
             timeout=0.1,
             sleep=0.1,
         )
-        assert settler.wait(lambda: None) is None
+        assert settler.wait(lambda: None, lambda x: x) is None
 
     def test_rpc_error(self) -> None:
         """Test RPC error."""
@@ -59,21 +59,7 @@ class TestWait:
             raise RequestsConnectionError()
 
         with pytest.raises(RPCError):
-            settler.wait(_waitable)
-
-    def test_w3_exception(self) -> None:
-        """Test RPC error."""
-        settler = TxSettler(
-            ledger_api=mock.Mock(),
-            crypto=mock.Mock(),
-            chain_type=mock.Mock(),
-        )
-
-        def _waitable() -> None:
-            raise Web3Exception("some error")
-
-        with pytest.raises(TxBuildError):
-            settler.wait(_waitable)
+            settler.wait(_waitable, w3_error_handler=lambda x: x)
 
 
 def test_build() -> None:
@@ -91,6 +77,21 @@ def test_build() -> None:
 
     with pytest.raises(ChainTimeoutError):
         settler.build(_waitable, contract="service_registry", kwargs={})  # type: ignore
+
+
+def test_w3_exception() -> None:
+    """Test RPC error."""
+    settler = TxSettler(
+        ledger_api=mock.Mock(),
+        crypto=mock.Mock(),
+        chain_type=ChainType.LOCAL,
+    )
+
+    def _method(*args: Any, **kwargs: Any) -> None:
+        raise Web3Exception("some error")
+
+    with pytest.raises(TxBuildError):
+        settler.build(_method, contract="service_registry", kwargs={})  # type: ignore
 
 
 def test_transact() -> None:
