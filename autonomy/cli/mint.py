@@ -103,7 +103,7 @@ token_flag = click.option(
 dry_run_flag = click.option(
     "--dry-run",
     is_flag=True,
-    help="Perform a dry run the transaction.",
+    help="Perform a dry run for the transaction.",
 )
 
 

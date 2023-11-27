@@ -8,6 +8,9 @@ This command group consists of a number of functionalities to manage [the life c
 
 ## Options
 
+`--dry-run`
+: Perform a dry run for the transaction.
+
 `--use-ethereum`
 : Use the Ethereum chain profile to interact with the Autonolas Protocol registry contracts. This option requires that you define the following environment variable:
 
