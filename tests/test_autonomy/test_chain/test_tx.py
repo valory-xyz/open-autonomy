@@ -70,7 +70,7 @@ class TestWait:
         )
 
         def _waitable() -> None:
-            raise Web3Exception("FeeTooLow")
+            raise Web3Exception("some error")
 
         with pytest.raises(TxBuildError):
             settler.wait(_waitable)
