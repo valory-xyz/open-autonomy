@@ -43,10 +43,11 @@ from autonomy.chain.exceptions import (
     ServiceDeployFailed,
     ServiceRegistrationFailed,
     TerminateServiceFailed,
+    TxBuildError,
     UnbondServiceFailed,
 )
 from autonomy.chain.mint import transact
-from autonomy.chain.tx import TxSettler
+from autonomy.chain.tx import TxSettler, should_retry
 
 
 NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
@@ -177,7 +178,7 @@ def is_service_token_secured(
     return response["is_token_secured_service"]
 
 
-def approve_erc20_usage(  # pylint: disable=too-many-arguments
+def approve_erc20_usage(  # pylint: disable=too-many-arguments, too-many-locals
     ledger_api: LedgerApi,
     crypto: Crypto,
     chain_type: ChainType,
@@ -185,8 +186,20 @@ def approve_erc20_usage(  # pylint: disable=too-many-arguments
     spender: str,
     amount: int,
     sender: str,
+    timeout: Optional[float] = None,
+    retries: Optional[int] = None,
+    sleep: Optional[float] = None,
 ) -> None:
     """Approve ERC20 token usage."""
+
+    tx_settler = TxSettler(
+        chain_type=chain_type,
+        ledger_api=ledger_api,
+        crypto=crypto,
+        timeout=timeout,
+        retries=retries,
+        sleep=sleep,
+    )
 
     def _waitable() -> Dict:
         return registry_contracts.erc20.get_approve_tx(
@@ -197,12 +210,15 @@ def approve_erc20_usage(  # pylint: disable=too-many-arguments
             sender=sender,
         )
 
-    tx_settler = TxSettler(
-        chain_type=chain_type,
-        ledger_api=ledger_api,
-        crypto=crypto,
+    def _w3_error_handler(e: Exception) -> None:
+        if not should_retry(str(e)):
+            raise TxBuildError(f"Error building transaction: {e}") from e
+        time.sleep(tx_settler.sleep)
+
+    tx = tx_settler.wait(
+        waitable=_waitable,
+        w3_error_handler=_w3_error_handler,
     )
-    tx = tx_settler.wait(waitable=_waitable)
     receipt = tx_settler.transact(tx=tx)
     events = registry_contracts.erc20.get_approval_events(
         ledger_api=ledger_api,

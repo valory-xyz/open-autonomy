@@ -79,7 +79,9 @@ class TxSettler:
         self.retries = retries or DEFAULT_ON_CHAIN_INTERACT_RETRIES
         self.sleep = sleep or DEFAULT_ON_CHAIN_INTERACT_SLEEP
 
-    def wait(self, waitable: Callable) -> Any:
+    def wait(
+        self, waitable: Callable, w3_error_handler: Callable[[Exception], Any]
+    ) -> Any:
         """Wait for a chain interaction."""
         retries = 0
         deadline = datetime.now().timestamp() + self.timeout
@@ -92,14 +94,7 @@ class TxSettler:
             except RequestsConnectionError as e:
                 raise RPCError("Cannot connect to the given RPC") from e
             except Web3Exception as e:  # pylint: disable=broad-except
-                if should_retry(str(e)):
-                    print(
-                        f"Error occured when interacting with chain: {e}; "
-                        f"will retry in {self.sleep}..."
-                    )
-                    time.sleep(self.sleep)
-                    continue
-                raise TxBuildError(f"Error building transaction: {e}") from e
+                w3_error_handler(e)
             retries += 1
         return None
 
@@ -121,7 +116,19 @@ class TxSettler:
                 **kwargs,
             )
 
-        tx = self.wait(waitable=_waitable)
+        def _w3_error_handler(e: Exception) -> None:
+            if not should_retry(str(e)):
+                raise TxBuildError(f"Error building transaction: {e}") from e
+            print(
+                f"Error occured when interacting with chain: {e}; "
+                f"will retry in {self.sleep}..."
+            )
+            time.sleep(self.sleep)
+
+        tx = self.wait(
+            waitable=_waitable,
+            w3_error_handler=_w3_error_handler,
+        )
         if tx is not None:
             return tx
         raise ChainTimeoutError("Timed out when building the transaction")
@@ -132,6 +139,7 @@ class TxSettler:
         tx_digest = self.ledger_api.send_signed_transaction(tx_signed=tx_signed)
         receipt = self.wait(
             waitable=lambda: self.ledger_api.api.eth.get_transaction_receipt(tx_digest),
+            w3_error_handler=lambda e: None,
         )
         if receipt is not None:
             return receipt

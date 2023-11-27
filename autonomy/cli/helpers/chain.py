@@ -705,6 +705,9 @@ class ServiceHelper(OnChainHelper):
                 spender=spender,
                 amount=amount,
                 sender=self.crypto.address,
+                timeout=self.timeout,
+                sleep=self.sleep,
+                retries=self.retries,
             )
         except ChainInteractionError as e:
             raise click.ClickException(f"Error getting approval : {e}")
