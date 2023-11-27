@@ -4,12 +4,12 @@
 
 Tx settlement helper.
 
-<a id="autonomy.chain.tx.should_raise"></a>
+<a id="autonomy.chain.tx.should_retry"></a>
 
-#### should`_`raise
+#### should`_`retry
 
 ```python
-def should_raise(error: str) -> bool
+def should_retry(error: str) -> bool
 ```
 
 Check an error message to check if we should raise an error or retry the tx
