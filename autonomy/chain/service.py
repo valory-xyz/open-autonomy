@@ -223,6 +223,7 @@ class ServiceManager:
         ledger_api: LedgerApi,
         crypto: Crypto,
         chain_type: ChainType,
+        dry_run: bool = False,
         timeout: Optional[float] = None,
         retries: Optional[int] = None,
         sleep: Optional[float] = None,
@@ -234,6 +235,7 @@ class ServiceManager:
         self.timeout = timeout
         self.retries = retries
         self.sleep = sleep
+        self.dry_run = dry_run
 
     def _transact(  # pylint: disable=too-many-arguments
         self,
@@ -258,6 +260,20 @@ class ServiceManager:
             contract=build_tx_ctr,
             kwargs=kwargs,
         )
+        if self.dry_run:
+            print("=== Dry run output ===")
+            print("Method: " + str(method).split(" ")[2])
+            print(
+                f"Contract: {ContractConfigs.get(name=build_tx_ctr).contracts[self.chain_type]}"
+            )
+            print("Kwargs: ")
+            for key, val in kwargs.items():
+                print(f"    {key}: {val}")
+            print("Transaction: ")
+            for key, val in tx.items():
+                print(f"    {key}: {val}")
+            return
+
         receipt = tx_settler.transact(tx=tx)
         events = cast(
             List[Dict],
@@ -267,7 +283,6 @@ class ServiceManager:
                 contract=SERVICE_REGISTRY_CONTRACT,
             ).get("events"),
         )
-
         for _event in events:
             if _event["args"]["serviceId"] == service_id:
                 return
