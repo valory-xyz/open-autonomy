@@ -27,7 +27,7 @@ from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from autonomy.chain.config import ChainType
 from autonomy.chain.exceptions import ChainTimeoutError, RPCError, TxBuildError
-from autonomy.chain.tx import TxSettler, Web3Exception
+from autonomy.chain.tx import TxSettler
 
 
 CALLS = 0
@@ -88,7 +88,7 @@ def test_w3_exception() -> None:
     )
 
     def _method(*args: Any, **kwargs: Any) -> None:
-        raise Web3Exception("some error")
+        raise Exception("some error")
 
     with pytest.raises(TxBuildError):
         settler.build(_method, contract="service_registry", kwargs={})  # type: ignore

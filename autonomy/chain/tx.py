@@ -32,11 +32,6 @@ from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.exceptions import ChainTimeoutError, RPCError, TxBuildError
 
 
-try:
-    from web3.exceptions import Web3Exception
-except (ModuleNotFoundError, ImportError):
-    Web3Exception = Exception
-
 DEFAULT_ON_CHAIN_INTERACT_TIMEOUT = 60.0
 DEFAULT_ON_CHAIN_INTERACT_RETRIES = 5.0
 DEFAULT_ON_CHAIN_INTERACT_SLEEP = 3.0
@@ -93,7 +88,7 @@ class TxSettler:
                 time.sleep(self.sleep)
             except RequestsConnectionError as e:
                 raise RPCError("Cannot connect to the given RPC") from e
-            except Web3Exception as e:  # pylint: disable=broad-except
+            except Exception as e:  # pylint: disable=broad-except
                 w3_error_handler(e)
             retries += 1
         return None
