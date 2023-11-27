@@ -249,6 +249,9 @@ class ServiceManager:
             ledger_api=self.ledger_api,
             crypto=self.crypto,
             chain_type=self.chain_type,
+            timeout=self.timeout,
+            retries=self.retries,
+            sleep=self.sleep,
         )
         tx = tx_settler.build(
             method=method,
