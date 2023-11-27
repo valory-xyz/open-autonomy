@@ -453,12 +453,12 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 owner=owner,
                 dependencies=self.dependencies,
             )
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Component mint failed with following error; {e.__class__.__name__}({e})"
             ) from e
 
-        if self.dry_run:
+        if self.dry_run:  # pragma: nocover
             return
 
         click.echo("Component minted with:")
@@ -523,12 +523,12 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 token=token,
                 owner=owner,
             )
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Component mint failed with following error; {e.__class__.__name__}({e})"
             ) from e
 
-        if self.dry_run:
+        if self.dry_run:  # pragma: nocover
             return
 
         click.echo("Service minted with:")
@@ -560,12 +560,12 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 unit_id=cast(int, self.update_token),
                 component_type=component_type,
             )
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Component update failed with following error; {e.__class__.__name__}({e})"
             ) from e
 
-        if self.dry_run:
+        if self.dry_run:  # pragma: nocover
             return
 
         click.echo("Component hash updated:")
@@ -626,12 +626,12 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 threshold=threshold,
                 token=token,
             )
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Component mint failed with following error; {e.__class__.__name__}({e})"
             ) from e
 
-        if self.dry_run:
+        if self.dry_run:  # pragma: nocover
             return
 
         click.echo("Service updated with:")
@@ -726,7 +726,7 @@ class ServiceHelper(OnChainHelper):
                 amount=amount,
                 sender=self.crypto.address,
             )
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(f"Error getting approval : {e}")
         return self
 
@@ -756,12 +756,12 @@ class ServiceHelper(OnChainHelper):
 
         try:
             self.manager.activate(service_id=self.service_id)
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Service activation failed with following error; {e.__class__.__name__}({e})"
             ) from e
 
-        if self.dry_run:
+        if self.dry_run:  # pragma: nocover
             return
         click.echo("Service activated succesfully")
 
@@ -796,12 +796,12 @@ class ServiceHelper(OnChainHelper):
                 instances=instances,
                 agent_ids=agent_ids,
             )
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Service activation failed with following error; {e.__class__.__name__}({e})"
             ) from e
 
-        if self.dry_run:
+        if self.dry_run:  # pragma: nocover
             return
         click.echo("Agent instance registered succesfully")
 
@@ -828,12 +828,12 @@ class ServiceHelper(OnChainHelper):
                 reuse_multisig=reuse_multisig,
                 fallback_handler=fallback_handler,
             )
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Service deployment failed with following error; {e.__class__.__name__}({e})"
             ) from e
 
-        if self.dry_run:
+        if self.dry_run:  # pragma: nocover
             return
         click.echo("Service deployed succesfully")
 
@@ -849,7 +849,7 @@ class ServiceHelper(OnChainHelper):
 
         try:
             self.manager.terminate(service_id=self.service_id)
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Service terminatation failed with following error; {e.__class__.__name__}({e})"
             ) from e
@@ -867,7 +867,7 @@ class ServiceHelper(OnChainHelper):
 
         try:
             self.manager.unbond(service_id=self.service_id)
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Service unbonding failed with following error; {e.__class__.__name__}({e})"
             ) from e
