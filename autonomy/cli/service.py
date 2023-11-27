@@ -29,6 +29,7 @@ from aea.cli.utils.decorators import pass_ctx
 from autonomy.chain.config import ChainType
 from autonomy.cli.helpers.chain import ServiceHelper, print_service_info
 from autonomy.cli.mint import (
+    dry_run_flag,
     hwi_flag,
     key_path_decorator,
     password_decorator,
@@ -48,6 +49,7 @@ service_id_flag = click.argument("service_id", type=int)
 @timeout_flag
 @retries_flag
 @sleep_flag
+@dry_run_flag
 @chain_selection_flag()
 def service(
     ctx: Context,
@@ -55,6 +57,7 @@ def service(
     timeout: float,
     retries: int,
     sleep: float,
+    dry_run: bool,
 ) -> None:
     """Manage on-chain services."""
 
@@ -62,6 +65,7 @@ def service(
     ctx.config["timeout"] = timeout
     ctx.config["retries"] = retries
     ctx.config["sleep"] = sleep
+    ctx.config["dry_run"] = dry_run
 
 
 @service.command(name="activate")
@@ -86,6 +90,7 @@ def _activate(
         key=key,
         password=password,
         hwi=hwi,
+        dry_run=ctx.config.get("dry_run"),
         timeout=ctx.config.get("timeout"),
         retries=ctx.config.get("retries"),
         sleep=ctx.config.get("sleep"),
@@ -136,6 +141,7 @@ def _register(  # pylint: disable=too-many-arguments
         key=key,
         password=password,
         hwi=hwi,
+        dry_run=ctx.config.get("dry_run"),
         timeout=ctx.config.get("timeout"),
         retries=ctx.config.get("retries"),
         sleep=ctx.config.get("sleep"),
@@ -180,6 +186,7 @@ def _deploy(  # pylint: disable=too-many-arguments
         key=key,
         password=password,
         hwi=hwi,
+        dry_run=ctx.config.get("dry_run"),
         timeout=ctx.config.get("timeout"),
         retries=ctx.config.get("retries"),
         sleep=ctx.config.get("sleep"),
@@ -209,6 +216,7 @@ def _terminate(
         key=key,
         password=password,
         hwi=hwi,
+        dry_run=ctx.config.get("dry_run"),
         timeout=ctx.config.get("timeout"),
         retries=ctx.config.get("retries"),
         sleep=ctx.config.get("sleep"),
@@ -235,6 +243,7 @@ def _unbond(
         key=key,
         password=password,
         hwi=hwi,
+        dry_run=ctx.config.get("dry_run"),
         timeout=ctx.config.get("timeout"),
         retries=ctx.config.get("retries"),
         sleep=ctx.config.get("sleep"),

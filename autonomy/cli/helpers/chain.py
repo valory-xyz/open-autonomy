@@ -93,6 +93,7 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
         timeout: Optional[float] = None,
         retries: Optional[int] = None,
         sleep: Optional[float] = None,
+        dry_run: bool = False,
     ) -> None:
         """Initialize object."""
         if key is None and not hwi:
@@ -110,6 +111,7 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
         self.timeout = timeout
         self.retries = retries
         self.sleep = sleep
+        self.dry_run = dry_run
 
     @staticmethod
     def load_hwi_plugin() -> Type[LedgerApi]:  # pragma: nocover
@@ -257,6 +259,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         timeout: Optional[float] = None,
         retries: Optional[int] = None,
         sleep: Optional[float] = None,
+        dry_run: bool = False,
     ) -> None:
         """Initialize object."""
         super().__init__(
@@ -267,6 +270,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             timeout=timeout,
             retries=retries,
             sleep=sleep,
+            dry_run=dry_run,
         )
         self.update_token = update_token
         self.manager = MintManager(
@@ -276,6 +280,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             timeout=timeout,
             retries=retries,
             sleep=sleep,
+            dry_run=self.dry_run,
         )
 
     def load_package_configuration(
@@ -456,6 +461,9 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 f"Component mint failed with following error; {e.__class__.__name__}({e})"
             ) from e
 
+        if self.dry_run:
+            return
+
         click.echo("Component minted with:")
         click.echo(f"\tPublic ID: {self.package_configuration.public_id}")
         click.echo(f"\tMetadata Hash: {self.metadata_hash}")
@@ -523,6 +531,9 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 f"Component mint failed with following error; {e.__class__.__name__}({e})"
             ) from e
 
+        if self.dry_run:
+            return
+
         click.echo("Service minted with:")
         click.echo(f"\tPublic ID: {self.package_configuration.public_id}")
         click.echo(f"\tMetadata Hash: {self.metadata_hash}")
@@ -556,6 +567,9 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             raise click.ClickException(
                 f"Component update failed with following error; {e.__class__.__name__}({e})"
             ) from e
+
+        if self.dry_run:
+            return
 
         click.echo("Component hash updated:")
         click.echo(f"\tPublic ID: {self.package_configuration.public_id}")
@@ -620,6 +634,9 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 f"Component mint failed with following error; {e.__class__.__name__}({e})"
             ) from e
 
+        if self.dry_run:
+            return
+
         click.echo("Service updated with:")
         click.echo(f"\tPublic ID: {self.package_configuration.public_id}")
         click.echo(f"\tMetadata Hash: {self.metadata_hash}")
@@ -648,6 +665,7 @@ class ServiceHelper(OnChainHelper):
         timeout: Optional[float] = None,
         retries: Optional[int] = None,
         sleep: Optional[float] = None,
+        dry_run: bool = False,
     ) -> None:
         """Initialize object."""
         self.service_id = service_id
@@ -659,6 +677,7 @@ class ServiceHelper(OnChainHelper):
             timeout=timeout,
             retries=retries,
             sleep=sleep,
+            dry_run=dry_run,
         )
         self.manager = ServiceManager(
             ledger_api=self.ledger_api,
@@ -667,6 +686,7 @@ class ServiceHelper(OnChainHelper):
             timeout=self.timeout,
             retries=self.retries,
             sleep=self.sleep,
+            dry_run=dry_run,
         )
 
     def check_is_service_token_secured(
@@ -743,6 +763,9 @@ class ServiceHelper(OnChainHelper):
             raise click.ClickException(
                 f"Service activation failed with following error; {e.__class__.__name__}({e})"
             ) from e
+
+        if self.dry_run:
+            return
         click.echo("Service activated succesfully")
 
     def register_instance(self, instances: List[str], agent_ids: List[int]) -> None:
@@ -780,6 +803,9 @@ class ServiceHelper(OnChainHelper):
             raise click.ClickException(
                 f"Service activation failed with following error; {e.__class__.__name__}({e})"
             ) from e
+
+        if self.dry_run:
+            return
         click.echo("Agent instance registered succesfully")
 
     def deploy_service(
@@ -808,6 +834,8 @@ class ServiceHelper(OnChainHelper):
         except ServiceDeployFailed as e:
             raise click.ClickException(str(e)) from e
 
+        if self.dry_run:
+            return
         click.echo("Service deployed succesfully")
 
     def terminate_service(self) -> None:
@@ -824,6 +852,9 @@ class ServiceHelper(OnChainHelper):
             self.manager.terminate(service_id=self.service_id)
         except TerminateServiceFailed as e:
             raise click.ClickException(str(e)) from e
+
+        if self.dry_run:
+            return
         click.echo("Service terminated succesfully")
 
     def unbond_service(self) -> None:
@@ -840,6 +871,9 @@ class ServiceHelper(OnChainHelper):
             self.manager.unbond(service_id=self.service_id)
         except UnbondServiceFailed as e:
             raise click.ClickException(str(e)) from e
+
+        if self.dry_run:
+            return
         click.echo("Service unbonded succesfully")
 
 
