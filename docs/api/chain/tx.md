@@ -39,17 +39,6 @@ def __init__(ledger_api: LedgerApi,
 
 Initialize object.
 
-<a id="autonomy.chain.tx.TxSettler.wait"></a>
-
-#### wait
-
-```python
-def wait(waitable: Callable, w3_error_handler: Callable[[Exception],
-                                                        Any]) -> Any
-```
-
-Wait for a chain interaction.
-
 <a id="autonomy.chain.tx.TxSettler.build"></a>
 
 #### build
@@ -65,7 +54,7 @@ Build transaction.
 #### transact
 
 ```python
-def transact(tx: Dict) -> Dict
+def transact(method: Callable[[], Dict], contract: str, kwargs: Dict) -> Dict
 ```
 
 Make a transaction and return a receipt

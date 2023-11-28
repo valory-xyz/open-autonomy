@@ -112,7 +112,6 @@ Check if the service is token secured.
 def approve_erc20_usage(ledger_api: LedgerApi,
                         crypto: Crypto,
                         chain_type: ChainType,
-                        contract_address: str,
                         spender: str,
                         amount: int,
                         sender: str,
