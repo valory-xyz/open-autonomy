@@ -202,6 +202,11 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
         },
     )
 
+    erc20 = ContractConfig(
+        name="erc20",
+        contracts={},
+    )
+
     @classmethod
     def get(cls, name: str) -> ContractConfig:
         """Return chain config for given chain type."""

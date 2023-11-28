@@ -137,12 +137,11 @@ class MintManager:
             retries=self.retries,
             sleep=self.sleep,
         )
-        tx = tx_settler.build(
+        receipt = tx_settler.transact(
             method=method,
             contract=build_tx_ctr,
             kwargs=kwargs,
         )
-        receipt = tx_settler.transact(tx=tx)
         events = tx_settler.process(
             event=event,
             receipt=receipt,

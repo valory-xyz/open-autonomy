@@ -30,6 +30,7 @@ from hexbytes import HexBytes
 from autonomy.chain.base import ServiceState, registry_contracts
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import (
+    ERC20_CONTRACT,
     GNOSIS_SAFE_PROXY_FACTORY_CONTRACT,
     GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT,
     MULTISEND_CONTRACT,
@@ -43,11 +44,10 @@ from autonomy.chain.exceptions import (
     ServiceDeployFailed,
     ServiceRegistrationFailed,
     TerminateServiceFailed,
-    TxBuildError,
     UnbondServiceFailed,
 )
 from autonomy.chain.mint import transact
-from autonomy.chain.tx import TxSettler, should_retry
+from autonomy.chain.tx import TxSettler
 
 
 NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
@@ -182,7 +182,6 @@ def approve_erc20_usage(  # pylint: disable=too-many-arguments, too-many-locals
     ledger_api: LedgerApi,
     crypto: Crypto,
     chain_type: ChainType,
-    contract_address: str,
     spender: str,
     amount: int,
     sender: str,
@@ -191,7 +190,6 @@ def approve_erc20_usage(  # pylint: disable=too-many-arguments, too-many-locals
     sleep: Optional[float] = None,
 ) -> None:
     """Approve ERC20 token usage."""
-
     tx_settler = TxSettler(
         chain_type=chain_type,
         ledger_api=ledger_api,
@@ -200,30 +198,22 @@ def approve_erc20_usage(  # pylint: disable=too-many-arguments, too-many-locals
         retries=retries,
         sleep=sleep,
     )
-
-    def _waitable() -> Dict:
-        return registry_contracts.erc20.get_approve_tx(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
+    receipt = tx_settler.transact(
+        method=registry_contracts.erc20.get_approve_tx,
+        contract=ERC20_CONTRACT.name,
+        kwargs=dict(
             spender=spender,
             amount=amount,
             sender=sender,
-        )
-
-    def _w3_error_handler(e: Exception) -> None:
-        if not should_retry(str(e)):
-            raise TxBuildError(f"Error building transaction: {e}") from e
-        time.sleep(tx_settler.sleep)
-
-    tx = tx_settler.wait(
-        waitable=_waitable,
-        w3_error_handler=_w3_error_handler,
+        ),
     )
-    receipt = tx_settler.transact(tx=tx)
-    events = registry_contracts.erc20.get_approval_events(
-        ledger_api=ledger_api,
-        contract_address=contract_address,
-        tx_receipt=receipt,
+    events = cast(
+        List[Dict],
+        tx_settler.process(
+            event="Approval",
+            receipt=receipt,
+            contract=ERC20_CONTRACT,
+        ).get("events"),
     )
     for event in events:
         if event["args"]["spender"] == spender:
@@ -269,12 +259,11 @@ class ServiceManager:
             retries=self.retries,
             sleep=self.sleep,
         )
-        tx = tx_settler.build(
+        receipt = tx_settler.transact(
             method=method,
             contract=build_tx_ctr,
             kwargs=kwargs,
         )
-        receipt = tx_settler.transact(tx=tx)
         events = cast(
             List[Dict],
             tx_settler.process(
@@ -283,7 +272,6 @@ class ServiceManager:
                 contract=SERVICE_REGISTRY_CONTRACT,
             ).get("events"),
         )
-
         for _event in events:
             if _event["args"]["serviceId"] == service_id:
                 return
