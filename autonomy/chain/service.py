@@ -30,6 +30,7 @@ from hexbytes import HexBytes
 from autonomy.chain.base import ServiceState, registry_contracts
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import (
+    ERC20_CONTRACT,
     GNOSIS_SAFE_PROXY_FACTORY_CONTRACT,
     GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT,
     MULTISEND_CONTRACT,
@@ -177,37 +178,42 @@ def is_service_token_secured(
     return response["is_token_secured_service"]
 
 
-def approve_erc20_usage(  # pylint: disable=too-many-arguments
+def approve_erc20_usage(  # pylint: disable=too-many-arguments, too-many-locals
     ledger_api: LedgerApi,
     crypto: Crypto,
     chain_type: ChainType,
-    contract_address: str,
     spender: str,
     amount: int,
     sender: str,
+    timeout: Optional[float] = None,
+    retries: Optional[int] = None,
+    sleep: Optional[float] = None,
 ) -> None:
     """Approve ERC20 token usage."""
-
-    def _waitable() -> Dict:
-        return registry_contracts.erc20.get_approve_tx(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-            spender=spender,
-            amount=amount,
-            sender=sender,
-        )
-
     tx_settler = TxSettler(
         chain_type=chain_type,
         ledger_api=ledger_api,
         crypto=crypto,
+        timeout=timeout,
+        retries=retries,
+        sleep=sleep,
     )
-    tx = tx_settler.wait(waitable=_waitable)
-    receipt = tx_settler.transact(tx=tx)
-    events = registry_contracts.erc20.get_approval_events(
-        ledger_api=ledger_api,
-        contract_address=contract_address,
-        tx_receipt=receipt,
+    receipt = tx_settler.transact(
+        method=registry_contracts.erc20.get_approve_tx,
+        contract=ERC20_CONTRACT.name,
+        kwargs=dict(
+            spender=spender,
+            amount=amount,
+            sender=sender,
+        ),
+    )
+    events = cast(
+        List[Dict],
+        tx_settler.process(
+            event="Approval",
+            receipt=receipt,
+            contract=ERC20_CONTRACT,
+        ).get("events"),
     )
     for event in events:
         if event["args"]["spender"] == spender:
@@ -255,26 +261,11 @@ class ServiceManager:
             retries=self.retries,
             sleep=self.sleep,
         )
-        tx = tx_settler.build(
+        receipt = tx_settler.transact(
             method=method,
             contract=build_tx_ctr,
             kwargs=kwargs,
         )
-        if self.dry_run:
-            print("=== Dry run output ===")
-            print("Method: " + str(method).split(" ")[2])
-            print(
-                f"Contract: {ContractConfigs.get(name=build_tx_ctr).contracts[self.chain_type]}"
-            )
-            print("Kwargs: ")
-            for key, val in kwargs.items():
-                print(f"    {key}: {val}")
-            print("Transaction: ")
-            for key, val in tx.items():
-                print(f"    {key}: {val}")
-            return
-
-        receipt = tx_settler.transact(tx=tx)
         events = cast(
             List[Dict],
             tx_settler.process(

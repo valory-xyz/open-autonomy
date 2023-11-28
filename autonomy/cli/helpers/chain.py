@@ -711,6 +711,7 @@ class ServiceHelper(OnChainHelper):
             raise click.ClickException(
                 "Service is token secured, please provice token address using `--token` flag"
             )
+        ContractConfigs.erc20.contracts[self.chain_type] = cast(str, self.token)
         return self
 
     def approve_erc20_usage(self, amount: int, spender: str) -> "ServiceHelper":
@@ -721,10 +722,12 @@ class ServiceHelper(OnChainHelper):
                 ledger_api=self.ledger_api,
                 crypto=self.crypto,
                 chain_type=self.chain_type,
-                contract_address=cast(str, self.token),
                 spender=spender,
                 amount=amount,
                 sender=self.crypto.address,
+                timeout=self.timeout,
+                sleep=self.sleep,
+                retries=self.retries,
             )
         except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(f"Error getting approval : {e}")

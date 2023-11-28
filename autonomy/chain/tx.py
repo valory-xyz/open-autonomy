@@ -21,7 +21,7 @@
 
 import time
 from datetime import datetime
-from typing import Any, Callable, Dict, Optional
+from typing import Callable, Dict, Optional
 
 from aea.configurations.data_types import PublicId
 from aea.crypto.base import Crypto, LedgerApi
@@ -29,13 +29,13 @@ from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from autonomy.chain.base import registry_contracts
 from autonomy.chain.config import ChainType, ContractConfigs
-from autonomy.chain.exceptions import ChainTimeoutError, RPCError, TxBuildError
+from autonomy.chain.exceptions import (
+    ChainInteractionError,
+    ChainTimeoutError,
+    RPCError,
+    TxBuildError,
+)
 
-
-try:
-    from web3.exceptions import Web3Exception
-except (ModuleNotFoundError, ImportError):
-    Web3Exception = Exception
 
 DEFAULT_ON_CHAIN_INTERACT_TIMEOUT = 60.0
 DEFAULT_ON_CHAIN_INTERACT_RETRIES = 5.0
@@ -45,6 +45,7 @@ ERRORS_TO_RETRY = (
     "FeeTooLow",
     "wrong transaction nonce",
     "INTERNAL_ERROR: nonce too low",
+    "Got empty transaction",
 )
 
 
@@ -79,30 +80,6 @@ class TxSettler:
         self.retries = retries or DEFAULT_ON_CHAIN_INTERACT_RETRIES
         self.sleep = sleep or DEFAULT_ON_CHAIN_INTERACT_SLEEP
 
-    def wait(self, waitable: Callable) -> Any:
-        """Wait for a chain interaction."""
-        retries = 0
-        deadline = datetime.now().timestamp() + self.timeout
-        while retries < self.retries and deadline >= datetime.now().timestamp():
-            try:
-                result = waitable()
-                if result is not None:
-                    return result
-                time.sleep(self.sleep)
-            except RequestsConnectionError as e:
-                raise RPCError("Cannot connect to the given RPC") from e
-            except Web3Exception as e:  # pylint: disable=broad-except
-                if should_retry(str(e)):
-                    print(
-                        f"Error occured when interacting with chain: {e}; "
-                        f"will retry in {self.sleep}..."
-                    )
-                    time.sleep(self.sleep)
-                    continue
-                raise TxBuildError(f"Error building transaction: {e}") from e
-            retries += 1
-        return None
-
     def build(
         self,
         method: Callable[[], Dict],
@@ -110,31 +87,45 @@ class TxSettler:
         kwargs: Dict,
     ) -> Dict:
         """Build transaction."""
-
-        def _waitable() -> Dict:
-            return method(  # type: ignore
-                ledger_api=self.ledger_api,
-                contract_address=ContractConfigs.get(name=contract).contracts[
-                    self.chain_type
-                ],
-                raise_on_try=True,
-                **kwargs,
-            )
-
-        tx = self.wait(waitable=_waitable)
-        if tx is not None:
-            return tx
-        raise ChainTimeoutError("Timed out when building the transaction")
-
-    def transact(self, tx: Dict) -> Dict:
-        """Make a transaction and return a receipt"""
-        tx_signed = self.crypto.sign_transaction(transaction=tx)
-        tx_digest = self.ledger_api.send_signed_transaction(tx_signed=tx_signed)
-        receipt = self.wait(
-            waitable=lambda: self.ledger_api.api.eth.get_transaction_receipt(tx_digest),
+        return method(  # type: ignore
+            ledger_api=self.ledger_api,
+            contract_address=ContractConfigs.get(name=contract).contracts[
+                self.chain_type
+            ],
+            raise_on_try=True,
+            **kwargs,
         )
-        if receipt is not None:
-            return receipt
+
+    def transact(
+        self,
+        method: Callable[[], Dict],
+        contract: str,
+        kwargs: Dict,
+    ) -> Dict:
+        """Make a transaction and return a receipt"""
+        retries = 0
+        deadline = datetime.now().timestamp() + self.timeout
+        while retries < self.retries and deadline >= datetime.now().timestamp():
+            try:
+                tx_dict = self.build(method=method, contract=contract, kwargs=kwargs)
+                if tx_dict is None:
+                    raise TxBuildError("Got empty transaction")
+                tx_signed = self.crypto.sign_transaction(transaction=tx_dict)
+                tx_digest = self.ledger_api.send_signed_transaction(tx_signed=tx_signed)
+                tx_receipt = self.ledger_api.api.eth.get_transaction_receipt(tx_digest)
+                if tx_receipt is not None:
+                    return tx_receipt
+            except RequestsConnectionError as e:
+                raise RPCError("Cannot connect to the given RPC") from e
+            except Exception as e:  # pylint: disable=broad-except
+                if not should_retry(str(e)):
+                    raise ChainInteractionError(str(e)) from e
+                print(
+                    f"Error occured when interacting with chain: {e}; "
+                    f"will retry in {self.sleep}..."
+                )
+                time.sleep(self.sleep)
+            retries += 1
         raise ChainTimeoutError("Timed out when waiting for transaction to go through")
 
     def process(

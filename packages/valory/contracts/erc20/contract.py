@@ -84,13 +84,14 @@ class ERC20TokenContract(Contract):
         raise NotImplementedError
 
     @classmethod
-    def get_approve_tx(
+    def get_approve_tx(  # pylint: disable=too-many-arguments,unused-argument
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
         spender: str,
         amount: int,
         sender: str,
+        raise_on_try: bool = False,
     ) -> JSONLike:
         """Get approve tx."""
         instance = cls.get_instance(
@@ -108,15 +109,19 @@ class ERC20TokenContract(Contract):
         return ledger_api.update_with_gas_estimate(transaction=tx)
 
     @classmethod
-    def get_approval_events(
+    def get_events(  # pragma: nocover
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        tx_receipt: JSONLike,
+        event: str,
+        receipt: JSONLike,
     ) -> JSONLike:
-        """Get approve tx."""
-        instance = cls.get_instance(
+        """Process receipt for events."""
+        contract_interface = cls.get_instance(
             ledger_api=ledger_api,
             contract_address=contract_address,
         )
-        return instance.events.Approval().process_receipt(tx_receipt)
+        Event = getattr(contract_interface.events, event, None)
+        if Event is None:
+            return {"events": []}
+        return {"events": Event().process_receipt(receipt)}
