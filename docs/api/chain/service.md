@@ -115,6 +115,7 @@ def approve_erc20_usage(ledger_api: LedgerApi,
                         spender: str,
                         amount: int,
                         sender: str,
+                        dry_run: bool = False,
                         timeout: Optional[float] = None,
                         retries: Optional[int] = None,
                         sleep: Optional[float] = None) -> None

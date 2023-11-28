@@ -54,7 +54,10 @@ Build transaction.
 #### transact
 
 ```python
-def transact(method: Callable[[], Dict], contract: str, kwargs: Dict) -> Dict
+def transact(method: Callable[[], Dict],
+             contract: str,
+             kwargs: Dict,
+             dry_run: bool = False) -> Dict
 ```
 
 Make a transaction and return a receipt
