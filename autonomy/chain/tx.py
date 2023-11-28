@@ -51,6 +51,8 @@ ERRORS_TO_RETRY = (
 
 def should_retry(error: str) -> bool:
     """Check an error message to check if we should raise an error or retry the tx"""
+    if "Transaction with hash" in error and "not found" in error:
+        return True
     for _error in ERRORS_TO_RETRY:
         if _error in error:
             return True
