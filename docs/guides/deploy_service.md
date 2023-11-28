@@ -180,6 +180,14 @@ We illustrate the full local deployment workflow using the `hello_world` service
             minikube start --driver=docker
             ```
 
+        2. Install chart
+        
+            ```bash
+            helm repo add nfs-ganesha-server-and-external-provisioner https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner/
+            helm install nfs-provisioner nfs-ganesha-server-and-external-provisioner/nfs-server-provisioner \
+                --set=image.tag=v3.0.0,resources.limits.cpu=200m,storageClass.name=nfs-ephemeral -n nfs-local --create-namespace
+            ```
+
         2. Make sure your image is pushed to Docker Hub (`docker push`).
             If this is not the case, you need to provision the cluster with the agent image so that it is available for the cluster pods.
             This step might take a while, depending on the size of the image.
@@ -198,8 +206,9 @@ We illustrate the full local deployment workflow using the `hello_world` service
             apiVersion: storage.k8s.io/v1
             kind: StorageClass
             metadata:
-              name: nfs-ephemeral
-            provisioner: k8s.io/minikube-hostpath 
+                name: nfs-ephemeral
+            provisioner: kubernetes.io/no-provisioner
+            volumeBindingMode: WaitForFirstConsumer
             reclaimPolicy: Retain
             EOF
             ```
