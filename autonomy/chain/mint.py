@@ -143,7 +143,21 @@ class MintManager:
             method=method,
             contract=build_tx_ctr,
             kwargs=kwargs,
+            dry_run=self.dry_run,
         )
+        if self.dry_run:
+            print("=== Dry run output ===")
+            print("Method: " + str(method).split(" ")[2])
+            print(
+                f"Contract: {ContractConfigs.get(name=build_tx_ctr).contracts[self.chain_type]}"
+            )
+            print("Kwargs: ")
+            for key, val in kwargs.items():
+                print(f"    {key}: {val}")
+            print("Transaction: ")
+            for key, val in receipt.items():
+                print(f"    {key}: {val}")
+            return []
         events = tx_settler.process(
             event=event,
             receipt=receipt,

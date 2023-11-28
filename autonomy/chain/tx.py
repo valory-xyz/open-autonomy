@@ -101,6 +101,7 @@ class TxSettler:
         method: Callable[[], Dict],
         contract: str,
         kwargs: Dict,
+        dry_run: bool = False,
     ) -> Dict:
         """Make a transaction and return a receipt"""
         retries = 0
@@ -110,6 +111,8 @@ class TxSettler:
                 tx_dict = self.build(method=method, contract=contract, kwargs=kwargs)
                 if tx_dict is None:
                     raise TxBuildError("Got empty transaction")
+                if dry_run:
+                    return tx_dict
                 tx_signed = self.crypto.sign_transaction(transaction=tx_dict)
                 tx_digest = self.ledger_api.send_signed_transaction(tx_signed=tx_signed)
                 tx_receipt = self.ledger_api.api.eth.get_transaction_receipt(tx_digest)

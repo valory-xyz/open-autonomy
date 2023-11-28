@@ -725,6 +725,7 @@ class ServiceHelper(OnChainHelper):
                 spender=spender,
                 amount=amount,
                 sender=self.crypto.address,
+                dry_run=self.dry_run,
                 timeout=self.timeout,
                 sleep=self.sleep,
                 retries=self.retries,
