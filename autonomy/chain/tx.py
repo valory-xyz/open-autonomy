@@ -112,8 +112,13 @@ class TxSettler:
                 tx_dict = self.build(method=method, contract=contract, kwargs=kwargs)
                 if tx_dict is None:
                     raise TxBuildError("Got empty transaction")
+                
                 tx_signed = self.crypto.sign_transaction(transaction=tx_dict)
                 tx_digest = self.ledger_api.send_signed_transaction(tx_signed=tx_signed)
+                if tx_digest is None:
+                    time.sleep(self.sleep)
+                    continue
+                
                 tx_receipt = self.ledger_api.api.eth.get_transaction_receipt(tx_digest)
                 if tx_receipt is not None:
                     return tx_receipt
