@@ -26,60 +26,21 @@ import pytest
 from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from autonomy.chain.config import ChainType
-from autonomy.chain.exceptions import ChainTimeoutError, RPCError, TxBuildError
+from autonomy.chain.exceptions import ChainInteractionError, ChainTimeoutError, RPCError
 from autonomy.chain.tx import TxSettler
 
 
-CALLS = 0
+class _retriable_method:
+    should_raise = True
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        if self.should_raise:
+            self.should_raise = False
+            raise Exception("FeeTooLow")
+        return {}
 
 
-class TestWait:
-    """Test wait method."""
-
-    def test_timeout(self) -> None:
-        """Test timeout."""
-        settler = TxSettler(
-            ledger_api=mock.Mock(),
-            crypto=mock.Mock(),
-            chain_type=mock.Mock(),
-            timeout=0.1,
-            sleep=0.1,
-        )
-        assert settler.wait(lambda: None, lambda x: x) is None
-
-    def test_rpc_error(self) -> None:
-        """Test RPC error."""
-        settler = TxSettler(
-            ledger_api=mock.Mock(),
-            crypto=mock.Mock(),
-            chain_type=mock.Mock(),
-        )
-
-        def _waitable() -> None:
-            raise RequestsConnectionError()
-
-        with pytest.raises(RPCError):
-            settler.wait(_waitable, w3_error_handler=lambda x: x)
-
-
-def test_build() -> None:
-    """Test tx build."""
-    settler = TxSettler(
-        ledger_api=mock.Mock(),
-        crypto=mock.Mock(),
-        chain_type=ChainType.LOCAL,
-        sleep=0.1,
-        retries=1,
-    )
-
-    def _waitable(**kwargs: Any) -> None:
-        return None
-
-    with pytest.raises(ChainTimeoutError):
-        settler.build(_waitable, contract="service_registry", kwargs={})  # type: ignore
-
-
-def test_w3_exception() -> None:
+def test_rpc_error() -> None:
     """Test RPC error."""
     settler = TxSettler(
         ledger_api=mock.Mock(),
@@ -87,14 +48,44 @@ def test_w3_exception() -> None:
         chain_type=ChainType.LOCAL,
     )
 
-    def _method(*args: Any, **kwargs: Any) -> None:
+    def _waitable(*args: Any, **kwargs: Any) -> Any:
+        raise RequestsConnectionError()
+
+    with pytest.raises(RPCError):
+        settler.transact(_waitable, "service_registry", {})
+
+
+def test_none_retriable_exception() -> None:
+    """Test none retriable exception."""
+    settler = TxSettler(
+        ledger_api=mock.Mock(),
+        crypto=mock.Mock(),
+        chain_type=ChainType.LOCAL,
+    )
+
+    def _method(*args: Any, **kwargs: Any) -> Any:
         raise Exception("some error")
 
-    with pytest.raises(TxBuildError):
-        settler.build(_method, contract="service_registry", kwargs={})  # type: ignore
+    with pytest.raises(ChainInteractionError):
+        settler.transact(_method, contract="service_registry", kwargs={})  # type: ignore
 
 
-def test_transact() -> None:
+def test_retriable_exception(capsys: Any) -> None:
+    """Test retriable exception."""
+    settler = TxSettler(
+        ledger_api=mock.Mock(),
+        crypto=mock.Mock(),
+        chain_type=ChainType.LOCAL,
+    )
+    settler.transact(_retriable_method(), contract="service_registry", kwargs={})  # type: ignore
+    captured = capsys.readouterr()
+    assert (
+        "Error occured when interacting with chain: FeeTooLow; will retry in 3.0..."
+        in captured.out
+    )
+
+
+def test_timeout() -> None:
     """Test transact."""
 
     def _waitable(*arg: Any, **kwargs: Any) -> None:
@@ -115,4 +106,4 @@ def test_transact() -> None:
     )
 
     with pytest.raises(ChainTimeoutError):
-        settler.transact({})
+        settler.transact(lambda **x: None, "service_registry", {})  # type: ignore

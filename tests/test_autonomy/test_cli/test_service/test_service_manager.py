@@ -460,7 +460,7 @@ class TestERC20AsBond(BaseServiceManagerTest):
                 ERC20_TOKEN_ADDRESS_LOCAL,
             )
         )
-        assert result.exit_code == 0, result.output
+        assert result.exit_code == 0, result.stderr
 
     def test_activate_failure(self) -> None:
         """Test activate with token."""
@@ -474,7 +474,7 @@ class TestERC20AsBond(BaseServiceManagerTest):
             )
         )
 
-        assert result.exit_code == 1, result.output
+        assert result.exit_code == 1, result.stderr
         assert (
             "Service is token secured, please provice token address using `--token` flag"
             in result.stderr
@@ -493,7 +493,7 @@ class TestERC20AsBond(BaseServiceManagerTest):
                 ERC20_TOKEN_ADDRESS_LOCAL,
             )
         )
-        assert result.exit_code == 0, result.output
+        assert result.exit_code == 0, result.stderr
 
         agent = make_crypto("ethereum")
         result = self.run_cli(
@@ -510,7 +510,7 @@ class TestERC20AsBond(BaseServiceManagerTest):
                 ERC20_TOKEN_ADDRESS_LOCAL,
             )
         )
-        assert result.exit_code == 0, result.output
+        assert result.exit_code == 0, result.stderr
 
     def test_register_instances_failure(self) -> None:
         """Test register instances with token."""
@@ -525,7 +525,7 @@ class TestERC20AsBond(BaseServiceManagerTest):
                 ERC20_TOKEN_ADDRESS_LOCAL,
             )
         )
-        assert result.exit_code == 0, result.output
+        assert result.exit_code == 0, result.stderr
 
         agent = make_crypto("ethereum")
         result = self.run_cli(
