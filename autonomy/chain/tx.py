@@ -21,7 +21,7 @@
 
 import time
 from datetime import datetime
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, Optional, cast
 
 from aea.configurations.data_types import PublicId
 from aea.crypto.base import Crypto, LedgerApi
@@ -57,6 +57,11 @@ def should_retry(error: str) -> bool:
         if _error in error:
             return True
     return False
+
+
+def should_reprice(error: str) -> bool:
+    """Check an error message to check if we should reprice the transaction"""
+    return "FeeTooLow" in error
 
 
 class TxSettler:
@@ -107,10 +112,11 @@ class TxSettler:
         """Make a transaction and return a receipt"""
         retries = 0
         deadline = datetime.now().timestamp() + self.timeout
+        tx_dict = None
         while retries < self.retries and deadline >= datetime.now().timestamp():
             retries += 1
             try:
-                tx_dict = self.build(
+                tx_dict = tx_dict or self.build(
                     method=method,
                     contract=contract,
                     kwargs=kwargs,
@@ -131,6 +137,23 @@ class TxSettler:
             except Exception as e:  # pylint: disable=broad-except
                 if not should_retry(str(e)):
                     raise ChainInteractionError(str(e)) from e
+                if should_reprice(str(e)):
+                    print("Repricing the transaction...")
+                    tx_dict = cast(Dict, tx_dict)
+                    old_price = {
+                        "maxFeePerGas": tx_dict[  # pylint: disable=unsubscriptable-object
+                            "maxFeePerGas"
+                        ],
+                        "maxPriorityFeePerGas": tx_dict[  # pylint: disable=unsubscriptable-object
+                            "maxPriorityFeePerGas"
+                        ],
+                    }
+                    tx_dict.update(
+                        self.ledger_api.try_get_gas_pricing(
+                            old_price=old_price,
+                        )
+                    )
+                    continue
                 print(
                     f"Error occured when interacting with chain: {e}; "
                     f"will retry in {self.sleep}..."
