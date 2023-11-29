@@ -84,7 +84,7 @@ class ERC20TokenContract(Contract):
         raise NotImplementedError
 
     @classmethod
-    def get_approve_tx(  # pylint: disable=too-many-arguments,unused-argument
+    def get_approve_tx(  # pylint: disable=too-many-arguments
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
@@ -106,7 +106,10 @@ class ERC20TokenContract(Contract):
                 "nonce": ledger_api.api.eth.get_transaction_count(sender),
             }
         )
-        return ledger_api.update_with_gas_estimate(transaction=tx)
+        return ledger_api.update_with_gas_estimate(
+            transaction=tx,
+            raise_on_try=raise_on_try,
+        )
 
     @classmethod
     def get_events(  # pragma: nocover

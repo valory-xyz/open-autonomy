@@ -108,17 +108,21 @@ class TxSettler:
         retries = 0
         deadline = datetime.now().timestamp() + self.timeout
         while retries < self.retries and deadline >= datetime.now().timestamp():
+            retries += 1
             try:
-                tx_dict = self.build(method=method, contract=contract, kwargs=kwargs)
+                tx_dict = self.build(
+                    method=method,
+                    contract=contract,
+                    kwargs=kwargs,
+                )
                 if tx_dict is None:
                     raise TxBuildError("Got empty transaction")
-                
+
                 tx_signed = self.crypto.sign_transaction(transaction=tx_dict)
-                tx_digest = self.ledger_api.send_signed_transaction(tx_signed=tx_signed)
-                if tx_digest is None:
-                    time.sleep(self.sleep)
-                    continue
-                
+                tx_digest = self.ledger_api.send_signed_transaction(
+                    tx_signed=tx_signed,
+                    raise_on_try=True,
+                )
                 tx_receipt = self.ledger_api.api.eth.get_transaction_receipt(tx_digest)
                 if tx_receipt is not None:
                     return tx_receipt
@@ -132,7 +136,6 @@ class TxSettler:
                     f"will retry in {self.sleep}..."
                 )
                 time.sleep(self.sleep)
-            retries += 1
         raise ChainTimeoutError("Timed out when waiting for transaction to go through")
 
     def process(
