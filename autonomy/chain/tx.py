@@ -46,6 +46,7 @@ ERRORS_TO_RETRY = (
     "wrong transaction nonce",
     "INTERNAL_ERROR: nonce too low",
     "Got empty transaction",
+    "AlreadyKnown",
 )
 
 
