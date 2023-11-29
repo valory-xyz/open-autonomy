@@ -30,16 +30,6 @@ from autonomy.chain.exceptions import ChainInteractionError, ChainTimeoutError, 
 from autonomy.chain.tx import TxSettler
 
 
-class _retriable_method:
-    should_raise = True
-
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        if self.should_raise:
-            self.should_raise = False
-            raise Exception("FeeTooLow")
-        return {}
-
-
 def test_rpc_error() -> None:
     """Test RPC error."""
     settler = TxSettler(
@@ -72,6 +62,16 @@ def test_none_retriable_exception() -> None:
 
 def test_retriable_exception(capsys: Any) -> None:
     """Test retriable exception."""
+
+    class _retriable_method:
+        should_raise = True
+
+        def __call__(self, *args: Any, **kwargs: Any) -> Any:
+            if self.should_raise:
+                self.should_raise = False
+                raise Exception("wrong transaction nonce")
+            return {}
+
     settler = TxSettler(
         ledger_api=mock.Mock(),
         crypto=mock.Mock(),
@@ -79,10 +79,42 @@ def test_retriable_exception(capsys: Any) -> None:
     )
     settler.transact(_retriable_method(), contract="service_registry", kwargs={})  # type: ignore
     captured = capsys.readouterr()
-    assert (
-        "Error occured when interacting with chain: FeeTooLow; will retry in 3.0..."
-        in captured.out
+    assert "Error occured when interacting with chain" in captured.out
+
+
+def test_repricing(capsys: Any) -> None:
+    """Test retriable exception."""
+
+    class _repricable_method:
+        tx_dict = {
+            "maxFeePerGas": 100,
+            "maxPriorityFeePerGas": 100,
+        }
+
+        def __call__(self, *args: Any, **kwargs: Any) -> Any:
+            return self.tx_dict
+
+    def _raise_fee_too_low(tx_signed: Any, **kwargs: Any) -> None:
+        if tx_signed["maxFeePerGas"] == 110:
+            return
+        raise Exception("FeeTooLow")
+
+    def _reprice(old_price: Any, **kwargs: Any) -> Any:
+        return {"maxFeePerGas": 110, "maxPriorityFeePerGas": 110}
+
+    settler = TxSettler(
+        ledger_api=mock.Mock(
+            send_signed_transaction=_raise_fee_too_low,
+            try_get_gas_pricing=_reprice,
+        ),
+        crypto=mock.Mock(
+            sign_transaction=lambda transaction: transaction,
+        ),
+        chain_type=ChainType.LOCAL,
     )
+    settler.transact(_repricable_method(), contract="service_registry", kwargs={})  # type: ignore
+    captured = capsys.readouterr()
+    assert "Repricing the transaction..." in captured.out
 
 
 def test_timeout() -> None:
