@@ -111,33 +111,38 @@ class TxSettler:
     ) -> Dict:
         """Make a transaction and return a receipt"""
         retries = 0
-        deadline = datetime.now().timestamp() + self.timeout
         tx_dict = None
+        tx_digest = None
+        already_known = False
+        deadline = datetime.now().timestamp() + self.timeout
         while retries < self.retries and deadline >= datetime.now().timestamp():
             retries += 1
             try:
-                tx_dict = tx_dict or self.build(
-                    method=method,
-                    contract=contract,
-                    kwargs=kwargs,
+                if not already_known:
+                    tx_dict = tx_dict or self.build(
+                        method=method,
+                        contract=contract,
+                        kwargs=kwargs,
+                    )
+                    if tx_dict is None:
+                        raise TxBuildError("Got empty transaction")
+                    tx_signed = self.crypto.sign_transaction(transaction=tx_dict)
+                    tx_digest = self.ledger_api.send_signed_transaction(
+                        tx_signed=tx_signed,
+                        raise_on_try=True,
+                    )
+                tx_receipt = self.ledger_api.api.eth.get_transaction_receipt(
+                    cast(str, tx_digest)
                 )
-                if tx_dict is None:
-                    raise TxBuildError("Got empty transaction")
-
-                tx_signed = self.crypto.sign_transaction(transaction=tx_dict)
-                tx_digest = self.ledger_api.send_signed_transaction(
-                    tx_signed=tx_signed,
-                    raise_on_try=True,
-                )
-                tx_receipt = self.ledger_api.api.eth.get_transaction_receipt(tx_digest)
                 if tx_receipt is not None:
                     return tx_receipt
             except RequestsConnectionError as e:
                 raise RPCError("Cannot connect to the given RPC") from e
             except Exception as e:  # pylint: disable=broad-except
-                if not should_retry(str(e)):
-                    raise ChainInteractionError(str(e)) from e
-                if should_reprice(str(e)):
+                estr = str(e)
+                if not should_retry(estr):
+                    raise ChainInteractionError(estr) from e
+                if should_reprice(estr):
                     print("Repricing the transaction...")
                     tx_dict = cast(Dict, tx_dict)
                     old_price = {
@@ -154,6 +159,7 @@ class TxSettler:
                         )
                     )
                     continue
+                already_known = "AlreadyKnown" in estr
                 print(
                     f"Error occured when interacting with chain: {e}; "
                     f"will retry in {self.sleep}..."
