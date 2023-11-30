@@ -104,6 +104,28 @@ class TxSettler:
             **kwargs,
         )
 
+    def _repice(self, tx_dict: Dict) -> Dict:
+        """Reprice transaction."""
+        old_price = {
+            "maxFeePerGas": tx_dict[  # pylint: disable=unsubscriptable-object
+                "maxFeePerGas"
+            ],
+            "maxPriorityFeePerGas": tx_dict[  # pylint: disable=unsubscriptable-object
+                "maxPriorityFeePerGas"
+            ],
+        }
+        tx_dict.update(
+            self.ledger_api.try_get_gas_pricing(
+                old_price=old_price,
+            )
+        )
+        return tx_dict
+
+    @staticmethod
+    def _already_known(error: str) -> bool:
+        """Check if the transaction is alreade sent"""
+        return "AlreadyKnown" in error
+
     def transact(
         self,
         method: Callable[[], Dict],
@@ -140,31 +162,18 @@ class TxSettler:
             except RequestsConnectionError as e:
                 raise RPCError("Cannot connect to the given RPC") from e
             except Exception as e:  # pylint: disable=broad-except
-                estr = str(e)
-                if not should_retry(estr):
-                    raise ChainInteractionError(estr) from e
-                if should_reprice(estr):
-                    print("Repricing the transaction...")
-                    tx_dict = cast(Dict, tx_dict)
-                    old_price = {
-                        "maxFeePerGas": tx_dict[  # pylint: disable=unsubscriptable-object
-                            "maxFeePerGas"
-                        ],
-                        "maxPriorityFeePerGas": tx_dict[  # pylint: disable=unsubscriptable-object
-                            "maxPriorityFeePerGas"
-                        ],
-                    }
-                    tx_dict.update(
-                        self.ledger_api.try_get_gas_pricing(
-                            old_price=old_price,
-                        )
-                    )
+                error = str(e)
+                if self._already_known(error):
+                    already_known = True
                     continue
-                already_known = "AlreadyKnown" in estr
-                print(
-                    f"Error occured when interacting with chain: {e}; "
-                    f"will retry in {self.sleep}..."
-                )
+                if not should_retry(error):
+                    raise ChainInteractionError(error) from e
+                if should_reprice(error):
+                    print("Repricing the transaction...")
+                    tx_dict = self._repice(cast(Dict, tx_dict))
+                    continue
+                print(f"Error occured when interacting with chain: {e}; ")
+                print(f"will retry in {self.sleep}...")
                 time.sleep(self.sleep)
         raise ChainTimeoutError("Timed out when waiting for transaction to go through")
 
