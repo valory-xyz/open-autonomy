@@ -286,7 +286,8 @@ def main(
                 f"{OPEN_AEA_REPO}:{_version_cache[OPEN_AEA_REPO]}",
                 f"{OPEN_AUTONOMY_REPO}:{_version_cache[OPEN_AUTONOMY_REPO]}",
                 *sources,
-            ]
+            ],
+            update_packages=True,
         )
         pm.update_package_hashes()
         pm.dump()
