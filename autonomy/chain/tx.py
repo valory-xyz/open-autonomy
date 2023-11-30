@@ -21,7 +21,7 @@
 
 import time
 from datetime import datetime
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, Optional, cast
 
 from aea.configurations.data_types import PublicId
 from aea.crypto.base import Crypto, LedgerApi
@@ -46,6 +46,7 @@ ERRORS_TO_RETRY = (
     "wrong transaction nonce",
     "INTERNAL_ERROR: nonce too low",
     "Got empty transaction",
+    "AlreadyKnown",
 )
 
 
@@ -57,6 +58,11 @@ def should_retry(error: str) -> bool:
         if _error in error:
             return True
     return False
+
+
+def should_reprice(error: str) -> bool:
+    """Check an error message to check if we should reprice the transaction"""
+    return "FeeTooLow" in error
 
 
 class TxSettler:
@@ -98,43 +104,82 @@ class TxSettler:
             **kwargs,
         )
 
+    def _repice(self, tx_dict: Dict) -> Dict:
+        """Reprice transaction."""
+        old_price = {
+            "maxFeePerGas": tx_dict[  # pylint: disable=unsubscriptable-object
+                "maxFeePerGas"
+            ],
+            "maxPriorityFeePerGas": tx_dict[  # pylint: disable=unsubscriptable-object
+                "maxPriorityFeePerGas"
+            ],
+        }
+        tx_dict.update(
+            self.ledger_api.try_get_gas_pricing(
+                old_price=old_price,
+            )
+        )
+        return tx_dict
+
+    @staticmethod
+    def _already_known(error: str) -> bool:
+        """Check if the transaction is alreade sent"""
+        return "AlreadyKnown" in error
+
     def transact(
         self,
         method: Callable[[], Dict],
         contract: str,
         kwargs: Dict,
+        dry_run: bool = False,
     ) -> Dict:
         """Make a transaction and return a receipt"""
         retries = 0
+        tx_dict = None
+        tx_digest = None
+        already_known = False
         deadline = datetime.now().timestamp() + self.timeout
         while retries < self.retries and deadline >= datetime.now().timestamp():
             retries += 1
             try:
-                tx_dict = self.build(
-                    method=method,
-                    contract=contract,
-                    kwargs=kwargs,
-                )
-                if tx_dict is None:
-                    raise TxBuildError("Got empty transaction")
+                if not already_known:
+                    tx_dict = tx_dict or self.build(
+                        method=method,
+                        contract=contract,
+                        kwargs=kwargs,
+                    )
+                    if tx_dict is None:
+                        raise TxBuildError("Got empty transaction")
 
-                tx_signed = self.crypto.sign_transaction(transaction=tx_dict)
-                tx_digest = self.ledger_api.send_signed_transaction(
-                    tx_signed=tx_signed,
-                    raise_on_try=True,
+                    # Return transaction dict on dry-run
+                    if dry_run:
+                        return tx_dict
+
+                    tx_signed = self.crypto.sign_transaction(transaction=tx_dict)
+                    tx_digest = self.ledger_api.send_signed_transaction(
+                        tx_signed=tx_signed,
+                        raise_on_try=True,
+                    )
+                tx_receipt = self.ledger_api.api.eth.get_transaction_receipt(
+                    cast(str, tx_digest)
                 )
-                tx_receipt = self.ledger_api.api.eth.get_transaction_receipt(tx_digest)
                 if tx_receipt is not None:
                     return tx_receipt
             except RequestsConnectionError as e:
                 raise RPCError("Cannot connect to the given RPC") from e
             except Exception as e:  # pylint: disable=broad-except
-                if not should_retry(str(e)):
-                    raise ChainInteractionError(str(e)) from e
-                print(
-                    f"Error occured when interacting with chain: {e}; "
-                    f"will retry in {self.sleep}..."
-                )
+                error = str(e)
+                if self._already_known(error):
+                    already_known = True
+                    continue  # pragma: nocover
+                if not should_retry(error):
+                    raise ChainInteractionError(error) from e
+                if should_reprice(error):
+                    print("Repricing the transaction...")
+                    tx_dict = self._repice(cast(Dict, tx_dict))
+                    continue
+                print(f"Error occured when interacting with chain: {e}; ")
+                print(f"will retry in {self.sleep}...")
                 time.sleep(self.sleep)
         raise ChainTimeoutError("Timed out when waiting for transaction to go through")
 

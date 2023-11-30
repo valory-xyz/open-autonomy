@@ -14,6 +14,16 @@ def should_retry(error: str) -> bool
 
 Check an error message to check if we should raise an error or retry the tx
 
+<a id="autonomy.chain.tx.should_reprice"></a>
+
+#### should`_`reprice
+
+```python
+def should_reprice(error: str) -> bool
+```
+
+Check an error message to check if we should reprice the transaction
+
 <a id="autonomy.chain.tx.TxSettler"></a>
 
 ## TxSettler Objects
@@ -54,7 +64,10 @@ Build transaction.
 #### transact
 
 ```python
-def transact(method: Callable[[], Dict], contract: str, kwargs: Dict) -> Dict
+def transact(method: Callable[[], Dict],
+             contract: str,
+             kwargs: Dict,
+             dry_run: bool = False) -> Dict
 ```
 
 Make a transaction and return a receipt
