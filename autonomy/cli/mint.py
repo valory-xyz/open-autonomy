@@ -100,6 +100,11 @@ token_flag = click.option(
     type=str,
     help="Token to use for bonding.",
 )
+dry_run_flag = click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Perform a dry run for the transaction.",
+)
 
 
 @click.group("mint")
@@ -108,6 +113,7 @@ token_flag = click.option(
 @timeout_flag
 @retries_flag
 @sleep_flag
+@dry_run_flag
 @click.option(
     "--skip-hash-check",
     is_flag=True,
@@ -126,6 +132,7 @@ def mint(  # pylint: disable=too-many-arguments
     timeout: float,
     retries: int,
     sleep: float,
+    dry_run: bool,
 ) -> None:
     """Mint component on-chain."""
 
@@ -135,6 +142,7 @@ def mint(  # pylint: disable=too-many-arguments
     ctx.config["timeout"] = timeout
     ctx.config["retries"] = retries
     ctx.config["sleep"] = sleep
+    ctx.config["dry_run"] = dry_run
 
 
 @mint.command()
@@ -167,6 +175,7 @@ def protocol(  # pylint: disable=too-many-arguments
             password=password,
             hwi=hwi,
             update_token=update,
+            dry_run=ctx.config.get("dry_run"),
             timeout=ctx.config.get("timeout"),
             retries=ctx.config.get("retries"),
             sleep=ctx.config.get("sleep"),
@@ -218,6 +227,7 @@ def contract(  # pylint: disable=too-many-arguments
             password=password,
             hwi=hwi,
             update_token=update,
+            dry_run=ctx.config.get("dry_run"),
             timeout=ctx.config.get("timeout"),
             retries=ctx.config.get("retries"),
             sleep=ctx.config.get("sleep"),
@@ -269,6 +279,7 @@ def connection(  # pylint: disable=too-many-arguments
             password=password,
             hwi=hwi,
             update_token=update,
+            dry_run=ctx.config.get("dry_run"),
             timeout=ctx.config.get("timeout"),
             retries=ctx.config.get("retries"),
             sleep=ctx.config.get("sleep"),
@@ -320,6 +331,7 @@ def skill(  # pylint: disable=too-many-arguments
             password=password,
             hwi=hwi,
             update_token=update,
+            dry_run=ctx.config.get("dry_run"),
             timeout=ctx.config.get("timeout"),
             retries=ctx.config.get("retries"),
             sleep=ctx.config.get("sleep"),
@@ -373,6 +385,7 @@ def agent(  # pylint: disable=too-many-arguments
             password=password,
             hwi=hwi,
             update_token=update,
+            dry_run=ctx.config.get("dry_run"),
             timeout=ctx.config.get("timeout"),
             retries=ctx.config.get("retries"),
             sleep=ctx.config.get("sleep"),
@@ -455,6 +468,7 @@ def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-a
             password=password,
             hwi=hwi,
             update_token=update,
+            dry_run=ctx.config.get("dry_run"),
             timeout=ctx.config.get("timeout"),
             retries=ctx.config.get("retries"),
             sleep=ctx.config.get("sleep"),

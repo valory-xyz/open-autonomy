@@ -14,9 +14,10 @@ Implementation of the `autonomy service` command
 @timeout_flag
 @retries_flag
 @sleep_flag
+@dry_run_flag
 @chain_selection_flag()
 def service(ctx: Context, chain_type: str, timeout: float, retries: int,
-            sleep: float) -> None
+            sleep: float, dry_run: bool) -> None
 ```
 
 Manage on-chain services.

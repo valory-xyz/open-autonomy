@@ -25,7 +25,8 @@ def __init__(chain_type: ChainType,
              hwi: bool = False,
              timeout: Optional[float] = None,
              retries: Optional[int] = None,
-             sleep: Optional[float] = None) -> None
+             sleep: Optional[float] = None,
+             dry_run: bool = False) -> None
 ```
 
 Initialize object.
@@ -101,7 +102,8 @@ def __init__(chain_type: ChainType,
              update_token: Optional[int] = None,
              timeout: Optional[float] = None,
              retries: Optional[int] = None,
-             sleep: Optional[float] = None) -> None
+             sleep: Optional[float] = None,
+             dry_run: bool = False) -> None
 ```
 
 Initialize object.
@@ -262,7 +264,8 @@ def __init__(service_id: int,
              hwi: bool = False,
              timeout: Optional[float] = None,
              retries: Optional[int] = None,
-             sleep: Optional[float] = None) -> None
+             sleep: Optional[float] = None,
+             dry_run: bool = False) -> None
 ```
 
 Initialize object.

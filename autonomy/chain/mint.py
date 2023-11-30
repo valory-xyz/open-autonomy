@@ -28,7 +28,7 @@ from aea.configurations.data_types import PublicId
 from aea.crypto.base import Crypto, LedgerApi
 
 from autonomy.chain.base import UnitType, registry_contracts
-from autonomy.chain.config import ChainType
+from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import (
     AGENT_REGISTRY_CONTRACT,
     COMPONENT_REGISTRY_CONTRACT,
@@ -108,6 +108,7 @@ class MintManager:
         ledger_api: LedgerApi,
         crypto: Crypto,
         chain_type: ChainType,
+        dry_run: bool = False,
         timeout: Optional[float] = None,
         retries: Optional[int] = None,
         sleep: Optional[float] = None,
@@ -119,6 +120,7 @@ class MintManager:
         self.timeout = timeout
         self.retries = retries
         self.sleep = sleep
+        self.dry_run = dry_run
 
     def _transact(
         self,
@@ -141,7 +143,21 @@ class MintManager:
             method=method,
             contract=build_tx_ctr,
             kwargs=kwargs,
+            dry_run=self.dry_run,
         )
+        if self.dry_run:
+            print("=== Dry run output ===")
+            print("Method: " + str(method).split(" ")[2])
+            print(
+                f"Contract: {ContractConfigs.get(name=build_tx_ctr).contracts[self.chain_type]}"
+            )
+            print("Kwargs: ")
+            for key, val in kwargs.items():
+                print(f"    {key}: {val}")
+            print("Transaction: ")
+            for key, val in receipt.items():
+                print(f"    {key}: {val}")
+            return []
         events = tx_settler.process(
             event=event,
             receipt=receipt,

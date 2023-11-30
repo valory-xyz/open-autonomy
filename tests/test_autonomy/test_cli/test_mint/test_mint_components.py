@@ -472,6 +472,24 @@ class TestMintComponents(BaseChainInteractionTest):
             in result.stderr
         )
 
+    def test_dry_run(self) -> None:
+        """Test dry run."""
+        result = self.run_cli(
+            commands=(
+                "--dry-run",
+                DUMMY_PROTOCOL.package_type.value,
+                str(
+                    DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
+                        package_id=DUMMY_PROTOCOL
+                    )
+                ),
+                "--key",
+                str(ETHEREUM_KEY_DEPLOYER),
+            )
+        )
+        assert result.exit_code == 0, result.stderr
+        assert "=== Dry run output ===" in result.output
+
 
 class TestConnectionError(BaseCliTest):
     """Test connection error."""

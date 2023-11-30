@@ -90,6 +90,7 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
         timeout: Optional[float] = None,
         retries: Optional[int] = None,
         sleep: Optional[float] = None,
+        dry_run: bool = False,
     ) -> None:
         """Initialize object."""
         if key is None and not hwi:
@@ -107,6 +108,7 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
         self.timeout = timeout
         self.retries = retries
         self.sleep = sleep
+        self.dry_run = dry_run
 
     @staticmethod
     def load_hwi_plugin() -> Type[LedgerApi]:  # pragma: nocover
@@ -254,6 +256,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         timeout: Optional[float] = None,
         retries: Optional[int] = None,
         sleep: Optional[float] = None,
+        dry_run: bool = False,
     ) -> None:
         """Initialize object."""
         super().__init__(
@@ -264,6 +267,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             timeout=timeout,
             retries=retries,
             sleep=sleep,
+            dry_run=dry_run,
         )
         self.update_token = update_token
         self.manager = MintManager(
@@ -273,6 +277,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             timeout=timeout,
             retries=retries,
             sleep=sleep,
+            dry_run=self.dry_run,
         )
 
     def load_package_configuration(
@@ -448,10 +453,13 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 owner=owner,
                 dependencies=self.dependencies,
             )
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Component mint failed with following error; {e.__class__.__name__}({e})"
             ) from e
+
+        if self.dry_run:  # pragma: nocover
+            return
 
         click.echo("Component minted with:")
         click.echo(f"\tPublic ID: {self.package_configuration.public_id}")
@@ -515,10 +523,13 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 token=token,
                 owner=owner,
             )
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Component mint failed with following error; {e.__class__.__name__}({e})"
             ) from e
+
+        if self.dry_run:  # pragma: nocover
+            return
 
         click.echo("Service minted with:")
         click.echo(f"\tPublic ID: {self.package_configuration.public_id}")
@@ -549,10 +560,13 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 unit_id=cast(int, self.update_token),
                 component_type=component_type,
             )
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Component update failed with following error; {e.__class__.__name__}({e})"
             ) from e
+
+        if self.dry_run:  # pragma: nocover
+            return
 
         click.echo("Component hash updated:")
         click.echo(f"\tPublic ID: {self.package_configuration.public_id}")
@@ -612,10 +626,13 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 threshold=threshold,
                 token=token,
             )
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Component mint failed with following error; {e.__class__.__name__}({e})"
             ) from e
+
+        if self.dry_run:  # pragma: nocover
+            return
 
         click.echo("Service updated with:")
         click.echo(f"\tPublic ID: {self.package_configuration.public_id}")
@@ -645,6 +662,7 @@ class ServiceHelper(OnChainHelper):
         timeout: Optional[float] = None,
         retries: Optional[int] = None,
         sleep: Optional[float] = None,
+        dry_run: bool = False,
     ) -> None:
         """Initialize object."""
         self.service_id = service_id
@@ -656,6 +674,7 @@ class ServiceHelper(OnChainHelper):
             timeout=timeout,
             retries=retries,
             sleep=sleep,
+            dry_run=dry_run,
         )
         self.manager = ServiceManager(
             ledger_api=self.ledger_api,
@@ -664,6 +683,7 @@ class ServiceHelper(OnChainHelper):
             timeout=self.timeout,
             retries=self.retries,
             sleep=self.sleep,
+            dry_run=dry_run,
         )
 
     def check_is_service_token_secured(
@@ -705,11 +725,12 @@ class ServiceHelper(OnChainHelper):
                 spender=spender,
                 amount=amount,
                 sender=self.crypto.address,
+                dry_run=self.dry_run,
                 timeout=self.timeout,
                 sleep=self.sleep,
                 retries=self.retries,
             )
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(f"Error getting approval : {e}")
         return self
 
@@ -739,10 +760,13 @@ class ServiceHelper(OnChainHelper):
 
         try:
             self.manager.activate(service_id=self.service_id)
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Service activation failed with following error; {e.__class__.__name__}({e})"
             ) from e
+
+        if self.dry_run:  # pragma: nocover
+            return
         click.echo("Service activated succesfully")
 
     def register_instance(self, instances: List[str], agent_ids: List[int]) -> None:
@@ -776,10 +800,13 @@ class ServiceHelper(OnChainHelper):
                 instances=instances,
                 agent_ids=agent_ids,
             )
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Service activation failed with following error; {e.__class__.__name__}({e})"
             ) from e
+
+        if self.dry_run:  # pragma: nocover
+            return
         click.echo("Agent instance registered succesfully")
 
     def deploy_service(
@@ -805,11 +832,13 @@ class ServiceHelper(OnChainHelper):
                 reuse_multisig=reuse_multisig,
                 fallback_handler=fallback_handler,
             )
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Service deployment failed with following error; {e.__class__.__name__}({e})"
             ) from e
 
+        if self.dry_run:  # pragma: nocover
+            return
         click.echo("Service deployed succesfully")
 
     def terminate_service(self) -> None:
@@ -824,7 +853,7 @@ class ServiceHelper(OnChainHelper):
 
         try:
             self.manager.terminate(service_id=self.service_id)
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Service terminatation failed with following error; {e.__class__.__name__}({e})"
             ) from e
@@ -842,7 +871,7 @@ class ServiceHelper(OnChainHelper):
 
         try:
             self.manager.unbond(service_id=self.service_id)
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
                 f"Service unbonding failed with following error; {e.__class__.__name__}({e})"
             ) from e
