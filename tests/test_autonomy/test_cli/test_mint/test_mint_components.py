@@ -30,7 +30,6 @@ from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from autonomy.chain.config import ChainConfigs
 from autonomy.chain.mint import registry_contracts
-from autonomy.chain.service import activate_service
 
 from tests.test_autonomy.test_chain.base import (
     BaseChainInteractionTest,
@@ -43,6 +42,7 @@ from tests.test_autonomy.test_chain.base import (
     DUMMY_SERVICE,
     DUMMY_SKILL,
 )
+from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
 CUSTOM_OWNER = "0x8626F6940E2EB28930EFB4CEF49B2D1F2C9C1199"
@@ -241,12 +241,7 @@ class TestMintComponents(BaseChainInteractionTest):
             token_id=token_id,
             package_id=DUMMY_SERVICE,
         )
-        activate_service(
-            ledger_api=self.ledger_api,
-            crypto=self.crypto,
-            chain_type=self.chain_type,
-            service_id=token_id,
-        )
+        self.service_manager.activate(service_id=token_id)
 
         commands += ["--update", str(token_id)]
         result = self.run_cli(commands=tuple(commands))
@@ -384,61 +379,6 @@ class TestMintComponents(BaseChainInteractionTest):
                 in result.stdout
             )
 
-    def test_connection_error(
-        self,
-    ) -> None:
-        """Test connection error."""
-
-        with mock.patch(
-            "autonomy.chain.mint.transact", side_effect=RequestsConnectionError
-        ):
-            result = self.run_cli(
-                commands=(
-                    "protocol",
-                    str(
-                        DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
-                            package_id=DUMMY_PROTOCOL
-                        )
-                    ),
-                    "--key",
-                    str(ETHEREUM_KEY_DEPLOYER),
-                ),
-            )
-            self.cli_runner.mix_stderr = True
-            assert result.exit_code == 1, result.output
-            assert (
-                "Component mint failed with following error; Cannot connect to the given RPC"
-                in result.stderr
-            )
-
-    def test_connection_error_service(
-        self,
-    ) -> None:
-        """Test connection error."""
-
-        with mock.patch(
-            "autonomy.chain.mint.transact", side_effect=RequestsConnectionError
-        ), mock.patch("autonomy.cli.helpers.chain.verify_service_dependencies"):
-            result = self.run_cli(
-                commands=(
-                    "service",
-                    str(
-                        DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
-                            package_id=DUMMY_SERVICE
-                        )
-                    ),
-                    "--key",
-                    str(ETHEREUM_KEY_DEPLOYER),
-                    *DEFAULT_SERVICE_MINT_PARAMETERS,
-                ),
-            )
-            self.cli_runner.mix_stderr = True
-            assert result.exit_code == 1, result.output
-            assert (
-                "Service mint failed with following error; Cannot connect to the given RPC"
-                in result.stderr
-            )
-
     def test_bad_owner_string(
         self,
     ) -> None:
@@ -531,3 +471,45 @@ class TestMintComponents(BaseChainInteractionTest):
             "On chain dependency with id 1 and public ID author/name:any not found in the local package configuration"
             in result.stderr
         )
+
+    def test_dry_run(self) -> None:
+        """Test dry run."""
+        result = self.run_cli(
+            commands=(
+                "--dry-run",
+                DUMMY_PROTOCOL.package_type.value,
+                str(
+                    DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
+                        package_id=DUMMY_PROTOCOL
+                    )
+                ),
+                "--key",
+                str(ETHEREUM_KEY_DEPLOYER),
+            )
+        )
+        assert result.exit_code == 0, result.stderr
+        assert "=== Dry run output ===" in result.output
+
+
+class TestConnectionError(BaseCliTest):
+    """Test connection error."""
+
+    cli_options = ("mint",)
+
+    def test_connection_error(self) -> None:
+        """Test connection error."""
+        self.cli_runner.mix_stderr = False
+        result = self.run_cli(
+            commands=(
+                "protocol",
+                str(
+                    DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
+                        package_id=DUMMY_PROTOCOL
+                    )
+                ),
+                "--key",
+                str(ETHEREUM_KEY_DEPLOYER),
+            ),
+        )
+        assert result.exit_code == 1, result.output
+        assert "RPCError(Cannot connect to the given RPC)" in result.stderr

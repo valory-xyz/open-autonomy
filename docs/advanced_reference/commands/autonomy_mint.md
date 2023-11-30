@@ -8,6 +8,9 @@ This command group consists of a number of functionalities to mint components, a
 
 ## Options
 
+`--dry-run`
+: Perform a dry run for the transaction.
+
 `--use-ethereum`
 : Use the Ethereum chain profile to interact with the Autonolas Protocol registry contracts. This option requires that you define the following environment variable:
 
@@ -47,6 +50,15 @@ This command group consists of a number of functionalities to mint components, a
 !!! note
 
     The options `--use-ethereum`, `--use-goerli`, `--use-custom-chain` and `--use-local` are mutually exclusive.
+
+`-t, --timeout FLOAT`
+: Timeout for on-chain interactions
+
+`-r, --retries INTEGER`
+: Max retries for on-chain interactions
+
+`--sleep FLOAT`
+: Sleep period between retries
 
 `--skip-hash-check`
 : Skip hash check when verifying dependencies on chain.
@@ -107,6 +119,35 @@ Update the minted `abstract_abci` skill using
 
 ```bash
 autonomy mint --use-local skill --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 35 -d 42 ./packages/valory/skills/abstract_abci --update <token_id>
+```
+
+Peform a dry run
+
+```bash
+autonomy mint --dry-run protocol ./packages/valory/protocols/abci --key key.txt
+```
+
+Output
+
+```bash
+=== Dry run output ===
+Method: RegistriesManagerContract.get_create_transaction
+Contract: 0x...
+Kwargs: 
+    owner: 0x...
+    component_type: UnitType.COMPONENT
+    metadata_hash: 0x...
+    sender: 0x...
+    dependencies: []
+Transaction: 
+    chainId: 31337
+    nonce: 0
+    value: 0
+    gas: 16000
+    maxFeePerGas: 4000000000
+    maxPriorityFeePerGas: 3000000000
+    to: 0x...
+    data: 0x...
 ```
 
 ## `autonomy mint agent`

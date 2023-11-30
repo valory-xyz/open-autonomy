@@ -8,6 +8,9 @@ This command group consists of a number of functionalities to manage [the life c
 
 ## Options
 
+`--dry-run`
+: Perform a dry run for the transaction.
+
 `--use-ethereum`
 : Use the Ethereum chain profile to interact with the Autonolas Protocol registry contracts. This option requires that you define the following environment variable:
 
@@ -49,7 +52,13 @@ This command group consists of a number of functionalities to manage [the life c
     The options `--use-ethereum`, `--use-goerli`, `--use-custom-chain` and `--use-local` are mutually exclusive.
 
 `-t, --timeout FLOAT`
-: Timeout for verifying emitted events
+: Timeout for on-chain interactions
+
+`-r, --retries INTEGER`
+: Max retries for on-chain interactions
+
+`--sleep FLOAT`
+: Sleep period between retries
 
 ## `autonomy service info`
 

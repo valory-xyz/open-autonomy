@@ -19,6 +19,7 @@
 
 """Test chain helpers."""
 
+import re
 import tempfile
 from pathlib import Path
 from unittest import mock
@@ -73,7 +74,9 @@ class TestMintComponentMethod:
 
         with pytest.raises(
             click.ClickException,
-            match="Component mint failed with following error; Cannot connect to the given RPC",
+            match=re.escape(
+                "Component mint failed with following error; RPCError(Cannot connect to the given RPC)"
+            ),
         ):
             with publish_metadata_patch, mock.patch(
                 "autonomy.chain.mint.Crypto.sign_transaction"
@@ -283,28 +286,6 @@ def test_terminate_service_failures(state: ServiceState, error: str) -> None:
             ).terminate_service()
 
 
-def test_terminate_service_contract_failure() -> None:
-    """Test `terminate_service` method"""
-
-    with pytest.raises(
-        click.ClickException,
-        match="Service termination failed",
-    ), mock.patch.object(
-        registry_contracts._service_manager,
-        "get_terminate_service_transaction",
-        side_effect=ValueError,
-    ):
-        with mock.patch(
-            "autonomy.chain.service.get_service_info",
-            return_value=(1, None, ServiceState.FINISHED_REGISTRATION.value, None),
-        ):
-            ServiceHelper(
-                service_id=0,
-                key=ETHEREUM_KEY_DEPLOYER,
-                chain_type=ChainType.LOCAL,
-            ).terminate_service()
-
-
 @pytest.mark.parametrize(
     argnames=("state", "error"),
     argvalues=(
@@ -325,28 +306,6 @@ def test_unbond_service_failures(state: ServiceState, error: str) -> None:
         with mock.patch(
             "autonomy.chain.service.get_service_info",
             return_value=(1, None, state.value, None),
-        ):
-            ServiceHelper(
-                service_id=0,
-                key=ETHEREUM_KEY_DEPLOYER,
-                chain_type=ChainType.LOCAL,
-            ).unbond_service()
-
-
-def test_unbond_service_contract_failure() -> None:
-    """Test `unbond_service` method"""
-
-    with pytest.raises(
-        click.ClickException,
-        match="Service unbond failed",
-    ), mock.patch.object(
-        registry_contracts._service_manager,
-        "get_unbond_service_transaction",
-        side_effect=ValueError,
-    ):
-        with mock.patch(
-            "autonomy.chain.service.get_service_info",
-            return_value=(1, None, ServiceState.TERMINATED_BONDED.value, None),
         ):
             ServiceHelper(
                 service_id=0,

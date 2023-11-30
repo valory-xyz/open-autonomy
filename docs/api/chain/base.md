@@ -44,7 +44,7 @@ On chain registry contracts helper
 
 ```python
 @staticmethod
-def get_contract(public_id: PublicId) -> Contract
+def get_contract(public_id: PublicId, cache: bool = True) -> Contract
 ```
 
 Load contract for given public id.
