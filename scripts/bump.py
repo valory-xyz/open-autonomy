@@ -15,7 +15,7 @@ from pathlib import Path
 
 import click
 import requests
-from aea.cli.utils.click_utils import PyPiDependency, PackagesSource
+from aea.cli.utils.click_utils import PackagesSource, PyPiDependency
 from aea.configurations.constants import PACKAGES, PACKAGE_TYPE_TO_CONFIG_FILE
 from aea.configurations.data_types import Dependency
 from aea.helpers.logging import setup_logger
@@ -230,9 +230,6 @@ def bump_packages(dependencies: t.Dict[str, str]) -> None:
 
         with path.open("w", encoding="utf-8") as stream:
             yaml_dump_all([config, *extra], stream=stream)
-
-
-PackagesSource
 
 
 @click.command(name="bump")
