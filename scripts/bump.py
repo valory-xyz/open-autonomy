@@ -15,7 +15,7 @@ from pathlib import Path
 
 import click
 import requests
-from aea.cli.utils.click_utils import PyPiDependency
+from aea.cli.utils.click_utils import PyPiDependency, PackagesSource
 from aea.configurations.constants import PACKAGES, PACKAGE_TYPE_TO_CONFIG_FILE
 from aea.configurations.data_types import Dependency
 from aea.helpers.logging import setup_logger
@@ -232,6 +232,9 @@ def bump_packages(dependencies: t.Dict[str, str]) -> None:
             yaml_dump_all([config, *extra], stream=stream)
 
 
+PackagesSource
+
+
 @click.command(name="bump")
 @click.option(
     "-d",
@@ -241,6 +244,14 @@ def bump_packages(dependencies: t.Dict[str, str]) -> None:
     multiple=True,
     help="Specify extra dependency.",
 )
+@click.option(
+    "-s",
+    "--source",
+    "sources",
+    type=PackagesSource(),
+    multiple=True,
+    help="Specify extra sources.",
+)
 @click.option("--sync", is_flag=True, help="Perform sync.")
 @click.option(
     "--no-cache",
@@ -248,8 +259,14 @@ def bump_packages(dependencies: t.Dict[str, str]) -> None:
     default=False,
     help="Avoid using cache to bump.",
 )
-def main(extra: t.List[Dependency], sync: bool, no_cache: bool) -> None:
+def main(
+    extra: t.Tuple[Dependency, ...],
+    sources: t.Tuple[str, ...],
+    sync: bool,
+    no_cache: bool,
+) -> None:
     """Run the bump script."""
+
     if not no_cache:
         load_git_cache()
 
@@ -271,6 +288,7 @@ def main(extra: t.List[Dependency], sync: bool, no_cache: bool) -> None:
             sources=[
                 f"{OPEN_AEA_REPO}:{_version_cache[OPEN_AEA_REPO]}",
                 f"{OPEN_AUTONOMY_REPO}:{_version_cache[OPEN_AUTONOMY_REPO]}",
+                *sources,
             ]
         )
         pm.update_package_hashes()
