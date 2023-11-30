@@ -1,6 +1,17 @@
 # Release History - `open-autonomy`
 
 
+# 0.13.8 (2023-11-30)
+
+Autonomy:
+- Implements transaction settlement on the `mint/service` command groups
+  - Adds support for retrying transaction on known error
+  - Adds support for repricing under priced transactions
+- Adds support for performing dry-run on on-chain interaction tools
+
+Chore:
+- Adds a script for bumping services
+
 # 0.13.7 (2023-11-23)
 
 Autonomy:
