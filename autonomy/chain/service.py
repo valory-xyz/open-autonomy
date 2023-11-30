@@ -211,7 +211,7 @@ def approve_erc20_usage(  # pylint: disable=too-many-arguments, too-many-locals
         contract=contract,
         kwargs=kwargs,
     )
-    if dry_run:  # pragam: nocover
+    if dry_run:  # pragma: nocover
         print("=== Dry run output ===")
         print("Method: " + str(method).split(" ")[2])
         print(f"Contract: {ContractConfigs.get(name=contract).contracts[chain_type]}")

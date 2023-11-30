@@ -117,6 +117,69 @@ def test_repricing(capsys: Any) -> None:
     assert "Repricing the transaction..." in captured.out
 
 
+def test_tx_not_found(capsys: Any) -> None:
+    """Test retriable exception."""
+
+    class _get_transaction_receipt:
+        _should_raise = True
+
+        def __call__(self, *args: Any, **kwargs: Any) -> Any:
+            if self._should_raise:
+                self._should_raise = False
+                raise Exception("Transaction with hash HASH not found")
+            return "receipt"
+
+    settler = TxSettler(
+        ledger_api=mock.Mock(
+            api=mock.Mock(
+                eth=mock.Mock(
+                    get_transaction_receipt=_get_transaction_receipt(),
+                )
+            )
+        ),
+        crypto=mock.Mock(
+            sign_transaction=lambda transaction: transaction,
+        ),
+        chain_type=ChainType.LOCAL,
+    )
+    settler.transact(mock.Mock(), contract="service_registry", kwargs={})  # type: ignore
+    captured = capsys.readouterr()
+
+    assert "Error occured when interacting with chain" in captured.out
+    assert "Transaction with hash HASH not found" in captured.out
+    assert "will retry in 3.0..." in captured.out
+
+
+def test_already_known(capsys: Any) -> None:
+    """Test AlreadyKnown exception."""
+
+    class _method:
+        def __call__(self, *args: Any, **kwargs: Any) -> Any:
+            return {}
+
+    class _raise:
+        _should_raise = True
+
+        def __call__(self, *args: Any, **kwargs: Any) -> Any:
+            if self._should_raise:
+                self._should_raise = False
+                raise Exception("AlreadyKnown")
+            return {}
+
+    settler = TxSettler(
+        ledger_api=mock.Mock(
+            send_signed_transaction=_raise(),
+        ),
+        crypto=mock.Mock(
+            sign_transaction=lambda transaction: transaction,
+        ),
+        chain_type=ChainType.LOCAL,
+    )
+    with mock.patch.object(settler, "_already_known") as _mock:
+        settler.transact(_method(), contract="service_registry", kwargs={})  # type: ignore
+        _mock.assert_called_with("AlreadyKnown")
+
+
 def test_timeout() -> None:
     """Test transact."""
 

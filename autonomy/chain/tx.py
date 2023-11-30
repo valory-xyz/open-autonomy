@@ -171,7 +171,7 @@ class TxSettler:
                 error = str(e)
                 if self._already_known(error):
                     already_known = True
-                    continue
+                    continue  # pragma: nocover
                 if not should_retry(error):
                     raise ChainInteractionError(error) from e
                 if should_reprice(error):
