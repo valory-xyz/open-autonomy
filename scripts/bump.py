@@ -1,4 +1,12 @@
-"""Script for bumping core dependencies."""
+"""
+Script for bumping core dependencies.
+
+This script
+
+- Fetches the latest core dependency versions from github
+- Updates the tox.ini, packages and Pipfile/pyproject.toml files
+- Performs the packages sync
+"""
 
 import typing as t
 from pathlib import Path
@@ -9,7 +17,7 @@ from aea.cli.utils.click_utils import PyPiDependency
 from aea.configurations.constants import PACKAGES, PACKAGE_TYPE_TO_CONFIG_FILE
 from aea.configurations.data_types import Dependency
 from aea.helpers.logging import setup_logger
-from aea.helpers.yaml_utils import yaml_dump_all, yaml_load_all
+from aea.helpers.yaml_utils import yaml_dump_all, yaml_load_all, yaml_dump, yaml_load
 from aea.package_manager.v1 import PackageManagerV1
 
 from autonomy.cli.helpers.ipfs_hash import load_configuration
@@ -23,13 +31,30 @@ TAGS_URL = "https://api.github.com/repos/{repo}/tags"
 OPEN_AEA_REPO = "valory-xyz/open-aea"
 OPEN_AUTONOMY_REPO = "valory-xyz/open-autonomy"
 
+_cache_file = Path.home() / ".aea" / ".gitcache"
 _repo_version_cache = {}
-
 _logger = setup_logger("bump")
+
+
+def load_git_cache():
+    """Load versions cache."""
+    if not _cache_file.exists():
+        return
+    with _cache_file.open("r", encoding="utf-8") as stream:
+        _repo_version_cache.update(yaml_load(stream=stream))
+
+
+def dump_git_cache() -> t.Dict:
+    """Dump versions cache."""
+    with _cache_file.open("w", encoding="utf-8") as stream:
+        yaml_dump(data=_repo_version_cache, stream=stream)
 
 
 def get_latest_tag(repo: str) -> str:
     """Fetch latest git tag."""
+    if repo in _repo_version_cache:
+        return _repo_version_cache[repo]
+
     response = requests.get(url=TAGS_URL.format(repo=repo))
     if response.status_code != 200:
         raise ValueError(
@@ -150,9 +175,18 @@ def bump_packages(dependencies: t.Dict[str, str]) -> None:
     multiple=True,
     help="Specify extra dependency.",
 )
-@click.option("--sync", "sync", is_flag=True, help="Perform sync.")
-def main(extra: t.List[Dependency], sync: bool) -> None:
+@click.option("--sync", is_flag=True, help="Perform sync.")
+@click.option(
+    "--no-cache",
+    is_flag=True,
+    default=False,
+    help="Avoid using cache to bump.",
+)
+def main(extra: t.List[Dependency], sync: bool, no_cache: bool) -> None:
     """Run the bump script."""
+    if not no_cache:
+        load_git_cache()
+
     dependencies = {}
     dependencies.update(get_open_aea_dependencies())
     dependencies.update(get_open_autonomy_dependencies())
@@ -162,6 +196,7 @@ def main(extra: t.List[Dependency], sync: bool) -> None:
     bump_pipfile_or_pyproject(PYPROJECT_TOML, dependencies=dependencies)
     bump_tox(dependencies=dependencies)
     bump_packages(dependencies=dependencies)
+    dump_git_cache()
 
     if sync:
         pm = PackageManagerV1.from_dir(
