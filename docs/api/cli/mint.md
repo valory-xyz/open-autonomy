@@ -13,6 +13,9 @@ Mint command group definitions.
 @pass_ctx
 @chain_selection_flag()
 @timeout_flag
+@retries_flag
+@sleep_flag
+@dry_run_flag
 @click.option(
     "--skip-hash-check",
     is_flag=True,
@@ -24,7 +27,8 @@ Mint command group definitions.
     help="Skip dependencies check.",
 )
 def mint(ctx: Context, chain_type: str, skip_hash_check: bool,
-         skip_dependencies_check: bool, timeout: float) -> None
+         skip_dependencies_check: bool, timeout: float, retries: int,
+         sleep: float, dry_run: bool) -> None
 ```
 
 Mint component on-chain.

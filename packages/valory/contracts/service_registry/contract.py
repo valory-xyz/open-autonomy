@@ -274,6 +274,24 @@ class ServiceRegistryContract(Contract):
         return contract_interface.events.UpdateUnitHash().process_receipt(receipt)
 
     @classmethod
+    def get_events(  # pragma: nocover
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        event: str,
+        receipt: JSONLike,
+    ) -> Dict:
+        """Process receipt for events."""
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        Event = getattr(contract_interface.events, event, None)
+        if Event is None:
+            return {"events": []}
+        return {"events": Event().process_receipt(receipt)}
+
+    @classmethod
     def process_receipt(
         cls,
         ledger_api: LedgerApi,

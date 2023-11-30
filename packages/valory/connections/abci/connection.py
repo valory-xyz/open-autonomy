@@ -1155,6 +1155,7 @@ class TendermintNode:
         self.params = params
         self._process: Optional[subprocess.Popen] = None
         self._monitoring: Optional[StoppableThread] = None
+        self._stopping = False
         self.logger = logger or logging.getLogger()
         self.log_file = os.environ.get("LOG_FILE", DEFAULT_TENDERMINT_LOG_FILE)
         self.write_to_log = write_to_log
@@ -1181,10 +1182,8 @@ class TendermintNode:
         if self._monitoring is None:
             raise ValueError("Monitoring is not running")
         self.log("Monitoring thread started\n")
-        while True:  # pylint: disable=too-many-nested-blocks
+        while not self._monitoring.stopped():
             try:
-                if self._monitoring.stopped():
-                    break  # break from the loop immediately.
                 if self._process is not None and self._process.stdout is not None:
                     line = self._process.stdout.readline()
                     self.log(line)
@@ -1196,9 +1195,9 @@ class TendermintNode:
                         # we restart the node
                         "Stopping abci.socketClient for error: read message: EOF",
                     ]:
+                        if self._monitoring.stopped():
+                            break
                         if line.find(trigger) >= 0:
-                            if self._process is None:
-                                break
                             self._stop_tm_process()
                             # we can only reach this step if monitoring was activated
                             # so we make sure that after reset the monitoring continues
@@ -1212,7 +1211,7 @@ class TendermintNode:
 
     def _start_tm_process(self, debug: bool = False) -> None:
         """Start a Tendermint node process."""
-        if self._process is not None:  # pragma: nocover
+        if self._process is not None or self._stopping:  # pragma: nocover
             return
         cmd = self.params.build_node_command(debug)
         kwargs = self.params.get_node_command_kwargs()
@@ -1236,9 +1235,10 @@ class TendermintNode:
 
     def _stop_tm_process(self) -> None:
         """Stop a Tendermint node process."""
-        if self._process is None:
+        if self._process is None or self._stopping:
             return
 
+        self._stopping = True
         if platform.system() == "Windows":
             os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
             if self._process is None:
@@ -1257,6 +1257,7 @@ class TendermintNode:
                 self._process.terminate()
                 self._process.wait(3)
 
+        self._stopping = False
         self._process = None
         self.log("Tendermint process stopped\n")
 

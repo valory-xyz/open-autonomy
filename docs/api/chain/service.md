@@ -111,36 +111,70 @@ Check if the service is token secured.
 ```python
 def approve_erc20_usage(ledger_api: LedgerApi,
                         crypto: Crypto,
-                        contract_address: str,
+                        chain_type: ChainType,
                         spender: str,
                         amount: int,
                         sender: str,
-                        timeout: Optional[float] = None) -> None
+                        dry_run: bool = False,
+                        timeout: Optional[float] = None,
+                        retries: Optional[int] = None,
+                        sleep: Optional[float] = None) -> None
 ```
 
 Approve ERC20 token usage.
 
-<a id="autonomy.chain.service.verify_service_event"></a>
+<a id="autonomy.chain.service.ServiceManager"></a>
 
-#### verify`_`service`_`event
+## ServiceManager Objects
 
 ```python
-def verify_service_event(ledger_api: LedgerApi, chain_type: ChainType,
-                         service_id: int, event: str, receipt: Dict) -> bool
+class ServiceManager()
 ```
 
-Verify service event.
+Service manager.
 
-<a id="autonomy.chain.service.activate_service"></a>
+<a id="autonomy.chain.service.ServiceManager.__init__"></a>
 
-#### activate`_`service
+#### `__`init`__`
 
 ```python
-def activate_service(ledger_api: LedgerApi,
-                     crypto: Crypto,
-                     chain_type: ChainType,
-                     service_id: int,
-                     timeout: Optional[float] = None) -> None
+def __init__(ledger_api: LedgerApi,
+             crypto: Crypto,
+             chain_type: ChainType,
+             dry_run: bool = False,
+             timeout: Optional[float] = None,
+             retries: Optional[int] = None,
+             sleep: Optional[float] = None) -> None
+```
+
+Initialize object.
+
+<a id="autonomy.chain.service.ServiceManager.get_service_info"></a>
+
+#### get`_`service`_`info
+
+```python
+def get_service_info(token_id: int) -> ServiceInfo
+```
+
+Returns service info.
+
+**Arguments**:
+
+- `token_id`: Token ID pointing to the on-chain service
+
+**Returns**:
+
+security deposit, multisig address, IPFS hash for config,
+threshold, max number of agent instances, number of agent instances,
+service state, list of cannonical agents
+
+<a id="autonomy.chain.service.ServiceManager.activate"></a>
+
+#### activate
+
+```python
+def activate(service_id: int) -> None
 ```
 
 Activate service.
@@ -150,24 +184,15 @@ before you can proceed further.
 
 **Arguments**:
 
-- `ledger_api`: `aea.crypto.LedgerApi` object for interacting with the chain
-- `crypto`: `aea.crypto.Crypto` object which has a funded key
-- `chain_type`: Chain type
 - `service_id`: Service ID retrieved after minting a service
-- `timeout`: Time to wait for activation event to emit
 
-<a id="autonomy.chain.service.register_instance"></a>
+<a id="autonomy.chain.service.ServiceManager.register_instance"></a>
 
 #### register`_`instance
 
 ```python
-def register_instance(ledger_api: LedgerApi,
-                      crypto: Crypto,
-                      chain_type: ChainType,
-                      service_id: int,
-                      instances: List[str],
-                      agent_ids: List[int],
-                      timeout: Optional[float] = None) -> None
+def register_instance(service_id: int, instances: List[str],
+                      agent_ids: List[int]) -> None
 ```
 
 Register instance.
@@ -182,27 +207,19 @@ and not as same as the service owner.
 
 **Arguments**:
 
-- `ledger_api`: `aea.crypto.LedgerApi` object for interacting with the chain
-- `crypto`: `aea.crypto.Crypto` object which has a funded key
-- `chain_type`: Chain type
 - `service_id`: Service ID retrieved after minting a service
 - `instances`: Address of the agent instance
 - `agent_ids`: Agent ID of the agent that you want this instance to be a part
 of when deployed
-- `timeout`: Time to wait for register instance event to emit
 
-<a id="autonomy.chain.service.deploy_service"></a>
+<a id="autonomy.chain.service.ServiceManager.deploy"></a>
 
-#### deploy`_`service
+#### deploy
 
 ```python
-def deploy_service(ledger_api: LedgerApi,
-                   crypto: Crypto,
-                   chain_type: ChainType,
-                   service_id: int,
-                   fallback_handler: Optional[str] = None,
-                   reuse_multisig: bool = False,
-                   timeout: Optional[float] = None) -> None
+def deploy(service_id: int,
+           fallback_handler: Optional[str] = None,
+           reuse_multisig: bool = False) -> None
 ```
 
 Deploy service.
@@ -212,21 +229,16 @@ the service and registered the required agent instances.
 
 **Arguments**:
 
-- `ledger_api`: `aea.crypto.LedgerApi` object for interacting with the chain
-- `crypto`: `aea.crypto.Crypto` object which has a funded key
-- `chain_type`: Chain type
 - `service_id`: Service ID retrieved after minting a service
 - `fallback_handler`: Fallback handler address for gnosis safe multisig
 - `reuse_multisig`: Use multisig from the previous deployment
-- `timeout`: Time to wait for deploy event to emit
 
-<a id="autonomy.chain.service.terminate_service"></a>
+<a id="autonomy.chain.service.ServiceManager.terminate"></a>
 
-#### terminate`_`service
+#### terminate
 
 ```python
-def terminate_service(ledger_api: LedgerApi, crypto: Crypto,
-                      chain_type: ChainType, service_id: int) -> None
+def terminate(service_id: int) -> None
 ```
 
 Terminate service.
@@ -236,18 +248,14 @@ the service and registered the required agent instances.
 
 **Arguments**:
 
-- `ledger_api`: `aea.crypto.LedgerApi` object for interacting with the chain
-- `crypto`: `aea.crypto.Crypto` object which has a funded key
-- `chain_type`: Chain type
 - `service_id`: Service ID retrieved after minting a service
 
-<a id="autonomy.chain.service.unbond_service"></a>
+<a id="autonomy.chain.service.ServiceManager.unbond"></a>
 
-#### unbond`_`service
+#### unbond
 
 ```python
-def unbond_service(ledger_api: LedgerApi, crypto: Crypto,
-                   chain_type: ChainType, service_id: int) -> None
+def unbond(service_id: int) -> None
 ```
 
 Unbond service.
@@ -257,9 +265,6 @@ the service.
 
 **Arguments**:
 
-- `ledger_api`: `aea.crypto.LedgerApi` object for interacting with the chain
-- `crypto`: `aea.crypto.Crypto` object which has a funded key
-- `chain_type`: Chain type
 - `service_id`: Service ID retrieved after minting a service
 
 <a id="autonomy.chain.service.get_reuse_multisig_payload"></a>
