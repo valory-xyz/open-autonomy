@@ -121,7 +121,7 @@ Update the minted `abstract_abci` skill using
 autonomy mint --use-local skill --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 35 -d 42 ./packages/valory/skills/abstract_abci --update <token_id>
 ```
 
-Peform a dry run
+Perform a dry run
 
 ```bash
 autonomy mint --dry-run protocol ./packages/valory/protocols/abci --key key.txt
