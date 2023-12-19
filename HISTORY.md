@@ -4,7 +4,7 @@
 
 Autonomy:
 - Updates the tendermint image to support arm platforms
-- Updates the autonomy image to use `--timeout` flag on `aea install` command to avoide timeout failures on machines with limited resources
+- Updates the autonomy image to use `--timeout` flag on `aea install` command to avoid timeout failures on machines with limited resources
 
 Docs:
 - Fixes `hello-world` hash in the quick start guide
