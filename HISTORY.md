@@ -1,5 +1,14 @@
 # Release History - `open-autonomy`
 
+# 0.13.9 (2023-12-19)
+
+Autonomy:
+- Updates the tendermint image to support arm platforms
+- Updates the autonomy image to use `--timeout` flag on `aea install` command to avoid timeout failures on machines with limited resources
+
+Docs:
+- Fixes `hello-world` hash in the quick start guide
+- Adds requirements for developing and running on `raspberry-pi`
 
 # 0.13.8 (2023-11-30)
 
