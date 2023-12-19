@@ -10,7 +10,7 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeiebojxskcarfxaq545xca3ylewmdnbsmgqzavss7ihbks4az7ifr4
 - valory/http_client:0.23.0:bafybeiddrfvomrmgvh5yuv2coq7ci72wcdf663stayi3m5aawnj4srggce
-- valory/ipfs:0.1.0:bafybeib22l5yr3mmgif2mhf3in7kyv5ll3pte6ufsm6gflnnjv2dinrhbi
+- valory/ipfs:0.1.0:bafybeidrfpktv4jwgjgpqdn3k63g7n3t46a7q2r2y6nn3icvpc2bu55jva
 - valory/ledger:0.19.0:bafybeia47rr37ianvwsh77tjjpv3nwif5sywhhy2fbdshnz4a2icwln76a
 - valory/p2p_libp2p_client:0.1.0:bafybeihge56dn3xep2dzomu7rtvbgo4uc2qqh7ljl3fubqdi2lq44gs5lq
 contracts: []
@@ -23,8 +23,8 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeige5agrztgzfevyglf7mb4o7pzfttmq4f6zi765y4g2zvftbyowru
 skills:
 - valory/abstract_abci:0.1.0:bafybeigi7m5l6buucytkyu6rsz4rh7lj6wtvvgxxtn6uansj7lcxofvv5e
-- valory/abstract_round_abci:0.1.0:bafybeigjmlva5h7lpcoemg5sceuomqam6g5ojkj3dejjhdvqy6ifnhg6ia
-- valory/test_abci:0.1.0:bafybeigjnrjsfjwmxnz5fakljiaqlzi3saidnsko546grr2t3dmyabxofu
+- valory/abstract_round_abci:0.1.0:bafybeidbmd2cgffqqfwsyxws5dffsc6nbt5ijgkbhyzse5i42yddmwqlpy
+- valory/test_abci:0.1.0:bafybeiargryxoj5i5eyc7yywrqyo4gflihymj2mwz73kawes5srq62hwei
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -49,7 +49,7 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.43.0
+    version: ==1.43.0.post1
 default_connection: null
 ---
 public_id: valory/abci:0.1.0
