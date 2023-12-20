@@ -62,11 +62,11 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeiebojxskcarfxaq545xca3ylewmdnbsmgqzavss7ihbks4az7ifr4
 - valory/http_client:0.23.0:bafybeiddrfvomrmgvh5yuv2coq7ci72wcdf663stayi3m5aawnj4srggce
-- valory/ipfs:0.1.0:bafybeib22l5yr3mmgif2mhf3in7kyv5ll3pte6ufsm6gflnnjv2dinrhbi
+- valory/ipfs:0.1.0:bafybeidrfpktv4jwgjgpqdn3k63g7n3t46a7q2r2y6nn3icvpc2bu55jva
 - valory/ledger:0.19.0:bafybeia47rr37ianvwsh77tjjpv3nwif5sywhhy2fbdshnz4a2icwln76a
 - valory/p2p_libp2p_client:0.1.0:bafybeihge56dn3xep2dzomu7rtvbgo4uc2qqh7ljl3fubqdi2lq44gs5lq
 contracts:
-- valory/service_registry:0.1.0:bafybeifjzrq6uzywdw5gxhkrxxatxakk4fsb3osedqptxojzyrfo3fu4dq
+- valory/service_registry:0.1.0:bafybeig5dejsuyezds7uqlkcm3xz2pvxamsjmsjidwpwjv6zkkuafz3ex4
 protocols:
 - open_aea/signing:1.0.0:bafybeie7xyems76v5b4wc2lmaidcujizpxfzjnnwdeokmhje53g7ym25ii
 - valory/abci:0.1.0:bafybeihmzlmmb4pdo3zkhg6ehuyaa4lhw7bfpclln2o2z7v3o6fcep26iu
@@ -145,7 +145,7 @@ dependencies:
   ipfshttpclient:
     version: ==0.8.0a2
   open-aea-cli-ipfs:
-    version: ==1.43.0
+    version: ==1.43.0.post1
   open-aea-test-autonomy:
     version: ==0.13.9
   protobuf:
