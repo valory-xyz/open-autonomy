@@ -1,5 +1,9 @@
 # Release History - `open-autonomy`
 
+# 0.13.9.post1 (2023-12-26)
+
+- Bumps `open-aea@1.43.0.post2`
+
 # 0.13.9 (2023-12-19)
 
 Autonomy:
