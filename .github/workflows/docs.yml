@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.7]
+        python-version: [3.8]
 
     timeout-minutes: 30
 
@@ -32,7 +32,7 @@ jobs:
         sudo apt-get update --fix-missing
         sudo apt-get autoremove
         sudo apt-get autoclean
-        pip install tomte[tox]==0.2.4
+        pip install tomte[tox]==0.2.15
         sudo npm install -g markdown-spellcheck
     - name: Generate Documentation
       run: tox -e docs

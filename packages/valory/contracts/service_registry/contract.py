@@ -20,34 +20,47 @@
 """This module contains the class to connect to the Service Registry contract."""
 
 import hashlib
+import json
 import logging
-from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
+from pathlib import Path
+from typing import Any, Dict, FrozenSet, List, Optional, Tuple, Union, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
-from aea_ledger_ethereum import EthereumApi, LedgerApi
+from aea.crypto.base import LedgerApi
+from web3.types import BlockData, EventData, TxReceipt
 
 
+PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
+ETHEREUM_IDENTIFIER = "ethereum"
+UNIT_HASH_PREFIX = "0x{metadata_hash}"
 EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID = {
     1: "0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA",
     5: "0x1cEe30D08943EB58EFF84DD1AB44a6ee6FEff63a",
+    100: "0x9338b5153AE39BB89f50468E608eD9d764B755fD",
+    137: "0xE3607b00E75f6405248323A9417ff6b39B244b50",
     31337: "0x998abeb3E57409262aE5b751f60747921B33613E",
 }
 DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID = {
     1: "6f9fc7f3c2348801737120e6b5f8fa8e9670c65152c66d128ff4cddb465b4d705340c559e352f5e7f29bda3b84a8d36d4a9448b791cfe2d370e31c01276e0244",
     5: "d4a860f21f17762c99d93359244b39a878dd5bac9ea6056c0ff29c7558d6653aa0d5962aa819fc9f05f237d068845125cfc37a7fd7761b11c29a709ad5c48157",
-    31337: "d8084598f884509694ab1f244cbb8e7697d8db00c241710b89b2ec3037d2edd3b82d01f1f0ca6bd9b265b1184d9c563a6000c30958c2a7ae5a9c35e5ff2ba7de",
+    100: "10e2cfb500481d6c5a3b6b90507e4ac04d8b0d88741cea5568306ed4115f24e8b9747055423da5fca05838d5ccefebf41fb47d2ba1fb45215b6b21c0a27823be",
+    137: "10e2cfb500481d6c5a3b6b90507e4ac04d8b0d88741cea5568306ed4115f24e8b9747055423da5fca05838d5ccefebf41fb47d2ba1fb45215b6b21c0a27823be",
+    31337: "41ab54d43fd4bdfdc929658a0dc9bedd970c7339eecafbefda9892ab54c02c396bceedaa3a84a0f4690bee03dc11195a3267a264de7859c420efbf4291f1fef0",
 }
-UNIT_HASH_PREFIX = "0x{metadata_hash}"
+L1_CHAINS = (
+    1,
+    5,
+    31337,
+)
+L2_BUILD_FILENAME = "ServiceRegistryL2.json"
 
-PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
+ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
 
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
 )
-
-ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
 
 
 class ServiceRegistryContract(Contract):
@@ -76,6 +89,37 @@ class ServiceRegistryContract(Contract):
         """Get state."""
         raise NotImplementedError  # pragma: nocover
 
+    @staticmethod
+    def is_l1_chain(ledger_api: LedgerApi) -> bool:
+        """Check if we're interecting with an L1 chain"""
+        return ledger_api.api.eth.chain_id in L1_CHAINS
+
+    @staticmethod
+    def load_l2_build() -> JSONLike:
+        """Load L2 ABI"""
+        path = Path(__file__).parent / "build" / L2_BUILD_FILENAME
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    @classmethod
+    def get_instance(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: Optional[str] = None,
+    ) -> Any:
+        """Get contract instance."""
+        if ledger_api.identifier != ETHEREUM_IDENTIFIER:
+            return super().get_instance(
+                ledger_api=ledger_api, contract_address=contract_address
+            )
+        if cls.is_l1_chain(ledger_api=ledger_api):
+            contract_interface = cls.contract_interface.get(ledger_api.identifier, {})
+        else:
+            contract_interface = cls.load_l2_build()
+        instance = ledger_api.get_contract_instance(
+            contract_interface, contract_address
+        )
+        return instance
+
     @classmethod
     def verify_contract(
         cls, ledger_api: LedgerApi, contract_address: str
@@ -88,7 +132,6 @@ class ServiceRegistryContract(Contract):
         :return: the verified status
         """
         verified = False
-        ledger_api = cast(EthereumApi, ledger_api)
         chain_id = ledger_api.api.eth.chain_id
         expected_address = EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID[chain_id]
         if contract_address != expected_address:
@@ -99,7 +142,7 @@ class ServiceRegistryContract(Contract):
         deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
         sha512_hash = hashlib.sha512(deployed_bytecode.encode("utf-8")).hexdigest()
         verified = DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID[chain_id] == sha512_hash
-        if not verified:
+        if not verified:  # pragma: nocover
             _logger.error(
                 f"CONTRACT NOT VERIFIED! Contract address: {contract_address}, chain_id: {chain_id}."
             )
@@ -154,7 +197,7 @@ class ServiceRegistryContract(Contract):
         """Retrieve the service owner."""
         contract_instance = cls.get_instance(ledger_api, contract_address)
         service_owner = contract_instance.functions.ownerOf(service_id).call()
-        checksum_service_owner = ledger_api.api.toChecksumAddress(service_owner)
+        checksum_service_owner = ledger_api.api.to_checksum_address(service_owner)
         return dict(
             service_owner=checksum_service_owner,
         )
@@ -181,8 +224,7 @@ class ServiceRegistryContract(Contract):
         contract_address: str,
         token_id: int,
     ) -> str:
-        """Resolve token URI"""
-
+        """Returns the latest metadata URI for a component."""
         contract_interface = cls.get_instance(
             ledger_api=ledger_api,
             contract_address=contract_address,
@@ -190,102 +232,171 @@ class ServiceRegistryContract(Contract):
         return contract_interface.functions.tokenURI(token_id).call()
 
     @classmethod
-    def filter_token_id_from_emitted_events(
+    def get_create_events(  # pragma: nocover
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        receipt: JSONLike,
     ) -> Optional[int]:
         """Returns `CreateUnit` event filter."""
-
         contract_interface = cls.get_instance(
             ledger_api=ledger_api,
             contract_address=contract_address,
         )
-
-        events = contract_interface.events.CreateService.createFilter(
-            fromBlock="latest"
-        ).get_all_entries()
-
-        for event in events:
-            event_args = event["args"]
-            if "serviceId" in event_args:
-                return cast(int, event_args["serviceId"])
-
-        return None
+        return contract_interface.events.CreateService().process_receipt(receipt)
 
     @classmethod
-    def verify_service_has_been_activated(
+    def get_update_events(  # pragma: nocover
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        service_id: int,
-    ) -> bool:
+        receipt: JSONLike,
+    ) -> Optional[int]:
+        """Returns `CreateUnit` event filter."""
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        return contract_interface.events.UpdateService().process_receipt(receipt)
+
+    @classmethod
+    def get_update_hash_events(  # pragma: nocover
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        receipt: JSONLike,
+    ) -> Optional[int]:
+        """Returns `CreateUnit` event filter."""
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        return contract_interface.events.UpdateUnitHash().process_receipt(receipt)
+
+    @classmethod
+    def get_events(  # pragma: nocover
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        event: str,
+        receipt: JSONLike,
+    ) -> Dict:
+        """Process receipt for events."""
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        Event = getattr(contract_interface.events, event, None)
+        if Event is None:
+            return {"events": []}
+        return {"events": Event().process_receipt(receipt)}
+
+    @classmethod
+    def process_receipt(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        event: str,
+        receipt: JSONLike,
+    ) -> JSONLike:
         """Checks for a successful service registration event in the latest block"""
-
         contract_interface = cls.get_instance(
             ledger_api=ledger_api,
             contract_address=contract_address,
         )
-
-        events = contract_interface.events.ActivateRegistration.createFilter(
-            fromBlock="latest"
-        ).get_all_entries()
-        for event in events:
-            if event["args"]["serviceId"] == service_id:
-                return True
-
-        return False
+        Event = getattr(contract_interface.events, event, None)
+        if Event is None:
+            return {"events": []}
+        return {"events": Event().process_receipt(receipt)}
 
     @classmethod
-    def verify_agent_instance_registration(
+    def get_slash_data(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        agent_instances: List[str],
+        amounts: List[int],
         service_id: int,
-        instance_check: Set[str],
-    ) -> Set[str]:
-        """Checks for the registered instances and filters out the instances that are registered from the given array"""
+    ) -> Dict[str, bytes]:
+        """Gets the encoded arguments for a slashing tx, which should only be called via the multisig."""
 
-        contract_interface = cls.get_instance(
+        contract_instance = cls.get_instance(
             ledger_api=ledger_api,
             contract_address=contract_address,
         )
 
-        events = contract_interface.events.RegisterInstance.createFilter(
-            fromBlock="latest"
-        ).get_all_entries()
+        slash_kwargs = dict(
+            agentInstances=agent_instances,
+            amounts=amounts,
+            serviceId=service_id,
+        )
 
-        successful = set()
-        for event in events:
-            event_args = event["args"]
-            if event_args["serviceId"] != service_id:
-                continue
-
-            agent_instance = event_args["agentInstance"]
-            if agent_instance in instance_check:
-                successful.add(agent_instance)
-
-        return successful
+        data = contract_instance.encodeABI(fn_name="slash", kwargs=slash_kwargs)
+        return {"data": bytes.fromhex(data[2:])}
 
     @classmethod
-    def verify_service_has_been_deployed(
+    def process_slash_receipt(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        service_id: int,
-    ) -> bool:
-        """Checks for a successful service registration event in the latest block"""
+        tx_hash: str,
+    ) -> Optional[JSONLike]:
+        """
+        Process the slash receipt.
 
-        contract_interface = cls.get_instance(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :param tx_hash: the hash of a slash tx to be processed.
+        :return: a dictionary with the timestamp of the slashing and the `OperatorSlashed` events.
+        """
+        contract = cls.get_instance(ledger_api, contract_address)
+        receipt: TxReceipt = ledger_api.api.eth.get_transaction_receipt(tx_hash)
+        logs: List[EventData] = list(
+            contract.events.OperatorSlashed().process_receipt(receipt)
         )
 
-        events = contract_interface.events.DeployService.createFilter(
-            fromBlock="latest"
-        ).get_all_entries()
-        for event in events:
-            if event["args"]["serviceId"] == service_id:
-                return True
+        if len(logs) == 0:
+            _logger.error(f"No `OperatorSlashed` event was emitted in tx {tx_hash}.")
+            return None
 
-        return False
+        block: BlockData = ledger_api.api.eth.get_block(receipt["blockNumber"])
+
+        return {
+            "slash_timestamp": block["timestamp"],
+            "events": [log["args"] for log in logs],
+        }
+
+    @classmethod
+    def _get_operator(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        agent_instance: str,
+    ) -> str:
+        """Retrieve an operator given its agent instance."""
+
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+        map_fn = contract_instance.functions.mapAgentInstanceOperators
+        return map_fn(agent_instance).call()
+
+    @classmethod
+    def get_operators_mapping(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        agent_instances: FrozenSet[str],
+    ) -> Dict[str, str]:
+        """
+        Retrieve a mapping of the given agent instances to their operators.
+
+        Please keep in mind that this method performs a call for each agent instance.
+
+        :param ledger_api: the ledger api.
+        :param contract_address: the contract address.
+        :param agent_instances: the agent instances to be mapped.
+        :return: a mapping of the given agent instances to their operators.
+        """
+        return {
+            agent: cls._get_operator(ledger_api, contract_address, agent)
+            for agent in agent_instances
+        }

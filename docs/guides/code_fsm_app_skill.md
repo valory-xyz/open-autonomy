@@ -1,5 +1,5 @@
 
-Recall that the [{{fsm_app}} skill](../key_concepts/fsm_app_introduction.md)is the core part of the agent that encodes the business logic of the service. Developing the {{fsm_app}} is possibly most demanding step in the development process.
+Recall that the [{{fsm_app}} skill](../key_concepts/fsm_app_introduction.md) is the core part of the agent that encodes the business logic of the service. Developing the {{fsm_app}} is possibly most demanding step in the development process.
 
 <figure markdown>
 ![](../images/development_process_code_fsm_app_skill.svg)
@@ -36,7 +36,7 @@ You must ensure that your machine satisfies the [framework requirements](./set_u
       * `rounds.py`,
       * `payloads.py`.
 
-    You should also define a number of test classes. You can review how the [demo services](../demos/index.md) are implemented, or read about the [internals of {{fsm_app}}s](../key_concepts/fsm_app_introduction.md) to learn how to populate the template classes.
+    You should also define a number of test classes. You can review how the [demo services](https://docs.autonolas.network/demos/) are implemented, or read about the [internals of {{fsm_app}}s](../key_concepts/fsm_app_introduction.md) to learn how to populate the template classes.
     
     !!! tip
     	

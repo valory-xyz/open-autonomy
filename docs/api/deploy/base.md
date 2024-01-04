@@ -4,6 +4,28 @@
 
 Base deployments module.
 
+<a id="autonomy.deploy.base.ENV_VAR_AEA_PASSWORD"></a>
+
+#### ENV`_`VAR`_`AEA`_`PASSWORD
+
+nosec
+
+<a id="autonomy.deploy.base.ENV_VAR_DEPENDENCIES"></a>
+
+#### ENV`_`VAR`_`DEPENDENCIES
+
+nosec
+
+<a id="autonomy.deploy.base.tm_write_to_log"></a>
+
+#### tm`_`write`_`to`_`log
+
+```python
+def tm_write_to_log() -> bool
+```
+
+Check the environment variable to see if the user wants to write to log file or not.
+
 <a id="autonomy.deploy.base.NotValidKeysFile"></a>
 
 ## NotValidKeysFile Objects
@@ -31,12 +53,31 @@ Class to assist with generating deployments.
 ```python
 def __init__(service: Service,
              keys: Optional[List[Dict[str, str]]] = None,
-             private_keys_password: Optional[str] = None,
              agent_instances: Optional[List[str]] = None,
              apply_environment_variables: bool = False) -> None
 ```
 
 Initialize the Base Deployment.
+
+<a id="autonomy.deploy.base.ServiceBuilder.get_abci_container_name"></a>
+
+#### get`_`abci`_`container`_`name
+
+```python
+def get_abci_container_name(index: int) -> str
+```
+
+Format ABCI container name.
+
+<a id="autonomy.deploy.base.ServiceBuilder.get_tm_container_name"></a>
+
+#### get`_`tm`_`container`_`name
+
+```python
+def get_tm_container_name(index: int) -> str
+```
+
+Format tendermint container name.
 
 <a id="autonomy.deploy.base.ServiceBuilder.try_get_all_participants"></a>
 
@@ -47,17 +88,6 @@ def try_get_all_participants() -> Optional[List[str]]
 ```
 
 Try get all participants from the ABCI overrides
-
-<a id="autonomy.deploy.base.ServiceBuilder.private_keys_password"></a>
-
-#### private`_`keys`_`password
-
-```python
-@property
-def private_keys_password() -> Optional[str]
-```
-
-Service password for agent keys.
 
 <a id="autonomy.deploy.base.ServiceBuilder.agent_instances"></a>
 
@@ -102,7 +132,6 @@ def from_dir(cls,
              path: Path,
              keys_file: Optional[Path] = None,
              number_of_agents: Optional[int] = None,
-             private_keys_password: Optional[str] = None,
              agent_instances: Optional[List[str]] = None,
              apply_environment_variables: bool = False) -> "ServiceBuilder"
 ```

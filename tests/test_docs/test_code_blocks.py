@@ -31,6 +31,7 @@ from tests.test_docs.helper import (  # type: ignore
     extract_make_commands,
     remove_doc_ellipsis,
     remove_line_comments,
+    remove_yaml_hashes,
 )
 
 
@@ -40,6 +41,8 @@ class BaseTestDocCode:
     md_to_code: Dict[str, Dict] = {}
     code_type: CodeType = CodeType.NOCODE
     skipped_files: Optional[List[str]] = None
+    doc_process_fn: Optional[Callable] = None
+    code_process_fn: Optional[Callable] = None
 
     def _to_os_path(self, file_path: str) -> str:
         r"""
@@ -106,14 +109,26 @@ class BaseTestDocCode:
                 end="",
             )
 
-            # Preprocessing functions:
-            # - For doc files: `doc_process_fn` -> remove tokens like "# ...\n" from the code
-            # - For code files: code_process_fn` not required.
+            # Eliminate the "self" dependency of the lambda functions.
+            # This assignment cannot be condensed using the "if" ternary operator.
+            doc_process_fn = None
+            if self.doc_process_fn is not None:
+
+                def doc_process_fn(s):  # type: ignore
+                    return self.doc_process_fn(s)
+
+            code_process_fn = None
+            if self.code_process_fn is not None:
+
+                def code_process_fn(s):  # type: ignore
+                    return self.code_process_fn(s)
+
             check_code_blocks_exist(
                 md_file=md_file,
                 code_info=code_info,
                 code_type=self.code_type,
-                doc_process_fn=lambda s: remove_doc_ellipsis(remove_line_comments(s)),
+                doc_process_fn=doc_process_fn,
+                code_process_fn=code_process_fn,
             )
 
             print("OK")
@@ -123,6 +138,17 @@ class TestYamlSnippets(BaseTestDocCode):
     """Test that all the yaml snippets in the documentation exist in the repository"""
 
     code_type = CodeType.YAML
+
+    # Preprocessing function:
+    # - For Yaml snippets: `doc_process_fn` -> remove tokens like "# (...)\n" from the code
+    # - For Yaml snippets: `code_process_fn` -> remove ":bafybei..." hashes after component ID
+    def doc_process_fn(self, s):  # type: ignore
+        """Doc preprocessing function"""
+        return remove_doc_ellipsis(remove_line_comments(s))
+
+    def code_process_fn(self, s):  # type: ignore
+        """Code preprocessing function"""
+        return remove_yaml_hashes(s)
 
     # This variable holds a mapping between every doc file and the code files
     # that contains the referenced code. Since a doc file can contain several code
@@ -134,25 +160,13 @@ class TestYamlSnippets(BaseTestDocCode):
     # instead of checking the code block as a whole.
 
     md_to_code = {
-        "docs/demos/hello_world_demo.md": {
-            "code_files": [
-                "packages/valory/skills/hello_world_abci/fsm_specification.yaml",
-                "packages/valory/agents/hello_world/aea-config.yaml",
-            ],
-        },
-        "docs/demos/price_oracle_fsms.md": {
-            "code_files": [
-                "packages/valory/skills/registration_abci/fsm_specification.yaml",
-            ],
-            "skip_blocks": [1, 2, 3, 4, 5],
-        },
         "docs/guides/deploy_service.md": {"skip_blocks": [0]},
         "docs/advanced_reference/developer_tooling/benchmarking.md": {
             "skip_blocks": [0]
         },
         "docs/guides/draft_service_idea_and_define_fsm_specification.md": {
             "code_files": [
-                "packages/valory/skills/hello_world_abci/fsm_specification.yaml"
+                "https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/skills/hello_world_abci/fsm_specification.yaml"
             ]
         },
     }
@@ -171,6 +185,12 @@ class TestPythonSnippets(BaseTestDocCode):
     """Test that all the python snippets in the documentation exist in the repository"""
 
     code_type = CodeType.PYTHON
+
+    # Preprocessing function:
+    # - For Python snippets: `doc_process_fn` -> remove tokens like "# (...)\n" from the code
+    def doc_process_fn(self, s):  # type: ignore
+        """Doc preprocessing function"""
+        return remove_doc_ellipsis(remove_line_comments(s))
 
     # This variable holds a mapping between every doc file and the code file
     # that contains the referenced code. Since a doc file can contain several code
@@ -192,15 +212,6 @@ class TestPythonSnippets(BaseTestDocCode):
                 "by_line::packages/valory/skills/abstract_round_abci/base.py"
             ],
             "skip_blocks": [1],
-        },
-        "docs/demos/hello_world_demo.md": {
-            "code_files": [
-                "packages/valory/skills/hello_world_abci/behaviours.py",
-                "packages/valory/skills/hello_world_abci/behaviours.py",
-                "packages/valory/skills/hello_world_abci/payloads.py",
-                "packages/valory/skills/hello_world_abci/rounds.py",
-                "by_line::packages/valory/skills/hello_world_abci/rounds.py",
-            ],
         },
         "docs/advanced_reference/commands/autonomy_analyse.md": {"skip_blocks": [0]},
         "docs/key_concepts/aea.md": {"code_files": [], "skip_blocks": [0, 1]},
@@ -232,11 +243,11 @@ class TestJsonSnippets(BaseTestDocCode):
     # instead of checking the code block as a whole.
 
     md_to_code = {
-        "docs/guides/set_up.md": {
-            "code_files": ["by_line::packages/packages.json"],
-        },
         "docs/guides/deploy_service.md": {
-            "code_files": ["by_line::deployments/keys/hardhat_keys.json"],
+            "code_files": [
+                "by_line::deployments/keys/hardhat_keys.json",
+                "by_line::deployments/keys/hardhat_keys.json",
+            ],
         },
         "docs/guides/quick_start.md": {
             "code_files": ["by_line::deployments/keys/hardhat_keys.json"],
@@ -249,7 +260,10 @@ class TestJsonSnippets(BaseTestDocCode):
         },
     }
 
-    skipped_files = []
+    skipped_files = [
+        "docs/advanced_reference/commands/autonomy_deploy.md",
+        "docs/guides/set_up.md",
+    ]
 
 
 class TestDocBashSnippets:

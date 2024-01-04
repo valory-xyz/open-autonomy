@@ -396,7 +396,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
         abci_app._last_round = old_round
         abci_app._current_round = abci_app.transition_function[
             current_behaviour.matching_round
-        ][done_event](abci_app.synchronized_data)
+        ][done_event](abci_app.synchronized_data, context=MagicMock())
         abci_app._previous_rounds.append(old_round)
         abci_app._current_round_height += 1
         self.behaviour._process_current_round()
@@ -435,6 +435,7 @@ class DummyContext:
         round_timeout_seconds: float = 1.0
 
     _skill: MagicMock = MagicMock()
+    logger: MagicMock = MagicMock()
     skill_id = "dummy_skill_id"
 
     @property

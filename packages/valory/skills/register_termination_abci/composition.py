@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
     chain,
 )
+from packages.valory.skills.abstract_round_abci.base import BackgroundAppConfig
 from packages.valory.skills.termination_abci.rounds import (
     BackgroundRound,
     Event,
@@ -38,14 +39,16 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
     ResetAndPauseAbci.FinishedResetAndPauseErrorRound: ResetAndPauseAbci.ResetAndPauseRound,
 }
 
+termination_config = BackgroundAppConfig(
+    round_cls=BackgroundRound,
+    start_event=Event.TERMINATE,
+    abci_app=TerminationAbciApp,
+)
+
 RegisterTerminateAbciApp = chain(
     (
         RegistrationAbci.AgentRegistrationAbciApp,
         ResetAndPauseAbci.ResetPauseAbciApp,
     ),
     abci_app_transition_mapping,
-).add_termination(
-    background_round_cls=BackgroundRound,
-    termination_event=Event.TERMINATE,
-    termination_abci_app=TerminationAbciApp,
-)
+).add_background_app(termination_config)

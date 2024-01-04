@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,3 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """Tests package for valory/abci connection."""
+
+from hypothesis import settings
+
+
+CI = "CI"  # pragma: nocover
+
+settings.register_profile(CI, deadline=5000)  # pragma: nocover

@@ -31,8 +31,8 @@ states:
 - RandomnessTransactionSubmissionRound
 - ResetRound
 - SelectKeeperTransactionSubmissionARound
-- SelectKeeperTransactionSubmissionBRound
 - SelectKeeperTransactionSubmissionBAfterTimeoutRound
+- SelectKeeperTransactionSubmissionBRound
 - SynchronizeLateMessagesRound
 - ValidateTransactionRound
 transition_func:
@@ -67,16 +67,16 @@ transition_func:
     (SelectKeeperTransactionSubmissionARound, INCORRECT_SERIALIZATION): FailedRound
     (SelectKeeperTransactionSubmissionARound, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionARound, ROUND_TIMEOUT): SelectKeeperTransactionSubmissionARound
-    (SelectKeeperTransactionSubmissionBRound, DONE): FinalizationRound
-    (SelectKeeperTransactionSubmissionBRound, INCORRECT_SERIALIZATION): FailedRound
-    (SelectKeeperTransactionSubmissionBRound, NO_MAJORITY): ResetRound
-    (SelectKeeperTransactionSubmissionBRound, ROUND_TIMEOUT): SelectKeeperTransactionSubmissionBRound
     (SelectKeeperTransactionSubmissionBAfterTimeoutRound, CHECK_HISTORY): CheckTransactionHistoryRound
     (SelectKeeperTransactionSubmissionBAfterTimeoutRound, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
     (SelectKeeperTransactionSubmissionBAfterTimeoutRound, DONE): FinalizationRound
     (SelectKeeperTransactionSubmissionBAfterTimeoutRound, INCORRECT_SERIALIZATION): FailedRound
     (SelectKeeperTransactionSubmissionBAfterTimeoutRound, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionBAfterTimeoutRound, ROUND_TIMEOUT): SelectKeeperTransactionSubmissionBAfterTimeoutRound
+    (SelectKeeperTransactionSubmissionBRound, DONE): FinalizationRound
+    (SelectKeeperTransactionSubmissionBRound, INCORRECT_SERIALIZATION): FailedRound
+    (SelectKeeperTransactionSubmissionBRound, NO_MAJORITY): ResetRound
+    (SelectKeeperTransactionSubmissionBRound, ROUND_TIMEOUT): SelectKeeperTransactionSubmissionBRound
     (SynchronizeLateMessagesRound, DONE): CheckLateTxHashesRound
     (SynchronizeLateMessagesRound, NONE): SelectKeeperTransactionSubmissionBRound
     (SynchronizeLateMessagesRound, ROUND_TIMEOUT): SynchronizeLateMessagesRound
@@ -85,4 +85,4 @@ transition_func:
     (ValidateTransactionRound, NEGATIVE): CheckTransactionHistoryRound
     (ValidateTransactionRound, NONE): SelectKeeperTransactionSubmissionBRound
     (ValidateTransactionRound, NO_MAJORITY): ValidateTransactionRound
-    (ValidateTransactionRound, VALIDATE_TIMEOUT): SelectKeeperTransactionSubmissionBRound
+    (ValidateTransactionRound, VALIDATE_TIMEOUT): CheckTransactionHistoryRound

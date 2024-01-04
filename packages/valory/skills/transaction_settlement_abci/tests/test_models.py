@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 # pylint: disable=unused-import
 
 """Test the models.py module of the skill."""
-from typing import Dict
+from typing import Any, Dict
 from unittest.mock import MagicMock
 
 import pytest
@@ -64,3 +64,32 @@ class TestTransactionParams:  # pylint: disable=too-few-public-methods
             match=f"`validate_timeout` must be greater than or equal to {_MINIMUM_VALIDATE_TIMEOUT}",
         ):
             TransactionParams(mock_args, **mock_kwargs)
+
+    @pytest.mark.parametrize(
+        "gas_params",
+        [
+            {},
+            {"gas_price": 1},
+            {"max_fee_per_gas": 1},
+            {"max_priority_fee_per_gas": 1},
+            {
+                "gas_price": 1,
+                "max_fee_per_gas": 1,
+                "max_priority_fee_per_gas": 1,
+            },
+        ],
+    )
+    def test_gas_params(self, gas_params: Dict[str, Any]) -> None:
+        """Test that gas params are being handled properly."""
+        mock_args, mock_kwargs = (
+            MagicMock(),
+            {
+                **self.default_config,
+                "gas_params": gas_params,
+                "skill_context": DummyContext(),
+            },
+        )
+        params = TransactionParams(mock_args, **mock_kwargs)
+        # verify that the gas params are being set properly
+        for key, value in gas_params.items():
+            assert getattr(params.gas_params, key) == value

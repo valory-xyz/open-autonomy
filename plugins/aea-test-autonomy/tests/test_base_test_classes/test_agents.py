@@ -138,7 +138,7 @@ class TestBaseTestEnd2EndExecution(BaseTest):
         with pytest.raises(click.exceptions.ClickException, match=expected):
             test_instance.test_run(nb_nodes)
 
-        wrong_version = "valory/hello_world:0.0.0"
+        wrong_version = "valory/offend_slash:0.0.0"
         expected = "Wrong agent version in public ID: specified 0.0.0, found"
         setattr(test_instance, attribute, wrong_version)
         with pytest.raises(click.exceptions.ClickException, match=expected):
@@ -151,13 +151,13 @@ class TestBaseTestEnd2EndExecution(BaseTest):
         test_instance = self.setup_test()
         self.set_mocked_flask_tendermint_image(test_instance, nb_nodes)
 
-        test_instance.agent_package = "valory/hello_world:0.1.0"
+        test_instance.agent_package = "valory/offend_slash:0.1.0"
         attribute = "skill_package"
 
         with pytest.raises(AttributeError, match=f"has no attribute '{attribute}'"):
             test_instance.test_run(nb_nodes)
 
-        for item in ("", "author/package", "valory/hello_world:0.0.0"):
+        for item in ("", "author/package", "valory/offend_abci:0.0.0"):
             setattr(test_instance, attribute, item)  # same for "author/package"
             expected = 'Item "agent_00000" already exists in target folder "."'
             with pytest.raises(click.exceptions.ClickException, match=expected):
@@ -171,8 +171,8 @@ class TestBaseTestEnd2EndExecution(BaseTest):
         self.set_mocked_flask_tendermint_image(test_instance, nb_nodes)
         test_instance.wait_to_finish = mock.Mock()
 
-        test_instance.agent_package = "valory/hello_world:0.1.0"
-        test_instance.skill_package = "valory/hello_world_abci:0.1.0"
+        test_instance.agent_package = "valory/offend_slash:0.1.0"
+        test_instance.skill_package = "valory/offend_abci:0.1.0"
 
         mocked_missing_from_output = as_context(
             mock.patch.object(
@@ -183,6 +183,7 @@ class TestBaseTestEnd2EndExecution(BaseTest):
             ),
         )
 
+        test_instance.ipfs_domain = ""
         with mock.patch.object(test_instance, "run_agent") as mocked_run_agent:
             with mock.patch.object(
                 test_instance, "health_check"

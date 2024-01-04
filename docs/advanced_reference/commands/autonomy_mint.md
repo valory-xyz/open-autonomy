@@ -1,12 +1,15 @@
-Tools for minting software packages in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
+Tools for minting software packages in the {{ autonolas_protocol }}.
 
-This command group consists of a number of functionalities to mint components, agents and services in the [Autonolas Protocol](https://docs.autonolas.network/protocol/). These commands are the CLI alternative to mint packages using the [Autonolas Protocol web app](https://protocol.autonolas.network/). See the appropriate subcommands for more information.
+This command group consists of a number of functionalities to mint components, agents and services in the {{ autonolas_protocol }}. These commands are the CLI alternative to mint packages using the {{ autonolas_protocol_registry_dapp }}. See the appropriate subcommands for more information.
 
 !!! info
 
     You can specify how you wish to sign the on-chain transactions produced by these commands: either with **a private key stored in a file**, or with a **hardware wallet**. In this latter case, ensure that you have configured properly the drivers for your hardware wallet.
 
 ## Options
+
+`--dry-run`
+: Perform a dry run for the transaction.
 
 `--use-ethereum`
 : Use the Ethereum chain profile to interact with the Autonolas Protocol registry contracts. This option requires that you define the following environment variable:
@@ -19,17 +22,27 @@ This command group consists of a number of functionalities to mint components, a
     - `GOERLI_CHAIN_RPC` : RPC endpoint for the Görli testnet chain.
 
 `--use-custom-chain`
-: Use the custom-chain chain profile to interact with the Autonolas Protocol registry contracts. This option requires that you define the following environment variables (see the [Autonolas Protocol](https://docs.autonolas.network/protocol/) documentation for more information):
+: Use the custom-chain profile to interact with the Autonolas Protocol registry contracts. This profile requires that you define some parameters and [contract addresses](../on_chain_addresses.md) as environment variables (see also the {{ autonolas_protocol }} documentation for more information):
 
     - `CUSTOM_CHAIN_RPC` : RPC endpoint for the custom chain.
     - `CUSTOM_CHAIN_ID` : chain ID.
-    - `CUSTOM_COMPONENT_REGISTRY_ADDRESS` : custom Component Registry
- contract address.
-    - `CUSTOM_AGENT_REGISTRY_ADDRESS` : custom Agent Registry contract address.
-    - `CUSTOM_REGISTRIES_MANAGER_ADDRESS` : custom Registries Manager contract address.
-    - `CUSTOM_SERVICE_MANAGER_ADDRESS` : custom Service Manager contract address.
-    - `CUSTOM_SERVICE_REGISTRY_ADDRESS` : custom Service Registry contract address.
-    - `CUSTOM_GNOSIS_SAFE_MULTISIG_ADDRESS` : custom Gnosis Safe multisig contract address.
+    - `CUSTOM_COMPONENT_REGISTRY_ADDRESS` : Custom Component Registry contract address.
+    - `CUSTOM_AGENT_REGISTRY_ADDRESS` : Custom Agent Registry contract address.
+    - `CUSTOM_REGISTRIES_MANAGER_ADDRESS` : Custom Registries Manager contract address.
+    - `CUSTOM_SERVICE_MANAGER_ADDRESS` : Custom Service Manager contract address.
+    - `CUSTOM_SERVICE_REGISTRY_ADDRESS` : Custom Service Registry contract address.
+    - `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS` : Custom Gnosis Safe multisig contract address.
+    - `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` : Custom Gnosis Safe Same Address Multisig address.
+    - `CUSTOM_SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS` : Custom Service Registry Token Utility address.
+    - `CUSTOM_MULTISEND_ADDRESS` : Custom Multisend address.
+
+!!! note
+    For L2 chains you are only required to set
+    - `CUSTOM_SERVICE_MANAGER_ADDRESS`,
+    - `CUSTOM_SERVICE_REGISTRY_ADDRESS`,
+    - `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS`,
+    - `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` and
+    - `CUSTOM_MULTISEND_ADDRESS`.
 
 `--use-local`
 : Use the local chain profile to interact with the Autonolas Protocol registry contracts. This option requires that you have a local Hardhat node with the required contracts deployed.
@@ -39,13 +52,19 @@ This command group consists of a number of functionalities to mint components, a
     The options `--use-ethereum`, `--use-goerli`, `--use-custom-chain` and `--use-local` are mutually exclusive.
 
 `-t, --timeout FLOAT`
-: Timeout for verifying emitted events
+: Timeout for on-chain interactions
 
-`-s, --skip-hash-check`
-: Skip hash check when verifying dependencies on chain
+`-r, --retries INTEGER`
+: Max retries for on-chain interactions
 
-`-l, --latest-dependencies`
-: Use latest on-chain dependencies if there are multiple dependencies with same package ID
+`--sleep FLOAT`
+: Sleep period between retries
+
+`--skip-hash-check`
+: Skip hash check when verifying dependencies on chain.
+
+`--skip-dependencies-check`
+: Skip dependency verification.
 
 ## `autonomy mint protocol` / `contract` / `connection` / `skill`
 
@@ -70,50 +89,65 @@ autonomy mint skill [OPTIONS] PACKAGE_PATH
 `--password PASSWORD`
 : Password for the key file.
 
+`-d, --dependencies DEPENDENCY_ID`
+: Dependencies for the package.
+
 `--nft IPFS_HASH_OR_IMAGE_PATH`
 : IPFS hash or path to the image for the NFT representing the package. Note that if you are using a local chain this option is not required.
 
 `--owner OWNER_ADDRESS`
 : Owner address of the package.
 
+`--update TOKEN_ID`
+: Update the existing minted token with the latest package hash.
+
 ### Examples
 
-Mint the `abstract_abci` skill on a local chain:
+Mint the `abstract_abci` skill with dependency IDs 35 and 42 in a local chain:
 
 ```bash
-autonomy mint skill --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci
+autonomy mint --use-local skill --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 35 -d 42 ./packages/valory/skills/abstract_abci
 ```
 
 Same as above, but using a hardware wallet:
 
 ```bash
-autonomy mint skill --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci
+autonomy mint --use-local skill --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 35 -d 42 ./packages/valory/skills/abstract_abci
 ```
 
-When minting the components the open-autonomy framework uses a `subgraph` for resolving dependencies to their respective on-chain token IDs. If a dependency is not minted you'll get the following error
-
-```
-Error: No on chain registration found for following dependencies
-        - (PACKAGE_TYPE, AUTHOR/NAME:VERSION:PACKAGE_HASH)
-```
-
-The dependency checker uses hashes for resolving token IDs but if you want to use the public IDs to resolve you can use `--skip-hash-check` or `-s` flag on the `autonomy mint` command
+Update the minted `abstract_abci` skill using
 
 ```bash
-autonomy mint --skip-hash-check skill --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci
+autonomy mint --use-local skill --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 35 -d 42 ./packages/valory/skills/abstract_abci --update <token_id>
 ```
 
-When using public ID for resolving token IDs you might get prompted to select between token IDS since a package can be minted multiple times with different versions. The prompt will look like this
-
-```
-Multiple dependencies found for <public_id> of type <package_type>
-Please choose which dependency to use (token_id_0, token_id_1, ...): 
-```
-
-You can avoid the prompts and just use the latest dependencies by using `-l, --latest-dependencies` flag
+Perform a dry run
 
 ```bash
-autonomy mint --skip-hash-check --latest-dependencies skill --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci
+autonomy mint --dry-run protocol ./packages/valory/protocols/abci --key key.txt
+```
+
+Output
+
+```bash
+=== Dry run output ===
+Method: RegistriesManagerContract.get_create_transaction
+Contract: 0x...
+Kwargs: 
+    owner: 0x...
+    component_type: UnitType.COMPONENT
+    metadata_hash: 0x...
+    sender: 0x...
+    dependencies: []
+Transaction: 
+    chainId: 31337
+    nonce: 0
+    value: 0
+    gas: 16000
+    maxFeePerGas: 4000000000
+    maxPriorityFeePerGas: 3000000000
+    to: 0x...
+    data: 0x...
 ```
 
 ## `autonomy mint agent`
@@ -136,24 +170,30 @@ autonomy mint agent [OPTIONS] PACKAGE_PATH
 `--password PASSWORD`
 : Password for the key file.
 
+`-d, --dependencies DEPENDENCY_ID`
+: Dependencies for the package. In order to be minted, agent packages require at least one dependency.
+
 `--nft NFT_HASH_OR_IMAGE_PATH`
 : IPFS hash or path to the image for the NFT representing the package. Note that if you are using a local chain this option is not required.
 
 `--owner OWNER_ADDRESS`
 : Owner address of the package.
 
+`--update TOKEN_ID`
+: Update the already minted agent with on-chain `TOKEN_ID` with the current package hash.
+
 ### Examples
 
-Mint the `hello_world` agent on the Ethereum mainnet:
+Mint the `hello_world` agent with dependency IDs 34, 35, 38, 39, 42, 43, 44, 45, 46, 47, 48 and 49 in the Ethereum main chain:
 
 ```bash
-autonomy mint --use-ethereum agent --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/agents/hello_world
+autonomy mint --use-ethereum agent --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 34 -d 35 -d 38 -d 39 -d 42 -d 43 -d 44 -d 45 -d 46 -d 47 -d 48 -d 49 ./packages/valory/agents/hello_world
 ```
 
 Same as above, but using a hardware wallet:
 
 ```bash
-autonomy mint --use-ethereum agent --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/agents/hello_world
+autonomy mint --use-ethereum agent --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 34 -d 35 -d 38 -d 39 -d 42 -d 43 -d 44 -d 45 -d 46 -d 47 -d 48 -d 49 ./packages/valory/agents/hello_world
 ```
 
 ## `autonomy mint service`
@@ -194,6 +234,12 @@ autonomy mint service [OPTIONS] PACKAGE_PATH
 `--threshold`
 : Threshold for the minimum number of agents required to run the service. The threshold has to be at least $\lceil(2N + 1) / 3\rceil$, where $N$ is total number of the agents in the service.
 
+`--token ERC20_TOKEN_ADDRESS`
+: ERC20 token for securing the service.
+
+`--update TOKEN_ID`
+: Update the already minted service with on-chain `TOKEN_ID` with the current package hash.
+
 ### Examples
 
 Mint the `hello_world` service with 4 instances of canonical agent ID 3, cost of bond 10000000000000000 Wei per agent and a threshold of 3 agents, in the Ethereum main chain:
@@ -211,3 +257,14 @@ autonomy mint --use-ethereum service --hwi --nft <nft_ipfs_hash_or_image_path> -
 !!! note
 
     You can specify more than one type of canonical agent in a service by appropriately defining the triplets `--agent-id`, `--number-of-slots` and `--cost-of-bond` for each canonical agent ID.
+
+
+You can also use a custom ERC20 token as token to secure the service. Use the `--token` flag to provide the address of the token of your choice:
+
+```bash
+autonomy mint --use-ethereum service --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> --agent-id 3 --number-of-slots 4 --cost-of-bond 10000000000000000 --threshold 3 ./packages/valory/services/hello_world --token <erc20_token_address>
+```
+
+!!! warning "Important"
+
+    If you have minted a service using a custom ERC20 token, then you have to use the same token activate the service and to register the agent instances.

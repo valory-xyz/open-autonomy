@@ -152,5 +152,5 @@ class Multicall2Contract(Contract):
             decoder(call_response)
             for decoder, call_response in zip(decoders, call_responses)
         ]
-        block_number = ledger_api.api.eth.blockNumber
+        block_number = ledger_api.api.eth.block_number
         return block_number, decoded_responses

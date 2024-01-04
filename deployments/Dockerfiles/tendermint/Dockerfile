@@ -13,11 +13,11 @@ COPY wait-for-it.sh .
 RUN  chmod u+x wait-for-it.sh
 RUN  mv wait-for-it.sh /usr/local/bin
 
-# Download Tendermint
-RUN curl -L https://github.com/tendermint/tendermint/releases/download/v${TENDERMINT_VERSION}/tendermint_${TENDERMINT_VERSION}_linux_amd64.tar.gz > tendermint.tar.gz &&\
-    tar -xf tendermint.tar.gz &&\
-    mv tendermint /usr/bin &&\
-    rm -fr tendermint.tar.gz
+COPY install.sh .
+RUN  chmod u+x install.sh
+
+# Install Tendermint
+RUN bash install.sh
 
 RUN mkdir -p /app /tm_state
 

@@ -379,7 +379,8 @@ class TestSelectKeeperBehaviour(BaseDummyBehaviour):
                 select_keeper_method()
             return
 
-        actual_keeper = select_keeper_method()
+        with mock.patch("random.seed"):
+            actual_keeper = select_keeper_method()
         assert actual_keeper == expected_keeper
 
     def test_async_act(self) -> None:

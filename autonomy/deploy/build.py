@@ -38,7 +38,6 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     service_path: Path,
     build_dir: Path,
     number_of_agents: Optional[int] = None,
-    private_keys_password: Optional[str] = None,
     dev_mode: bool = False,
     packages_dir: Optional[Path] = None,
     open_aea_dir: Optional[Path] = None,
@@ -60,7 +59,6 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         path=service_path,
         keys_file=keys_file,
         number_of_agents=number_of_agents,
-        private_keys_password=private_keys_password,
         agent_instances=agent_instances,
         apply_environment_variables=apply_environment_variables,
     )

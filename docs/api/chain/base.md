@@ -44,7 +44,7 @@ On chain registry contracts helper
 
 ```python
 @staticmethod
-def get_contract(public_id: PublicId) -> Contract
+def get_contract(public_id: PublicId, cache: bool = True) -> Contract
 ```
 
 Load contract for given public id.
@@ -103,4 +103,59 @@ def service_registry() -> Contract
 ```
 
 Returns an instance of the registries manager contract.
+
+<a id="autonomy.chain.base.RegistryContracts.service_registry_token_utility"></a>
+
+#### service`_`registry`_`token`_`utility
+
+```python
+@property
+def service_registry_token_utility() -> Contract
+```
+
+Returns an instance of the service registry token utility contract.
+
+<a id="autonomy.chain.base.RegistryContracts.erc20"></a>
+
+#### erc20
+
+```python
+@property
+def erc20() -> Contract
+```
+
+Returns an instance of the service registry token utility contract.
+
+<a id="autonomy.chain.base.RegistryContracts.gnosis_safe"></a>
+
+#### gnosis`_`safe
+
+```python
+@property
+def gnosis_safe() -> Contract
+```
+
+Returns an instance of the service registry token utility contract.
+
+<a id="autonomy.chain.base.RegistryContracts.gnosis_safe_proxy_factory"></a>
+
+#### gnosis`_`safe`_`proxy`_`factory
+
+```python
+@property
+def gnosis_safe_proxy_factory() -> Contract
+```
+
+Returns an instance of the service registry token utility contract.
+
+<a id="autonomy.chain.base.RegistryContracts.multisend"></a>
+
+#### multisend
+
+```python
+@property
+def multisend() -> Contract
+```
+
+Returns an instance of the service registry token utility contract.
 

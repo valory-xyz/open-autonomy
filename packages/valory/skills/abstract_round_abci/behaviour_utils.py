@@ -78,6 +78,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     LEDGER_API_ADDRESS,
     OK_CODE,
+    RoundSequence,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
@@ -574,6 +575,7 @@ class BaseBehaviour(
         self._timeout: float = 0
         self._is_healthy: bool = False
         self._non_200_return_code_count: int = 0
+        self.gentle_reset_attempted: bool = False
 
     @classmethod
     def auto_behaviour_id(cls) -> str:
@@ -598,36 +600,35 @@ class BaseBehaviour(
     @property
     def params(self) -> BaseParams:
         """Return the params."""
-        return cast(BaseParams, self.context.params)
+        return self.context.params
+
+    @property
+    def shared_state(self) -> SharedState:
+        """Return the round sequence."""
+        return self.context.state
+
+    @property
+    def round_sequence(self) -> RoundSequence:
+        """Return the round sequence."""
+        return self.shared_state.round_sequence
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
         """Return the synchronized data."""
-        return cast(
-            BaseSynchronizedData,
-            cast(SharedState, self.context.state).synchronized_data,
-        )
+        return self.shared_state.synchronized_data
 
     @property
     def tm_communication_unhealthy(self) -> bool:
         """Return if the Tendermint communication is not healthy anymore."""
-        return cast(
-            SharedState, self.context.state
-        ).round_sequence.block_stall_deadline_expired
+        return self.round_sequence.block_stall_deadline_expired
 
     def check_in_round(self, round_id: str) -> bool:
         """Check that we entered a specific round."""
-        return (
-            cast(SharedState, self.context.state).round_sequence.current_round_id
-            == round_id
-        )
+        return self.round_sequence.current_round_id == round_id
 
     def check_in_last_round(self, round_id: str) -> bool:
         """Check that we entered a specific round."""
-        return (
-            cast(SharedState, self.context.state).round_sequence.last_round_id
-            == round_id
-        )
+        return self.round_sequence.last_round_id == round_id
 
     def check_not_in_round(self, round_id: str) -> bool:
         """Check that we are not in a specific round."""
@@ -643,10 +644,7 @@ class BaseBehaviour(
 
     def check_round_height_has_changed(self, round_height: int) -> bool:
         """Check that the round height has changed."""
-        return (
-            cast(SharedState, self.context.state).round_sequence.current_round_height
-            != round_height
-        )
+        return self.round_sequence.current_round_height != round_height
 
     def is_round_ended(self, round_id: str) -> Callable[[], bool]:
         """Get a callable to check whether the current round has ended."""
@@ -662,12 +660,11 @@ class BaseBehaviour(
         :yield: None
         """
         round_id = self.matching_round.auto_round_id()
-        round_height = cast(
-            SharedState, self.context.state
-        ).round_sequence.current_round_height
+        round_height = self.round_sequence.current_round_height
         if self.check_not_in_round(round_id) and self.check_not_in_last_round(round_id):
             raise ValueError(
-                f"Should be in matching round ({round_id}) or last round ({self.context.state.round_sequence.last_round_id}), actual round {self.context.state.round_sequence.current_round_id}!"
+                f"Should be in matching round ({round_id}) or last round ({self.round_sequence.last_round_id}), "
+                f"actual round {self.round_sequence.current_round_id}!"
             )
         yield from self.wait_for_condition(
             partial(self.check_round_height_has_changed, round_height), timeout=timeout
@@ -686,9 +683,9 @@ class BaseBehaviour(
         """
         if seconds < 0:
             raise ValueError("Can only wait for a positive amount of time")
-        deadline = cast(
-            SharedState, self.context.state
-        ).round_sequence.abci_app.last_timestamp + datetime.timedelta(seconds=seconds)
+        deadline = self.round_sequence.abci_app.last_timestamp + datetime.timedelta(
+            seconds=seconds
+        )
 
         def _wait_until() -> bool:
             return datetime.datetime.now() > deadline
@@ -714,9 +711,7 @@ class BaseBehaviour(
         :yield: the responses
         """
         stop_condition = self.is_round_ended(self.matching_round.auto_round_id())
-        round_count = cast(
-            SharedState, self.context.state
-        ).synchronized_data.round_count
+        round_count = self.synchronized_data.round_count
         object.__setattr__(payload, "round_count", round_count)
         yield from self._send_transaction(
             payload,
@@ -730,7 +725,7 @@ class BaseBehaviour(
             self._log_start()
             self._is_started = True
         try:
-            if self.context.state.round_sequence.syncing_up:
+            if self.round_sequence.syncing_up:
                 yield from self._check_sync()
             else:
                 yield from self.async_act()
@@ -758,13 +753,17 @@ class BaseBehaviour(
                 remote_height = int(
                     json_body["result"]["sync_info"]["latest_block_height"]
                 )
-                local_height = int(self.context.state.round_sequence.height)
+                local_height = int(self.round_sequence.height)
                 _is_sync_complete = local_height == remote_height
                 if _is_sync_complete:
                     self.context.logger.info(
                         f"local height == remote == {local_height}; Sync complete..."
                     )
-                    self.context.state.round_sequence.end_sync()
+                    self.round_sequence.end_sync()
+                    # we set the block stall deadline here because we pinged the /status endpoint
+                    # and received a response from tm, which means that the communication is fine
+                    self.round_sequence.set_block_stall_deadline()
+                    self.gentle_reset_attempted = False
                     return
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
             except (json.JSONDecodeError, KeyError):  # pragma: nocover
@@ -1028,6 +1027,8 @@ class BaseBehaviour(
         signing_msg: SigningMessage,
         use_flashbots: bool = False,
         target_block_numbers: Optional[List[int]] = None,
+        chain_id: Optional[str] = None,
+        raise_on_failed_simulation: bool = False,
     ) -> None:
         """
         Send transaction request.
@@ -1040,6 +1041,8 @@ class BaseBehaviour(
         :param signing_msg: signing message
         :param use_flashbots: whether to use flashbots for the transaction or not
         :param target_block_numbers: the target block numbers in case we are using flashbots
+        :param chain_id: the chain name to use for the ledger call
+        :param raise_on_failed_simulation: whether to raise an exception if the simulation fails or not.
         """
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
@@ -1051,10 +1054,18 @@ class BaseBehaviour(
             counterparty=LEDGER_API_ADDRESS,
             performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION,
         )
+        if chain_id:
+            kwargs = LedgerApiMessage.Kwargs({"chain_id": chain_id})
+            create_kwargs.update(dict(kwargs=kwargs))
+
         if use_flashbots:
-            kwargs = {}
+            _kwargs = {
+                "chain_id": chain_id,
+                "raise_on_failed_simulation": raise_on_failed_simulation,
+                "use_all_builders": True,  # TODO: make this a proper parameter
+            }
             if target_block_numbers is not None:
-                kwargs["target_block_numbers"] = target_block_numbers
+                _kwargs["target_block_numbers"] = target_block_numbers  # type: ignore
             create_kwargs.update(
                 dict(
                     performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTIONS,
@@ -1063,7 +1074,7 @@ class BaseBehaviour(
                         ledger_id=FLASHBOTS_LEDGER_ID,
                         signed_transactions=[signing_msg.signed_transaction.body],
                     ),
-                    kwargs=LedgerApiMessage.Kwargs(kwargs),
+                    kwargs=LedgerApiMessage.Kwargs(_kwargs),
                 )
             )
         else:
@@ -1082,7 +1093,7 @@ class BaseBehaviour(
             request_nonce
         ] = self.get_callback_request()
         self.context.outbox.put_message(message=ledger_api_msg)
-        self.context.logger.info("sending transaction to ledger.")
+        self.context.logger.info("Sending transaction to ledger.")
 
     def _send_transaction_receipt_request(
         self,
@@ -1498,6 +1509,8 @@ class BaseBehaviour(
         transaction: RawTransaction,
         use_flashbots: bool = False,
         target_block_numbers: Optional[List[int]] = None,
+        raise_on_failed_simulation: bool = False,
+        chain_id: Optional[str] = None,
     ) -> Generator[
         None,
         Union[None, SigningMessage, LedgerApiMessage],
@@ -1519,11 +1532,16 @@ class BaseBehaviour(
         :param transaction: transaction data
         :param use_flashbots: whether to use flashbots for the transaction or not
         :param target_block_numbers: the target block numbers in case we are using flashbots
+        :param raise_on_failed_simulation: whether to raise an exception if the transaction fails the simulation or not
+        :param chain_id: the chain name to use for the ledger call
         :yield: SigningMessage object
         :return: transaction hash
         """
+        if chain_id is None:
+            chain_id = self.params.default_chain_id
+
         terms = Terms(
-            self.context.default_ledger_id,
+            chain_id,
             self.context.agent_address,
             counterparty_address="",
             amount_by_currency_id={},
@@ -1531,7 +1549,7 @@ class BaseBehaviour(
             nonce="",
         )
         self.context.logger.info(
-            f"Sending signing request for transaction: {transaction}..."
+            f"Sending signing request to ledger '{chain_id}' for transaction: {transaction}..."
         )
         self._send_transaction_signing_request(transaction, terms)
         signature_response = yield from self.wait_for_message()
@@ -1547,7 +1565,11 @@ class BaseBehaviour(
             f"Received signature response: {signature_response}\n Sending transaction..."
         )
         self._send_transaction_request(
-            signature_response, use_flashbots, target_block_numbers
+            signature_response,
+            use_flashbots,
+            target_block_numbers,
+            chain_id,
+            raise_on_failed_simulation,
         )
         transaction_digest_msg = yield from self.wait_for_message()
         transaction_digest_msg = cast(LedgerApiMessage, transaction_digest_msg)
@@ -1733,9 +1755,7 @@ class BaseBehaviour(
         """Perform an ACN request to each one of the agents which have not sent a response yet."""
         not_responded_yet = {
             address
-            for address, deliverable in cast(
-                SharedState, self.context.state
-            ).address_to_acn_deliverable.items()
+            for address, deliverable in self.shared_state.address_to_acn_deliverable.items()
             if deliverable is None
         }
 
@@ -1767,9 +1787,8 @@ class BaseBehaviour(
         :param performative: the ACN request performative.
         :return: the result that the majority of the agents sent. If majority cannot be reached, returns `None`.
         """
-        shared_state = cast(SharedState, self.context.state)
         # reset the ACN deliverables at the beginning of a new request
-        shared_state.address_to_acn_deliverable = shared_state.acn_container()
+        self.shared_state.address_to_acn_deliverable = self.shared_state.acn_container()
 
         result = None
         for i in range(self.params.max_attempts):
@@ -1778,7 +1797,7 @@ class BaseBehaviour(
             )
             yield from self._acn_request_from_pending(performative)
 
-            result = cast(SharedState, self.context.state).get_acn_result()
+            result = self.shared_state.get_acn_result()
             if result is not None:
                 break
 
@@ -1800,7 +1819,7 @@ class BaseBehaviour(
             )
             return False
 
-        cast(SharedState, self.context.state).tm_recovery_params = acn_result
+        self.shared_state.tm_recovery_params = acn_result
         self.context.logger.info(
             f"Updated the Tendermint recovery parameters from the other agents via the ACN: {acn_result}"
         )
@@ -1869,7 +1888,7 @@ class BaseBehaviour(
             return None
 
         last_round_transition_timestamp = (
-            self.context.state.round_sequence.last_round_transition_timestamp
+            self.round_sequence.last_round_transition_timestamp
         )
         genesis_time = last_round_transition_timestamp.astimezone(pytz.UTC).strftime(
             GENESIS_TIME_FMT
@@ -1903,8 +1922,8 @@ class BaseBehaviour(
                 f"Resetting tendermint node at end of period={self.synchronized_data.period_count}."
             )
 
-            backup_blockchain = self.context.state.round_sequence.blockchain
-            self.context.state.round_sequence.reset_blockchain()
+            backup_blockchain = self.round_sequence.blockchain
+            self.round_sequence.reset_blockchain()
             reset_params = self._get_reset_params(on_startup)
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
@@ -1920,7 +1939,7 @@ class BaseBehaviour(
                     is_replay = response.get("is_replay", False)
                     if is_replay:
                         # in case of replay, the local blockchain should be set up differently.
-                        self.context.state.round_sequence.reset_blockchain(
+                        self.round_sequence.reset_blockchain(
                             is_replay=is_replay, is_init=True
                         )
                     for handler_name in self.context.handlers.__dict__.keys():
@@ -1930,18 +1949,17 @@ class BaseBehaviour(
                         # in case of successful reset we store the reset params in the shared state,
                         # so that in the future if the communication with tendermint breaks, and we need to
                         # perform a hard reset to restore it, we can use these as the right ones
-                        shared_state = cast(SharedState, self.context.state)
-                        round_count = shared_state.synchronized_data.db.round_count - 1
+                        round_count = self.synchronized_data.db.round_count - 1
                         # in case we need to reset in order to recover agent <-> tm communication
                         # we store this round as the one to start from
                         restart_from_round = self.matching_round
-                        shared_state.tm_recovery_params = TendermintRecoveryParams(
+                        self.shared_state.tm_recovery_params = TendermintRecoveryParams(
                             reset_params=reset_params,
                             round_count=round_count,
                             reset_from_round=restart_from_round.auto_round_id(),
-                            serialized_db_state=shared_state.synchronized_data.db.serialize(),
+                            serialized_db_state=self.shared_state.synchronized_data.db.serialize(),
                         )
-                    self.context.state.round_sequence.abci_app.cleanup(
+                    self.round_sequence.abci_app.cleanup(
                         self.params.cleanup_history_depth,
                         self.params.cleanup_history_depth_current,
                     )
@@ -1949,7 +1967,7 @@ class BaseBehaviour(
 
                 else:
                     msg = response.get("message")
-                    self.context.state.round_sequence.blockchain = backup_blockchain
+                    self.round_sequence.blockchain = backup_blockchain
                     self.context.logger.error(f"Error resetting: {msg}")
                     yield from self.sleep(self.params.sleep_time)
                     return False
@@ -1957,7 +1975,7 @@ class BaseBehaviour(
                 self.context.logger.error(
                     "Error communicating with tendermint com server."
                 )
-                self.context.state.round_sequence.blockchain = backup_blockchain
+                self.round_sequence.blockchain = backup_blockchain
                 yield from self.sleep(self.params.sleep_time)
                 return False
 
@@ -1972,7 +1990,7 @@ class BaseBehaviour(
             return False
 
         remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
-        local_height = self.context.state.round_sequence.height
+        local_height = self.round_sequence.height
         self.context.logger.info(
             "local-height = %s, remote-height=%s", local_height, remote_height
         )
@@ -1988,6 +2006,7 @@ class BaseBehaviour(
             # if we are on startup we don't need to wait for the reset pause duration
             # as the reset is being performed to update the tm config.
             yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
+        self._is_healthy = False
         return True
 
     def send_to_ipfs(  # pylint: disable=too-many-arguments
@@ -2129,24 +2148,14 @@ class TmManager(BaseBehaviour):
         """
         return self._hard_reset_sleep
 
-    def _kill_if_no_majority_peers(self) -> Generator[None, None, None]:
-        """This method checks whether there are enough peers in the network to reach majority. If not, the agent is shut down."""
-        # We assign a timeout to the num_active_peers request because we are trying to check whether the unhealthy
-        # tm communication, i.e. tm not sending blocks to the abci (agent), is caused by not having enough peers
-        # in the network. If that's the case, the node that is being queried has to be healthy, and respond in a
-        # timely fashion. If the tm node doesn't respond in the specified timeout, we assume the problem is not
-        # the lack of peers in the service.
-        num_active_peers = yield from self.num_active_peers(timeout=TM_REQ_TIMEOUT)
-        if (
-            num_active_peers is not None
-            and num_active_peers < self.synchronized_data.consensus_threshold
-        ):
-            self.context.logger.error(
-                f"There should be at least {self.synchronized_data.consensus_threshold} peers in the service,"
-                f" only {num_active_peers} are currently active. Shutting down the agent."
-            )
-            not_ok_code = 1
-            sys.exit(not_ok_code)
+    def _gentle_reset(self) -> Generator[None, None, None]:
+        """Perform a gentle reset of the Tendermint node."""
+        self.context.logger.info("Performing a gentle reset.")
+        request_message, http_dialogue = self._build_http_request_message(
+            "GET",
+            self.params.tendermint_com_url + "/gentle_reset",
+        )
+        yield from self._do_request(request_message, http_dialogue)
 
     def _handle_unhealthy_tm(self) -> Generator:
         """This method handles the case when the tendermint node is unhealthy."""
@@ -2155,12 +2164,14 @@ class TmManager(BaseBehaviour):
             "Trying to reset local Tendermint node as there could be something wrong with the communication."
         )
 
-        # we first check whether the reason why we haven't received blocks for more than we allow is because
-        # there are not enough peers in the network to reach majority.
-        yield from self._kill_if_no_majority_peers()
+        if not self.gentle_reset_attempted:
+            self.gentle_reset_attempted = True
+            yield from self._gentle_reset()
+            yield from self._check_sync()
+            return
 
-        # since we have reached this point that means that the cause of blocks not being received
-        # cannot be attributed to a lack of peers in the network
+        # since we have reached this point, that means that the cause of blocks not being received
+        # cannot be fixed with a simple gentle reset,
         # therefore, we request the recovery parameters via the ACN, and if we succeed, we use them to recover
         acn_communication_success = yield from self.request_recovery_params()
         if not acn_communication_success:
@@ -2169,9 +2180,8 @@ class TmManager(BaseBehaviour):
             )
             return
 
-        shared_state = cast(SharedState, self.context.state)
-        recovery_params = shared_state.tm_recovery_params
-        shared_state.round_sequence.reset_state(
+        recovery_params = self.shared_state.tm_recovery_params
+        self.round_sequence.reset_state(
             restart_from_round=recovery_params.reset_from_round,
             round_count=recovery_params.round_count,
             serialized_db_state=recovery_params.serialized_db_state,
@@ -2183,9 +2193,7 @@ class TmManager(BaseBehaviour):
                 is_recovery=True,
             )
             if reset_successfully:
-                self.context.logger.info(
-                    "Tendermint reset was successfully performed. "
-                )
+                self.context.logger.info("Tendermint reset was successfully performed.")
                 # we sleep to give some time for tendermint to start sending us blocks
                 # otherwise we might end-up assuming that tendermint is still not working.
                 # Note that the wait_from_last_timestamp() in reset_tendermint_with_wait()
@@ -2209,10 +2217,7 @@ class TmManager(BaseBehaviour):
         # we get the params from the latest successful reset, if they are not available,
         # i.e. no successful reset has been performed, we return None.
         # Returning None means default params will be used.
-        reset_params = cast(
-            SharedState, self.context.state
-        ).tm_recovery_params.reset_params
-        return reset_params
+        return self.shared_state.tm_recovery_params.reset_params
 
     def get_callback_request(self) -> Callable[[Message, "BaseBehaviour"], None]:
         """Wrapper for callback_request(), overridden to remove checks not applicable to TmManager."""

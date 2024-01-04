@@ -9,7 +9,9 @@ Component registry helpers.
 #### fetch`_`service
 
 ```python
-def fetch_service(ctx: Context, public_id: PublicId) -> Path
+def fetch_service(ctx: Context,
+                  public_id: PublicId,
+                  alias: Optional[str] = None) -> Path
 ```
 
 Fetch service.
@@ -19,7 +21,9 @@ Fetch service.
 #### fetch`_`service`_`mixed
 
 ```python
-def fetch_service_mixed(ctx: Context, public_id: PublicId) -> Path
+def fetch_service_mixed(ctx: Context,
+                        public_id: PublicId,
+                        alias: Optional[str] = None) -> Path
 ```
 
 Fetch service in mixed mode.
@@ -29,7 +33,8 @@ Fetch service in mixed mode.
 #### fetch`_`service`_`remote
 
 ```python
-def fetch_service_remote(public_id: PublicId) -> Path
+def fetch_service_remote(public_id: PublicId,
+                         alias: Optional[str] = None) -> Path
 ```
 
 Fetch service in remote mode.
@@ -39,7 +44,8 @@ Fetch service in remote mode.
 #### fetch`_`service`_`ipfs
 
 ```python
-def fetch_service_ipfs(public_id: PublicId) -> Path
+def fetch_service_ipfs(public_id: PublicId,
+                       alias: Optional[str] = None) -> Path
 ```
 
 Fetch service from IPFS node.
@@ -49,7 +55,9 @@ Fetch service from IPFS node.
 #### fetch`_`service`_`local
 
 ```python
-def fetch_service_local(ctx: Context, public_id: PublicId) -> Path
+def fetch_service_local(ctx: Context,
+                        public_id: PublicId,
+                        alias: Optional[str] = None) -> Path
 ```
 
 Fetch service from local directory.

@@ -22,12 +22,13 @@
 # pylint: disable=too-many-statements,too-many-locals,no-member,too-few-public-methods,redefined-builtin
 from typing import Any, Dict, cast
 
-from aea.mail.base_pb2 import DialogueMessage
-from aea.mail.base_pb2 import Message as ProtobufMessage
-from aea.protocols.base import Message, Serializer
+from aea.mail.base_pb2 import DialogueMessage  # type: ignore
+from aea.mail.base_pb2 import Message as ProtobufMessage  # type: ignore
+from aea.protocols.base import Message  # type: ignore
+from aea.protocols.base import Serializer  # type: ignore
 
-from packages.valory.protocols.abci import abci_pb2
-from packages.valory.protocols.abci.custom_types import (
+from packages.valory.protocols.abci import abci_pb2  # type: ignore
+from packages.valory.protocols.abci.custom_types import (  # type: ignore
     CheckTxType,
     ConsensusParams,
     Events,
@@ -41,7 +42,7 @@ from packages.valory.protocols.abci.custom_types import (
     Timestamp,
     ValidatorUpdates,
 )
-from packages.valory.protocols.abci.message import AbciMessage
+from packages.valory.protocols.abci.message import AbciMessage  # type: ignore
 
 
 class AbciSerializer(Serializer):
@@ -58,7 +59,7 @@ class AbciSerializer(Serializer):
         msg = cast(AbciMessage, msg)
         message_pb = ProtobufMessage()
         dialogue_message_pb = DialogueMessage()
-        abci_msg = abci_pb2.AbciMessage()
+        abci_msg = abci_pb2.AbciMessage()  # type: ignore
 
         dialogue_message_pb.message_id = msg.message_id
         dialogue_reference = msg.dialogue_reference
@@ -357,7 +358,7 @@ class AbciSerializer(Serializer):
         :return: the 'Abci' message.
         """
         message_pb = ProtobufMessage()
-        abci_pb = abci_pb2.AbciMessage()
+        abci_pb = abci_pb2.AbciMessage()  # type: ignore
         message_pb.ParseFromString(obj)
         message_id = message_pb.dialogue_message.message_id
         dialogue_reference = (

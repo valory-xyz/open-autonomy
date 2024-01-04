@@ -130,8 +130,13 @@ def check_one(
 
     dfa_check = dfa_from_file != dfa_from_object
     if len(error_strings) > 0:
-        errors = "\n".join(error_strings)
-        raise DFASpecificationError(f"Event reference check failed with \n{errors}")
+        errors = "\n- ".join(
+            [
+                f"Unreferenced events found in `{abci_app_class.__name__}`",
+                *error_strings,
+            ]
+        )
+        raise DFASpecificationError(errors)
 
     if dfa_check:
         raise DFASpecificationError(

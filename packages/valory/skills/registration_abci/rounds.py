@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for common apps ABCI application."""
+
 from enum import Enum
 from typing import Dict, Optional, Set, Tuple
 
@@ -29,6 +30,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilAllRound,
     CollectSameUntilThresholdRound,
     DegenerateRound,
+    SlashingNotConfiguredError,
     get_name,
 )
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
@@ -61,7 +63,14 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
         if not self.collection_threshold_reached:
             return None
 
-        self.synchronized_data.db.sync(self.common_payload)
+        try:
+            _ = self.context.state.round_sequence.offence_status
+        except SlashingNotConfiguredError:
+            self.context.logger.warning("Slashing has not been enabled!")
+        else:
+            self.context.state.round_sequence.enable_slashing()
+
+        self.context.state.round_sequence.sync_db_and_slashing(self.common_payload)
 
         synchronized_data = self.synchronized_data.update(
             participants=tuple(sorted(self.collection)),
@@ -97,7 +106,6 @@ class RegistrationRound(CollectSameUntilThresholdRound):
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
             self.synchronized_data.db.sync(self.most_voted_payload)
-
             synchronized_data = self.synchronized_data.update(
                 participants=tuple(sorted(self.collection)),
                 synchronized_data_class=self.synchronized_data_class,

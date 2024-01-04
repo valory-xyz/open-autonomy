@@ -151,6 +151,42 @@ Test that an agent that is launched later can synchronize with the rest of the n
   responses that are forwarded again via the ABCI connection such that the Tendermint
   node can receive the responses
 
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2EndExecution.nb_nodes"></a>
+
+#### nb`_`nodes
+
+number of agents with tendermint nodes
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2EndExecution.stop_string"></a>
+
+#### stop`_`string
+
+mandatory argument if n_terminal > 0
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2EndExecution.n_terminal"></a>
+
+#### n`_`terminal
+
+number of agents to be restarted
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2EndExecution.wait_to_kill"></a>
+
+#### wait`_`to`_`kill
+
+delay the termination event
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2EndExecution.restart_after"></a>
+
+#### restart`_`after
+
+how long to wait before restart
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2EndExecution.wait_before_stop"></a>
+
+#### wait`_`before`_`stop
+
+how long to check logs for `stop_string`
+
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2EndExecution.check"></a>
 
 #### check

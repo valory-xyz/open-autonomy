@@ -5,18 +5,33 @@ repo_url: https://github.com/valory-xyz/open-autonomy
 site_author: developer@valory.xyz
 edit_uri: edit/main/docs/
 
+# TODO: Set true after fixing the material dependency
+strict: false
+
+
 theme:
   name: 'material'
+  language: en
+  favicon: images/favicon.ico
+  logo: images/logo.svg  
+  icon:
+    admonition:
+      abstract: material/book-open-variant  
   features:
-    - navigation.top
     - navigation.indexes
+    - navigation.top
+    - navigation.tracking
+    - navigation.footer
+    - search.highlight
+    - search.share
+    - search.suggest
     - content.code.copy
     - content.code.annotate
+    - content.tabs.link
 
 extra_css:
   - stylesheets/extra.css
 
-strict: true
 
 nav:
   - Home: 'index.md'
@@ -36,13 +51,7 @@ nav:
     - Define the service: 'guides/define_service.md'
     - Publish and mint packages: 'guides/publish_mint_packages.md'
     - Deploy the service: 'guides/deploy_service.md'
-  - Demo agent services:
-    - 'demos/index.md'  
-    - Hello World demo: 'demos/hello_world_demo.md'
-    - Price Oracle Demo:
-      - Introduction: 'demos/price_oracle_intro.md'
-      - Technical Details: 'demos/price_oracle_technical_details.md'
-      - FSM Specification: 'demos/price_oracle_fsms.md'  
+    - Bumping the service: 'guides/bumping_services.md'
   - Key concepts:
     - 'key_concepts/index.md'    
     - Autonomous economic agents: 'key_concepts/aea.md'
@@ -65,6 +74,7 @@ nav:
     - Analise and test: 'configure_service/analise_test.md'
   - Advanced reference:
     - 'advanced_reference/index.md'
+    # - publish fetch: 'guides/publish_fetch_packages.md'
     - Commands:
       - autonomy deploy: 'advanced_reference/commands/autonomy_deploy.md'
       - autonomy build-image: 'advanced_reference/commands/autonomy_build-image.md'
@@ -79,11 +89,12 @@ nav:
       - Execution replay: 'advanced_reference/developer_tooling/execution_replay.md'
       - Benchmarking: 'advanced_reference/developer_tooling/benchmarking.md'
       - Debugging in the cluster: 'advanced_reference/developer_tooling/debugging_in_the_cluster.md'
+      - Debugging using Tenderly: 'advanced_reference/developer_tooling/debugging_using_tenderly.md'
     - Deployment:
       - Container Control Flow: 'control_flow.md'
-      - Local Deployment: 'application_deployment.md'
-      - Cloud Deployment: 'using_stack_deployment.md'
     - Using custom images in a deployment: 'advanced_reference/use_custom_images.md'
+    - Using custom dockerfile: advanced_reference/developer_tooling/custom_agent_image.md
+    - On Chain Addresses: 'advanced_reference/on_chain_addresses.md'
     - API:
       - Library:
         - Constants: 'api/constants.md'
@@ -239,11 +250,7 @@ nav:
           - Payload Tools: 'api/skills/transaction_settlement_abci/payload_tools.md'
           - Test Tools: 'api/skills/transaction_settlement_abci/test_tools/integration.md'
       - Exceptions: 'exceptions.md'
-    - Miscellaneous:
-      - Ethereum: 'ethereum_specifics.md'
-      - Delegate call vs call: 'delegate_call.md'
-      - Debugging Using Tenderly: 'debugging.md'
-      - Package list: 'package_list.md'
+    - Package list: 'package_list.md'
   - Version: 'version.md'
   - Upgrading: 'upgrading.md'
   - FAQ: 'questions-and-answers.md'
@@ -252,39 +259,64 @@ nav:
 plugins:
   - macros:
       on_error_fail: true
+      on_undefined: strict
   - search
 
+
 markdown_extensions:
+  - admonition
+  - attr_list
   - pymdownx.details
+  - pymdownx.keys
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.highlight
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
-  - admonition
-  - pymdownx.arithmatex
-  - attr_list
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - def_list  
   - md_in_html
+  - toc:
+      title: On this page
+      toc_depth: 3
+
 
 extra:
-    open_aea: '[Open AEA](https://github.com/valory-xyz/open-aea)'
-    open_aea_doc: '[Open AEA documentation](https://open-aea.docs.autonolas.tech)'
-    open_aea_api: '[Open AEA API](https://open-aea.docs.autonolas.tech/api/)'
-    fsm_app: 'FSM App'
-    open_autonomy: '[Open Autonomy](https://github.com/valory-xyz/open-autonomy)'
-    open_autonomy_api: '[Open Autonomy API](https://docs.autonolas.network/)'
-    on_chain_frontend: '[on-chain protocol frontend](https://protocol.autonolas.network/)'
-    open_aea_repository: '[Open AEA repository](https://github.com/valory-xyz/open-aea)'
-    open_autonomy_repository: '[Open Autonomy repository](https://github.com/valory-xyz/open-aea)'
-    price_oracle_service: 'Price Oracle service'
+  open_aea: '[Open AEA](https://github.com/valory-xyz/open-aea)'
+  open_aea_doc: '[Open AEA documentation](https://open-aea.docs.autonolas.tech)'
+  open_aea_api: '[Open AEA API](https://open-aea.docs.autonolas.tech/api)'
+  fsm_app: 'FSM App'
+  open_autonomy: '[Open Autonomy](https://github.com/valory-xyz/open-autonomy)'
+  open_autonomy_api: '[Open Autonomy API](https://docs.autonolas.network)'
+  open_aea_repository: '[Open AEA repository](https://github.com/valory-xyz/open-aea)'
+  open_autonomy_repository: '[Open Autonomy repository](https://github.com/valory-xyz/open-autonomy)'
+  autonolas_whitepaper: '[Autonolas Whitepaper](https://www.autonolas.network/documents/whitepaper/Whitepaper%20v1.0.pdf)'
+  autonolas_protocol: '[Autonolas Protocol](https://docs.autonolas.network/protocol)'
+  autonolas_protocol_registry_dapp_link: 'https://registry.olas.network'
+  autonolas_protocol_registry_dapp: '[Autonolas Registry web app](https://registry.olas.network)'
+  autonolas_protocol_tokenomics_dapp: '[Autonolas Tokenomics web app](https://tokenomics.olas.network)'
+  social:
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/autonolas
+      name: Autonolas on Twitter
+    - icon: fontawesome/brands/discord
+      link: https://discord.com/invite/z2PT65jKqQ
+      name: Autonolas on Discord
+    - icon: fontawesome/brands/github
+      link: https://github.com/valory-xyz
+      name: Autonolas on GitHub
 
-
-#extra_css:
-#    - css/my-styles.css
 
 extra_javascript:
     - https://unpkg.com/mermaid@8.10.1/dist/mermaid.min.js
-    - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML
+    - javascripts/mathjax.js
+    - https://polyfill.io/v3/polyfill.min.js?features=es6
+    - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js

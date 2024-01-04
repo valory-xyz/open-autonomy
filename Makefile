@@ -44,27 +44,9 @@ clean-test: clean-cache
 # removes various cache files
 .PHONY: clean-cache
 clean-cache:
-	rm -fr .hypothesis/
+	find . -type d -name .hypothesis -prune -exec rm -rf {} \;
 	rm -fr .pytest_cache
 	rm -fr .mypy_cache/
-
-# isort: fix import orders
-# black: format files according to the pep standards
-.PHONY: formatters
-formatters:
-	tox -e isort
-	tox -e black
-
-# black-check: check code style
-# isort-check: check for import order
-# flake8: wrapper around various code checks, https://flake8.pycqa.org/en/latest/user/error-codes.html
-# mypy: static type checker
-# pylint: code analysis for code smells and refactoring suggestions
-# vulture: finds dead code
-# darglint: docstring linter
-.PHONY: code-checks
-code-checks:
-	tox -p -e black-check -e isort-check -e flake8 -e mypy -e pylint -e vulture -e darglint
 
 # safety: checks dependencies for known security vulnerabilities
 # bandit: security linter
@@ -109,7 +91,7 @@ test:
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
 .PHONY: all-checks
-all-checks: clean formatters code-checks security generators common-checks-1 common-checks-2
+all-checks: clean security generators common-checks-1 common-checks-2
 
 .PHONY: test-skill
 test-skill:
@@ -148,7 +130,7 @@ install: clean
 
 .PHONY: eject-contracts
 eject-contracts:
-	@for contract in registries_manager service_manager component_registry agent_registry service_registry ; do \
+	@for contract in component_registry agent_registry registries_manager service_manager service_registry gnosis_safe gnosis_safe_proxy_factory service_registry_token_utility multisend erc20 ; do \
 		echo Updating $$contract contract; \
     	rm -rf autonomy/data/contracts/$$contract ; \
 		cp -r packages/valory/contracts/$$contract autonomy/data/contracts/$$contract ; \
@@ -205,8 +187,22 @@ run-hardhat:
 	docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
 
 protolint_install:
-	GO111MODULE=on GOPATH=~/go go get -u -v github.com/yoheimuta/protolint/cmd/protolint@v0.27.0
+	mkdir protolint_install
+	cd protolint_install && \
+		wget https://github.com/yoheimuta/protolint/releases/download/v0.27.0/protolint_0.27.0_Linux_x86_64.tar.gz && \
+		tar -xvf protolint_0.27.0_Linux_x86_64.tar.gz && \
+		sudo mv protolint /usr/local/bin/protolint
+	sudo rm -rf protolint_install
 
+protolint_install_darwin:
+	mkdir protolint_install
+	cd protolint_install && \
+		wget https://github.com/yoheimuta/protolint/releases/download/v0.27.0/protolint_0.27.0_Darwin_x86_64.tar.gz && \
+		tar -xvf protolint_0.27.0_Darwin_x86_64.tar.gz && \
+		sudo mv protolint /usr/local/bin/protolint
+	sudo rm -rf protolint_install
+
+# TODO: use precompiled binary
 protolint_install_win:
 	powershell -command '$$env:GO111MODULE="on"; go install github.com/yoheimuta/protolint/cmd/protolint@v0.27.0'
 
@@ -233,9 +229,25 @@ fix-abci-app-specs:
 	autonomy analyse fsm-specs --update --app-class AgentRegistrationAbciApp --package packages/valory/skills/registration_abci || (echo "Failed to check registration_abci consistency" && exit 1)
 	autonomy analyse fsm-specs --update --app-class ResetPauseAbciApp --package packages/valory/skills/reset_pause_abci || (echo "Failed to check reset_pause_abci consistency" && exit 1)
 	autonomy analyse fsm-specs --update --app-class RegisterResetAbciApp --package packages/valory/skills/register_reset_abci || (echo "Failed to check register_reset_abci consistency" && exit 1)
-	autonomy analyse fsm-specs --update --app-class HelloWorldAbciApp --package packages/valory/skills/hello_world_abci || (echo "Failed to check hello_world_abci consistency" && exit 1)
 	autonomy analyse fsm-specs --update --app-class TransactionSubmissionAbciApp --package packages/valory/skills/transaction_settlement_abci || (echo "Failed to check transaction_settlement_abci consistency" && exit 1)
+	autonomy analyse fsm-specs --update --app-class OffendAbciApp --package packages/valory/skills/offend_abci || (echo "Failed to check offend_abci consistency" && exit 1)
 	echo "Successfully validated abcis!"
 
 release-images:
 	skaffold build -p release --cache-artifacts=false && skaffold build -p release-latest
+
+
+# Usage: INCLUDE=PATH_TO_PROTOC_INCLUDE_DIRECTORY make build-proto
+.PHONY: build-proto
+build-proto:
+	@protoc -I $$INCLUDE \
+		--proto_path=packages/valory/connections/abci/protos/ \
+		--python_out=packages/valory/connections/abci/ \
+		packages/valory/connections/abci/protos/gogoproto/gogo.proto \
+		packages/valory/connections/abci/protos/tendermint/crypto/proof.proto \
+		packages/valory/connections/abci/protos/tendermint/crypto/keys.proto \
+		packages/valory/connections/abci/protos/tendermint/abci/types.proto \
+		packages/valory/connections/abci/protos/tendermint/types/types.proto \
+		packages/valory/connections/abci/protos/tendermint/types/validator.proto \
+		packages/valory/connections/abci/protos/tendermint/types/params.proto \
+		packages/valory/connections/abci/protos/tendermint/version/types.proto 

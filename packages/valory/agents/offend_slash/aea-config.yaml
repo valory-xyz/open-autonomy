@@ -1,0 +1,125 @@
+agent_name: offend_slash
+author: valory
+version: 0.1.0
+license: Apache-2.0
+description: Offend and slash to test the slashing feature.
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: bafybeibvdndrwbxlyljznpnv6rn7ks6e7sy4dfveb2vw7hqw3uuvrq64dm
+  __init__.py: bafybeihpqeerwvdztwaovdaas3lecjxztp7yectgjsqbk4phmpdjnww6fi
+  tests/__init__.py: bafybeic5zltt6wlvoegj2tfewe6qgr5f743lef4d6bkgvlqyfsnleiyb6y
+  tests/test_offend_slash.py: bafybeideqlz3vfssoylvesyr4oualignptsjsbiqlzgoskpd7ru6vosg4m
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0:bafybeih4lb2myvtypnfeji5jmgikmmazpgl3vyf5sy7oe66ji2zfjj6ily
+- valory/http_client:0.23.0:bafybeiddrfvomrmgvh5yuv2coq7ci72wcdf663stayi3m5aawnj4srggce
+- valory/ipfs:0.1.0:bafybeigjtca6b5wwiobl37es3wllzt6ai3qef5gqxzfy5fmmc65jkbnec4
+- valory/ledger:0.19.0:bafybeia47rr37ianvwsh77tjjpv3nwif5sywhhy2fbdshnz4a2icwln76a
+- valory/p2p_libp2p_client:0.1.0:bafybeihge56dn3xep2dzomu7rtvbgo4uc2qqh7ljl3fubqdi2lq44gs5lq
+contracts:
+- valory/gnosis_safe:0.1.0:bafybeiegkl6zrbvlbpwmoziw4hfkocjfqdqphkmpgow7ovsmv7bwa3f4pe
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeiehjccqvhrcarhahhyyrshaifoipfqwvpxjucpucslp22l2wc3sl4
+- valory/service_registry:0.1.0:bafybeieeuruq7dp4b6souetv5ce7wlm52pw7vyrxuhqa7kuy5m3rwwxks4
+protocols:
+- open_aea/signing:1.0.0:bafybeie7xyems76v5b4wc2lmaidcujizpxfzjnnwdeokmhje53g7ym25ii
+- valory/abci:0.1.0:bafybeihmzlmmb4pdo3zkhg6ehuyaa4lhw7bfpclln2o2z7v3o6fcep26iu
+- valory/acn:1.1.0:bafybeic2pxzfc3voxl2ejhcqyf2ehm4wm5gxvgx7bliloiqi2uppmq6weu
+- valory/contract_api:1.0.0:bafybeialhbjvwiwcnqq3ysxcyemobcbie7xza66gaofcvla5njezkvhcka
+- valory/http:1.0.0:bafybeiejoqgv7finfxo3rcvvovrlj5ccrbgxodjq43uo26ylpowsa3llfe
+- valory/ipfs:0.1.0:bafybeiedxeismnx3k5ty4mvvhlqideixlhqmi5mtcki4lxqfa7uqh7p33u
+- valory/ledger_api:1.0.0:bafybeige5agrztgzfevyglf7mb4o7pzfttmq4f6zi765y4g2zvftbyowru
+- valory/tendermint:0.1.0:bafybeig6g6twajlwssfbfp5rlnu5mwzuu5kgak5cs4fich7rlkx6whesnu
+skills:
+- valory/abstract_abci:0.1.0:bafybeial6drwstqlvuizgtouc4uqgxvutwryfu7yohondemd6bd7cw3jzm
+- valory/abstract_round_abci:0.1.0:bafybeicrzndcdbue34yxwwb4hmmdhgzw4owcdcdag3ifj6thpx5wie3dp4
+- valory/offend_abci:0.1.0:bafybeifhczaajqghtwo754aukhy2uyollmksgxnofowem67wy5ie5ezmvm
+- valory/offend_slash_abci:0.1.0:bafybeidb6v5jmjmsiw5ydfoolzhl7w7clz2iazyuz5pikq7qmoq3fbxpne
+- valory/registration_abci:0.1.0:bafybeihjlapvviakobxg7aa5qubgqoz6xurlhu7xxtnrg5ah3ag2qj626i
+- valory/reset_pause_abci:0.1.0:bafybeibnwjcjx4lluf4cwb6es5peelu3gm7vrzlieygrzpbjlubxpvbvzy
+- valory/slashing_abci:0.1.0:bafybeievvfagzeod4ivbx7dmnmybrmodkzuav7kjz4wjjr3cagslsyh6oy
+- valory/transaction_settlement_abci:0.1.0:bafybeifpnkwgwpzz6uwrvfgurm26allr6shjfbp7bfbrxwy64sw3nf3fsa
+default_ledger: ethereum
+required_ledgers:
+- ethereum
+default_routing: {}
+connection_private_key_paths: {}
+private_key_paths: {}
+logging_config:
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    standard:
+      format: '[%(asctime)s] [%(levelname)s] %(message)s'
+  handlers:
+    logfile:
+      class: logging.FileHandler
+      formatter: standard
+      filename: ${LOG_FILE:str:log.txt}
+      level: INFO
+    console:
+      class: logging.StreamHandler
+      formatter: standard
+      stream: ext://sys.stdout
+  loggers:
+    aea:
+      handlers:
+      - logfile
+      - console
+      propagate: false
+skill_exception_policy: stop_and_exit
+dependencies:
+  open-aea-ledger-ethereum:
+    version: ==1.43.0.post2
+  open-aea-test-autonomy:
+    version: ==0.13.9.post1
+default_connection: null
+---
+public_id: valory/abci:0.1.0
+type: connection
+config:
+  target_skill_id: valory/offend_slash_abci:0.1.0
+  host: ${ABCI_HOST:str:localhost}
+  port: ${ABCI_PORT:int:26658}
+  use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
+---
+public_id: valory/ledger:0.19.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_ADDRESS:str:http://localhost:8545}
+      chain_id: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_CHAIN_ID:int:31337}
+---
+public_id: valory/offend_slash_abci:0.1.0
+type: skill
+models:
+  benchmark_tool:
+    args:
+      log_dir: ${str:/benchmarks}
+  params:
+    args:
+      tendermint_url: ${str:http://localhost:26657}
+      tendermint_com_url: ${str:http://localhost:8080}
+      use_termination: ${bool:true}
+      on_chain_service_id: ${int:1}
+      setup:
+        safe_contract_address: ${str:0x77b783e911F4398D75908Cc60C7138Bd1eFe35Fd}
+        consensus_threshold: ${int:null}
+      service_registry_address: ${str:0x998abeb3E57409262aE5b751f60747921B33613E}
+      share_tm_config_on_startup: ${bool:true}
+---
+public_id: valory/p2p_libp2p_client:0.1.0
+type: connection
+config:
+  nodes:
+  - uri: ${P2P_URI:str:localhost:11000}
+    public_key: ${P2P_PUBLIC_KEY:str:03c74dbfbe7bbc1b42429f78778017a3cd7eaf9d59d1634c9505a3f7c1a9350e71}
+cert_requests:
+- identifier: acn
+  ledger_id: ethereum
+  message_format: '{public_key}'
+  not_after: '2023-01-01'
+  not_before: '2022-01-01'
+  public_key: ${P2P_PUBLIC_KEY:str:03c74dbfbe7bbc1b42429f78778017a3cd7eaf9d59d1634c9505a3f7c1a9350e71}
+  save_path: .certs/acn_cosmos_11000.txt
+is_abstract: false

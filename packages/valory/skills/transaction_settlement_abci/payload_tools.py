@@ -38,6 +38,7 @@ class VerificationStatus(Enum):
     PENDING = 4
     ERROR = 5
     INSUFFICIENT_FUNDS = 6
+    BAD_SAFE_NONCE = 7
 
 
 class PayloadDeserializationError(Exception):
@@ -100,6 +101,8 @@ def hash_payload_to_hex(  # pylint: disable=too-many-arguments, too-many-locals
     gas_token: str = NULL_ADDRESS,
     refund_receiver: str = NULL_ADDRESS,
     use_flashbots: bool = False,
+    gas_limit: int = 0,
+    raise_on_failed_simulation: bool = False,
 ) -> str:
     """Serialise to a hex string."""
     if len(safe_tx_hash) != 64:  # should be exactly 32 bytes!
@@ -115,6 +118,7 @@ def hash_payload_to_hex(  # pylint: disable=too-many-arguments, too-many-locals
         or safe_tx_gas > MAX_UINT256
         or base_gas > MAX_UINT256
         or safe_gas_price > MAX_UINT256
+        or gas_limit > MAX_UINT256
     ):
         raise ValueError(
             "Value is bigger than the max 256 bit value"
@@ -134,6 +138,8 @@ def hash_payload_to_hex(  # pylint: disable=too-many-arguments, too-many-locals
     base_gas_ = base_gas.to_bytes(32, "big").hex()
     safe_gas_price_ = safe_gas_price.to_bytes(32, "big").hex()
     use_flashbots_ = use_flashbots.to_bytes(32, "big").hex()
+    gas_limit_ = gas_limit.to_bytes(32, "big").hex()
+    raise_on_failed_simulation_ = raise_on_failed_simulation.to_bytes(32, "big").hex()
 
     concatenated = (
         safe_tx_hash
@@ -146,6 +152,8 @@ def hash_payload_to_hex(  # pylint: disable=too-many-arguments, too-many-locals
         + gas_token
         + refund_receiver
         + use_flashbots_
+        + gas_limit_
+        + raise_on_failed_simulation_
         + data.hex()
     )
     return concatenated
@@ -166,6 +174,10 @@ def skill_input_hex_to_payload(payload: str) -> dict:
         gas_token=payload[364:406],
         refund_receiver=payload[406:448],
         use_flashbots=bool.from_bytes(bytes.fromhex(payload[448:512]), "big"),
-        data=bytes.fromhex(payload[512:]),
+        gas_limit=int.from_bytes(bytes.fromhex(payload[512:576]), "big"),
+        raise_on_failed_simulation=bool.from_bytes(
+            bytes.fromhex(payload[576:640]), "big"
+        ),
+        data=bytes.fromhex(payload[640:]),
     )
     return tx_params

@@ -99,3 +99,33 @@ class RegistriesManagerContract(Contract):
             raise_on_try=raise_on_try,
         )
         return tx_params
+
+    @classmethod
+    def get_update_hash_transaction(  # pylint: disable=too-many-arguments
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        component_type: UnitType,
+        unit_id: int,
+        metadata_hash: str,
+        sender: str,
+        raise_on_try: bool = False,
+    ) -> JSONLike:
+        """Create a component."""
+
+        tx_params = ledger_api.build_transaction(
+            contract_instance=cls.get_instance(
+                ledger_api=ledger_api, contract_address=contract_address
+            ),
+            method_name="updateHash",
+            method_args={
+                "unitType": component_type.value,
+                "unitId": unit_id,
+                "unitHash": metadata_hash,
+            },
+            tx_args={
+                "sender_address": sender,
+            },
+            raise_on_try=raise_on_try,
+        )
+        return tx_params

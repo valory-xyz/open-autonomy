@@ -38,7 +38,6 @@ Options:
   --remote                        To use a remote registry.
   --local                         To use a local registry.
   -p                              Ask for password interactively
-  --password PASSWORD             Set password for key encryption/decryption
   --help                          Show this message and exit.
 
 ```
@@ -52,7 +51,7 @@ Usage: autonomy build-image [OPTIONS] [PUBLIC_ID_OR_HASH]
 
 Options:
   --service-dir PATH  Path to service dir.
-  --dev               Build developement image.
+  --dev               Build development image.
   --pull              Pull latest dependencies.
   --help              Show this message and exit.
 

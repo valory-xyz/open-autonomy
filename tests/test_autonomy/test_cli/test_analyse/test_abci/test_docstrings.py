@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -28,45 +28,32 @@ from autonomy.analyse.abci.docstrings import (
     docstring_abci_app,
 )
 
-from packages.valory.skills.hello_world_abci.rounds import HelloWorldAbciApp
+from packages.valory.skills.offend_abci.rounds import OffendAbciApp
 
 
 def test_docstring_abci_app() -> None:
     """Test docstring_abci_app"""
 
-    expected = """\"\"\"HelloWorldAbciApp
+    expected = """\"\"\"OffendAbciApp
 
-        Initial round: RegistrationRound
+    Initial round: OffendRound
 
-        Initial states: {RegistrationRound}
+    Initial states: {OffendRound}
 
-        Transition states:
-            0. RegistrationRound
-                - done: 1.
-            1. CollectRandomnessRound
-                - done: 2.
-                - no majority: 1.
-                - round timeout: 1.
-            2. SelectKeeperRound
-                - done: 3.
-                - no majority: 0.
-                - round timeout: 0.
-            3. PrintMessageRound
-                - done: 4.
-                - round timeout: 0.
-            4. ResetAndPauseRound
-                - done: 1.
-                - no majority: 0.
-                - reset timeout: 0.
+    Transition states:
+        0. OffendRound
+            - done: 1.
+            - no majority: 0.
+            - round timeout: 0.
+        1. FinishedOffendRound
 
-        Final states: {}
+    Final states: {FinishedOffendRound}
 
-        Timeouts:
-            round timeout: 30.0
-            reset timeout: 30.0
+    Timeouts:
+        round timeout: 30.0
     \"\"\""""
 
-    docstring = docstring_abci_app(HelloWorldAbciApp)
+    docstring = docstring_abci_app(OffendAbciApp)
     differences = "\n".join(difflib.unified_diff(docstring.split(), expected.split()))
     assert not differences, differences
 
@@ -78,14 +65,14 @@ def test_compare_docstring_content() -> None:
     assert compare_docstring_content("", "", "") == (False, "")
 
     # identical - no update
-    docstring = docstring_abci_app(HelloWorldAbciApp)
-    abci_app_name = HelloWorldAbciApp.__name__
-    file_content = Path(inspect.getfile(HelloWorldAbciApp)).read_text()
+    docstring = docstring_abci_app(OffendAbciApp)
+    abci_app_name = OffendAbciApp.__name__
+    file_content = Path(inspect.getfile(OffendAbciApp)).read_text()
     result = compare_docstring_content(file_content, docstring, abci_app_name)
     assert result == (True, file_content)
 
     # mutated - update
-    mutated_content = file_content.replace("Initial round: RegistrationRound", "")
+    mutated_content = file_content.replace("Initial round: OffendRound", "")
     assert not mutated_content == file_content
     result = compare_docstring_content(mutated_content, docstring, abci_app_name)
     assert result == (True, file_content)

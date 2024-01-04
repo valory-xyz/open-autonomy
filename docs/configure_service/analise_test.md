@@ -50,8 +50,7 @@ The `valory/abstract_round_abci` skill packages come with a number of testing to
     Fetch the `hello_world` agent, which comes with the `hello_world_abci` {{fsm_app}} skill within:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeidghah5yexnsdxwplnbyq3u3bgl2mmjur2eef4bxenf6ddb3zs2ca
-    mv hello_world hello_world_agent
+    autonomy fetch valory/hello_world:0.1.0:bafybeib5grnum25svkpozqqnvpd7nmwoaypnc3l7lbnoj335nwgczsiyca --alias hello_world_agent
     ```
 
     Look at the unit tests for the `hello_world_abci` skill, located in the folder
@@ -77,8 +76,7 @@ The same plugin also provides tools for writing end-to-end tests for agents. The
     Fetch the `hello_world` agent:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeidghah5yexnsdxwplnbyq3u3bgl2mmjur2eef4bxenf6ddb3zs2ca
-    mv hello_world hello_world_agent
+    autonomy fetch valory/hello_world:0.1.0:bafybeib5grnum25svkpozqqnvpd7nmwoaypnc3l7lbnoj335nwgczsiyca --alias hello_world_agent
     ```
 
     Look at the end-to-end tests, located in the folder
@@ -87,5 +85,5 @@ The same plugin also provides tools for writing end-to-end tests for agents. The
     ./hello_world_agent/tests/
     ```
 
-The framework also provides CLI tools for building and running [local testing deployments](../guides/deploy_service.md#local-deployment).
+The framework also provides CLI tools for building and running [local testing deployments](../guides/deploy_service.md#local-deployment-full-workflow).
 You can include additional images in your testing deployment, for example, a Hardhat node with custom contracts, or an ACN node. This is achieved through the flags `--use-hardhat` and `--use-acn`, respectively. Read the [`autonomy deploy build` command documentation](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-build) and the guide for [using custom images in a deployment](../advanced_reference/use_custom_images.md#images-used-in-testing-only) for more information.

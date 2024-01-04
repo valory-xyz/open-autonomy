@@ -15,7 +15,7 @@ You must ensure that your machine satisfies the [framework requirements](./set_u
 
 ## Step-by-step instructions
 
-In order to deploy and run a service you need an agent with a working {{fsm_app}}. We base this guide in a default {{fsm_app}} available in the remote registry, namely, the `hello_world_abci` {{fsm_app}}. As a result, we will define an agent implementing a functionality equivalent to the [Hello World service](../demos/hello_world_demo.md). You can, of course, use your own {{fsm_app}} to define your agent.
+In order to deploy and run a service you need an agent with a working {{fsm_app}}. We base this guide on a default {{fsm_app}} available in the remote registry, namely, the `hello_world_abci` {{fsm_app}}. As a result, we will define an agent implementing a functionality equivalent to the [Hello World service](https://docs.autonolas.network/demos/hello-world/). You can, of course, use your own {{fsm_app}} to define your agent.
 
 !!! warning "Important"
 
@@ -46,6 +46,17 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
 
       * A reference to the {{fsm_app}} skill.
       * References to other components required by the agent (or dependencies of the {{fsm_app}} skill), under the relevant sections.
+
+        !!! warning "Important"
+
+            There are a number of components which are mandatory for agents that are part of a service:
+
+            * Connections: `valory/abci`.
+            * Protocols: `open_aea/signing`, `valory/abci`, `valory/acn`(*).
+            * Skills: `valory/abstract_abci`, `valory/abstract_round_abci`, `valory/termination_abci`(*).
+
+            (*) Components required only if the service is minted in the {{ autonolas_protocol }}.
+
       * Configuration overrides that specify values for component parameters. These overrides are separated by YAML document separators `---` and will be discussed in a further section.
 
     ???+ example "Example of an `aea-config.yaml` file"
@@ -64,21 +75,21 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
         fingerprint: {}
         fingerprint_ignore_patterns: []
         connections:
-        - valory/abci:0.1.0:bafybeienpqzsym3rg7nnomd6mxgbt4didwd4wfj72oadde27trdmcgsu5y
-        - valory/http_client:0.23.0:bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi
-        - valory/ipfs:0.1.0:bafybeie46fu7mv64q72dwzoxg77zbiv3pzsigzjk3rehjpm47cf3y77mha
-        - valory/ledger:0.19.0:bafybeighon6i2qfl2xrg7t3lbdzlkyo4v2a7ayvwso7m5w7pf2hvjfs2ma
-        - valory/p2p_libp2p_client:0.1.0:bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva
+        - valory/abci:0.1.0
+        - valory/http_client:0.23.0
+        - valory/ipfs:0.1.0
+        - valory/ledger:0.19.0
+        - valory/p2p_libp2p_client:0.1.0
         contracts: []
         protocols:
-        - open_aea/signing:1.0.0:bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4
-        - valory/abci:0.1.0:bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4
-        - valory/http:1.0.0:bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty
-        - valory/ipfs:0.1.0:bafybeihlgai5pbmkb6mjhvgy4gkql5uvpwvxbpdowczgz4ovxat6vajrq4
+        - open_aea/signing:1.0.0
+        - valory/abci:0.1.0
+        - valory/http:1.0.0
+        - valory/ipfs:0.1.0
         skills:
-        - valory/abstract_abci:0.1.0:bafybeigg5ofide2gxwgjvljjgpyy6ombby7ph6pg7erj3h6itduwpn6pqu
-        - valory/abstract_round_abci:0.1.0:bafybeicn5utwviq46ubguok5rl5go4hb7oxluj7t6bja2ut4epjw2hevei
-        - valory/hello_world_abci:0.1.0:bafybeigidqcurxh3r3m7vxjfv2d4tvcpzvkhwj7r7owacn6jymzik75k7i
+        - valory/abstract_abci:0.1.0
+        - valory/abstract_round_abci:0.1.0
+        - valory/hello_world_abci:0.1.0
         default_ledger: ethereum
         required_ledgers:
         - ethereum
@@ -109,9 +120,9 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
               propagate: true
         dependencies:
           open-aea-ledger-ethereum:
-            version: ==1.32.0
+            version: ==1.43.0.post2
           open-aea-test-autonomy:
-            version: ==0.10.2
+            version: ==0.12.1.post1
         default_connection: null
         ---
         public_id: valory/hello_world_abci:0.1.0
@@ -226,7 +237,7 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
          If your agent is using an {{fsm_app}}, you also need to override the variable `all_participants` in the `aea-config.yaml` file with the wallet address of this private key as follows:
 
          ```yaml title="aea-config.yaml"
-         (...)
+         # (...)
          all_participants: ${list:["0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65"]}
          ```
 

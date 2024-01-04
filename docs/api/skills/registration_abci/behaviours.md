@@ -2,7 +2,13 @@
 
 # packages.valory.skills.registration`_`abci.behaviours
 
-This module contains the behaviours for the 'abci' skill.
+This module contains the behaviours for the 'registration_abci' skill.
+
+<a id="packages.valory.skills.registration_abci.behaviours.WAIT_FOR_BLOCK_TIMEOUT"></a>
+
+#### WAIT`_`FOR`_`BLOCK`_`TIMEOUT
+
+1 minute
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationBaseBehaviour"></a>
 

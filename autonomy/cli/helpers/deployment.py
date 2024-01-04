@@ -19,6 +19,8 @@
 
 """Deployment helpers."""
 import os
+import shutil
+import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -27,14 +29,14 @@ from aea.configurations.data_types import PublicId
 from aea.helpers.base import cd
 from compose.cli import main as docker_compose
 from compose.config.errors import ConfigurationError
+from compose.project import Project, ProjectError
 from docker.errors import NotFound
-from web3.exceptions import BadFunctionCallOutput
 
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
 from autonomy.chain.service import get_agent_instances, get_service_info
 from autonomy.chain.utils import resolve_component_id
-from autonomy.cli.helpers.chain import get_ledger_and_crypto_objects
+from autonomy.cli.helpers.chain import OnChainHelper
 from autonomy.cli.helpers.registry import fetch_service_ipfs
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
 from autonomy.configurations.loader import load_service_config
@@ -73,16 +75,33 @@ def _build_dirs(build_dir: Path) -> None:
             click.echo(
                 f"Updating permissions failed for {path}, please do it manually."
             )
+        except AttributeError:  # pragma: no cover
+            continue
 
 
-def run_deployment(
-    build_dir: Path, no_recreate: bool = False, remove_orphans: bool = False
-) -> None:
-    """Run deployment."""
+def _print_log(compose_app: docker_compose.TopLevelCommand) -> None:
+    """Print docker container logs."""
+    terminal_width, _ = shutil.get_terminal_size()
+    for service in compose_app.project.service_names:
+        try:
+            click.echo("=" * terminal_width)
+            click.echo(f"Trying to get logs for {service}")
+            click.echo(compose_app.project.client.logs(service))
+        except NotFound:
+            continue
 
-    click.echo(f"Running build @ {build_dir}")
+
+def _kill_containers(compose_app: docker_compose.TopLevelCommand) -> None:
+    """Kill active containers before exiting."""
+    for container in compose_app.project.containers(compose_app.project.service_names):
+        click.echo(f"Trying to kill {container.name}")
+        container.kill()
+
+
+def _load_compose_project(build_dir: Path) -> Project:
+    """Load docker compose project."""
     try:
-        project = docker_compose.project_from_options(build_dir, {})
+        return docker_compose.project_from_options(build_dir, {})
     except ConfigurationError as e:  # pragma: no cover
         if "Invalid interpolation format" in e.msg:
             raise click.ClickException(
@@ -91,11 +110,21 @@ def run_deployment(
             )
         raise
 
+
+def run_deployment(
+    build_dir: Path,
+    no_recreate: bool = False,
+    remove_orphans: bool = False,
+    detach: bool = False,
+) -> None:
+    """Run deployment."""
+    click.echo(f"Running build @ {build_dir}")
     try:
+        project = _load_compose_project(build_dir=build_dir)
         commands = docker_compose.TopLevelCommand(project=project)
         commands.up(
             {
-                "--detach": False,
+                "--detach": True,
                 "--no-color": False,
                 "--quiet-pull": False,
                 "--no-deps": False,
@@ -116,6 +145,31 @@ def run_deployment(
                 "SERVICE": None,
             }
         )
+        if detach:
+            click.echo("The service is running...")
+            return
+        click.echo("The service is running, press CTRL + C to stop...")
+        while True:
+            time.sleep(1)
+    except NotFound as e:  # pragma: no cover
+        raise click.ClickException(e.explanation)
+    except ProjectError as e:  # pragma: no cover
+        click.echo("Error occured bringing up the project")
+        _print_log(compose_app=commands)
+        _kill_containers(compose_app=commands)
+        raise click.ClickException(e)
+    except KeyboardInterrupt:  # pragma: no cover
+        stop_deployment(build_dir=build_dir)
+
+
+def stop_deployment(build_dir: Path) -> None:
+    """Stop running deployment."""
+    try:
+        project = _load_compose_project(build_dir=build_dir)
+        commands = docker_compose.TopLevelCommand(project=project)
+        click.echo("\nDon't cancel while stopping services...")
+        commands.down({"--volumes": False, "--remove-orphans": True, "--rmi": None})
+        _kill_containers(compose_app=commands)
     except NotFound as e:  # pragma: no cover
         raise click.ClickException(e.explanation)
 
@@ -126,7 +180,6 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     deployment_type: str,
     dev_mode: bool,
     number_of_agents: Optional[int] = None,
-    password: Optional[str] = None,
     packages_dir: Optional[Path] = None,
     open_aea_dir: Optional[Path] = None,
     open_autonomy_dir: Optional[Path] = None,
@@ -159,7 +212,6 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         service_path=Path.cwd(),
         type_of_deployment=deployment_type,
         keys_file=keys_file,
-        private_keys_password=password,
         number_of_agents=number_of_agents,
         build_dir=build_dir,
         dev_mode=dev_mode,
@@ -186,7 +238,7 @@ def _resolve_on_chain_token_id(
 ) -> Tuple[Dict[str, str], List[str], str, int]:
     """Resolve service metadata from tokenID"""
 
-    ledger_api, _ = get_ledger_and_crypto_objects(chain_type=chain_type)
+    ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(chain_type=chain_type)
     contract_address = ContractConfigs.service_registry.contracts[chain_type]
 
     click.echo(f"Fetching service metadata using chain type {chain_type.value}")
@@ -199,14 +251,20 @@ def _resolve_on_chain_token_id(
             ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
         )
         agent_instances = info["agentInstances"]
-        (_, multisig_address, _, consensus_threshold, *_,) = get_service_info(
+        (
+            _,
+            multisig_address,
+            _,
+            consensus_threshold,
+            *_,
+        ) = get_service_info(
             ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
         )
     except FailedToRetrieveComponentMetadata as e:
         raise click.ClickException(str(e)) from e
-    except BadFunctionCallOutput as e:
+    except Exception as e:
         raise click.ClickException(
-            f"Cannot find the service registry deployment; Service contract address {contract_address}"
+            f"Cannot find the service registry deployment; Service contract address {contract_address}; Error: {e}"
         ) from e
 
     return metadata, agent_instances, multisig_address, consensus_threshold
@@ -220,8 +278,8 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
     n: Optional[int],
     deployment_type: str,
     aev: bool = False,
-    password: Optional[str] = None,
     no_deploy: bool = False,
+    detach: bool = False,
 ) -> None:
     """Build and run deployment from tokenID."""
 
@@ -253,7 +311,6 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
             multisig_address=multisig_address,
             consensus_threshold=consensus_threshold,
             apply_environment_variables=aev,
-            password=password,
         )
         if not skip_image:
             click.echo("Building required images.")
@@ -265,4 +322,4 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
         return
 
     click.echo("Running deployment")
-    run_deployment(build_dir)
+    run_deployment(build_dir, detach=detach)

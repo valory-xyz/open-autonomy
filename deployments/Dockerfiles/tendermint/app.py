@@ -189,11 +189,10 @@ class PeriodDumper:
 
 def create_app(  # pylint: disable=too-many-statements
     dump_dir: Optional[Path] = None,
-    perform_monitoring: bool = True,
     debug: bool = False,
 ) -> Tuple[Flask, TendermintNode]:
     """Create the Tendermint server app"""
-
+    write_to_log = os.environ.get("WRITE_TO_LOG", "false").lower() == "true"
     tendermint_params = TendermintParams(
         proxy_app=os.environ["PROXY_APP"],
         consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
@@ -203,12 +202,14 @@ def create_app(  # pylint: disable=too-many-statements
 
     app = Flask(__name__)
     period_dumper = PeriodDumper(logger=app.logger, dump_dir=dump_dir)
-    tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
+    tendermint_node = TendermintNode(
+        tendermint_params,
+        logger=app.logger,
+        write_to_log=write_to_log,
+    )
     tendermint_node.init()
-
     override_config_toml()
-
-    tendermint_node.start(start_monitoring=perform_monitoring, debug=debug)
+    tendermint_node.start(debug=debug)
 
     @app.get("/params")
     def get_params() -> Dict:
@@ -266,7 +267,7 @@ def create_app(  # pylint: disable=too-many-statements
         """Reset the tendermint node gently."""
         try:
             tendermint_node.stop()
-            tendermint_node.start(start_monitoring=perform_monitoring)
+            tendermint_node.start()
             return jsonify({"message": "Reset successful.", "status": True}), 200
         except Exception as e:  # pylint: disable=W0703
             return jsonify({"message": f"Reset failed: {e}", "status": False}), 200
@@ -298,7 +299,7 @@ def create_app(  # pylint: disable=too-many-statements
 
             return_code = tendermint_node.prune_blocks()
             if return_code:
-                tendermint_node.start(start_monitoring=perform_monitoring)
+                tendermint_node.start()
                 raise RuntimeError("Could not perform `unsafe-reset-all` successfully!")
             defaults = get_defaults()
             tendermint_node.reset_genesis_file(
@@ -307,7 +308,7 @@ def create_app(  # pylint: disable=too-many-statements
                 request.args.get("initial_height", "1"),
                 request.args.get("period_count", "0"),
             )
-            tendermint_node.start(start_monitoring=perform_monitoring)
+            tendermint_node.start()
             return jsonify({"message": "Reset successful.", "status": True}), 200
         except Exception as e:  # pylint: disable=W0703
             return jsonify({"message": f"Reset failed: {e}", "status": False}), 200
