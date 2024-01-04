@@ -112,23 +112,23 @@ If you plan to follow the guides in the next sections, you need to populate the 
     "third_party": {
         "service/valory/hello_world/0.1.0": "bafybeicehljk5ahlsy62t6a5by46uz3nguuxuh653mzoz4hfme22s6eodi",
         "agent/valory/hello_world/0.1.0": "bafybeib5grnum25svkpozqqnvpd7nmwoaypnc3l7lbnoj335nwgczsiyca",
-        "connection/valory/abci/0.1.0": "bafybeih4lb2myvtypnfeji5jmgikmmazpgl3vyf5sy7oe66ji2zfjj6ily",
-        "connection/valory/http_client/0.23.0": "bafybeiddrfvomrmgvh5yuv2coq7ci72wcdf663stayi3m5aawnj4srggce",
-        "connection/valory/ipfs/0.1.0": "bafybeigjtca6b5wwiobl37es3wllzt6ai3qef5gqxzfy5fmmc65jkbnec4",
-        "connection/valory/ledger/0.19.0": "bafybeia47rr37ianvwsh77tjjpv3nwif5sywhhy2fbdshnz4a2icwln76a",
+        "connection/valory/abci/0.1.0": "bafybeicglrfbp6g2lign74hzovs2lxfx3yw462cc2loguvbyccosljehae",
+        "connection/valory/http_client/0.23.0": "bafybeibhifd76dkcu6w5swbqoub5yaie2ksqj44ug2ckaqaovnltgkx62u",
+        "connection/valory/ipfs/0.1.0": "bafybeiao36u56wozt3eoheng7epwphpd7fwlauxynm4ay5xu65k2cdhjqe",
+        "connection/valory/ledger/0.19.0": "bafybeigo4zoyrlawvxl7cy7vx35tuyxfdty2rujlxgjtg3alsjzh4sz6am",
         "contract/valory/service_registry/0.1.0": "bafybeieeuruq7dp4b6souetv5ce7wlm52pw7vyrxuhqa7kuy5m3rwwxks4",
-        "protocol/open_aea/signing/1.0.0": "bafybeie7xyems76v5b4wc2lmaidcujizpxfzjnnwdeokmhje53g7ym25ii",
-        "protocol/valory/abci/0.1.0": "bafybeihmzlmmb4pdo3zkhg6ehuyaa4lhw7bfpclln2o2z7v3o6fcep26iu",
-        "protocol/valory/acn/1.1.0": "bafybeic2pxzfc3voxl2ejhcqyf2ehm4wm5gxvgx7bliloiqi2uppmq6weu",
-        "protocol/valory/contract_api/1.0.0": "bafybeialhbjvwiwcnqq3ysxcyemobcbie7xza66gaofcvla5njezkvhcka",
-        "protocol/valory/http/1.0.0": "bafybeiejoqgv7finfxo3rcvvovrlj5ccrbgxodjq43uo26ylpowsa3llfe",
-        "protocol/valory/ipfs/0.1.0": "bafybeiedxeismnx3k5ty4mvvhlqideixlhqmi5mtcki4lxqfa7uqh7p33u",
-        "protocol/valory/ledger_api/1.0.0": "bafybeige5agrztgzfevyglf7mb4o7pzfttmq4f6zi765y4g2zvftbyowru",
-        "protocol/valory/tendermint/0.1.0": "bafybeig6g6twajlwssfbfp5rlnu5mwzuu5kgak5cs4fich7rlkx6whesnu",
-        "skill/valory/abstract_abci/0.1.0": "bafybeial6drwstqlvuizgtouc4uqgxvutwryfu7yohondemd6bd7cw3jzm",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeicrzndcdbue34yxwwb4hmmdhgzw4owcdcdag3ifj6thpx5wie3dp4",
+        "protocol/open_aea/signing/1.0.0": "bafybeigcaqwniw2ksof4njsi3ochtw6cr3ykhflappbcqqr3anrgc54i7q",
+        "protocol/valory/abci/0.1.0": "bafybeiaqmp7kocbfdboksayeqhkbrynvlfzsx4uy4x6nohywnmaig4an7u",
+        "protocol/valory/acn/1.1.0": "bafybeigywzavmrt42oon2suitst5va5whj3deemuer35rsgh2a4cje27ry",
+        "protocol/valory/contract_api/1.0.0": "bafybeiaeqggl7pcvo54y4b3q7qmfm77obweyrm2xqvip7wqhvq35jp2dr4",
+        "protocol/valory/http/1.0.0": "bafybeibhrpkqke55theyqggqj6gvg7ykvyis2zzykh6e73dzfhopcrm3pi",
+        "protocol/valory/ipfs/0.1.0": "bafybeiftxi2qhreewgsc5wevogi7yc5g6hbcbo4uiuaibauhv3nhfcdtvm",
+        "protocol/valory/ledger_api/1.0.0": "bafybeihotl4olr5mpnqbwsvjfb7xk3qmegtmv25hipc7ltfeo6lrlyszqa",
+        "protocol/valory/tendermint/0.1.0": "bafybeig4mi3vmlv5zpbjbfuzcgida6j5f2nhrpedxicmrrfjweqc5r7cra",
+        "skill/valory/abstract_abci/0.1.0": "bafybeihqiujkwgyn7bwen5vu6k3ep3otd4qc322vzenvj4phezdxf2wuza",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeigcarhigmkwatrj2eksaetcmg4zhwcztln4tfciadofwv62qjxqne",
         "skill/valory/hello_world_abci/0.1.0": "bafybeiabaamrsmq3ysbdk4gxym7in5urwyyfmegto3v5hgqc6etn7g6ubi",
-        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihge56dn3xep2dzomu7rtvbgo4uc2qqh7ljl3fubqdi2lq44gs5lq"
+        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeig5ps4gtegpyjedou3m4jh6op6h2n2nyfnptmcb5nudn7wd4af4hy"
     }
 }
 ```
