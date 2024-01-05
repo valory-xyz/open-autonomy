@@ -120,7 +120,7 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
               propagate: true
         dependencies:
           open-aea-ledger-ethereum:
-            version: ==1.43.0.post2
+            version: ==1.44.0
           open-aea-test-autonomy:
             version: ==0.12.1.post1
         default_connection: null
@@ -174,15 +174,15 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
         - identifier: acn
           ledger_id: ethereum
           message_format: '{public_key}'
-          not_after: '2023-01-01'
-          not_before: '2022-01-01'
+          not_after: '2025-01-01'
+          not_before: '2024-01-01'
           public_key: ${str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
           save_path: .certs/acn_cosmos_9005.txt
         - identifier: acn
           ledger_id: ethereum
           message_format: '{public_key}'
-          not_after: '2023-01-01'
-          not_before: '2022-01-01'
+          not_after: '2025-01-01'
+          not_before: '2024-01-01'
           public_key: ${str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
           save_path: .certs/acn_cosmos_9006.txt
         is_abstract: true
