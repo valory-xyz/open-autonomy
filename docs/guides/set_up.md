@@ -114,9 +114,9 @@ If you plan to follow the guides in the next sections, you need to populate the 
         "agent/valory/hello_world/0.1.0": "bafybeib5grnum25svkpozqqnvpd7nmwoaypnc3l7lbnoj335nwgczsiyca",
         "connection/valory/abci/0.1.0": "bafybeicglrfbp6g2lign74hzovs2lxfx3yw462cc2loguvbyccosljehae",
         "connection/valory/http_client/0.23.0": "bafybeibhifd76dkcu6w5swbqoub5yaie2ksqj44ug2ckaqaovnltgkx62u",
-        "connection/valory/ipfs/0.1.0": "bafybeiao36u56wozt3eoheng7epwphpd7fwlauxynm4ay5xu65k2cdhjqe",
+        "connection/valory/ipfs/0.1.0": "bafybeifkrynw6jjg7bs7nw535m5bcrav5qab27vr5ktgfuvf65dpazc4ci",
         "connection/valory/ledger/0.19.0": "bafybeigo4zoyrlawvxl7cy7vx35tuyxfdty2rujlxgjtg3alsjzh4sz6am",
-        "contract/valory/service_registry/0.1.0": "bafybeieeuruq7dp4b6souetv5ce7wlm52pw7vyrxuhqa7kuy5m3rwwxks4",
+        "contract/valory/service_registry/0.1.0": "bafybeickkg6myflc3fkpxyqn3a4gnayyrbtqzh7vxhtlzn26mhcilw32ma",
         "protocol/open_aea/signing/1.0.0": "bafybeigcaqwniw2ksof4njsi3ochtw6cr3ykhflappbcqqr3anrgc54i7q",
         "protocol/valory/abci/0.1.0": "bafybeiaqmp7kocbfdboksayeqhkbrynvlfzsx4uy4x6nohywnmaig4an7u",
         "protocol/valory/acn/1.1.0": "bafybeigywzavmrt42oon2suitst5va5whj3deemuer35rsgh2a4cje27ry",
@@ -126,7 +126,7 @@ If you plan to follow the guides in the next sections, you need to populate the 
         "protocol/valory/ledger_api/1.0.0": "bafybeihotl4olr5mpnqbwsvjfb7xk3qmegtmv25hipc7ltfeo6lrlyszqa",
         "protocol/valory/tendermint/0.1.0": "bafybeig4mi3vmlv5zpbjbfuzcgida6j5f2nhrpedxicmrrfjweqc5r7cra",
         "skill/valory/abstract_abci/0.1.0": "bafybeihqiujkwgyn7bwen5vu6k3ep3otd4qc322vzenvj4phezdxf2wuza",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeigcarhigmkwatrj2eksaetcmg4zhwcztln4tfciadofwv62qjxqne",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeigrwgug7jyzn3mg2eksdxkzg666kpasgc3nwlzy3fzang7efmd6qm",
         "skill/valory/hello_world_abci/0.1.0": "bafybeiabaamrsmq3ysbdk4gxym7in5urwyyfmegto3v5hgqc6etn7g6ubi",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeig5ps4gtegpyjedou3m4jh6op6h2n2nyfnptmcb5nudn7wd4af4hy"
     }
