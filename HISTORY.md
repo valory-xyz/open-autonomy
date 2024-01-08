@@ -1,5 +1,218 @@
 # Release History - `open-autonomy`
 
+# 0.13.9.post1 (2023-12-26)
+
+- Bumps `open-aea@1.43.0.post2`
+
+# 0.13.9 (2023-12-19)
+
+Autonomy:
+- Updates the tendermint image to support arm platforms
+- Updates the autonomy image to use `--timeout` flag on `aea install` command to avoid timeout failures on machines with limited resources
+
+Docs:
+- Fixes `hello-world` hash in the quick start guide
+- Adds requirements for developing and running on `raspberry-pi`
+
+# 0.13.8 (2023-11-30)
+
+Autonomy:
+- Implements transaction settlement on the `mint/service` command groups
+  - Adds support for retrying transaction on known error
+  - Adds support for repricing under priced transactions
+- Adds support for performing dry-run on on-chain interaction tools
+
+Chore:
+- Adds a script for bumping services
+
+# 0.13.7 (2023-11-23)
+
+Autonomy:
+- Adds support for logging to console on tendermint server
+
+# 0.13.6 (2023-11-21)
+
+Autonomy:
+- Fixes the start.sh script to use password if provided when issuing certificates
+
+Packages:
+- Renames the `chain_name` parameter to `chain_id` on transaction settlement skill
+
+Docs:
+- Updates the documentation on private key security in deployments
+
+# 0.13.5 (2023-11-14)
+
+Autonomy:
+- Pins `protobuf<4.25.0,>=4.21.6`
+
+Packages:
+- Ports changes on transaction settlement skill from `IEKit` and `agent-academy-2`
+- Updates the transaction settlement ABCI to handle safe-nonce reuse
+
+# 0.13.4 (2023-11-01)
+
+Autonomy:
+- Updates the mint tools to propagate `token` address to update service transactions
+
+# 0.13.3 (2023-11-01)
+
+- Synchronises the `on-chain` addresses with the latest protocol release
+
+# 0.13.2 (2023-10-30)
+
+- Adds support for specifying custom `Dockerfile` for building agent images
+- Deprecates `--password` flag on `autonomy deploy build/from-token` commands
+- Introduces `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` as environment variable for providing private key passwords to deployments
+- Updates the service analyser to skip `abci` connection since it's not required to be manually overridden
+
+# 0.13.1.post1 (2023-10-24)
+
+Chore:
+- Bumps `open-aea@1.41.0.post1`
+
+# 0.13.1 (2023-10-11)
+
+Autonomy:
+- Updates the on-chain tools to use service manager token contract for managing services on gnosis
+- Makes fallback handler address configurable when deploying a service
+- Updates the log parser to use `utf-8` encoding to avoid decoding issues on windows
+- Fixes the log parser multiline parsing
+- Fixes the deployment exits on windows
+- Updates error handling for invalid private keys
+- Fixes error messages for unreferenced events in the FSM check
+- Updates the environment variable validation to
+  - Validate data type
+  - Validate default value
+- Updates the service analyser to warn if the termination skill or the slashing skill is missing as a dependency
+- Adds support for service level dependencies
+
+Packages:
+- Moves the hypothesis imports to test modules to avoid import errors at runtime
+- Removes the hello world service
+
+# 0.13.0 (2023-09-27)
+
+Autonomy:
+- Replaces `open-aea-web3` with `web3py<7,>=6.0.0`
+- Bumps `protobuf<5.0.0,>=4.21.6`
+- Fixes `protobuf` incompatibility issue when importing hardware wallet plugin
+- Refactors autonomy and agent images to
+  - Include install and build scripts in the base image
+  - Remove unwanted layers
+  - Remove unwanted data files
+
+Packages:
+- Generates protocols using the latest compatible `protobuf` compiler
+- Compiles the tendermint connection protocol buffers using the latest compatible `protobuf` compiler
+
+Chores:
+- Bumps `protobuf` compiler to `24.3`
+
+# 0.12.1.post4 (2023-09-25)
+
+Autonomy:
+
+- Update the reuse multisig transaction builder to account for services with only one operator
+
+# 0.12.1.post3 (2023-09-21)
+
+Autonomy:
+
+- Pins `jsonschema<=4.19.0,>=4.16.0`
+
+# 0.12.1.post2 (2023-09-20)
+
+Autonomy:
+
+- Adds missing contract packages to the `eject-contracts` make target
+- Adds check to make sure service is in `pre-registration` before updating the service hash
+- Adds check to make sure all required environment variables are present for on-chain interactions
+
+# 0.12.1.post1 (2023-09-14)
+
+Autonomy:
+
+- Pin `hexbytes` as framework dependency
+
+# 0.12.1 (2023-09-12)
+
+Autonomy:
+
+- Adds support for updating already minted components with latest hashes
+- Adds support for using ERC20 tokens for securing autonomous services
+- Adds support for reusing the same multisig for on-chain service redeployment
+
+Docs:
+- Updates documentation for the latest features
+- Adds a list of addresses across various chains in documentation
+
+# 0.12.0 (2023-08-24)
+
+Autonomy:
+- Fixes deployment build bug on windows #2039
+
+Packages:
+- Adds slashing functionality #1927
+- Adds support for checking the safe nonce before re-sending a transaction #2040
+
+# 0.11.1 (2023-08-18)
+
+Autonomy:
+- Adds support for `arm/v7` docker images
+- Adds support for running the service in background using `--detach` flag in the `autonomy deploy run` command
+- Adds support for stopping the service running in background using `autonomy deploy stop`
+- Implements clean exists from `docker-compose` deployments
+
+Packages:
+- Reverts #1996, because it introduced some instability
+
+# 0.11.0 (2023-08-14)
+
+Autonomy:
+- Deprecates the support for `Python 3.7` and extends support for `Python 3.11`
+- Adds support for multi platform image builds
+
+Packages:
+- Replaces the usage of deprecated `web3py` APIs
+
+Chore:
+- Replaces the `web3py` with `open-aea-web3`
+- Bumps `py-ecc@6.0.0`, `numpy@>=1.21.6` and `pandas@1.5.3`
+
+# 0.10.11.post1 (2023-08-10)
+
+Autonomy:
+- Fixes the deployment payload calculations on `autonomy service deploy` command
+
+# 0.10.11 (2023-08-08)
+
+Autonomy:
+- Adds support for minting services on layer 2 chains
+- Adds support for skipping dependency checks when minting components
+
+# 0.10.10.post1 (2023-07-28)
+
+Autonomy:
+- Update `tendermint` testnet command generator to accommodate for new container naming format 
+
+# 0.10.10 (2023-07-26)
+
+Autonomy:
+- Adds support for running multiple `docker-compose` deployments in the same machine
+
+
+# 0.10.9 (2023-07-25)
+
+Autonomy:
+- Bumps `open-aea` to `v1.37.0`
+
+
+# 0.10.8 (2023-07-19)
+
+Autonomy:
+ - open-aea bumped to 1.36.0
+
 # 0.10.7 (2023-06-21)
 
 Packages:
@@ -11,7 +224,7 @@ Chore:
 - Bumps `web3py` to `v5.31.4` #1999
 
 Docs:
-- Fixes olas.network links #1998
+- Fixes `olas.network` links #1998
 
 # 0.10.6 (2023-06-12)
 

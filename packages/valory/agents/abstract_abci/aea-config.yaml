@@ -11,14 +11,14 @@ fingerprint:
   tests/test_abstract_abci.py: bafybeic4hileugdjd6bwy4n5beqrjo5auwalz5twt3lyx6m62kb65nc6ca
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeihofnsokowicviac6yz3uhur52l3mf54s2hz4i2je5ie4vlruouga
-- valory/p2p_libp2p_client:0.1.0:bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva
+- valory/abci:0.1.0:bafybeicglrfbp6g2lign74hzovs2lxfx3yw462cc2loguvbyccosljehae
+- valory/p2p_libp2p_client:0.1.0:bafybeid3xg5k2ol5adflqloy75ibgljmol6xsvzvezebsg7oudxeeolz7e
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4
-- valory/abci:0.1.0:bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4
+- open_aea/signing:1.0.0:bafybeihv62fim3wl2bayavfcg3u5e5cxu3b7brtu4cn5xoxd6lqwachasi
+- valory/abci:0.1.0:bafybeiaqmp7kocbfdboksayeqhkbrynvlfzsx4uy4x6nohywnmaig4an7u
 skills:
-- valory/abstract_abci:0.1.0:bafybeiff2dqnkeorf343fmb3547fhiznvdw4ewbwl4rqluek2cv6ibl5hi
+- valory/abstract_abci:0.1.0:bafybeihqiujkwgyn7bwen5vu6k3ep3otd4qc322vzenvj4phezdxf2wuza
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -49,9 +49,9 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.35.0
+    version: ==1.44.0
   open-aea-test-autonomy:
-    version: ==0.10.7
+    version: ==0.13.9.post1
 default_connection: valory/abci:0.1.0
 ---
 public_id: valory/abci:0.1.0
@@ -76,15 +76,15 @@ cert_requests:
 - identifier: acn
   ledger_id: ethereum
   message_format: '{public_key}'
-  not_after: '2023-01-01'
-  not_before: '2022-01-01'
+  not_after: '2025-01-01'
+  not_before: '2024-01-01'
   public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
   save_path: .certs/acn_cosmos_9005.txt
 - identifier: acn
   ledger_id: ethereum
   message_format: '{public_key}'
-  not_after: '2023-01-01'
-  not_before: '2022-01-01'
+  not_after: '2025-01-01'
+  not_before: '2024-01-01'
   public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
   save_path: .certs/acn_cosmos_9006.txt
 is_abstract: true

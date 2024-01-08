@@ -14,7 +14,7 @@ fingerprint_ignore_patterns: []
 connections:
 - dummy_author/dummy_connection:0.1.0:bafybeic25zmtz5fpbtnr7mycmxqjqhym2uz3jsvfhccbu6lsn3btndx5hq
 contracts:
-- dummy_author/dummy_contract:0.1.0:bafybeigrvtp3rponxqovr35klzz4xq3wlmtsp5mxwbnnw5kquyx4ipgitm
+- dummy_author/dummy_contract:0.1.0:bafybeifdf4blo6lse4ejlwtqpwzbufg3kh6ttdgde2ilag7ojwauyz6cbm
 protocols:
 - dummy_author/dummy_protocol:0.1.0:bafybeifuoztgfa2772jfvx5kyosgz7vrjfu6w6lo2mj3prziomdd3tp5xi
 skills: []

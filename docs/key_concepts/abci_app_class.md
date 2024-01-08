@@ -40,15 +40,16 @@ class AbciApp(
     ):
         """Initialize the AbciApp."""
 
-    def process_transaction(self, transaction: Transaction) -> None:
+    def process_transaction(self, transaction: Transaction, dry: bool = False) -> None:
         """
         Process a transaction.
 
-        The background round runs concurrently with other (normal) rounds.
-        First we check if the transaction is meant for the background round,
-        if not we forward to the current round object.
+        The background rounds run concurrently with other (normal) rounds.
+        First we check if the transaction is meant for a background round,
+        if not we forward it to the current round object.
 
         :param transaction: the transaction.
+        :param dry: whether the transaction should only be checked and not processed.
         """
 
     def process_event(

@@ -54,6 +54,8 @@ ENV_VAR_ID = "ID"
 ENV_VAR_AEA_AGENT = "AEA_AGENT"
 ENV_VAR_LOG_LEVEL = "LOG_LEVEL"
 ENV_VAR_AEA_PASSWORD = "AEA_PASSWORD"  # nosec
+ENV_VAR_DEPENDENCIES = "DEPENDENCIES"  # nosec
+ENV_VAR_OPEN_AUTONOMY_TM_WRITE_TO_LOG = "OPEN_AUTONOMY_TM_WRITE_TO_LOG"
 
 PARAM_ARGS_PATH = ("models", "params", "args")
 SETUP_PARAM_PATH = (*PARAM_ARGS_PATH, "setup")
@@ -63,7 +65,7 @@ CONSENSUS_THRESHOLD = "consensus_threshold"
 
 
 DEFAULT_ABCI_PORT = 26658
-ABCI_HOST_TEMPLATE = "abci{}"
+
 
 KUBERNETES_DEPLOYMENT = "kubernetes"
 DOCKER_COMPOSE_DEPLOYMENT = "docker-compose"
@@ -71,8 +73,8 @@ DOCKER_COMPOSE_DEPLOYMENT = "docker-compose"
 LOCALHOST = "localhost"
 TENDERMINT_P2P_PORT = 26656
 
-TENDERMINT_NODE = "http://node{}:26657"
-TENDERMINT_COM = "http://node{}:8080"
+TENDERMINT_NODE = "http://{host}:26657"
+TENDERMINT_COM = "http://{host}:8080"
 
 TENDERMINT_NODE_LOCAL = f"http://{LOCALHOST}:26657"
 TENDERMINT_COM_LOCAL = f"http://{LOCALHOST}:8080"
@@ -80,7 +82,7 @@ TENDERMINT_COM_LOCAL = f"http://{LOCALHOST}:8080"
 TENDERMINT_URL_PARAM = "tendermint_url"
 TENDERMINT_COM_URL_PARAM = "tendermint_com_url"
 
-TENDERMINT_P2P_URL = "node{}:{}"
+TENDERMINT_P2P_URL = "{host}:{port}"
 TENDERMINT_P2P_URL_PARAM = "tendermint_p2p_url"
 TENDERMINT_P2P_URL_ENV_VAR = "TM_P2P_NODE_URL_{}"
 
@@ -95,11 +97,16 @@ COMPONENT_CONFIGS: Dict = {
 }
 
 
+def tm_write_to_log() -> bool:
+    """Check the environment variable to see if the user wants to write to log file or not."""
+    return os.getenv(ENV_VAR_OPEN_AUTONOMY_TM_WRITE_TO_LOG, "true").lower() == "true"
+
+
 class NotValidKeysFile(Exception):
     """Raise when provided keys file is not valid."""
 
 
-class ServiceBuilder:
+class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
     """Class to assist with generating deployments."""
 
     deplopyment_type: str = DOCKER_COMPOSE_DEPLOYMENT
@@ -109,7 +116,6 @@ class ServiceBuilder:
         self,
         service: Service,
         keys: Optional[List[Dict[str, str]]] = None,
-        private_keys_password: Optional[str] = None,
         agent_instances: Optional[List[str]] = None,
         apply_environment_variables: bool = False,
     ) -> None:
@@ -124,10 +130,18 @@ class ServiceBuilder:
 
         self.service = service
 
+        self._service_name_clean = self.service.name.replace("_", "")
         self._keys = keys or []
         self._agent_instances = agent_instances
-        self._private_keys_password = private_keys_password
         self._all_participants = self.try_get_all_participants()
+
+    def get_abci_container_name(self, index: int) -> str:
+        """Format ABCI container name."""
+        return f"{self._service_name_clean}_abci_{index}"
+
+    def get_tm_container_name(self, index: int) -> str:
+        """Format tendermint container name."""
+        return f"{self._service_name_clean}_tm_{index}"
 
     def try_get_all_participants(self) -> Optional[List[str]]:
         """Try get all participants from the ABCI overrides"""
@@ -158,18 +172,6 @@ class ServiceBuilder:
             return None
 
         return None
-
-    @property
-    def private_keys_password(
-        self,
-    ) -> Optional[str]:
-        """Service password for agent keys."""
-
-        password = self._private_keys_password
-        if password is None:
-            password = os.environ.get("AUTONOLAS_SERVICE_PASSWORD")
-
-        return password
 
     @property
     def agent_instances(
@@ -204,7 +206,6 @@ class ServiceBuilder:
         path: Path,
         keys_file: Optional[Path] = None,
         number_of_agents: Optional[int] = None,
-        private_keys_password: Optional[str] = None,
         agent_instances: Optional[List[str]] = None,
         apply_environment_variables: bool = False,
     ) -> "ServiceBuilder":
@@ -218,7 +219,6 @@ class ServiceBuilder:
         service_builder = cls(
             service=service,
             apply_environment_variables=apply_environment_variables,
-            private_keys_password=private_keys_password,
         )
 
         if keys_file is not None:
@@ -370,13 +370,20 @@ class ServiceBuilder:
                 param_args[TENDERMINT_URL_PARAM] = TENDERMINT_NODE_LOCAL
                 param_args[TENDERMINT_COM_URL_PARAM] = TENDERMINT_COM_LOCAL
             else:
-                param_args[TENDERMINT_URL_PARAM] = TENDERMINT_NODE.format(idx)
-                param_args[TENDERMINT_COM_URL_PARAM] = TENDERMINT_COM.format(idx)
+                param_args[TENDERMINT_URL_PARAM] = TENDERMINT_NODE.format(
+                    host=self.get_tm_container_name(index=idx)
+                )
+                param_args[TENDERMINT_COM_URL_PARAM] = TENDERMINT_COM.format(
+                    host=self.get_tm_container_name(index=idx)
+                )
 
             if TENDERMINT_P2P_URL_PARAM not in param_args:
                 tm_p2p_url = os.environ.get(
                     TENDERMINT_P2P_URL_ENV_VAR.format(idx),
-                    TENDERMINT_P2P_URL.format(idx, TENDERMINT_P2P_PORT),
+                    TENDERMINT_P2P_URL.format(
+                        host=self.get_tm_container_name(index=idx),
+                        port=TENDERMINT_P2P_PORT,
+                    ),
                 )
                 param_args[TENDERMINT_P2P_URL_PARAM] = tm_p2p_url
 
@@ -488,7 +495,7 @@ class ServiceBuilder:
             processed_overrides["config"]["host"] = (
                 LOCALHOST
                 if self.deplopyment_type == KUBERNETES_DEPLOYMENT
-                else ABCI_HOST_TEMPLATE.format(0)
+                else self.get_abci_container_name(index=0)
             )
             processed_overrides["config"]["port"] = processed_overrides["config"].get(
                 "port", DEFAULT_ABCI_PORT
@@ -504,7 +511,7 @@ class ServiceBuilder:
             override["config"]["host"] = (
                 LOCALHOST
                 if self.deplopyment_type == KUBERNETES_DEPLOYMENT
-                else ABCI_HOST_TEMPLATE.format(idx)
+                else self.get_abci_container_name(index=idx)
             )
             override["config"]["port"] = override["config"].get(
                 "port", DEFAULT_ABCI_PORT
@@ -564,7 +571,7 @@ class ServiceBuilder:
                 override
                 for override in service_overrides
                 if override["public_id"] != str(component_id.public_id)
-                and override["type"] != PackageType.CONNECTION.value
+                or override["type"] != PackageType.CONNECTION.value
             ]
 
         service_overrides.append(processed_overrides)
@@ -609,10 +616,12 @@ class ServiceBuilder:
             ENV_VAR_AEA_AGENT: self.service.agent,
             ENV_VAR_LOG_LEVEL: self.log_level,
         }
-
-        if self.private_keys_password is not None:
-            agent_vars[ENV_VAR_AEA_PASSWORD] = self.private_keys_password
-
+        if self.deplopyment_type == DOCKER_COMPOSE_DEPLOYMENT:
+            agent_vars[ENV_VAR_AEA_PASSWORD] = "$OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD"
+        else:
+            agent_vars[ENV_VAR_AEA_PASSWORD] = os.environ.get(
+                "OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD", ""
+            )
         return agent_vars
 
     def generate_agent(

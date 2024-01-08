@@ -58,8 +58,8 @@ class TestGenerateSpecs(BaseCliTest):
         """Setup test method."""
         super().setup()
 
-        self.app_name = "HelloWorldAbciApp"
-        self.skill_path = Path(PACKAGES, "valory", "skills", "hello_world_abci")
+        self.app_name = "OffendAbciApp"
+        self.skill_path = Path(PACKAGES, "valory", "skills", "offend_abci")
 
         module_name = ".".join((*self.skill_path.parts, "rounds"))
         module = importlib.import_module(module_name)
@@ -173,9 +173,9 @@ class TestCheckSpecs(BaseCliTest):
     """Test `check-app-specs` command."""
 
     cli_options: Tuple[str, ...] = ("analyse", "fsm-specs")
-    skill_path = Path(PACKAGES, "valory", "skills", "hello_world_abci")
+    skill_path = Path(PACKAGES, "valory", "skills", "offend_abci")
     module_name = ".".join(skill_path.parts)
-    app_name = "HelloWorldAbciApp"
+    app_name = "OffendAbciApp"
     cls_name = ".".join([module_name, app_name])
 
     packages_dir: Path
@@ -207,9 +207,8 @@ class TestCheckSpecs(BaseCliTest):
     ) -> None:
         """Corrupt spec file to fail the check."""
         content = self.specification_path.read_text()
-        content = content.replace(
-            "(SelectKeeperRound, ROUND_TIMEOUT): RegistrationRound\n", ""
-        )
+        content = content.replace("(OffendRound, ROUND_TIMEOUT): OffendRound\n", "")
+        content = content.replace("- ROUND_TIMEOUT\n", "")
         self.specification_path.write_text(content)
 
     def test_one_pass(

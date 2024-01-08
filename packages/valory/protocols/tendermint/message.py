@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 valory
+#   Copyright 2024 valory
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ from typing import Any, Dict, Optional, Set, Tuple, cast
 
 from aea.configurations.base import PublicId
 from aea.exceptions import AEAEnforceError, enforce
-from aea.protocols.base import Message
+from aea.protocols.base import Message  # type: ignore
 
 from packages.valory.protocols.tendermint.custom_types import (
     ErrorCode as CustomErrorCode,

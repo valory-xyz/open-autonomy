@@ -32,7 +32,11 @@ from autonomy.constants import (
     TENDERMINT_IMAGE_NAME,
     TENDERMINT_IMAGE_VERSION,
 )
-from autonomy.deploy.base import BaseDeploymentGenerator, ServiceBuilder
+from autonomy.deploy.base import (
+    BaseDeploymentGenerator,
+    ServiceBuilder,
+    tm_write_to_log,
+)
 from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
     KEY_SCHEMA_PRIVATE_KEY,
@@ -116,6 +120,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             ledger=self.service_builder.keys[agent_ix].get(
                 KEY_SCHEMA_TYPE, DEFAULT_LEDGER
             ),
+            write_to_log=str(tm_write_to_log()).lower(),
         )
         agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
         resources = []

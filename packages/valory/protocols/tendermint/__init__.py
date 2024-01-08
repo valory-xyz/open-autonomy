@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 valory
+#   Copyright 2024 valory
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 """
 This module contains the support resources for the tendermint protocol.
 
-It was created with protocol buffer compiler version `libprotoc 3.19.4` and aea protocol generator version `1.0.0`.
+It was created with protocol buffer compiler version `libprotoc 24.3` and aea protocol generator version `1.0.0`.
 """
 
 from packages.valory.protocols.tendermint.message import TendermintMessage

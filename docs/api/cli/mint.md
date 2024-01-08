@@ -13,13 +13,22 @@ Mint command group definitions.
 @pass_ctx
 @chain_selection_flag()
 @timeout_flag
+@retries_flag
+@sleep_flag
+@dry_run_flag
 @click.option(
     "--skip-hash-check",
     is_flag=True,
     help="Skip hash check when verifying dependencies on chain",
 )
+@click.option(
+    "--skip-dependencies-check",
+    is_flag=True,
+    help="Skip dependencies check.",
+)
 def mint(ctx: Context, chain_type: str, skip_hash_check: bool,
-         timeout: float) -> None
+         skip_dependencies_check: bool, timeout: float, retries: int,
+         sleep: float, dry_run: bool) -> None
 ```
 
 Mint component on-chain.
@@ -37,6 +46,7 @@ Mint component on-chain.
 @dependencies_decorator
 @nft_decorator
 @owner_flag
+@update_flag
 @pass_ctx
 def protocol(ctx: Context,
              package_path: Path,
@@ -45,6 +55,7 @@ def protocol(ctx: Context,
              dependencies: Tuple[str],
              nft: Optional[Union[Path, IPFSHash]],
              owner: Optional[str],
+             update: Optional[int],
              hwi: bool = False) -> None
 ```
 
@@ -63,6 +74,7 @@ Mint a protocol component.
 @dependencies_decorator
 @nft_decorator
 @owner_flag
+@update_flag
 @pass_ctx
 def contract(ctx: Context,
              package_path: Path,
@@ -71,6 +83,7 @@ def contract(ctx: Context,
              dependencies: Tuple[str],
              nft: Optional[Union[Path, IPFSHash]],
              owner: Optional[str],
+             update: Optional[int],
              hwi: bool = False) -> None
 ```
 
@@ -89,6 +102,7 @@ Mint a contract component.
 @dependencies_decorator
 @nft_decorator
 @owner_flag
+@update_flag
 @pass_ctx
 def connection(ctx: Context,
                package_path: Path,
@@ -97,6 +111,7 @@ def connection(ctx: Context,
                dependencies: Tuple[str],
                nft: Optional[Union[Path, IPFSHash]],
                owner: Optional[str],
+               update: Optional[int],
                hwi: bool = False) -> None
 ```
 
@@ -115,6 +130,7 @@ Mint a connection component.
 @dependencies_decorator
 @nft_decorator
 @owner_flag
+@update_flag
 @pass_ctx
 def skill(ctx: Context,
           package_path: Path,
@@ -123,6 +139,7 @@ def skill(ctx: Context,
           dependencies: Tuple[str],
           nft: Optional[Union[Path, IPFSHash]],
           owner: Optional[str],
+          update: Optional[int],
           hwi: bool = False) -> None
 ```
 
@@ -141,6 +158,7 @@ Mint a skill component.
 @dependencies_decorator
 @nft_decorator
 @owner_flag
+@update_flag
 @pass_ctx
 def agent(ctx: Context,
           package_path: Path,
@@ -149,6 +167,7 @@ def agent(ctx: Context,
           dependencies: Tuple[str],
           nft: Optional[Union[Path, IPFSHash]],
           owner: Optional[str],
+          update: Optional[int],
           hwi: bool = False) -> None
 ```
 
@@ -166,6 +185,8 @@ Mint an agent.
 @password_decorator
 @nft_decorator
 @owner_flag
+@update_flag
+@token_flag
 @pass_ctx
 @click.option(
     "-a",
@@ -204,6 +225,8 @@ def service(ctx: Context,
             password: Optional[str],
             nft: Optional[Union[Path, IPFSHash]],
             owner: Optional[str],
+            update: Optional[int],
+            token: Optional[str],
             hwi: bool = False) -> None
 ```
 

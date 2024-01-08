@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 valory
+#   Copyright 2024 valory
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,12 +22,13 @@
 # pylint: disable=too-many-statements,too-many-locals,no-member,too-few-public-methods,redefined-builtin
 from typing import Any, Dict, cast
 
-from aea.mail.base_pb2 import DialogueMessage
-from aea.mail.base_pb2 import Message as ProtobufMessage
-from aea.protocols.base import Message, Serializer
+from aea.mail.base_pb2 import DialogueMessage  # type: ignore
+from aea.mail.base_pb2 import Message as ProtobufMessage  # type: ignore
+from aea.protocols.base import Message  # type: ignore
+from aea.protocols.base import Serializer  # type: ignore
 
-from packages.valory.protocols.ipfs import ipfs_pb2
-from packages.valory.protocols.ipfs.message import IpfsMessage
+from packages.valory.protocols.ipfs import ipfs_pb2  # type: ignore
+from packages.valory.protocols.ipfs.message import IpfsMessage  # type: ignore
 
 
 class IpfsSerializer(Serializer):
@@ -44,7 +45,7 @@ class IpfsSerializer(Serializer):
         msg = cast(IpfsMessage, msg)
         message_pb = ProtobufMessage()
         dialogue_message_pb = DialogueMessage()
-        ipfs_msg = ipfs_pb2.IpfsMessage()
+        ipfs_msg = ipfs_pb2.IpfsMessage()  # type: ignore
 
         dialogue_message_pb.message_id = msg.message_id
         dialogue_reference = msg.dialogue_reference
@@ -104,7 +105,7 @@ class IpfsSerializer(Serializer):
         :return: the 'Ipfs' message.
         """
         message_pb = ProtobufMessage()
-        ipfs_pb = ipfs_pb2.IpfsMessage()
+        ipfs_pb = ipfs_pb2.IpfsMessage()  # type: ignore
         message_pb.ParseFromString(obj)
         message_id = message_pb.dialogue_message.message_id
         dialogue_reference = (

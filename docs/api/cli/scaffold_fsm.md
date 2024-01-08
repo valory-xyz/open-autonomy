@@ -12,7 +12,7 @@ This module patches the 'aea scaffold' command so to add a new subcommand for sc
 #### fsm
 
 ```python
-@scaffold.command()  # noqa
+@scaffold.command()
 @registry_flag()
 @click.argument("skill_name", type=str, required=True)
 @click.option("--spec",

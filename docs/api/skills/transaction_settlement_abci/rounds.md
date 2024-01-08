@@ -257,6 +257,16 @@ def participant_to_late_messages(
 
 Get the mapping from participants to checks.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.get_chain_id"></a>
+
+#### get`_`chain`_`id
+
+```python
+def get_chain_id(default_chain_id: str) -> str
+```
+
+Get the chain id.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FailedRound"></a>
 
 ## FailedRound Objects
@@ -518,7 +528,7 @@ Transition states:
         - done: 11.
         - negative: 5.
         - none: 6.
-        - validate timeout: 6.
+        - validate timeout: 5.
         - no majority: 4.
     5. CheckTransactionHistoryRound
         - done: 11.

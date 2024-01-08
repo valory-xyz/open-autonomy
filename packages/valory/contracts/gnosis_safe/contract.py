@@ -32,11 +32,11 @@ from aea_ledger_ethereum import EthereumApi
 from eth_typing import ChecksumAddress, HexAddress, HexStr
 from hexbytes import HexBytes
 from packaging.version import Version
-from py_eth_sig_utils.eip712 import encode_typed_data
 from requests import HTTPError
-from web3.exceptions import SolidityError, TransactionNotFound
+from web3.exceptions import ContractLogicError, TransactionNotFound
 from web3.types import BlockIdentifier, Nonce, TxData, TxParams, Wei
 
+from packages.valory.contracts.gnosis_safe.encode import encode_typed_data
 from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
     GnosisSafeProxyFactoryContract,
 )
@@ -179,7 +179,7 @@ class GnosisSafeContract(Contract):
             raise ValueError("Client does not have any funds")
 
         ether_account_balance = round(
-            ledger_api.api.fromWei(account_balance, "ether"), 6
+            ledger_api.api.from_wei(account_balance, "ether"), 6
         )
         _logger.info(
             "Network %s - Sender %s - Balance: %sΞ",
@@ -212,7 +212,7 @@ class GnosisSafeContract(Contract):
                 payment_token,
                 payment,
                 payment_receiver,
-            ).buildTransaction({"gas": MIN_GAS, "gasPrice": MIN_GASPRICE})["data"]
+            ).build_transaction({"gas": MIN_GAS, "gasPrice": MIN_GASPRICE})["data"]
         )
 
         nonce = (
@@ -346,7 +346,7 @@ class GnosisSafeContract(Contract):
         return dict(tx_hash=HexBytes(encode_typed_data(structured_data)).hex())
 
     @classmethod
-    def _get_packed_signatures(
+    def get_packed_signatures(
         cls, owners: Tuple[str], signatures_by_owner: Dict[str, str]
     ) -> bytes:
         """Get the packed signatures."""
@@ -411,10 +411,10 @@ class GnosisSafeContract(Contract):
         :param fallback_gas: (external) gas to spend when base_gas and safe_tx_gas are zero and no gas estimation is possible.
         :return: the raw Safe transaction
         """
-        sender_address = ledger_api.api.toChecksumAddress(sender_address)
-        to_address = ledger_api.api.toChecksumAddress(to_address)
+        sender_address = ledger_api.api.to_checksum_address(sender_address)
+        to_address = ledger_api.api.to_checksum_address(to_address)
         ledger_api = cast(EthereumApi, ledger_api)
-        signatures = cls._get_packed_signatures(owners, signatures_by_owner)
+        signatures = cls.get_packed_signatures(owners, signatures_by_owner)
         safe_contract = cls.get_instance(ledger_api, contract_address)
 
         w3_tx = safe_contract.functions.execTransaction(
@@ -440,7 +440,7 @@ class GnosisSafeContract(Contract):
             "gas": configured_gas,
         }
         actual_nonce = ledger_api.api.eth.get_transaction_count(
-            ledger_api.api.toChecksumAddress(sender_address)
+            ledger_api.api.to_checksum_address(sender_address)
         )
         if actual_nonce != nonce:
             nonce = actual_nonce
@@ -458,7 +458,7 @@ class GnosisSafeContract(Contract):
         ):
             tx_parameters.update(ledger_api.try_get_gas_pricing(old_price=old_price))
         # note, the next line makes an eth_estimateGas call if gas is not set!
-        transaction_dict = w3_tx.buildTransaction(tx_parameters)
+        transaction_dict = w3_tx.build_transaction(tx_parameters)
         if configured_gas != MIN_GAS:
             transaction_dict["gas"] = Wei(configured_gas)
         else:
@@ -532,10 +532,10 @@ class GnosisSafeContract(Contract):
         :param safe_version: Safe version 1.0.0 renamed `baseGas` to `dataGas`. Safe version 1.3.0 added `chainId` to the `domainSeparator`. If not provided, it will be retrieved from network
         :return: the verified status
         """
-        to_address = ledger_api.api.toChecksumAddress(to_address)
+        to_address = ledger_api.api.to_checksum_address(to_address)
         ledger_api = cast(EthereumApi, ledger_api)
         safe_contract = cls.get_instance(ledger_api, contract_address)
-        signatures = cls._get_packed_signatures(owners, signatures_by_owner)
+        signatures = cls.get_packed_signatures(owners, signatures_by_owner)
 
         if safe_version is None:
             safe_version = safe_contract.functions.VERSION().call(
@@ -632,7 +632,7 @@ class GnosisSafeContract(Contract):
         try:
             # replay the transaction locally:
             ledger_api.api.eth.call(replay_tx, tx["blockNumber"] - 1)
-        except SolidityError as e:
+        except ContractLogicError as e:
             # execution reverted exception
             return dict(revert_reason=repr(e))
         except HTTPError as e:  # pragma: nocover
@@ -681,7 +681,7 @@ class GnosisSafeContract(Contract):
             current_block = ledger_api.api.eth.get_block("latest")["number"]
             from_block = hex(max(0, current_block - 50))  # check in the last ~10 min
 
-        safe_filter = safe_contract.events.SafeReceived.createFilter(
+        safe_filter = safe_contract.events.SafeReceived.create_filter(
             fromBlock=from_block, toBlock=to_block
         )
         all_entries = safe_filter.get_all_entries()
@@ -755,7 +755,7 @@ class GnosisSafeContract(Contract):
 
         ledger_api = cast(EthereumApi, ledger_api)
         factory_contract = cls.get_instance(ledger_api, contract_address)
-        entries = factory_contract.events.ExecutionSuccess.createFilter(
+        entries = factory_contract.events.ExecutionSuccess.create_filter(
             fromBlock=from_block,
             toBlock=to_block,
         ).get_all_entries()
@@ -793,7 +793,7 @@ class GnosisSafeContract(Contract):
         """
         ledger_api = cast(EthereumApi, ledger_api)
         safe_contract = cls.get_instance(ledger_api, contract_address)
-        entries = safe_contract.events.RemovedOwner.createFilter(
+        entries = safe_contract.events.RemovedOwner.create_filter(
             fromBlock=from_block,
             toBlock=to_block,
         ).get_all_entries()
@@ -810,7 +810,7 @@ class GnosisSafeContract(Contract):
                 data=removed_owner_events,
             )
 
-        checksummed_removed_owner = ledger_api.api.toChecksumAddress(removed_owner)
+        checksummed_removed_owner = ledger_api.api.to_checksum_address(removed_owner)
         removed_owner_events = list(
             dict(
                 tx_hash=entry.transactionHash.hex(),
@@ -819,7 +819,7 @@ class GnosisSafeContract(Contract):
             )
             for entry in entries
             if (
-                ledger_api.api.toChecksumAddress(entry["args"]["owner"])
+                ledger_api.api.to_checksum_address(entry["args"]["owner"])
                 == checksummed_removed_owner
             )
         )
@@ -848,8 +848,8 @@ class GnosisSafeContract(Contract):
         """
         ledger_api = cast(EthereumApi, ledger_api)
         safe_contract = cls.get_instance(ledger_api, contract_address)
-        sender_address = ledger_api.api.toChecksumAddress(sender_address)
-        entries = safe_contract.events.SafeReceived.createFilter(
+        sender_address = ledger_api.api.to_checksum_address(sender_address)
+        entries = safe_contract.events.SafeReceived.create_filter(
             fromBlock=from_block,
             toBlock=to_block,
             argument_filters=dict(sender=sender_address),
@@ -858,7 +858,7 @@ class GnosisSafeContract(Contract):
             dict(
                 tx_hash=entry.transactionHash.hex(),
                 block_number=entry.blockNumber,
-                sender=ledger_api.api.toChecksumAddress(entry["args"]["sender"]),
+                sender=ledger_api.api.to_checksum_address(entry["args"]["sender"]),
             )
             for entry in entries
             if int(entry["args"]["value"]) == 0
@@ -892,15 +892,15 @@ class GnosisSafeContract(Contract):
         # Note that owners in the safe are stored as a linked list, we need to know the parent (prev_owner) of an owner
         # when removing. https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L15
         owners = [
-            ledger_api.api.toChecksumAddress(owner)
+            ledger_api.api.to_checksum_address(owner)
             for owner in safe_contract.functions.getOwners().call()
         ]
-        owner = ledger_api.api.toChecksumAddress(owner)
+        owner = ledger_api.api.to_checksum_address(owner)
         prev_owner = cls._get_prev_owner(owners, owner)
         data = safe_contract.encodeABI(
             fn_name="removeOwner",
             args=[
-                ledger_api.api.toChecksumAddress(prev_owner),
+                ledger_api.api.to_checksum_address(prev_owner),
                 owner,
                 threshold,
             ],
@@ -934,17 +934,17 @@ class GnosisSafeContract(Contract):
         # Note that owners in the safe are stored as a linked list, we need to know the parent (prev_owner) of an owner
         # when swapping. https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L15
         owners = [
-            ledger_api.api.toChecksumAddress(owner)
+            ledger_api.api.to_checksum_address(owner)
             for owner in safe_contract.functions.getOwners().call()
         ]
-        old_owner = ledger_api.api.toChecksumAddress(old_owner)
+        old_owner = ledger_api.api.to_checksum_address(old_owner)
         prev_owner = cls._get_prev_owner(owners, old_owner)
         data = safe_contract.encodeABI(
             fn_name="swapOwner",
             args=[
-                ledger_api.api.toChecksumAddress(prev_owner),
+                ledger_api.api.to_checksum_address(prev_owner),
                 old_owner,
-                ledger_api.api.toChecksumAddress(new_owner),
+                ledger_api.api.to_checksum_address(new_owner),
             ],
         )
         return dict(
@@ -977,7 +977,28 @@ class GnosisSafeContract(Contract):
         ledger_api = cast(EthereumApi, ledger_api)
         safe_contract = cls.get_instance(ledger_api, contract_address)
         owners = [
-            ledger_api.api.toChecksumAddress(owner)
+            ledger_api.api.to_checksum_address(owner)
             for owner in safe_contract.functions.getOwners().call()
         ]
         return dict(owners=owners)
+
+    @classmethod
+    def get_approve_hash_tx(
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        tx_hash: str,
+        sender: str,
+    ) -> JSONLike:
+        """Get approve has tx."""
+        ledger_api = cast(EthereumApi, ledger_api)
+        return ledger_api.build_transaction(
+            contract_instance=cls.get_instance(ledger_api, contract_address),
+            method_name="approveHash",
+            method_args={
+                "hashToApprove": tx_hash,
+            },
+            tx_args={
+                "sender_address": sender,
+            },
+        )

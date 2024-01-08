@@ -343,7 +343,7 @@ class ScaffoldABCISkill:
 
         file_dirs = self.skill_dir, self.skill_test_dir
         file_gens = self.file_generators, self.test_file_generators
-        for (f_dir, gens) in zip(file_dirs, file_gens):
+        for f_dir, gens in zip(file_dirs, file_gens):
             for f_gen in gens:
                 click.echo(f"Generating module {f_gen.FILENAME}...")
                 f_gen(self.ctx, self.skill_name, self.dfa).write_file(f_dir)

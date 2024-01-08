@@ -7,7 +7,7 @@ The service configuration file `service.yaml` is typically composed of service-s
 
 ???+ example
 
-    Here is an example of the service configuration file of the [Hello World service](../demos/hello_world_demo.md):
+    Here is an example of the service configuration file of the [Hello World service](https://docs.autonolas.network/demos/hello-world/):
 
     ```yaml title="service.yaml"
     name: hello_world
@@ -22,6 +22,7 @@ The service configuration file `service.yaml` is typically composed of service-s
     agent: valory/hello_world:0.1.0:bafybeihqzkncz7r563lfkots4fphb7abdymdna4ir7in7fsbzjtx6yyndq
     number_of_agents: 4
     deployment: {}
+    dependencies: {}
     ---
     extra:
       benchmark_persistence_params:
@@ -88,6 +89,7 @@ There are a number of mandatory attributes that define the service, which are su
 | `agent`                       | Canonical agent, in the form `<agent_public_id>:<version>:<hash>`.                                                                                                                                    |
 | `number_of_agents`            | Number of agent instances that the service is composed of.                                                                                                                                            |                                                                                                                                         |
 | `deployment`            | External deployment configuration for [publishing container ports](#publish-container-ports).                                                                                                                                            |                                                                                                                                         |
+| `dependencies`            | Python dependencies to include in the runtime image [publishing container ports](#publish-container-ports).                                                                                                                                            |                                                                                                                                         |
 
 ## Service-level overrides
 
@@ -96,7 +98,7 @@ The {{open_aea}} framework already has the notion of [component overrides](https
 Similarly, the {{open_autonomy}} framework has the notion of service-level overrides. You can define them in the service configuration file `service.yaml`, which will be used to generate the deployment environment for the agents.
 
 Service-level overrides follow the mandatory service-specific attributes, separated by `---`.
-You can, for example, override the default `HELLO_WORLD!` string that each agent prints on their console in the [Hello World service](../demos/hello_world_demo.md), which is originally defined in the `hello_world_abci` skill.
+You can, for example, override the default `HELLO_WORLD!` string that each agent prints on their console in the [Hello World service](https://docs.autonolas.network/demos/hello-world/), which is originally defined in the `hello_world_abci` skill.
 
 ```yaml title="service.yaml"
 name: hello_world
@@ -163,7 +165,7 @@ type: skill
 
 ???+ example
 
-    If you wish that each agent outputs a different message in the [Hello World service](../demos/hello_world_demo.md) with four agents, you can define the following multiple override in the `service.yaml` file:
+    If you wish that each agent outputs a different message in the [Hello World service](https://docs.autonolas.network/demos/hello-world/) with four agents, you can define the following multiple override in the `service.yaml` file:
 
     ```yaml title="service.yaml"
     # (...)
@@ -410,3 +412,19 @@ deployment:
       0:
         26656: ${TM_NODE_0_P2P_PORT:int:26656}
 ```
+
+## Override agent/component dependencies
+
+Service level dependencies can be defined using following format
+
+```yaml title="service.yaml"
+# (...)
+dependencies:
+  pypi-package:
+    version: ==1.0.0
+  git-package:
+    git: https://github.com/valory-xyz/open-autonomy
+    ref: 79342a93079648ef03ab5aaf14978068fc96587a
+```
+
+The dependencies defined at the service level will take priority over the dependencies defined at the agent or component level. This means, if you define some dependency `pypi-package==1.0.0` at the agent/component level and re-define it as `py-package==1.1.0` at the service level, `py-package==1.1.0` will get installed when building the agent image following the `service > agent > skill > connection > contract > protocol` priority order.

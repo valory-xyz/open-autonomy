@@ -172,7 +172,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
                 f"vendor.{skill.author}.skills.{skill.name}.models.params.args.setup.all_participants",
                 json.dumps(
                     [
-                        Web3.toChecksumAddress(pairs[0])
+                        Web3.to_checksum_address(pairs[0])
                         for pairs in key_pairs[:nb_agents]
                     ]
                 ),
@@ -385,7 +385,10 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
         for i, process in self.processes.items():
             if i in self.exclude_from_checks:
                 continue
-            (missing_strict_strings, missing_round_strings,) = self.missing_from_output(
+            (
+                missing_strict_strings,
+                missing_round_strings,
+            ) = self.missing_from_output(
                 process=process,
                 happy_path=self.happy_path,
                 strict_check_strings=self.strict_check_strings,

@@ -21,6 +21,7 @@
 
 from copy import deepcopy
 from typing import FrozenSet, cast
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -79,6 +80,7 @@ class TestBackgroundRound(BaseRoundTestClass):
 
         test_round = BackgroundRound(
             synchronized_data=deepcopy(self.synchronized_data),
+            context=MagicMock(),
         )
         payload_data = "0xdata"
         first_payload, *payloads = [
@@ -115,6 +117,7 @@ class TestBackgroundRound(BaseRoundTestClass):
         """Tests the background round when bad payloads are sent."""
         test_round = BackgroundRound(
             synchronized_data=deepcopy(self.synchronized_data),
+            context=MagicMock(),
         )
         payload_data = "0xdata"
         bad_participant = "non_existent"
@@ -165,6 +168,7 @@ class TestTerminationRound(BaseRoundTestClass):
 
         test_round = TerminationRound(
             synchronized_data=deepcopy(self.synchronized_data),
+            context=MagicMock(),
         )
         res = test_round.end_block()  # pylint: disable=assignment-from-none
         assert res is None
