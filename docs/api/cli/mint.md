@@ -16,18 +16,7 @@ Mint command group definitions.
 @retries_flag
 @sleep_flag
 @dry_run_flag
-@click.option(
-    "--skip-hash-check",
-    is_flag=True,
-    help="Skip hash check when verifying dependencies on chain",
-)
-@click.option(
-    "--skip-dependencies-check",
-    is_flag=True,
-    help="Skip dependencies check.",
-)
-def mint(ctx: Context, chain_type: str, skip_hash_check: bool,
-         skip_dependencies_check: bool, timeout: float, retries: int,
+def mint(ctx: Context, chain_type: str, timeout: float, retries: int,
          sleep: float, dry_run: bool) -> None
 ```
 
@@ -43,7 +32,6 @@ Mint component on-chain.
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
 @update_flag
@@ -52,7 +40,6 @@ def protocol(ctx: Context,
              package_path: Path,
              key: Path,
              password: Optional[str],
-             dependencies: Tuple[str],
              nft: Optional[Union[Path, IPFSHash]],
              owner: Optional[str],
              update: Optional[int],
@@ -71,7 +58,6 @@ Mint a protocol component.
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
 @update_flag
@@ -80,7 +66,6 @@ def contract(ctx: Context,
              package_path: Path,
              key: Path,
              password: Optional[str],
-             dependencies: Tuple[str],
              nft: Optional[Union[Path, IPFSHash]],
              owner: Optional[str],
              update: Optional[int],
@@ -99,7 +84,6 @@ Mint a contract component.
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
 @update_flag
@@ -108,7 +92,6 @@ def connection(ctx: Context,
                package_path: Path,
                key: Path,
                password: Optional[str],
-               dependencies: Tuple[str],
                nft: Optional[Union[Path, IPFSHash]],
                owner: Optional[str],
                update: Optional[int],
@@ -127,7 +110,6 @@ Mint a connection component.
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
 @update_flag
@@ -136,7 +118,6 @@ def skill(ctx: Context,
           package_path: Path,
           key: Path,
           password: Optional[str],
-          dependencies: Tuple[str],
           nft: Optional[Union[Path, IPFSHash]],
           owner: Optional[str],
           update: Optional[int],
@@ -155,7 +136,6 @@ Mint a skill component.
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
 @update_flag
@@ -164,7 +144,6 @@ def agent(ctx: Context,
           package_path: Path,
           key: Path,
           password: Optional[str],
-          dependencies: Tuple[str],
           nft: Optional[Union[Path, IPFSHash]],
           owner: Optional[str],
           update: Optional[int],
