@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.13.10 (2024-01-09)
+
+Packages:
+- Updates protocol packages to contain latest copyright headers
+
 # 0.13.9.post1 (2023-12-26)
 
 - Bumps `open-aea@1.43.0.post2`
