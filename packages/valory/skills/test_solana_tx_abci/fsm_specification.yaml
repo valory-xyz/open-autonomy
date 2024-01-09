@@ -1,0 +1,13 @@
+alphabet_in:
+- DONE
+- ROUND_TIMEOUT
+default_start_state: SolanaRound
+final_states: []
+label: SolanaTestAbciApp
+start_states:
+- SolanaRound
+states:
+- SolanaRound
+transition_func:
+    (SolanaRound, DONE): SolanaRound
+    (SolanaRound, ROUND_TIMEOUT): SolanaRound

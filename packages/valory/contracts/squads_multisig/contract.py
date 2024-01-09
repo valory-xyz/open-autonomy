@@ -27,7 +27,7 @@ from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
-
+from solders.system_program import transfer
 
 Pubkey = Any  # defined in solders.pubkey
 Keypair = Any  # defined in solders.keypair
@@ -276,7 +276,7 @@ class SquadsMultisig(Contract):
         ledger_api: LedgerApi,
         contract_address: Pubkey,
         program: Optional[Program] = None,
-    ) -> int:
+    ) -> JSONLike:
         """
         Get the next transaction index of a multisig.
 
@@ -289,11 +289,12 @@ class SquadsMultisig(Contract):
         :return: The transaction index for the account.
         :rtype: int
         """
-        return 1 + cls.current_tx_index(
+        index = 1 + cls.current_tx_index(
             ledger_api=ledger_api,
             contract_address=contract_address,
             program=program,
         )
+        return dict(data=index)
 
     @classmethod
     def current_ix_index(
@@ -380,7 +381,7 @@ class SquadsMultisig(Contract):
             int(str(tx_index), 10).to_bytes(byteorder="little", length=4),
             "transaction".encode(encoding="utf-8"),
         ]
-        return str(ledger_api.pda(seeds=seeds, program_id=program_id))
+        data = str(ledger_api.pda(seeds=seeds, program_id=program_id))
 
     @classmethod
     def get_ix_pda(
@@ -438,7 +439,7 @@ class SquadsMultisig(Contract):
                     ledger_api=ledger_api,
                     contract_address=contract_address,
                     program=program,
-                ),
+                ).pop('data'),
             )
         tx_pda = ledger_api.to_pubkey(tx_pda)
         ix = ledger_api.build_instruction(
@@ -556,7 +557,7 @@ class SquadsMultisig(Contract):
                     ledger_api=ledger_api,
                     contract_address=contract_address,
                     program=program,
-                ),
+                ).pop('data'),
             )
 
         tx_ixs = []
@@ -679,3 +680,22 @@ class SquadsMultisig(Contract):
             ],
         )
         return {"recent_blockhash": ledger_api.latest_hash, "ixs": [ix]}
+
+    @classmethod
+    def get_transfer_tx(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        from_pubkey: str,
+        to_pubkey: str,
+        lamports: int,
+    ) -> JSONLike:
+        """Get transfer tx."""
+        transfer_tx = transfer(
+            params=dict(
+                from_pubkey=Pubkey.from_string(from_pubkey),
+                to_pubkey=Pubkey.from_string(to_pubkey),
+                lamports=lamports,
+            )
+        ).to_json()
+        return dict(data=transfer_tx)

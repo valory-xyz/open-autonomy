@@ -1,0 +1,175 @@
+name: test_solana_tx_abci
+author: valory
+version: 0.1.0
+type: skill
+description: SOLANA e2e testing application.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: bafybeih2yvhacovscr4rijbd2lyhdxtfdqo4doqrk4gkrpfkzp4prpg3sq
+  __init__.py: bafybeiakdag42cmfwravjsivexgf27zqumalng53o7uqkksbfz4yf4ai6i
+  behaviours.py: bafybeig7l5rbhvcr2hgmge3cx3slsro2fvk63jgkkljo5vn6ot5g5bu47y
+  composition.py: bafybeictvkkn7r3xanwxj7pmsbuandknn67yw2fpggrsmj4bd5oovofovi
+  dialogues.py: bafybeicdjili5b2asx2wzwzpl3tlkkqqli5b34xhpcg27ocnzejhxk6f7y
+  fsm_specification.yaml: bafybeidh5ge22ytwufmdzg3wsqj5rwedaf5xrjf5l7vkyzf6bvabzftzha
+  handlers.py: bafybeiebyqb4usimldhkw2rwzoocqkgfrtwvdodfs7r57icutxyy7q5jfi
+  models.py: bafybeiafxxga76xwcthxog7oi3x4klvnhsznch4ozqtv26odgzreeyciau
+  payloads.py: bafybeib7rcfou6jdwqptywow5rgnf2pctt7xzi6e5zx2cjxrxmi736iwtu
+  rounds.py: bafybeig6yfu2vkmqdaujyfh62rvlrqdigatl2oelk2umjtq3a2bz6yw5r4
+  tests/__init__.py: bafybeig7ha2jklhcjptqw2cvxx4jbfqxjmrm3ckpzsn6w4hzmuilkftf2i
+  tests/test_behaviours.py: bafybeibaq64cq4hxbay27ehojrqtg7oxvle5f42knspl7afjkokf4v5mke
+  tests/test_dialogues.py: bafybeiefhrszdklwvsv4z5dwxrjbhcsoj33bunljhagtewa7eq7izjdpcm
+  tests/test_handlers.py: bafybeibphttjhpcqwyjbjfxdlopr6utapyjyqsmlvwksg6nfvgtcyblh4u
+  tests/test_models.py: bafybeig7jnqclqq62txv2jsmvbm6gkft7oghncztewvuvclhkaantqcds4
+  tests/test_payloads.py: bafybeiewggwday5sc5teogdcenbzvnatt5iyf4zemgvoq6sekjjkavsoqa
+  tests/test_rounds.py: bafybeicbc3sjcisgwor2k6nvfdrl3faax44urg4mjrnxdvnyifahh2desi
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0:bafybeicglrfbp6g2lign74hzovs2lxfx3yw462cc2loguvbyccosljehae
+- valory/http_client:0.23.0:bafybeih5vzo22p2umhqo52nzluaanxx7kejvvpcpdsrdymckkyvmsim6gm
+- valory/ipfs:0.1.0:bafybeifkrynw6jjg7bs7nw535m5bcrav5qab27vr5ktgfuvf65dpazc4ci
+- valory/ledger:0.19.0:bafybeic3ft7l7ca3qgnderm4xupsfmyoihgi27ukotnz7b5hdczla2enya
+- valory/p2p_libp2p_client:0.1.0:bafybeid3xg5k2ol5adflqloy75ibgljmol6xsvzvezebsg7oudxeeolz7e
+contracts:
+- valory/service_registry:0.1.0:bafybeickkg6myflc3fkpxyqn3a4gnayyrbtqzh7vxhtlzn26mhcilw32ma
+- valory/squads_multisig:0.1.0:bafybeig4y57gsenr5ahkcjpz55rsyrfmdnqwxgh45csaeqh52wuqtftrae
+protocols:
+- open_aea/signing:1.0.0:bafybeihv62fim3wl2bayavfcg3u5e5cxu3b7brtu4cn5xoxd6lqwachasi
+- valory/abci:0.1.0:bafybeiaqmp7kocbfdboksayeqhkbrynvlfzsx4uy4x6nohywnmaig4an7u
+- valory/acn:1.1.0:bafybeidluaoeakae3exseupaea4i3yvvk5vivyt227xshjlffywwxzcxqe
+- valory/contract_api:1.0.0:bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i
+- valory/http:1.0.0:bafybeifugzl63kfdmwrxwphrnrhj7bn6iruxieme3a4ntzejf6kmtuwmae
+- valory/ipfs:0.1.0:bafybeiftxi2qhreewgsc5wevogi7yc5g6hbcbo4uiuaibauhv3nhfcdtvm
+- valory/ledger_api:1.0.0:bafybeihdk6psr4guxmbcrc26jr2cbgzpd5aljkqvpwo64bvaz7tdti2oni
+- valory/tendermint:0.1.0:bafybeig4mi3vmlv5zpbjbfuzcgida6j5f2nhrpedxicmrrfjweqc5r7cra
+skills:
+- valory/abstract_abci:0.1.0:bafybeihqiujkwgyn7bwen5vu6k3ep3otd4qc322vzenvj4phezdxf2wuza
+- valory/abstract_round_abci:0.1.0:bafybeifvved235uxmnfapctphb4joumgbwg52yk5uxw7i4eckuvc6nw5im
+- valory/registration_abci:0.1.0:bafybeifluqirreyuoagntdtclnaupbp5padiwgj2tzhf2apt7hd2ui7t6m
+- valory/reset_pause_abci:0.1.0:bafybeifqk5mskjgftdzkvow72bxlplqypafbhvzcs7c7ajfyb2y2j3rria
+- valory/solana_transaction_settlement_abci:0.1.0:bafybeidgcjnj3vdt4q56kwdv4uj27aqxkdxcbm5dmpczl3m5urvccujwby
+behaviours:
+  main:
+    args: {}
+    class_name: TestAbciConsensusBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: ABCIHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  ipfs:
+    args: {}
+    class_name: IpfsHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+  tendermint:
+    args: {}
+    class_name: TendermintHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  benchmark_tool:
+    args:
+      log_dir: /logs
+    class_name: BenchmarkTool
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  ipfs_dialogues:
+    args: {}
+    class_name: IpfsDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  params:
+    args:
+      cleanup_history_depth: 1
+      cleanup_history_depth_current: null
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      finalize_timeout: 60.0
+      genesis_config:
+        genesis_time: '2022-05-20T16:00:21.735122717Z'
+        chain_id: chain-c4daS1
+        consensus_params:
+          block:
+            max_bytes: '22020096'
+            max_gas: '-1'
+            time_iota_ms: '1000'
+          evidence:
+            max_age_num_blocks: '100000'
+            max_age_duration: '172800000000000'
+            max_bytes: '1048576'
+          validator:
+            pub_key_types:
+            - ed25519
+          version: {}
+        voting_power: '10'
+      history_check_timeout: 1205
+      init_fallback_gas: 0
+      keeper_allowed_retries: 3
+      keeper_timeout: 30.0
+      light_slash_unit_amount: 5000000000000000
+      max_attempts: 10
+      max_healthcheck: 120
+      multisend_address: '0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761'
+      on_chain_service_id: null
+      request_retry_delay: 1.0
+      request_timeout: 10.0
+      reset_pause_duration: 10
+      reset_tendermint_after: 2
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30.0
+      serious_slash_unit_amount: 8000000000000000
+      service_id: test_solana_abci
+      service_registry_address: null
+      setup:
+        all_participants:
+        - '0x0000000000000000000000000000000000000000'
+        safe_contract_address: '0x0000000000000000000000000000000000000000'
+        consensus_threshold: null
+      share_tm_config_on_startup: false
+      slash_cooldown_hours: 3
+      slash_threshold_amount: 10000000000000000
+      sleep_time: 1
+      tendermint_check_sleep_delay: 3
+      tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
+      tendermint_p2p_url: localhost:26656
+      tendermint_url: http://localhost:26657
+      termination_sleep: 900
+      tx_timeout: 10.0
+      use_slashing: false
+      squad_vault: 492Ss1D6BSKtfFGZHbRq8ot5X8FcPcfP4EW9tKkYrQJn
+      transfer_lamports: 100
+      transfer_to_pubkey: 5Mh8XPnMjveUs8mXWofXpgw1seMZUfT2A6fEhdBgaRRW
+      use_termination: false
+      validate_timeout: 1205
+    class_name: Params
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+  tendermint_dialogues:
+    args: {}
+    class_name: TendermintDialogues
+dependencies: {}
+is_abstract: false
