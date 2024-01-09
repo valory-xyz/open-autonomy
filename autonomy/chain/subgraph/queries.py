@@ -38,3 +38,13 @@ query getUnit {{
   }}
 }}
 """
+
+FIND_BY_TOKEN_ID = """
+query getUnit {{
+  units(where:{{tokenId: "{token_id}",packageType:{package_type}}}){{
+    tokenId
+    packageHash
+    publicId
+  }}
+}}
+"""
