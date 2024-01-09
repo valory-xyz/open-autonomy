@@ -31,7 +31,6 @@ from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 
 from autonomy.chain.base import ServiceState
 from autonomy.chain.config import ChainConfigs, ChainType
-from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH, registry_contracts
 from autonomy.cli.helpers.chain import MintHelper, OnChainHelper, ServiceHelper
 
@@ -87,9 +86,7 @@ class TestMintComponentMethod:
                 ).load_package_configuration(
                     package_path=PACKAGE_DIR,
                     package_type=PackageType.PROTOCOL,
-                ).verify_nft().verify_component_dependencies(
-                    dependencies=(),  # type: ignore
-                ).publish_metadata().mint_component()
+                ).verify_nft().fetch_component_dependencies().publish_metadata().mint_component()
 
     def test_rpc_cannot_be_none(
         self,
@@ -110,9 +107,7 @@ class TestMintComponentMethod:
             ).load_package_configuration(
                 package_path=PACKAGE_DIR,
                 package_type=PackageType.PROTOCOL,
-            ).verify_nft().verify_component_dependencies(
-                dependencies=(),  # type: ignore
-            ).publish_metadata().mint_component()
+            ).verify_nft().fetch_component_dependencies().publish_metadata().mint_component()
 
     def test_missing_nft_hash(
         self,
@@ -133,9 +128,7 @@ class TestMintComponentMethod:
                 ).load_package_configuration(
                     package_path=PACKAGE_DIR,
                     package_type=PackageType.PROTOCOL,
-                ).verify_nft().verify_component_dependencies(
-                    dependencies=(),  # type: ignore
-                ).publish_metadata().mint_component()
+                ).verify_nft().fetch_component_dependencies().publish_metadata().mint_component()
 
 
 class TestRequiredEnvVars:
@@ -341,36 +334,7 @@ def test_get_ledger_and_crypto_failure() -> None:
         ).load_package_configuration(
             package_path=PACKAGE_DIR,
             package_type=PackageType.PROTOCOL,
-        ).verify_nft().verify_component_dependencies(
-            dependencies=(),  # type: ignore
-        ).publish_metadata().mint_component()
-
-
-def test_verify_component_dependencies_failures() -> None:
-    """Test `verify_component_dependencies` failures"""
-
-    with pytest.raises(
-        click.ClickException,
-        match=("Dependency verification failed"),
-    ), mock.patch.object(
-        MintHelper,
-        "get_ledger_and_crypto_objects",
-        return_value=(mock.MagicMock(), mock.MagicMock()),
-    ), mock.patch(
-        "autonomy.cli.helpers.chain.verify_component_dependencies",
-        side_effect=FailedToRetrieveComponentMetadata,
-    ):
-        MintHelper(
-            key=ETHEREUM_KEY_DEPLOYER,
-            chain_type=ChainType.ETHEREUM,
-        ).load_package_configuration(
-            package_path=PACKAGE_DIR,
-            package_type=PackageType.PROTOCOL,
-        ).verify_nft(
-            nft=DEFAULT_NFT_IMAGE_HASH,
-        ).verify_component_dependencies(
-            dependencies=(1,),  # type: ignore
-        )
+        ).verify_nft().fetch_component_dependencies().publish_metadata().mint_component()
 
 
 def test_verify_service_dependencies_failures() -> None:
@@ -378,18 +342,16 @@ def test_verify_service_dependencies_failures() -> None:
 
     with pytest.raises(
         click.ClickException,
-        match=("Dependency verification failed"),
+        match="Error interacting with subgraph; Cannot connect to host",
     ), mock.patch.object(
         MintHelper,
         "get_ledger_and_crypto_objects",
         return_value=(mock.MagicMock(), mock.MagicMock()),
-    ), mock.patch(
-        "autonomy.cli.helpers.chain.verify_service_dependencies",
-        side_effect=FailedToRetrieveComponentMetadata,
     ):
         MintHelper(
             key=ETHEREUM_KEY_DEPLOYER,
             chain_type=ChainType.ETHEREUM,
+            subgraph="http://localhost:8888",
         ).load_package_configuration(
             package_path=PACKAGE_DIR,
             package_type=PackageType.PROTOCOL,
