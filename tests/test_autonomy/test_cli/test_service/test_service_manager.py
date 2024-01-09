@@ -21,7 +21,6 @@
 
 import binascii
 from typing import List, Optional
-from unittest import mock
 
 import pytest
 from aea.components.base import load_aea_package
@@ -50,6 +49,7 @@ from tests.test_autonomy.test_chain.base import (
     DUMMY_SERVICE,
     NUMBER_OF_SLOTS_PER_AGENT,
     THRESHOLD,
+    patch_subgraph,
 )
 
 
@@ -71,7 +71,9 @@ class BaseServiceManagerTest(BaseChainInteractionTest):
         threshold: int = THRESHOLD,
     ) -> int:
         """Mint service component"""
-        with mock.patch("autonomy.cli.helpers.chain.verify_service_dependencies"):
+        with patch_subgraph(
+            response=[{"tokenId": AGENT_ID, "publicId": "dummy_author/dummy_agent"}]
+        ):
             service_id = self.mint_component(
                 package_id=DUMMY_SERVICE,
                 service_mint_parameters=dict(
@@ -433,8 +435,9 @@ class TestERC20AsBond(BaseServiceManagerTest):
 
     def mint(self) -> int:
         """Mint service with token"""
-
-        with mock.patch("autonomy.cli.helpers.chain.verify_service_dependencies"):
+        with patch_subgraph(
+            response=[{"tokenId": AGENT_ID, "publicId": "dummy_author/dummy_agent"}]
+        ):
             service_id = self.mint_component(
                 package_id=DUMMY_SERVICE,
                 service_mint_parameters=dict(

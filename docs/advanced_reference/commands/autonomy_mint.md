@@ -106,19 +106,19 @@ autonomy mint skill [OPTIONS] PACKAGE_PATH
 Mint the `abstract_abci` skill with dependency IDs 35 and 42 in a local chain:
 
 ```bash
-autonomy mint --use-local skill --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 35 -d 42 ./packages/valory/skills/abstract_abci
+autonomy mint --use-local skill --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci
 ```
 
 Same as above, but using a hardware wallet:
 
 ```bash
-autonomy mint --use-local skill --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 35 -d 42 ./packages/valory/skills/abstract_abci
+autonomy mint --use-local skill --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci
 ```
 
 Update the minted `abstract_abci` skill using
 
 ```bash
-autonomy mint --use-local skill --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 35 -d 42 ./packages/valory/skills/abstract_abci --update <token_id>
+autonomy mint --use-local skill --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci --update <token_id>
 ```
 
 Perform a dry run
@@ -187,13 +187,13 @@ autonomy mint agent [OPTIONS] PACKAGE_PATH
 Mint the `hello_world` agent with dependency IDs 34, 35, 38, 39, 42, 43, 44, 45, 46, 47, 48 and 49 in the Ethereum main chain:
 
 ```bash
-autonomy mint --use-ethereum agent --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 34 -d 35 -d 38 -d 39 -d 42 -d 43 -d 44 -d 45 -d 46 -d 47 -d 48 -d 49 ./packages/valory/agents/hello_world
+autonomy mint --use-ethereum agent --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/agents/hello_world
 ```
 
 Same as above, but using a hardware wallet:
 
 ```bash
-autonomy mint --use-ethereum agent --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 34 -d 35 -d 38 -d 39 -d 42 -d 43 -d 44 -d 45 -d 46 -d 47 -d 48 -d 49 ./packages/valory/agents/hello_world
+autonomy mint --use-ethereum agent --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/agents/hello_world
 ```
 
 ## `autonomy mint service`
