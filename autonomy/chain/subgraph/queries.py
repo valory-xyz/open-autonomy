@@ -17,6 +17,8 @@
 #
 # ------------------------------------------------------------------------------
 
+# nosec
+
 """Query templates."""
 
 FIND_BY_PACKAGE_HASH = """
@@ -39,7 +41,13 @@ query getUnit {{
 }}
 """
 
-FIND_BY_TOKEN_ID = """
+# The bandit check fails here and adding nosec tag does not work because
+# the black formatter puts the nosec tag to the end of the declaration
+# so I declared the template as singleton and deconstructed the tuple to
+# constant value
+
+(FIND_BY_TOKEN_ID,) = (  # nosec
+    """
 query getUnit {{
   units(where:{{tokenId: "{token_id}",packageType:{package_type}}}){{
     tokenId
@@ -47,4 +55,5 @@ query getUnit {{
     publicId
   }}
 }}
-"""
+""",
+)
