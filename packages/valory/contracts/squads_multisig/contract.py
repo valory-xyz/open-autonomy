@@ -559,7 +559,7 @@ class SquadsMultisig(Contract):
                 ),
             )
 
-        ixs = []
+        tx_ixs = []
         create_ix = cls.create_transaction_ix(
             ledger_api=ledger_api,
             contract_address=contract_address,
@@ -567,8 +567,8 @@ class SquadsMultisig(Contract):
             creator=creator,
             tx_pda=tx_pda,
         )
-        ixs += create_ix["ixs"]
 
+        tx_ixs += create_ix["ixs"]
         for index, ix in enumerate(ixs):
             attach_ix = cls.add_instruction_ix(
                 ledger_api=ledger_api,
@@ -578,7 +578,7 @@ class SquadsMultisig(Contract):
                 ix=ix,
                 index=(index + 1),
             )
-            ixs += attach_ix["ixs"]
+            tx_ixs += attach_ix["ixs"]
 
         activate_ix = cls.activate_transaction_ix(
             ledger_api=ledger_api,
@@ -586,9 +586,8 @@ class SquadsMultisig(Contract):
             tx_pda=tx_pda,
             creator=creator,
         )
-        ixs += activate_ix["ixs"]
-
-        return {"recent_blockhash": ledger_api.latest_hash, "ixs": ixs}
+        tx_ixs += activate_ix["ixs"]
+        return {"recent_blockhash": ledger_api.latest_hash, "ixs": tx_ixs}
 
     @classmethod
     def approve_transaction_ix(
