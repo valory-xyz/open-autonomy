@@ -124,8 +124,8 @@ See also the [service level overrides](../configure_service/service_configuratio
     - identifier: acn
       ledger_id: ethereum
       message_format: '{public_key}'
-      not_after: '2023-01-01'
-      not_before: '2022-01-01'
+      not_after: '2025-01-01'
+      not_before: '2024-01-01'
       public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
       save_path: .certs/acn_cosmos_9005.txt
 
