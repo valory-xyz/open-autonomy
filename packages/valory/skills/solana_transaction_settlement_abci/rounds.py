@@ -273,7 +273,55 @@ class FinishedTransactionSubmissionRound(DegenerateRound, ABC):
 
 
 class SolanaTransactionSubmissionAbciApp(AbciApp[Event]):
-    """SolanaTransactionSubmissionAbciApp"""
+    """SolanaTransactionSubmissionAbciApp
+
+    Initial round: CreateTxRandomnessRound
+
+    Initial states: {CreateTxRandomnessRound}
+
+    Transition states:
+        0. CreateTxRandomnessRound
+            - done: 1.
+            - no majority: 0.
+            - round timeout: 0.
+        1. CreateTxSelectKeeperRound
+            - done: 2.
+            - no majority: 8.
+            - round timeout: 1.
+        2. CreateTxRound
+            - done: 3.
+            - round timeout: 0.
+        3. ApproveTxRound
+            - done: 4.
+            - no majority: 3.
+            - round timeout: 3.
+        4. ExecuteTxRandomnessRound
+            - done: 5.
+            - no majority: 4.
+            - round timeout: 4.
+        5. ExecuteTxSelectKeeperRound
+            - done: 6.
+            - no majority: 8.
+            - round timeout: 5.
+        6. ExecuteTxRound
+            - done: 7.
+            - round timeout: 4.
+        7. VerifyTxRound
+            - done: 8.
+            - no majority: 7.
+            - round timeout: 7.
+        8. ResetRound
+            - done: 0.
+            - no majority: 10.
+            - round timeout: 10.
+        9. FinishedTransactionSubmissionRound
+        10. FailedRound
+
+    Final states: {FailedRound, FinishedTransactionSubmissionRound}
+
+    Timeouts:
+        round timeout: 30.0
+    """
 
     initial_round_cls: AppState = CreateTxRandomnessRound
     initial_states: Set[AppState] = {CreateTxRandomnessRound}
