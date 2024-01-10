@@ -73,6 +73,7 @@ class SolanaTransferBehaviour(BaseBehaviour, ABC):
             to_pubkey=self.params.transfer_to_pubkey,
             lamports=self.params.transfer_lamports,
             chain_id=SOLANA,
+            ledger_id=SOLANA,
         )
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
