@@ -8,32 +8,25 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeih2yvhacovscr4rijbd2lyhdxtfdqo4doqrk4gkrpfkzp4prpg3sq
   __init__.py: bafybeiakdag42cmfwravjsivexgf27zqumalng53o7uqkksbfz4yf4ai6i
-  behaviours.py: bafybeig7l5rbhvcr2hgmge3cx3slsro2fvk63jgkkljo5vn6ot5g5bu47y
-  composition.py: bafybeictvkkn7r3xanwxj7pmsbuandknn67yw2fpggrsmj4bd5oovofovi
-  dialogues.py: bafybeicdjili5b2asx2wzwzpl3tlkkqqli5b34xhpcg27ocnzejhxk6f7y
+  behaviours.py: bafybeig7i2f475fmrmi6fb2wjkhk34shzxtpjxhbu2o6m44vqrne5lkgai
+  composition.py: bafybeicysoz6tnqcsvbabyqsl7kqzp3f5lw2rplusljx5wog75rysk4dou
+  dialogues.py: bafybeigpwuzku3we7axmxeamg7vn656maww6emuztau5pg3ebsoquyfdqm
   fsm_specification.yaml: bafybeidh5ge22ytwufmdzg3wsqj5rwedaf5xrjf5l7vkyzf6bvabzftzha
-  handlers.py: bafybeiebyqb4usimldhkw2rwzoocqkgfrtwvdodfs7r57icutxyy7q5jfi
-  models.py: bafybeiafxxga76xwcthxog7oi3x4klvnhsznch4ozqtv26odgzreeyciau
-  payloads.py: bafybeib7rcfou6jdwqptywow5rgnf2pctt7xzi6e5zx2cjxrxmi736iwtu
-  rounds.py: bafybeig6yfu2vkmqdaujyfh62rvlrqdigatl2oelk2umjtq3a2bz6yw5r4
-  tests/__init__.py: bafybeig7ha2jklhcjptqw2cvxx4jbfqxjmrm3ckpzsn6w4hzmuilkftf2i
-  tests/test_behaviours.py: bafybeibaq64cq4hxbay27ehojrqtg7oxvle5f42knspl7afjkokf4v5mke
-  tests/test_dialogues.py: bafybeiefhrszdklwvsv4z5dwxrjbhcsoj33bunljhagtewa7eq7izjdpcm
-  tests/test_handlers.py: bafybeibphttjhpcqwyjbjfxdlopr6utapyjyqsmlvwksg6nfvgtcyblh4u
-  tests/test_models.py: bafybeig7jnqclqq62txv2jsmvbm6gkft7oghncztewvuvclhkaantqcds4
-  tests/test_payloads.py: bafybeiewggwday5sc5teogdcenbzvnatt5iyf4zemgvoq6sekjjkavsoqa
-  tests/test_rounds.py: bafybeicbc3sjcisgwor2k6nvfdrl3faax44urg4mjrnxdvnyifahh2desi
+  handlers.py: bafybeierm5cuytzkt43yjb2x2734yccymnlcc7wa7oxvjr22pdip7holx4
+  models.py: bafybeidjbwua3jjidkkrgxcflrv4otpasiqcyvftufoepa3x4ehr7dm7uu
+  payloads.py: bafybeidolfngfd44tewdxgnoqduw5canhgxkln6is7mwsx6nx6rwdhdevu
+  rounds.py: bafybeig54jkodp7o4jqjr3aiabgbuxipsktfeo5aaf6h4hesfpzp7ratdu
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/squads_multisig:0.1.0:bafybeig4y57gsenr5ahkcjpz55rsyrfmdnqwxgh45csaeqh52wuqtftrae
+- valory/squads_multisig:0.1.0:bafybeibeahazgcpq5gdjdoyx3ytybunr6yqqh6eu7wd2lykjodtb65ebaq
 protocols:
 - valory/contract_api:1.0.0:bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifvved235uxmnfapctphb4joumgbwg52yk5uxw7i4eckuvc6nw5im
-- valory/registration_abci:0.1.0:bafybeifluqirreyuoagntdtclnaupbp5padiwgj2tzhf2apt7hd2ui7t6m
-- valory/reset_pause_abci:0.1.0:bafybeifqk5mskjgftdzkvow72bxlplqypafbhvzcs7c7ajfyb2y2j3rria
-- valory/solana_transaction_settlement_abci:0.1.0:bafybeidgcjnj3vdt4q56kwdv4uj27aqxkdxcbm5dmpczl3m5urvccujwby
+- valory/abstract_round_abci:0.1.0:bafybeichybdipigekiyopksml72dcqowrpn5si3w2ad24j227l4i6scfma
+- valory/registration_abci:0.1.0:bafybeib5kub5y3jfezqreei32ffbyeap3ddkfvdy5fr4bghuxxfwgtyrqq
+- valory/reset_pause_abci:0.1.0:bafybeievewpte6de3j2qzo5cpdsak62s6si7zfa6qbf6mswn5vrpbdqq3m
+- valory/solana_transaction_settlement_abci:0.1.0:bafybeighizznasil2hfu5p6n2eyphfcrff7ccw5ltbzrjz6psns2d7jxde
 behaviours:
   main:
     args: {}
@@ -148,9 +141,9 @@ models:
   randomness_api:
     args:
       api_id: cloudflare
-      headers: { }
+      headers: {}
       method: GET
-      parameters: { }
+      parameters: {}
       response_key: null
       response_type: dict
       retries: 5

@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeieeus2bbbexmthy4pnsdtgen4flxzk3ao5ekjbocvmrkhhszffbgu
   build/SquadsMultisig.json: bafybeiey7jbufdyfroy3vahjrfiifsvwf7zaq5yjjb56zokhbg5t76hjcm
-  contract.py: bafybeidnhl5kdkqql5csxzsdhvn36riso7q6auhqqc5wtdqdozbq2guaxa
+  contract.py: bafybeibhncg4j2uc4rda3iqdk6vsgdyocc2kntfmnz47asysu2mbuehhym
 fingerprint_ignore_patterns: []
 class_name: SquadsMultisig
 contract_interface_paths:

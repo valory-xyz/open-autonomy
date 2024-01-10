@@ -18,7 +18,7 @@ connections:
 - valory/ledger:0.19.0:bafybeic3ft7l7ca3qgnderm4xupsfmyoihgi27ukotnz7b5hdczla2enya
 - valory/p2p_libp2p_client:0.1.0:bafybeid3xg5k2ol5adflqloy75ibgljmol6xsvzvezebsg7oudxeeolz7e
 contracts:
-- valory/squads_multisig:0.1.0:bafybeig4y57gsenr5ahkcjpz55rsyrfmdnqwxgh45csaeqh52wuqtftrae
+- valory/squads_multisig:0.1.0:bafybeibeahazgcpq5gdjdoyx3ytybunr6yqqh6eu7wd2lykjodtb65ebaq
 - valory/service_registry:0.1.0:bafybeickkg6myflc3fkpxyqn3a4gnayyrbtqzh7vxhtlzn26mhcilw32ma
 protocols:
 - open_aea/signing:1.0.0:bafybeihv62fim3wl2bayavfcg3u5e5cxu3b7brtu4cn5xoxd6lqwachasi
@@ -31,11 +31,11 @@ protocols:
 - valory/tendermint:0.1.0:bafybeig4mi3vmlv5zpbjbfuzcgida6j5f2nhrpedxicmrrfjweqc5r7cra
 skills:
 - valory/abstract_abci:0.1.0:bafybeihqiujkwgyn7bwen5vu6k3ep3otd4qc322vzenvj4phezdxf2wuza
-- valory/abstract_round_abci:0.1.0:bafybeifvved235uxmnfapctphb4joumgbwg52yk5uxw7i4eckuvc6nw5im
-- valory/registration_abci:0.1.0:bafybeifluqirreyuoagntdtclnaupbp5padiwgj2tzhf2apt7hd2ui7t6m
-- valory/reset_pause_abci:0.1.0:bafybeifqk5mskjgftdzkvow72bxlplqypafbhvzcs7c7ajfyb2y2j3rria
-- valory/solana_transaction_settlement_abci:0.1.0:bafybeidgcjnj3vdt4q56kwdv4uj27aqxkdxcbm5dmpczl3m5urvccujwby
-- valory/test_solana_tx_abci:0.1.0:bafybeigr6guptdlaag6ffnf4v2mvmjpyqqqywxm6hx37tx2ew2nq5pqdzy
+- valory/abstract_round_abci:0.1.0:bafybeichybdipigekiyopksml72dcqowrpn5si3w2ad24j227l4i6scfma
+- valory/registration_abci:0.1.0:bafybeib5kub5y3jfezqreei32ffbyeap3ddkfvdy5fr4bghuxxfwgtyrqq
+- valory/reset_pause_abci:0.1.0:bafybeievewpte6de3j2qzo5cpdsak62s6si7zfa6qbf6mswn5vrpbdqq3m
+- valory/solana_transaction_settlement_abci:0.1.0:bafybeighizznasil2hfu5p6n2eyphfcrff7ccw5ltbzrjz6psns2d7jxde
+- valory/test_solana_tx_abci:0.1.0:bafybeihmbjoxx63ni5wb7j6c7fuggqmkcaaswe47v4k5y45jaxg3nori5y
 default_ledger: solana
 required_ledgers:
 - solana
