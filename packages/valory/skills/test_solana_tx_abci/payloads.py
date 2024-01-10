@@ -19,8 +19,9 @@
 
 """This module contains the transaction payloads for the test_abci app."""
 from dataclasses import dataclass
-from enum import Enum
 from typing import List
+
+from frozenlist import FrozenList
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -29,5 +30,5 @@ from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 class SolanaTransactionPayload(BaseTxPayload):
     """A solana tx payload."""
 
-    instructions: List[str]
+    instructions: str
     error: bool

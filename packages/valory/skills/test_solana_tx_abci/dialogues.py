@@ -38,10 +38,10 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     HttpDialogues as BaseHttpDialogues,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
-    SolanaDialogue as BaseSolanaDialogue,
+    IpfsDialogue as BaseIpfsDialogue,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
-    SolanaDialogues as BaseSolanaDialogues,
+    IpfsDialogues as BaseIpfsDialogues,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
     LedgerApiDialogue as BaseLedgerApiDialogue,
@@ -87,5 +87,5 @@ TendermintDialogue = BaseTendermintDialogue
 TendermintDialogues = BaseTendermintDialogues
 
 
-SolanaDialogue = BaseSolanaDialogue
-SolanaDialogues = BaseSolanaDialogues
+IpfsDialogue = BaseIpfsDialogue
+IpfsDialogues = BaseIpfsDialogues

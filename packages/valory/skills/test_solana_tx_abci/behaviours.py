@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'test_solana_behaviour' skill."""
+import json
 from abc import ABC
 from typing import Generator, Set, Type, cast, Optional, Dict, Any
 
@@ -27,12 +28,19 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
 )
+from packages.valory.skills.registration_abci.behaviours import RegistrationStartupBehaviour, \
+    AgentRegistrationRoundBehaviour
+from packages.valory.skills.reset_pause_abci.behaviours import ResetPauseABCIConsensusBehaviour
+from packages.valory.skills.solana_transaction_settlement_abci.behaviours import \
+    SolanaTransactionSettlementRoundBehaviour
+from packages.valory.skills.test_solana_tx_abci.composition import ComposedAbciApp
 from packages.valory.skills.test_solana_tx_abci.models import Params
 from packages.valory.skills.test_solana_tx_abci.payloads import SolanaTransactionPayload
 from packages.valory.skills.test_solana_tx_abci.rounds import SolanaRound, SolanaTestAbciApp
 
 
 DUMMY_ADDRESS = '0x0'
+SOLANA = 'solana'
 
 class SolanaTransferBehaviour(BaseBehaviour, ABC):
     """A behaviour that makes a solana transfer via the squad multisig."""
@@ -64,6 +72,7 @@ class SolanaTransferBehaviour(BaseBehaviour, ABC):
             from_pubkey=self.params.squad_vault,
             to_pubkey=self.params.transfer_to_pubkey,
             lamports=self.params.transfer_lamports,
+            chain_id=SOLANA,
         )
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
@@ -83,16 +92,19 @@ class SolanaTransferBehaviour(BaseBehaviour, ABC):
         transfer_tx = yield from self._get_transfer_tx()
         if transfer_tx is None:
             self.context.logger.error("Couldn't get the transfer tx.")
-            return dict(instructions=[], error=True)
+            return dict(instructions="", error=True)
 
-        return dict(instructions=[transfer_tx], error=False)
+        return dict(instructions=json.dumps([transfer_tx]), error=False)
 
 
 class TestAbciConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the solana test abci app."""
 
-    initial_behaviour_cls = SolanaTransferBehaviour
-    abci_app_cls = SolanaTestAbciApp
+    initial_behaviour_cls = RegistrationStartupBehaviour
+    abci_app_cls = ComposedAbciApp
     behaviours: Set[Type[BaseBehaviour]] = {
-        SolanaTransferBehaviour,  # type: ignore
+        *AgentRegistrationRoundBehaviour.behaviours,
+        *ResetPauseABCIConsensusBehaviour.behaviours,
+        *SolanaTransactionSettlementRoundBehaviour.behaviours,
+        SolanaTransferBehaviour,
     }

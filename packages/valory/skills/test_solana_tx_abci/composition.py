@@ -38,8 +38,8 @@ ComposedAbciApp = chain(
     (
         RegistrationAbci.AgentRegistrationAbciApp,
         ResetAndPauseAbci.ResetPauseAbciApp,
-        TransactionSubmissionAbciApp.AbciAppTransitionFunction,
-        SolanaTestAbciApp.AbciAppTransitionFunction,
+        TransactionSubmissionAbciApp.SolanaTransactionSubmissionAbciApp,
+        SolanaTestAbciApp.SolanaTestAbciApp,
     ),
     abci_app_transition_mapping,
 )

@@ -19,7 +19,7 @@
 
 """This module contains the shared state for the Solana test application."""
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.models import BaseParams, ApiSpecs
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
@@ -28,14 +28,15 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.test_solana_tx_abci.composition import ComposedAbciApp
-from packages.valory.skills.test_solana_tx_abci.rounds import SolanaTestAbciApp
-
 
 MARGIN = 5
 
 
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
+
+class RandomnessApi(ApiSpecs):
+    """A model that wraps ApiSpecs for randomness api specifications."""
 
 
 class SharedState(BaseSharedState):
@@ -49,7 +50,7 @@ class Params(BaseParams):
 
     def __init__(self, **kwargs):
         """Initialize the parameters."""
-        super().__init__(**kwargs)
         self.squad_vault = self._ensure("squad_vault", kwargs, str)
         self.transfer_to_pubkey = self._ensure("transfer_to_pubkey", kwargs, str)
         self.transfer_lamports = self._ensure("transfer_lamports", kwargs, int)
+        super().__init__(**kwargs)

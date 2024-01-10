@@ -61,19 +61,16 @@ class SolanaRound(CollectSameUntilThresholdRound):
     synchronized_data_class = BaseSynchronizedData
 
     @staticmethod
-    def _decode_instructions(instructions: List[str]) -> List[Any]:
+    def _decode_instructions(instructions: str) -> List[Any]:
         """Decode the instructions."""
-        loaded_instructions = [json.loads(instruction) for instruction in instructions]
-        return loaded_instructions
+        instructions = json.loads(instructions)
+        return [json.loads(instruction) for instruction in instructions]
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """End block."""
         if self.threshold_reached:  # pragma: no cover
-            payload = cast(SolanaTransactionPayload, self.most_voted_payload)
-            if payload.error:
-                return self.synchronized_data, Event.ERROR
-
-            instructions = self._decode_instructions(payload.instructions)
+            payload = cast(str, self.most_voted_payload)
+            instructions = self._decode_instructions(payload)
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
                 **{
@@ -122,7 +119,9 @@ class SolanaTestAbciApp(AbciApp[Event]):
         },
         FinishedWithTransactionRound: {},
     }
-    final_states = {FinishedWithTransactionRound}
+    final_states = {
+        FinishedWithTransactionRound,
+    }
     db_pre_conditions = {SolanaRound: set()}
     db_post_conditions = {
         FinishedWithTransactionRound: {get_name(SynchronizedData.most_voted_instruction_set)}
