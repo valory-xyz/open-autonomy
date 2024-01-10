@@ -60,12 +60,6 @@ This command group consists of a number of functionalities to mint components, a
 `--sleep FLOAT`
 : Sleep period between retries
 
-`--skip-hash-check`
-: Skip hash check when verifying dependencies on chain.
-
-`--skip-dependencies-check`
-: Skip dependency verification.
-
 ## `autonomy mint protocol` / `contract` / `connection` / `skill`
 
 Mint a protocol, contract, connection or skill in the Autonolas Protocol.
@@ -89,9 +83,6 @@ autonomy mint skill [OPTIONS] PACKAGE_PATH
 `--password PASSWORD`
 : Password for the key file.
 
-`-d, --dependencies DEPENDENCY_ID`
-: Dependencies for the package.
-
 `--nft IPFS_HASH_OR_IMAGE_PATH`
 : IPFS hash or path to the image for the NFT representing the package. Note that if you are using a local chain this option is not required.
 
@@ -103,7 +94,7 @@ autonomy mint skill [OPTIONS] PACKAGE_PATH
 
 ### Examples
 
-Mint the `abstract_abci` skill with dependency IDs 35 and 42 in a local chain:
+Mint the `abstract_abci` skill in a local chain:
 
 ```bash
 autonomy mint --use-local skill --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci
@@ -138,7 +129,7 @@ Kwargs:
     component_type: UnitType.COMPONENT
     metadata_hash: 0x...
     sender: 0x...
-    dependencies: []
+    §ncies: []
 Transaction: 
     chainId: 31337
     nonce: 0
@@ -170,9 +161,6 @@ autonomy mint agent [OPTIONS] PACKAGE_PATH
 `--password PASSWORD`
 : Password for the key file.
 
-`-d, --dependencies DEPENDENCY_ID`
-: Dependencies for the package. In order to be minted, agent packages require at least one dependency.
-
 `--nft NFT_HASH_OR_IMAGE_PATH`
 : IPFS hash or path to the image for the NFT representing the package. Note that if you are using a local chain this option is not required.
 
@@ -184,7 +172,7 @@ autonomy mint agent [OPTIONS] PACKAGE_PATH
 
 ### Examples
 
-Mint the `hello_world` agent with dependency IDs 34, 35, 38, 39, 42, 43, 44, 45, 46, 47, 48 and 49 in the Ethereum main chain:
+Mint the `hello_world` agent in the Ethereum main chain:
 
 ```bash
 autonomy mint --use-ethereum agent --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/agents/hello_world
