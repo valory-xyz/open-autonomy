@@ -393,7 +393,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
     def verify_service_dependencies(self, agent_id: int) -> "MintHelper":
         """Verify component dependencies."""
         self.agent_id = agent_id
-        if self.chain_type != ChainType.ETHEREUM:
+        if self.chain_type in (ChainType.LOCAL, ChainType.GOERLI):
             return self
 
         try:
@@ -465,7 +465,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         if self.token_id is not None:
             click.echo(f"\tToken ID: {self.token_id}")
             (Path.cwd() / f"{self.token_id}.json").write_text(self.metadata_string)
-        else:
+        else:  # pragma: nocover
             raise click.ClickException(
                 "Could not verify metadata hash to retrieve the token ID"
             )
@@ -535,7 +535,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         if token_id is not None:
             click.echo(f"\tToken ID: {token_id}")
             (Path.cwd() / f"{token_id}.json").write_text(self.metadata_string)
-        else:
+        else:  # pragma: nocover
             raise click.ClickException(
                 "Could not verify metadata hash to retrieve the token ID"
             )
@@ -572,7 +572,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         if self.token_id is not None:
             click.echo(f"\tToken ID: {self.token_id}")
             (Path.cwd() / f"{self.token_id}.json").write_text(self.metadata_string)
-        else:
+        else:  # pragma: nocover
             raise click.ClickException(
                 "Could not verify metadata hash to retrieve the token ID"
             )
@@ -638,7 +638,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         if token_id is not None:
             click.echo(f"\tToken ID: {token_id}")
             (Path.cwd() / f"{token_id}.json").write_text(self.metadata_string)
-        else:
+        else:  # pragma: nocover
             raise click.ClickException(
                 "Could not verify metadata hash to retrieve the token ID"
             )
@@ -694,7 +694,7 @@ class ServiceHelper(OnChainHelper):
             self.token_secured = False
             return self
 
-        if self.chain_type == ChainType.CUSTOM:
+        if self.chain_type == ChainType.CUSTOM:  # pragma: nocover
             self.check_required_enviroment_variables(
                 configs=(ContractConfigs.service_registry_token_utility,)
             )

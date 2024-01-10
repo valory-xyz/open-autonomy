@@ -35,6 +35,7 @@ from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH, registry_contracts
 from autonomy.cli.helpers.chain import MintHelper, OnChainHelper, ServiceHelper
 
 from tests.conftest import ROOT_DIR
+from tests.test_autonomy.test_chain.base import patch_subgraph
 
 
 PACKAGE_DIR = ROOT_DIR / "packages" / "valory" / "protocols" / "abci"
@@ -251,6 +252,152 @@ class TestRequiredEnvVars:
                 key=ETHEREUM_KEY_DEPLOYER,
             )
             mint_helper.check_is_service_token_secured().unbond_service()
+
+
+class TestDependencyVerification:
+    """Test dependency verification."""
+
+    def test_token_found(
+        self,
+    ) -> None:
+        """Test NFT hash not provided failure."""
+
+        with mock.patch(
+            "autonomy.cli.helpers.chain.ChainConfigs.get",
+            return_value=ChainConfigs.local,
+        ), patch_subgraph(
+            response=[{"tokenId": "1", "publicId": "valory/ipfs"}],
+            method="get_record_by_package_id",
+        ):
+            helpers = (
+                MintHelper(
+                    chain_type=ChainType.ETHEREUM,
+                    key=ETHEREUM_KEY_DEPLOYER,
+                )
+                .load_package_configuration(
+                    package_path=ROOT_DIR
+                    / "packages"
+                    / "valory"
+                    / "connections"
+                    / "ipfs",
+                    package_type=PackageType.CONNECTION,
+                )
+                .fetch_component_dependencies()
+            )
+
+            assert helpers.dependencies == [1]
+
+    def test_no_token_found(
+        self,
+    ) -> None:
+        """Test NFT hash not provided failure."""
+
+        with mock.patch(
+            "autonomy.cli.helpers.chain.ChainConfigs.get",
+            return_value=ChainConfigs.local,
+        ), patch_subgraph(
+            response=[],
+            method="get_record_by_package_id",
+        ), pytest.raises(
+            click.ClickException, match="Could not find on-chain token for valory/ipfs"
+        ):
+            MintHelper(
+                chain_type=ChainType.ETHEREUM,
+                key=ETHEREUM_KEY_DEPLOYER,
+            ).load_package_configuration(
+                package_path=ROOT_DIR / "packages" / "valory" / "connections" / "ipfs",
+                package_type=PackageType.CONNECTION,
+            ).fetch_component_dependencies()
+
+    def test_no_agent_found(
+        self,
+    ) -> None:
+        """Test NFT hash not provided failure."""
+
+        with mock.patch(
+            "autonomy.cli.helpers.chain.ChainConfigs.get",
+            return_value=ChainConfigs.local,
+        ), patch_subgraph(
+            response=[],
+            method="get_component_by_token",
+        ), pytest.raises(
+            click.ClickException,
+            match="No agents found with token ID 1",
+        ):
+            MintHelper(
+                chain_type=ChainType.ETHEREUM,
+                key=ETHEREUM_KEY_DEPLOYER,
+            ).load_package_configuration(
+                package_path=ROOT_DIR
+                / "packages"
+                / "valory"
+                / "services"
+                / "register_reset",
+                package_type=PackageType.SERVICE,
+            ).verify_service_dependencies(
+                agent_id=1
+            )
+
+    def test_wrong_agent_found(
+        self,
+    ) -> None:
+        """Test NFT hash not provided failure."""
+
+        with mock.patch(
+            "autonomy.cli.helpers.chain.ChainConfigs.get",
+            return_value=ChainConfigs.local,
+        ), patch_subgraph(
+            response=[{"tokenId": "1", "publicId": "valory/ipfs"}],
+            method="get_component_by_token",
+        ), pytest.raises(
+            click.ClickException,
+            match=(
+                "Public ID `valory/ipfs:any` for token 1 does not match with "
+                "the one defained in the service package `valory/register_reset:any`"
+            ),
+        ):
+            MintHelper(
+                chain_type=ChainType.ETHEREUM,
+                key=ETHEREUM_KEY_DEPLOYER,
+            ).load_package_configuration(
+                package_path=ROOT_DIR
+                / "packages"
+                / "valory"
+                / "services"
+                / "register_reset",
+                package_type=PackageType.SERVICE,
+            ).verify_service_dependencies(
+                agent_id=1
+            )
+
+    def test_agent_found(
+        self,
+    ) -> None:
+        """Test NFT hash not provided failure."""
+
+        with mock.patch(
+            "autonomy.cli.helpers.chain.ChainConfigs.get",
+            return_value=ChainConfigs.local,
+        ), patch_subgraph(
+            response=[{"tokenId": "1", "publicId": "valory/register_reset"}],
+            method="get_component_by_token",
+        ):
+            helper = (
+                MintHelper(
+                    chain_type=ChainType.ETHEREUM,
+                    key=ETHEREUM_KEY_DEPLOYER,
+                )
+                .load_package_configuration(
+                    package_path=ROOT_DIR
+                    / "packages"
+                    / "valory"
+                    / "services"
+                    / "register_reset",
+                    package_type=PackageType.SERVICE,
+                )
+                .verify_service_dependencies(agent_id=1)
+            )
+            assert helper.agent_id == 1
 
 
 @pytest.mark.parametrize(
