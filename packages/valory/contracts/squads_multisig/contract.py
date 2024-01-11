@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 valory
+#   Copyright 2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -356,7 +356,7 @@ class SquadsMultisig(Contract):
         ledger_api: LedgerApi,
         contract_address: Pubkey,
         tx_index: int,
-    ) -> Pubkey:
+    ) -> JSONLike:
         """
         Get transaction PDA (Program Derived Address).
 
@@ -382,6 +382,7 @@ class SquadsMultisig(Contract):
             "transaction".encode(encoding="utf-8"),
         ]
         data = str(ledger_api.pda(seeds=seeds, program_id=program_id))
+        return dict(data=data)
 
     @classmethod
     def get_ix_pda(
@@ -693,8 +694,8 @@ class SquadsMultisig(Contract):
         """Get transfer tx."""
         transfer_tx = transfer(
             params=dict(
-                from_pubkey=Pubkey.from_string(from_pubkey),
-                to_pubkey=Pubkey.from_string(to_pubkey),
+                from_pubkey=ledger_api.to_pubkey(from_pubkey),
+                to_pubkey=ledger_api.to_pubkey(to_pubkey),
                 lamports=lamports,
             )
         ).to_json()

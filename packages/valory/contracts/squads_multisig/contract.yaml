@@ -8,10 +8,14 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeieeus2bbbexmthy4pnsdtgen4flxzk3ao5ekjbocvmrkhhszffbgu
   build/SquadsMultisig.json: bafybeiey7jbufdyfroy3vahjrfiifsvwf7zaq5yjjb56zokhbg5t76hjcm
-  contract.py: bafybeibhncg4j2uc4rda3iqdk6vsgdyocc2kntfmnz47asysu2mbuehhym
+  contract.py: bafybeiem5jcontypgki4iy5wfqx2jcngd2j6mnevl756j652ikptc2u6gq
 fingerprint_ignore_patterns: []
 class_name: SquadsMultisig
 contract_interface_paths:
   solana: build/SquadsMultisig.json
-dependencies: {}
+dependencies:
+  open-aea-ledger-solana:
+    version: ==1.44.0
+  solders:
+    version: '>=0.14.0'
 contracts: []
