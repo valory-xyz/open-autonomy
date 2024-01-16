@@ -44,7 +44,7 @@
         "agent/valory/offend_slash/0.1.0": "bafybeie3kcio34s36kuf3yqufaoo2v4kddmcjveikzovm5aj5xaydyh3v4",
         "contract/valory/erc20/0.1.0": "bafybeib7ctk3deleyxayrqvropewefr2muj4kcqe3t3wscak25bjmxnqwe",
         "contract/valory/service_registry_token_utility/0.1.0": "bafybeifdia2y5546tvk6xzxeaqzf2n5n7dutj2hdzbgenxohaqhjtnjqm4",
-        "skill/valory/solana_transaction_settlement_abci/0.1.0": "bafybeidt6ctn75ntbimhpyol4fnhsxhz2gogsq2in6lzy6ac75ajswtku4",
+        "skill/valory/squads_transaction_settlement_abci/0.1.0": "bafybeic74qskzmojful34xyhhsxjhtqkzwjkftz7bfuqompvcvojxtpexa",
         "contract/valory/squads_multisig/0.1.0": "bafybeibyieophvcme6aro5dyvjj355dkr5njedyro75gwr7idusjccaxji"
     },
     "third_party": {

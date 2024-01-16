@@ -36,7 +36,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     VALUE_NOT_PROVIDED,
     get_name,
 )
-from packages.valory.skills.solana_transaction_settlement_abci.payloads import (
+from packages.valory.skills.squads_transaction_settlement_abci.payloads import (
     ApproveTxPayload,
     CreateTxPayload,
     ExecuteTxPayload,

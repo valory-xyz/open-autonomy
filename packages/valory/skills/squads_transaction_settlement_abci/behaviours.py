@@ -37,10 +37,10 @@ from packages.valory.skills.abstract_round_abci.common import (
     RandomnessBehaviour,
     SelectKeeperBehaviour,
 )
-from packages.valory.skills.solana_transaction_settlement_abci.models import (
+from packages.valory.skills.squads_transaction_settlement_abci.models import (
     SolanaTransactionSettlementParams,
 )
-from packages.valory.skills.solana_transaction_settlement_abci.payloads import (
+from packages.valory.skills.squads_transaction_settlement_abci.payloads import (
     ApproveTxPayload,
     CreateTxPayload,
     ExecuteTxPayload,
@@ -49,7 +49,7 @@ from packages.valory.skills.solana_transaction_settlement_abci.payloads import (
     SelectKeeperPayload,
     VerifyTxPayload,
 )
-from packages.valory.skills.solana_transaction_settlement_abci.rounds import (
+from packages.valory.skills.squads_transaction_settlement_abci.rounds import (
     ApproveTxRound,
     CreateTxRandomnessRound,
     CreateTxRound,

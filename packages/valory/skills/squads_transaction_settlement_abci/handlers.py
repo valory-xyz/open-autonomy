@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the handler for the 'solana_transaction_settlement_abci' skill."""
+"""This module contains the handler for the 'squads_transaction_settlement_abci' skill."""
 
 from packages.valory.skills.abstract_round_abci.handlers import (
     ABCIRoundHandler as BaseABCIRoundHandler,

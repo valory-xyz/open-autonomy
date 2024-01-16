@@ -33,7 +33,7 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.abstract_round_abci.models import TypeCheckMixin
-from packages.valory.skills.solana_transaction_settlement_abci.rounds import (
+from packages.valory.skills.squads_transaction_settlement_abci.rounds import (
     SolanaTransactionSubmissionAbciApp,
 )
 

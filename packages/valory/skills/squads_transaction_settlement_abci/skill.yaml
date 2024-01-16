@@ -1,4 +1,4 @@
-name: solana_transaction_settlement_abci
+name: squads_transaction_settlement_abci
 author: valory
 version: 0.1.0
 type: skill
@@ -7,13 +7,13 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeif2bp4lnssdvp5n4fsj3ukd52h3prxcfg4pdi64ctpwtwgdk65xae
-  __init__.py: bafybeia7gouata2b22eyey3xfbvthal7ffw3xvn6ubr3uprlejvgpb73xi
-  behaviours.py: bafybeiginvvtkvfjxr3ukvz45rjpfmjf7guvdfj33tgwhv3l2h25pous4u
+  __init__.py: bafybeienaiq66xnoqgkkztz7ujxhttxda62fr6ymegl7gppqelouw6kzde
+  behaviours.py: bafybeiewygbrheoemk3bxkz6bfstgutyo5ttyvrqprpcpydsyxrkrjujri
   dialogues.py: bafybeigabhaykiyzbluu4mk6bbrmqhzld2kyp32pg24bvjmzrrb74einwm
-  handlers.py: bafybeic3n42bw6dy65zvc7d6iivoyxmosusl7m4g4e5kjbgtna4dt5dybu
-  models.py: bafybeic2to4tzpguq7dww7yxjs5dtrwi5y7sdjut4l4i4t6eyhlfcn5soi
+  handlers.py: bafybeifxhxial4u2ukibnkejxmfcf2upkr7ox6dsipciywjqw5g7v6xfyu
+  models.py: bafybeihrkts27llazh3rwod7nsulwuit27tj3d6vjvjkozxhy7a7l6yd3y
   payloads.py: bafybeihjcwrk6uyeh7kt7y6a2golezpazn7jnynbezurc3zuphfct7vjdi
-  rounds.py: bafybeibv4me5l4ivrkpc6y2a2qgezfo6mrzcezg7eszucncvfykr33fexm
+  rounds.py: bafybeia7ptcqiecrg2ipoib66d3ynjsfw7224dc5rdiddbmz22e2a3im74
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
