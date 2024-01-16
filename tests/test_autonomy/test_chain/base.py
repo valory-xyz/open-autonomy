@@ -22,7 +22,8 @@
 import os
 import re
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
+from unittest import mock
 
 import pytest
 from aea.configurations.data_types import PackageId, PackageType, PublicId
@@ -38,8 +39,9 @@ from autonomy.chain.constants import HardhatAddresses
 from autonomy.chain.metadata import publish_metadata
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH, MintManager, UnitType
 from autonomy.chain.service import ServiceManager
+from autonomy.chain.subgraph.client import SubgraphClient
 from autonomy.chain.utils import parse_public_id_from_metadata, resolve_component_id
-from autonomy.cli.helpers.chain import OnChainHelper
+from autonomy.cli.helpers.chain import MintHelper, OnChainHelper
 from autonomy.cli.packages import get_package_manager
 
 from tests.conftest import DATA_DIR
@@ -90,6 +92,32 @@ DEFAULT_SERVICE_MINT_PARAMETERS = (
     "--threshold",
     str(THRESHOLD),
 )
+
+
+def patch_subgraph(
+    response: List,
+    method: str = "get_component_by_token",
+) -> Any:
+    """Patch subgraph client."""
+    return mock.patch.object(
+        SubgraphClient,
+        attribute=method,
+        return_value={"units": response},
+    )
+
+
+def _fetch_component_dependencies(cls: Any) -> Any:
+    cls.dependencies = [1, 2]
+    return cls
+
+
+def patch_component_verification() -> Any:
+    """Patch component verificaation."""
+    return mock.patch.object(
+        MintHelper,
+        "fetch_component_dependencies",
+        new=_fetch_component_dependencies,
+    )
 
 
 @skip_docker_tests

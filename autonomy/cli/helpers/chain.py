@@ -25,11 +25,12 @@ from typing import Any, Dict, List, Optional, Tuple, Type, cast
 
 import click
 from aea.configurations.base import PackageConfiguration
-from aea.configurations.data_types import PackageType
+from aea.configurations.data_types import PackageId, PackageType, PublicId
 from aea.configurations.loader import load_configuration_object
 from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import crypto_registry, ledger_apis_registry
 from aea.helpers.base import IPFSHash
+from aiohttp.client_exceptions import ClientError
 from texttable import Texttable
 
 from autonomy.chain.base import ServiceState, UnitType
@@ -45,11 +46,7 @@ from autonomy.chain.constants import (
     SERVICE_REGISTRY_CONTRACT,
     SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT,
 )
-from autonomy.chain.exceptions import (
-    ChainInteractionError,
-    DependencyError,
-    FailedToRetrieveComponentMetadata,
-)
+from autonomy.chain.exceptions import ChainInteractionError
 from autonomy.chain.metadata import NFTHashOrPath, publish_metadata
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH, MintManager
 from autonomy.chain.service import (
@@ -61,11 +58,10 @@ from autonomy.chain.service import (
     get_token_deposit_amount,
     is_service_token_secured,
 )
+from autonomy.chain.subgraph.client import SubgraphClient
 from autonomy.chain.utils import (
     is_service_manager_token_compatible_chain,
     resolve_component_id,
-    verify_component_dependencies,
-    verify_service_dependencies,
 )
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS, Service
 
@@ -256,6 +252,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         timeout: Optional[float] = None,
         retries: Optional[int] = None,
         sleep: Optional[float] = None,
+        subgraph: Optional[str] = None,
         dry_run: bool = False,
     ) -> None:
         """Initialize object."""
@@ -279,6 +276,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             sleep=sleep,
             dry_run=self.dry_run,
         )
+        self.subgraph = SubgraphClient(url=subgraph)
 
     def load_package_configuration(
         self,
@@ -364,59 +362,59 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         self.nft = nft
         return self
 
-    def verify_component_dependencies(
-        self,
-        dependencies: Tuple[str],
-        skip_dependencies_check: bool = False,
-        skip_hash_check: bool = False,
-    ) -> "MintHelper":
+    def fetch_component_dependencies(self) -> "MintHelper":
         """Verify component dependencies."""
-        self.dependencies = list(map(int, dependencies))
-        if skip_dependencies_check:
-            return self
         if self.chain_type != ChainType.ETHEREUM:
+            self.dependencies = []
             return self
-        try:
-            verify_component_dependencies(
-                ledger_api=self.ledger_api,
-                contract_address=ContractConfigs.get(
-                    COMPONENT_REGISTRY_CONTRACT.name
-                ).contracts[self.chain_type],
-                dependencies=self.dependencies,
-                package_configuration=self.package_configuration,
-                skip_hash_check=skip_hash_check,
-            )
-            return self
-        except (FailedToRetrieveComponentMetadata, DependencyError) as e:
-            raise click.ClickException(f"Dependency verification failed; {e}") from e
 
-    def verify_service_dependencies(
-        self,
-        agent_id: int,
-        skip_dependencies_check: bool = False,
-        skip_hash_check: bool = False,
-    ) -> "MintHelper":
+        dependencies = []
+        try:
+            for ptype in PackageType:
+                if not hasattr(self.package_configuration, ptype.to_plural()):
+                    continue
+                for dependency in getattr(
+                    self.package_configuration, ptype.to_plural()
+                ):
+                    units = self.subgraph.get_record_by_package_id(
+                        package_id=PackageId(package_type=ptype, public_id=dependency)
+                    ).get("units", [])
+                    if len(units) == 0:
+                        raise click.ClickException(
+                            f"Could not find on-chain token for {dependency} of type {ptype}"
+                        )
+                    unit, *_ = sorted(units, key=lambda x: x["tokenId"])
+                    dependencies.append(unit["tokenId"])
+            self.dependencies = sorted(list(map(int, dependencies)))
+        except ClientError as e:
+            raise click.ClickException(message=f"Error interacting with subgraph; {e}")
+        return self
+
+    def verify_service_dependencies(self, agent_id: int) -> "MintHelper":
         """Verify component dependencies."""
         self.agent_id = agent_id
-        if skip_dependencies_check:
+        if self.chain_type in (ChainType.LOCAL, ChainType.GOERLI):
             return self
-        if self.chain_type != ChainType.ETHEREUM:
-            return self
+
         try:
-            verify_service_dependencies(
-                ledger_api=self.ledger_api,
-                contract_address=ContractConfigs.get(
-                    AGENT_REGISTRY_CONTRACT.name
-                ).contracts[self.chain_type],
-                agent_id=self.agent_id,
-                service_configuration=cast(Service, self.package_configuration),
-                skip_hash_check=skip_hash_check,
+            units = self.subgraph.get_component_by_token(
+                token_id=agent_id,
+                package_type=PackageType.AGENT,
+            ).get("units", [])
+        except ClientError as e:
+            raise click.ClickException(message=f"Error interacting with subgraph; {e}")
+        if len(units) == 0:
+            raise click.ClickException(f"No agents found with token ID {agent_id}")
+
+        unit, *_ = sorted(units, key=lambda x: x["tokenId"])
+        expected = PublicId.from_str(unit["publicId"]).to_any()
+        agent = cast(Service, self.package_configuration).agent.to_any()
+        if expected != agent:
+            raise click.ClickException(
+                f"Public ID `{expected}` for token {agent_id} does not match with the one "
+                f"defained in the service package `{agent}`"
             )
-            return self
-        except FailedToRetrieveComponentMetadata as e:
-            raise click.ClickException(f"Dependency verification failed; {e}") from e
-        except DependencyError as e:
-            raise click.ClickException(f"Dependency verification failed; {e}") from e
+        return self
 
     def publish_metadata(self) -> "MintHelper":
         """Publish metadata."""
@@ -467,7 +465,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         if self.token_id is not None:
             click.echo(f"\tToken ID: {self.token_id}")
             (Path.cwd() / f"{self.token_id}.json").write_text(self.metadata_string)
-        else:
+        else:  # pragma: nocover
             raise click.ClickException(
                 "Could not verify metadata hash to retrieve the token ID"
             )
@@ -537,7 +535,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         if token_id is not None:
             click.echo(f"\tToken ID: {token_id}")
             (Path.cwd() / f"{token_id}.json").write_text(self.metadata_string)
-        else:
+        else:  # pragma: nocover
             raise click.ClickException(
                 "Could not verify metadata hash to retrieve the token ID"
             )
@@ -574,7 +572,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         if self.token_id is not None:
             click.echo(f"\tToken ID: {self.token_id}")
             (Path.cwd() / f"{self.token_id}.json").write_text(self.metadata_string)
-        else:
+        else:  # pragma: nocover
             raise click.ClickException(
                 "Could not verify metadata hash to retrieve the token ID"
             )
@@ -640,7 +638,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         if token_id is not None:
             click.echo(f"\tToken ID: {token_id}")
             (Path.cwd() / f"{token_id}.json").write_text(self.metadata_string)
-        else:
+        else:  # pragma: nocover
             raise click.ClickException(
                 "Could not verify metadata hash to retrieve the token ID"
             )
@@ -696,7 +694,7 @@ class ServiceHelper(OnChainHelper):
             self.token_secured = False
             return self
 
-        if self.chain_type == ChainType.CUSTOM:
+        if self.chain_type == ChainType.CUSTOM:  # pragma: nocover
             self.check_required_enviroment_variables(
                 configs=(ContractConfigs.service_registry_token_utility,)
             )

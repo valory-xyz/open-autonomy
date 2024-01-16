@@ -6,7 +6,7 @@
         "contract/valory/gnosis_safe_proxy_factory/0.1.0": "bafybeicmiq5brmxgirz7ruqkq3d2meso2r6pky65zzkkgyuuzqbrdx4h6u",
         "contract/valory/component_registry/0.1.0": "bafybeiepywewigowj533f55orx7oys3kk5lgdc247p2267scqfyp4gnqle",
         "contract/valory/agent_registry/0.1.0": "bafybeignghdk7oqvyg722gz66tbuj2vj4vkatguj4b6lf5fqzqxkktcke4",
-        "contract/valory/registries_manager/0.1.0": "bafybeihcilb27ekgoplmc43iog2zrus63fufql4rly2umbuj573nu3zpg4",
+        "contract/valory/registries_manager/0.1.0": "bafybeigvdzmxq2kfizvhwu43vcjlsddkftltv53e5xc7yqnadweari3kqi",
         "contract/valory/service_manager/0.1.0": "bafybeibmqewfh5wnayopneyv4vx35n5k7loavzmcazyevntdoskw7vasom",
         "skill/valory/test_ipfs_abci/0.1.0": "bafybeicehcyruwdrcbvbc4bahsmwqoerlxzy4ew6afcw42t2czs3mklvby",
         "agent/valory/test_ipfs/0.1.0": "bafybeibnwlpaevebv2vj2sf2k62tdykeyuvbh4wgcmobjlakyoaxgojpqm",

@@ -103,6 +103,7 @@ def __init__(chain_type: ChainType,
              timeout: Optional[float] = None,
              retries: Optional[int] = None,
              sleep: Optional[float] = None,
+             subgraph: Optional[str] = None,
              dry_run: bool = False) -> None
 ```
 
@@ -139,15 +140,12 @@ def verify_nft(nft: Optional[NFTHashOrPath] = None) -> "MintHelper"
 
 Verify NFT image.
 
-<a id="autonomy.cli.helpers.chain.MintHelper.verify_component_dependencies"></a>
+<a id="autonomy.cli.helpers.chain.MintHelper.fetch_component_dependencies"></a>
 
-#### verify`_`component`_`dependencies
+#### fetch`_`component`_`dependencies
 
 ```python
-def verify_component_dependencies(
-        dependencies: Tuple[str],
-        skip_dependencies_check: bool = False,
-        skip_hash_check: bool = False) -> "MintHelper"
+def fetch_component_dependencies() -> "MintHelper"
 ```
 
 Verify component dependencies.
@@ -157,9 +155,7 @@ Verify component dependencies.
 #### verify`_`service`_`dependencies
 
 ```python
-def verify_service_dependencies(agent_id: int,
-                                skip_dependencies_check: bool = False,
-                                skip_hash_check: bool = False) -> "MintHelper"
+def verify_service_dependencies(agent_id: int) -> "MintHelper"
 ```
 
 Verify component dependencies.
