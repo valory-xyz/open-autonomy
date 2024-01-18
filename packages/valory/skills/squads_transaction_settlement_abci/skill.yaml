@@ -17,7 +17,7 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/squads_multisig:0.1.0:bafybeibyieophvcme6aro5dyvjj355dkr5njedyro75gwr7idusjccaxji
+- valory/squads_multisig:0.1.0:bafybeievmkz357uzn5bwbsbla3n3uormz4hj4wpqx3hbjjb5uz6uzxkdzi
 protocols:
 - valory/contract_api:1.0.0:bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i
 skills:

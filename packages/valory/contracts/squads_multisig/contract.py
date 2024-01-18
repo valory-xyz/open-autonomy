@@ -247,7 +247,7 @@ class SquadsMultisig(Contract):
         ledger_api: LedgerApi,
         contract_address: Pubkey,
         program: Optional[Program] = None,
-    ) -> int:
+    ) -> Dict[str, int]:
         """
         Get the current transaction index of a multisig.
 
@@ -268,7 +268,7 @@ class SquadsMultisig(Contract):
             account_type=MultisigAccountType.MS,
             program=program,
         )
-        return account_data["transaction_index"]
+        return {"data": account_data["transaction_index"]}
 
     @classmethod
     def next_tx_index(
@@ -276,7 +276,7 @@ class SquadsMultisig(Contract):
         ledger_api: LedgerApi,
         contract_address: Pubkey,
         program: Optional[Program] = None,
-    ) -> int:
+    ) -> Dict[str, int]:
         """
         Get the next transaction index of a multisig.
 
@@ -289,11 +289,12 @@ class SquadsMultisig(Contract):
         :return: The transaction index for the account.
         :rtype: int
         """
-        return 1 + cls.current_tx_index(
+        next_tx = 1 + cls.current_tx_index(
             ledger_api=ledger_api,
             contract_address=contract_address,
             program=program,
-        )
+        ).pop("data")
+        return {"data": next_tx}
 
     @classmethod
     def current_ix_index(
@@ -301,7 +302,7 @@ class SquadsMultisig(Contract):
         ledger_api: LedgerApi,
         contract_address: Pubkey,
         program: Optional[Program] = None,
-    ) -> int:
+    ) -> Dict[str, int]:
         """
         Get instruction index for a transaction.
 
@@ -322,7 +323,7 @@ class SquadsMultisig(Contract):
             account_type=MultisigAccountType.MS_TRANSACTION,
             program=program,
         )
-        return account_data["instruction_index"]
+        return {"data": account_data["instruction_index"]}
 
     @classmethod
     def next_ix_index(
@@ -330,7 +331,7 @@ class SquadsMultisig(Contract):
         ledger_api: LedgerApi,
         contract_address: Pubkey,
         program: Optional[Program] = None,
-    ) -> int:
+    ) -> Dict[str, int]:
         """
         Get the next transaction index of a multisig.
 
@@ -343,11 +344,12 @@ class SquadsMultisig(Contract):
         :return: The transaction index for the account.
         :rtype: int
         """
-        return 1 + cls.current_ix_index(
+        next_ix = 1 + cls.current_ix_index(
             ledger_api=ledger_api,
             contract_address=contract_address,
             program=program,
-        )
+        ).pop("data")
+        return {"data": next_ix}
 
     @classmethod
     def get_tx_pda(
@@ -355,7 +357,7 @@ class SquadsMultisig(Contract):
         ledger_api: LedgerApi,
         contract_address: Pubkey,
         tx_index: int,
-    ) -> Pubkey:
+    ) -> Dict[str, Pubkey]:
         """
         Get transaction PDA (Program Derived Address).
 
@@ -380,7 +382,7 @@ class SquadsMultisig(Contract):
             int(str(tx_index), 10).to_bytes(byteorder="little", length=4),
             "transaction".encode(encoding="utf-8"),
         ]
-        return str(ledger_api.pda(seeds=seeds, program_id=program_id))
+        return {"data": str(ledger_api.pda(seeds=seeds, program_id=program_id))}
 
     @classmethod
     def get_ix_pda(
@@ -388,19 +390,21 @@ class SquadsMultisig(Contract):
         ledger_api: LedgerApi,
         contract_address: Pubkey,
         ix_index: int,
-    ) -> Tuple[Pubkey, int]:
+    ) -> Dict[str, Tuple[Pubkey, int]]:
         """Create TX PDA"""
         contract_address = ledger_api.to_pubkey(contract_address)
         program_id = ledger_api.to_pubkey(SQUADS_MULTISIG_ADDRESS)
-        return ledger_api.pda(
-            seeds=[
-                "squad".encode(encoding="utf-8"),
-                bytes(contract_address),  # type: ignore
-                int(str(ix_index), 10).to_bytes(byteorder="little", length=1),
-                "instruction".encode(encoding="utf-8"),
-            ],
-            program_id=program_id,
-        )
+        return {
+            "data": ledger_api.pda(
+                seeds=[
+                    "squad".encode(encoding="utf-8"),
+                    bytes(contract_address),  # type: ignore
+                    int(str(ix_index), 10).to_bytes(byteorder="little", length=1),
+                    "instruction".encode(encoding="utf-8"),
+                ],
+                program_id=program_id,
+            )
+        }
 
     @classmethod
     def create_transaction_ix(  # pylint: disable=too-many-arguments
@@ -438,8 +442,8 @@ class SquadsMultisig(Contract):
                     ledger_api=ledger_api,
                     contract_address=contract_address,
                     program=program,
-                ),
-            )
+                ).pop("data"),
+            ).pop("data")
         tx_pda = ledger_api.to_pubkey(tx_pda)
         ix = ledger_api.build_instruction(
             contract_instance=program,
@@ -474,12 +478,12 @@ class SquadsMultisig(Contract):
             ledger_api=ledger_api,
             contract_address=contract_address,
             program=program,
-        )
+        ).pop("data")
         ix_pda = cls.get_ix_pda(
             ledger_api=ledger_api,
             contract_address=tx_pda,
             ix_index=index,
-        )
+        ).pop("data")
         ix = ledger_api.deserialize_ix(ix)
         incoming_is = program.type["IncomingInstruction"](
             program_id=ix.program_id,
@@ -556,8 +560,8 @@ class SquadsMultisig(Contract):
                     ledger_api=ledger_api,
                     contract_address=contract_address,
                     program=program,
-                ),
-            )
+                ).pop("data"),
+            ).pop("data")
 
         tx_ixs = []
         create_ix = cls.create_transaction_ix(
@@ -639,7 +643,7 @@ class SquadsMultisig(Contract):
                 ledger_api=ledger_api,
                 contract_address=tx_pda,
                 ix_index=idx,
-            )
+            ).pop("data")
             ix_account = cls.get_account_state(
                 ledger_api=ledger_api,
                 contract_address=ix_pda,
