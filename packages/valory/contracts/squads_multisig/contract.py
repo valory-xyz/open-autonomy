@@ -85,7 +85,7 @@ def account_meta_container_to_list(container: Any) -> List[Dict[str, Any]]:
 
 
 def ms_account_to_dict(state: Any) -> Dict[str, Any]:
-    """Multisig account to dictionary object."""
+    """Deserialize multisig account state to a python dictionary."""
     return {
         "threshold": state.threshold,
         "authority_index": state.authority_index,
@@ -99,7 +99,7 @@ def ms_account_to_dict(state: Any) -> Dict[str, Any]:
 
 
 def ms_tx_account_to_dict(state: Any) -> Dict[str, Any]:
-    """Multisig transaction account to dictionary object."""
+    """Deserialize multisig transaction account state to a python dictionary."""
     return {
         "creator": str(state.creator),
         "ms": str(state.ms),
@@ -117,7 +117,7 @@ def ms_tx_account_to_dict(state: Any) -> Dict[str, Any]:
 
 
 def ms_ix_account_to_dict(state: Any) -> Dict[str, Any]:
-    """Multisig transaction account to dictionary object."""
+    """Deserialize multisig instruction account to a python dictionary."""
     return {
         "program_id": str(state.program_id),
         "keys": account_meta_container_to_list(state.keys),
@@ -202,7 +202,12 @@ class SquadsMultisig(Contract):
 
     @classmethod
     def get_program_instance(cls, ledger_api: LedgerApi) -> Program:
-        """Get program instance."""
+        """
+        Load multisig program instance.
+
+        :param ledger_api: Ledger API instance.
+        :return: Program instance for the squads multisig
+        """
         program: Program = ledger_api.get_contract_instance(
             contract_interface=cls.contract_interface[ledger_api.identifier],
             contract_address=SQUADS_MULTISIG_ADDRESS,
@@ -416,7 +421,7 @@ class SquadsMultisig(Contract):
         tx_pda: Optional[Pubkey] = None,
     ) -> JSONLike:
         """
-        Create transaction tx.
+        Create instruction set for creating a transaction.
 
         :param ledger_api: The ledger API.
         :type ledger_api: LedgerApi
@@ -519,7 +524,7 @@ class SquadsMultisig(Contract):
         tx_pda: Pubkey,
         creator: Pubkey,
     ) -> JSONLike:
-        """Activate transaction."""
+        """Create instruction set for activating a transaction."""
         contract_address = ledger_api.to_pubkey(contract_address)
         tx_pda = ledger_api.to_pubkey(tx_pda)
         creator = ledger_api.to_pubkey(creator)
@@ -601,7 +606,7 @@ class SquadsMultisig(Contract):
         tx_pda: Pubkey,
         member: Pubkey,
     ) -> JSONLike:
-        """Approve transaction."""
+        """Create instruction set for approving a transaction."""
         contract_address = ledger_api.to_pubkey(contract_address)
         tx_pda = ledger_api.to_pubkey(tx_pda)
         member = ledger_api.to_pubkey(member)
@@ -626,7 +631,7 @@ class SquadsMultisig(Contract):
         tx_pda: Pubkey,
         member: Pubkey,
     ) -> JSONLike:
-        """Execute transaction."""
+        """Create instruction set for executing a transaction."""
         contract_address = ledger_api.to_pubkey(contract_address)
         tx_pda = ledger_api.to_pubkey(tx_pda)
         member = ledger_api.to_pubkey(member)
