@@ -63,6 +63,7 @@ base_deps = [
     "jsonschema<4.4.0,>=4.3.0",
     "protobuf<4.25.0,>=4.21.6",
     "gql==3.5.0",
+    "aiohttp<4.0.0,>=3.8.5",
 ]
 base_deps.extend(all_extras["cli"])
 
