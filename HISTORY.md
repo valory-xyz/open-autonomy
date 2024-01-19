@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+# 0.14.0 (2024-01-19)
+
+Autonomy:
+- Extends the list of retriable errors on transaction settlement
+- Integrates the autonolas subgraph to automate the dependency verification on the minting tools
+
 # 0.13.10 (2024-01-09)
 
 Packages:
