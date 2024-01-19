@@ -106,8 +106,14 @@ class TxSettler:
             **kwargs,
         )
 
-    def _repice(self, tx_dict: Dict) -> Dict:
+    def _repice(self, tx_dict: Dict) -> Optional[Dict]:
         """Reprice transaction."""
+        if "maxFeePerGas" not in tx_dict or "maxPriorityFeePerGas" not in tx_dict:
+            # This means something went wrong when building the transaction
+            # returning a None value to the main loop will tell the main loop
+            # to rebuild the transaction
+            return None
+
         old_price = {
             "maxFeePerGas": tx_dict[  # pylint: disable=unsubscriptable-object
                 "maxFeePerGas"
