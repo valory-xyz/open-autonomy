@@ -80,7 +80,11 @@ class TestBackgroundRound(BaseRoundTestClass):
 
         test_round = BackgroundRound(
             synchronized_data=deepcopy(self.synchronized_data),
-            context=MagicMock(),
+            context=MagicMock(
+                params=MagicMock(
+                    termination_chain=1,
+                )
+            ),
         )
         payload_data = "0xdata"
         first_payload, *payloads = [
