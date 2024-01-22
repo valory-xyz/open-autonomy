@@ -7,12 +7,12 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidztixckwwbn4ujl6kkvghgsk23xecbgnbiw3e4t3owxldhyjo3au
-  behaviours.py: bafybeidl5q5fenawxaze2crv3h3nhsjkyylxihsmn67o6dhvdd35wj6mpe
+  behaviours.py: bafybeibpgx5niqpln347cdn5fejje437hbjy7khlhd4kccdtny7ug3pbsm
   dialogues.py: bafybeif7uhfjkcz3ryhti6gafqxhvciw4ec5bdshxvq3355tun5ydkzrna
   handlers.py: bafybeibh5b3p4bdvbnwiqwormduqjvuievylb3s2wgj4ald4led7gx2kji
-  models.py: bafybeif5qygu6bdgsxv53sqoty76vgp3afib6e6fmykofrgnlcubmg4cd4
+  models.py: bafybeihqvnx4dcfc3bo5xvqmqeojkcrcekcvj5d5q6tx3djf4swrzkz3dq
   payloads.py: bafybeihbwfunongkws5lck67sdgpnytq6bdbiv22yuehmyfth4qeypjcpa
-  rounds.py: bafybeifj7xjobumi7l2vwfdzeqfqdlrcn7oq2vy46tzakketgipxwgh3nu
+  rounds.py: bafybeifbbixrvt5n5j3dtvjp6wvuehzng6lcc36uvp4famwum4qcf6emva
   tests/__init__.py: bafybeigsjjibb2gcybzp5yrsy25vyiu54rw6oaeyw5onaqemsvul7bmroi
   tests/test_behaviours.py: bafybeibkogjosxk6ktneru5ddgzguuiw2wuvx2n63d3rpyqhoy7llnoc5i
   tests/test_dialogues.py: bafybeicb6gfanfyt3wiq3svdlvtxiuzpk72oxp7cfdeq4ezed7ixee5yae
@@ -23,14 +23,14 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeia53amnoc2py4io773sblsiy4woaebckiidbkvulow62crpocvbny
+- valory/gnosis_safe:0.1.0:bafybeifpl2gaym4osfvqnmpewjr5hx2fbmwf6nomhkr5w2wkdosbynx53a
 - valory/multisend:0.1.0:bafybeig5byt5urg2d2bsecufxe5ql7f4mezg3mekfleeh32nmuusx66p4y
-- valory/service_registry:0.1.0:bafybeicnseur5i5ue5md7eoep6pqedibgm6tzlrwrgoshwu4xvwcbd6jmi
+- valory/service_registry:0.1.0:bafybeicwp7b4wrxcko66cfylhnaiwzdupo75ixlcol73ww6vxapx33gtpi
 protocols:
-- valory/contract_api:1.0.0:bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i
+- valory/contract_api:1.0.0:bafybeialhbjvwiwcnqq3ysxcyemobcbie7xza66gaofcvla5njezkvhcka
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeibna634t4w4udainzsuxwfydkbcy33alcqy6ugalcfuhoyhr53gs4
-- valory/transaction_settlement_abci:0.1.0:bafybeic3ysdc46z4ipuonc2g6vdyqaxxljvfd45cflzi2xq7o7hre6lvvy
+- valory/abstract_round_abci:0.1.0:bafybeidau7loztcfy3mxvoqrv7otbpciemd2wf3lsxyjraq4dcvuvib25e
+- valory/transaction_settlement_abci:0.1.0:bafybeigk3debp6dswutqsuls2lqfvyj4ghe6kwjc2zfinnsvj6hujynxtq
 behaviours:
   main:
     args: {}
@@ -135,6 +135,8 @@ models:
       use_slashing: false
       use_termination: false
       validate_timeout: 1205
+      termination_from_block: 0
+      termination_chain: gnosis
     class_name: TerminationParams
   requests:
     args: {}
