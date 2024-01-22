@@ -82,7 +82,7 @@ class TestBackgroundRound(BaseRoundTestClass):
             synchronized_data=deepcopy(self.synchronized_data),
             context=MagicMock(
                 params=MagicMock(
-                    termination_chain=1,
+                    default_chain_id=1,
                 )
             ),
         )

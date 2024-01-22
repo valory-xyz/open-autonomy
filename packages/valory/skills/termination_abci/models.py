@@ -51,7 +51,6 @@ class TerminationParams(TransactionParams):
         self.termination_from_block: int = self._ensure(
             "termination_from_block", kwargs, int
         )
-        self.termination_chain: str = self._ensure("termination_chain", kwargs, str)
         super().__init__(*args, **kwargs)
 
 

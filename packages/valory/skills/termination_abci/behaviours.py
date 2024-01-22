@@ -193,7 +193,7 @@ class BackgroundBehaviour(BaseBehaviour):
             contract_address=self.synchronized_data.safe_contract_address,
             removed_owner=self._service_owner_address,
             from_block=self.params.termination_from_block,
-            chain_id=self.params.termination_chain,
+            chain_id=self.params.default_chain_id,
         )
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
@@ -219,7 +219,7 @@ class BackgroundBehaviour(BaseBehaviour):
     def _get_latest_termination_signal(self) -> Generator[None, None, Optional[Dict]]:
         """Get the latest termination signal sent by the service owner."""
         self.context.logger.info(
-            f"Retrieving termination events on chain '{self.params.termination_chain}' from block {self.params.termination_from_block}"
+            f"Retrieving termination events on chain '{self.params.default_chain_id}' from block {self.params.termination_from_block}"
         )
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
@@ -228,7 +228,7 @@ class BackgroundBehaviour(BaseBehaviour):
             contract_address=self.synchronized_data.safe_contract_address,
             sender_address=self._service_owner_address,
             from_block=self.params.termination_from_block,
-            chain_id=self.params.termination_chain,
+            chain_id=self.params.default_chain_id,
         )
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(

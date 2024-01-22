@@ -126,7 +126,7 @@ class BackgroundRound(CollectSameUntilThresholdRound):
                     ): self.most_voted_payload,
                     get_name(
                         SynchronizedData.chain_id
-                    ): self.context.params.termination_chain,
+                    ): self.context.params.default_chain_id,
                 },
             )
             return state, Event.TERMINATE
