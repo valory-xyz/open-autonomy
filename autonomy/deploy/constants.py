@@ -37,10 +37,6 @@ KUBERNETES_AGENT_KEY_NAME = DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA + "_private_ke
 
 DEFAULT_ENCODING = "utf-8"
 
-KEY_SCHEMA_ADDRESS = "address"
-KEY_SCHEMA_PRIVATE_KEY = "private_key"
-KEY_SCHEMA_TYPE = "key_type"
-
 PERSISTENT_DATA_DIR = "persistent_data"
 LOG_DIR = "logs"
 TM_STATE_DIR = "tm_state"
