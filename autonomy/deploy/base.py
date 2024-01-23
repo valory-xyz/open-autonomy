@@ -33,7 +33,7 @@ from aea.configurations.base import (
     ProtocolConfig,
     SkillConfig,
 )
-from aea.configurations.constants import SKILL
+from aea.configurations.constants import ADDRESS, LEDGER, PRIVATE_KEY, SKILL
 from aea.configurations.data_types import PackageType, PublicId
 from aea.helpers.env_vars import apply_env_variables
 
@@ -41,13 +41,7 @@ from autonomy.analyse.service import ABCI
 from autonomy.configurations.base import Service
 from autonomy.configurations.loader import load_service_config
 from autonomy.constants import DEFAULT_DOCKER_IMAGE_AUTHOR
-from autonomy.deploy.constants import (
-    DEFAULT_ENCODING,
-    INFO,
-    KEY_SCHEMA_ADDRESS,
-    KEY_SCHEMA_PRIVATE_KEY,
-    KEY_SCHEMA_TYPE,
-)
+from autonomy.deploy.constants import DEFAULT_ENCODING, INFO
 
 
 ENV_VAR_ID = "ID"
@@ -266,10 +260,10 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
             ) from e
 
         for key in keys:
-            if {KEY_SCHEMA_ADDRESS, KEY_SCHEMA_PRIVATE_KEY} != set(key.keys()) and {
-                KEY_SCHEMA_ADDRESS,
-                KEY_SCHEMA_PRIVATE_KEY,
-                KEY_SCHEMA_TYPE,
+            if {ADDRESS, PRIVATE_KEY} != set(key.keys()) and {
+                ADDRESS,
+                PRIVATE_KEY,
+                LEDGER,
             } != set(key.keys()):
                 raise NotValidKeysFile("Key file incorrectly formatted.")
 

@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
 
 import yaml
-from aea.configurations.constants import DEFAULT_LEDGER
+from aea.configurations.constants import DEFAULT_LEDGER, LEDGER, PRIVATE_KEY
 
 from autonomy.constants import (
     HARDHAT_IMAGE_NAME,
@@ -37,12 +37,7 @@ from autonomy.deploy.base import (
     ServiceBuilder,
     tm_write_to_log,
 )
-from autonomy.deploy.constants import (
-    DEFAULT_ENCODING,
-    KEY_SCHEMA_PRIVATE_KEY,
-    KEY_SCHEMA_TYPE,
-    KUBERNETES_AGENT_KEY_NAME,
-)
+from autonomy.deploy.constants import DEFAULT_ENCODING, KUBERNETES_AGENT_KEY_NAME
 from autonomy.deploy.generators.kubernetes.templates import (
     AGENT_NODE_TEMPLATE,
     AGENT_SECRET_TEMPLATE,
@@ -110,16 +105,14 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         agent_deployment = AGENT_NODE_TEMPLATE.format(
             runtime_image=runtime_image,
             validator_ix=agent_ix,
-            aea_key=self.service_builder.keys[agent_ix][KEY_SCHEMA_PRIVATE_KEY],
+            aea_key=self.service_builder.keys[agent_ix][PRIVATE_KEY],
             number_of_validators=number_of_agents,
             host_names=host_names,
             tendermint_image_name=TENDERMINT_IMAGE_NAME,
             tendermint_image_version=TENDERMINT_IMAGE_VERSION,
             log_level=self.service_builder.log_level,
             agent_ports_deployment=agent_ports_deployment,
-            ledger=self.service_builder.keys[agent_ix].get(
-                KEY_SCHEMA_TYPE, DEFAULT_LEDGER
-            ),
+            ledger=self.service_builder.keys[agent_ix].get(LEDGER, DEFAULT_LEDGER),
             write_to_log=str(tm_write_to_log()).lower(),
         )
         agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
@@ -227,8 +220,8 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         """Populates private keys into a config map for the kubernetes deployment."""
         path = self.build_dir / "agent_keys"
         for x in range(self.service_builder.service.number_of_agents):
-            ledger = self.service_builder.keys[x].get(KEY_SCHEMA_TYPE, DEFAULT_LEDGER)
-            key = self.service_builder.keys[x][KEY_SCHEMA_PRIVATE_KEY]
+            ledger = self.service_builder.keys[x].get(LEDGER, DEFAULT_LEDGER)
+            key = self.service_builder.keys[x][PRIVATE_KEY]
             secret = AGENT_SECRET_TEMPLATE.format(
                 private_key=key, validator_ix=x, ledger=ledger
             )

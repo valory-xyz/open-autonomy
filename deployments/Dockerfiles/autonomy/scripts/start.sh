@@ -37,7 +37,6 @@ function checkKey() {
         fi
     fi
     addKey $1
-
 }
 
 function handleFlashbotsKey() {
@@ -70,7 +69,6 @@ function runAgent() {
     else
         aea run
     fi
-
 }
 
 function addKey() {
@@ -87,6 +85,7 @@ function addKey() {
 
 function main() {
     echo "Running the aea with $(aea --version)"
+
     echo "Checking keys"
     checkKey ethereum
     checkKey cosmos
@@ -98,7 +97,6 @@ function main() {
 
     echo "Running the aea"
     runAgent
-
 }
 
 cd agent
