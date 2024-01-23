@@ -5,6 +5,10 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.14.0` to `v0.14.1`
+
+No backwards incompatible changes
+
 ## `v0.13.10` to `v0.14.0`
 
 - This release introduces automated dependency verification on the minting tools, this means when minting a package you will have to mint all of the dependencies beforehand. The minting tools uses a subgraph to verify dependencies so you might have to wait for a small amount of time before you can mint the package after you mint the dependencies. 
