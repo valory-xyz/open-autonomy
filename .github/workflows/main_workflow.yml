@@ -45,6 +45,24 @@ jobs:
         ptime pipenv run pip install -e .[all]
         ptime pipenv lock
 
+  install_check:
+    continue-on-error: False
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: ["3.10.9"]
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@master
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Check clean installation
+      run: |
+        pip install .[all] --no-cache
+        autonomy --help
+
   copyright_doc_and_dependencies_check:
     continue-on-error: False
     runs-on: ${{ matrix.os }}
@@ -171,6 +189,7 @@ jobs:
     continue-on-error: True
     needs:
       - lock_check
+      - install_check
       - copyright_doc_and_dependencies_check
       - linter_checks
     runs-on: ${{ matrix.os }}
@@ -358,6 +377,7 @@ jobs:
     continue-on-error: True
     needs:
       - lock_check
+      - install_check
       - copyright_doc_and_dependencies_check
       - linter_checks
     runs-on: ${{ matrix.os }}
