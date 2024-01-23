@@ -1,5 +1,14 @@
 # Release History - `open-autonomy`
 
+# 0.14.1 (2024-01-23)
+
+Autonomy:
+- Pins `aiohttp<4.0.0,>=3.8.5`
+- Updates the deployment builder to use ledger identifier property in the `keys.json` to write the private key files in a deployment setup
+
+Packages:
+- Ports multi-ledger support on termination skill from `IEKIT`
+
 # 0.14.0 (2024-01-19)
 
 Autonomy:
