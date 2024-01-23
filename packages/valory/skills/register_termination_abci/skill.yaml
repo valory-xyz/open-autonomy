@@ -131,6 +131,7 @@ models:
       use_slashing: false
       use_termination: false
       validate_timeout: 1205
+      termination_from_block: 0
     class_name: Params
   randomness_api:
     args:
