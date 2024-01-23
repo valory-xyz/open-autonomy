@@ -68,6 +68,11 @@ class SynchronizedData(BaseSynchronizedData):
         """Get the most_voted_tx_hash."""
         return cast(str, self.db.get_strict("most_voted_tx_hash"))  # pragma: no cover
 
+    @property
+    def chain_id(self) -> Optional[str]:
+        """Get the chain name where to send the transactions to."""
+        return cast(str, self.db.get("chain_id", None))
+
 
 class BackgroundRound(CollectSameUntilThresholdRound):
     """Defines the background round, which runs concurrently with other rounds."""
@@ -119,6 +124,9 @@ class BackgroundRound(CollectSameUntilThresholdRound):
                     get_name(
                         SynchronizedData.most_voted_tx_hash
                     ): self.most_voted_payload,
+                    get_name(
+                        SynchronizedData.chain_id
+                    ): self.context.params.default_chain_id,
                 },
             )
             return state, Event.TERMINATE
