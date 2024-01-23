@@ -3003,6 +3003,7 @@ class OffenceStatus:
     num_unknown_offenses: int = 0
     num_double_signed: int = 0
     num_light_client_attack: int = 0
+    custom_offences_amount: int = 0
 
     def slash_amount(self, light_unit_amount: int, serious_unit_amount: int) -> int:
         """Get the slash amount of the current status."""
@@ -3029,6 +3030,7 @@ class OffenceStatus:
         return (
             light_multiplier * light_unit_amount
             + serious_multiplier * serious_unit_amount
+            + self.custom_offences_amount
         )
 
 
@@ -3080,6 +3082,8 @@ class PendingOffense:
     offense_type: OffenseType
     last_transition_timestamp: float
     time_to_live: float
+    # only takes effect if the `OffenseType` is of type `CUSTOM`, otherwise it is ignored
+    custom_amount: int = 0
 
     def __post_init__(self) -> None:
         """Post initialization for offence type conversion in case it is given as an `int`."""
@@ -3724,6 +3728,7 @@ class PendingOffencesPayload(BaseTxPayload):
     offense_type_value: int
     last_transition_timestamp: float
     time_to_live: float
+    custom_amount: int
 
 
 class PendingOffencesRound(CollectSameUntilThresholdRound):
@@ -3765,4 +3770,15 @@ class PendingOffencesRound(CollectSameUntilThresholdRound):
         # https://github.com/valory-xyz/open-autonomy/blob/6831d6ebaf10ea8e3e04624b694c7f59a6d05bb4/packages/valory/skills/abstract_round_abci/handlers.py#L215-L222  # noqa
         invalid = offence.offense_type == OffenseType.INVALID_PAYLOAD
         self.offence_status[offence.accused_agent_address].invalid_payload.add(invalid)
+
+        # if the offence is of custom type, then add the custom amount to it
+        if offence.offense_type == OffenseType.CUSTOM:
+            self.offence_status[
+                offence.accused_agent_address
+            ].custom_offences_amount += offence.custom_amount
+        elif offence.custom_amount != 0:
+            self.context.logger.warning(
+                f"Custom amount for {offence=} will not take effect as it is not of `CUSTOM` type."
+            )
+
         self._latest_round_processed = offence.round_count
