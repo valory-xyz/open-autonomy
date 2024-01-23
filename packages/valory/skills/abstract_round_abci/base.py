@@ -2820,7 +2820,8 @@ class OffenseType(Enum):
     See also `is_light_offence` and `is_serious_offence` functions.
     """
 
-    NO_OFFENCE = -1
+    NO_OFFENCE = -2
+    CUSTOM = -1
     VALIDATOR_DOWNTIME = 0
     INVALID_PAYLOAD = 1
     BLACKLISTED = 2
