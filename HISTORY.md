@@ -1,5 +1,13 @@
 # Release History - `open-autonomy`
 
+# 0.14.2 (2024-01-29)
+
+Autonomy:
+- Adds support for using multiple ledgers in `keys.json`
+
+Packages:
+- Adds support for custom offence amounts
+
 # 0.14.1 (2024-01-23)
 
 Autonomy:

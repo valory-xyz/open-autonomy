@@ -34,7 +34,7 @@ def get_all_extras() -> Dict:
         "click==8.0.2",
         "open-aea-cli-ipfs==1.46.0",
         "texttable==1.6.7",
-        "python-dotenv>=0.14.1,<0.18.0",
+        "python-dotenv>=0.14.2,<0.18.0",
         "pytest>=7.0.0,<7.3.0",
         "coverage>=6.4.4,<8.0.0",
     ]
