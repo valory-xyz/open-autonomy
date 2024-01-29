@@ -140,8 +140,8 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
 
     def try_get_all_participants(self) -> Optional[List[str]]:
         """Try get all participants from the ABCI overrides"""
-        try:
-            for override in deepcopy(self.service.overrides):
+        for override in deepcopy(self.service.overrides):
+            try:
                 (
                     override,
                     component_id,
@@ -162,10 +162,11 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
                 setup_param = self._get_config_from_json_path(
                     override_dict=override, json_path=SETUP_PARAM_PATH
                 )
-                return setup_param.get(ALL_PARTICIPANTS)
-        except KeyError:
-            return None
-
+                all_participants = setup_param.get(ALL_PARTICIPANTS)
+                if all_participants is not None:
+                    return all_participants
+            except KeyError:
+                continue
         return None
 
     @property
@@ -182,7 +183,12 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
 
         if self.keys:
             self.verify_agent_instances(
-                addresses=set(self._get_addresses()),
+                addresses=set(
+                    self._get_addresses(
+                        keys=self.keys,
+                        multiledger=self.multiledger,
+                    )
+                ),
                 agent_instances=instances,
             )
 
@@ -224,18 +230,22 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
 
         return service_builder
 
-    def _get_addresses(self) -> List[str]:
+    @staticmethod
+    def _get_addresses(
+        keys: List[Union[List[Dict[str, str]], Dict[str, str]]],
+        multiledger: bool = False,
+    ) -> List[str]:
         """Get ethereum addresses"""
-        if self.multiledger:
+        if multiledger:
             addresses = []
-            for i, _keys in enumerate(cast(List[List[Dict[str, str]]], self.keys)):
+            for i, _keys in enumerate(cast(List[List[Dict[str, str]]], keys)):
                 for _keypair in _keys:
                     if _keypair["ledger"] == "ethereum":
                         addresses.append(_keypair["address"])
                 if len(addresses) != i + 1:
                     raise ValueError(f"Ethereum key not found in keyset: {_keys}")
             return addresses
-        return [kp["address"] for kp in cast(List[Dict[str, str]], self.keys)]
+        return [kp["address"] for kp in cast(List[Dict[str, str]], keys)]
 
     @staticmethod
     def verify_agent_instances(addresses: Set[str], agent_instances: List[str]) -> None:
@@ -294,15 +304,23 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
 
         if self.agent_instances is not None:
             self.verify_agent_instances(
-                addresses=set(self._get_addresses()),
+                addresses=set(
+                    self._get_addresses(
+                        keys=keys,
+                        multiledger=self.multiledger,
+                    )
+                ),
                 agent_instances=self.agent_instances,
             )
             self.service.number_of_agents = len(keys)
 
         if self._all_participants is not None and len(self._all_participants) > 0:
-            unwanted_keys = set(key["address"] for key in keys) - set(
-                self._all_participants
-            )
+            unwanted_keys = set(
+                self._get_addresses(
+                    keys=keys,
+                    multiledger=self.multiledger,
+                )
+            ) - set(self._all_participants)
             if len(unwanted_keys) > 0:
                 raise NotValidKeysFile(
                     f"Key file contains keys which are not a part of the `all_participants` parameter; keys={unwanted_keys}"
@@ -580,10 +598,8 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
             overrides=abci_connection_overrides,
             has_multiple_overrides=has_multiple_overrides,
         )
-
         processed_overrides["public_id"] = str(component_id.public_id)
         processed_overrides["type"] = PackageType.CONNECTION.value
-
         service_overrides = deepcopy(self.service.overrides)
         if service_has_connection_overrides:
             service_overrides = [
@@ -608,7 +624,10 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
 
     def generate_agents(self) -> List:
         """Generate multiple agent."""
-        addresses = self._get_addresses()
+        addresses = self._get_addresses(
+            keys=self.keys,
+            multiledger=self.multiledger,
+        )
         if self._all_participants is not None and len(self._all_participants) > 0:
             idx_mappings = {
                 address: i for i, address in enumerate(self._all_participants)
