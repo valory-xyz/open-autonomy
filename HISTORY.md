@@ -4,6 +4,7 @@
 
 Autonomy:
 - Adds support for using multiple ledgers in `keys.json`
+- Fixes single agent override indexing
 
 Packages:
 - Adds support for custom offence amounts
