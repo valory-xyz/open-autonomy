@@ -164,9 +164,10 @@ PORTS_CONFIG_DEPLOYMENT = "        ports:"
 
 PORT_CONFIG_DEPLOYMENT = "          - containerPort: {port}"
 
-SECRET_KEY_TEMPLATE = """            - key: {ledger}_private_key.txt
-              path: {ledger}_private_key.txt
-"""
+SECRET_KEY_TEMPLATE = (  # nosec
+    """            - key: {ledger}_private_key.txt\n"""
+    """              path: {ledger}_private_key.txt\n"""
+)
 
 AGENT_NODE_TEMPLATE: str = """apiVersion: v1
 kind: Service
@@ -309,7 +310,7 @@ spec:
 """
 
 
-SECRET_STRING_DATA_TEMPLATE = "    {ledger}_private_key.txt: '{private_key}'\n"
+SECRET_STRING_DATA_TEMPLATE = "    {ledger}_private_key.txt: '{private_key}'\n"  # nosec
 AGENT_SECRET_TEMPLATE: str = """apiVersion: v1
 stringData:
 {string_data}
