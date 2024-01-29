@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -164,6 +164,11 @@ PORTS_CONFIG_DEPLOYMENT = "        ports:"
 
 PORT_CONFIG_DEPLOYMENT = "          - containerPort: {port}"
 
+SECRET_KEY_TEMPLATE = (  # nosec
+    """            - key: {ledger}_private_key.txt\n"""
+    """              path: {ledger}_private_key.txt\n"""
+)
+
 AGENT_NODE_TEMPLATE: str = """apiVersion: v1
 kind: Service
 metadata:
@@ -276,8 +281,7 @@ spec:
           secret:
             secretName: agent-validator-{validator_ix}-key
             items:
-            - key: {ledger}_private_key.txt
-              path: {ledger}_private_key.txt
+{keys}
         - name: persistent-data
           persistentVolumeClaim:
             claimName: 'logs-pvc'
@@ -305,10 +309,11 @@ spec:
               mountPath: /tm
 """
 
-AGENT_SECRET_TEMPLATE: str = """
-apiVersion: v1
+
+SECRET_STRING_DATA_TEMPLATE = "    {ledger}_private_key.txt: '{private_key}'\n"  # nosec
+AGENT_SECRET_TEMPLATE: str = """apiVersion: v1
 stringData:
-    {ledger}_private_key.txt: '{private_key}'
+{string_data}
 kind: Secret
 metadata:
   annotations:

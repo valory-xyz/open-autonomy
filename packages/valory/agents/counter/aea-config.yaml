@@ -11,15 +11,15 @@ fingerprint:
   tests/test_counter.py: bafybeiafaruvutgm65f6wnc4u5z37cyiizuttbpelgs4bpmimnjyp5tnj4
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeicw37smsrrnsns2fu3ddr5scgrleefyfsbeiv5rs6xnlfust6am4u
+- valory/abci:0.1.0:bafybeigqdeloqcd23s7tp7wsxxh6twz657bg4c4m4652bmxad3nvkf7qiy
 - valory/p2p_libp2p_client:0.1.0:bafybeid3xg5k2ol5adflqloy75ibgljmol6xsvzvezebsg7oudxeeolz7e
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeihv62fim3wl2bayavfcg3u5e5cxu3b7brtu4cn5xoxd6lqwachasi
 - valory/abci:0.1.0:bafybeiaqmp7kocbfdboksayeqhkbrynvlfzsx4uy4x6nohywnmaig4an7u
 skills:
-- valory/abstract_abci:0.1.0:bafybeifbvhohn26uyezzf26d6zeldg4gyjg74jrialquaafuz2flpt7zna
-- valory/counter:0.1.0:bafybeibfxjfa62zrdziszsmw6m67ommtr7fohz4foantdeu46guojmm5gu
+- valory/abstract_abci:0.1.0:bafybeicqoi4vi6batzd6nrnas32223c6crdoxlb5vdbidyzvjhaimkoyoy
+- valory/counter:0.1.0:bafybeialulxle5lcipvm7gr62wcqsiwlsbtp4l5pkns3ciirovx4q4xbaa
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -52,7 +52,7 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==1.46.0
   open-aea-test-autonomy:
-    version: ==0.14.1
+    version: ==0.14.2
 default_connection: null
 ---
 public_id: valory/abci:0.1.0
