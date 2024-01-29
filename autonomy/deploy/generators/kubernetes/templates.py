@@ -164,6 +164,10 @@ PORTS_CONFIG_DEPLOYMENT = "        ports:"
 
 PORT_CONFIG_DEPLOYMENT = "          - containerPort: {port}"
 
+SECRET_KEY_TEMPLATE = """            - key: {ledger}_private_key.txt
+              path: {ledger}_private_key.txt
+"""
+
 AGENT_NODE_TEMPLATE: str = """apiVersion: v1
 kind: Service
 metadata:
@@ -276,8 +280,7 @@ spec:
           secret:
             secretName: agent-validator-{validator_ix}-key
             items:
-            - key: {ledger}_private_key.txt
-              path: {ledger}_private_key.txt
+{keys}
         - name: persistent-data
           persistentVolumeClaim:
             claimName: 'logs-pvc'
@@ -305,10 +308,11 @@ spec:
               mountPath: /tm
 """
 
-AGENT_SECRET_TEMPLATE: str = """
-apiVersion: v1
+
+SECRET_STRING_DATA_TEMPLATE = "    {ledger}_private_key.txt: '{private_key}'\n"
+AGENT_SECRET_TEMPLATE: str = """apiVersion: v1
 stringData:
-    {ledger}_private_key.txt: '{private_key}'
+{string_data}
 kind: Secret
 metadata:
   annotations:

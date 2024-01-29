@@ -20,7 +20,7 @@
 """Docker-compose Deployment Generator."""
 import ipaddress
 from pathlib import Path
-from typing import Dict, Optional, cast
+from typing import Dict, List, Optional, cast
 
 from aea.configurations.constants import (
     DEFAULT_LEDGER,
@@ -334,18 +334,41 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
 
         return self
 
-    def populate_private_keys(
-        self,
-    ) -> "DockerComposeGenerator":
-        """Populate the private keys to the build directory for docker-compose mapping."""
+    def _populate_keys(self) -> None:
+        """Populate the keys directory"""
         keys_dir = self.build_dir / DEPLOYMENT_KEY_DIRECTORY
         for x in range(self.service_builder.service.number_of_agents):
             path = keys_dir / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=x)
-            ledger = self.service_builder.keys[x].get(LEDGER, DEFAULT_LEDGER)
-            key = self.service_builder.keys[x][PRIVATE_KEY]
+            ledger = cast(List[Dict[str, str]], self.service_builder.keys)[x].get(
+                LEDGER, DEFAULT_LEDGER
+            )
+            key = cast(List[Dict[str, str]], self.service_builder.keys)[x][PRIVATE_KEY]
             keys_file = path / PRIVATE_KEY_PATH_SCHEMA.format(ledger)
             path.mkdir()
             with keys_file.open(mode="w", encoding=DEFAULT_ENCODING) as f:
                 f.write(key)
 
+    def _populate_keys_multiledger(self) -> None:
+        """Populate the keys directory with multiple set of keys"""
+        keys_dir = self.build_dir / DEPLOYMENT_KEY_DIRECTORY
+        for x in range(self.service_builder.service.number_of_agents):
+            path = keys_dir / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=x)
+            path.mkdir(exist_ok=True)
+            for keypair in cast(List[List[Dict[str, str]]], self.service_builder.keys)[
+                x
+            ]:
+                ledger = keypair.get(LEDGER, DEFAULT_LEDGER)
+                key = keypair[PRIVATE_KEY]
+                keys_file = path / PRIVATE_KEY_PATH_SCHEMA.format(ledger)
+                with keys_file.open(mode="w", encoding=DEFAULT_ENCODING) as f:
+                    f.write(key)
+
+    def populate_private_keys(
+        self,
+    ) -> "DockerComposeGenerator":
+        """Populate the private keys to the build directory for docker-compose mapping."""
+        if self.service_builder.multiledger:
+            self._populate_keys_multiledger()
+        else:
+            self._populate_keys()
         return self

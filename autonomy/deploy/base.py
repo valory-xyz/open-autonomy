@@ -24,7 +24,7 @@ import logging
 import os
 from copy import copy, deepcopy
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
 from warnings import warn
 
 from aea.configurations.base import (
@@ -109,7 +109,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
     def __init__(  # pylint: disable=too-many-arguments
         self,
         service: Service,
-        keys: Optional[List[Dict[str, str]]] = None,
+        keys: Optional[List[Union[List[Dict[str, str]], Dict[str, str]]]] = None,
         agent_instances: Optional[List[str]] = None,
         apply_environment_variables: bool = False,
     ) -> None:
@@ -128,6 +128,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         self._keys = keys or []
         self._agent_instances = agent_instances
         self._all_participants = self.try_get_all_participants()
+        self.multiledger = False
 
     def get_abci_container_name(self, index: int) -> str:
         """Format ABCI container name."""
@@ -181,7 +182,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
 
         if self.keys:
             self.verify_agent_instances(
-                keys=self.keys,
+                addresses=set(self._get_addresses()),
                 agent_instances=instances,
             )
 
@@ -190,7 +191,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
     @property
     def keys(
         self,
-    ) -> List[Dict[str, str]]:
+    ) -> List[Union[List[Dict[str, str]], Dict[str, str]]]:
         """Keys."""
         return self._keys
 
@@ -223,15 +224,23 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
 
         return service_builder
 
-    @staticmethod
-    def verify_agent_instances(
-        keys: List[Dict[str, str]],
-        agent_instances: List[str],
-    ) -> None:
-        """Cross verify agent instances with the keys."""
-        addresses = {kp["address"] for kp in keys}
-        instances = set(agent_instances)
+    def _get_addresses(self) -> List[str]:
+        """Get ethereum addresses"""
+        if self.multiledger:
+            addresses = []
+            for i, _keys in enumerate(cast(List[List[Dict[str, str]]], self.keys)):
+                for _keypair in _keys:
+                    if _keypair["ledger"] == "ethereum":
+                        addresses.append(_keypair["address"])
+                if len(addresses) != i + 1:
+                    raise ValueError(f"Ethereum key not found in keyset: {_keys}")
+            return addresses
+        return [kp["address"] for kp in cast(List[Dict[str, str]], self.keys)]
 
+    @staticmethod
+    def verify_agent_instances(addresses: Set[str], agent_instances: List[str]) -> None:
+        """Cross verify agent instances with the keys."""
+        instances = set(agent_instances)
         key_not_in_instances = addresses.difference(instances)
         if key_not_in_instances:
             raise NotValidKeysFile(
@@ -249,6 +258,21 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
             f"Found following keys with registered instances {keys_found_with_instances}"
         )
 
+    @staticmethod
+    def _validate_keypair(keypair: Dict, ledger_required: bool = False) -> None:
+        """Validate keys set."""
+        if ledger_required:
+            if {ADDRESS, PRIVATE_KEY, LEDGER} != set(keypair.keys()):
+                raise NotValidKeysFile("Key file incorrectly formatted")
+            return
+
+        if {ADDRESS, PRIVATE_KEY} != set(keypair.keys()) and {
+            ADDRESS,
+            PRIVATE_KEY,
+            LEDGER,
+        } != set(keypair.keys()):
+            raise NotValidKeysFile("Key file incorrectly formatted.")
+
     def read_keys(self, keys_file: Path) -> None:
         """Read in keys from a file on disk."""
 
@@ -259,17 +283,18 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
                 "Error decoding keys file, please check the content of the file"
             ) from e
 
-        for key in keys:
-            if {ADDRESS, PRIVATE_KEY} != set(key.keys()) and {
-                ADDRESS,
-                PRIVATE_KEY,
-                LEDGER,
-            } != set(key.keys()):
-                raise NotValidKeysFile("Key file incorrectly formatted.")
+        if isinstance(keys[0], list):
+            self.multiledger = True
+            for _keys in keys:
+                for _keypair in _keys:
+                    self._validate_keypair(keypair=_keypair, ledger_required=True)
+        else:
+            for _keypair in keys:
+                self._validate_keypair(keypair=_keypair)
 
         if self.agent_instances is not None:
             self.verify_agent_instances(
-                keys=keys,
+                addresses=set(self._get_addresses()),
                 agent_instances=self.agent_instances,
             )
             self.service.number_of_agents = len(keys)
@@ -583,24 +608,21 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
 
     def generate_agents(self) -> List:
         """Generate multiple agent."""
+        addresses = self._get_addresses()
         if self._all_participants is not None and len(self._all_participants) > 0:
             idx_mappings = {
                 address: i for i, address in enumerate(self._all_participants)
             }
             agent_override_idx = [
-                (i, idx_mappings[kp["address"]]) for i, kp in enumerate(self.keys)
+                (i, idx_mappings[kp]) for i, kp in enumerate(addresses)
             ]
             return [self.generate_agent(i, idx) for i, idx in agent_override_idx]
-
         if self.agent_instances is None:
             return [
                 self.generate_agent(i) for i in range(self.service.number_of_agents)
             ]
-
         idx_mappings = {address: i for i, address in enumerate(self.agent_instances)}
-        agent_override_idx = [
-            (i, idx_mappings[kp["address"]]) for i, kp in enumerate(self.keys)
-        ]
+        agent_override_idx = [(i, idx_mappings[kp]) for i, kp in enumerate(addresses)]
         return [self.generate_agent(i, idx) for i, idx in agent_override_idx]
 
     def generate_common_vars(self, agent_n: int) -> Dict:

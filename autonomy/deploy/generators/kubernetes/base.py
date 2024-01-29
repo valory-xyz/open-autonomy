@@ -45,6 +45,8 @@ from autonomy.deploy.generators.kubernetes.templates import (
     HARDHAT_TEMPLATE,
     PORTS_CONFIG_DEPLOYMENT,
     PORT_CONFIG_DEPLOYMENT,
+    SECRET_KEY_TEMPLATE,
+    SECRET_STRING_DATA_TEMPLATE,
 )
 
 
@@ -78,7 +80,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         )
         self.resources: List[str] = []
 
-    def build_agent_deployment(
+    def build_agent_deployment(  # pylint: disable=too-many-locals
         self,
         runtime_image: str,
         agent_ix: int,
@@ -102,17 +104,31 @@ class KubernetesGenerator(BaseDeploymentGenerator):
                 [PORTS_CONFIG_DEPLOYMENT, *port_mappings]
             )
 
+        if self.service_builder.multiledger:
+            keys = ""
+            for keypair in cast(
+                List[Dict[str, str]], self.service_builder.keys[agent_ix]
+            ):
+                keys += SECRET_KEY_TEMPLATE.format(
+                    ledger=keypair.get(LEDGER, DEFAULT_LEDGER)
+                )
+        else:
+            keys = SECRET_KEY_TEMPLATE.format(
+                ledger=cast(List[Dict[str, str]], self.service_builder.keys)[
+                    agent_ix
+                ].get(LEDGER, DEFAULT_LEDGER)
+            )
+
         agent_deployment = AGENT_NODE_TEMPLATE.format(
             runtime_image=runtime_image,
             validator_ix=agent_ix,
-            aea_key=self.service_builder.keys[agent_ix][PRIVATE_KEY],
             number_of_validators=number_of_agents,
             host_names=host_names,
             tendermint_image_name=TENDERMINT_IMAGE_NAME,
             tendermint_image_version=TENDERMINT_IMAGE_VERSION,
             log_level=self.service_builder.log_level,
             agent_ports_deployment=agent_ports_deployment,
-            ledger=self.service_builder.keys[agent_ix].get(LEDGER, DEFAULT_LEDGER),
+            keys=keys,
             write_to_log=str(tm_write_to_log()).lower(),
         )
         agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
@@ -216,17 +232,49 @@ class KubernetesGenerator(BaseDeploymentGenerator):
 
         return self
 
-    def populate_private_keys(self) -> "BaseDeploymentGenerator":
-        """Populates private keys into a config map for the kubernetes deployment."""
+    def _populate_keys(self) -> None:
+        """Populate the keys directory"""
         path = self.build_dir / "agent_keys"
         for x in range(self.service_builder.service.number_of_agents):
-            ledger = self.service_builder.keys[x].get(LEDGER, DEFAULT_LEDGER)
-            key = self.service_builder.keys[x][PRIVATE_KEY]
+            ledger = cast(List[Dict[str, str]], self.service_builder.keys)[x].get(
+                LEDGER, DEFAULT_LEDGER
+            )
+            key = cast(List[Dict[str, str]], self.service_builder.keys)[x][PRIVATE_KEY]
+            string_data = SECRET_STRING_DATA_TEMPLATE.format(
+                ledger=ledger, private_key=key
+            )
             secret = AGENT_SECRET_TEMPLATE.format(
-                private_key=key, validator_ix=x, ledger=ledger
+                validator_ix=x, string_data=string_data[:-1]
             )
             with open(
                 path / KUBERNETES_AGENT_KEY_NAME.format(agent_n=x), "w", encoding="utf8"
             ) as f:
                 f.write(secret)
+
+    def _populate_keys_multiledger(self) -> None:
+        """Populate the keys directory with multiple set of keys"""
+        path = self.build_dir / "agent_keys"
+        for x in range(self.service_builder.service.number_of_agents):
+            string_data = ""
+            for keypair in cast(List[List[Dict[str, str]]], self.service_builder.keys)[
+                x
+            ]:
+                ledger = keypair.get(LEDGER, DEFAULT_LEDGER)
+                string_data += SECRET_STRING_DATA_TEMPLATE.format(
+                    ledger=ledger, private_key=keypair[PRIVATE_KEY]
+                )
+            secret = AGENT_SECRET_TEMPLATE.format(
+                validator_ix=x, string_data=string_data[:-1]
+            )
+            with open(
+                path / KUBERNETES_AGENT_KEY_NAME.format(agent_n=x), "w", encoding="utf8"
+            ) as f:
+                f.write(secret)
+
+    def populate_private_keys(self) -> "BaseDeploymentGenerator":
+        """Populates private keys into a config map for the kubernetes deployment."""
+        if self.service_builder.multiledger:
+            self._populate_keys_multiledger()
+        else:
+            self._populate_keys()
         return self
