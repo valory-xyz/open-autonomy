@@ -425,15 +425,26 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
                 param_args[TENDERMINT_P2P_URL_PARAM] = tm_p2p_url
 
         try:
-            if self.service.number_of_agents == 1 and not has_multiple_overrides:
-                param_args = self._get_config_from_json_path(
-                    override_dict=override, json_path=PARAM_ARGS_PATH
-                )
-                _update_tendermint_params(
-                    param_args=param_args,
-                    idx=0,
-                    is_kubernetes_deployment=is_kubernetes_deployment,
-                )
+            if self.service.number_of_agents == 1:
+                if has_multiple_overrides:
+                    for agent_idx in override:
+                        param_args = self._get_config_from_json_path(
+                            override_dict=override[agent_idx], json_path=PARAM_ARGS_PATH
+                        )
+                        _update_tendermint_params(
+                            param_args=param_args,
+                            idx=0,
+                            is_kubernetes_deployment=is_kubernetes_deployment,
+                        )
+                else:
+                    param_args = self._get_config_from_json_path(
+                        override_dict=override, json_path=PARAM_ARGS_PATH
+                    )
+                    _update_tendermint_params(
+                        param_args=param_args,
+                        idx=0,
+                        is_kubernetes_deployment=is_kubernetes_deployment,
+                    )
                 return
 
             if not has_multiple_overrides:
