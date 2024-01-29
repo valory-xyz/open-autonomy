@@ -52,7 +52,8 @@ Class to assist with generating deployments.
 
 ```python
 def __init__(service: Service,
-             keys: Optional[List[Dict[str, str]]] = None,
+             keys: Optional[List[Union[List[Dict[str, str]],
+                                       Dict[str, str]]]] = None,
              agent_instances: Optional[List[str]] = None,
              apply_environment_variables: bool = False) -> None
 ```
@@ -117,7 +118,7 @@ Agent instances setter.
 
 ```python
 @property
-def keys() -> List[Dict[str, str]]
+def keys() -> List[Union[List[Dict[str, str]], Dict[str, str]]]
 ```
 
 Keys.
@@ -144,7 +145,7 @@ Service builder from path.
 
 ```python
 @staticmethod
-def verify_agent_instances(keys: List[Dict[str, str]],
+def verify_agent_instances(addresses: Set[str],
                            agent_instances: List[str]) -> None
 ```
 
