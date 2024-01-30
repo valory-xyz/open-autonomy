@@ -114,6 +114,8 @@ Deploy an agent service.
 @click.option("--image-version",
               type=str,
               help="Define runtime image version.")
+@click.option("--agent-cpu", type=float, help="Set agent CPU usage limit.")
+@click.option("--agent-memory", type=int, help="Set agent memory usage limit.")
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @image_author_option
@@ -135,7 +137,9 @@ def build_deployment_command(click_context: click.Context,
                              use_hardhat: bool = False,
                              use_acn: bool = False,
                              use_tm_testnet_setup: bool = False,
-                             image_author: Optional[str] = None) -> None
+                             image_author: Optional[str] = None,
+                             agent_cpu: Optional[float] = None,
+                             agent_memory: Optional[int] = None) -> None
 ```
 
 Build deployment setup for n agents.
@@ -238,6 +242,8 @@ Stop a running deployment.
     default=False,
     help="Run service in the background.",
 )
+@click.option("--agent-cpu", type=float, help="Set agent CPU usage limit.")
+@click.option("--agent-memory", type=int, help="Set agent memory usage limit.")
 @chain_selection_flag(
     help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
@@ -252,7 +258,9 @@ def run_deployment_from_token(click_context: click.Context,
                               no_deploy: bool,
                               detach: bool,
                               aev: bool = False,
-                              password: Optional[str] = None) -> None
+                              password: Optional[str] = None,
+                              agent_cpu: Optional[float] = None,
+                              agent_memory: Optional[int] = None) -> None
 ```
 
 Run service deployment.

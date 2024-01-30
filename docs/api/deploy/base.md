@@ -36,6 +36,26 @@ class NotValidKeysFile(Exception)
 
 Raise when provided keys file is not valid.
 
+<a id="autonomy.deploy.base.ResourceType"></a>
+
+## ResourceType Objects
+
+```python
+class ResourceType(TypedDict)
+```
+
+Resource type.
+
+<a id="autonomy.deploy.base.Resources"></a>
+
+## Resources Objects
+
+```python
+class Resources(TypedDict)
+```
+
+Deployment resources.
+
 <a id="autonomy.deploy.base.ServiceBuilder"></a>
 
 ## ServiceBuilder Objects
@@ -257,7 +277,8 @@ def __init__(service_builder: ServiceBuilder,
              packages_dir: Optional[Path] = None,
              open_aea_dir: Optional[Path] = None,
              open_autonomy_dir: Optional[Path] = None,
-             image_author: Optional[str] = None)
+             image_author: Optional[str] = None,
+             resources: Optional[Resources] = None)
 ```
 
 Initialise with only kwargs.
