@@ -162,8 +162,12 @@ def deploy_group(
     help="Use local tendermint chain setup.",
 )
 @click.option("--image-version", type=str, help="Define runtime image version.")
-@click.option("--agent-cpu", type=float, help="Set agent CPU usage limit.")
-@click.option("--agent-memory", type=int, help="Set agent memory usage limit.")
+@click.option("--agent-cpu-request", type=float, help="Set agent CPU usage request.")
+@click.option(
+    "--agent-memory-request", type=int, help="Set agent memory usage request."
+)
+@click.option("--agent-cpu-limit", type=float, help="Set agent CPU usage limit.")
+@click.option("--agent-memory-limit", type=int, help="Set agent memory usage limit.")
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @image_author_option
@@ -187,8 +191,10 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     use_acn: bool = False,
     use_tm_testnet_setup: bool = False,
     image_author: Optional[str] = None,
-    agent_cpu: Optional[float] = None,
-    agent_memory: Optional[int] = None,
+    agent_cpu_limit: Optional[float] = None,
+    agent_memory_limit: Optional[int] = None,
+    agent_cpu_request: Optional[float] = None,
+    agent_memory_request: Optional[int] = None,
 ) -> None:
     """Build deployment setup for n agents."""
     if password is not None:  # pragma: nocover
@@ -241,7 +247,15 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             use_acn=use_acn,
             use_tm_testnet_setup=use_tm_testnet_setup,
             image_author=image_author,
-            resources={"agent": {"cpu": agent_cpu, "memory": agent_memory}},
+            resources={
+                "agent": {
+                    "limit": {"cpu": agent_cpu_limit, "memory": agent_memory_limit},
+                    "requested": {
+                        "cpu": agent_cpu_request,
+                        "memory": agent_memory_request,
+                    },
+                }
+            },
         )
     except (NotValidKeysFile, FileNotFoundError, FileExistsError) as e:
         shutil.rmtree(build_dir)
@@ -335,8 +349,12 @@ def stop(build_dir: Path) -> None:
     default=False,
     help="Run service in the background.",
 )
-@click.option("--agent-cpu", type=float, help="Set agent CPU usage limit.")
-@click.option("--agent-memory", type=int, help="Set agent memory usage limit.")
+@click.option("--agent-cpu-request", type=float, help="Set agent CPU usage request.")
+@click.option(
+    "--agent-memory-request", type=int, help="Set agent memory usage request."
+)
+@click.option("--agent-cpu-limit", type=float, help="Set agent CPU usage limit.")
+@click.option("--agent-memory-limit", type=int, help="Set agent memory usage limit.")
 @chain_selection_flag(help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 @password_option(confirmation_prompt=True)
@@ -352,8 +370,10 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     detach: bool,
     aev: bool = False,
     password: Optional[str] = None,
-    agent_cpu: Optional[float] = None,
-    agent_memory: Optional[int] = None,
+    agent_cpu_limit: Optional[float] = None,
+    agent_memory_limit: Optional[int] = None,
+    agent_cpu_request: Optional[float] = None,
+    agent_memory_request: Optional[int] = None,
 ) -> None:
     """Run service deployment."""
     if password is not None:  # pragma: nocover
@@ -378,5 +398,13 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
             aev=aev,
             no_deploy=no_deploy,
             detach=detach,
-            resources={"agent": {"cpu": agent_cpu, "memory": agent_memory}},
+            resources={
+                "agent": {
+                    "limit": {"cpu": agent_cpu_limit, "memory": agent_memory_limit},
+                    "requested": {
+                        "cpu": agent_cpu_request,
+                        "memory": agent_memory_request,
+                    },
+                }
+            },
         )

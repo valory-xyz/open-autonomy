@@ -33,8 +33,8 @@ from autonomy.constants import (
 )
 from autonomy.deploy.base import (
     BaseDeploymentGenerator,
-    DEFAULT_AGENT_CPU,
-    DEFAULT_AGENT_MEMORY,
+    DEFAULT_RESOURCE_VALUES,
+    Resources,
     tm_write_to_log,
 )
 from autonomy.deploy.constants import DEFAULT_ENCODING, KUBERNETES_AGENT_KEY_NAME
@@ -65,8 +65,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         number_of_agents: int,
         agent_vars: Dict[str, Any],
         agent_ports: Optional[Dict[int, int]] = None,
-        agent_memory: Optional[int] = None,
-        agent_cpu: Optional[float] = None,
+        resources: Optional[Resources] = None,
     ) -> str:
         """Build agent deployment."""
 
@@ -99,6 +98,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
                 ].get(LEDGER, DEFAULT_LEDGER)
             )
 
+        resources = resources if resources is not None else DEFAULT_RESOURCE_VALUES
         agent_deployment = AGENT_NODE_TEMPLATE.format(
             runtime_image=runtime_image,
             validator_ix=agent_ix,
@@ -110,11 +110,13 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             agent_ports_deployment=agent_ports_deployment,
             keys=keys,
             write_to_log=str(tm_write_to_log()).lower(),
-            agent_memory=agent_memory or DEFAULT_AGENT_MEMORY,
-            agent_cpu=agent_cpu or DEFAULT_AGENT_CPU,
+            agent_cpu_request=resources["agent"]["requested"]["cpu"],
+            agent_memory_request=resources["agent"]["requested"]["memory"],
+            agent_cpu_limit=resources["agent"]["limit"]["cpu"],
+            agent_memory_limit=resources["agent"]["limit"]["memory"],
         )
         agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
-        resources = []
+        build = []
         for resource in agent_deployment_yaml:
             if resource.get("kind") == "Deployment":
                 for container in resource["spec"]["template"]["spec"]["containers"]:
@@ -122,9 +124,9 @@ class KubernetesGenerator(BaseDeploymentGenerator):
                         container["env"] += [
                             {"name": k, "value": f"{v}"} for k, v in agent_vars.items()
                         ]
-            resources.append(resource)
+            build.append(resource)
 
-        res = "\n---\n".join([yaml.safe_dump(i) for i in resources])
+        res = "\n---\n".join([yaml.safe_dump(i) for i in build])
         return res
 
     def generate_config_tendermint(self) -> "KubernetesGenerator":
@@ -190,8 +192,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
                         .get("ports", {})
                         .get(i)
                     ),
-                    agent_memory=self.resources.get("agent", {}).get("memory"),
-                    agent_cpu=self.resources.get("agent", {}).get("cpu"),
+                    resources=self.resources,
                 )
                 for i in range(self.service_builder.service.number_of_agents)
             ]

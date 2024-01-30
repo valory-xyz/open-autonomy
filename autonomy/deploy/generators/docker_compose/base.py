@@ -40,7 +40,12 @@ from autonomy.constants import (
     TENDERMINT_IMAGE_NAME,
     TENDERMINT_IMAGE_VERSION,
 )
-from autonomy.deploy.base import BaseDeploymentGenerator, tm_write_to_log
+from autonomy.deploy.base import (
+    BaseDeploymentGenerator,
+    DEFAULT_RESOURCE_VALUES,
+    Resources,
+    tm_write_to_log,
+)
 from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
     DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
@@ -120,10 +125,10 @@ def build_agent_config(  # pylint: disable=too-many-arguments,too-many-locals
     open_aea_dir: Path = DEFAULT_OPEN_AEA_DIR,
     open_autonomy_dir: Path = DEFAULT_OPEN_AUTONOMY_DIR,
     agent_ports: Optional[Dict[int, int]] = None,
-    agent_memory: Optional[int] = None,
-    agent_cpu: Optional[float] = None,
+    resources: Optional[Resources] = None,
 ) -> str:
     """Build agent config."""
+    resources = resources if resources is not None else DEFAULT_RESOURCE_VALUES
     agent_vars_string = "\n".join([f"      - {k}={v}" for k, v in agent_vars.items()])
     config = ABCI_NODE_TEMPLATE.format(
         node_id=node_id,
@@ -132,8 +137,9 @@ def build_agent_config(  # pylint: disable=too-many-arguments,too-many-locals
         network_address=network_address,
         runtime_image=runtime_image,
         network_name=network_name,
-        agent_memory=agent_memory,
-        agent_cpu=agent_cpu,
+        agent_memory_request=resources["agent"]["requested"]["memory"],
+        agent_cpu_limit=resources["agent"]["limit"]["cpu"],
+        agent_memory_limit=resources["agent"]["limit"]["memory"],
     )
 
     if dev_mode:
@@ -282,8 +288,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     ),
                     network_name=network_name,
                     network_address=network.next_address,
-                    agent_cpu=self.resources.get("agent", {}).get("cpu"),
-                    agent_memory=self.resources.get("agent", {}).get("memory"),
+                    resources=self.resources,
                 )
                 for i in range(self.service_builder.service.number_of_agents)
             ]

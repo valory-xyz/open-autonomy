@@ -91,8 +91,10 @@ COMPONENT_CONFIGS: Dict = {
     ]
 }
 
-DEFAULT_AGENT_MEMORY = int(os.environ.get("AUTONOMY_AGENT_MEMORY", 1024))
-DEFAULT_AGENT_CPU = float(os.environ.get("AUTONOMY_AGENT_CPU", 1.0))
+DEFAULT_AGENT_MEMORY_LIMIT = int(os.environ.get("AUTONOMY_AGENT_MEMORY_LIMIT", 1024))
+DEFAULT_AGENT_CPU_LIMIT = float(os.environ.get("AUTONOMY_AGENT_CPU_LIMIT", 1.0))
+DEFAULT_AGENT_MEMORY_REQUEST = int(os.environ.get("AUTONOMY_AGENT_MEMORY_REQUEST", 256))
+DEFAULT_AGENT_CPU_REQUEST = float(os.environ.get("AUTONOMY_AGENT_CPU_REQUEST", 1.0))
 
 
 def tm_write_to_log() -> bool:
@@ -104,17 +106,40 @@ class NotValidKeysFile(Exception):
     """Raise when provided keys file is not valid."""
 
 
-class ResourceType(TypedDict):
+class ResourceValues(TypedDict):
     """Resource type."""
 
     cpu: Optional[float]
     memory: Optional[int]
 
 
+class Resource(TypedDict):
+    """Resource values."""
+
+    requested: ResourceValues
+    limit: ResourceValues
+
+
 class Resources(TypedDict):
     """Deployment resources."""
 
-    agent: ResourceType
+    agent: Resource
+
+
+DEFAULT_RESOURCE_VALUES = Resources(
+    {
+        "agent": {
+            "limit": {
+                "cpu": DEFAULT_AGENT_CPU_LIMIT,
+                "memory": DEFAULT_AGENT_MEMORY_LIMIT,
+            },
+            "requested": {
+                "cpu": DEFAULT_AGENT_CPU_REQUEST,
+                "memory": DEFAULT_AGENT_MEMORY_REQUEST,
+            },
+        }
+    }
+)
 
 
 class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
@@ -747,7 +772,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
 
         self.tendermint_job_config: Optional[str] = None
         self.image_author = image_author or DEFAULT_DOCKER_IMAGE_AUTHOR
-        self.resources = resources or {}  # type: ignore
+        self.resources = resources if resources is not None else DEFAULT_RESOURCE_VALUES
 
     @abc.abstractmethod
     def generate(

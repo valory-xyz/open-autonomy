@@ -96,9 +96,9 @@ TENDERMINT_NODE_TEMPLATE: str = """
 
 ABCI_NODE_TEMPLATE: str = """
   {container_name}:
-    mem_reservation: 256M
-    mem_limit: {agent_memory}M
-    cpus: {agent_cpu}
+    mem_reservation: {agent_memory_request}M
+    mem_limit: {agent_memory_limit}M
+    cpus: {agent_cpu_limit}
     container_name: {container_name}
     image: {runtime_image}
     environment:

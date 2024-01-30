@@ -252,11 +252,11 @@ spec:
         imagePullPolicy: Always
         resources:
           limits:
-            memory: "{agent_memory}Mi"
-            cpu: "{agent_cpu}"
+            memory: "{agent_memory_limit}Mi"
+            cpu: "{agent_cpu_limit}"
           requests:
-            cpu: "0.5"
-            memory: "1512Mi"
+            memory: "{agent_memory_request}Mi"
+            cpu: "{agent_cpu_request}"
         env:
           - name: HOSTNAME
             value: "agent-node-{validator_ix}"
