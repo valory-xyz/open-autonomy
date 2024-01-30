@@ -49,6 +49,7 @@ ERRORS_TO_RETRY = (
     "AlreadyKnown",
     "ALREADY_EXISTS",
     "already known",
+    "ReplacementNotAllowed",
 )
 
 
@@ -64,7 +65,7 @@ def should_retry(error: str) -> bool:
 
 def should_reprice(error: str) -> bool:
     """Check an error message to check if we should reprice the transaction"""
-    return "FeeTooLow" in error
+    return "FeeTooLow" in error or "ReplacementNotAllowed" in error
 
 
 class TxSettler:
