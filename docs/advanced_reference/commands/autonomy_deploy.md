@@ -93,6 +93,12 @@ autonomy deploy build [OPTIONS] [KEYS_FILE]
 `--image-version TEXT`
 :   Define runtime image version.
 
+`--agent-cpu FLOAT`
+:   Set agent CPU usage limit.
+
+`--agent-memory INTEGER`
+:   Set agent memory usage limit.
+
 `--remote`
 :   To use a remote registry.
 
@@ -156,6 +162,37 @@ In a `kubernetes` deployment, you'll have to export the `OPEN_AUTONOMY_PRIVATE_K
 export OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD=PASSWORD
 autonomy deploy build (...)
 ```
+
+### Customize resources
+
+You can customize the resource values for the agent nodes using `--agent-cpu` and `--agent-memory` flags or using `AUTONOMY_AGENT_CPU` and `AUTONOMY_AGENT_MEMORY` environment variables.
+
+```bash
+autonomy deploy build --agent-cpu 1.0 --agent-memory 2048
+```
+
+will produce agent nodes with following resource constrains
+
+```yaml
+  xyz_abci_0:
+    mem_reservation: 256M
+    mem_limit: 2048M
+    cpus: 1.0
+```
+
+on docker-compose deployment and 
+
+```yaml
+        resources:
+          limits:
+            cpu: '1.0'
+            memory: 2048Mi
+          requests:
+            cpu: '0.5'
+            memory: 1024Mi
+```
+
+on kubernetes deployment.
 
 ## `autonomy deploy run`
 
@@ -228,7 +265,13 @@ autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
 
 `--docker`
 :   Use docker as a backend.
-  
+
+`--agent-cpu FLOAT`
+:   Set agent CPU usage limit.
+
+`--agent-memory INTEGER`
+:   Set agent memory usage limit.
+
 `--kubernetes`
 :   Use kubernetes as a backend.
   
