@@ -36,6 +36,7 @@ from aea.configurations.base import (
 from aea.configurations.constants import ADDRESS, LEDGER, PRIVATE_KEY, SKILL
 from aea.configurations.data_types import PackageType, PublicId
 from aea.helpers.env_vars import apply_env_variables
+from typing_extensions import TypedDict
 
 from autonomy.analyse.service import ABCI
 from autonomy.configurations.base import Service
@@ -90,6 +91,9 @@ COMPONENT_CONFIGS: Dict = {
     ]
 }
 
+DEFAULT_AGENT_MEMORY = int(os.environ.get("AUTONOMY_AGENT_MEMORY", 1024))
+DEFAULT_AGENT_CPU = float(os.environ.get("AUTONOMY_AGENT_CPU", 1.0))
+
 
 def tm_write_to_log() -> bool:
     """Check the environment variable to see if the user wants to write to log file or not."""
@@ -98,6 +102,19 @@ def tm_write_to_log() -> bool:
 
 class NotValidKeysFile(Exception):
     """Raise when provided keys file is not valid."""
+
+
+class ResourceType(TypedDict):
+    """Resource type."""
+
+    cpu: Optional[float]
+    memory: Optional[int]
+
+
+class Resources(TypedDict):
+    """Deployment resources."""
+
+    agent: ResourceType
 
 
 class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
@@ -702,6 +719,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
     packages_dir: Path
     open_aea_dir: Path
     open_autonomy_dir: Path
+    resources: Resources
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
@@ -713,6 +731,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
         open_aea_dir: Optional[Path] = None,
         open_autonomy_dir: Optional[Path] = None,
         image_author: Optional[str] = None,
+        resources: Optional[Resources] = None,
     ):
         """Initialise with only kwargs."""
 
@@ -728,6 +747,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
 
         self.tendermint_job_config: Optional[str] = None
         self.image_author = image_author or DEFAULT_DOCKER_IMAGE_AUTHOR
+        self.resources = resources or {}  # type: ignore
 
     @abc.abstractmethod
     def generate(
