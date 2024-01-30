@@ -895,9 +895,11 @@ class TestResourceSpecification(BaseDeployBuildTest):
                     str(self.keys_file),
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--agent-cpu",
-                    "1.0",
-                    "--agent-memory",
+                    "--agent-cpu-limit",
+                    "2.0",
+                    "--agent-memory-limit",
+                    "4096",
+                    "--agent-memory-request",
                     "2048",
                 )
             )
@@ -912,8 +914,12 @@ class TestResourceSpecification(BaseDeployBuildTest):
             path=build_dir / DockerComposeGenerator.output_name
         )
 
-        assert docker_compose["services"]["dummyservice_abci_0"]["mem_limit"] == "2048M"
-        assert docker_compose["services"]["dummyservice_abci_0"]["cpus"] == 1.0
+        assert (
+            docker_compose["services"]["dummyservice_abci_0"]["mem_reservation"]
+            == "2048M"
+        )
+        assert docker_compose["services"]["dummyservice_abci_0"]["mem_limit"] == "4096M"
+        assert docker_compose["services"]["dummyservice_abci_0"]["cpus"] == 2.0
 
     def test_expose_agent_ports_kubernetes(self) -> None:
         """Test expose agent ports"""
@@ -926,10 +932,14 @@ class TestResourceSpecification(BaseDeployBuildTest):
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
                     "--kubernetes",
-                    "--agent-cpu",
+                    "--agent-cpu-request",
                     "1.0",
-                    "--agent-memory",
+                    "--agent-memory-request",
                     "2048",
+                    "--agent-cpu-limit",
+                    "2.0",
+                    "--agent-memory-limit",
+                    "4096",
                 )
             )
 
@@ -941,14 +951,28 @@ class TestResourceSpecification(BaseDeployBuildTest):
 
         assert (
             build_config[1]["spec"]["template"]["spec"]["containers"][1]["resources"][
-                "limits"
+                "requests"
             ]["cpu"]
             == "1.0"
         )
 
         assert (
             build_config[1]["spec"]["template"]["spec"]["containers"][1]["resources"][
-                "limits"
+                "requests"
             ]["memory"]
             == "2048Mi"
+        )
+
+        assert (
+            build_config[1]["spec"]["template"]["spec"]["containers"][1]["resources"][
+                "limits"
+            ]["cpu"]
+            == "2.0"
+        )
+
+        assert (
+            build_config[1]["spec"]["template"]["spec"]["containers"][1]["resources"][
+                "limits"
+            ]["memory"]
+            == "4096Mi"
         )
