@@ -178,6 +178,7 @@ class TestYamlSnippets(BaseTestDocCode):
         "docs/configure_service/on-chain_deployment_checklist.md",  # just placeholder examples
         "docs/configure_service/configure_access_external_chains.md",  # just placeholder examples
         "docs/advanced_reference/developer_tooling/dev_mode.md",  # just placeholder examples
+        "docs/advanced_reference/commands/autonomy_deploy.md",  # blocks contain resource values on deployment configurations
     ]
 
 
