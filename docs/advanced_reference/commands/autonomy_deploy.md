@@ -93,10 +93,16 @@ autonomy deploy build [OPTIONS] [KEYS_FILE]
 `--image-version TEXT`
 :   Define runtime image version.
 
-`--agent-cpu FLOAT`
+`--agent-cpu-request FLOAT`
+:   Set agent CPU usage request.
+
+`--agent-memory-request INTEGER`
+:   Set agent memory usage request.
+
+`--agent-cpu-limit FLOAT`
 :   Set agent CPU usage limit.
 
-`--agent-memory INTEGER`
+`--agent-memory-limit INTEGER`
 :   Set agent memory usage limit.
 
 `--remote`
@@ -165,17 +171,17 @@ autonomy deploy build (...)
 
 ### Customize resources
 
-You can customize the resource values for the agent nodes using `--agent-cpu` and `--agent-memory` flags or using `AUTONOMY_AGENT_CPU` and `AUTONOMY_AGENT_MEMORY` environment variables.
+You can customize the resource values for the agent nodes using `--agent-cpu-limit`, `--agent-memory-limit`, `--agent-cpu-request` and `--agent-memory-request` flags or using `AUTONOMY_AGENT_MEMORY_LIMIT`, `AUTONOMY_AGENT_CPU_LIMIT`, `AUTONOMY_AGENT_MEMORY_REQUEST` and `AUTONOMY_AGENT_CPU_REQUEST` environment variables.
 
 ```bash
-autonomy deploy build --agent-cpu 1.0 --agent-memory 2048
+autonomy deploy build --agent-cpu-limit 1.0 --agent-memory-limit 2048 --agent-memory-request 1024
 ```
 
 will produce agent nodes with following resource constrains
 
 ```yaml
   xyz_abci_0:
-    mem_reservation: 256M
+    mem_reservation: 1024M
     mem_limit: 2048M
     cpus: 1.0
 ```
@@ -266,10 +272,16 @@ autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
 `--docker`
 :   Use docker as a backend.
 
-`--agent-cpu FLOAT`
+`--agent-cpu-request FLOAT`
+:   Set agent CPU usage request.
+
+`--agent-memory-request INTEGER`
+:   Set agent memory usage request.
+
+`--agent-cpu-limit FLOAT`
 :   Set agent CPU usage limit.
 
-`--agent-memory INTEGER`
+`--agent-memory-limit INTEGER`
 :   Set agent memory usage limit.
 
 `--kubernetes`
