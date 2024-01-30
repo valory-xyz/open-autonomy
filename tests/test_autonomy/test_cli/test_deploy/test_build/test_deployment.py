@@ -868,3 +868,87 @@ class TestLoadEnvVars(BaseDeployBuildTest):
         self.cli_options = ("deploy", "--env-file", str(env_file.resolve()), "build")
 
         self._run_test()
+
+
+class TestResourceSpecification(BaseDeployBuildTest):
+    """Test expose ports from service config."""
+
+    def setup(self) -> None:
+        """Setup test."""
+        super().setup()
+        service_data = get_dummy_service_config(file_number=4)
+        with open("./service.yaml", "w+") as fp:
+            yaml.dump_all(service_data, fp)
+        with OS_ENV_PATCH:
+            self.spec = ServiceBuilder.from_dir(
+                self.t / "register_reset",
+                self.keys_file,
+            )
+
+    def test_expose_agent_ports_docker_compose(self) -> None:
+        """Test expose agent ports"""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"), OS_ENV_PATCH:
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--agent-cpu",
+                    "1.0",
+                    "--agent-memory",
+                    "2048",
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_docker_compose_build(
+            build_dir=build_dir,
+        )
+        docker_compose = self.load_and_check_docker_compose_file(
+            path=build_dir / DockerComposeGenerator.output_name
+        )
+
+        assert docker_compose["services"]["dummyservice_abci_0"]["mem_limit"] == "2048M"
+        assert docker_compose["services"]["dummyservice_abci_0"]["cpus"] == 1.0
+
+    def test_expose_agent_ports_kubernetes(self) -> None:
+        """Test expose agent ports"""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"), OS_ENV_PATCH:
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--kubernetes",
+                    "--agent-cpu",
+                    "1.0",
+                    "--agent-memory",
+                    "2048",
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_kubernetes_build(build_dir=build_dir)
+        build_config = self.load_kubernetes_config(build_dir)
+
+        assert (
+            build_config[1]["spec"]["template"]["spec"]["containers"][1]["resources"][
+                "limits"
+            ]["cpu"]
+            == "1.0"
+        )
+
+        assert (
+            build_config[1]["spec"]["template"]["spec"]["containers"][1]["resources"][
+                "limits"
+            ]["memory"]
+            == "2048Mi"
+        )
