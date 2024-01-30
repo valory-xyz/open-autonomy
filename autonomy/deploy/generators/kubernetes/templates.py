@@ -256,7 +256,7 @@ spec:
             cpu: "{agent_cpu}"
           requests:
             cpu: "0.5"
-            memory: "1024Mi"
+            memory: "1512Mi"
         env:
           - name: HOSTNAME
             value: "agent-node-{validator_ix}"
