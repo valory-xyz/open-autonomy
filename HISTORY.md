@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.14.3 (2024-01-30)
+
+Autonomy:
+- Updates the transaction settlement to reprice transaction when running into `ReplacementNotAllowed`
+
 # 0.14.2 (2024-01-29)
 
 Autonomy:
