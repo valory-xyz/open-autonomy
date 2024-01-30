@@ -114,28 +114,45 @@ Deploy an agent service.
 @click.option("--image-version",
               type=str,
               help="Define runtime image version.")
+@click.option("--agent-cpu-request",
+              type=float,
+              help="Set agent CPU usage request.")
+@click.option("--agent-memory-request",
+              type=int,
+              help="Set agent memory usage request.")
+@click.option("--agent-cpu-limit",
+              type=float,
+              help="Set agent CPU usage limit.")
+@click.option("--agent-memory-limit",
+              type=int,
+              help="Set agent memory usage limit.")
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @image_author_option
 @click.pass_context
-def build_deployment_command(click_context: click.Context,
-                             keys_file: Optional[Path],
-                             deployment_type: str,
-                             output_dir: Optional[Path],
-                             dev_mode: bool,
-                             registry: str,
-                             number_of_agents: Optional[int] = None,
-                             password: Optional[str] = None,
-                             open_aea_dir: Optional[Path] = None,
-                             packages_dir: Optional[Path] = None,
-                             open_autonomy_dir: Optional[Path] = None,
-                             log_level: str = INFO,
-                             aev: bool = False,
-                             image_version: Optional[str] = None,
-                             use_hardhat: bool = False,
-                             use_acn: bool = False,
-                             use_tm_testnet_setup: bool = False,
-                             image_author: Optional[str] = None) -> None
+def build_deployment_command(
+        click_context: click.Context,
+        keys_file: Optional[Path],
+        deployment_type: str,
+        output_dir: Optional[Path],
+        dev_mode: bool,
+        registry: str,
+        number_of_agents: Optional[int] = None,
+        password: Optional[str] = None,
+        open_aea_dir: Optional[Path] = None,
+        packages_dir: Optional[Path] = None,
+        open_autonomy_dir: Optional[Path] = None,
+        log_level: str = INFO,
+        aev: bool = False,
+        image_version: Optional[str] = None,
+        use_hardhat: bool = False,
+        use_acn: bool = False,
+        use_tm_testnet_setup: bool = False,
+        image_author: Optional[str] = None,
+        agent_cpu_limit: Optional[float] = None,
+        agent_memory_limit: Optional[int] = None,
+        agent_cpu_request: Optional[float] = None,
+        agent_memory_request: Optional[int] = None) -> None
 ```
 
 Build deployment setup for n agents.
@@ -238,21 +255,38 @@ Stop a running deployment.
     default=False,
     help="Run service in the background.",
 )
+@click.option("--agent-cpu-request",
+              type=float,
+              help="Set agent CPU usage request.")
+@click.option("--agent-memory-request",
+              type=int,
+              help="Set agent memory usage request.")
+@click.option("--agent-cpu-limit",
+              type=float,
+              help="Set agent CPU usage limit.")
+@click.option("--agent-memory-limit",
+              type=int,
+              help="Set agent memory usage limit.")
 @chain_selection_flag(
     help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 @password_option(confirmation_prompt=True)
-def run_deployment_from_token(click_context: click.Context,
-                              token_id: int,
-                              keys_file: Path,
-                              chain_type: ChainType,
-                              skip_image: bool,
-                              n: Optional[int],
-                              deployment_type: str,
-                              no_deploy: bool,
-                              detach: bool,
-                              aev: bool = False,
-                              password: Optional[str] = None) -> None
+def run_deployment_from_token(
+        click_context: click.Context,
+        token_id: int,
+        keys_file: Path,
+        chain_type: ChainType,
+        skip_image: bool,
+        n: Optional[int],
+        deployment_type: str,
+        no_deploy: bool,
+        detach: bool,
+        aev: bool = False,
+        password: Optional[str] = None,
+        agent_cpu_limit: Optional[float] = None,
+        agent_memory_limit: Optional[int] = None,
+        agent_cpu_request: Optional[float] = None,
+        agent_memory_request: Optional[int] = None) -> None
 ```
 
 Run service deployment.

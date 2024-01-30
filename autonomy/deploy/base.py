@@ -36,6 +36,7 @@ from aea.configurations.base import (
 from aea.configurations.constants import ADDRESS, LEDGER, PRIVATE_KEY, SKILL
 from aea.configurations.data_types import PackageType, PublicId
 from aea.helpers.env_vars import apply_env_variables
+from typing_extensions import TypedDict
 
 from autonomy.analyse.service import ABCI
 from autonomy.configurations.base import Service
@@ -90,6 +91,11 @@ COMPONENT_CONFIGS: Dict = {
     ]
 }
 
+DEFAULT_AGENT_MEMORY_LIMIT = int(os.environ.get("AUTONOMY_AGENT_MEMORY_LIMIT", 1024))
+DEFAULT_AGENT_CPU_LIMIT = float(os.environ.get("AUTONOMY_AGENT_CPU_LIMIT", 1.0))
+DEFAULT_AGENT_MEMORY_REQUEST = int(os.environ.get("AUTONOMY_AGENT_MEMORY_REQUEST", 256))
+DEFAULT_AGENT_CPU_REQUEST = float(os.environ.get("AUTONOMY_AGENT_CPU_REQUEST", 1.0))
+
 
 def tm_write_to_log() -> bool:
     """Check the environment variable to see if the user wants to write to log file or not."""
@@ -98,6 +104,42 @@ def tm_write_to_log() -> bool:
 
 class NotValidKeysFile(Exception):
     """Raise when provided keys file is not valid."""
+
+
+class ResourceValues(TypedDict):
+    """Resource type."""
+
+    cpu: Optional[float]
+    memory: Optional[int]
+
+
+class Resource(TypedDict):
+    """Resource values."""
+
+    requested: ResourceValues
+    limit: ResourceValues
+
+
+class Resources(TypedDict):
+    """Deployment resources."""
+
+    agent: Resource
+
+
+DEFAULT_RESOURCE_VALUES = Resources(
+    {
+        "agent": {
+            "limit": {
+                "cpu": DEFAULT_AGENT_CPU_LIMIT,
+                "memory": DEFAULT_AGENT_MEMORY_LIMIT,
+            },
+            "requested": {
+                "cpu": DEFAULT_AGENT_CPU_REQUEST,
+                "memory": DEFAULT_AGENT_MEMORY_REQUEST,
+            },
+        }
+    }
+)
 
 
 class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
@@ -702,6 +744,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
     packages_dir: Path
     open_aea_dir: Path
     open_autonomy_dir: Path
+    resources: Resources
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
@@ -713,6 +756,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
         open_aea_dir: Optional[Path] = None,
         open_autonomy_dir: Optional[Path] = None,
         image_author: Optional[str] = None,
+        resources: Optional[Resources] = None,
     ):
         """Initialise with only kwargs."""
 
@@ -728,6 +772,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
 
         self.tendermint_job_config: Optional[str] = None
         self.image_author = image_author or DEFAULT_DOCKER_IMAGE_AUTHOR
+        self.resources = resources if resources is not None else DEFAULT_RESOURCE_VALUES
 
     @abc.abstractmethod
     def generate(
