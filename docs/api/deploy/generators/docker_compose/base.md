@@ -38,8 +38,7 @@ def build_agent_config(node_id: int,
                        open_aea_dir: Path = DEFAULT_OPEN_AEA_DIR,
                        open_autonomy_dir: Path = DEFAULT_OPEN_AUTONOMY_DIR,
                        agent_ports: Optional[Dict[int, int]] = None,
-                       agent_memory: Optional[int] = None,
-                       agent_cpu: Optional[float] = None) -> str
+                       resources: Optional[Resources] = None) -> str
 ```
 
 Build agent config.

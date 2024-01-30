@@ -36,15 +36,25 @@ class NotValidKeysFile(Exception)
 
 Raise when provided keys file is not valid.
 
-<a id="autonomy.deploy.base.ResourceType"></a>
+<a id="autonomy.deploy.base.ResourceValues"></a>
 
-## ResourceType Objects
+## ResourceValues Objects
 
 ```python
-class ResourceType(TypedDict)
+class ResourceValues(TypedDict)
 ```
 
 Resource type.
+
+<a id="autonomy.deploy.base.Resource"></a>
+
+## Resource Objects
+
+```python
+class Resource(TypedDict)
+```
+
+Resource values.
 
 <a id="autonomy.deploy.base.Resources"></a>
 

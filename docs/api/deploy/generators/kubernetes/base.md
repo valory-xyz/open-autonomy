@@ -24,8 +24,7 @@ def build_agent_deployment(runtime_image: str,
                            number_of_agents: int,
                            agent_vars: Dict[str, Any],
                            agent_ports: Optional[Dict[int, int]] = None,
-                           agent_memory: Optional[int] = None,
-                           agent_cpu: Optional[float] = None) -> str
+                           resources: Optional[Resources] = None) -> str
 ```
 
 Build agent deployment.
