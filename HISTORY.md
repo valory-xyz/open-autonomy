@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+# 0.14.3 (2024-01-30)
+
+Autonomy:
+- Updates the transaction settlement to reprice transaction when running into `ReplacementNotAllowed`
+- Adds support for specifying resources on the deployment builds using CLI flags and framework level environment variables
+
 # 0.14.2 (2024-01-29)
 
 Autonomy:
