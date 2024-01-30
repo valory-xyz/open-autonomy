@@ -4,6 +4,7 @@
 
 Autonomy:
 - Updates the transaction settlement to reprice transaction when running into `ReplacementNotAllowed`
+- Adds support for specifying resources on the deployment builds using CLI flags and framework level environment variables
 
 # 0.14.2 (2024-01-29)
 
