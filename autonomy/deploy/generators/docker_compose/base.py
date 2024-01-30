@@ -136,8 +136,6 @@ def build_agent_config(  # pylint: disable=too-many-arguments,too-many-locals
         agent_cpu=agent_cpu,
     )
 
-    print(config)
-
     if dev_mode:
         config += "      - ./persistent_data/benchmarks:/benchmarks:Z\n"
         config += (
