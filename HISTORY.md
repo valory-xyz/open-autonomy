@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.14.3.post1 (2024-01-31)
+
+Autonomy:
+- Fixes the default value handling for the resource specifier flags on the `autonomy deploy build/from-token` commands
+
 # 0.14.3 (2024-01-30)
 
 Autonomy:
