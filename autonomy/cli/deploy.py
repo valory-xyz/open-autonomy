@@ -47,7 +47,13 @@ from autonomy.cli.utils.click_utils import (
     image_author_option,
 )
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_KEYS_FILE
-from autonomy.deploy.base import NotValidKeysFile
+from autonomy.deploy.base import (
+    DEFAULT_AGENT_CPU_LIMIT,
+    DEFAULT_AGENT_CPU_REQUEST,
+    DEFAULT_AGENT_MEMORY_LIMIT,
+    DEFAULT_AGENT_MEMORY_REQUEST,
+    NotValidKeysFile,
+)
 from autonomy.deploy.constants import INFO, LOGGING_LEVELS
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
@@ -162,12 +168,30 @@ def deploy_group(
     help="Use local tendermint chain setup.",
 )
 @click.option("--image-version", type=str, help="Define runtime image version.")
-@click.option("--agent-cpu-request", type=float, help="Set agent CPU usage request.")
 @click.option(
-    "--agent-memory-request", type=int, help="Set agent memory usage request."
+    "--agent-cpu-request",
+    type=float,
+    help="Set agent CPU usage request.",
+    default=DEFAULT_AGENT_CPU_REQUEST,
 )
-@click.option("--agent-cpu-limit", type=float, help="Set agent CPU usage limit.")
-@click.option("--agent-memory-limit", type=int, help="Set agent memory usage limit.")
+@click.option(
+    "--agent-memory-request",
+    type=int,
+    help="Set agent memory usage request.",
+    default=DEFAULT_AGENT_MEMORY_REQUEST,
+)
+@click.option(
+    "--agent-cpu-limit",
+    type=float,
+    help="Set agent CPU usage limit.",
+    default=DEFAULT_AGENT_CPU_LIMIT,
+)
+@click.option(
+    "--agent-memory-limit",
+    type=int,
+    help="Set agent memory usage limit.",
+    default=DEFAULT_AGENT_MEMORY_LIMIT,
+)
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @image_author_option
@@ -349,12 +373,30 @@ def stop(build_dir: Path) -> None:
     default=False,
     help="Run service in the background.",
 )
-@click.option("--agent-cpu-request", type=float, help="Set agent CPU usage request.")
 @click.option(
-    "--agent-memory-request", type=int, help="Set agent memory usage request."
+    "--agent-cpu-request",
+    type=float,
+    help="Set agent CPU usage request.",
+    default=DEFAULT_AGENT_CPU_REQUEST,
 )
-@click.option("--agent-cpu-limit", type=float, help="Set agent CPU usage limit.")
-@click.option("--agent-memory-limit", type=int, help="Set agent memory usage limit.")
+@click.option(
+    "--agent-memory-request",
+    type=int,
+    help="Set agent memory usage request.",
+    default=DEFAULT_AGENT_MEMORY_REQUEST,
+)
+@click.option(
+    "--agent-cpu-limit",
+    type=float,
+    help="Set agent CPU usage limit.",
+    default=DEFAULT_AGENT_CPU_LIMIT,
+)
+@click.option(
+    "--agent-memory-limit",
+    type=int,
+    help="Set agent memory usage limit.",
+    default=DEFAULT_AGENT_MEMORY_LIMIT,
+)
 @chain_selection_flag(help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 @password_option(confirmation_prompt=True)

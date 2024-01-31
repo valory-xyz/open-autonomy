@@ -36,11 +36,11 @@ from aea_test_autonomy.configurations import (
 
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_DOCKER_IMAGE_AUTHOR
 from autonomy.deploy.base import (
-    ServiceBuilder,
     DEFAULT_AGENT_CPU_LIMIT,
     DEFAULT_AGENT_CPU_REQUEST,
     DEFAULT_AGENT_MEMORY_LIMIT,
     DEFAULT_AGENT_MEMORY_REQUEST,
+    ServiceBuilder,
 )
 from autonomy.deploy.constants import (
     DEBUG,
@@ -60,7 +60,7 @@ OS_ENV_PATCH = mock.patch.dict(
 )
 
 
-# @skip_docker_tests
+@skip_docker_tests
 class BaseDeployBuildTest(BaseCliTest):
     """Test `autonomy deply build deployment` command."""
 
