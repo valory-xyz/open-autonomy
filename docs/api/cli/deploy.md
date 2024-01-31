@@ -114,18 +114,30 @@ Deploy an agent service.
 @click.option("--image-version",
               type=str,
               help="Define runtime image version.")
-@click.option("--agent-cpu-request",
-              type=float,
-              help="Set agent CPU usage request.")
-@click.option("--agent-memory-request",
-              type=int,
-              help="Set agent memory usage request.")
-@click.option("--agent-cpu-limit",
-              type=float,
-              help="Set agent CPU usage limit.")
-@click.option("--agent-memory-limit",
-              type=int,
-              help="Set agent memory usage limit.")
+@click.option(
+    "--agent-cpu-request",
+    type=float,
+    help="Set agent CPU usage request.",
+    default=DEFAULT_AGENT_CPU_REQUEST,
+)
+@click.option(
+    "--agent-memory-request",
+    type=int,
+    help="Set agent memory usage request.",
+    default=DEFAULT_AGENT_MEMORY_REQUEST,
+)
+@click.option(
+    "--agent-cpu-limit",
+    type=float,
+    help="Set agent CPU usage limit.",
+    default=DEFAULT_AGENT_CPU_LIMIT,
+)
+@click.option(
+    "--agent-memory-limit",
+    type=int,
+    help="Set agent memory usage limit.",
+    default=DEFAULT_AGENT_MEMORY_LIMIT,
+)
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @image_author_option
@@ -255,18 +267,30 @@ Stop a running deployment.
     default=False,
     help="Run service in the background.",
 )
-@click.option("--agent-cpu-request",
-              type=float,
-              help="Set agent CPU usage request.")
-@click.option("--agent-memory-request",
-              type=int,
-              help="Set agent memory usage request.")
-@click.option("--agent-cpu-limit",
-              type=float,
-              help="Set agent CPU usage limit.")
-@click.option("--agent-memory-limit",
-              type=int,
-              help="Set agent memory usage limit.")
+@click.option(
+    "--agent-cpu-request",
+    type=float,
+    help="Set agent CPU usage request.",
+    default=DEFAULT_AGENT_CPU_REQUEST,
+)
+@click.option(
+    "--agent-memory-request",
+    type=int,
+    help="Set agent memory usage request.",
+    default=DEFAULT_AGENT_MEMORY_REQUEST,
+)
+@click.option(
+    "--agent-cpu-limit",
+    type=float,
+    help="Set agent CPU usage limit.",
+    default=DEFAULT_AGENT_CPU_LIMIT,
+)
+@click.option(
+    "--agent-memory-limit",
+    type=int,
+    help="Set agent memory usage limit.",
+    default=DEFAULT_AGENT_MEMORY_LIMIT,
+)
 @chain_selection_flag(
     help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
