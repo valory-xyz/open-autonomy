@@ -35,7 +35,13 @@ from aea_test_autonomy.configurations import (
 )
 
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_DOCKER_IMAGE_AUTHOR
-from autonomy.deploy.base import ServiceBuilder
+from autonomy.deploy.base import (
+    ServiceBuilder,
+    DEFAULT_AGENT_CPU_LIMIT,
+    DEFAULT_AGENT_CPU_REQUEST,
+    DEFAULT_AGENT_MEMORY_LIMIT,
+    DEFAULT_AGENT_MEMORY_REQUEST,
+)
 from autonomy.deploy.constants import (
     DEBUG,
     DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
@@ -54,7 +60,7 @@ OS_ENV_PATCH = mock.patch.dict(
 )
 
 
-@skip_docker_tests
+# @skip_docker_tests
 class BaseDeployBuildTest(BaseCliTest):
     """Test `autonomy deply build deployment` command."""
 
@@ -885,8 +891,82 @@ class TestResourceSpecification(BaseDeployBuildTest):
                 self.keys_file,
             )
 
-    def test_expose_agent_ports_docker_compose(self) -> None:
-        """Test expose agent ports"""
+    def test_default_resources_docker_compose(self) -> None:
+        """Test custom resources"""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"), OS_ENV_PATCH:
+            result = self.run_cli(
+                (str(self.keys_file), "--o", str(self.t / DEFAULT_BUILD_FOLDER))
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_docker_compose_build(
+            build_dir=build_dir,
+        )
+        docker_compose = self.load_and_check_docker_compose_file(
+            path=build_dir / DockerComposeGenerator.output_name
+        )
+
+        assert (
+            docker_compose["services"]["dummyservice_abci_0"]["mem_reservation"]
+            == f"{DEFAULT_AGENT_MEMORY_REQUEST}M"
+        )
+        assert (
+            docker_compose["services"]["dummyservice_abci_0"]["mem_limit"]
+            == f"{DEFAULT_AGENT_MEMORY_LIMIT}M"
+        )
+        assert (
+            docker_compose["services"]["dummyservice_abci_0"]["cpus"]
+            == DEFAULT_AGENT_CPU_LIMIT
+        )
+
+    def test_default_resources_kuberntes(self) -> None:
+        """Test custom resources"""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"), OS_ENV_PATCH:
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--kubernetes",
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_kubernetes_build(build_dir=build_dir)
+        build_config = self.load_kubernetes_config(build_dir)
+
+        assert build_config[1]["spec"]["template"]["spec"]["containers"][1][
+            "resources"
+        ]["requests"]["cpu"] == str(DEFAULT_AGENT_CPU_REQUEST)
+
+        assert (
+            build_config[1]["spec"]["template"]["spec"]["containers"][1]["resources"][
+                "requests"
+            ]["memory"]
+            == f"{DEFAULT_AGENT_MEMORY_REQUEST}Mi"
+        )
+
+        assert build_config[1]["spec"]["template"]["spec"]["containers"][1][
+            "resources"
+        ]["limits"]["cpu"] == str(DEFAULT_AGENT_CPU_LIMIT)
+
+        assert (
+            build_config[1]["spec"]["template"]["spec"]["containers"][1]["resources"][
+                "limits"
+            ]["memory"]
+            == f"{DEFAULT_AGENT_MEMORY_LIMIT}Mi"
+        )
+
+    def test_custom_resources_docker_compose(self) -> None:
+        """Test custom resources"""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
         with mock.patch("os.chown"), OS_ENV_PATCH:
@@ -921,8 +1001,8 @@ class TestResourceSpecification(BaseDeployBuildTest):
         assert docker_compose["services"]["dummyservice_abci_0"]["mem_limit"] == "4096M"
         assert docker_compose["services"]["dummyservice_abci_0"]["cpus"] == 2.0
 
-    def test_expose_agent_ports_kubernetes(self) -> None:
-        """Test expose agent ports"""
+    def test_custom_resources_kuberntes(self) -> None:
+        """Test custom resources"""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
         with mock.patch("os.chown"), OS_ENV_PATCH:
