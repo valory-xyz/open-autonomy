@@ -674,7 +674,7 @@ class TestEnvVarValidation(BaseAnalyseServiceTest):
 
         assert result.exit_code == 1, result.stdout
         assert (
-            "(skill, valory/abci_skill:0.1.0) envrionment variable validation failed with following error\n\t- "
+            "(skill, valory/abci_skill:0.1.0) environment variable validation failed with following error\n\t- "
             "`models.params.args.message` needs environment variable defined in following format ${ENV_VAR_NAME:DATA_TYPE:DEFAULT_VALUE}\n"
             in result.stderr
         ), result.stdout
@@ -697,7 +697,7 @@ class TestEnvVarValidation(BaseAnalyseServiceTest):
 
         assert result.exit_code == 1, result.stdout
         assert (
-            "(skill, valory/abci_skill:0.1.0) envrionment variable validation failed with following error"
+            "(skill, valory/abci_skill:0.1.0) environment variable validation failed with following error"
             "\n\t- `models.params.args.tendermint_url` needs to be defined as a environment variable"
             in result.stderr
         ), result.stdout
@@ -720,7 +720,7 @@ class TestEnvVarValidation(BaseAnalyseServiceTest):
 
         assert result.exit_code == 1, result.stdout
         assert (
-            "(skill, valory/abci_skill:0.1.0) envrionment variable validation failed with following error"
+            "(skill, valory/abci_skill:0.1.0) environment variable validation failed with following error"
             "\n\t- `models.params.args.tendermint_url` validation failed with following error; Cannot convert string `hello` to type `int`"
             in result.stderr
         ), result.stdout

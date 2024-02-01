@@ -602,7 +602,7 @@ class ServiceAnalyser:
                 raise ServiceValidationFailed(
                     "\n\t- ".join(
                         [
-                            f"{package_id} envrionment variable validation failed with following error",
+                            f"{package_id} environment variable validation failed with following error",
                             *errors,
                         ]
                     ),
@@ -627,7 +627,7 @@ class ServiceAnalyser:
                 raise ServiceValidationFailed(
                     "\n\t- ".join(
                         [
-                            f"{component_id} envrionment variable validation failed with following error",
+                            f"{component_id} environment variable validation failed with following error",
                             *errors,
                         ]
                     ),
