@@ -1594,9 +1594,7 @@ class BaseBehaviour(
             f"Transaction sent! Received transaction digest: {tx_hash}"
         )
 
-        # the check whether its solana is temporary until we have issues in the plugin
-        # fixed https://github.com/valory-xyz/open-aea/pull/708#discussion_r1448366974
-        if tx_hash != tx_hash_backup and chain_id != SOLANA_LEDGER_ID:
+        if tx_hash != tx_hash_backup:
             # this should never happen
             self.context.logger.error(
                 f"Unexpected error! The signature response's hash `{tx_hash_backup}` "
