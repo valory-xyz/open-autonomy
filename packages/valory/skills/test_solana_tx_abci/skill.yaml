@@ -113,7 +113,7 @@ models:
       retry_timeout: 3
       round_timeout_seconds: 30.0
       serious_slash_unit_amount: 8000000000000000
-      service_id: test_solana_abci
+      service_id: test_solana_tx_abci
       service_registry_address: null
       setup:
         all_participants:
