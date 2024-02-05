@@ -7,26 +7,26 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeih2yvhacovscr4rijbd2lyhdxtfdqo4doqrk4gkrpfkzp4prpg3sq
-  __init__.py: bafybeiakdag42cmfwravjsivexgf27zqumalng53o7uqkksbfz4yf4ai6i
-  behaviours.py: bafybeic2laq2uwssyqemf7acjizi4roeoffzol3go7vtd53e6ad5xnh5uu
+  __init__.py: bafybeieoidcv53bau5iiey6nxt4sxeiqa3xz7focedfgcbjmlkkvmsz7hu
+  behaviours.py: bafybeicjz7zcsitfbqyz3a7ibar64mjnq2qtvd5s6bucf3wx2rcklhbqum
   composition.py: bafybeier2lnyvnvs5eqkhefcgkfyh3hp2e77jpbgd4jzwo6haak6qshrva
   dialogues.py: bafybeigpwuzku3we7axmxeamg7vn656maww6emuztau5pg3ebsoquyfdqm
   fsm_specification.yaml: bafybeidh5ge22ytwufmdzg3wsqj5rwedaf5xrjf5l7vkyzf6bvabzftzha
   handlers.py: bafybeierm5cuytzkt43yjb2x2734yccymnlcc7wa7oxvjr22pdip7holx4
   models.py: bafybeidwujslgexpkj5vat2aviamjlbpqaqq6sabdkydqpsxhj3lfgv6i4
   payloads.py: bafybeiectlv7rcyxp5wydmmp3m2icbgob7qz54nhfvg6ym6ka26ydrtmbm
-  rounds.py: bafybeidfcjj2ssawzytpmsmtenowiczi5fw4mtem3dbtqowx6m6sko2fli
+  rounds.py: bafybeia63723wbj32k3mwqn4dbiv4sg5ss35nhzos25fqzszkjqkxaj2uy
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/squads_multisig:0.1.0:bafybeic5vfmz3qrbgury55teksiu2ggtykw7iraq5p6apknxuf2ktjdug4
+- valory/squads_multisig:0.1.0:bafybeia55yraczrod5zhf2gvwichlrofhmydwzilgfzvecvw3aygs3rnpy
 protocols:
 - valory/contract_api:1.0.0:bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeie5x3dtfz3zvpeu3wq3dux75hu2emj2sw4ys4sllfjio4r7q7vssq
-- valory/registration_abci:0.1.0:bafybeid4ke654dlriezj2e2udedldgsm4rw7wjioblte3olvquhcivyr2y
-- valory/reset_pause_abci:0.1.0:bafybeifdtc52ddvjgxl7yx5fmw7ut7uzdkpjgxfczv466lcivl4jg4vj7u
-- valory/squads_transaction_settlement_abci:0.1.0:bafybeie46mqorw5yezoi7jf2uvoi6mxo77sfmwsl2jw4ighrtmieeg5vau
+- valory/abstract_round_abci:0.1.0:bafybeiao35nknbln6itb6fadk4euanzretyscdnsis4mtnmaoccgddpu2a
+- valory/registration_abci:0.1.0:bafybeide3d3i5nfrcgoq3qvrtia2rs5fvcyr5b354el4grjpgrijoovkeu
+- valory/reset_pause_abci:0.1.0:bafybeif6rdumlpc3yaxxjqjgc2hn6in2hcnh65objqxjw3zsmpuhl6sqri
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeidvvkgrixwdl7326cx6ad5jtjsgwi2kz3twrttwsikyuhpckxww7u
 behaviours:
   main:
     args: {}
