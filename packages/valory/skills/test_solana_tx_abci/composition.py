@@ -17,12 +17,15 @@
 #
 # ------------------------------------------------------------------------------
 """This module contains the composition for the test SOLANA skill."""
-from packages.valory.skills.abstract_round_abci.abci_app_chain import chain, AbciAppTransitionMapping
-
 import packages.valory.skills.registration_abci.rounds as RegistrationAbci
 import packages.valory.skills.reset_pause_abci.rounds as ResetAndPauseAbci
+import packages.valory.skills.squads_transaction_settlement_abci.rounds as TransactionSubmissionAbciApp
 import packages.valory.skills.test_solana_tx_abci.rounds as SolanaTestAbciApp
-import packages.valory.skills.solana_transaction_settlement_abci.rounds as TransactionSubmissionAbciApp
+from packages.valory.skills.abstract_round_abci.abci_app_chain import (
+    AbciAppTransitionMapping,
+    chain,
+)
+
 
 # Here we define how the transition between the FSMs should happen
 # more information here: https://docs.autonolas.network/fsm_app_introduction/#composition-of-fsm-apps

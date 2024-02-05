@@ -20,7 +20,7 @@
 """This module contains the behaviours for the 'test_solana_behaviour' skill."""
 import json
 from abc import ABC
-from typing import Generator, Set, Type, cast, Optional, Dict, Any
+from typing import Any, Dict, Generator, Optional, Set, Type, cast
 
 from packages.valory.contracts.squads_multisig.contract import SquadsMultisig
 from packages.valory.protocols.contract_api import ContractApiMessage
@@ -28,19 +28,28 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
 )
-from packages.valory.skills.registration_abci.behaviours import RegistrationStartupBehaviour, \
-    AgentRegistrationRoundBehaviour
-from packages.valory.skills.reset_pause_abci.behaviours import ResetPauseABCIConsensusBehaviour
-from packages.valory.skills.solana_transaction_settlement_abci.behaviours import \
-    SolanaTransactionSettlementRoundBehaviour
+from packages.valory.skills.registration_abci.behaviours import (
+    AgentRegistrationRoundBehaviour,
+    RegistrationStartupBehaviour,
+)
+from packages.valory.skills.reset_pause_abci.behaviours import (
+    ResetPauseABCIConsensusBehaviour,
+)
+from packages.valory.skills.squads_transaction_settlement_abci.behaviours import (
+    SolanaTransactionSettlementRoundBehaviour,
+)
 from packages.valory.skills.test_solana_tx_abci.composition import ComposedAbciApp
 from packages.valory.skills.test_solana_tx_abci.models import Params
 from packages.valory.skills.test_solana_tx_abci.payloads import SolanaTransactionPayload
-from packages.valory.skills.test_solana_tx_abci.rounds import SolanaRound, SolanaTestAbciApp
+from packages.valory.skills.test_solana_tx_abci.rounds import (
+    SolanaRound,
+    SolanaTestAbciApp,
+)
 
 
-DUMMY_ADDRESS = '0x0'
-SOLANA = 'solana'
+DUMMY_ADDRESS = "0x0"
+SOLANA = "solana"
+
 
 class SolanaTransferBehaviour(BaseBehaviour, ABC):
     """A behaviour that makes a solana transfer via the squad multisig."""
@@ -83,9 +92,7 @@ class SolanaTransferBehaviour(BaseBehaviour, ABC):
             )
             return None
 
-        data = cast(
-            Optional[str], response.state.body.get("data", None)
-        )
+        data = cast(Optional[str], response.state.body.get("data", None))
         return data
 
     def get_payload_content(self) -> Generator[None, None, Dict[str, Any]]:

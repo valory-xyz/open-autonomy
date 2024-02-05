@@ -19,7 +19,7 @@
 
 """This module contains the shared state for the Solana test application."""
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams, ApiSpecs
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
@@ -29,11 +29,13 @@ from packages.valory.skills.abstract_round_abci.models import (
 )
 from packages.valory.skills.test_solana_tx_abci.composition import ComposedAbciApp
 
+
 MARGIN = 5
 
 
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
+
 
 class RandomnessApi(ApiSpecs):
     """A model that wraps ApiSpecs for randomness api specifications."""

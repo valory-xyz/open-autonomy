@@ -19,14 +19,16 @@
 """This module contains the data classes for the Hello World ABCI application."""
 import json
 from enum import Enum
-from typing import Dict, Optional, Tuple, cast, List, Any
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
     AppState,
     BaseSynchronizedData,
-    CollectSameUntilThresholdRound, get_name, DegenerateRound,
+    CollectSameUntilThresholdRound,
+    DegenerateRound,
+    get_name,
 )
 from packages.valory.skills.test_solana_tx_abci.payloads import SolanaTransactionPayload
 
@@ -38,6 +40,7 @@ class Event(Enum):
     ROUND_TIMEOUT = "round_timeout"
     ERROR = "error"
     NO_MAJORITY = "no_majority"
+
 
 class SynchronizedData(BaseSynchronizedData):
     """
@@ -80,7 +83,7 @@ class SolanaRound(CollectSameUntilThresholdRound):
 
             return synchronized_data, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.synchronized_data.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self.synchronized_data, Event.NO_MAJORITY
 
@@ -124,7 +127,9 @@ class SolanaTestAbciApp(AbciApp[Event]):
     }
     db_pre_conditions = {SolanaRound: set()}
     db_post_conditions = {
-        FinishedWithTransactionRound: {get_name(SynchronizedData.most_voted_instruction_set)}
+        FinishedWithTransactionRound: {
+            get_name(SynchronizedData.most_voted_instruction_set)
+        }
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,

@@ -21,7 +21,7 @@
 
 from abc import ABC
 from collections import deque
-from typing import Generator, Optional, Set, Type, cast, Deque
+from typing import Deque, Generator, Optional, Set, Type, cast
 
 from packages.valory.contracts.squads_multisig.contract import (
     MultisigAccountType,
@@ -38,10 +38,10 @@ from packages.valory.skills.abstract_round_abci.common import (
     RandomnessBehaviour,
     SelectKeeperBehaviour,
 )
-from packages.valory.skills.solana_transaction_settlement_abci.models import (
+from packages.valory.skills.squads_transaction_settlement_abci.models import (
     SolanaTransactionSettlementParams,
 )
-from packages.valory.skills.solana_transaction_settlement_abci.payloads import (
+from packages.valory.skills.squads_transaction_settlement_abci.payloads import (
     ApproveTxPayload,
     CreateTxPayload,
     ExecuteTxPayload,
@@ -50,7 +50,7 @@ from packages.valory.skills.solana_transaction_settlement_abci.payloads import (
     SelectKeeperPayload,
     VerifyTxPayload,
 )
-from packages.valory.skills.solana_transaction_settlement_abci.rounds import (
+from packages.valory.skills.squads_transaction_settlement_abci.rounds import (
     ApproveTxRound,
     CreateTxRandomnessRound,
     CreateTxRound,
@@ -64,7 +64,8 @@ from packages.valory.skills.solana_transaction_settlement_abci.rounds import (
 )
 
 
-SOLANA = 'solana'
+SOLANA = "solana"
+
 
 class SolanaTransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
     """Base behaviour for the common apps' skill."""
@@ -91,7 +92,7 @@ class SolanaTransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         )
         if response.performative != ContractApiMessage.Performative.STATE:
             return None
-        return cast(int, response.state.body.pop('data'))
+        return cast(int, response.state.body.pop("data"))
 
     def get_tx_pda(self, tx_index: int) -> Generator[None, None, Optional[str]]:
         """Create a new PDA for ms transaction."""
@@ -106,7 +107,7 @@ class SolanaTransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         )
         if response.performative != ContractApiMessage.Performative.STATE:
             return None
-        return cast(str, response.state.body.pop('data'))
+        return cast(str, response.state.body.pop("data"))
 
     @staticmethod
     def serialized_keepers(keepers: Deque[str], keeper_retries: int) -> str:
@@ -127,7 +128,9 @@ class CreateTxRandomnessRoundRandomnessBehaviour(RandomnessBehaviour):
     payload_class = RandomnessPayload
 
 
-class CreateTxSelectKeeperBehaviour(SelectKeeperBehaviour, SolanaTransactionSettlementBaseBehaviour):
+class CreateTxSelectKeeperBehaviour(
+    SelectKeeperBehaviour, SolanaTransactionSettlementBaseBehaviour
+):
     """Retrieve randomness."""
 
     matching_round = CreateTxSelectKeeperRound
@@ -169,7 +172,7 @@ class CreateTxBehaviour(SolanaTransactionSettlementBaseBehaviour):
                 contract_id=str(SquadsMultisig.contract_id),
                 contract_callable="create_new_transaction_ix",
                 authority_index=SquadsMultisigAuthorityIndex.VAULT.value,
-                creator=self.context.agent_addresses['solana'],
+                creator=self.context.agent_addresses["solana"],
                 ixs=self.synchronized_data.most_voted_instruction_set,
                 tx_pda=tx_pda,
                 chain_id=SOLANA,
@@ -216,7 +219,7 @@ class ApproveTxBehaviour(SolanaTransactionSettlementBaseBehaviour):
                 contract_id=str(SquadsMultisig.contract_id),
                 contract_callable="approve_transaction_ix",
                 tx_pda=self.synchronized_data.tx_pda,
-                member=self.context.agent_addresses['solana'],
+                member=self.context.agent_addresses["solana"],
                 chain_id=SOLANA,
                 ledger_id=SOLANA,
             )
@@ -248,7 +251,9 @@ class ExecuteTxRandomnessRoundRandomnessBehaviour(RandomnessBehaviour):
     payload_class = RandomnessPayload
 
 
-class ExecuteTxSelectKeeperBehaviour(SelectKeeperBehaviour, SolanaTransactionSettlementBaseBehaviour):
+class ExecuteTxSelectKeeperBehaviour(
+    SelectKeeperBehaviour, SolanaTransactionSettlementBaseBehaviour
+):
     """Retrieve randomness."""
 
     matching_round = ExecuteTxSelectKeeperRound
@@ -284,7 +289,7 @@ class ExecuteTxBehaviour(SolanaTransactionSettlementBaseBehaviour):
                 contract_id=str(SquadsMultisig.contract_id),
                 contract_callable="execute_transaction_ix",
                 tx_pda=self.synchronized_data.tx_pda,
-                member=self.context.agent_addresses['solana'],
+                member=self.context.agent_addresses["solana"],
                 chain_id=SOLANA,
                 ledger_id=SOLANA,
             )
@@ -360,7 +365,6 @@ class VerifyTxBehaviour(SolanaTransactionSettlementBaseBehaviour):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
         self.set_done()
-
 
 
 class SolanaTransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
