@@ -189,6 +189,9 @@ def check_for_no_changes(
 if __name__ == "__main__":
     update = len(sys.argv[1:]) > 0
     package_dependencies = get_package_dependencies()
+    # TOFIX - anchorpy has a conflict with tomte[tests]
+    package_dependencies.pop("open-aea-ledger-solana")
+    package_dependencies.pop("solders")
     listed_package_dependencies_ = load_pipfile()
     warnings(listed_package_dependencies_, package_dependencies)
     update_tox_ini(listed_package_dependencies_)
