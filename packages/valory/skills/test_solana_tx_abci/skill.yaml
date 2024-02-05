@@ -15,7 +15,7 @@ fingerprint:
   handlers.py: bafybeierm5cuytzkt43yjb2x2734yccymnlcc7wa7oxvjr22pdip7holx4
   models.py: bafybeidwujslgexpkj5vat2aviamjlbpqaqq6sabdkydqpsxhj3lfgv6i4
   payloads.py: bafybeiectlv7rcyxp5wydmmp3m2icbgob7qz54nhfvg6ym6ka26ydrtmbm
-  rounds.py: bafybeia63723wbj32k3mwqn4dbiv4sg5ss35nhzos25fqzszkjqkxaj2uy
+  rounds.py: bafybeifz5z5riqss75r5nuwlxtppedb6fyebpmtj2mirde2yhy4aagmf7e
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -26,7 +26,7 @@ skills:
 - valory/abstract_round_abci:0.1.0:bafybeiao35nknbln6itb6fadk4euanzretyscdnsis4mtnmaoccgddpu2a
 - valory/registration_abci:0.1.0:bafybeide3d3i5nfrcgoq3qvrtia2rs5fvcyr5b354el4grjpgrijoovkeu
 - valory/reset_pause_abci:0.1.0:bafybeif6rdumlpc3yaxxjqjgc2hn6in2hcnh65objqxjw3zsmpuhl6sqri
-- valory/squads_transaction_settlement_abci:0.1.0:bafybeidvvkgrixwdl7326cx6ad5jtjsgwi2kz3twrttwsikyuhpckxww7u
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeiaahohl2bbu6cdgbjsgjeiqcou7c7qptmcds7bhk5rfwphewo7uyu
 behaviours:
   main:
     args: {}

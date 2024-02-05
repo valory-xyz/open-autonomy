@@ -34,8 +34,8 @@ skills:
 - valory/abstract_round_abci:0.1.0:bafybeiao35nknbln6itb6fadk4euanzretyscdnsis4mtnmaoccgddpu2a
 - valory/registration_abci:0.1.0:bafybeide3d3i5nfrcgoq3qvrtia2rs5fvcyr5b354el4grjpgrijoovkeu
 - valory/reset_pause_abci:0.1.0:bafybeif6rdumlpc3yaxxjqjgc2hn6in2hcnh65objqxjw3zsmpuhl6sqri
-- valory/squads_transaction_settlement_abci:0.1.0:bafybeidvvkgrixwdl7326cx6ad5jtjsgwi2kz3twrttwsikyuhpckxww7u
-- valory/test_solana_tx_abci:0.1.0:bafybeignl6duksyw2vu62ouuucgpmhiep2zwvhdnr7mmz27vkztlcnd2pi
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeiaahohl2bbu6cdgbjsgjeiqcou7c7qptmcds7bhk5rfwphewo7uyu
+- valory/test_solana_tx_abci:0.1.0:bafybeianzmywqyw3eiy6r7kqw4nqiq4efyflhfm5jiognvwnfsv7v3ez3a
 default_ledger: solana
 required_ledgers:
 - solana

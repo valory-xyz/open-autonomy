@@ -255,7 +255,7 @@ class SolanaTransactionSubmissionAbciApp(AbciApp[Event]):
             - round timeout: 0.
         1. CreateTxSelectKeeperRound
             - done: 2.
-            - no majority: 8.
+            - no majority: 0.
             - round timeout: 1.
         2. CreateTxRound
             - done: 3.
@@ -270,7 +270,7 @@ class SolanaTransactionSubmissionAbciApp(AbciApp[Event]):
             - round timeout: 4.
         5. ExecuteTxSelectKeeperRound
             - done: 6.
-            - no majority: 8.
+            - no majority: 0.
             - round timeout: 5.
         6. ExecuteTxRound
             - done: 7.
@@ -279,12 +279,8 @@ class SolanaTransactionSubmissionAbciApp(AbciApp[Event]):
             - done: 8.
             - no majority: 7.
             - round timeout: 7.
-        8. ResetRound
-            - done: 0.
-            - no majority: 10.
-            - round timeout: 10.
-        9. FinishedTransactionSubmissionRound
-        10. FailedRound
+        8. FinishedTransactionSubmissionRound
+        9. FailedRound
 
     Final states: {FailedRound, FinishedTransactionSubmissionRound}
 

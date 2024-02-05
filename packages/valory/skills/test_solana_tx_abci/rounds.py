@@ -97,10 +97,13 @@ class SolanaTestAbciApp(AbciApp[Event]):
 
     Transition states:
         0. SolanaRound
-            - done: 0.
+            - done: 1.
+            - no majority: 0.
+            - error: 0.
             - round timeout: 0.
+        1. FinishedWithTransactionRound
 
-    Final states: {}
+    Final states: {FinishedWithTransactionRound}
 
     Timeouts:
         round timeout: 30.0
