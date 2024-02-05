@@ -19,6 +19,7 @@
 
 """This module contains the scaffold contract definition."""
 
+import json
 from collections import OrderedDict
 from enum import Enum, IntEnum
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -708,4 +709,4 @@ class SquadsMultisig(Contract):
                 lamports=lamports,
             )
         ).to_json()
-        return dict(data=transfer_tx)
+        return dict(data=json.loads(transfer_tx))

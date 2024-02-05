@@ -63,17 +63,11 @@ class SolanaRound(CollectSameUntilThresholdRound):
     payload_class = SolanaTransactionPayload
     synchronized_data_class = BaseSynchronizedData
 
-    @staticmethod
-    def _decode_instructions(instructions: str) -> List[Any]:
-        """Decode the instructions."""
-        instructions = json.loads(instructions)
-        return [json.loads(instruction) for instruction in instructions]
-
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """End block."""
         if self.threshold_reached:  # pragma: no cover
             payload = cast(str, self.most_voted_payload)
-            instructions = self._decode_instructions(payload)
+            instructions = json.loads(payload)
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
                 **{

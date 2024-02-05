@@ -68,7 +68,7 @@ class SolanaTransferBehaviour(BaseBehaviour, ABC):
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
-    def _get_transfer_tx(self) -> Generator[None, None, Optional[str]]:
+    def _get_transfer_tx(self) -> Generator[None, None, Optional[Dict]]:
         """Get the transfer tx."""
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
@@ -89,7 +89,7 @@ class SolanaTransferBehaviour(BaseBehaviour, ABC):
             )
             return None
 
-        data = cast(Optional[str], response.state.body.get("data", None))
+        data = cast(Optional[Dict], response.state.body.get("data", None))
         return data
 
     def get_payload_content(self) -> Generator[None, None, Dict[str, Any]]:
