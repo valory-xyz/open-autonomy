@@ -41,10 +41,7 @@ from packages.valory.skills.squads_transaction_settlement_abci.behaviours import
 from packages.valory.skills.test_solana_tx_abci.composition import ComposedAbciApp
 from packages.valory.skills.test_solana_tx_abci.models import Params
 from packages.valory.skills.test_solana_tx_abci.payloads import SolanaTransactionPayload
-from packages.valory.skills.test_solana_tx_abci.rounds import (
-    SolanaRound,
-    SolanaTestAbciApp,
-)
+from packages.valory.skills.test_solana_tx_abci.rounds import SolanaRound
 
 
 DUMMY_ADDRESS = "0x0"
@@ -114,5 +111,5 @@ class TestAbciConsensusBehaviour(AbstractRoundBehaviour):
         *AgentRegistrationRoundBehaviour.behaviours,
         *ResetPauseABCIConsensusBehaviour.behaviours,
         *SolanaTransactionSettlementRoundBehaviour.behaviours,
-        SolanaTransferBehaviour,
+        SolanaTransferBehaviour,  # type: ignore
     }

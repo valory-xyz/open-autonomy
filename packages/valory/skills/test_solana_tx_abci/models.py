@@ -19,6 +19,8 @@
 
 """This module contains the shared state for the Solana test application."""
 
+from typing import Dict
+
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
@@ -50,7 +52,7 @@ class SharedState(BaseSharedState):
 class Params(BaseParams):
     """Keep the current parameters of the skill."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Dict) -> None:
         """Initialize the parameters."""
         self.squad_vault = self._ensure("squad_vault", kwargs, str)
         self.transfer_to_pubkey = self._ensure("transfer_to_pubkey", kwargs, str)

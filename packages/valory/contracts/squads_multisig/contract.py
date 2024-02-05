@@ -27,7 +27,7 @@ from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
-from solders.system_program import transfer
+from solders.system_program import transfer  # pylint: disable=import-error
 
 
 Pubkey = Any  # defined in solders.pubkey
@@ -299,7 +299,7 @@ class SquadsMultisig(Contract):
             ledger_api=ledger_api,
             contract_address=contract_address,
             program=program,
-        )
+        ).pop("data")
         return dict(data=index)
 
     @classmethod
@@ -692,7 +692,7 @@ class SquadsMultisig(Contract):
         return {"recent_blockhash": ledger_api.latest_hash, "ixs": [ix]}
 
     @classmethod
-    def get_transfer_tx(
+    def get_transfer_tx(  # pylint: disable=unused-argument
         cls,
         ledger_api: LedgerApi,
         contract_address: str,

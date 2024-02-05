@@ -9,7 +9,7 @@ fingerprint:
   README.md: bafybeibvqzwqtapjpqyejydlhdlodcaon6xzgz6hsrttdueox3jcqys5bm
   __init__.py: bafybeieeus2bbbexmthy4pnsdtgen4flxzk3ao5ekjbocvmrkhhszffbgu
   build/SquadsMultisig.json: bafybeiey7jbufdyfroy3vahjrfiifsvwf7zaq5yjjb56zokhbg5t76hjcm
-  contract.py: bafybeiczfvtzjx7jd7ersqibm7r76vadzpnr666tybkotb7tskp2n4lrea
+  contract.py: bafybeiaqgpkw3vu4fyb5gxjufobphssb3ofe3aa7y2mdkqpa5pbaksceqy
 fingerprint_ignore_patterns: []
 class_name: SquadsMultisig
 contract_interface_paths:

@@ -19,9 +19,6 @@
 
 """This module contains the transaction payloads for the test_abci app."""
 from dataclasses import dataclass
-from typing import List
-
-from frozenlist import FrozenList
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 

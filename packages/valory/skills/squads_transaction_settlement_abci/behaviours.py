@@ -46,7 +46,6 @@ from packages.valory.skills.squads_transaction_settlement_abci.payloads import (
     CreateTxPayload,
     ExecuteTxPayload,
     RandomnessPayload,
-    ResetPayload,
     SelectKeeperPayload,
     VerifyTxPayload,
 )
@@ -128,7 +127,7 @@ class CreateTxRandomnessRoundRandomnessBehaviour(RandomnessBehaviour):
     payload_class = RandomnessPayload
 
 
-class CreateTxSelectKeeperBehaviour(
+class CreateTxSelectKeeperBehaviour(  # pylint: disable=too-many-ancestors
     SelectKeeperBehaviour, SolanaTransactionSettlementBaseBehaviour
 ):
     """Retrieve randomness."""
@@ -251,7 +250,7 @@ class ExecuteTxRandomnessRoundRandomnessBehaviour(RandomnessBehaviour):
     payload_class = RandomnessPayload
 
 
-class ExecuteTxSelectKeeperBehaviour(
+class ExecuteTxSelectKeeperBehaviour(  # pylint: disable=too-many-ancestors
     SelectKeeperBehaviour, SolanaTransactionSettlementBaseBehaviour
 ):
     """Retrieve randomness."""

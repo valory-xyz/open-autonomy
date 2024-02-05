@@ -8,16 +8,16 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeiew6ycbpyoxqwe4ikxospcksgsg2rpxf2wzob44g5w3lrud7ljgpq
   __init__.py: bafybeienaiq66xnoqgkkztz7ujxhttxda62fr6ymegl7gppqelouw6kzde
-  behaviours.py: bafybeigl7m6icetmpp3675mf22hdbec26sk43f2wjmvuizouxokqyxa7la
+  behaviours.py: bafybeiet2hilgdrqzcxxddg2rdlrkdg3vh5krs4esec5lyqtlxldudo2iq
   dialogues.py: bafybeigabhaykiyzbluu4mk6bbrmqhzld2kyp32pg24bvjmzrrb74einwm
   handlers.py: bafybeifxhxial4u2ukibnkejxmfcf2upkr7ox6dsipciywjqw5g7v6xfyu
   models.py: bafybeihrkts27llazh3rwod7nsulwuit27tj3d6vjvjkozxhy7a7l6yd3y
   payloads.py: bafybeihjcwrk6uyeh7kt7y6a2golezpazn7jnynbezurc3zuphfct7vjdi
-  rounds.py: bafybeidaxabck7mxok3lo7bofqbkqnvvdfajlep7r2fo64xweoqijgxlem
+  rounds.py: bafybeia5bqakfducmdbhrqzbt2yqkiuabbvce5kxwmq4cm4w6x5zejtq5y
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/squads_multisig:0.1.0:bafybeiakkqetcc37wh536ax2wa4sp24txei36zerobjt4pdztdrdkjhpya
+- valory/squads_multisig:0.1.0:bafybeic5vfmz3qrbgury55teksiu2ggtykw7iraq5p6apknxuf2ktjdug4
 protocols:
 - valory/contract_api:1.0.0:bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i
 skills:
