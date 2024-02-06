@@ -361,6 +361,7 @@ class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
             tm_manager.try_fix()
             return
 
+        tm_manager.informed = False
         self._process_current_round()
         if self.current_behaviour is None:
             return

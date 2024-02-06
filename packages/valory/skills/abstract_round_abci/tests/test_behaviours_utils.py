@@ -2448,6 +2448,61 @@ class TestTmManager:
                 next(gen)
 
             set_block_stall_deadline_mock.assert_not_called()
+            assert self.tm_manager.informed is True
+
+    @pytest.mark.parametrize(
+        "n_repetitions",
+        (
+            1,
+            2,
+            1000,
+        ),
+    )
+    def test_handle_unhealthy_tm_logging(self, n_repetitions: int) -> None:
+        """Verify if unintended logging repetition occurs during the execution of `_handle_unhealthy_tm`."""
+
+        self.tm_manager.gentle_reset_attempted = False
+        self.tm_manager.context.state.round_sequence.height = 10
+
+        def mock_sleep(_seconds: int) -> Generator:
+            """A method that mocks sleep."""
+            return
+            yield
+
+        def dummy_do_request(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_do_request` method."""
+            yield
+            return mock.MagicMock()
+
+        def dummy_get_status(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_get_status` method."""
+            yield
+            return mock.MagicMock(
+                body=json.dumps(
+                    {"result": {"sync_info": {"latest_block_height": 0}}}
+                ).encode()
+            )
+
+        with mock.patch.object(
+            self.tm_manager,
+            "reset_tendermint_with_wait",
+            side_effect=yield_and_return_bool_wrapper(True),
+        ), mock.patch.object(
+            self.tm_manager,
+            "num_active_peers",
+            side_effect=yield_and_return_int_wrapper(4),
+        ), mock.patch.object(
+            self.tm_manager, "sleep", side_effect=mock_sleep
+        ), mock.patch.object(
+            BaseBehaviour, "_do_request", new_callable=lambda *_: dummy_do_request
+        ), mock.patch.object(
+            BaseBehaviour, "_get_status", new_callable=lambda *_: dummy_get_status
+        ):
+            assert self.tm_manager.informed is False
+            for _ in range(n_repetitions):
+                gen = self.tm_manager._handle_unhealthy_tm()
+                next(gen)
+                assert self.tm_manager.informed is True
 
     @pytest.mark.parametrize(
         "expected_reset_params",

@@ -2130,6 +2130,12 @@ class TmManager(BaseBehaviour):
     # redesigned!
     matching_round = Type[AbstractRound]
 
+    def __init__(self, **kwargs: Any):
+        """Initialize the `TmManager`."""
+        super().__init__(**kwargs)
+        # whether the initiation of a tm fix has been logged
+        self.informed: bool = False
+
     def async_act(self) -> Generator:
         """The behaviour act."""
         self.context.logger.error(
@@ -2138,6 +2144,7 @@ class TmManager(BaseBehaviour):
             f"Exiting the agent."
         )
         error_code = 1
+        yield
         sys.exit(error_code)
 
     @property
@@ -2167,10 +2174,12 @@ class TmManager(BaseBehaviour):
 
     def _handle_unhealthy_tm(self) -> Generator:
         """This method handles the case when the tendermint node is unhealthy."""
-        self.context.logger.warning(
-            "The local deadline for the next `begin_block` request from the Tendermint node has expired! "
-            "Trying to reset local Tendermint node as there could be something wrong with the communication."
-        )
+        if not self.informed:
+            self.context.logger.warning(
+                "The local deadline for the next `begin_block` request from the Tendermint node has expired! "
+                "Trying to reset local Tendermint node as there could be something wrong with the communication."
+            )
+            self.informed = True
 
         if not self.gentle_reset_attempted:
             self.gentle_reset_attempted = True
