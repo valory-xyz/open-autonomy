@@ -46,8 +46,8 @@
         "contract/valory/service_registry_token_utility/0.1.0": "bafybeifdia2y5546tvk6xzxeaqzf2n5n7dutj2hdzbgenxohaqhjtnjqm4",
         "skill/valory/squads_transaction_settlement_abci/0.1.0": "bafybeiaahohl2bbu6cdgbjsgjeiqcou7c7qptmcds7bhk5rfwphewo7uyu",
         "contract/valory/squads_multisig/0.1.0": "bafybeia55yraczrod5zhf2gvwichlrofhmydwzilgfzvecvw3aygs3rnpy",
-        "skill/valory/test_solana_tx_abci/0.1.0": "bafybeianzmywqyw3eiy6r7kqw4nqiq4efyflhfm5jiognvwnfsv7v3ez3a",
-        "agent/valory/solana_transfer_agent/0.1.0": "bafybeihpsa7hcbi6gx6yplzhuqkx4ztgfr7bodiekh4tuvhgcfbaazmxdy"
+        "skill/valory/test_solana_tx_abci/0.1.0": "bafybeihm2jpldcb7efw544p2pwzy2akcsubg3rxudbjirqnpi3fpip6vgy",
+        "agent/valory/solana_transfer_agent/0.1.0": "bafybeigjhh3qvxzeaxs534g3nbjucivn4ex6qxmz7ajjgotwa4oha46ure"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeihv62fim3wl2bayavfcg3u5e5cxu3b7brtu4cn5xoxd6lqwachasi",

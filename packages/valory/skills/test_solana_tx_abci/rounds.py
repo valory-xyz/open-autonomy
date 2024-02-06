@@ -99,7 +99,6 @@ class SolanaTestAbciApp(AbciApp[Event]):
         0. SolanaRound
             - done: 1.
             - no majority: 0.
-            - error: 0.
             - round timeout: 0.
         1. FinishedWithTransactionRound
 
@@ -107,6 +106,7 @@ class SolanaTestAbciApp(AbciApp[Event]):
 
     Timeouts:
         round timeout: 30.0
+        error: 30.0
     """
 
     initial_round_cls: AppState = SolanaRound
@@ -114,7 +114,6 @@ class SolanaTestAbciApp(AbciApp[Event]):
         SolanaRound: {
             Event.DONE: FinishedWithTransactionRound,
             Event.NO_MAJORITY: SolanaRound,
-            Event.ERROR: SolanaRound,
             Event.ROUND_TIMEOUT: SolanaRound,
         },
         FinishedWithTransactionRound: {},
@@ -130,4 +129,5 @@ class SolanaTestAbciApp(AbciApp[Event]):
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
+        Event.ERROR: 30.0,
     }
