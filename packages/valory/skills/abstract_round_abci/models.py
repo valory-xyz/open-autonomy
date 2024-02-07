@@ -504,7 +504,7 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
                 AbciAppDB(
                     setup_data=AbciAppDB.data_to_lists(setup_params),
                     cross_period_persisted_keys=self.abci_app_cls.cross_period_persisted_keys,
-                    logger=self._round_sequence.abci_app.logger,
+                    logger=self.context.logger,
                 )
             ),
             self.context.logger,
