@@ -2356,6 +2356,7 @@ class TestTmManager:
 
     def test_async_act(self) -> None:
         """Test the async_act method of the TmManager."""
+        self.tm_manager.act_wrapper()
         with pytest.raises(
             SystemExit,
         ):
