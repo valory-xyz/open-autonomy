@@ -1969,7 +1969,7 @@ class TestBaseBehaviour:
     def test_request_recovery_params(self, expected_result: bool) -> None:
         """Test `request_recovery_params`."""
         acn_result = "not None ACN result" if expected_result else None
-        request_recovery_params = self.behaviour.request_recovery_params()
+        request_recovery_params = self.behaviour.request_recovery_params(False)
 
         with mock.patch.object(
             self.behaviour,

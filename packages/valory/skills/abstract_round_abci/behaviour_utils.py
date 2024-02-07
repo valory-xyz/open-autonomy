@@ -1810,26 +1810,29 @@ class BaseBehaviour(
 
         return result
 
-    def request_recovery_params(self) -> Generator[None, None, bool]:
+    def request_recovery_params(self, should_log: bool) -> Generator[None, None, bool]:
         """Request the Tendermint recovery parameters from the other agents via the ACN."""
 
-        self.context.logger.info(
-            "Requesting the Tendermint recovery parameters from the other agents via the ACN..."
-        )
+        if should_log:
+            self.context.logger.info(
+                "Requesting the Tendermint recovery parameters from the other agents via the ACN..."
+            )
 
         performative = TendermintMessage.Performative.GET_RECOVERY_PARAMS
         acn_result = yield from self._perform_acn_request(performative)  # type: ignore
 
         if acn_result is None:
-            self.context.logger.warning(
-                "No majority has been reached for the Tendermint recovery parameters request via the ACN."
-            )
+            if should_log:
+                self.context.logger.warning(
+                    "No majority has been reached for the Tendermint recovery parameters request via the ACN."
+                )
             return False
 
         self.shared_state.tm_recovery_params = acn_result
-        self.context.logger.info(
-            f"Updated the Tendermint recovery parameters from the other agents via the ACN: {acn_result}"
-        )
+        if should_log:
+            self.context.logger.info(
+                f"Updated the Tendermint recovery parameters from the other agents via the ACN: {acn_result}"
+            )
         return True
 
     @property
@@ -2135,6 +2138,7 @@ class TmManager(BaseBehaviour):
         super().__init__(**kwargs)
         # whether the initiation of a tm fix has been logged
         self.informed: bool = False
+        self.acn_communication_attempted: bool = False
 
     def async_act(self) -> Generator:
         """The behaviour act."""
@@ -2190,11 +2194,15 @@ class TmManager(BaseBehaviour):
         # since we have reached this point, that means that the cause of blocks not being received
         # cannot be fixed with a simple gentle reset,
         # therefore, we request the recovery parameters via the ACN, and if we succeed, we use them to recover
-        acn_communication_success = yield from self.request_recovery_params()
+        acn_communication_success = yield from self.request_recovery_params(
+            should_log=not self.acn_communication_attempted
+        )
         if not acn_communication_success:
-            self.context.logger.error(
-                "Failed to get the recovery parameters via the ACN. Cannot reset Tendermint."
-            )
+            if not self.acn_communication_attempted:
+                self.context.logger.error(
+                    "Failed to get the recovery parameters via the ACN. Cannot reset Tendermint."
+                )
+            self.acn_communication_attempted = True
             return
 
         recovery_params = self.shared_state.tm_recovery_params
