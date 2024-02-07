@@ -10,8 +10,8 @@ fingerprint:
   __init__.py: bafybeibc6jsxgjjteyocsu45hu754dc2aqf5dc5bj7qyogx64ogg7qz7ni
   abci_app_chain.py: bafybeibhzrixbp5x26wqhb6ogtr3af5lc4tax7lcsvk4v5rvg4psrq5yzi
   base.py: bafybeiezndifttr6bbvlyamuq7qa4nphzh66u5c3k2vlyofudqfr64ivcm
-  behaviour_utils.py: bafybeihbslzz755i3cjmep77gh4jwlsbd4uaojuhnarhjf224hrjig33me
-  behaviours.py: bafybeibdcbnxkowm2gxoxeu4vait572pebafdj32mrsyea5lhjk5wf6adi
+  behaviour_utils.py: bafybeictbey2sttz3lid6iziy3znuajoalt2a2foibqkt3zsugvullba2m
+  behaviours.py: bafybeifxu6ylzo5yby22ociwdefrum5ons3x74yhpkmiywcm3yhu4y3jni
   common.py: bafybeieeukjuuonbdpr3632emqngxfjtxw5x4bmnoywnhtfxuehplcv7ry
   dialogues.py: bafybeid5sgrfa7ghnnjpssltgtey5gzt5kc2jlaitffaukvhhdbhrzcjti
   handlers.py: bafybeidgby4h72qgcp3civ3c55oz3k7s4gdbkcotwhqjsbft6ylbaenjxy
@@ -20,7 +20,7 @@ fingerprint:
   io_/load.py: bafybeigkywwlsheqvd4gpyfwaxqzkkb2ih2poyicqk7e7n2mrsghxzyns4
   io_/paths.py: bafybeicfno2l4vwtmjcm3rzpp6tqi3xlkof47pypf5teecad22d44u2ple
   io_/store.py: bafybeig24lslvhf7amim55ig5zzre4z45pcx3r2ozlagg3mtbr6rry2wpu
-  models.py: bafybeidv3xn2rc2qgrbdcietyg43rhzki742jtgq2al2qaluboxa23a6xi
+  models.py: bafybeibxtoiwawc26544fk4l6vbx45uriw6u7zflghazctno4yof63ogse
   test_tools/__init__.py: bafybeibayeahoo73eztt2chpwi45taj2uv3dxbpyn47ksqfjoepjyaoca4
   test_tools/abci_app.py: bafybeigmrjzxfoc63xgecyngdecz4msvze4aw2iejcjewatjefjbvdlmce
   test_tools/base.py: bafybeibef4lclyecne5qj4zaxnaxaqzwpxjaitqqmddgsiezduhb7pfxly
@@ -41,7 +41,7 @@ fingerprint:
   tests/test_base.py: bafybeib6ijwodhq4ztk5nijgpjnr2es4likyukxgjgb4hyaeka5sbmzfbm
   tests/test_base_rounds.py: bafybeiadkpwuhz6y5k5ffvoqvyi6nqetf5ov5bmodejge7yvscm6yqzpse
   tests/test_behaviours.py: bafybeidcuzy4c3rp6ir7yftegafe4qd54j6qkqymbrb4ixqrld3eas3poe
-  tests/test_behaviours_utils.py: bafybeic6s757px3fqd32pyxqshb22ixef5x3daoakzohiax3mxxhahoqw4
+  tests/test_behaviours_utils.py: bafybeick3ctmhgjfscen53br4ny3bi76ng7nslnhsuuyjrrtgbi4grlpqm
   tests/test_common.py: bafybeiekicwjh3vu5kqppictya2bmqm3p5dcauj7cvsiunvhhultpzmyla
   tests/test_dialogues.py: bafybeigpfrslqaz2yullyehia5bsl7cmy2qqxtz627ig7rbrypw5xfzeum
   tests/test_handlers.py: bafybeih64lmsukci3oc5mwi636gntyx243xnbzwx64dwjxittch77qyqsu

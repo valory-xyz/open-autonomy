@@ -873,7 +873,7 @@ the contract api response
 #### request`_`recovery`_`params
 
 ```python
-def request_recovery_params() -> Generator[None, None, bool]
+def request_recovery_params(should_log: bool) -> Generator[None, None, bool]
 ```
 
 Request the Tendermint recovery parameters from the other agents via the ACN.
