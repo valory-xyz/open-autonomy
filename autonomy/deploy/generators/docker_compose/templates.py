@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -96,9 +96,9 @@ TENDERMINT_NODE_TEMPLATE: str = """
 
 ABCI_NODE_TEMPLATE: str = """
   {container_name}:
-    mem_limit: 1024m
-    mem_reservation: 256M
-    cpus: 1
+    mem_reservation: {agent_memory_request}M
+    mem_limit: {agent_memory_limit}M
+    cpus: {agent_cpu_limit}
     container_name: {container_name}
     image: {runtime_image}
     environment:

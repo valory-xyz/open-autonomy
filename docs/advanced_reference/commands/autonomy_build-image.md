@@ -95,7 +95,7 @@ autonomy build-image [OPTIONS] [AGENT_PUBLIC_ID]
 * Include extra python packages:
 
     ```bash
-    autonomy build-image ... -e open-aea-ledger-flashbots==1.44.0
+    autonomy build-image ... -e open-aea-ledger-flashbots==1.46.0
     ```
 
     This will tag the image as `<author>/oar-<agent_package>:<version>`.

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -47,7 +47,13 @@ from autonomy.cli.utils.click_utils import (
     image_author_option,
 )
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_KEYS_FILE
-from autonomy.deploy.base import NotValidKeysFile
+from autonomy.deploy.base import (
+    DEFAULT_AGENT_CPU_LIMIT,
+    DEFAULT_AGENT_CPU_REQUEST,
+    DEFAULT_AGENT_MEMORY_LIMIT,
+    DEFAULT_AGENT_MEMORY_REQUEST,
+    NotValidKeysFile,
+)
 from autonomy.deploy.constants import INFO, LOGGING_LEVELS
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
@@ -162,6 +168,30 @@ def deploy_group(
     help="Use local tendermint chain setup.",
 )
 @click.option("--image-version", type=str, help="Define runtime image version.")
+@click.option(
+    "--agent-cpu-request",
+    type=float,
+    help="Set agent CPU usage request.",
+    default=DEFAULT_AGENT_CPU_REQUEST,
+)
+@click.option(
+    "--agent-memory-request",
+    type=int,
+    help="Set agent memory usage request.",
+    default=DEFAULT_AGENT_MEMORY_REQUEST,
+)
+@click.option(
+    "--agent-cpu-limit",
+    type=float,
+    help="Set agent CPU usage limit.",
+    default=DEFAULT_AGENT_CPU_LIMIT,
+)
+@click.option(
+    "--agent-memory-limit",
+    type=int,
+    help="Set agent memory usage limit.",
+    default=DEFAULT_AGENT_MEMORY_LIMIT,
+)
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @image_author_option
@@ -185,6 +215,10 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     use_acn: bool = False,
     use_tm_testnet_setup: bool = False,
     image_author: Optional[str] = None,
+    agent_cpu_limit: Optional[float] = None,
+    agent_memory_limit: Optional[int] = None,
+    agent_cpu_request: Optional[float] = None,
+    agent_memory_request: Optional[int] = None,
 ) -> None:
     """Build deployment setup for n agents."""
     if password is not None:  # pragma: nocover
@@ -237,6 +271,15 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             use_acn=use_acn,
             use_tm_testnet_setup=use_tm_testnet_setup,
             image_author=image_author,
+            resources={
+                "agent": {
+                    "limit": {"cpu": agent_cpu_limit, "memory": agent_memory_limit},
+                    "requested": {
+                        "cpu": agent_cpu_request,
+                        "memory": agent_memory_request,
+                    },
+                }
+            },
         )
     except (NotValidKeysFile, FileNotFoundError, FileExistsError) as e:
         shutil.rmtree(build_dir)
@@ -330,6 +373,30 @@ def stop(build_dir: Path) -> None:
     default=False,
     help="Run service in the background.",
 )
+@click.option(
+    "--agent-cpu-request",
+    type=float,
+    help="Set agent CPU usage request.",
+    default=DEFAULT_AGENT_CPU_REQUEST,
+)
+@click.option(
+    "--agent-memory-request",
+    type=int,
+    help="Set agent memory usage request.",
+    default=DEFAULT_AGENT_MEMORY_REQUEST,
+)
+@click.option(
+    "--agent-cpu-limit",
+    type=float,
+    help="Set agent CPU usage limit.",
+    default=DEFAULT_AGENT_CPU_LIMIT,
+)
+@click.option(
+    "--agent-memory-limit",
+    type=int,
+    help="Set agent memory usage limit.",
+    default=DEFAULT_AGENT_MEMORY_LIMIT,
+)
 @chain_selection_flag(help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 @password_option(confirmation_prompt=True)
@@ -345,6 +412,10 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     detach: bool,
     aev: bool = False,
     password: Optional[str] = None,
+    agent_cpu_limit: Optional[float] = None,
+    agent_memory_limit: Optional[int] = None,
+    agent_cpu_request: Optional[float] = None,
+    agent_memory_request: Optional[int] = None,
 ) -> None:
     """Run service deployment."""
     if password is not None:  # pragma: nocover
@@ -369,4 +440,13 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
             aev=aev,
             no_deploy=no_deploy,
             detach=detach,
+            resources={
+                "agent": {
+                    "limit": {"cpu": agent_cpu_limit, "memory": agent_memory_limit},
+                    "requested": {
+                        "cpu": agent_cpu_request,
+                        "memory": agent_memory_request,
+                    },
+                }
+            },
         )

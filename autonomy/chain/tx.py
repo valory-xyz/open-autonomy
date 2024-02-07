@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -47,6 +47,9 @@ ERRORS_TO_RETRY = (
     "INTERNAL_ERROR: nonce too low",
     "Got empty transaction",
     "AlreadyKnown",
+    "ALREADY_EXISTS",
+    "already known",
+    "ReplacementNotAllowed",
 )
 
 
@@ -62,7 +65,7 @@ def should_retry(error: str) -> bool:
 
 def should_reprice(error: str) -> bool:
     """Check an error message to check if we should reprice the transaction"""
-    return "FeeTooLow" in error
+    return "FeeTooLow" in error or "ReplacementNotAllowed" in error
 
 
 class TxSettler:
@@ -104,8 +107,14 @@ class TxSettler:
             **kwargs,
         )
 
-    def _repice(self, tx_dict: Dict) -> Dict:
+    def _repice(self, tx_dict: Dict) -> Optional[Dict]:
         """Reprice transaction."""
+        if "maxFeePerGas" not in tx_dict or "maxPriorityFeePerGas" not in tx_dict:
+            # This means something went wrong when building the transaction
+            # returning a None value to the main loop will tell the main loop
+            # to rebuild the transaction
+            return None
+
         old_price = {
             "maxFeePerGas": tx_dict[  # pylint: disable=unsubscriptable-object
                 "maxFeePerGas"

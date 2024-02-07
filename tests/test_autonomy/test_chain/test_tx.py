@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -93,6 +93,46 @@ def test_repricing(capsys: Any) -> None:
 
         def __call__(self, *args: Any, **kwargs: Any) -> Any:
             return self.tx_dict
+
+    def _raise_fee_too_low(tx_signed: Any, **kwargs: Any) -> None:
+        if tx_signed["maxFeePerGas"] == 110:
+            return
+        raise Exception("FeeTooLow")
+
+    def _reprice(old_price: Any, **kwargs: Any) -> Any:
+        return {"maxFeePerGas": 110, "maxPriorityFeePerGas": 110}
+
+    settler = TxSettler(
+        ledger_api=mock.Mock(
+            send_signed_transaction=_raise_fee_too_low,
+            try_get_gas_pricing=_reprice,
+        ),
+        crypto=mock.Mock(
+            sign_transaction=lambda transaction: transaction,
+        ),
+        chain_type=ChainType.LOCAL,
+    )
+    settler.transact(_repricable_method(), contract="service_registry", kwargs={})  # type: ignore
+    captured = capsys.readouterr()
+    assert "Repricing the transaction..." in captured.out
+
+
+def test_repricing_bad_tx(capsys: Any) -> None:
+    """Test retriable exception."""
+
+    class _repricable_method:
+        retries = 0
+
+        def __call__(self, *args: Any, **kwargs: Any) -> Any:
+            if self.retries == 0:
+                self.retries += 1
+                return {
+                    "maxFeePerGas": 100,
+                }
+            return {
+                "maxFeePerGas": 100,
+                "maxPriorityFeePerGas": 100,
+            }
 
     def _raise_fee_too_low(tx_signed: Any, **kwargs: Any) -> None:
         if tx_signed["maxFeePerGas"] == 110:

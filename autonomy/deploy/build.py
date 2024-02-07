@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 from pathlib import Path
 from typing import Dict, List, Optional, Type
 
-from autonomy.deploy.base import BaseDeploymentGenerator, ServiceBuilder
+from autonomy.deploy.base import BaseDeploymentGenerator, Resources, ServiceBuilder
 from autonomy.deploy.constants import DEPLOYMENT_REPORT, INFO
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
@@ -52,6 +52,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     use_acn: bool = False,
     use_tm_testnet_setup: bool = False,
     image_author: Optional[str] = None,
+    resources: Optional[Resources] = None,
 ) -> str:
     """Generate the deployment for the service."""
 
@@ -81,6 +82,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         open_autonomy_dir=open_autonomy_dir,
         use_tm_testnet_setup=use_tm_testnet_setup,
         image_author=image_author,
+        resources=resources,
     )
 
     (

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 """Mint command group definitions."""
 
 from pathlib import Path
-from typing import Optional, Tuple, Union, cast
+from typing import Optional, Union, cast
 
 import click
 from aea.cli.utils.context import Context
@@ -45,13 +45,6 @@ password_decorator = click.option(
     "--password",
     type=str,
     help="Password for key pair",
-)
-dependencies_decorator = click.option(
-    "-d",
-    "--dependencies",
-    type=str,
-    multiple=True,
-    help="Dependencies for the package",
 )
 nft_decorator = click.option(
     "--nft",
@@ -114,21 +107,9 @@ dry_run_flag = click.option(
 @retries_flag
 @sleep_flag
 @dry_run_flag
-@click.option(
-    "--skip-hash-check",
-    is_flag=True,
-    help="Skip hash check when verifying dependencies on chain",
-)
-@click.option(
-    "--skip-dependencies-check",
-    is_flag=True,
-    help="Skip dependencies check.",
-)
-def mint(  # pylint: disable=too-many-arguments
+def mint(
     ctx: Context,
     chain_type: str,
-    skip_hash_check: bool,
-    skip_dependencies_check: bool,
     timeout: float,
     retries: int,
     sleep: float,
@@ -137,8 +118,6 @@ def mint(  # pylint: disable=too-many-arguments
     """Mint component on-chain."""
 
     ctx.config["chain_type"] = ChainType(chain_type)
-    ctx.config["skip_hash_check"] = skip_hash_check
-    ctx.config["skip_dependencies_check"] = skip_dependencies_check
     ctx.config["timeout"] = timeout
     ctx.config["retries"] = retries
     ctx.config["sleep"] = sleep
@@ -150,7 +129,6 @@ def mint(  # pylint: disable=too-many-arguments
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
 @update_flag
@@ -160,7 +138,6 @@ def protocol(  # pylint: disable=too-many-arguments
     package_path: Path,
     key: Path,
     password: Optional[str],
-    dependencies: Tuple[str],
     nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
     update: Optional[int],
@@ -185,11 +162,7 @@ def protocol(  # pylint: disable=too-many-arguments
         )
         .load_metadata()
         .verify_nft(nft=nft)
-        .verify_component_dependencies(
-            dependencies=dependencies,
-            skip_hash_check=ctx.config.get("skip_hash_check", False),
-            skip_dependencies_check=ctx.config.get("skip_dependencies_check", False),
-        )
+        .fetch_component_dependencies()
         .publish_metadata()
     )
     if update is not None:
@@ -202,7 +175,6 @@ def protocol(  # pylint: disable=too-many-arguments
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
 @update_flag
@@ -212,7 +184,6 @@ def contract(  # pylint: disable=too-many-arguments
     package_path: Path,
     key: Path,
     password: Optional[str],
-    dependencies: Tuple[str],
     nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
     update: Optional[int],
@@ -237,11 +208,7 @@ def contract(  # pylint: disable=too-many-arguments
         )
         .load_metadata()
         .verify_nft(nft=nft)
-        .verify_component_dependencies(
-            dependencies=dependencies,
-            skip_hash_check=ctx.config.get("skip_hash_check", False),
-            skip_dependencies_check=ctx.config.get("skip_dependencies_check", False),
-        )
+        .fetch_component_dependencies()
         .publish_metadata()
     )
     if update is not None:
@@ -254,7 +221,6 @@ def contract(  # pylint: disable=too-many-arguments
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
 @update_flag
@@ -264,7 +230,6 @@ def connection(  # pylint: disable=too-many-arguments
     package_path: Path,
     key: Path,
     password: Optional[str],
-    dependencies: Tuple[str],
     nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
     update: Optional[int],
@@ -289,11 +254,7 @@ def connection(  # pylint: disable=too-many-arguments
         )
         .load_metadata()
         .verify_nft(nft=nft)
-        .verify_component_dependencies(
-            dependencies=dependencies,
-            skip_hash_check=ctx.config.get("skip_hash_check", False),
-            skip_dependencies_check=ctx.config.get("skip_dependencies_check", False),
-        )
+        .fetch_component_dependencies()
         .publish_metadata()
     )
     if update is not None:
@@ -306,7 +267,6 @@ def connection(  # pylint: disable=too-many-arguments
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
 @update_flag
@@ -316,7 +276,6 @@ def skill(  # pylint: disable=too-many-arguments
     package_path: Path,
     key: Path,
     password: Optional[str],
-    dependencies: Tuple[str],
     nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
     update: Optional[int],
@@ -341,11 +300,7 @@ def skill(  # pylint: disable=too-many-arguments
         )
         .load_metadata()
         .verify_nft(nft=nft)
-        .verify_component_dependencies(
-            dependencies=dependencies,
-            skip_hash_check=ctx.config.get("skip_hash_check", False),
-            skip_dependencies_check=ctx.config.get("skip_dependencies_check", False),
-        )
+        .fetch_component_dependencies()
         .publish_metadata()
     )
     if update is not None:
@@ -358,7 +313,6 @@ def skill(  # pylint: disable=too-many-arguments
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
 @update_flag
@@ -368,16 +322,12 @@ def agent(  # pylint: disable=too-many-arguments
     package_path: Path,
     key: Path,
     password: Optional[str],
-    dependencies: Tuple[str],
     nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
     update: Optional[int],
     hwi: bool = False,
 ) -> None:
     """Mint an agent."""
-    if len(dependencies) == 0:
-        raise click.ClickException("Agent packages needs to have dependencies")
-
     mint_helper = (
         MintHelper(
             chain_type=cast(ChainType, ctx.config.get("chain_type")),
@@ -395,11 +345,7 @@ def agent(  # pylint: disable=too-many-arguments
         )
         .load_metadata()
         .verify_nft(nft=nft)
-        .verify_component_dependencies(
-            dependencies=dependencies,
-            skip_hash_check=ctx.config.get("skip_hash_check", False),
-            skip_dependencies_check=ctx.config.get("skip_dependencies_check", False),
-        )
+        .fetch_component_dependencies()
         .publish_metadata()
     )
     if update is not None:
@@ -478,11 +424,7 @@ def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-a
         )
         .load_metadata()
         .verify_nft(nft=nft)
-        .verify_service_dependencies(
-            agent_id=agent_id,
-            skip_hash_check=ctx.config.get("skip_hash_check", False),
-            skip_dependencies_check=ctx.config.get("skip_dependencies_check", False),
-        )
+        .verify_service_dependencies(agent_id=agent_id)
         .publish_metadata()
     )
     if update is not None:

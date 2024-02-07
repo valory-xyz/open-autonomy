@@ -91,7 +91,62 @@ We illustrate the full local deployment workflow using the `hello_world` service
         "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
         "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955"
     ]'
-    ```        
+    ```
+
+    If you have a situation where you need to define keys for multiple ledgers you can define them using the following format
+
+    ```json title="keys.json"
+    [
+        [
+            {
+                "address": "4Si...",
+                "private_key": "5P1...",
+                "ledger": "solana"
+            },
+            {
+                "address": "0x1...",
+                "private_key": "0x1...",
+                "ledger": "ethereum"
+            }
+        ],
+        [
+            {
+                "address": "H1R...",
+                "private_key": "2T1...",
+                "ledger": "solana"
+            },
+            {
+                "address": "0x6...",
+                "private_key": "0xc...",
+                "ledger": "ethereum"
+            }
+        ],
+        [
+            {
+                "address": "3bq...",
+                "private_key": "5r5...",
+                "ledger": "solana"
+            },
+            {
+                "address": "0x5...",
+                "private_key": "0x7...",
+                "ledger": "ethereum"
+            }
+        ],
+        [
+            {
+                "address": "6Gq...",
+                "private_key": "25c...",
+                "ledger": "solana"
+            },
+            {
+                "address": "0x5...",
+                "private_key": "0x7...",
+                "ledger": "ethereum"
+            }
+        ]
+    ]
+    ```
 
 4. **Build the deployment.** Within the service runtime folder, execute the command below to build the service deployment:
 

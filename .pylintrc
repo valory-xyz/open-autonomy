@@ -19,7 +19,7 @@ R0801: similar lines
 E0611: no-name-in-module
 
 [IMPORTS]
-ignored-modules=pandas,numpy,aea_cli_ipfs,compose,multidict
+ignored-modules=pandas,numpy,aea_cli_ipfs,compose,multidict,gql
 
 [DESIGN]
 # min-public-methods=1

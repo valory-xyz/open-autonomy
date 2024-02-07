@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ from autonomy.cli.helpers.registry import fetch_service_ipfs
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
 from autonomy.configurations.loader import load_service_config
 from autonomy.constants import DEFAULT_BUILD_FOLDER
+from autonomy.deploy.base import Resources
 from autonomy.deploy.build import generate_deployment
 from autonomy.deploy.constants import (
     AGENT_KEYS_DIR,
@@ -193,6 +194,7 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     use_acn: bool = False,
     use_tm_testnet_setup: bool = False,
     image_author: Optional[str] = None,
+    resources: Optional[Resources] = None,
 ) -> None:
     """Build deployment."""
 
@@ -228,6 +230,7 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         use_acn=use_acn,
         use_tm_testnet_setup=use_tm_testnet_setup,
         image_author=image_author,
+        resources=resources,
     )
     click.echo(report)
 
@@ -280,6 +283,7 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
     aev: bool = False,
     no_deploy: bool = False,
     detach: bool = False,
+    resources: Optional[Resources] = None,
 ) -> None:
     """Build and run deployment from tokenID."""
 
@@ -311,6 +315,7 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
             multisig_address=multisig_address,
             consensus_threshold=consensus_threshold,
             apply_environment_variables=aev,
+            resources=resources,
         )
         if not skip_image:
             click.echo("Building required images.")

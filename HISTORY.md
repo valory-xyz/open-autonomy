@@ -1,5 +1,45 @@
 # Release History - `open-autonomy`
 
+# 0.14.3.post1 (2024-01-31)
+
+Autonomy:
+- Fixes the default value handling for the resource specifier flags on the `autonomy deploy build/from-token` commands
+
+# 0.14.3 (2024-01-30)
+
+Autonomy:
+- Updates the transaction settlement to reprice transaction when running into `ReplacementNotAllowed`
+- Adds support for specifying resources on the deployment builds using CLI flags and framework level environment variables
+
+# 0.14.2 (2024-01-29)
+
+Autonomy:
+- Adds support for using multiple ledgers in `keys.json`
+- Fixes single agent override indexing
+
+Packages:
+- Adds support for custom offence amounts
+
+# 0.14.1 (2024-01-23)
+
+Autonomy:
+- Pins `aiohttp<4.0.0,>=3.8.5`
+- Updates the deployment builder to use ledger identifier property in the `keys.json` to write the private key files in a deployment setup
+
+Packages:
+- Ports multi-ledger support on termination skill from `IEKIT`
+
+# 0.14.0 (2024-01-19)
+
+Autonomy:
+- Extends the list of retriable errors on transaction settlement
+- Integrates the autonolas subgraph to automate the dependency verification on the minting tools
+
+# 0.13.10 (2024-01-09)
+
+Packages:
+- Updates protocol packages to contain latest copyright headers
+
 # 0.13.9.post1 (2023-12-26)
 
 - Bumps `open-aea@1.43.0.post2`

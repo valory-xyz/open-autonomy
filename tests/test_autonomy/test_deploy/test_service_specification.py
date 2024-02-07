@@ -460,11 +460,14 @@ class TestServiceBuilder:
                 "Key file contains keys which are not registered as instances; invalid keys={'0xaddress0'}"
             ),
         ):
-            ServiceBuilder.verify_agent_instances([{"address": "0xaddress0"}], [])
+            ServiceBuilder.verify_agent_instances(
+                {"0xaddress0"},
+                [],
+            )
 
         with caplog.at_level(logging.WARNING):
             ServiceBuilder.verify_agent_instances(
-                [{"address": "0xaddress0"}], ["0xaddress0", "0xaddress1"]
+                {"0xaddress0"}, ["0xaddress0", "0xaddress1"]
             )
             assert (
                 "Key file does not contain key pair for following instances {'0xaddress1'}"
@@ -472,9 +475,7 @@ class TestServiceBuilder:
             )
 
         with caplog.at_level(logging.INFO):
-            ServiceBuilder.verify_agent_instances(
-                [{"address": "0xaddress0"}], ["0xaddress0"]
-            )
+            ServiceBuilder.verify_agent_instances({"0xaddress0"}, ["0xaddress0"])
             assert (
                 "Found following keys with registered instances {'0xaddress0'}"
                 in caplog.text

@@ -49,7 +49,8 @@ def build_deployment(keys_file: Path,
                      use_hardhat: bool = False,
                      use_acn: bool = False,
                      use_tm_testnet_setup: bool = False,
-                     image_author: Optional[str] = None) -> None
+                     image_author: Optional[str] = None,
+                     resources: Optional[Resources] = None) -> None
 ```
 
 Build deployment.
@@ -67,7 +68,8 @@ def build_and_deploy_from_token(token_id: int,
                                 deployment_type: str,
                                 aev: bool = False,
                                 no_deploy: bool = False,
-                                detach: bool = False) -> None
+                                detach: bool = False,
+                                resources: Optional[Resources] = None) -> None
 ```
 
 Build and run deployment from tokenID.
