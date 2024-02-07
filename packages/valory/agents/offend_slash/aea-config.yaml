@@ -31,13 +31,13 @@ protocols:
 - valory/tendermint:0.1.0:bafybeig4mi3vmlv5zpbjbfuzcgida6j5f2nhrpedxicmrrfjweqc5r7cra
 skills:
 - valory/abstract_abci:0.1.0:bafybeihqiujkwgyn7bwen5vu6k3ep3otd4qc322vzenvj4phezdxf2wuza
-- valory/abstract_round_abci:0.1.0:bafybeifvved235uxmnfapctphb4joumgbwg52yk5uxw7i4eckuvc6nw5im
-- valory/offend_abci:0.1.0:bafybeibr5ktsg3w6l6o5yg43lrbonumob6rzwa7h7esp7o4bo2ttuxvdiq
-- valory/offend_slash_abci:0.1.0:bafybeidoqmpwls2ljt3k3xonvsbia6nd2mtolizfynnwrfzzwloiziv3fq
-- valory/registration_abci:0.1.0:bafybeifluqirreyuoagntdtclnaupbp5padiwgj2tzhf2apt7hd2ui7t6m
-- valory/reset_pause_abci:0.1.0:bafybeifqk5mskjgftdzkvow72bxlplqypafbhvzcs7c7ajfyb2y2j3rria
-- valory/slashing_abci:0.1.0:bafybeihwgnfv2gzzxh373jljpesyjgr3mp3qw66a3sailef46cfevivtxu
-- valory/transaction_settlement_abci:0.1.0:bafybeie6iiipyezvwslatogwvxdfxu6c7k73be2gjhkxt7gdemzicj2pse
+- valory/abstract_round_abci:0.1.0:bafybeiao35nknbln6itb6fadk4euanzretyscdnsis4mtnmaoccgddpu2a
+- valory/offend_abci:0.1.0:bafybeidjq7q6xwz57rgapze6h5zpukq7cz55gh4vzyemr3ipvad42nhouq
+- valory/offend_slash_abci:0.1.0:bafybeicdfwaiqgsvbxpqspd437yuhx5swupem3ychtwpzrteivfqcifegi
+- valory/registration_abci:0.1.0:bafybeide3d3i5nfrcgoq3qvrtia2rs5fvcyr5b354el4grjpgrijoovkeu
+- valory/reset_pause_abci:0.1.0:bafybeif6rdumlpc3yaxxjqjgc2hn6in2hcnh65objqxjw3zsmpuhl6sqri
+- valory/slashing_abci:0.1.0:bafybeidtcvp6zxhsog22dxlcyopym2qpa7rxwahui6xhusrap62pvvm5qy
+- valory/transaction_settlement_abci:0.1.0:bafybeiczdrprl3pn3emu5mbtjkkn34ykjk3doxzlxtkf6pl3isj6ilyd3y
 default_ledger: ethereum
 required_ledgers:
 - ethereum

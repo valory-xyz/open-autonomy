@@ -119,6 +119,7 @@ INITIAL_APP_HASH = ""
 INITIAL_HEIGHT = "0"
 TM_REQ_TIMEOUT = 5  # 5 seconds
 FLASHBOTS_LEDGER_ID = "ethereum_flashbots"
+SOLANA_LEDGER_ID = "solana"
 
 
 class SendException(Exception):
@@ -1687,6 +1688,7 @@ class BaseBehaviour(
         contract_address: Optional[str],
         contract_id: str,
         contract_callable: str,
+        ledger_id: Optional[str] = None,
         **kwargs: Any,
     ) -> Generator[None, None, ContractApiMessage]:
         """
@@ -1701,6 +1703,7 @@ class BaseBehaviour(
         :param contract_address: the contract address
         :param contract_id: the contract id
         :param contract_callable: the callable to call on the contract
+        :param ledger_id: the ledger id, if not specified, the default ledger id is used
         :param kwargs: keyword argument for the contract api request
         :return: the contract api response
         :yields: the contract api response
@@ -1711,7 +1714,7 @@ class BaseBehaviour(
         kwargs = {
             "performative": performative,
             "counterparty": LEDGER_API_ADDRESS,
-            "ledger_id": self.context.default_ledger_id,
+            "ledger_id": ledger_id or self.context.default_ledger_id,
             "contract_id": contract_id,
             "callable": contract_callable,
             "kwargs": ContractApiMessage.Kwargs(kwargs),

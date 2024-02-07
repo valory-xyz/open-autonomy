@@ -1,33 +1,32 @@
-name: test_ipfs_abci
+name: test_solana_tx_abci
 author: valory
 version: 0.1.0
 type: skill
-description: IPFS e2e testing application.
+description: SOLANA e2e testing application.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: bafybeidwzlddf2imw56detc62pyyoaz3sshsb36xaq44jusn2obs4ywnz4
-  __init__.py: bafybeigeaq5dcvmldbdcfvgvapzkb4atm3dgku7fmwkab5xyn7jh33t2mm
-  behaviours.py: bafybeiahprijrr6efsazi7ga6pn5n2ztac6goqg37viwdwvphx5orpnrmu
+  README.md: bafybeih2yvhacovscr4rijbd2lyhdxtfdqo4doqrk4gkrpfkzp4prpg3sq
+  __init__.py: bafybeieoidcv53bau5iiey6nxt4sxeiqa3xz7focedfgcbjmlkkvmsz7hu
+  behaviours.py: bafybeicjz7zcsitfbqyz3a7ibar64mjnq2qtvd5s6bucf3wx2rcklhbqum
+  composition.py: bafybeier2lnyvnvs5eqkhefcgkfyh3hp2e77jpbgd4jzwo6haak6qshrva
   dialogues.py: bafybeigpwuzku3we7axmxeamg7vn656maww6emuztau5pg3ebsoquyfdqm
-  fsm_specification.yaml: bafybeibtalbhngsddj4h4k6d3zk54zipt24ffqjpdpybm2hdd7mejnmabm
-  handlers.py: bafybeihkbafgvs2sl62k6lamrddymegvhd2k35ka7k7guvbok6nc4pv5mm
-  models.py: bafybeibuypazzxl3fmxjqxv6cxghjhjznyvvjnpulmgz7h3w7bogemjlnq
-  payloads.py: bafybeidc2vpmyqaphlmftqld3kgknxpn7ghjn77rngr5ib4geqbagjfboq
-  rounds.py: bafybeia3d64a7gpbpv5e6dkcjnqvfkqamsafc6vy3rv3e7xvfea7yzygo4
-  tests/__init__.py: bafybeicx3dc4ujymhcaae3zvdmmfik7dmhhcmwwwoiqwk5nyykyohg2rte
-  tests/test_behaviours.py: bafybeidfigkza6x7vmrkqnzketbzht5ueg2ifkcri4pznnkrpilpqysdfu
-  tests/test_dialogues.py: bafybeifwjwhxsbfpsjranr474ru7fyai5xxeckkv2nzj2duwkozl5ufaxe
-  tests/test_handlers.py: bafybeicoa6x4tf4pmr5dityxxzp5w2aegn2ubcubxzq7e4minclcwy3cw4
-  tests/test_models.py: bafybeifyidlrsnut4mrqtenfwo5lmsplp6wm46ej6xide7bvin2j5k7kre
-  tests/test_payloads.py: bafybeihdizr6r5xnd5hudj7ho7ye3dkcppjt753ulaofyazqpokxnf6cga
-  tests/test_rounds.py: bafybeiauoo6cg6srmyxcpdmsic4nvoq4ddniq4zx2t7wzzvbiir6bpgkya
+  fsm_specification.yaml: bafybeieiawta2ii7uwdiv5zekm2w75hv5tj3lidm5kx36mxuv2ibve4gfe
+  handlers.py: bafybeierm5cuytzkt43yjb2x2734yccymnlcc7wa7oxvjr22pdip7holx4
+  models.py: bafybeidwujslgexpkj5vat2aviamjlbpqaqq6sabdkydqpsxhj3lfgv6i4
+  payloads.py: bafybeiectlv7rcyxp5wydmmp3m2icbgob7qz54nhfvg6ym6ka26ydrtmbm
+  rounds.py: bafybeibxfwrpunx5ycuy5fm3wljz6kh5iy6o2l5mgzt6ggzvq3tkdewbya
 fingerprint_ignore_patterns: []
 connections: []
-contracts: []
-protocols: []
+contracts:
+- valory/squads_multisig:0.1.0:bafybeia55yraczrod5zhf2gvwichlrofhmydwzilgfzvecvw3aygs3rnpy
+protocols:
+- valory/contract_api:1.0.0:bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeiao35nknbln6itb6fadk4euanzretyscdnsis4mtnmaoccgddpu2a
+- valory/registration_abci:0.1.0:bafybeide3d3i5nfrcgoq3qvrtia2rs5fvcyr5b354el4grjpgrijoovkeu
+- valory/reset_pause_abci:0.1.0:bafybeif6rdumlpc3yaxxjqjgc2hn6in2hcnh65objqxjw3zsmpuhl6sqri
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeiaahohl2bbu6cdgbjsgjeiqcou7c7qptmcds7bhk5rfwphewo7uyu
 behaviours:
   main:
     args: {}
@@ -114,7 +113,7 @@ models:
       retry_timeout: 3
       round_timeout_seconds: 30.0
       serious_slash_unit_amount: 8000000000000000
-      service_id: test_ipfs_abci
+      service_id: test_solana_tx_abci
       service_registry_address: null
       setup:
         all_participants:
@@ -133,9 +132,23 @@ models:
       termination_sleep: 900
       tx_timeout: 10.0
       use_slashing: false
+      squad_vault: 492Ss1D6BSKtfFGZHbRq8ot5X8FcPcfP4EW9tKkYrQJn
+      transfer_lamports: 100
+      transfer_to_pubkey: 5Mh8XPnMjveUs8mXWofXpgw1seMZUfT2A6fEhdBgaRRW
       use_termination: false
       validate_timeout: 1205
     class_name: Params
+  randomness_api:
+    args:
+      api_id: cloudflare
+      headers: {}
+      method: GET
+      parameters: {}
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: https://drand.cloudflare.com/public/latest
+    class_name: RandomnessApi
   requests:
     args: {}
     class_name: Requests

@@ -20,7 +20,8 @@
 """This module contains the behaviours for the 'abci' skill."""
 
 from abc import ABC
-from typing import Generator, Optional, Set, Type, cast
+from collections import deque
+from typing import Deque, Generator, Optional, Set, Type, cast
 
 from packages.valory.contracts.squads_multisig.contract import (
     MultisigAccountType,
@@ -45,7 +46,6 @@ from packages.valory.skills.squads_transaction_settlement_abci.payloads import (
     CreateTxPayload,
     ExecuteTxPayload,
     RandomnessPayload,
-    ResetPayload,
     SelectKeeperPayload,
     VerifyTxPayload,
 )
@@ -57,11 +57,13 @@ from packages.valory.skills.squads_transaction_settlement_abci.rounds import (
     ExecuteTxRandomnessRound,
     ExecuteTxRound,
     ExecuteTxSelectKeeperRound,
-    ResetRound,
     SolanaTransactionSubmissionAbciApp,
     SynchronizedData,
     VerifyTxRound,
 )
+
+
+SOLANA = "solana"
 
 
 class SolanaTransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
@@ -84,10 +86,12 @@ class SolanaTransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
             contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(SquadsMultisig.contract_id),
             contract_callable="next_tx_index",
+            chain_id=SOLANA,
+            ledger_id=SOLANA,
         )
         if response.performative != ContractApiMessage.Performative.STATE:
             return None
-        return cast(int, response.state)
+        return cast(int, response.state.body.pop("data"))
 
     def get_tx_pda(self, tx_index: int) -> Generator[None, None, Optional[str]]:
         """Create a new PDA for ms transaction."""
@@ -97,10 +101,23 @@ class SolanaTransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
             contract_id=str(SquadsMultisig.contract_id),
             contract_callable="get_tx_pda",
             tx_index=tx_index,
+            chain_id=SOLANA,
+            ledger_id=SOLANA,
         )
         if response.performative != ContractApiMessage.Performative.STATE:
             return None
-        return cast(str, response.state)
+        return cast(str, response.state.body.pop("data"))
+
+    @staticmethod
+    def serialized_keepers(keepers: Deque[str], keeper_retries: int) -> str:
+        """Get the keepers serialized."""
+        if len(keepers) == 0:
+            return ""
+        keepers_ = "".join(keepers)
+        keeper_retries_ = keeper_retries.to_bytes(32, "big").hex()
+        concatenated = keeper_retries_ + keepers_
+
+        return concatenated
 
 
 class CreateTxRandomnessRoundRandomnessBehaviour(RandomnessBehaviour):
@@ -110,11 +127,28 @@ class CreateTxRandomnessRoundRandomnessBehaviour(RandomnessBehaviour):
     payload_class = RandomnessPayload
 
 
-class CreateTxSelectKeeperBehaviour(SelectKeeperBehaviour):
+class CreateTxSelectKeeperBehaviour(  # pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour, SolanaTransactionSettlementBaseBehaviour
+):
     """Retrieve randomness."""
 
     matching_round = CreateTxSelectKeeperRound
     payload_class = SelectKeeperPayload
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
+            keepers = deque((self._select_keeper(),))
+            payload = self.payload_class(
+                self.context.agent_address, self.serialized_keepers(keepers, 1)
+            )
+
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
 
 
 class CreateTxBehaviour(SolanaTransactionSettlementBaseBehaviour):
@@ -137,17 +171,22 @@ class CreateTxBehaviour(SolanaTransactionSettlementBaseBehaviour):
                 contract_id=str(SquadsMultisig.contract_id),
                 contract_callable="create_new_transaction_ix",
                 authority_index=SquadsMultisigAuthorityIndex.VAULT.value,
-                creator=self.context.agent_address,
+                creator=self.context.agent_addresses["solana"],
                 ixs=self.synchronized_data.most_voted_instruction_set,
                 tx_pda=tx_pda,
+                chain_id=SOLANA,
+                ledger_id=SOLANA,
             )
             if response.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
                 return None
             tx_digest, _ = yield from self.send_raw_transaction(
-                transaction=response.raw_transaction
+                transaction=response.raw_transaction,
+                chain_id=SOLANA,
             )
+            yield from self.sleep(5)
+
             self.context.logger.info(
-                f"Created transaction with PDA {self.synchronized_data.tx_pda} and hash={tx_digest}"
+                f"Created transaction with PDA {tx_pda} and hash={tx_digest}"
             )
             payload = CreateTxPayload(
                 sender=self.context.agent_address,
@@ -179,12 +218,16 @@ class ApproveTxBehaviour(SolanaTransactionSettlementBaseBehaviour):
                 contract_id=str(SquadsMultisig.contract_id),
                 contract_callable="approve_transaction_ix",
                 tx_pda=self.synchronized_data.tx_pda,
-                member=self.context.agent_address,
+                member=self.context.agent_addresses["solana"],
+                chain_id=SOLANA,
+                ledger_id=SOLANA,
             )
             if response.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
                 return None
+            yield from self.sleep(5)
             tx_digest, _ = yield from self.send_raw_transaction(
-                transaction=response.raw_transaction
+                transaction=response.raw_transaction,
+                chain_id=SOLANA,
             )
             self.context.logger.info(
                 f"Approved transaction with PDA {self.synchronized_data.tx_pda} and hash={tx_digest}"
@@ -207,17 +250,34 @@ class ExecuteTxRandomnessRoundRandomnessBehaviour(RandomnessBehaviour):
     payload_class = RandomnessPayload
 
 
-class ExecuteTxSelectKeeperBehaviour(SelectKeeperBehaviour):
+class ExecuteTxSelectKeeperBehaviour(  # pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour, SolanaTransactionSettlementBaseBehaviour
+):
     """Retrieve randomness."""
 
     matching_round = ExecuteTxSelectKeeperRound
     payload_class = SelectKeeperPayload
 
+    def async_act(self) -> Generator:
+        """Do the action."""
+
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
+            keepers = deque((self._select_keeper(),))
+            payload = self.payload_class(
+                self.context.agent_address, self.serialized_keepers(keepers, 1)
+            )
+
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
 
 class ExecuteTxBehaviour(SolanaTransactionSettlementBaseBehaviour):
     """Execute the transaction with given PDA."""
 
-    payload_class = ExecuteTxRound
+    matching_round = ExecuteTxRound
 
     def async_act(self) -> Generator:  # pylint: disable=inconsistent-return-statements
         """Create transaction."""
@@ -228,12 +288,17 @@ class ExecuteTxBehaviour(SolanaTransactionSettlementBaseBehaviour):
                 contract_id=str(SquadsMultisig.contract_id),
                 contract_callable="execute_transaction_ix",
                 tx_pda=self.synchronized_data.tx_pda,
-                member=self.context.agent_address,
+                member=self.context.agent_addresses["solana"],
+                chain_id=SOLANA,
+                ledger_id=SOLANA,
             )
             if response.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
                 return None
+            yield from self.sleep(5)
+
             tx_digest, _ = yield from self.send_raw_transaction(
-                transaction=response.raw_transaction
+                transaction=response.raw_transaction,
+                chain_id=SOLANA,
             )
             self.context.logger.info(
                 f"Executed transaction with PDA {self.synchronized_data.tx_pda} and hash={tx_digest}"
@@ -252,7 +317,7 @@ class ExecuteTxBehaviour(SolanaTransactionSettlementBaseBehaviour):
 class VerifyTxBehaviour(SolanaTransactionSettlementBaseBehaviour):
     """Execute the transaction with given PDA."""
 
-    payload_class = VerifyTxRound
+    matching_round = VerifyTxRound
     _verification_retries: Optional[int] = None
 
     def async_act(self) -> Generator:  # pylint: disable=inconsistent-return-statements
@@ -274,15 +339,17 @@ class VerifyTxBehaviour(SolanaTransactionSettlementBaseBehaviour):
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             response = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+                performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
                 contract_address=self.synchronized_data.tx_pda,
                 contract_id=str(SquadsMultisig.contract_id),
                 contract_callable="get_account_state",
                 account_type=MultisigAccountType.MS_TRANSACTION.value,
+                chain_id=SOLANA,
+                ledger_id=SOLANA,
             )
-            if response.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
+            if response.performative != ContractApiMessage.Performative.STATE:
                 return None
-            account_state = response.state
+            account_state = response.state.body
             if TransactionStatus(account_state["status"]) != TransactionStatus.Executed:
                 yield from self.sleep(self.params.tx_verification_sleep)
                 self._verification_retries += 1
@@ -296,24 +363,6 @@ class VerifyTxBehaviour(SolanaTransactionSettlementBaseBehaviour):
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
-        self.set_done()
-
-
-class ResetBehaviour(SolanaTransactionSettlementBaseBehaviour):
-    """Reset behaviour."""
-
-    matching_round = ResetRound
-
-    def async_act(self) -> Generator:
-        """Do the action."""
-        self.context.logger.info(
-            f"Period {self.synchronized_data.period_count} was not finished. Resetting!"
-        )
-        payload = ResetPayload(
-            self.context.agent_address, self.synchronized_data.period_count
-        )
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
         self.set_done()
 
 
@@ -331,5 +380,4 @@ class SolanaTransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
         ExecuteTxSelectKeeperBehaviour,  # type: ignore
         ExecuteTxBehaviour,  # type: ignore
         VerifyTxBehaviour,  # type: ignore
-        ResetBehaviour,  # type: ignore
     }

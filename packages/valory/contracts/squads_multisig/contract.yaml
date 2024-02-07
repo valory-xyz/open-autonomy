@@ -9,10 +9,14 @@ fingerprint:
   README.md: bafybeibvqzwqtapjpqyejydlhdlodcaon6xzgz6hsrttdueox3jcqys5bm
   __init__.py: bafybeieeus2bbbexmthy4pnsdtgen4flxzk3ao5ekjbocvmrkhhszffbgu
   build/SquadsMultisig.json: bafybeiey7jbufdyfroy3vahjrfiifsvwf7zaq5yjjb56zokhbg5t76hjcm
-  contract.py: bafybeielvk2k4jzxky2wp6muzbncprhngidggmsnsozkdk6jhzjp4bstqa
+  contract.py: bafybeifbpcbyftdel2khyt5wqptllqkuoprqmb4tjqr5roaxhv5dk2ribm
 fingerprint_ignore_patterns: []
 class_name: SquadsMultisig
 contract_interface_paths:
   solana: build/SquadsMultisig.json
-dependencies: {}
+dependencies:
+  open-aea-ledger-solana:
+    version: ==1.44.0
+  solders:
+    version: '>=0.14.0'
 contracts: []

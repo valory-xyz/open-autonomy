@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 valory
+#   Copyright 2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 """This module contains the scaffold contract definition."""
 
+import json
 from collections import OrderedDict
 from enum import Enum, IntEnum
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -27,6 +28,7 @@ from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
+from solders.system_program import transfer  # pylint: disable=import-error
 
 
 Pubkey = Any  # defined in solders.pubkey
@@ -281,7 +283,7 @@ class SquadsMultisig(Contract):
         ledger_api: LedgerApi,
         contract_address: Pubkey,
         program: Optional[Program] = None,
-    ) -> Dict[str, int]:
+    ) -> JSONLike:
         """
         Get the next transaction index of a multisig.
 
@@ -294,12 +296,12 @@ class SquadsMultisig(Contract):
         :return: The transaction index for the account.
         :rtype: int
         """
-        next_tx = 1 + cls.current_tx_index(
+        index = 1 + cls.current_tx_index(
             ledger_api=ledger_api,
             contract_address=contract_address,
             program=program,
         ).pop("data")
-        return {"data": next_tx}
+        return dict(data=index)
 
     @classmethod
     def current_ix_index(
@@ -362,7 +364,7 @@ class SquadsMultisig(Contract):
         ledger_api: LedgerApi,
         contract_address: Pubkey,
         tx_index: int,
-    ) -> Dict[str, Pubkey]:
+    ) -> JSONLike:
         """
         Get transaction PDA (Program Derived Address).
 
@@ -387,7 +389,8 @@ class SquadsMultisig(Contract):
             int(str(tx_index), 10).to_bytes(byteorder="little", length=4),
             "transaction".encode(encoding="utf-8"),
         ]
-        return {"data": str(ledger_api.pda(seeds=seeds, program_id=program_id))}
+        data = str(ledger_api.pda(seeds=seeds, program_id=program_id))
+        return dict(data=data)
 
     @classmethod
     def get_ix_pda(
@@ -448,7 +451,7 @@ class SquadsMultisig(Contract):
                     contract_address=contract_address,
                     program=program,
                 ).pop("data"),
-            ).pop("data")
+            )
         tx_pda = ledger_api.to_pubkey(tx_pda)
         ix = ledger_api.build_instruction(
             contract_instance=program,
@@ -566,7 +569,7 @@ class SquadsMultisig(Contract):
                     contract_address=contract_address,
                     program=program,
                 ).pop("data"),
-            ).pop("data")
+            )
 
         tx_ixs = []
         create_ix = cls.create_transaction_ix(
@@ -688,3 +691,22 @@ class SquadsMultisig(Contract):
             ],
         )
         return {"recent_blockhash": ledger_api.latest_hash, "ixs": [ix]}
+
+    @classmethod
+    def get_transfer_tx(  # pylint: disable=unused-argument
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        from_pubkey: str,
+        to_pubkey: str,
+        lamports: int,
+    ) -> JSONLike:
+        """Get transfer tx."""
+        transfer_tx = transfer(
+            params=dict(
+                from_pubkey=ledger_api.to_pubkey(from_pubkey),
+                to_pubkey=ledger_api.to_pubkey(to_pubkey),
+                lamports=lamports,
+            )
+        ).to_json()
+        return dict(data=json.loads(transfer_tx))

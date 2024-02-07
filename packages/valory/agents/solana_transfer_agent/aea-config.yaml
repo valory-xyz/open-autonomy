@@ -1,4 +1,4 @@
-agent_name: register_termination
+agent_name: solana_transfer_agent
 author: valory
 version: 0.1.0
 license: Apache-2.0
@@ -18,9 +18,7 @@ connections:
 - valory/ledger:0.19.0:bafybeic3ft7l7ca3qgnderm4xupsfmyoihgi27ukotnz7b5hdczla2enya
 - valory/p2p_libp2p_client:0.1.0:bafybeid3xg5k2ol5adflqloy75ibgljmol6xsvzvezebsg7oudxeeolz7e
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeidwvdy5gxs3tdwenyxrtvq3f7cosw3f2f4hll66aftnndy65ugary
-- valory/gnosis_safe_proxy_factory:0.1.0:bafybeidttzohq4nvamusdxu7qohkjghn6ezzcvg6jdg7cy5f435vclkzjq
-- valory/multisend:0.1.0:bafybeig5byt5urg2d2bsecufxe5ql7f4mezg3mekfleeh32nmuusx66p4y
+- valory/squads_multisig:0.1.0:bafybeia55yraczrod5zhf2gvwichlrofhmydwzilgfzvecvw3aygs3rnpy
 - valory/service_registry:0.1.0:bafybeickkg6myflc3fkpxyqn3a4gnayyrbtqzh7vxhtlzn26mhcilw32ma
 protocols:
 - open_aea/signing:1.0.0:bafybeihv62fim3wl2bayavfcg3u5e5cxu3b7brtu4cn5xoxd6lqwachasi
@@ -34,14 +32,13 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeihqiujkwgyn7bwen5vu6k3ep3otd4qc322vzenvj4phezdxf2wuza
 - valory/abstract_round_abci:0.1.0:bafybeiao35nknbln6itb6fadk4euanzretyscdnsis4mtnmaoccgddpu2a
-- valory/register_termination_abci:0.1.0:bafybeiav6tgf3nba4fzxale3ul2mcobi27nv7y7ripvvgiqvavsqwzs224
 - valory/registration_abci:0.1.0:bafybeide3d3i5nfrcgoq3qvrtia2rs5fvcyr5b354el4grjpgrijoovkeu
 - valory/reset_pause_abci:0.1.0:bafybeif6rdumlpc3yaxxjqjgc2hn6in2hcnh65objqxjw3zsmpuhl6sqri
-- valory/termination_abci:0.1.0:bafybeie72bjj2xkpxi7uwlspfp2pwlchg4rdbz2h3yktjjwygvs2kqlzda
-- valory/transaction_settlement_abci:0.1.0:bafybeiczdrprl3pn3emu5mbtjkkn34ykjk3doxzlxtkf6pl3isj6ilyd3y
-default_ledger: ethereum
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeiaahohl2bbu6cdgbjsgjeiqcou7c7qptmcds7bhk5rfwphewo7uyu
+- valory/test_solana_tx_abci:0.1.0:bafybeihm2jpldcb7efw544p2pwzy2akcsubg3rxudbjirqnpi3fpip6vgy
+default_ledger: solana
 required_ledgers:
-- ethereum
+- solana
 default_routing: {}
 connection_private_key_paths: {}
 private_key_paths: {}
@@ -70,6 +67,8 @@ logging_config:
 dependencies:
   open-aea-ledger-ethereum:
     version: ==1.44.0
+  open-aea-ledger-solana:
+    version: ==1.44.0
   open-aea-test-autonomy:
     version: ==0.13.9.post1
 default_connection: null
@@ -77,12 +76,12 @@ default_connection: null
 public_id: valory/abci:0.1.0
 type: connection
 config:
-  target_skill_id: valory/register_termination_abci:0.1.0
+  target_skill_id: valory/test_solana_tx_abci:0.1.0
   host: ${ABCI_HOST:str:localhost}
   port: ${ABCI_PORT:int:26658}
   use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
 ---
-public_id: valory/register_termination_abci:0.1.0
+public_id: valory/test_solana_tx_abci:0.1.0
 type: skill
 models:
   benchmark_tool:
@@ -93,6 +92,9 @@ models:
       tendermint_url: ${str:http://localhost:26657}
       tendermint_com_url: ${str:http://localhost:8080}
       use_termination: ${bool:True}
+      squad_vault: ${str:492Ss1D6BSKtfFGZHbRq8ot5X8FcPcfP4EW9tKkYrQJn}
+      transfer_lamports: ${int:100}
+      transfer_to_pubkey: ${str:5Mh8XPnMjveUs8mXWofXpgw1seMZUfT2A6fEhdBgaRRW}
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
 type: connection

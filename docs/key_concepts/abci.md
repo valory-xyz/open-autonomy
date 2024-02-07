@@ -4,7 +4,7 @@ The ABCI lets the application logic communicate with the consensus engine in a t
 The ABCI standard was introduced with the
 [Tendermint project](https://docs.tendermint.com/v0.34/introduction/what-is-tendermint.html). Nevertheless,
 an ABCI App can work with any consensus engine
-that is ABCI-compatible, e.g., [Fantom](https://fantom.foundation/about/).
+that is ABCI-compatible, e.g., [Fantom](https://docs.fantom.foundation/).
 In the remaining of this section, we will consider [Tendermint](https://tendermint.com/) as the consensus engine.
 
 !!! note
