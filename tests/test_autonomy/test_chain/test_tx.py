@@ -220,6 +220,41 @@ def test_already_known(capsys: Any) -> None:
         _mock.assert_called_with("AlreadyKnown")
 
 
+def test_should_rebuild_with_oldnonce(capsys: Any) -> None:
+    """Test OldNonce exception."""
+
+    class _method:
+        call_count = 0
+
+        def __call__(self, *args: Any, **kwargs: Any) -> Any:
+            self.call_count += 1
+            return {}
+
+    class _raise:
+        _should_raise = True
+
+        def __call__(self, *args: Any, **kwargs: Any) -> Any:
+            if self._should_raise:
+                self._should_raise = False
+                raise Exception("OldNonce")
+            return {}
+
+    builder = _method()
+    settler = TxSettler(
+        ledger_api=mock.Mock(
+            send_signed_transaction=_raise(),
+        ),
+        crypto=mock.Mock(
+            sign_transaction=lambda transaction: transaction,
+        ),
+        chain_type=ChainType.LOCAL,
+    )
+    settler.transact(builder, contract="service_registry", kwargs={})  # type: ignore
+    assert (
+        builder.call_count == 2
+    )  # should be 2 since the build method will be called twice
+
+
 def test_timeout() -> None:
     """Test transact."""
 
