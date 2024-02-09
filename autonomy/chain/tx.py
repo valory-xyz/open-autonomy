@@ -50,7 +50,16 @@ ERRORS_TO_RETRY = (
     "ALREADY_EXISTS",
     "already known",
     "ReplacementNotAllowed",
+    "OldNonce",
 )
+
+
+def should_rebuild(error: str) -> bool:
+    """Check if we should rebuild the transaction."""
+    for _error in ("wrong transaction nonce", "OldNonce"):
+        if _error in error:
+            return True
+    return False
 
 
 def should_retry(error: str) -> bool:
@@ -107,7 +116,7 @@ class TxSettler:
             **kwargs,
         )
 
-    def _repice(self, tx_dict: Dict) -> Optional[Dict]:
+    def _reprice(self, tx_dict: Dict) -> Optional[Dict]:
         """Reprice transaction."""
         if "maxFeePerGas" not in tx_dict or "maxPriorityFeePerGas" not in tx_dict:
             # This means something went wrong when building the transaction
@@ -185,8 +194,10 @@ class TxSettler:
                     raise ChainInteractionError(error) from e
                 if should_reprice(error):
                     print("Repricing the transaction...")
-                    tx_dict = self._repice(cast(Dict, tx_dict))
+                    tx_dict = self._reprice(cast(Dict, tx_dict))
                     continue
+                if should_rebuild(error):
+                    tx_dict = None
                 print(f"Error occured when interacting with chain: {e}; ")
                 print(f"will retry in {self.sleep}...")
                 time.sleep(self.sleep)
