@@ -504,6 +504,7 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
                 AbciAppDB(
                     setup_data=AbciAppDB.data_to_lists(setup_params),
                     cross_period_persisted_keys=self.abci_app_cls.cross_period_persisted_keys,
+                    logger=self.context.logger,
                 )
             ),
             self.context.logger,
@@ -877,10 +878,10 @@ class BenchmarkTool(Model, TypeCheckMixin, FrozenMixin):
 
             with open(str(filepath), "w+", encoding="utf-8") as outfile:
                 json.dump(self.data, outfile)
-            self.context.logger.info(f"Saving benchmarking data for period: {period}")
+            self.context.logger.debug(f"Saving benchmarking data for period: {period}")
 
         except PermissionError as e:  # pragma: nocover
-            self.context.logger.info(f"Error saving benchmark data:\n{e}")
+            self.context.logger.error(f"Error saving benchmark data:\n{e}")
 
         if reset:
             self.reset()

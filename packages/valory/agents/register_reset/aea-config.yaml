@@ -34,11 +34,11 @@ protocols:
 - valory/http:1.0.0:bafybeifugzl63kfdmwrxwphrnrhj7bn6iruxieme3a4ntzejf6kmtuwmae
 - valory/ipfs:0.1.0:bafybeiftxi2qhreewgsc5wevogi7yc5g6hbcbo4uiuaibauhv3nhfcdtvm
 skills:
-- valory/abstract_abci:0.1.0:bafybeihf5gc2zikjdgpj3ebwzpue3oqlebkmk6erjgxcd3g3loxh2mebkm
-- valory/abstract_round_abci:0.1.0:bafybeigqqyhvupqnz62nsex32gxuagu37xlfe7fhgmzyv2qz2mp2bu5ueq
-- valory/register_reset_abci:0.1.0:bafybeigcqgghhhbyffrxvyxelldajvza7u2hoolfcvgvibdsfbqmnye4gy
-- valory/registration_abci:0.1.0:bafybeigslu3k6sx2pymj7ipyofgy2v7mviybilsiyeex7dc3mv2tggz7ci
-- valory/reset_pause_abci:0.1.0:bafybeiatgxbqscxwryfzbjxcnewvkcc4pbd4rcujyeycpfafctikxsiiqq
+- valory/abstract_abci:0.1.0:bafybeibzpyqubflekcvz4hehhjbipcfsmt7mwwespkuva3n5dmoriphrki
+- valory/abstract_round_abci:0.1.0:bafybeia7gznlazv26ozolikb6jcesbo7wdv544lwcl2pveoukgxh4z5m2m
+- valory/register_reset_abci:0.1.0:bafybeihoetrfluqcqupsfeht67q5dnwli2dl55h2lpzl5d3hofedhwaxha
+- valory/registration_abci:0.1.0:bafybeicutpxkob2oho5kukesdm6t46nmspgycyubahn5o3ferlte6lmlwy
+- valory/reset_pause_abci:0.1.0:bafybeifn7cvrhll777cxww3otgmycs7ay23ok2gipg5rsoop5mula7w35y
 default_ledger: ethereum
 required_ledgers:
 - ethereum
