@@ -2713,7 +2713,7 @@ class AbciApp(
         """Process a round event."""
         if self._current_round_cls is None:
             self.logger.warning(
-                f"cannot process event '{event}' as current state is not set"
+                f"Cannot process event '{event}' as current state is not set"
             )
             return
 
