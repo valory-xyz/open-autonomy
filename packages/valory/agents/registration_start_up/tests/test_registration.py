@@ -78,7 +78,7 @@ STRICT_CHECK_STRINGS = (
     log_messages.collection_complete.value,
     log_messages.request_update.value,
     log_messages.response_update.value,
-    "local height == remote height; continuing execution...",
+    "local height == remote height == 0; continuing execution...",
 )
 
 
