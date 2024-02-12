@@ -4,6 +4,16 @@
 
 Tx settlement helper.
 
+<a id="autonomy.chain.tx.should_rebuild"></a>
+
+#### should`_`rebuild
+
+```python
+def should_rebuild(error: str) -> bool
+```
+
+Check if we should rebuild the transaction.
+
 <a id="autonomy.chain.tx.should_retry"></a>
 
 #### should`_`retry

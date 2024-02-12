@@ -844,8 +844,10 @@ the contract api response
 ```python
 def get_contract_api_response(
         performative: ContractApiMessage.Performative,
-        contract_address: Optional[str], contract_id: str,
+        contract_address: Optional[str],
+        contract_id: str,
         contract_callable: str,
+        ledger_id: Optional[str] = None,
         **kwargs: Any) -> Generator[None, None, ContractApiMessage]
 ```
 
@@ -862,6 +864,7 @@ Ledger connection (contract dispatcher) -> (ContractApiMessage | ContractApiMess
 - `contract_address`: the contract address
 - `contract_id`: the contract id
 - `contract_callable`: the callable to call on the contract
+- `ledger_id`: the ledger id, if not specified, the default ledger id is used
 - `kwargs`: keyword argument for the contract api request
 
 **Returns**:
