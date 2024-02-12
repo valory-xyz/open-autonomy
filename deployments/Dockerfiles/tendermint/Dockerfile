@@ -1,5 +1,4 @@
 FROM alpine:3.7
-MAINTAINER Valory AG
 
 ENV TENDERMINT_VERSION=0.34.19
 ENV USE_GRPC=false
@@ -27,7 +26,6 @@ COPY tendermint.py /app/
 WORKDIR /app
 RUN pip3 install Flask==2.0.2 requests==2.27.1 Werkzeug==2.0.3
 
-
 VOLUME /tendermint
 VOLUME /tm_state
 
@@ -42,10 +40,8 @@ WORKDIR /tendermint
 COPY wrapper.sh /usr/bin/wrapper.sh
 COPY config-template.toml /etc/tendermint/config-template.toml
 
-RUN chmod 777 -R /app
-RUN chmod 777 -R /tendermint
-RUN chmod 777 -R /tm_state
-
+RUN adduser -D tendermint
+USER tendermint
 
 ENTRYPOINT ["/usr/bin/flask"]
 CMD ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
