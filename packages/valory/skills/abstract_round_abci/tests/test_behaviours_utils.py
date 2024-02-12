@@ -896,10 +896,11 @@ class TestBaseBehaviour:
 
         # test with a non-200 response in order to cause the execution to re-enter the while `stop_condition`
         # we expect that the second time we will not enter, since we have caused the `stop_condition` to be `True`
-        with (
-            mock.patch.object(self.behaviour.context.logger, "debug") as mock_debug,
-            mock.patch.object(self.behaviour.context.logger, "error") as mock_error,
-        ):
+        with mock.patch.object(
+            self.behaviour.context.logger, "debug"
+        ) as mock_debug, mock.patch.object(
+            self.behaviour.context.logger, "error"
+        ) as mock_error:
             # send message to 'wait_for_message'
             try_send(gen, obj=MagicMock(status_code=200))
             # send message to '_submit_tx'
