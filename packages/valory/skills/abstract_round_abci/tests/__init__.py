@@ -18,3 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/abstract_round_abci skill."""
+
+from hypothesis import settings  # pragma: nocover
+
+
+CI = "CI"  # pragma: nocover
+
+settings.register_profile(CI, deadline=5000)  # pragma: nocover

@@ -4,9 +4,9 @@ The purpose of this guide is to set up your system to work with the {{open_auton
 
 Ensure that your machine satisfies the following requirements:
 
-- [Python](https://www.python.org/) `>= 3.7` (recommended `>= 3.10`)
+- [Python](https://www.python.org/) `>= 3.8` (recommended `>= 3.10`)
 - [Pip](https://pip.pypa.io/en/stable/installation/)
-- [Pipenv](https://pipenv.pypa.io/en/latest/installation/) `>=2021.x.xx`
+- [Pipenv](https://pipenv.pypa.io/en/latest/installation.html) `>=2021.x.xx`
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
@@ -14,6 +14,10 @@ Additionally, if you wish to deploy your service in a Kubernetes cluster:
 
 - [Kubernetes CLI](https://kubernetes.io/docs/tasks/tools/)
 - [minikube](https://minikube.sigs.k8s.io/docs/)
+
+
+!!! note
+    On raspberry-pi currently `Raspberry Pi OS (Legacy, 64-bit, Debian Bullseye)` is tested and supported, The base requirements are same as [above](#requirements).
 
 !!! tip
 	Although we will use these tools for demonstration purposes only, you might as well consider other local Kubernetes cluster options like [kind](https://kind.sigs.k8s.io/docs/user/quick-start/), or even additional tools like [Skaffold](https://skaffold.dev/) or [Helm](https://helm.sh/) to help you with your cluster deployments.
@@ -75,7 +79,7 @@ This is roughly how your workspace should look like:
     You can override the default registry in use (set up with `autonomy init`) for a particular command through the flags `--registry-path` and `--local`. For example, if the framework was initialized with the remote registry, the following command will fetch a runtime folder for the `hello_world` agent from the remote registry:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeie4dbfbhocqcb3daqtxbmxbnagmyqzplytwjkywxkeypti2gswyx4
+    autonomy fetch valory/hello_world:0.1.0:bafybeib5grnum25svkpozqqnvpd7nmwoaypnc3l7lbnoj335nwgczsiyca
     ```
 
     On the other hand, if you want to fetch the copy stored in your local registry, then you can use:
@@ -106,25 +110,25 @@ If you plan to follow the guides in the next sections, you need to populate the 
     "dev": {
     },
     "third_party": {
-        "service/valory/hello_world/0.1.0": "bafybeihizy26lpq4zeuzivpiqmllcaydfborkf5cfcalbbiinlhw2yezyu",
-        "agent/valory/hello_world/0.1.0": "bafybeie4dbfbhocqcb3daqtxbmxbnagmyqzplytwjkywxkeypti2gswyx4",
-        "connection/valory/abci/0.1.0": "bafybeicxpvqzvtwp4ficxug42lag5jw3hrhinprzqiuemywoqk4rfroogu",
-        "connection/valory/http_client/0.23.0": "bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi",
-        "connection/valory/ipfs/0.1.0": "bafybeiatjutuiav7oxl4hszy3oypdwuetr6crjpminush54c5k4nbeciv4",
-        "connection/valory/ledger/0.19.0": "bafybeicgfupeudtmvehbwziqfxiz6ztsxr5rxzvalzvsdsspzz73o5fzfi",
-        "contract/valory/service_registry/0.1.0": "bafybeibdy55edqs3djptv77ljkmbf6m3zizhutmvwgj3hpsagvmzhr4jbm",
-        "protocol/open_aea/signing/1.0.0": "bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4",
-        "protocol/valory/abci/0.1.0": "bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4",
-        "protocol/valory/acn/1.1.0": "bafybeignmc5uh3vgpuckljcj2tgg7hdqyytkm6m5b6v6mxtazdcvubibva",
-        "protocol/valory/contract_api/1.0.0": "bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy",
-        "protocol/valory/http/1.0.0": "bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty",
-        "protocol/valory/ipfs/0.1.0": "bafybeic72ncgqbzoz2guj4p4yjqulid7mv6yroeh65hxznloamoveeg7hq",
-        "protocol/valory/ledger_api/1.0.0": "bafybeibo4bdtcrxi2suyzldwoetjar6pqfzm6vt5xal22ravkkcvdmtksi",
-        "protocol/valory/tendermint/0.1.0": "bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54",
-        "skill/valory/abstract_abci/0.1.0": "bafybeiexfneudbari3ru64v5nedyj52ibi4sgscohf37vbjnuz2sgcsswy",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeig2fgz7qtevrkmtt3encvk4ql6cu3jpromyxm3mhzjjsciin7653a",
-        "skill/valory/hello_world_abci/0.1.0": "bafybeicv2kguvhz53tfbq5xhkd6xxynemvbhqsikwrqppu37ef7pug7vna",
-        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva"
+        "service/valory/hello_world/0.1.0": "bafybeicehljk5ahlsy62t6a5by46uz3nguuxuh653mzoz4hfme22s6eodi",
+        "agent/valory/hello_world/0.1.0": "bafybeib5grnum25svkpozqqnvpd7nmwoaypnc3l7lbnoj335nwgczsiyca",
+        "connection/valory/abci/0.1.0": "bafybeig552jslrpa2fznlmal3csfq676lovyk5il7kdtzjljty77u7z2fi",
+        "connection/valory/http_client/0.23.0": "bafybeih5vzo22p2umhqo52nzluaanxx7kejvvpcpdsrdymckkyvmsim6gm",
+        "connection/valory/ipfs/0.1.0": "bafybeibsjllc2l62jvc4gdyv73irldlvbqlslytm4gw6xjvugcp5oylx44",
+        "connection/valory/ledger/0.19.0": "bafybeic3ft7l7ca3qgnderm4xupsfmyoihgi27ukotnz7b5hdczla2enya",
+        "contract/valory/service_registry/0.1.0": "bafybeidpkiceitrh3w2j4o7ctjjsdbn3ma4lfvnlpyvks53exdsyjhoc5i",
+        "protocol/open_aea/signing/1.0.0": "bafybeihv62fim3wl2bayavfcg3u5e5cxu3b7brtu4cn5xoxd6lqwachasi",
+        "protocol/valory/abci/0.1.0": "bafybeiaqmp7kocbfdboksayeqhkbrynvlfzsx4uy4x6nohywnmaig4an7u",
+        "protocol/valory/acn/1.1.0": "bafybeidluaoeakae3exseupaea4i3yvvk5vivyt227xshjlffywwxzcxqe",
+        "protocol/valory/contract_api/1.0.0": "bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i",
+        "protocol/valory/http/1.0.0": "bafybeifugzl63kfdmwrxwphrnrhj7bn6iruxieme3a4ntzejf6kmtuwmae",
+        "protocol/valory/ipfs/0.1.0": "bafybeiftxi2qhreewgsc5wevogi7yc5g6hbcbo4uiuaibauhv3nhfcdtvm",
+        "protocol/valory/ledger_api/1.0.0": "bafybeihdk6psr4guxmbcrc26jr2cbgzpd5aljkqvpwo64bvaz7tdti2oni",
+        "protocol/valory/tendermint/0.1.0": "bafybeig4mi3vmlv5zpbjbfuzcgida6j5f2nhrpedxicmrrfjweqc5r7cra",
+        "skill/valory/abstract_abci/0.1.0": "bafybeifjptmz2snflbonyl4hdb2yz2viz5dfl5fgcsw2kd5rpzcetxctyu",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeicsf7g3hewacvvvaug27lq3jnfdaxswz6izj3ty6tcg7uwpubo7va",
+        "skill/valory/hello_world_abci/0.1.0": "bafybeiabaamrsmq3ysbdk4gxym7in5urwyyfmegto3v5hgqc6etn7g6ubi",
+        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeid3xg5k2ol5adflqloy75ibgljmol6xsvzvezebsg7oudxeeolz7e"
     }
 }
 ```

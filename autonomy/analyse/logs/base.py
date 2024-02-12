@@ -29,7 +29,7 @@ LOGS_DB = "logs.db"
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S,%f"
 TIMESTAMP_REGEX = re.compile(r"^(\[(\d+-\d+-\d+ \d+:\d+:\d+,\d+)\])")
 LOG_ROW_REGEX = re.compile(
-    r"\[(\d+-\d+-\d+ \d+:\d+:\d+,\d+)\] \[([A-Z]+)\]( \[agent\])? (.*)"
+    r"\[(\d+-\d+-\d+ \d+:\d+:\d+,\d+)\] \[([A-Z]+)\]( \[agent\])? ((.|\n)*)"
 )
 ENTER_BEHAVIOUR_REGEX = re.compile(r"Entered in the \'([a-z_]+)\' behaviour")
 ENTER_ROUND_REGEX = re.compile(r"Entered in the \'([a-z_]+)\' round for period (\d+)")

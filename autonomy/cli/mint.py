@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 """Mint command group definitions."""
 
 from pathlib import Path
-from typing import Optional, Tuple, Union, cast
+from typing import Optional, Union, cast
 
 import click
 from aea.cli.utils.context import Context
@@ -29,7 +29,7 @@ from aea.configurations.data_types import PackageType
 from aea.helpers.base import IPFSHash
 
 from autonomy.chain.config import ChainType
-from autonomy.cli.helpers.chain import mint_component, mint_service
+from autonomy.cli.helpers.chain import MintHelper
 from autonomy.cli.utils.click_utils import (
     NFTArgument,
     PathArgument,
@@ -46,27 +46,33 @@ password_decorator = click.option(
     type=str,
     help="Password for key pair",
 )
-dependencies_decorator = click.option(
-    "-d",
-    "--dependencies",
-    type=str,
-    multiple=True,
-    help="Dependencies for the package",
-)
 nft_decorator = click.option(
     "--nft",
     type=NFTArgument(),
     help="IPFS hash or path for the NFT image",
 )
 timeout_flag = click.option(
-    "-t", "--timeout", type=float, help="Timeout for verifying emnitted events"
+    "-t",
+    "--timeout",
+    type=float,
+    help="Timeout for on-chain interactions",
+)
+retries_flag = click.option(
+    "-r",
+    "--retries",
+    type=int,
+    help="Max retries for on-chain interactions",
+)
+sleep_flag = click.option(
+    "--sleep",
+    type=float,
+    help="Sleep period between retries",
 )
 owner_flag = click.option(
     "--owner",
     type=str,
     help="Owner address for the component",
 )
-
 key_path_decorator = click.option(
     "--key",
     type=PathArgument(exists=True, file_okay=True, dir_okay=False),
@@ -77,28 +83,45 @@ hwi_flag = click.option(
     is_flag=True,
     help="Use hardware wallet for signing the transactions.",
 )
+update_flag = click.option(
+    "--update",
+    type=int,
+    help="Update an already minted component with given token ID",
+)
+token_flag = click.option(
+    "--token",
+    type=str,
+    help="Token to use for bonding.",
+)
+dry_run_flag = click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Perform a dry run for the transaction.",
+)
 
 
 @click.group("mint")
 @pass_ctx
 @chain_selection_flag()
 @timeout_flag
-@click.option(
-    "--skip-hash-check",
-    is_flag=True,
-    help="Skip hash check when verifying dependencies on chain",
-)
-def mint(  # pylint: disable=too-many-arguments
+@retries_flag
+@sleep_flag
+@dry_run_flag
+def mint(
     ctx: Context,
     chain_type: str,
-    skip_hash_check: bool,
     timeout: float,
+    retries: int,
+    sleep: float,
+    dry_run: bool,
 ) -> None:
     """Mint component on-chain."""
 
     ctx.config["chain_type"] = ChainType(chain_type)
-    ctx.config["skip_hash_check"] = skip_hash_check
     ctx.config["timeout"] = timeout
+    ctx.config["retries"] = retries
+    ctx.config["sleep"] = sleep
+    ctx.config["dry_run"] = dry_run
 
 
 @mint.command()
@@ -106,35 +129,45 @@ def mint(  # pylint: disable=too-many-arguments
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
+@update_flag
 @pass_ctx
 def protocol(  # pylint: disable=too-many-arguments
     ctx: Context,
     package_path: Path,
     key: Path,
     password: Optional[str],
-    dependencies: Tuple[str],
     nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
+    update: Optional[int],
     hwi: bool = False,
 ) -> None:
     """Mint a protocol component."""
 
-    mint_component(
-        package_path=package_path,
-        package_type=PackageType.PROTOCOL,
-        key=key,
-        chain_type=cast(ChainType, ctx.config.get("chain_type")),
-        dependencies=list(map(int, dependencies)),
-        password=password,
-        nft=nft,
-        owner=owner,
-        skip_hash_check=ctx.config.get("skip_hash_check", False),
-        timeout=ctx.config["timeout"],
-        hwi=hwi,
+    mint_helper = (
+        MintHelper(
+            chain_type=cast(ChainType, ctx.config.get("chain_type")),
+            key=key,
+            password=password,
+            hwi=hwi,
+            update_token=update,
+            dry_run=ctx.config.get("dry_run"),
+            timeout=ctx.config.get("timeout"),
+            retries=ctx.config.get("retries"),
+            sleep=ctx.config.get("sleep"),
+        )
+        .load_package_configuration(
+            package_path=package_path, package_type=PackageType.PROTOCOL
+        )
+        .load_metadata()
+        .verify_nft(nft=nft)
+        .fetch_component_dependencies()
+        .publish_metadata()
     )
+    if update is not None:
+        return mint_helper.update_component()
+    return mint_helper.mint_component(owner=owner)
 
 
 @mint.command()
@@ -142,35 +175,45 @@ def protocol(  # pylint: disable=too-many-arguments
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
+@update_flag
 @pass_ctx
 def contract(  # pylint: disable=too-many-arguments
     ctx: Context,
     package_path: Path,
     key: Path,
     password: Optional[str],
-    dependencies: Tuple[str],
     nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
+    update: Optional[int],
     hwi: bool = False,
 ) -> None:
     """Mint a contract component."""
 
-    mint_component(
-        package_path=package_path,
-        package_type=PackageType.CONTRACT,
-        key=key,
-        chain_type=cast(ChainType, ctx.config.get("chain_type")),
-        dependencies=list(map(int, dependencies)),
-        password=password,
-        nft=nft,
-        owner=owner,
-        skip_hash_check=ctx.config.get("skip_hash_check", False),
-        timeout=ctx.config["timeout"],
-        hwi=hwi,
+    mint_helper = (
+        MintHelper(
+            chain_type=cast(ChainType, ctx.config.get("chain_type")),
+            key=key,
+            password=password,
+            hwi=hwi,
+            update_token=update,
+            dry_run=ctx.config.get("dry_run"),
+            timeout=ctx.config.get("timeout"),
+            retries=ctx.config.get("retries"),
+            sleep=ctx.config.get("sleep"),
+        )
+        .load_package_configuration(
+            package_path=package_path, package_type=PackageType.CONTRACT
+        )
+        .load_metadata()
+        .verify_nft(nft=nft)
+        .fetch_component_dependencies()
+        .publish_metadata()
     )
+    if update is not None:
+        return mint_helper.update_component()
+    return mint_helper.mint_component(owner=owner)
 
 
 @mint.command()
@@ -178,35 +221,45 @@ def contract(  # pylint: disable=too-many-arguments
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
+@update_flag
 @pass_ctx
 def connection(  # pylint: disable=too-many-arguments
     ctx: Context,
     package_path: Path,
     key: Path,
     password: Optional[str],
-    dependencies: Tuple[str],
     nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
+    update: Optional[int],
     hwi: bool = False,
 ) -> None:
     """Mint a connection component."""
 
-    mint_component(
-        package_path=package_path,
-        package_type=PackageType.CONNECTION,
-        key=key,
-        chain_type=cast(ChainType, ctx.config.get("chain_type")),
-        dependencies=list(map(int, dependencies)),
-        password=password,
-        nft=nft,
-        owner=owner,
-        skip_hash_check=ctx.config.get("skip_hash_check", False),
-        timeout=ctx.config["timeout"],
-        hwi=hwi,
+    mint_helper = (
+        MintHelper(
+            chain_type=cast(ChainType, ctx.config.get("chain_type")),
+            key=key,
+            password=password,
+            hwi=hwi,
+            update_token=update,
+            dry_run=ctx.config.get("dry_run"),
+            timeout=ctx.config.get("timeout"),
+            retries=ctx.config.get("retries"),
+            sleep=ctx.config.get("sleep"),
+        )
+        .load_package_configuration(
+            package_path=package_path, package_type=PackageType.CONNECTION
+        )
+        .load_metadata()
+        .verify_nft(nft=nft)
+        .fetch_component_dependencies()
+        .publish_metadata()
     )
+    if update is not None:
+        return mint_helper.update_component()
+    return mint_helper.mint_component(owner=owner)
 
 
 @mint.command()
@@ -214,35 +267,45 @@ def connection(  # pylint: disable=too-many-arguments
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
+@update_flag
 @pass_ctx
 def skill(  # pylint: disable=too-many-arguments
     ctx: Context,
     package_path: Path,
     key: Path,
     password: Optional[str],
-    dependencies: Tuple[str],
     nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
+    update: Optional[int],
     hwi: bool = False,
 ) -> None:
     """Mint a skill component."""
 
-    mint_component(
-        package_path=package_path,
-        package_type=PackageType.SKILL,
-        key=key,
-        chain_type=cast(ChainType, ctx.config.get("chain_type")),
-        dependencies=list(map(int, dependencies)),
-        password=password,
-        nft=nft,
-        owner=owner,
-        skip_hash_check=ctx.config.get("skip_hash_check", False),
-        timeout=ctx.config["timeout"],
-        hwi=hwi,
+    mint_helper = (
+        MintHelper(
+            chain_type=cast(ChainType, ctx.config.get("chain_type")),
+            key=key,
+            password=password,
+            hwi=hwi,
+            update_token=update,
+            dry_run=ctx.config.get("dry_run"),
+            timeout=ctx.config.get("timeout"),
+            retries=ctx.config.get("retries"),
+            sleep=ctx.config.get("sleep"),
+        )
+        .load_package_configuration(
+            package_path=package_path, package_type=PackageType.SKILL
+        )
+        .load_metadata()
+        .verify_nft(nft=nft)
+        .fetch_component_dependencies()
+        .publish_metadata()
     )
+    if update is not None:
+        return mint_helper.update_component()
+    return mint_helper.mint_component(owner=owner)
 
 
 @mint.command()
@@ -250,35 +313,44 @@ def skill(  # pylint: disable=too-many-arguments
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
+@update_flag
 @pass_ctx
 def agent(  # pylint: disable=too-many-arguments
     ctx: Context,
     package_path: Path,
     key: Path,
     password: Optional[str],
-    dependencies: Tuple[str],
     nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
+    update: Optional[int],
     hwi: bool = False,
 ) -> None:
     """Mint an agent."""
-
-    mint_component(
-        package_path=package_path,
-        package_type=PackageType.AGENT,
-        key=key,
-        chain_type=cast(ChainType, ctx.config.get("chain_type")),
-        dependencies=list(map(int, dependencies)),
-        password=password,
-        nft=nft,
-        owner=owner,
-        skip_hash_check=ctx.config.get("skip_hash_check", False),
-        timeout=ctx.config["timeout"],
-        hwi=hwi,
+    mint_helper = (
+        MintHelper(
+            chain_type=cast(ChainType, ctx.config.get("chain_type")),
+            key=key,
+            password=password,
+            hwi=hwi,
+            update_token=update,
+            dry_run=ctx.config.get("dry_run"),
+            timeout=ctx.config.get("timeout"),
+            retries=ctx.config.get("retries"),
+            sleep=ctx.config.get("sleep"),
+        )
+        .load_package_configuration(
+            package_path=package_path, package_type=PackageType.AGENT
+        )
+        .load_metadata()
+        .verify_nft(nft=nft)
+        .fetch_component_dependencies()
+        .publish_metadata()
     )
+    if update is not None:
+        return mint_helper.update_agent()
+    return mint_helper.mint_agent(owner=owner)
 
 
 @mint.command()
@@ -288,6 +360,8 @@ def agent(  # pylint: disable=too-many-arguments
 @password_decorator
 @nft_decorator
 @owner_flag
+@update_flag
+@token_flag
 @pass_ctx
 @click.option(
     "-a",
@@ -327,22 +401,43 @@ def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-a
     password: Optional[str],
     nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
+    update: Optional[int],
+    token: Optional[str],
     hwi: bool = False,
 ) -> None:
     """Mint a service"""
 
-    mint_service(
-        package_path=package_path,
-        key=key,
-        agent_id=agent_id,
+    mint_helper = (
+        MintHelper(
+            chain_type=cast(ChainType, ctx.config.get("chain_type")),
+            key=key,
+            password=password,
+            hwi=hwi,
+            update_token=update,
+            dry_run=ctx.config.get("dry_run"),
+            timeout=ctx.config.get("timeout"),
+            retries=ctx.config.get("retries"),
+            sleep=ctx.config.get("sleep"),
+        )
+        .load_package_configuration(
+            package_path=package_path, package_type=PackageType.SERVICE
+        )
+        .load_metadata()
+        .verify_nft(nft=nft)
+        .verify_service_dependencies(agent_id=agent_id)
+        .publish_metadata()
+    )
+    if update is not None:
+        return mint_helper.update_service(
+            number_of_slots=number_of_slots,
+            cost_of_bond=cost_of_bond,
+            threshold=threshold,
+            token=token,
+        )
+    return mint_helper.mint_service(
         number_of_slots=number_of_slots,
         cost_of_bond=cost_of_bond,
         threshold=threshold,
-        chain_type=cast(ChainType, ctx.config.get("chain_type")),
-        password=password,
-        nft=nft,
+        token=token,
         owner=owner,
-        skip_hash_check=ctx.config.get("skip_hash_check", False),
-        timeout=ctx.config["timeout"],
-        hwi=hwi,
     )

@@ -25,6 +25,17 @@ class MutableParams(TypeCheckMixin)
 
 Collection for the mutable parameters.
 
+<a id="packages.valory.skills.transaction_settlement_abci.models.GasParams"></a>
+
+## GasParams Objects
+
+```python
+@dataclass
+class GasParams(BaseParams)
+```
+
+Gas parameters.
+
 <a id="packages.valory.skills.transaction_settlement_abci.models.TransactionParams"></a>
 
 ## TransactionParams Objects

@@ -1,6 +1,6 @@
 The purpose of this guide is to provide step-by-step instructions to gain familiarity with the [overall development process](./overview_of_the_development_process.md) of the {{open_autonomy}} framework.
 
-We will show how to use the CLI to run a local deployment of the [Hello World service](../demos/hello_world_demo.md), which comprises:
+We will show how to use the CLI to run a local deployment of the [Hello World service](https://docs.autonolas.network/demos/hello-world/), which comprises:
 
 - 4 Docker containers implementing the 4 agents of the service, and
 - 4 Docker containers implementing a Tendermint node for each agent.
@@ -17,10 +17,10 @@ Before starting this guide, ensure that your machine satisfies the framework req
     On **MacOS** and **Windows**, running Docker containers requires having Docker Desktop running as well. If you're using one of those operating systems, remember to start Docker Desktop
     before you run agent services.
 
-1. Fetch the [Hello World service](../demos/hello_world_demo.md) from the remote registry. Within the workspace folder (not the remote registry) run:
+1. Fetch the [Hello World service](https://docs.autonolas.network/demos/hello-world/) from the remote registry. Within the workspace folder (not the remote registry) run:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeihizy26lpq4zeuzivpiqmllcaydfborkf5cfcalbbiinlhw2yezyu --service
+    autonomy fetch valory/hello_world:0.1.0:bafybeicehljk5ahlsy62t6a5by46uz3nguuxuh653mzoz4hfme22s6eodi --service
     ```
 
 2. Build the Docker image of the service agents:
@@ -99,7 +99,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
     autonomy deploy run
     ```
 
-    This will deploy the [Hello World service](../demos/hello_world_demo.md) locally with four agents connected to four Tendermint nodes.
+    This will deploy the [Hello World service](https://docs.autonolas.network/demos/hello-world/) locally with four agents connected to four Tendermint nodes.
 
     You can cancel the local execution at any time by pressing ++ctrl+c++.
 

@@ -90,7 +90,6 @@ def check_file(
     broken_links = []
 
     for url in m:
-
         # Add the closing parenthesis if it is missing, as the REGEX is too strict sometimes
         if "(" in url and ")" not in url:
             url += ")"

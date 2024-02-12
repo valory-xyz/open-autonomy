@@ -3,7 +3,7 @@ ignore-patterns=.*_pb2.py,contract_dispatcher.py,test_abci_messages.py,test_tend
 ignore=packages/valory/protocols/abci,packages/valory/connections/abci/gogoproto
 
 [MESSAGES CONTROL]
-disable=C0103,R0801,C0301,C0201,C0204,C0209,W1203,C0302,R1735,R1729,W0511
+disable=C0103,R0801,C0301,C0201,C0204,C0209,W1203,C0302,R1735,R1729,W0511,E0611
 
 # See here for more options: https://www.codeac.io/documentation/pylint-configuration.html
 R1735: use-dict-literal
@@ -16,9 +16,10 @@ C0209: consider-using-f-string
 C0301: http://pylint-messages.wikidot.com/messages:c0301 > Line too long
 C0302: http://pylint-messages.wikidot.com/messages:c0302 > Too many lines in module
 R0801: similar lines
+E0611: no-name-in-module
 
 [IMPORTS]
-ignored-modules=pandas,numpy,aea_cli_ipfs,compose,multidict
+ignored-modules=pandas,numpy,aea_cli_ipfs,compose,multidict,gql
 
 [DESIGN]
 # min-public-methods=1

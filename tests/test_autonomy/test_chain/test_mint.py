@@ -30,7 +30,7 @@ from autonomy.chain.base import registry_contracts
 from autonomy.chain.config import ChainType
 from autonomy.chain.constants import COMPONENT_REGISTRY_CONTRACT, CONTRACTS_DIR_LOCAL
 from autonomy.chain.exceptions import InvalidMintParameter
-from autonomy.chain.mint import mint_service, sort_service_dependency_metadata
+from autonomy.chain.mint import MintManager, sort_service_dependency_metadata, transact
 
 from tests.test_autonomy.test_chain.base import DUMMY_HASH
 
@@ -40,7 +40,6 @@ from tests.test_autonomy.test_chain.base import DUMMY_HASH
     argvalues=(
         (
             dict(
-                chain_type=ChainType.LOCAL,
                 metadata_hash=DUMMY_HASH,
                 agent_ids=[],
                 number_of_slots_per_agent=[],
@@ -51,7 +50,6 @@ from tests.test_autonomy.test_chain.base import DUMMY_HASH
         ),
         (
             dict(
-                chain_type=ChainType.LOCAL,
                 metadata_hash=DUMMY_HASH,
                 agent_ids=[1],
                 number_of_slots_per_agent=[],
@@ -62,7 +60,6 @@ from tests.test_autonomy.test_chain.base import DUMMY_HASH
         ),
         (
             dict(
-                chain_type=ChainType.LOCAL,
                 metadata_hash=DUMMY_HASH,
                 agent_ids=[1],
                 number_of_slots_per_agent=[4],
@@ -73,7 +70,6 @@ from tests.test_autonomy.test_chain.base import DUMMY_HASH
         ),
         (
             dict(
-                chain_type=ChainType.LOCAL,
                 metadata_hash=DUMMY_HASH,
                 agent_ids=[1],
                 number_of_slots_per_agent=[4],
@@ -87,7 +83,6 @@ from tests.test_autonomy.test_chain.base import DUMMY_HASH
         ),
         (
             dict(
-                chain_type=ChainType.LOCAL,
                 metadata_hash=DUMMY_HASH,
                 agent_ids=[1],
                 number_of_slots_per_agent=[0],
@@ -98,7 +93,6 @@ from tests.test_autonomy.test_chain.base import DUMMY_HASH
         ),
         (
             dict(
-                chain_type=ChainType.LOCAL,
                 metadata_hash=DUMMY_HASH,
                 agent_ids=[1],
                 number_of_slots_per_agent=[4],
@@ -113,11 +107,11 @@ def test_mint_service_invalid_paramters(parameters: Dict, error_message: str) ->
     """Test invalid parameters"""
 
     with pytest.raises(InvalidMintParameter, match=error_message):
-        mint_service(
+        MintManager(
             ledger_api=mock.MagicMock(),  # type: ignore
             crypto=mock.MagicMock(),  # type: ignore
-            **parameters
-        )
+            chain_type=ChainType.LOCAL,
+        ).mint_service(**parameters)
 
 
 def test_get_contract_method() -> None:
@@ -137,7 +131,9 @@ def test_get_contract_method() -> None:
                 "please reinstall the package"
             ),
         ):
-            contract = registry_contracts.get_contract(COMPONENT_REGISTRY_CONTRACT)
+            contract = registry_contracts.get_contract(
+                COMPONENT_REGISTRY_CONTRACT, cache=False
+            )
 
 
 def test_sort_service_dependency_metadata() -> None:
@@ -165,3 +161,15 @@ def test_sort_service_dependency_metadata() -> None:
     assert cal_agent_ids == expected_agent_ids
     assert cal_number_of_slots_per_agents == expected_number_of_slots_per_agents
     assert cal_cost_of_bond_per_agent == expected_cost_of_bond_per_agent
+
+
+def test_transaction_timeout() -> None:
+    """Test transaction timeout."""
+    with pytest.raises(TimeoutError):
+        transact(
+            ledger_api=mock.MagicMock(),
+            crypto=mock.MagicMock(),
+            tx={},
+            sleep=1.0,
+            timeout=-1.0,
+        )

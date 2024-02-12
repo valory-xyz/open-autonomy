@@ -154,6 +154,7 @@ def test_validate_doc_commands() -> None:
         "aea -- /bin/sh",
         "autonomy deploy --env-file <path_to_dotenv> COMMAND",
         "autonomy deploy --env-file <path_to_json> COMMAND",
+        "aea init --reset --remote --ipfs --author ${AUTHOR}",
     ]
     # Validate all matches
     for file_ in target_files:

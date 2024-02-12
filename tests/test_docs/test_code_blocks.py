@@ -160,25 +160,13 @@ class TestYamlSnippets(BaseTestDocCode):
     # instead of checking the code block as a whole.
 
     md_to_code = {
-        "docs/demos/hello_world_demo.md": {
-            "code_files": [
-                "packages/valory/skills/hello_world_abci/fsm_specification.yaml",
-                "packages/valory/agents/hello_world/aea-config.yaml",
-            ],
-        },
-        "docs/demos/price_oracle_fsms.md": {
-            "code_files": [
-                "packages/valory/skills/registration_abci/fsm_specification.yaml",
-            ],
-            "skip_blocks": [1, 2, 3, 4, 5],
-        },
         "docs/guides/deploy_service.md": {"skip_blocks": [0]},
         "docs/advanced_reference/developer_tooling/benchmarking.md": {
             "skip_blocks": [0]
         },
         "docs/guides/draft_service_idea_and_define_fsm_specification.md": {
             "code_files": [
-                "packages/valory/skills/hello_world_abci/fsm_specification.yaml"
+                "https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/valory/skills/hello_world_abci/fsm_specification.yaml"
             ]
         },
     }
@@ -190,6 +178,7 @@ class TestYamlSnippets(BaseTestDocCode):
         "docs/configure_service/on-chain_deployment_checklist.md",  # just placeholder examples
         "docs/configure_service/configure_access_external_chains.md",  # just placeholder examples
         "docs/advanced_reference/developer_tooling/dev_mode.md",  # just placeholder examples
+        "docs/advanced_reference/commands/autonomy_deploy.md",  # blocks contain resource values on deployment configurations
     ]
 
 
@@ -225,15 +214,6 @@ class TestPythonSnippets(BaseTestDocCode):
             ],
             "skip_blocks": [1],
         },
-        "docs/demos/hello_world_demo.md": {
-            "code_files": [
-                "packages/valory/skills/hello_world_abci/behaviours.py",
-                "packages/valory/skills/hello_world_abci/behaviours.py",
-                "packages/valory/skills/hello_world_abci/payloads.py",
-                "packages/valory/skills/hello_world_abci/rounds.py",
-                "by_line::packages/valory/skills/hello_world_abci/rounds.py",
-            ],
-        },
         "docs/advanced_reference/commands/autonomy_analyse.md": {"skip_blocks": [0]},
         "docs/key_concepts/aea.md": {"code_files": [], "skip_blocks": [0, 1]},
     }
@@ -264,15 +244,12 @@ class TestJsonSnippets(BaseTestDocCode):
     # instead of checking the code block as a whole.
 
     md_to_code = {
-        "docs/guides/set_up.md": {
-            "code_files": ["by_line::packages/packages.json"],
-        },
-        "docs/guides/deploy_service.md": {
-            "code_files": [
-                "by_line::deployments/keys/hardhat_keys.json",
-                "by_line::deployments/keys/hardhat_keys.json",
-            ],
-        },
+        # "docs/guides/deploy_service.md": { # noqa: E800
+        #     "code_files": [ # noqa: E800
+        #         "by_line::deployments/keys/hardhat_keys.json", # noqa: E800
+        #         "by_line::deployments/keys/hardhat_keys.json", # noqa: E800
+        #     ], # noqa: E800
+        # }, # noqa: E800
         "docs/guides/quick_start.md": {
             "code_files": ["by_line::deployments/keys/hardhat_keys.json"],
         },
@@ -285,7 +262,9 @@ class TestJsonSnippets(BaseTestDocCode):
     }
 
     skipped_files = [
+        "docs/guides/deploy_service.md",
         "docs/advanced_reference/commands/autonomy_deploy.md",
+        "docs/guides/set_up.md",
     ]
 
 

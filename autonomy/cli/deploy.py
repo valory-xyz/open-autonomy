@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ from autonomy.cli.helpers.deployment import (
     build_and_deploy_from_token,
     build_deployment,
     run_deployment,
+    stop_deployment,
 )
 from autonomy.cli.helpers.env import load_env_file
 from autonomy.cli.utils.click_utils import (
@@ -46,7 +47,13 @@ from autonomy.cli.utils.click_utils import (
     image_author_option,
 )
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_KEYS_FILE
-from autonomy.deploy.base import NotValidKeysFile
+from autonomy.deploy.base import (
+    DEFAULT_AGENT_CPU_LIMIT,
+    DEFAULT_AGENT_CPU_REQUEST,
+    DEFAULT_AGENT_MEMORY_LIMIT,
+    DEFAULT_AGENT_MEMORY_REQUEST,
+    NotValidKeysFile,
+)
 from autonomy.deploy.constants import INFO, LOGGING_LEVELS
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
@@ -161,6 +168,30 @@ def deploy_group(
     help="Use local tendermint chain setup.",
 )
 @click.option("--image-version", type=str, help="Define runtime image version.")
+@click.option(
+    "--agent-cpu-request",
+    type=float,
+    help="Set agent CPU usage request.",
+    default=DEFAULT_AGENT_CPU_REQUEST,
+)
+@click.option(
+    "--agent-memory-request",
+    type=int,
+    help="Set agent memory usage request.",
+    default=DEFAULT_AGENT_MEMORY_REQUEST,
+)
+@click.option(
+    "--agent-cpu-limit",
+    type=float,
+    help="Set agent CPU usage limit.",
+    default=DEFAULT_AGENT_CPU_LIMIT,
+)
+@click.option(
+    "--agent-memory-limit",
+    type=int,
+    help="Set agent memory usage limit.",
+    default=DEFAULT_AGENT_MEMORY_LIMIT,
+)
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @image_author_option
@@ -184,8 +215,17 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     use_acn: bool = False,
     use_tm_testnet_setup: bool = False,
     image_author: Optional[str] = None,
+    agent_cpu_limit: Optional[float] = None,
+    agent_memory_limit: Optional[int] = None,
+    agent_cpu_request: Optional[float] = None,
+    agent_memory_request: Optional[int] = None,
 ) -> None:
     """Build deployment setup for n agents."""
+    if password is not None:  # pragma: nocover
+        click.echo(
+            "WARNING: `--password` flag has been deprecated, "
+            "use `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` to export the password value"
+        )
 
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
     if not keys_file.exists():
@@ -221,7 +261,6 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             deployment_type=deployment_type,
             dev_mode=dev_mode,
             number_of_agents=number_of_agents,
-            password=password,
             packages_dir=packages_dir,
             open_aea_dir=open_aea_dir,
             open_autonomy_dir=open_autonomy_dir,
@@ -232,6 +271,15 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             use_acn=use_acn,
             use_tm_testnet_setup=use_tm_testnet_setup,
             image_author=image_author,
+            resources={
+                "agent": {
+                    "limit": {"cpu": agent_cpu_limit, "memory": agent_memory_limit},
+                    "requested": {
+                        "cpu": agent_cpu_request,
+                        "memory": agent_memory_request,
+                    },
+                }
+            },
         )
     except (NotValidKeysFile, FileNotFoundError, FileExistsError) as e:
         shutil.rmtree(build_dir)
@@ -242,6 +290,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
 @click.option(
     "--build-dir",
     type=click.Path(),
+    help="Path to the deployment build directory.",
 )
 @click.option(
     "--no-recreate",
@@ -255,16 +304,38 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     default=False,
     help="Remove containers for services not defined in the Compose file.",
 )
-def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
+@click.option(
+    "--detach",
+    is_flag=True,
+    default=False,
+    help="Run service in the background.",
+)
+def run(
+    build_dir: Path, no_recreate: bool, remove_orphans: bool, detach: bool = False
+) -> None:
     """Run deployment."""
     build_dir = Path(build_dir or Path.cwd()).absolute()
-
     if not (build_dir / DockerComposeGenerator.output_name).exists():
         raise click.ClickException(
             f"Deployment configuration does not exist @ {build_dir}"
         )
+    run_deployment(build_dir, no_recreate, remove_orphans, detach=detach)
 
-    run_deployment(build_dir, no_recreate, remove_orphans)
+
+@deploy_group.command(name="stop")
+@click.option(
+    "--build-dir",
+    type=click.Path(),
+    help="Path to the deployment build directory.",
+)
+def stop(build_dir: Path) -> None:
+    """Stop a running deployment."""
+    build_dir = Path(build_dir or Path.cwd()).absolute()
+    if not (build_dir / DockerComposeGenerator.output_name).exists():
+        raise click.ClickException(
+            f"Deployment configuration does not exist @ {build_dir}"
+        )
+    stop_deployment(build_dir=build_dir)
 
 
 @deploy_group.command(name="from-token")
@@ -296,6 +367,36 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
     is_flag=True,
     help="If set to true, the deployment won't run automatically",
 )
+@click.option(
+    "--detach",
+    is_flag=True,
+    default=False,
+    help="Run service in the background.",
+)
+@click.option(
+    "--agent-cpu-request",
+    type=float,
+    help="Set agent CPU usage request.",
+    default=DEFAULT_AGENT_CPU_REQUEST,
+)
+@click.option(
+    "--agent-memory-request",
+    type=int,
+    help="Set agent memory usage request.",
+    default=DEFAULT_AGENT_MEMORY_REQUEST,
+)
+@click.option(
+    "--agent-cpu-limit",
+    type=float,
+    help="Set agent CPU usage limit.",
+    default=DEFAULT_AGENT_CPU_LIMIT,
+)
+@click.option(
+    "--agent-memory-limit",
+    type=int,
+    help="Set agent memory usage limit.",
+    default=DEFAULT_AGENT_MEMORY_LIMIT,
+)
 @chain_selection_flag(help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 @password_option(confirmation_prompt=True)
@@ -308,15 +409,24 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     n: Optional[int],
     deployment_type: str,
     no_deploy: bool,
+    detach: bool,
     aev: bool = False,
     password: Optional[str] = None,
+    agent_cpu_limit: Optional[float] = None,
+    agent_memory_limit: Optional[int] = None,
+    agent_cpu_request: Optional[float] = None,
+    agent_memory_request: Optional[int] = None,
 ) -> None:
     """Run service deployment."""
+    if password is not None:  # pragma: nocover
+        click.echo(
+            "WARNING: `--password` flag has been deprecated, "
+            "use `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` to export the password value"
+        )
 
     ctx = cast(Context, click_context.obj)
     ctx.registry_type = REGISTRY_REMOTE
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
-
     with reraise_as_click_exception(
         NotValidKeysFile, FileNotFoundError, FileExistsError
     ):
@@ -328,6 +438,15 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
             n=n,
             deployment_type=deployment_type,
             aev=aev,
-            password=password,
             no_deploy=no_deploy,
+            detach=detach,
+            resources={
+                "agent": {
+                    "limit": {"cpu": agent_cpu_limit, "memory": agent_memory_limit},
+                    "requested": {
+                        "cpu": agent_cpu_request,
+                        "memory": agent_memory_request,
+                    },
+                }
+            },
         )

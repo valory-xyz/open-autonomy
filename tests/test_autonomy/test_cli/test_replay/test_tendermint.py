@@ -88,15 +88,15 @@ class TestTendermintRunner(BaseCliTest):
         """Setup."""
         super().setup()
         shutil.copytree(
-            self.packages_dir / "valory" / "services" / "hello_world",
-            self.t / "hello_world",
+            self.packages_dir / "valory" / "services" / "register_reset",
+            self.t / "register_reset",
         )
         os.chdir(self.t)
 
     def test_run(self) -> None:
         """Test run."""
 
-        os.chdir(self.t / "hello_world")
+        os.chdir(self.t / "register_reset")
         with OS_ENV_PATCH:
             result = self.cli_runner.invoke(
                 cli,
@@ -144,7 +144,6 @@ class TestTendermintRunner(BaseCliTest):
         ), mock.patch.object(TendermintNetwork, "stop") as stop_mock, mock.patch.object(
             flask.Flask, "run", new=ctrl_c
         ):
-
             result = self.run_cli(("--build", str(self.t / DEFAULT_BUILD_FOLDER)))
             assert result.exit_code == 0, result.output
             stop_mock.assert_any_call()

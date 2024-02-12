@@ -50,7 +50,7 @@ AGENT_DATA = {
     "environment": [
         "LOG_FILE=/logs/aea_0.txt",
         "ID=0",
-        "VALORY_APPLICATION=valory/hello_world:0.1.0:bafybeideb6b5k4i6z7bm3p53eydxgknmwdefo2oshcnlxthjc6oxeox7ua",
+        "VALORY_APPLICATION=valory/offend_slash:0.1.0:bafybeideb6b5k4i6z7bm3p53eydxgknmwdefo2oshcnlxthjc6oxeox7ua",
         "ABCI_HOST=abci0",
         f"SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_{TENDERMINT_URL_PARAM.upper()}=http://node0:26657",
         f"SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_{TENDERMINT_COM_URL_PARAM.upper()}=http://node0:8080",
@@ -156,7 +156,6 @@ def test_tendermint_network() -> None:
             tendermint_network.run_until_interruption()
 
         with app.test_client() as client:
-
             response = client.get("/0/tx")
             response_data = response.get_json()
             assert response_data["result"]["tx_result"]["code"] == 0

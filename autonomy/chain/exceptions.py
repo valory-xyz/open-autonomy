@@ -24,12 +24,20 @@ class ChainInteractionError(Exception):
     """Base chain interaction failure."""
 
 
+class RPCError(ChainInteractionError):
+    """RPC error."""
+
+
+class TxBuildError(ChainInteractionError):
+    """Tx build error."""
+
+
+class ChainTimeoutError(ChainInteractionError):
+    """Timeout error for interecting with chain."""
+
+
 class ComponentMintFailed(ChainInteractionError):
     """Raise when component minting fails."""
-
-
-class FailedToRetrieveTokenId(ChainInteractionError):
-    """Raise when token ID retrieving fails for minted component."""
 
 
 class FailedToRetrieveComponentMetadata(ChainInteractionError):

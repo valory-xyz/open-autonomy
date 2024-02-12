@@ -25,13 +25,12 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Type
 
-import numpy as np
 from aea.exceptions import enforce
 from aea.test_tools.test_cases import AEATestCaseMany
 from hypothesis import given, settings
 from hypothesis.strategies import binary, booleans, integers, lists, text, tuples
 
-from packages.valory.connections.abci import CI
+from packages.valory.connections.abci.tests import CI
 from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.base import (
     BaseChannel,
 )
@@ -50,15 +49,15 @@ class BaseFuzzyTests(AEATestCaseMany):
 
     package_registry_src_rel = Path(__file__).parents[5]
 
-    UINT_64_MAX_VALUE = np.iinfo(np.uint64).max
+    UINT_64_MAX_VALUE = 18446744073709551615
     UINT_64_MIN_VALUE = 0
-    INT_64_MAX_VALUE = np.iinfo(np.int64).max
-    INT_64_MIN_VALUE = np.iinfo(np.int64).min
+    INT_64_MAX_VALUE = 9223372036854775807
+    INT_64_MIN_VALUE = -9223372036854775808
 
-    UINT_32_MAX_VALUE = np.iinfo(np.uint32).max
+    UINT_32_MAX_VALUE = 4294967295
     UINT_32_MIN_VALUE = 0
-    INT_32_MAX_VALUE = np.iinfo(np.int32).max
-    INT_32_MIN_VALUE = np.iinfo(np.int32).min
+    INT_32_MAX_VALUE = 2147483647
+    INT_32_MIN_VALUE = -2147483648
 
     CHANNEL_TYPE: Type[BaseChannel] = BaseChannel
     CHANNEL_ARGS: Dict[str, Any] = dict()

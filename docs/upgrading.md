@@ -5,6 +5,151 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.14.3` to `v0.14.3.post1`
+
+No backwards incompatible changes
+
+## `v0.14.2` to `v0.14.3`
+
+No backwards incompatible changes
+
+## `v0.14.1` to `v0.14.2`
+
+No backwards incompatible changes
+
+## `v0.14.0` to `v0.14.1`
+
+No backwards incompatible changes
+
+## `v0.13.10` to `v0.14.0`
+
+- This release introduces automated dependency verification on the minting tools, this means when minting a package you will have to mint all of the dependencies beforehand. The minting tools uses a subgraph to verify dependencies so you might have to wait for a small amount of time before you can mint the package after you mint the dependencies. 
+- Since the dependency verification is automated the `--skip-hash-check` and `--skip-dependencies-check` flags have been deprecated on the `autonomy mint/service` command groups
+
+## `v0.13.9.post1` to `v0.13.10`
+
+No backwards incompatible changes
+
+## `v0.13.9` to `v0.13.9.post1`
+
+No backwards incompatible changes
+
+## `v0.13.8` to `v0.13.9`
+
+No backwards incompatible changes
+
+## `v0.13.7` to `v0.13.8`
+
+No backwards incompatible changes
+
+## `v0.13.6` to `v0.13.7`
+
+No backwards incompatible changes
+
+## `v0.13.5` to `v0.13.6`
+
+No backwards incompatible changes
+
+## `v0.13.4` to `v0.13.5`
+
+No backwards incompatible changes
+
+## `v0.13.3` to `v0.13.4`
+
+No backwards incompatible changes
+
+## `v0.13.2` to `v0.13.3`
+
+No backwards incompatible changes
+
+## `v0.13.1` to `v0.13.2`
+
+- The usage `--password` of flag has been deprecated on `autonomy deploy` command group. Use `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` environment variable to export the private key password string when running `autonomy deploy build/run` commands.
+
+## `v0.13.1` to `v0.13.1.post1`
+
+No backwards incompatible changes
+
+## `v0.13.0` to `v0.13.1`
+
+- This release introduces support for defining service level dependencies, which means you can define python dependencies at the service level which will take priority over the agent or component level dependencies. The `dependencies` parameter is currently optional to make the upgrading easier. But this will be required in the next release, so please update your services accordingly.
+
+## `v0.12.1.post4` to `v0.13.0`
+
+- `open-aea-web3` has been replaced with `web3py`
+- `protobuf` has been bumped to `protobuf>=4.21.6,<5.0.0`, this means you will have to bump your protocol generator to `v24.3` and generate your protocol packages again.
+- The `valory/open-autonomy` image will use Python 3.11 as default interpreter for running agents
+
+## `v0.12.1.post3` to `v0.12.1.post4`
+
+No backwards incompatible changes
+
+## `v0.12.1.post2` to `v0.12.1.post3`
+
+No backwards incompatible changes
+
+## `v0.12.1.post1` to `v0.12.1.post2`
+
+No backwards incompatible changes
+
+## `v0.12.1` to `v0.12.1.post1`
+
+- Environment variable names have changed for custom contract address, refer to the `mint/service` CLI tools documentation regarding the changes.
+
+## `v0.12.0` to `v0.12.1`
+
+No backwards incompatible changes
+
+## `v0.11.1` to `v0.12.0`
+
+- Renamed the `background_behaviour_cls` in `AbstractRoundBehaviour` to `termination_behaviour_cls`. 
+ *Should be taken into consideration for all the apps that are utilizing the termination.*
+- Renamed the `background_behaviour` in `AbstractRoundBehaviour` to `termination_behaviour`.
+- Renamed the `is_background_behaviour_set` property in `AbstractRoundBehaviour` to `is_termination_set`.
+- Renamed the `background_round_cls` argument of the `add_termination` method in `AbciApp` to `termination_round_cls`. 
+ *Should be taken into consideration for all the apps that are utilizing the termination.*
+- Renamed the `background_round_cls` attribute of the `AbciApp` to `termination_round_cls`.
+- Renamed the `_background_round` attribute of the `AbciApp` to `_termination_round`.
+- Renamed the `background_round` property of the `AbciApp` to `termination_round`.
+- The `AbstractRound` class now requires a `SkillContext` positional argument. 
+ To accommodate this change, 
+ all round tests will need to be modified to include a mocked context in addition to the synchronized data.
+
+1 && 4 should be taken into consideration for all the apps that are utilizing the termination.
+
+## `v0.11.0` to `v0.11.1`
+
+The `autonomy deploy run` command now handles the exists from deployment and to do this we're running the deployments in detached mode and waiting for the user to cancel what that means is from now on when running the deployments the logs won't be printed out by default. If you want to check out the logs for containers you can use `docker logs` command.
+
+## `v0.10.11.post1` to `v0.11.0`
+
+- `web3py` has been replaced with `open-aea-web3` and we forked this from `web3py@v6.0.0`, that means the method names will use the `snake_case` and the `camelCase` naming has been deprecated
+- Support for `Python 3.7` has been deprecated
+
+## `v0.10.11` to `v0.10.11.post1`
+
+No backwards incompatible changes
+
+## `v0.10.10.post1` to `v0.10.11`
+
+No backwards incompatible changes
+
+## `v0.10.10` to `v0.10.10.post1`
+
+No backwards incompatible changes
+
+## `v0.10.9` to `v0.10.10`
+
+No backwards incompatible changes
+
+## `v0.10.8` to `v0.10.9`
+
+No backwards incompatible changes
+
+## `v0.10.7` to `v0.10.8`
+
+No backwards incompatible changes
+
 ## `v0.10.6` to `v0.10.7`
 
 No backwards incompatible changes

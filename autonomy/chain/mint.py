@@ -19,41 +19,63 @@
 
 """Helpers for minting components"""
 
-import datetime
 import time
+from datetime import datetime
 from math import ceil
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple, cast
 
+from aea.configurations.data_types import PublicId
 from aea.crypto.base import Crypto, LedgerApi
-from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from autonomy.chain.base import UnitType, registry_contracts
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import (
     AGENT_REGISTRY_CONTRACT,
     COMPONENT_REGISTRY_CONTRACT,
-    EVENT_VERIFICATION_TIMEOUT,
     REGISTRIES_MANAGER_CONTRACT,
     SERVICE_MANAGER_CONTRACT,
     SERVICE_REGISTRY_CONTRACT,
 )
-from autonomy.chain.exceptions import (
-    ComponentMintFailed,
-    FailedToRetrieveTokenId,
-    InvalidMintParameter,
-)
+from autonomy.chain.exceptions import ComponentMintFailed, InvalidMintParameter
+from autonomy.chain.tx import TxSettler
+
+
+try:
+    from web3.exceptions import Web3Exception
+except (ModuleNotFoundError, ImportError):
+    Web3Exception = Exception
 
 
 DEFAULT_NFT_IMAGE_HASH = "bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm"
+DEFAULT_TRANSACTION_WAIT_TIMEOUT = 60.0
 
 
-def transact(ledger_api: LedgerApi, crypto: Crypto, tx: Dict) -> Dict:
+def transact(
+    ledger_api: LedgerApi,
+    crypto: Crypto,
+    tx: Dict,
+    max_retries: int = 5,
+    sleep: float = 5.0,
+    timeout: Optional[float] = None,
+) -> Dict:
     """Make a transaction and return a receipt"""
-
+    retries = 0
+    tx_receipt = None
     tx_signed = crypto.sign_transaction(transaction=tx)
     tx_digest = ledger_api.send_signed_transaction(tx_signed=tx_signed)
-
-    return ledger_api.get_transaction_receipt(tx_digest=tx_digest)
+    deadline = datetime.now().timestamp() + (
+        timeout or DEFAULT_TRANSACTION_WAIT_TIMEOUT
+    )
+    while (
+        tx_receipt is None
+        and retries < max_retries
+        and deadline >= datetime.now().timestamp()
+    ):
+        try:
+            return ledger_api.api.eth.get_transaction_receipt(tx_digest)
+        except Web3Exception:  # pylint: disable=broad-except
+            time.sleep(sleep)
+    raise TimeoutError("Timed out when waiting for transaction to go through")
 
 
 def sort_service_dependency_metadata(
@@ -78,208 +100,298 @@ def sort_service_dependency_metadata(
     return ids_sorted, slots_sorted, securities_sorted
 
 
-def wait_for_component_to_mint(
-    token_retriever: Callable[[], Optional[int]],
-    timeout: Optional[float] = None,
-    sleep: float = 1.0,
-) -> int:
-    """Wait for service activation."""
+class MintManager:
+    """Mint helper."""
 
-    timeout = timeout or EVENT_VERIFICATION_TIMEOUT
-    deadline = datetime.datetime.now() + datetime.timedelta(seconds=timeout)
-    while datetime.datetime.now() < deadline:
-        token_id = token_retriever()
-        if token_id is not None:
-            return token_id
-        time.sleep(sleep)
+    def __init__(  # pylint: disable=too-many-arguments
+        self,
+        ledger_api: LedgerApi,
+        crypto: Crypto,
+        chain_type: ChainType,
+        dry_run: bool = False,
+        timeout: Optional[float] = None,
+        retries: Optional[int] = None,
+        sleep: Optional[float] = None,
+    ) -> None:
+        """Initialize object."""
+        self.crypto = crypto
+        self.ledger_api = ledger_api
+        self.chain_type = chain_type
+        self.timeout = timeout
+        self.retries = retries
+        self.sleep = sleep
+        self.dry_run = dry_run
 
-    raise TimeoutError("Could not retrieve the token in given time limit.")
-
-
-def mint_component(  # pylint: disable=too-many-arguments
-    ledger_api: LedgerApi,
-    crypto: Crypto,
-    metadata_hash: str,
-    component_type: UnitType,
-    chain_type: ChainType,
-    owner: Optional[str] = None,
-    dependencies: Optional[List[int]] = None,
-    timeout: Optional[float] = None,
-) -> Optional[int]:
-    """Publish component on-chain."""
-
-    if dependencies is not None:
-        dependencies = sorted(set(dependencies))
-
-    try:
-        owner = ledger_api.api.toChecksumAddress(owner or crypto.address)
-    except ValueError as e:  # pragma: nocover
-        raise ComponentMintFailed(f"Invalid owner address {owner}") from e
-
-    try:
-        tx = registry_contracts.registries_manager.get_create_transaction(
-            ledger_api=ledger_api,
-            contract_address=ContractConfigs.get(
-                REGISTRIES_MANAGER_CONTRACT.name
-            ).contracts[chain_type],
-            owner=owner,
-            sender=crypto.address,
-            component_type=component_type,
-            metadata_hash=metadata_hash,
-            dependencies=dependencies,
-            raise_on_try=True,
+    def _transact(
+        self,
+        method: Callable,
+        kwargs: Dict,
+        build_tx_ctr: str,
+        event: str,
+        process_receipt_ctr: PublicId,
+    ) -> List[Dict]:
+        """Auxiliary method for minting components."""
+        tx_settler = TxSettler(
+            ledger_api=self.ledger_api,
+            crypto=self.crypto,
+            chain_type=self.chain_type,
+            timeout=self.timeout,
+            retries=self.retries,
+            sleep=self.sleep,
         )
-        transact(
-            ledger_api=ledger_api,
-            crypto=crypto,
-            tx=tx,
+        receipt = tx_settler.transact(
+            method=method,
+            contract=build_tx_ctr,
+            kwargs=kwargs,
+            dry_run=self.dry_run,
         )
-    except RequestsConnectionError as e:
-        raise ComponentMintFailed("Cannot connect to the given RPC") from e
+        if self.dry_run:
+            print("=== Dry run output ===")
+            print("Method: " + str(method).split(" ")[2])
+            print(
+                f"Contract: {ContractConfigs.get(name=build_tx_ctr).contracts[self.chain_type]}"
+            )
+            print("Kwargs: ")
+            for key, val in kwargs.items():
+                print(f"    {key}: {val}")
+            print("Transaction: ")
+            for key, val in receipt.items():
+                print(f"    {key}: {val}")
+            return []
+        events = tx_settler.process(
+            event=event,
+            receipt=receipt,
+            contract=process_receipt_ctr,
+        ).get("events")
+        return cast(List[Dict], events)
 
-    try:
-        if component_type == UnitType.COMPONENT:
+    def validate_address(self, address: str) -> str:
+        """Validate address string."""
+        try:
+            return self.ledger_api.api.to_checksum_address(address)
+        except ValueError as e:  # pragma: nocover
+            raise ComponentMintFailed(f"Invalid owner address {address}") from e
 
-            def token_retriever() -> bool:
-                """Retrieve token"""
-                return registry_contracts.component_registry.filter_token_id_from_emitted_events(
-                    ledger_api=ledger_api,
-                    contract_address=ContractConfigs.get(
-                        COMPONENT_REGISTRY_CONTRACT.name
-                    ).contracts[chain_type],
-                    metadata_hash=metadata_hash,
-                )
+    def mint_component(
+        self,
+        metadata_hash: str,
+        component_type: UnitType,
+        owner: Optional[str] = None,
+        dependencies: Optional[List[int]] = None,
+    ) -> Optional[int]:
+        """Publish component on-chain."""
+        owner = self.validate_address(owner or self.crypto.address)
+        if dependencies is not None:
+            dependencies = sorted(set(dependencies))
 
-        else:
-
-            def token_retriever() -> bool:
-                """Retrieve token"""
-                return registry_contracts.agent_registry.filter_token_id_from_emitted_events(
-                    ledger_api=ledger_api,
-                    contract_address=ContractConfigs.get(
-                        AGENT_REGISTRY_CONTRACT.name
-                    ).contracts[chain_type],
-                    metadata_hash=metadata_hash,
-                )
-
-        return wait_for_component_to_mint(
-            token_retriever=token_retriever, timeout=timeout
+        events = self._transact(
+            method=registry_contracts.registries_manager.get_create_transaction,
+            build_tx_ctr=REGISTRIES_MANAGER_CONTRACT.name,
+            kwargs=dict(
+                owner=owner,
+                component_type=component_type,
+                metadata_hash=metadata_hash,
+                sender=self.crypto.address,
+                dependencies=dependencies,
+            ),
+            event="CreateUnit",
+            process_receipt_ctr=(
+                COMPONENT_REGISTRY_CONTRACT
+                if component_type == UnitType.COMPONENT
+                else AGENT_REGISTRY_CONTRACT
+            ),
         )
+        for event in events:
+            if (
+                "unitHash" in event["args"]
+                and event["args"]["unitHash"].hex() == metadata_hash[2:]
+            ):
+                return event["args"]["unitId"]
+        return None
 
-    except RequestsConnectionError as e:
-        raise FailedToRetrieveTokenId(
-            "Connection interrupted while waiting for the unitId emit event"
-        ) from e
-    except TimeoutError as e:
-        raise FailedToRetrieveTokenId(str(e)) from e
+    def update_component(
+        self, metadata_hash: str, unit_id: int, component_type: UnitType
+    ) -> Optional[int]:
+        """Update component on-chain."""
 
-
-def mint_service(  # pylint: disable=too-many-arguments
-    ledger_api: LedgerApi,
-    crypto: Crypto,
-    metadata_hash: str,
-    chain_type: ChainType,
-    agent_ids: List[int],
-    number_of_slots_per_agent: List[int],
-    cost_of_bond_per_agent: List[int],
-    threshold: int,
-    owner: Optional[str] = None,
-    timeout: Optional[float] = None,
-) -> Optional[int]:
-    """Publish component on-chain."""
-
-    if len(agent_ids) == 0:
-        raise InvalidMintParameter("Please provide at least one agent id")
-
-    if len(number_of_slots_per_agent) == 0:
-        raise InvalidMintParameter("Please for provide number of slots for agents")
-
-    if len(cost_of_bond_per_agent) == 0:
-        raise InvalidMintParameter("Please for provide cost of bond for agents")
-
-    if (
-        len(agent_ids) != len(number_of_slots_per_agent)
-        or len(agent_ids) != len(cost_of_bond_per_agent)
-        or len(number_of_slots_per_agent) != len(cost_of_bond_per_agent)
-    ):
-        raise InvalidMintParameter(
-            "Make sure the number of agent ids, number of slots for agents and cost of bond for agents match"
+        events = self._transact(
+            method=registry_contracts.registries_manager.get_update_hash_transaction,
+            build_tx_ctr=REGISTRIES_MANAGER_CONTRACT.name,
+            kwargs=dict(
+                unit_id=unit_id,
+                component_type=component_type,
+                metadata_hash=metadata_hash,
+                sender=self.crypto.address,
+            ),
+            event="UpdateUnitHash",
+            process_receipt_ctr=(
+                COMPONENT_REGISTRY_CONTRACT
+                if component_type == UnitType.COMPONENT
+                else AGENT_REGISTRY_CONTRACT
+            ),
         )
+        for event in events:
+            if (
+                "unitHash" in event["args"]
+                and event["args"]["unitHash"].hex() == metadata_hash[2:]
+            ):
+                return event["args"]["unitId"]
+        return None
 
-    if any(map(lambda x: x == 0, number_of_slots_per_agent)):
-        raise InvalidMintParameter("Number of slots cannot be zero")
+    def mint_service(  # pylint: disable=too-many-arguments
+        self,
+        metadata_hash: str,
+        agent_ids: List[int],
+        number_of_slots_per_agent: List[int],
+        cost_of_bond_per_agent: List[int],
+        threshold: int,
+        token: Optional[str] = None,
+        owner: Optional[str] = None,
+    ) -> Optional[int]:
+        """Publish component on-chain."""
 
-    if any(map(lambda x: x == 0, cost_of_bond_per_agent)):
-        raise InvalidMintParameter("Cost of bond cannot be zero")
+        if len(agent_ids) == 0:
+            raise InvalidMintParameter("Please provide at least one agent id")
 
-    number_of_agent_instances = sum(number_of_slots_per_agent)
-    if threshold < (ceil((number_of_agent_instances * 2 + 1) / 3)):
-        raise InvalidMintParameter(
-            "The threshold value should at least be greater than or equal to ceil((n * 2 + 1) / 3), "
-            "n is total number of agent instances in the service"
-        )
+        if len(number_of_slots_per_agent) == 0:
+            raise InvalidMintParameter("Please for provide number of slots for agents")
 
-    (
-        agent_ids,
-        number_of_slots_per_agent,
-        cost_of_bond_per_agent,
-    ) = sort_service_dependency_metadata(
-        agent_ids=agent_ids,
-        number_of_slots_per_agents=number_of_slots_per_agent,
-        cost_of_bond_per_agent=cost_of_bond_per_agent,
-    )
+        if len(cost_of_bond_per_agent) == 0:
+            raise InvalidMintParameter("Please for provide cost of bond for agents")
 
-    agent_params = [
-        [n, c] for n, c in zip(number_of_slots_per_agent, cost_of_bond_per_agent)
-    ]
-
-    try:
-        owner = ledger_api.api.toChecksumAddress(owner or crypto.address)
-    except ValueError as e:
-        raise ComponentMintFailed(f"Invalid owner address {owner}") from e
-
-    try:
-        tx = registry_contracts.service_manager.get_create_transaction(
-            ledger_api=ledger_api,
-            contract_address=ContractConfigs.get(
-                SERVICE_MANAGER_CONTRACT.name
-            ).contracts[chain_type],
-            owner=owner,
-            sender=crypto.address,
-            metadata_hash=metadata_hash,
-            agent_ids=agent_ids,
-            agent_params=agent_params,
-            threshold=threshold,
-            raise_on_try=True,
-        )
-        transact(
-            ledger_api=ledger_api,
-            crypto=crypto,
-            tx=tx,
-        )
-    except RequestsConnectionError as e:
-        raise ComponentMintFailed("Cannot connect to the given RPC") from e
-
-    try:
-
-        def token_retriever() -> bool:
-            """Retrieve token"""
-            return (
-                registry_contracts.service_registry.filter_token_id_from_emitted_events(
-                    ledger_api=ledger_api,
-                    contract_address=ContractConfigs.get(
-                        SERVICE_REGISTRY_CONTRACT.name
-                    ).contracts[chain_type],
-                )
+        if (
+            len(agent_ids) != len(number_of_slots_per_agent)
+            or len(agent_ids) != len(cost_of_bond_per_agent)
+            or len(number_of_slots_per_agent) != len(cost_of_bond_per_agent)
+        ):
+            raise InvalidMintParameter(
+                "Make sure the number of agent ids, number of slots for agents and cost of bond for agents match"
             )
 
-        return wait_for_component_to_mint(
-            token_retriever=token_retriever, timeout=timeout
+        if any(map(lambda x: x == 0, number_of_slots_per_agent)):
+            raise InvalidMintParameter("Number of slots cannot be zero")
+
+        if any(map(lambda x: x == 0, cost_of_bond_per_agent)):
+            raise InvalidMintParameter("Cost of bond cannot be zero")
+
+        number_of_agent_instances = sum(number_of_slots_per_agent)
+        if threshold < (ceil((number_of_agent_instances * 2 + 1) / 3)):
+            raise InvalidMintParameter(
+                "The threshold value should at least be greater than or equal to ceil((n * 2 + 1) / 3), "
+                "n is total number of agent instances in the service"
+            )
+
+        (
+            agent_ids,
+            number_of_slots_per_agent,
+            cost_of_bond_per_agent,
+        ) = sort_service_dependency_metadata(
+            agent_ids=agent_ids,
+            number_of_slots_per_agents=number_of_slots_per_agent,
+            cost_of_bond_per_agent=cost_of_bond_per_agent,
         )
 
-    except RequestsConnectionError as e:
-        raise FailedToRetrieveTokenId(
-            "Connection interrupted while waiting for the unitId emit event"
-        ) from e
-    except TimeoutError as e:
-        raise FailedToRetrieveTokenId(str(e)) from e
+        owner = self.validate_address(owner or self.crypto.address)
+        agent_params = [
+            [n, c] for n, c in zip(number_of_slots_per_agent, cost_of_bond_per_agent)
+        ]
+
+        events = self._transact(
+            method=registry_contracts.service_manager.get_create_transaction,
+            build_tx_ctr=SERVICE_MANAGER_CONTRACT.name,
+            kwargs=dict(
+                metadata_hash=metadata_hash,
+                agent_params=agent_params,
+                agent_ids=agent_ids,
+                threshold=threshold,
+                token=token,
+                owner=owner,
+                sender=self.crypto.address,
+            ),
+            event="CreateService",
+            process_receipt_ctr=SERVICE_REGISTRY_CONTRACT,
+        )
+        for event in events:
+            if "serviceId" in event["args"]:
+                return event["args"]["serviceId"]
+        return None
+
+    def update_service(  # pylint: disable=too-many-arguments
+        self,
+        metadata_hash: str,
+        service_id: int,
+        agent_ids: List[int],
+        number_of_slots_per_agent: List[int],
+        cost_of_bond_per_agent: List[int],
+        threshold: int,
+        token: Optional[str] = None,
+    ) -> Optional[int]:
+        """Publish component on-chain."""
+
+        if len(agent_ids) == 0:
+            raise InvalidMintParameter("Please provide at least one agent id")
+
+        if len(number_of_slots_per_agent) == 0:
+            raise InvalidMintParameter("Please for provide number of slots for agents")
+
+        if len(cost_of_bond_per_agent) == 0:
+            raise InvalidMintParameter("Please for provide cost of bond for agents")
+
+        if (
+            len(agent_ids) != len(number_of_slots_per_agent)
+            or len(agent_ids) != len(cost_of_bond_per_agent)
+            or len(number_of_slots_per_agent) != len(cost_of_bond_per_agent)
+        ):
+            raise InvalidMintParameter(
+                "Make sure the number of agent ids, number of slots for agents and cost of bond for agents match"
+            )
+
+        if any(map(lambda x: x == 0, number_of_slots_per_agent)):
+            raise InvalidMintParameter("Number of slots cannot be zero")
+
+        if any(map(lambda x: x == 0, cost_of_bond_per_agent)):
+            raise InvalidMintParameter("Cost of bond cannot be zero")
+
+        number_of_agent_instances = sum(number_of_slots_per_agent)
+        if threshold < (ceil((number_of_agent_instances * 2 + 1) / 3)):
+            raise InvalidMintParameter(
+                "The threshold value should at least be greater than or equal to ceil((n * 2 + 1) / 3), "
+                "n is total number of agent instances in the service"
+            )
+
+        (
+            agent_ids,
+            number_of_slots_per_agent,
+            cost_of_bond_per_agent,
+        ) = sort_service_dependency_metadata(
+            agent_ids=agent_ids,
+            number_of_slots_per_agents=number_of_slots_per_agent,
+            cost_of_bond_per_agent=cost_of_bond_per_agent,
+        )
+
+        agent_params = [
+            [n, c] for n, c in zip(number_of_slots_per_agent, cost_of_bond_per_agent)
+        ]
+
+        events = self._transact(
+            method=registry_contracts.service_manager.get_update_transaction,
+            build_tx_ctr=SERVICE_MANAGER_CONTRACT.name,
+            kwargs=dict(
+                service_id=service_id,
+                sender=self.crypto.address,
+                metadata_hash=metadata_hash,
+                agent_ids=agent_ids,
+                agent_params=agent_params,
+                threshold=threshold,
+                token=token,
+            ),
+            event="UpdateService",
+            process_receipt_ctr=SERVICE_REGISTRY_CONTRACT,
+        )
+        for event in events:
+            if (
+                "configHash" in event["args"]
+                and event["args"]["configHash"].hex() == metadata_hash[2:]
+            ):
+                return event["args"]["serviceId"]
+        return None

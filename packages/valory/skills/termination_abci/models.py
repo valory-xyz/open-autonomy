@@ -48,6 +48,9 @@ class TerminationParams(TransactionParams):
         """Set up the termination parameters."""
         self.termination_sleep: int = self._ensure("termination_sleep", kwargs, int)
         self.multisend_address: str = self._ensure("multisend_address", kwargs, str)
+        self.termination_from_block: int = self._ensure(
+            "termination_from_block", kwargs, int
+        )
         super().__init__(*args, **kwargs)
 
 

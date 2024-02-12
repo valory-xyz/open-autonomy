@@ -21,10 +21,11 @@
 
 
 import json
-from typing import Dict, Optional
+from pathlib import Path
+from typing import Dict, Optional, Tuple
 
 from aea.cli.utils.config import get_default_author_from_cli_config
-from aea.configurations.utils import PublicId
+from aea.configurations.data_types import Dependency, PublicId
 from docker import from_env
 
 from autonomy.constants import (
@@ -37,6 +38,16 @@ from autonomy.data import DATA_DIR
 from autonomy.deploy.constants import DOCKERFILES
 
 
+def generate_dependency_flag_var(dependencies: Tuple[Dependency, ...]) -> str:
+    """Generate dependency flag env var"""
+    args = []
+    for dep in dependencies:
+        # Flag for `aea install` command
+        args += ["-e"]
+        args += dep.get_pip_install_args()
+    return " ".join(args)
+
+
 class ImageProfiles:  # pylint: disable=too-few-public-methods
     """Image build profiles."""
 
@@ -46,39 +57,38 @@ class ImageProfiles:  # pylint: disable=too-few-public-methods
     ALL = (CLUSTER, DEVELOPMENT, PRODUCTION)
 
 
-def build_image(
+def build_image(  # pylint: disable=too-many-arguments,too-many-locals
     agent: PublicId,
     pull: bool = False,
     dev: bool = False,
     version: Optional[str] = None,
     image_author: Optional[str] = None,
+    extra_dependencies: Optional[Tuple[Dependency, ...]] = None,
+    dockerfile: Optional[Path] = None,
 ) -> None:
     """Command to build images from for skaffold deployment."""
 
     tag: str
     path: str
     buildargs: Dict[str, str]
-
     docker_client = from_env()
+    buildargs = {
+        "AUTONOMY_IMAGE_NAME": AUTONOMY_IMAGE_NAME,
+        "AUTONOMY_IMAGE_VERSION": AUTONOMY_IMAGE_VERSION,
+        "AEA_AGENT": str(agent),
+        "AUTHOR": get_default_author_from_cli_config(),
+        "EXTRA_DEPENDENCIES": generate_dependency_flag_var(extra_dependencies or ()),
+    }
 
     if dev:
         path = str(DATA_DIR / DOCKERFILES / "dev")
-        buildargs = {
-            "AUTONOMY_IMAGE_NAME": AUTONOMY_IMAGE_NAME,
-            "AUTONOMY_IMAGE_VERSION": AUTONOMY_IMAGE_VERSION,
-            "AEA_AGENT": str(agent),
-            "AUTHOR": get_default_author_from_cli_config(),
-        }
-
     else:
         image_version = version or agent.hash
         path = str(DATA_DIR / DOCKERFILES / "agent")
-        buildargs = {
-            "AUTONOMY_IMAGE_NAME": AUTONOMY_IMAGE_NAME,
-            "AUTONOMY_IMAGE_VERSION": AUTONOMY_IMAGE_VERSION,
-            "AEA_AGENT": str(agent),
-            "AUTHOR": get_default_author_from_cli_config(),
-        }
+
+    if dockerfile is not None:  # pragma: nocover
+        path = str(Path(dockerfile).parent)
+
     tag = OAR_IMAGE.format(
         image_author=image_author or DEFAULT_DOCKER_IMAGE_AUTHOR,
         agent=agent.name,

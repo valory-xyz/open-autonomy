@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import logging
 import os
 from copy import copy, deepcopy
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
 from warnings import warn
 
 from aea.configurations.base import (
@@ -33,27 +33,24 @@ from aea.configurations.base import (
     ProtocolConfig,
     SkillConfig,
 )
-from aea.configurations.constants import SKILL
+from aea.configurations.constants import ADDRESS, LEDGER, PRIVATE_KEY, SKILL
 from aea.configurations.data_types import PackageType, PublicId
 from aea.helpers.env_vars import apply_env_variables
+from typing_extensions import TypedDict
 
 from autonomy.analyse.service import ABCI
 from autonomy.configurations.base import Service
 from autonomy.configurations.loader import load_service_config
 from autonomy.constants import DEFAULT_DOCKER_IMAGE_AUTHOR
-from autonomy.deploy.constants import (
-    DEFAULT_ENCODING,
-    INFO,
-    KEY_SCHEMA_ADDRESS,
-    KEY_SCHEMA_PRIVATE_KEY,
-    KEY_SCHEMA_TYPE,
-)
+from autonomy.deploy.constants import DEFAULT_ENCODING, INFO
 
 
 ENV_VAR_ID = "ID"
 ENV_VAR_AEA_AGENT = "AEA_AGENT"
 ENV_VAR_LOG_LEVEL = "LOG_LEVEL"
 ENV_VAR_AEA_PASSWORD = "AEA_PASSWORD"  # nosec
+ENV_VAR_DEPENDENCIES = "DEPENDENCIES"  # nosec
+ENV_VAR_OPEN_AUTONOMY_TM_WRITE_TO_LOG = "OPEN_AUTONOMY_TM_WRITE_TO_LOG"
 
 PARAM_ARGS_PATH = ("models", "params", "args")
 SETUP_PARAM_PATH = (*PARAM_ARGS_PATH, "setup")
@@ -63,7 +60,7 @@ CONSENSUS_THRESHOLD = "consensus_threshold"
 
 
 DEFAULT_ABCI_PORT = 26658
-ABCI_HOST_TEMPLATE = "abci{}"
+
 
 KUBERNETES_DEPLOYMENT = "kubernetes"
 DOCKER_COMPOSE_DEPLOYMENT = "docker-compose"
@@ -71,8 +68,8 @@ DOCKER_COMPOSE_DEPLOYMENT = "docker-compose"
 LOCALHOST = "localhost"
 TENDERMINT_P2P_PORT = 26656
 
-TENDERMINT_NODE = "http://node{}:26657"
-TENDERMINT_COM = "http://node{}:8080"
+TENDERMINT_NODE = "http://{host}:26657"
+TENDERMINT_COM = "http://{host}:8080"
 
 TENDERMINT_NODE_LOCAL = f"http://{LOCALHOST}:26657"
 TENDERMINT_COM_LOCAL = f"http://{LOCALHOST}:8080"
@@ -80,7 +77,7 @@ TENDERMINT_COM_LOCAL = f"http://{LOCALHOST}:8080"
 TENDERMINT_URL_PARAM = "tendermint_url"
 TENDERMINT_COM_URL_PARAM = "tendermint_com_url"
 
-TENDERMINT_P2P_URL = "node{}:{}"
+TENDERMINT_P2P_URL = "{host}:{port}"
 TENDERMINT_P2P_URL_PARAM = "tendermint_p2p_url"
 TENDERMINT_P2P_URL_ENV_VAR = "TM_P2P_NODE_URL_{}"
 
@@ -94,12 +91,58 @@ COMPONENT_CONFIGS: Dict = {
     ]
 }
 
+DEFAULT_AGENT_MEMORY_LIMIT = int(os.environ.get("AUTONOMY_AGENT_MEMORY_LIMIT", 1024))
+DEFAULT_AGENT_CPU_LIMIT = float(os.environ.get("AUTONOMY_AGENT_CPU_LIMIT", 1.0))
+DEFAULT_AGENT_MEMORY_REQUEST = int(os.environ.get("AUTONOMY_AGENT_MEMORY_REQUEST", 256))
+DEFAULT_AGENT_CPU_REQUEST = float(os.environ.get("AUTONOMY_AGENT_CPU_REQUEST", 1.0))
+
+
+def tm_write_to_log() -> bool:
+    """Check the environment variable to see if the user wants to write to log file or not."""
+    return os.getenv(ENV_VAR_OPEN_AUTONOMY_TM_WRITE_TO_LOG, "true").lower() == "true"
+
 
 class NotValidKeysFile(Exception):
     """Raise when provided keys file is not valid."""
 
 
-class ServiceBuilder:
+class ResourceValues(TypedDict):
+    """Resource type."""
+
+    cpu: Optional[float]
+    memory: Optional[int]
+
+
+class Resource(TypedDict):
+    """Resource values."""
+
+    requested: ResourceValues
+    limit: ResourceValues
+
+
+class Resources(TypedDict):
+    """Deployment resources."""
+
+    agent: Resource
+
+
+DEFAULT_RESOURCE_VALUES = Resources(
+    {
+        "agent": {
+            "limit": {
+                "cpu": DEFAULT_AGENT_CPU_LIMIT,
+                "memory": DEFAULT_AGENT_MEMORY_LIMIT,
+            },
+            "requested": {
+                "cpu": DEFAULT_AGENT_CPU_REQUEST,
+                "memory": DEFAULT_AGENT_MEMORY_REQUEST,
+            },
+        }
+    }
+)
+
+
+class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
     """Class to assist with generating deployments."""
 
     deplopyment_type: str = DOCKER_COMPOSE_DEPLOYMENT
@@ -108,8 +151,7 @@ class ServiceBuilder:
     def __init__(  # pylint: disable=too-many-arguments
         self,
         service: Service,
-        keys: Optional[List[Dict[str, str]]] = None,
-        private_keys_password: Optional[str] = None,
+        keys: Optional[List[Union[List[Dict[str, str]], Dict[str, str]]]] = None,
         agent_instances: Optional[List[str]] = None,
         apply_environment_variables: bool = False,
     ) -> None:
@@ -124,15 +166,24 @@ class ServiceBuilder:
 
         self.service = service
 
+        self._service_name_clean = self.service.name.replace("_", "")
         self._keys = keys or []
         self._agent_instances = agent_instances
-        self._private_keys_password = private_keys_password
         self._all_participants = self.try_get_all_participants()
+        self.multiledger = False
+
+    def get_abci_container_name(self, index: int) -> str:
+        """Format ABCI container name."""
+        return f"{self._service_name_clean}_abci_{index}"
+
+    def get_tm_container_name(self, index: int) -> str:
+        """Format tendermint container name."""
+        return f"{self._service_name_clean}_tm_{index}"
 
     def try_get_all_participants(self) -> Optional[List[str]]:
         """Try get all participants from the ABCI overrides"""
-        try:
-            for override in deepcopy(self.service.overrides):
+        for override in deepcopy(self.service.overrides):
+            try:
                 (
                     override,
                     component_id,
@@ -153,23 +204,12 @@ class ServiceBuilder:
                 setup_param = self._get_config_from_json_path(
                     override_dict=override, json_path=SETUP_PARAM_PATH
                 )
-                return setup_param.get(ALL_PARTICIPANTS)
-        except KeyError:
-            return None
-
+                all_participants = setup_param.get(ALL_PARTICIPANTS)
+                if all_participants is not None:
+                    return all_participants
+            except KeyError:
+                continue
         return None
-
-    @property
-    def private_keys_password(
-        self,
-    ) -> Optional[str]:
-        """Service password for agent keys."""
-
-        password = self._private_keys_password
-        if password is None:
-            password = os.environ.get("AUTONOLAS_SERVICE_PASSWORD")
-
-        return password
 
     @property
     def agent_instances(
@@ -185,7 +225,12 @@ class ServiceBuilder:
 
         if self.keys:
             self.verify_agent_instances(
-                keys=self.keys,
+                addresses=set(
+                    self._get_addresses(
+                        keys=self.keys,
+                        multiledger=self.multiledger,
+                    )
+                ),
                 agent_instances=instances,
             )
 
@@ -194,7 +239,7 @@ class ServiceBuilder:
     @property
     def keys(
         self,
-    ) -> List[Dict[str, str]]:
+    ) -> List[Union[List[Dict[str, str]], Dict[str, str]]]:
         """Keys."""
         return self._keys
 
@@ -204,7 +249,6 @@ class ServiceBuilder:
         path: Path,
         keys_file: Optional[Path] = None,
         number_of_agents: Optional[int] = None,
-        private_keys_password: Optional[str] = None,
         agent_instances: Optional[List[str]] = None,
         apply_environment_variables: bool = False,
     ) -> "ServiceBuilder":
@@ -218,7 +262,6 @@ class ServiceBuilder:
         service_builder = cls(
             service=service,
             apply_environment_variables=apply_environment_variables,
-            private_keys_password=private_keys_password,
         )
 
         if keys_file is not None:
@@ -230,14 +273,26 @@ class ServiceBuilder:
         return service_builder
 
     @staticmethod
-    def verify_agent_instances(
-        keys: List[Dict[str, str]],
-        agent_instances: List[str],
-    ) -> None:
-        """Cross verify agent instances with the keys."""
-        addresses = {kp["address"] for kp in keys}
-        instances = set(agent_instances)
+    def _get_addresses(
+        keys: List[Union[List[Dict[str, str]], Dict[str, str]]],
+        multiledger: bool = False,
+    ) -> List[str]:
+        """Get ethereum addresses"""
+        if multiledger:
+            addresses = []
+            for i, _keys in enumerate(cast(List[List[Dict[str, str]]], keys)):
+                for _keypair in _keys:
+                    if _keypair["ledger"] == "ethereum":
+                        addresses.append(_keypair["address"])
+                if len(addresses) != i + 1:
+                    raise ValueError(f"Ethereum key not found in keyset: {_keys}")
+            return addresses
+        return [kp["address"] for kp in cast(List[Dict[str, str]], keys)]
 
+    @staticmethod
+    def verify_agent_instances(addresses: Set[str], agent_instances: List[str]) -> None:
+        """Cross verify agent instances with the keys."""
+        instances = set(agent_instances)
         key_not_in_instances = addresses.difference(instances)
         if key_not_in_instances:
             raise NotValidKeysFile(
@@ -255,6 +310,21 @@ class ServiceBuilder:
             f"Found following keys with registered instances {keys_found_with_instances}"
         )
 
+    @staticmethod
+    def _validate_keypair(keypair: Dict, ledger_required: bool = False) -> None:
+        """Validate keys set."""
+        if ledger_required:
+            if {ADDRESS, PRIVATE_KEY, LEDGER} != set(keypair.keys()):
+                raise NotValidKeysFile("Key file incorrectly formatted")
+            return
+
+        if {ADDRESS, PRIVATE_KEY} != set(keypair.keys()) and {
+            ADDRESS,
+            PRIVATE_KEY,
+            LEDGER,
+        } != set(keypair.keys()):
+            raise NotValidKeysFile("Key file incorrectly formatted.")
+
     def read_keys(self, keys_file: Path) -> None:
         """Read in keys from a file on disk."""
 
@@ -265,25 +335,34 @@ class ServiceBuilder:
                 "Error decoding keys file, please check the content of the file"
             ) from e
 
-        for key in keys:
-            if {KEY_SCHEMA_ADDRESS, KEY_SCHEMA_PRIVATE_KEY} != set(key.keys()) and {
-                KEY_SCHEMA_ADDRESS,
-                KEY_SCHEMA_PRIVATE_KEY,
-                KEY_SCHEMA_TYPE,
-            } != set(key.keys()):
-                raise NotValidKeysFile("Key file incorrectly formatted.")
+        if isinstance(keys[0], list):
+            self.multiledger = True
+            for _keys in keys:
+                for _keypair in _keys:
+                    self._validate_keypair(keypair=_keypair, ledger_required=True)
+        else:
+            for _keypair in keys:
+                self._validate_keypair(keypair=_keypair)
 
         if self.agent_instances is not None:
             self.verify_agent_instances(
-                keys=keys,
+                addresses=set(
+                    self._get_addresses(
+                        keys=keys,
+                        multiledger=self.multiledger,
+                    )
+                ),
                 agent_instances=self.agent_instances,
             )
             self.service.number_of_agents = len(keys)
 
         if self._all_participants is not None and len(self._all_participants) > 0:
-            unwanted_keys = set(key["address"] for key in keys) - set(
-                self._all_participants
-            )
+            unwanted_keys = set(
+                self._get_addresses(
+                    keys=keys,
+                    multiledger=self.multiledger,
+                )
+            ) - set(self._all_participants)
             if len(unwanted_keys) > 0:
                 raise NotValidKeysFile(
                     f"Key file contains keys which are not a part of the `all_participants` parameter; keys={unwanted_keys}"
@@ -370,26 +449,44 @@ class ServiceBuilder:
                 param_args[TENDERMINT_URL_PARAM] = TENDERMINT_NODE_LOCAL
                 param_args[TENDERMINT_COM_URL_PARAM] = TENDERMINT_COM_LOCAL
             else:
-                param_args[TENDERMINT_URL_PARAM] = TENDERMINT_NODE.format(idx)
-                param_args[TENDERMINT_COM_URL_PARAM] = TENDERMINT_COM.format(idx)
+                param_args[TENDERMINT_URL_PARAM] = TENDERMINT_NODE.format(
+                    host=self.get_tm_container_name(index=idx)
+                )
+                param_args[TENDERMINT_COM_URL_PARAM] = TENDERMINT_COM.format(
+                    host=self.get_tm_container_name(index=idx)
+                )
 
             if TENDERMINT_P2P_URL_PARAM not in param_args:
                 tm_p2p_url = os.environ.get(
                     TENDERMINT_P2P_URL_ENV_VAR.format(idx),
-                    TENDERMINT_P2P_URL.format(idx, TENDERMINT_P2P_PORT),
+                    TENDERMINT_P2P_URL.format(
+                        host=self.get_tm_container_name(index=idx),
+                        port=TENDERMINT_P2P_PORT,
+                    ),
                 )
                 param_args[TENDERMINT_P2P_URL_PARAM] = tm_p2p_url
 
         try:
-            if self.service.number_of_agents == 1 and not has_multiple_overrides:
-                param_args = self._get_config_from_json_path(
-                    override_dict=override, json_path=PARAM_ARGS_PATH
-                )
-                _update_tendermint_params(
-                    param_args=param_args,
-                    idx=0,
-                    is_kubernetes_deployment=is_kubernetes_deployment,
-                )
+            if self.service.number_of_agents == 1:
+                if has_multiple_overrides:
+                    for agent_idx in override:
+                        param_args = self._get_config_from_json_path(
+                            override_dict=override[agent_idx], json_path=PARAM_ARGS_PATH
+                        )
+                        _update_tendermint_params(
+                            param_args=param_args,
+                            idx=0,
+                            is_kubernetes_deployment=is_kubernetes_deployment,
+                        )
+                else:
+                    param_args = self._get_config_from_json_path(
+                        override_dict=override, json_path=PARAM_ARGS_PATH
+                    )
+                    _update_tendermint_params(
+                        param_args=param_args,
+                        idx=0,
+                        is_kubernetes_deployment=is_kubernetes_deployment,
+                    )
                 return
 
             if not has_multiple_overrides:
@@ -488,7 +585,7 @@ class ServiceBuilder:
             processed_overrides["config"]["host"] = (
                 LOCALHOST
                 if self.deplopyment_type == KUBERNETES_DEPLOYMENT
-                else ABCI_HOST_TEMPLATE.format(0)
+                else self.get_abci_container_name(index=0)
             )
             processed_overrides["config"]["port"] = processed_overrides["config"].get(
                 "port", DEFAULT_ABCI_PORT
@@ -504,7 +601,7 @@ class ServiceBuilder:
             override["config"]["host"] = (
                 LOCALHOST
                 if self.deplopyment_type == KUBERNETES_DEPLOYMENT
-                else ABCI_HOST_TEMPLATE.format(idx)
+                else self.get_abci_container_name(index=idx)
             )
             override["config"]["port"] = override["config"].get(
                 "port", DEFAULT_ABCI_PORT
@@ -554,17 +651,15 @@ class ServiceBuilder:
             overrides=abci_connection_overrides,
             has_multiple_overrides=has_multiple_overrides,
         )
-
         processed_overrides["public_id"] = str(component_id.public_id)
         processed_overrides["type"] = PackageType.CONNECTION.value
-
         service_overrides = deepcopy(self.service.overrides)
         if service_has_connection_overrides:
             service_overrides = [
                 override
                 for override in service_overrides
                 if override["public_id"] != str(component_id.public_id)
-                and override["type"] != PackageType.CONNECTION.value
+                or override["type"] != PackageType.CONNECTION.value
             ]
 
         service_overrides.append(processed_overrides)
@@ -582,24 +677,24 @@ class ServiceBuilder:
 
     def generate_agents(self) -> List:
         """Generate multiple agent."""
+        addresses = self._get_addresses(
+            keys=self.keys,
+            multiledger=self.multiledger,
+        )
         if self._all_participants is not None and len(self._all_participants) > 0:
             idx_mappings = {
                 address: i for i, address in enumerate(self._all_participants)
             }
             agent_override_idx = [
-                (i, idx_mappings[kp["address"]]) for i, kp in enumerate(self.keys)
+                (i, idx_mappings[kp]) for i, kp in enumerate(addresses)
             ]
             return [self.generate_agent(i, idx) for i, idx in agent_override_idx]
-
         if self.agent_instances is None:
             return [
                 self.generate_agent(i) for i in range(self.service.number_of_agents)
             ]
-
         idx_mappings = {address: i for i, address in enumerate(self.agent_instances)}
-        agent_override_idx = [
-            (i, idx_mappings[kp["address"]]) for i, kp in enumerate(self.keys)
-        ]
+        agent_override_idx = [(i, idx_mappings[kp]) for i, kp in enumerate(addresses)]
         return [self.generate_agent(i, idx) for i, idx in agent_override_idx]
 
     def generate_common_vars(self, agent_n: int) -> Dict:
@@ -609,10 +704,12 @@ class ServiceBuilder:
             ENV_VAR_AEA_AGENT: self.service.agent,
             ENV_VAR_LOG_LEVEL: self.log_level,
         }
-
-        if self.private_keys_password is not None:
-            agent_vars[ENV_VAR_AEA_PASSWORD] = self.private_keys_password
-
+        if self.deplopyment_type == DOCKER_COMPOSE_DEPLOYMENT:
+            agent_vars[ENV_VAR_AEA_PASSWORD] = "$OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD"
+        else:
+            agent_vars[ENV_VAR_AEA_PASSWORD] = os.environ.get(
+                "OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD", ""
+            )
         return agent_vars
 
     def generate_agent(
@@ -647,6 +744,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
     packages_dir: Path
     open_aea_dir: Path
     open_autonomy_dir: Path
+    resources: Resources
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
@@ -658,6 +756,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
         open_aea_dir: Optional[Path] = None,
         open_autonomy_dir: Optional[Path] = None,
         image_author: Optional[str] = None,
+        resources: Optional[Resources] = None,
     ):
         """Initialise with only kwargs."""
 
@@ -673,6 +772,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
 
         self.tendermint_job_config: Optional[str] = None
         self.image_author = image_author or DEFAULT_DOCKER_IMAGE_AUTHOR
+        self.resources = resources if resources is not None else DEFAULT_RESOURCE_VALUES
 
     @abc.abstractmethod
     def generate(

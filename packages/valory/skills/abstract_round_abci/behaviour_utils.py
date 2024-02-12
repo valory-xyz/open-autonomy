@@ -119,6 +119,7 @@ INITIAL_APP_HASH = ""
 INITIAL_HEIGHT = "0"
 TM_REQ_TIMEOUT = 5  # 5 seconds
 FLASHBOTS_LEDGER_ID = "ethereum_flashbots"
+SOLANA_LEDGER_ID = "solana"
 
 
 class SendException(Exception):
@@ -348,14 +349,16 @@ class AsyncBehaviour(ABC):
 
     def __handle_waiting_for_message(self) -> None:
         """Handle an 'act' tick, when waiting for a message."""
-        try:
-            self.__get_generator_act().send(self.__message)
-        except StopIteration:
-            self.__handle_stop_iteration()
-        finally:
-            # wait for the next message
-            self.__notified = False
-            self.__message = None
+        # if there is no message coming, skip.
+        if self.__notified:
+            try:
+                self.__get_generator_act().send(self.__message)
+            except StopIteration:
+                self.__handle_stop_iteration()
+            finally:
+                # wait for the next message
+                self.__notified = False
+                self.__message = None
 
     def __handle_tick(self) -> None:
         """Handle an 'act' tick."""
@@ -1025,6 +1028,8 @@ class BaseBehaviour(
         signing_msg: SigningMessage,
         use_flashbots: bool = False,
         target_block_numbers: Optional[List[int]] = None,
+        chain_id: Optional[str] = None,
+        raise_on_failed_simulation: bool = False,
     ) -> None:
         """
         Send transaction request.
@@ -1037,6 +1042,8 @@ class BaseBehaviour(
         :param signing_msg: signing message
         :param use_flashbots: whether to use flashbots for the transaction or not
         :param target_block_numbers: the target block numbers in case we are using flashbots
+        :param chain_id: the chain name to use for the ledger call
+        :param raise_on_failed_simulation: whether to raise an exception if the simulation fails or not.
         """
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
@@ -1048,10 +1055,18 @@ class BaseBehaviour(
             counterparty=LEDGER_API_ADDRESS,
             performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION,
         )
+        if chain_id:
+            kwargs = LedgerApiMessage.Kwargs({"chain_id": chain_id})
+            create_kwargs.update(dict(kwargs=kwargs))
+
         if use_flashbots:
-            kwargs = {}
+            _kwargs = {
+                "chain_id": chain_id,
+                "raise_on_failed_simulation": raise_on_failed_simulation,
+                "use_all_builders": True,  # TODO: make this a proper parameter
+            }
             if target_block_numbers is not None:
-                kwargs["target_block_numbers"] = target_block_numbers
+                _kwargs["target_block_numbers"] = target_block_numbers  # type: ignore
             create_kwargs.update(
                 dict(
                     performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTIONS,
@@ -1060,7 +1075,7 @@ class BaseBehaviour(
                         ledger_id=FLASHBOTS_LEDGER_ID,
                         signed_transactions=[signing_msg.signed_transaction.body],
                     ),
-                    kwargs=LedgerApiMessage.Kwargs(kwargs),
+                    kwargs=LedgerApiMessage.Kwargs(_kwargs),
                 )
             )
         else:
@@ -1079,7 +1094,7 @@ class BaseBehaviour(
             request_nonce
         ] = self.get_callback_request()
         self.context.outbox.put_message(message=ledger_api_msg)
-        self.context.logger.info("sending transaction to ledger.")
+        self.context.logger.info("Sending transaction to ledger.")
 
     def _send_transaction_receipt_request(
         self,
@@ -1495,6 +1510,8 @@ class BaseBehaviour(
         transaction: RawTransaction,
         use_flashbots: bool = False,
         target_block_numbers: Optional[List[int]] = None,
+        raise_on_failed_simulation: bool = False,
+        chain_id: Optional[str] = None,
     ) -> Generator[
         None,
         Union[None, SigningMessage, LedgerApiMessage],
@@ -1516,11 +1533,16 @@ class BaseBehaviour(
         :param transaction: transaction data
         :param use_flashbots: whether to use flashbots for the transaction or not
         :param target_block_numbers: the target block numbers in case we are using flashbots
+        :param raise_on_failed_simulation: whether to raise an exception if the transaction fails the simulation or not
+        :param chain_id: the chain name to use for the ledger call
         :yield: SigningMessage object
         :return: transaction hash
         """
+        if chain_id is None:
+            chain_id = self.params.default_chain_id
+
         terms = Terms(
-            self.context.default_ledger_id,
+            chain_id,
             self.context.agent_address,
             counterparty_address="",
             amount_by_currency_id={},
@@ -1528,7 +1550,7 @@ class BaseBehaviour(
             nonce="",
         )
         self.context.logger.info(
-            f"Sending signing request for transaction: {transaction}..."
+            f"Sending signing request to ledger '{chain_id}' for transaction: {transaction}..."
         )
         self._send_transaction_signing_request(transaction, terms)
         signature_response = yield from self.wait_for_message()
@@ -1544,7 +1566,11 @@ class BaseBehaviour(
             f"Received signature response: {signature_response}\n Sending transaction..."
         )
         self._send_transaction_request(
-            signature_response, use_flashbots, target_block_numbers
+            signature_response,
+            use_flashbots,
+            target_block_numbers,
+            chain_id,
+            raise_on_failed_simulation,
         )
         transaction_digest_msg = yield from self.wait_for_message()
         transaction_digest_msg = cast(LedgerApiMessage, transaction_digest_msg)
@@ -1662,6 +1688,7 @@ class BaseBehaviour(
         contract_address: Optional[str],
         contract_id: str,
         contract_callable: str,
+        ledger_id: Optional[str] = None,
         **kwargs: Any,
     ) -> Generator[None, None, ContractApiMessage]:
         """
@@ -1676,6 +1703,7 @@ class BaseBehaviour(
         :param contract_address: the contract address
         :param contract_id: the contract id
         :param contract_callable: the callable to call on the contract
+        :param ledger_id: the ledger id, if not specified, the default ledger id is used
         :param kwargs: keyword argument for the contract api request
         :return: the contract api response
         :yields: the contract api response
@@ -1686,7 +1714,7 @@ class BaseBehaviour(
         kwargs = {
             "performative": performative,
             "counterparty": LEDGER_API_ADDRESS,
-            "ledger_id": self.context.default_ledger_id,
+            "ledger_id": ledger_id or self.context.default_ledger_id,
             "contract_id": contract_id,
             "callable": contract_callable,
             "kwargs": ContractApiMessage.Kwargs(kwargs),

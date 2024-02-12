@@ -15,7 +15,7 @@ You must ensure that your machine satisfies the [framework requirements](./set_u
 
 ## Step-by-step instructions
 
-In order to deploy and run a service you need an agent with a working {{fsm_app}}. We base this guide in a default {{fsm_app}} available in the remote registry, namely, the `hello_world_abci` {{fsm_app}}. As a result, we will define an agent implementing a functionality equivalent to the [Hello World service](../demos/hello_world_demo.md). You can, of course, use your own {{fsm_app}} to define your agent.
+In order to deploy and run a service you need an agent with a working {{fsm_app}}. We base this guide on a default {{fsm_app}} available in the remote registry, namely, the `hello_world_abci` {{fsm_app}}. As a result, we will define an agent implementing a functionality equivalent to the [Hello World service](https://docs.autonolas.network/demos/hello-world/). You can, of course, use your own {{fsm_app}} to define your agent.
 
 !!! warning "Important"
 
@@ -120,9 +120,9 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
               propagate: true
         dependencies:
           open-aea-ledger-ethereum:
-            version: ==1.35.0
+            version: ==1.46.0
           open-aea-test-autonomy:
-            version: ==0.10.7
+            version: ==0.12.1.post1
         default_connection: null
         ---
         public_id: valory/hello_world_abci:0.1.0
@@ -174,15 +174,15 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
         - identifier: acn
           ledger_id: ethereum
           message_format: '{public_key}'
-          not_after: '2023-01-01'
-          not_before: '2022-01-01'
+          not_after: '2025-01-01'
+          not_before: '2024-01-01'
           public_key: ${str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
           save_path: .certs/acn_cosmos_9005.txt
         - identifier: acn
           ledger_id: ethereum
           message_format: '{public_key}'
-          not_after: '2023-01-01'
-          not_before: '2022-01-01'
+          not_after: '2025-01-01'
+          not_before: '2024-01-01'
           public_key: ${str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
           save_path: .certs/acn_cosmos_9006.txt
         is_abstract: true

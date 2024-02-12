@@ -7,9 +7,9 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeicqln5tyudb5bzg27wale3xjvuliat6ipn6hntg5pqtnllex4pyre
-  contract.py: bafybeib6jnjv2o7ryatm5nu435qbyls6uw66bhu7d57jaical5cjlmdke4
+  contract.py: bafybeihwzoluzg62l3i64ccxaxs2dep766crx3lviuc3typfpmbrjgfg3a
 fingerprint_ignore_patterns: []
-class_name: MyScaffoldContract
+class_name: ERC20TokenContract
 contract_interface_paths: {}
 dependencies: {}
 contracts: []

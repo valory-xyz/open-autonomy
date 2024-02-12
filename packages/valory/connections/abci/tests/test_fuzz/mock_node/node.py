@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ class MockNode:
         self.channel.disconnect()
 
     def info(self, version: str, block_version: int, p2p_version: int) -> bool:
-        request = abci_types.RequestInfo()
+        request = abci_types.RequestInfo()  # type: ignore
         request.version = version
         request.block_version = block_version
         request.p2p_version = p2p_version
@@ -87,7 +87,7 @@ class MockNode:
         return True
 
     def echo(self, message: str) -> bool:
-        request = abci_types.RequestEcho()
+        request = abci_types.RequestEcho()  # type: ignore
         request.message = message
 
         self.logger.info(f"Calling echo with message={message}")
@@ -98,7 +98,7 @@ class MockNode:
         return True
 
     def flush(self) -> bool:
-        request = abci_types.RequestFlush()
+        request = abci_types.RequestFlush()  # type: ignore
 
         self.logger.info("Sending flush req")
 
@@ -109,7 +109,7 @@ class MockNode:
         return True
 
     def set_option(self, key: str, value: str) -> bool:
-        request = abci_types.RequestSetOption()
+        request = abci_types.RequestSetOption()  # type: ignore
         request.key = key
         request.value = value
 
@@ -122,7 +122,7 @@ class MockNode:
         return True
 
     def deliver_tx(self, tx: bytes) -> bool:
-        request = abci_types.RequestDeliverTx()
+        request = abci_types.RequestDeliverTx()  # type: ignore
         request.tx = tx
 
         self.logger.info(f"Calling deliver_tx with tx={tx!r}")
@@ -134,7 +134,7 @@ class MockNode:
         return True
 
     def check_tx(self, tx: bytes, is_new_check: bool) -> bool:
-        request = abci_types.RequestCheckTx()
+        request = abci_types.RequestCheckTx()  # type: ignore
         request.tx = tx
         request.type = 1 if is_new_check else 0
 
@@ -147,7 +147,7 @@ class MockNode:
         return response
 
     def query(self, data: bytes, path: str, height: int, prove: bool) -> bool:
-        request = abci_types.RequestQuery()
+        request = abci_types.RequestQuery()  # type: ignore
         request.data = data
         request.path = path
         request.height = height
@@ -164,7 +164,7 @@ class MockNode:
         return True
 
     def commit(self) -> bool:
-        request = abci_types.RequestCommit()
+        request = abci_types.RequestCommit()  # type: ignore
 
         self.logger.info("Calling commit")
 
@@ -192,7 +192,7 @@ class MockNode:
         app_state_bytes: bytes,
         initial_height: int,
     ) -> bool:
-        request = abci_types.RequestInitChain()
+        request = abci_types.RequestInitChain()  # type: ignore
 
         timestamp = timestamp_pb2.Timestamp()
         Timestamp.encode(timestamp, Timestamp(time_seconds, time_nanos))
@@ -207,7 +207,7 @@ class MockNode:
         )
         validator_params = ValidatorParams(pub_key_types)
         version_params = VersionParams(app_version)
-        consensus_params = abci_types.ConsensusParams()
+        consensus_params = abci_types.ConsensusParams()  # type: ignore
         ConsensusParams.encode(
             consensus_params,
             ConsensusParams(
@@ -230,8 +230,8 @@ class MockNode:
         validator_updates_pb = []
 
         for validator_update_object in validator_updates:
-            validator_update_protobuf_object = abci_types.ValidatorUpdate()
-            pub_key = keys_types.PublicKey()
+            validator_update_protobuf_object = abci_types.ValidatorUpdate()  # type: ignore
+            pub_key = keys_types.PublicKey()  # type: ignore
 
             PublicKey.encode(pub_key, validator_update_object.pub_key)
             validator_update_protobuf_object.power = validator_update_object.power
@@ -302,15 +302,15 @@ class MockNode:
         evidence_time_nanos: List[int],
         evidence_total_voting_power: List[int],
     ) -> bool:
-        consensus_version = version_type.Consensus()
+        consensus_version = version_type.Consensus()  # type: ignore
         consensus_version.block = consen_ver_block
         consensus_version.app = consen_ver_app
 
-        part_set_header = tendermint_types.PartSetHeader()
+        part_set_header = tendermint_types.PartSetHeader()  # type: ignore
         part_set_header.total = next_validators_part_header_total
         part_set_header.hash = next_validators_part_header_hash
 
-        block_id = tendermint_types.BlockID()
+        block_id = tendermint_types.BlockID()  # type: ignore
         block_id.hash = last_block_id_hash
         block_id.part_set_header.CopyFrom(part_set_header)
 
@@ -318,7 +318,7 @@ class MockNode:
         time.seconds = time_seconds
         time.nanos = time_nanos
 
-        header = tendermint_types.Header()
+        header = tendermint_types.Header()  # type: ignore
         header.version.CopyFrom(consensus_version)
         header.chain_id = chain_id
         header.height = height
@@ -342,17 +342,17 @@ class MockNode:
 
         vote_infos = []
         for i in range(last_commit_info_votes.__len__()):
-            validator = abci_types.Validator()
+            validator = abci_types.Validator()  # type: ignore
             validator.address = last_commit_info_votes[i][0]
             validator.power = last_commit_info_votes[i][1]
 
-            vote_info = abci_types.VoteInfo()
+            vote_info = abci_types.VoteInfo()  # type: ignore
             vote_info.validator.CopyFrom(validator)
             vote_info.signed_last_block = last_commit_info_signed_last_block[i]
 
             vote_infos.append(vote_info)
 
-        last_commit_info = abci_types.LastCommitInfo()
+        last_commit_info = abci_types.LastCommitInfo()  # type: ignore
         last_commit_info.round = last_commit_round
         last_commit_info.votes.extend(vote_infos)
 
@@ -373,7 +373,7 @@ class MockNode:
         evidences = []
 
         for i in range(evidence_type.__len__()):
-            validator = abci_types.Validator()
+            validator = abci_types.Validator()  # type: ignore
             validator.address = evidence_validator_address[i]
             validator.power = evidence_validator_power[i]
 
@@ -381,7 +381,7 @@ class MockNode:
             time.seconds = evidence_time_seconds[i]
             time.nanos = evidence_time_nanos[i]
 
-            evidence = abci_types.Evidence()
+            evidence = abci_types.Evidence()  # type: ignore
             evidence.type = evidence_type[i] % 3
             evidence.height = evidence_height[i]
             evidence.total_voting_power = evidence_total_voting_power[i]
@@ -390,7 +390,7 @@ class MockNode:
 
             evidences.append(evidence)
 
-        request = abci_types.RequestBeginBlock()
+        request = abci_types.RequestBeginBlock()  # type: ignore
         request.hash = hash_
         request.header.CopyFrom(header)
         request.last_commit_info.CopyFrom(last_commit_info)
@@ -438,7 +438,7 @@ class MockNode:
         return True
 
     def end_block(self, height: int) -> bool:
-        request = abci_types.RequestEndBlock()
+        request = abci_types.RequestEndBlock()  # type: ignore
         request.height = height
 
         self.logger.info(f"Calling end_block height={height}")
@@ -450,7 +450,7 @@ class MockNode:
         return response
 
     def list_snapshots(self) -> bool:
-        request = abci_types.RequestListSnapshots()
+        request = abci_types.RequestListSnapshots()  # type: ignore
 
         self.logger.info("Calling list snapshots")
 
@@ -469,10 +469,10 @@ class MockNode:
         metadata: bytes,
         app_hash: bytes,
     ) -> bool:
-        snapshot = abci_types.Snapshot()
+        snapshot = abci_types.Snapshot()  # type: ignore
         Snapshot.encode(snapshot, Snapshot(height, format_, chunks, hash_, metadata))
 
-        request = abci_types.RequestOfferSnapshot()
+        request = abci_types.RequestOfferSnapshot()  # type: ignore
         request.snapshot.CopyFrom(snapshot)
         request.app_hash = app_hash
 
@@ -488,7 +488,7 @@ class MockNode:
         return response
 
     def load_snapshot_chunk(self, height: int, format_: int, chunk: int) -> bool:
-        request = abci_types.RequestLoadSnapshotChunk()
+        request = abci_types.RequestLoadSnapshotChunk()  # type: ignore
         request.height = height
         request.format = format_
         request.chunk = chunk
@@ -504,7 +504,7 @@ class MockNode:
         return response
 
     def apply_snapshot_chunk(self, index: int, chunk: bytes, sender: str) -> bool:
-        request = abci_types.RequestApplySnapshotChunk()
+        request = abci_types.RequestApplySnapshotChunk()  # type: ignore
         request.index = index
         request.chunk = chunk
         request.sender = sender

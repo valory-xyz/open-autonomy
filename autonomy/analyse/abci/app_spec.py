@@ -45,6 +45,7 @@ ROUND_CLASS_POST_FIX = "Round"
 ABCI_APP_CLASS_POST_FIX = "AbciApp"
 
 EVENT_PATTERN = re.compile(r"Event\.(\w+)", re.DOTALL)
+ROUND_TIMEOUT_EVENTS = {"ROUND_TIMEOUT"}
 
 
 def validate_fsm_spec(data: Dict) -> None:
@@ -454,14 +455,11 @@ def check_unreferenced_events(abci_app_cls: Any) -> List[str]:
     """
 
     error_strings = []
-    timeout_events = {k.name for k in abci_app_cls.event_to_timeout.keys()}
+    abci_app_timeout_events = {k.name for k in abci_app_cls.event_to_timeout.keys()}
 
     for round_cls, round_transitions in abci_app_cls.transition_function.items():
-        trf_events = {
-            str(e).rsplit(".", 1)[1] for e in round_transitions
-        } - timeout_events
+        round_transition_events = set(map(lambda x: x.name, round_transitions))
         referenced_events = set()
-
         for base in filter(
             lambda x: x.__class__.__module__ != "builtins",
             inspect.getmro(round_cls),
@@ -469,10 +467,21 @@ def check_unreferenced_events(abci_app_cls: Any) -> List[str]:
             src = textwrap.dedent(inspect.getsource(base))
             referenced_events.update(EVENT_PATTERN.findall(src))
 
-        if trf_events.symmetric_difference(referenced_events):
+        # Referenced in the the class definition, missing from transition func
+        missing_from_transition_func = referenced_events - round_transition_events
+        if len(missing_from_transition_func) > 0:
             error_strings.append(
-                f" - {round_cls.__name__}: transition function events {trf_events} "
-                f"do not match referenced events {referenced_events}."
+                f"Events {missing_from_transition_func} are present in the `{round_cls.__name__}` "
+                f"but missing from transition function"
+            )
+
+        # Filter timeout events using referenced events since we don't explicitly return the timeout events
+        timeout_events = round_transition_events - referenced_events
+        missing_timeout_events = timeout_events - abci_app_timeout_events
+        if len(missing_timeout_events) > 0:
+            error_strings.append(
+                f"Events {missing_timeout_events} are defined in the round transitions of `{round_cls.__name__}` "
+                f"but not in `event_to_timeout`"
             )
 
     return error_strings

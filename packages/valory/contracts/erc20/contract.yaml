@@ -1,0 +1,17 @@
+name: erc20
+author: valory
+version: 0.1.0
+type: contract
+description: The scaffold contract scaffolds a contract to be implemented by the developer.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: bafybeieeus2bbbexmthy4pnsdtgen4flxzk3ao5ekjbocvmrkhhszffbgu
+  build/ERC20.json: bafybeiccjj4jwmpianz6vsxtubzg7bkssorapbcti4fx3e5d7g32pqmtee
+  contract.py: bafybeici3fo2eb4h6camnmcnkefkrmphm5jszwbh2fkm6zobj4q6k6mfhq
+fingerprint_ignore_patterns: []
+class_name: ERC20TokenContract
+contract_interface_paths:
+  ethereum: build/ERC20.json
+dependencies: {}
+contracts: []
