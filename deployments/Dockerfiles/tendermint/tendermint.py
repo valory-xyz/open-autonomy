@@ -266,7 +266,7 @@ class TendermintNode:
         try:
             self._process.wait(timeout=5)  # type: ignore
         except subprocess.TimeoutExpired:  # nosec
-            self.write_line("Tendermint process did not stop gracefully\n")
+            self.log("Tendermint process did not stop gracefully\n")
 
         # if the process is still running poll will return None
         poll = self._process.poll()  # type: ignore
