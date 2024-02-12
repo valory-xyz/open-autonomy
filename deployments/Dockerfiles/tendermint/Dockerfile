@@ -37,10 +37,14 @@ ENV FLASK_ENV=production
 STOPSIGNAL SIGTERM
 WORKDIR /tendermint
 
-COPY wrapper.sh /usr/bin/wrapper.sh
 COPY config-template.toml /etc/tendermint/config-template.toml
 
 RUN adduser -D tendermint
+
+RUN chown -R tendermint /app
+RUN chown -R tendermint /tendermint
+RUN chown -R tendermint /tm_state
+
 USER tendermint
 
 ENTRYPOINT ["/usr/bin/flask"]
