@@ -22,7 +22,11 @@ On-chain interaction helper.
 def __init__(chain_type: ChainType,
              key: Optional[Path] = None,
              password: Optional[str] = None,
-             hwi: bool = False) -> None
+             hwi: bool = False,
+             timeout: Optional[float] = None,
+             retries: Optional[int] = None,
+             sleep: Optional[float] = None,
+             dry_run: bool = False) -> None
 ```
 
 Initialize object.
@@ -95,7 +99,12 @@ def __init__(chain_type: ChainType,
              key: Optional[Path] = None,
              password: Optional[str] = None,
              hwi: bool = False,
-             update_token: Optional[int] = None) -> None
+             update_token: Optional[int] = None,
+             timeout: Optional[float] = None,
+             retries: Optional[int] = None,
+             sleep: Optional[float] = None,
+             subgraph: Optional[str] = None,
+             dry_run: bool = False) -> None
 ```
 
 Initialize object.
@@ -131,15 +140,12 @@ def verify_nft(nft: Optional[NFTHashOrPath] = None) -> "MintHelper"
 
 Verify NFT image.
 
-<a id="autonomy.cli.helpers.chain.MintHelper.verify_component_dependencies"></a>
+<a id="autonomy.cli.helpers.chain.MintHelper.fetch_component_dependencies"></a>
 
-#### verify`_`component`_`dependencies
+#### fetch`_`component`_`dependencies
 
 ```python
-def verify_component_dependencies(
-        dependencies: Tuple[str],
-        skip_dependencies_check: bool = False,
-        skip_hash_check: bool = False) -> "MintHelper"
+def fetch_component_dependencies() -> "MintHelper"
 ```
 
 Verify component dependencies.
@@ -149,9 +155,7 @@ Verify component dependencies.
 #### verify`_`service`_`dependencies
 
 ```python
-def verify_service_dependencies(agent_id: int,
-                                skip_dependencies_check: bool = False,
-                                skip_hash_check: bool = False) -> "MintHelper"
+def verify_service_dependencies(agent_id: int) -> "MintHelper"
 ```
 
 Verify component dependencies.
@@ -226,8 +230,10 @@ Update agent.
 #### update`_`service
 
 ```python
-def update_service(number_of_slots: int, cost_of_bond: int,
-                   threshold: int) -> None
+def update_service(number_of_slots: int,
+                   cost_of_bond: int,
+                   threshold: int,
+                   token: Optional[str] = None) -> None
 ```
 
 Update service
@@ -251,7 +257,11 @@ def __init__(service_id: int,
              chain_type: ChainType,
              key: Optional[Path] = None,
              password: Optional[str] = None,
-             hwi: bool = False) -> None
+             hwi: bool = False,
+             timeout: Optional[float] = None,
+             retries: Optional[int] = None,
+             sleep: Optional[float] = None,
+             dry_run: bool = False) -> None
 ```
 
 Initialize object.
@@ -292,9 +302,7 @@ Activate on-chain service
 #### register`_`instance
 
 ```python
-def register_instance(instances: List[str],
-                      agent_ids: List[int],
-                      timeout: Optional[float] = None) -> None
+def register_instance(instances: List[str], agent_ids: List[int]) -> None
 ```
 
 Register agents instances on an activated service
@@ -305,8 +313,7 @@ Register agents instances on an activated service
 
 ```python
 def deploy_service(reuse_multisig: bool = False,
-                   fallback_handler: Optional[str] = None,
-                   timeout: Optional[float] = None) -> None
+                   fallback_handler: Optional[str] = None) -> None
 ```
 
 Deploy a service with registration activated

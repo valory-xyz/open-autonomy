@@ -89,7 +89,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 
 TxDataType = Dict[str, Union[VerificationStatus, Deque[str], int, Set[str], str]]
 
-
 drand_check = VerifyDrand()
 
 REVERT_CODE_RE = r"\s(GS\d{3})[^\d]"
@@ -166,7 +165,12 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         return []
 
     def _get_tx_data(
-        self, message: ContractApiMessage, use_flashbots: bool
+        self,
+        message: ContractApiMessage,
+        use_flashbots: bool,
+        manual_gas_limit: int = 0,
+        raise_on_failed_simulation: bool = False,
+        chain_id: Optional[str] = None,
     ) -> Generator[None, None, TxDataType]:
         """Get the transaction data from a `ContractApiMessage`."""
         tx_data: TxDataType = {
@@ -196,9 +200,15 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
             )
             return tx_data
 
+        if manual_gas_limit > 0:
+            message.raw_transaction.body["gas"] = manual_gas_limit
+
         # Send transaction
         tx_digest, rpc_status = yield from self.send_raw_transaction(
-            message.raw_transaction, use_flashbots
+            message.raw_transaction,
+            use_flashbots,
+            raise_on_failed_simulation=raise_on_failed_simulation,
+            chain_id=chain_id,
         )
 
         # Handle transaction results
@@ -274,7 +284,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         tx_params = skill_input_hex_to_payload(
             self.synchronized_data.most_voted_tx_hash
         )
-
+        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_id)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.synchronized_data.safe_contract_address,
@@ -291,8 +301,8 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
                 for key, payload in self.synchronized_data.participant_to_signature.items()
             },
             operation=tx_params["operation"],
+            chain_id=chain_id,
         )
-
         return contract_api_msg
 
     @staticmethod
@@ -322,11 +332,13 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
 
     def _get_safe_nonce(self) -> Generator[None, None, ContractApiMessage]:
         """Get the safe nonce."""
+        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_id)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_safe_nonce",
+            chain_id=chain_id,
         )
         return contract_api_msg
 
@@ -391,9 +403,7 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
             keepers = self.synchronized_data.keepers
             keeper_retries = 1
 
-            if (
-                self.synchronized_data.keepers_threshold_exceeded
-            ):  # TODO: I think this should be second prio
+            if self.synchronized_data.keepers_threshold_exceeded:
                 keepers.rotate(-1)
                 self.context.logger.info(f"Rotated keepers to: {keepers}.")
             elif (
@@ -573,6 +583,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
         self.context.logger.info(
             f"Starting check for the transaction history: {self.history}. "
         )
+        was_nonce_reused = False
         for tx_hash in self.history[::-1]:
             self.context.logger.info(f"Checking hash {tx_hash}...")
             contract_api_msg = yield from self._verify_tx(tx_hash)
@@ -615,6 +626,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
                         f"The safe's nonce has been reused for {tx_hash}. "
                         f"{self.check_expected_to_be_verified} is expected to be verified!"
                     )
+                    was_nonce_reused = True
                     # this loop might take a long time
                     # we do not want to starve the rest of the behaviour
                     # we yield which freezes this loop here until the
@@ -628,16 +640,25 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
 
             return VerificationStatus.INVALID_PAYLOAD, tx_hash
 
+        if was_nonce_reused:
+            self.context.logger.info(
+                f"Safe nonce {safe_nonce} was used, but no valid transaction was found. "
+                f"We cannot resend the transaction with the same nonce."
+            )
+            return VerificationStatus.BAD_SAFE_NONCE, None
+
         return VerificationStatus.NOT_VERIFIED, None
 
     def _get_revert_reason(self, tx: TxData) -> Generator[None, None, Optional[str]]:
         """Get the revert reason of the given transaction."""
+        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_id)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="revert_reason",
             tx=tx,
+            chain_id=chain_id,
         )
 
         if (
@@ -698,8 +719,13 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             current_message = next(self._messages_iterator, None)
             if current_message is not None:
+                chain_id = self.synchronized_data.get_chain_id(
+                    self.params.default_chain_id
+                )
                 tx_data = yield from self._get_tx_data(
-                    current_message, self.use_flashbots
+                    current_message,
+                    self.use_flashbots,
+                    chain_id=chain_id,
                 )
                 self.context.logger.info(
                     f"Found a late arriving message {current_message}. Result data: {tx_data}"
@@ -868,7 +894,7 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
         tx_params = skill_input_hex_to_payload(
             self.synchronized_data.most_voted_tx_hash
         )
-
+        chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_id)
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.synchronized_data.safe_contract_address,
@@ -891,10 +917,15 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
             gas_price=self.params.gas_params.gas_price,
             max_fee_per_gas=self.params.gas_params.max_fee_per_gas,
             max_priority_fee_per_gas=self.params.gas_params.max_priority_fee_per_gas,
+            chain_id=chain_id,
         )
 
         tx_data = yield from self._get_tx_data(
-            contract_api_msg, tx_params["use_flashbots"]
+            contract_api_msg,
+            tx_params["use_flashbots"],
+            tx_params["gas_limit"],
+            tx_params["raise_on_failed_simulation"],
+            chain_id,
         )
         return tx_data
 

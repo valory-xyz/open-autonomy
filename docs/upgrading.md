@@ -5,6 +5,58 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.14.3` to `v0.14.3.post1`
+
+No backwards incompatible changes
+
+## `v0.14.2` to `v0.14.3`
+
+No backwards incompatible changes
+
+## `v0.14.1` to `v0.14.2`
+
+No backwards incompatible changes
+
+## `v0.14.0` to `v0.14.1`
+
+No backwards incompatible changes
+
+## `v0.13.10` to `v0.14.0`
+
+- This release introduces automated dependency verification on the minting tools, this means when minting a package you will have to mint all of the dependencies beforehand. The minting tools uses a subgraph to verify dependencies so you might have to wait for a small amount of time before you can mint the package after you mint the dependencies. 
+- Since the dependency verification is automated the `--skip-hash-check` and `--skip-dependencies-check` flags have been deprecated on the `autonomy mint/service` command groups
+
+## `v0.13.9.post1` to `v0.13.10`
+
+No backwards incompatible changes
+
+## `v0.13.9` to `v0.13.9.post1`
+
+No backwards incompatible changes
+
+## `v0.13.8` to `v0.13.9`
+
+No backwards incompatible changes
+
+## `v0.13.7` to `v0.13.8`
+
+No backwards incompatible changes
+
+## `v0.13.6` to `v0.13.7`
+
+No backwards incompatible changes
+
+## `v0.13.5` to `v0.13.6`
+
+No backwards incompatible changes
+
+## `v0.13.4` to `v0.13.5`
+
+No backwards incompatible changes
+
+## `v0.13.3` to `v0.13.4`
+
+No backwards incompatible changes
 
 ## `v0.13.2` to `v0.13.3`
 

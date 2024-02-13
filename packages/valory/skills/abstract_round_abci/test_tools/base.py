@@ -435,6 +435,7 @@ class DummyContext:
         round_timeout_seconds: float = 1.0
 
     _skill: MagicMock = MagicMock()
+    logger: MagicMock = MagicMock()
     skill_id = "dummy_skill_id"
 
     @property

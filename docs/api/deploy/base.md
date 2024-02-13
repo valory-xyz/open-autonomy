@@ -16,6 +16,16 @@ nosec
 
 nosec
 
+<a id="autonomy.deploy.base.tm_write_to_log"></a>
+
+#### tm`_`write`_`to`_`log
+
+```python
+def tm_write_to_log() -> bool
+```
+
+Check the environment variable to see if the user wants to write to log file or not.
+
 <a id="autonomy.deploy.base.NotValidKeysFile"></a>
 
 ## NotValidKeysFile Objects
@@ -25,6 +35,36 @@ class NotValidKeysFile(Exception)
 ```
 
 Raise when provided keys file is not valid.
+
+<a id="autonomy.deploy.base.ResourceValues"></a>
+
+## ResourceValues Objects
+
+```python
+class ResourceValues(TypedDict)
+```
+
+Resource type.
+
+<a id="autonomy.deploy.base.Resource"></a>
+
+## Resource Objects
+
+```python
+class Resource(TypedDict)
+```
+
+Resource values.
+
+<a id="autonomy.deploy.base.Resources"></a>
+
+## Resources Objects
+
+```python
+class Resources(TypedDict)
+```
+
+Deployment resources.
 
 <a id="autonomy.deploy.base.ServiceBuilder"></a>
 
@@ -42,7 +82,8 @@ Class to assist with generating deployments.
 
 ```python
 def __init__(service: Service,
-             keys: Optional[List[Dict[str, str]]] = None,
+             keys: Optional[List[Union[List[Dict[str, str]],
+                                       Dict[str, str]]]] = None,
              agent_instances: Optional[List[str]] = None,
              apply_environment_variables: bool = False) -> None
 ```
@@ -107,7 +148,7 @@ Agent instances setter.
 
 ```python
 @property
-def keys() -> List[Dict[str, str]]
+def keys() -> List[Union[List[Dict[str, str]], Dict[str, str]]]
 ```
 
 Keys.
@@ -134,7 +175,7 @@ Service builder from path.
 
 ```python
 @staticmethod
-def verify_agent_instances(keys: List[Dict[str, str]],
+def verify_agent_instances(addresses: Set[str],
                            agent_instances: List[str]) -> None
 ```
 
@@ -246,7 +287,8 @@ def __init__(service_builder: ServiceBuilder,
              packages_dir: Optional[Path] = None,
              open_aea_dir: Optional[Path] = None,
              open_autonomy_dir: Optional[Path] = None,
-             image_author: Optional[str] = None)
+             image_author: Optional[str] = None,
+             resources: Optional[Resources] = None)
 ```
 
 Initialise with only kwargs.

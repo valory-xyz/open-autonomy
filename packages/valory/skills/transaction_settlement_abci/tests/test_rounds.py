@@ -759,6 +759,12 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                 TransactionSettlementEvent.NONE,
             ),
             (
+                "0000000000000000000000000000000000000000000000000000000000000007",
+                "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                {},
+                TransactionSettlementEvent.NONE,
+            ),
+            (
                 "0000000000000000000000000000000000000000000000000000000000000002",
                 "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                 {"test": 1},

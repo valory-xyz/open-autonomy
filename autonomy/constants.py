@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -58,4 +58,4 @@ DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE = (
 ACN_IMAGE_NAME = os.environ.get("ACN_IMAGE_NAME", "valory/open-acn-node")
 DEFAULT_DOCKER_IMAGE_AUTHOR = "valory"
 OAR_IMAGE = "{image_author}/oar-{agent}:{version}"
-ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeib5d3tt3jkd5b3sr2pbf2jkogicxxywve3z7n5ebau7vz4ibfsvq4"
+ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeia7gznlazv26ozolikb6jcesbo7wdv544lwcl2pveoukgxh4z5m2m"

@@ -1704,10 +1704,10 @@ class TestAbciApp:
 
     def test_process_event_negative_case(self) -> None:
         """Test the 'process_event' method, negative case."""
-        with mock.patch.object(self.abci_app.logger, "info") as mock_info:
+        with mock.patch.object(self.abci_app.logger, "warning") as mock_warning:
             self.abci_app.process_event(ConcreteEvents.A)
-            mock_info.assert_called_with(
-                "cannot process event 'a' as current state is not set"
+            mock_warning.assert_called_with(
+                "Cannot process event 'a' as current state is not set"
             )
 
     def test_update_time(self) -> None:
@@ -2150,6 +2150,7 @@ class TestOffenceStatus:
     """Test the `OffenceStatus` dataclass."""
 
     @staticmethod
+    @pytest.mark.parametrize("custom_amount", (0, 5))
     @pytest.mark.parametrize("light_unit_amount, serious_unit_amount", ((1, 2),))
     @pytest.mark.parametrize(
         "validator_downtime, invalid_payload, blacklisted, suspected, "
@@ -2169,6 +2170,7 @@ class TestOffenceStatus:
         ),
     )
     def test_slash_amount(
+        custom_amount: int,
         light_unit_amount: int,
         serious_unit_amount: int,
         validator_downtime: bool,
@@ -2198,9 +2200,10 @@ class TestOffenceStatus:
         status.num_unknown_offenses = num_unknown_offenses
         status.num_double_signed = num_double_signed
         status.num_light_client_attack = num_light_client_attack
+        status.custom_offences_amount = custom_amount
 
         actual = status.slash_amount(light_unit_amount, serious_unit_amount)
-        assert actual == expected
+        assert actual == expected + status.custom_offences_amount
 
 
 @composite
@@ -3232,7 +3235,7 @@ def test_get_name() -> None:
 
 
 @pytest.mark.parametrize(
-    "sender, accused_agent_address, offense_round, offense_type_value, last_transition_timestamp, time_to_live",
+    "sender, accused_agent_address, offense_round, offense_type_value, last_transition_timestamp, time_to_live, custom_amount",
     (
         (
             "sender",
@@ -3241,6 +3244,7 @@ def test_get_name() -> None:
             3,
             10,
             2,
+            10,
         ),
     ),
 )
@@ -3251,6 +3255,7 @@ def test_pending_offences_payload(
     offense_type_value: int,
     last_transition_timestamp: int,
     time_to_live: int,
+    custom_amount: int,
 ) -> None:
     """Test `PendingOffencesPayload`"""
 
@@ -3261,6 +3266,7 @@ def test_pending_offences_payload(
         offense_type_value,
         last_transition_timestamp,
         time_to_live,
+        custom_amount,
     )
 
     assert payload.id_
@@ -3271,12 +3277,14 @@ def test_pending_offences_payload(
     assert payload.offense_type_value == offense_type_value
     assert payload.last_transition_timestamp == last_transition_timestamp
     assert payload.time_to_live == time_to_live
+    assert payload.custom_amount == custom_amount
     assert payload.data == {
         "accused_agent_address": accused_agent_address,
         "offense_round": offense_round,
         "offense_type_value": offense_type_value,
         "last_transition_timestamp": last_transition_timestamp,
         "time_to_live": time_to_live,
+        "custom_amount": custom_amount,
     }
 
 
@@ -3296,6 +3304,7 @@ class TestPendingOffencesRound(BaseRoundTestClass):
             max_value=timegm(datetime.datetime(8000, 1, 1).utctimetuple()) - 2000,
         ),
         time_to_live=floats(min_value=1, max_value=2000),
+        custom_amount=integers(min_value=0),
     )
     def test_run(
         self,
@@ -3304,6 +3313,7 @@ class TestPendingOffencesRound(BaseRoundTestClass):
         offense_type_value: int,
         last_transition_timestamp: float,
         time_to_live: float,
+        custom_amount: int,
     ) -> None:
         """Run tests."""
 
@@ -3318,6 +3328,7 @@ class TestPendingOffencesRound(BaseRoundTestClass):
         # create the actual and expected value
         actual = test_round.context.state.round_sequence.offence_status
         expected_invalid = offense_type_value == OffenseType.INVALID_PAYLOAD.value
+        expected_custom_amount = offense_type_value == OffenseType.CUSTOM.value
         expected = deepcopy(status_initialization)
 
         first_payload, *payloads = [
@@ -3328,6 +3339,7 @@ class TestPendingOffencesRound(BaseRoundTestClass):
                 offense_type_value,
                 last_transition_timestamp,
                 time_to_live,
+                custom_amount,
             )
             for sender in self.participants
         ]
@@ -3342,4 +3354,7 @@ class TestPendingOffencesRound(BaseRoundTestClass):
             test_round.end_block()
 
         expected[accused_agent_address].invalid_payload.add(expected_invalid)
+        if expected_custom_amount:
+            expected[accused_agent_address].custom_offences_amount += custom_amount
+
         assert actual == expected

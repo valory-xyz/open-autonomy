@@ -37,7 +37,6 @@ function checkKey() {
         fi
     fi
     addKey $1
-
 }
 
 function handleFlashbotsKey() {
@@ -52,8 +51,16 @@ function handleCosmosConnectionKeyAndCerts() {
     if [ ! -f "cosmos_private_key.txt" ]; then
         generateKey cosmos
     fi
-    aea add-key cosmos --connection
-    aea issue-certificates
+
+    if [[ "$AEA_PASSWORD" != "" ]]; then
+        echo "Issuing certificates with password"
+        aea add-key cosmos --connection --password $AEA_PASSWORD
+        aea issue-certificates --password $AEA_PASSWORD
+    else
+        echo "Issuing certificates without password"
+        aea add-key cosmos --connection
+        aea issue-certificates
+    fi
 }
 
 function runAgent() {
@@ -62,7 +69,6 @@ function runAgent() {
     else
         aea run
     fi
-
 }
 
 function addKey() {
@@ -79,6 +85,7 @@ function addKey() {
 
 function main() {
     echo "Running the aea with $(aea --version)"
+
     echo "Checking keys"
     checkKey ethereum
     checkKey cosmos
@@ -90,7 +97,6 @@ function main() {
 
     echo "Running the aea"
     runAgent
-
 }
 
 cd agent

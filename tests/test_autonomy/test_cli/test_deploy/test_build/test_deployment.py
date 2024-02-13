@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -35,7 +35,13 @@ from aea_test_autonomy.configurations import (
 )
 
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_DOCKER_IMAGE_AUTHOR
-from autonomy.deploy.base import ServiceBuilder
+from autonomy.deploy.base import (
+    DEFAULT_AGENT_CPU_LIMIT,
+    DEFAULT_AGENT_CPU_REQUEST,
+    DEFAULT_AGENT_MEMORY_LIMIT,
+    DEFAULT_AGENT_MEMORY_REQUEST,
+    ServiceBuilder,
+)
 from autonomy.deploy.constants import (
     DEBUG,
     DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
@@ -868,3 +874,185 @@ class TestLoadEnvVars(BaseDeployBuildTest):
         self.cli_options = ("deploy", "--env-file", str(env_file.resolve()), "build")
 
         self._run_test()
+
+
+class TestResourceSpecification(BaseDeployBuildTest):
+    """Test expose ports from service config."""
+
+    def setup(self) -> None:
+        """Setup test."""
+        super().setup()
+        service_data = get_dummy_service_config(file_number=4)
+        with open("./service.yaml", "w+") as fp:
+            yaml.dump_all(service_data, fp)
+        with OS_ENV_PATCH:
+            self.spec = ServiceBuilder.from_dir(
+                self.t / "register_reset",
+                self.keys_file,
+            )
+
+    def test_default_resources_docker_compose(self) -> None:
+        """Test custom resources"""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"), OS_ENV_PATCH:
+            result = self.run_cli(
+                (str(self.keys_file), "--o", str(self.t / DEFAULT_BUILD_FOLDER))
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_docker_compose_build(
+            build_dir=build_dir,
+        )
+        docker_compose = self.load_and_check_docker_compose_file(
+            path=build_dir / DockerComposeGenerator.output_name
+        )
+
+        assert (
+            docker_compose["services"]["dummyservice_abci_0"]["mem_reservation"]
+            == f"{DEFAULT_AGENT_MEMORY_REQUEST}M"
+        )
+        assert (
+            docker_compose["services"]["dummyservice_abci_0"]["mem_limit"]
+            == f"{DEFAULT_AGENT_MEMORY_LIMIT}M"
+        )
+        assert (
+            docker_compose["services"]["dummyservice_abci_0"]["cpus"]
+            == DEFAULT_AGENT_CPU_LIMIT
+        )
+
+    def test_default_resources_kuberntes(self) -> None:
+        """Test custom resources"""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"), OS_ENV_PATCH:
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--kubernetes",
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_kubernetes_build(build_dir=build_dir)
+        build_config = self.load_kubernetes_config(build_dir)
+
+        assert build_config[1]["spec"]["template"]["spec"]["containers"][1][
+            "resources"
+        ]["requests"]["cpu"] == str(DEFAULT_AGENT_CPU_REQUEST)
+
+        assert (
+            build_config[1]["spec"]["template"]["spec"]["containers"][1]["resources"][
+                "requests"
+            ]["memory"]
+            == f"{DEFAULT_AGENT_MEMORY_REQUEST}Mi"
+        )
+
+        assert build_config[1]["spec"]["template"]["spec"]["containers"][1][
+            "resources"
+        ]["limits"]["cpu"] == str(DEFAULT_AGENT_CPU_LIMIT)
+
+        assert (
+            build_config[1]["spec"]["template"]["spec"]["containers"][1]["resources"][
+                "limits"
+            ]["memory"]
+            == f"{DEFAULT_AGENT_MEMORY_LIMIT}Mi"
+        )
+
+    def test_custom_resources_docker_compose(self) -> None:
+        """Test custom resources"""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"), OS_ENV_PATCH:
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--agent-cpu-limit",
+                    "2.0",
+                    "--agent-memory-limit",
+                    "4096",
+                    "--agent-memory-request",
+                    "2048",
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_docker_compose_build(
+            build_dir=build_dir,
+        )
+        docker_compose = self.load_and_check_docker_compose_file(
+            path=build_dir / DockerComposeGenerator.output_name
+        )
+
+        assert (
+            docker_compose["services"]["dummyservice_abci_0"]["mem_reservation"]
+            == "2048M"
+        )
+        assert docker_compose["services"]["dummyservice_abci_0"]["mem_limit"] == "4096M"
+        assert docker_compose["services"]["dummyservice_abci_0"]["cpus"] == 2.0
+
+    def test_custom_resources_kuberntes(self) -> None:
+        """Test custom resources"""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"), OS_ENV_PATCH:
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--kubernetes",
+                    "--agent-cpu-request",
+                    "1.0",
+                    "--agent-memory-request",
+                    "2048",
+                    "--agent-cpu-limit",
+                    "2.0",
+                    "--agent-memory-limit",
+                    "4096",
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_kubernetes_build(build_dir=build_dir)
+        build_config = self.load_kubernetes_config(build_dir)
+
+        assert (
+            build_config[1]["spec"]["template"]["spec"]["containers"][1]["resources"][
+                "requests"
+            ]["cpu"]
+            == "1.0"
+        )
+
+        assert (
+            build_config[1]["spec"]["template"]["spec"]["containers"][1]["resources"][
+                "requests"
+            ]["memory"]
+            == "2048Mi"
+        )
+
+        assert (
+            build_config[1]["spec"]["template"]["spec"]["containers"][1]["resources"][
+                "limits"
+            ]["cpu"]
+            == "2.0"
+        )
+
+        assert (
+            build_config[1]["spec"]["template"]["spec"]["containers"][1]["resources"][
+                "limits"
+            ]["memory"]
+            == "4096Mi"
+        )

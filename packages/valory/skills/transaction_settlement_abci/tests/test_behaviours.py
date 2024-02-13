@@ -341,7 +341,7 @@ class TestTransactionSettlementBaseBehaviour(TransactionSettlementFSMBehaviourBa
 
         # patch the `send_raw_transaction` method
         def dummy_send_raw_transaction(
-            *_: Any,
+            *_: Any, **kwargs: Any
         ) -> Generator[None, None, Tuple[Optional[str], RPCResponseStatus]]:
             """Dummy `send_raw_transaction` method."""
             yield
@@ -1342,6 +1342,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
             def _dummy_get_tx_data(
                 _current_message: ContractApiMessage,
                 _use_flashbots: bool,
+                chain_id: Optional[str] = None,
             ) -> Generator[None, None, TxDataType]:
                 yield
                 return {

@@ -31,43 +31,72 @@ def sort_service_dependency_metadata(
 
 Sort service dependencies and their respective parameters
 
-<a id="autonomy.chain.mint.mint_component"></a>
+<a id="autonomy.chain.mint.MintManager"></a>
+
+## MintManager Objects
+
+```python
+class MintManager()
+```
+
+Mint helper.
+
+<a id="autonomy.chain.mint.MintManager.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(ledger_api: LedgerApi,
+             crypto: Crypto,
+             chain_type: ChainType,
+             dry_run: bool = False,
+             timeout: Optional[float] = None,
+             retries: Optional[int] = None,
+             sleep: Optional[float] = None) -> None
+```
+
+Initialize object.
+
+<a id="autonomy.chain.mint.MintManager.validate_address"></a>
+
+#### validate`_`address
+
+```python
+def validate_address(address: str) -> str
+```
+
+Validate address string.
+
+<a id="autonomy.chain.mint.MintManager.mint_component"></a>
 
 #### mint`_`component
 
 ```python
-def mint_component(ledger_api: LedgerApi,
-                   crypto: Crypto,
-                   metadata_hash: str,
+def mint_component(metadata_hash: str,
                    component_type: UnitType,
-                   chain_type: ChainType,
                    owner: Optional[str] = None,
                    dependencies: Optional[List[int]] = None) -> Optional[int]
 ```
 
 Publish component on-chain.
 
-<a id="autonomy.chain.mint.update_component"></a>
+<a id="autonomy.chain.mint.MintManager.update_component"></a>
 
 #### update`_`component
 
 ```python
-def update_component(ledger_api: LedgerApi, crypto: Crypto, unit_id: int,
-                     metadata_hash: str, component_type: UnitType,
-                     chain_type: ChainType) -> Optional[int]
+def update_component(metadata_hash: str, unit_id: int,
+                     component_type: UnitType) -> Optional[int]
 ```
 
-Publish component on-chain.
+Update component on-chain.
 
-<a id="autonomy.chain.mint.mint_service"></a>
+<a id="autonomy.chain.mint.MintManager.mint_service"></a>
 
 #### mint`_`service
 
 ```python
-def mint_service(ledger_api: LedgerApi,
-                 crypto: Crypto,
-                 metadata_hash: str,
-                 chain_type: ChainType,
+def mint_service(metadata_hash: str,
                  agent_ids: List[int],
                  number_of_slots_per_agent: List[int],
                  cost_of_bond_per_agent: List[int],
@@ -78,16 +107,18 @@ def mint_service(ledger_api: LedgerApi,
 
 Publish component on-chain.
 
-<a id="autonomy.chain.mint.update_service"></a>
+<a id="autonomy.chain.mint.MintManager.update_service"></a>
 
 #### update`_`service
 
 ```python
-def update_service(ledger_api: LedgerApi, crypto: Crypto, service_id: int,
-                   metadata_hash: str, chain_type: ChainType,
-                   agent_ids: List[int], number_of_slots_per_agent: List[int],
+def update_service(metadata_hash: str,
+                   service_id: int,
+                   agent_ids: List[int],
+                   number_of_slots_per_agent: List[int],
                    cost_of_bond_per_agent: List[int],
-                   threshold: int) -> Optional[int]
+                   threshold: int,
+                   token: Optional[str] = None) -> Optional[int]
 ```
 
 Publish component on-chain.

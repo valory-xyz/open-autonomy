@@ -101,6 +101,24 @@ class ServiceManagerContract(Contract):
         return ledger_api.get_contract_instance(contract_interface, contract_address)
 
     @classmethod
+    def get_events(  # pragma: nocover
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        event: str,
+        receipt: JSONLike,
+    ) -> Dict:
+        """Process receipt for events."""
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        Event = getattr(contract_interface.events, event, None)
+        if Event is None:
+            return {"events": []}
+        return {"events": Event().process_receipt(receipt)}
+
+    @classmethod
     def get_create_transaction(  # pylint: disable=too-many-arguments
         cls,
         ledger_api: LedgerApi,
@@ -150,7 +168,7 @@ class ServiceManagerContract(Contract):
         agent_ids: List[int],
         agent_params: List[List[int]],
         threshold: int,
-        token: str = ETHEREUM_ERC20,
+        token: Optional[str] = None,
         raise_on_try: bool = False,
     ) -> Dict[str, Any]:
         """Retrieve the service owner."""
@@ -162,7 +180,9 @@ class ServiceManagerContract(Contract):
             "threshold": threshold,
         }
         if cls.is_service_manager_token_compatible_chain(ledger_api=ledger_api):
-            method_args["token"] = ledger_api.api.to_checksum_address(token)
+            method_args["token"] = ledger_api.api.to_checksum_address(
+                token or ETHEREUM_ERC20
+            )
 
         return ledger_api.build_transaction(
             contract_instance=cls.get_instance(

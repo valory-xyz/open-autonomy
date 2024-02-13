@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@
 import os
 import re
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
+from unittest import mock
 
 import pytest
 from aea.configurations.data_types import PackageId, PackageType, PublicId
@@ -36,14 +37,11 @@ from autonomy.chain.base import registry_contracts
 from autonomy.chain.config import ChainType
 from autonomy.chain.constants import HardhatAddresses
 from autonomy.chain.metadata import publish_metadata
-from autonomy.chain.mint import (
-    DEFAULT_NFT_IMAGE_HASH,
-    UnitType,
-    mint_component,
-    mint_service,
-)
+from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH, MintManager, UnitType
+from autonomy.chain.service import ServiceManager
+from autonomy.chain.subgraph.client import SubgraphClient
 from autonomy.chain.utils import parse_public_id_from_metadata, resolve_component_id
-from autonomy.cli.helpers.chain import OnChainHelper
+from autonomy.cli.helpers.chain import MintHelper, OnChainHelper
 from autonomy.cli.packages import get_package_manager
 
 from tests.conftest import DATA_DIR
@@ -96,6 +94,32 @@ DEFAULT_SERVICE_MINT_PARAMETERS = (
 )
 
 
+def patch_subgraph(
+    response: List,
+    method: str = "get_component_by_token",
+) -> Any:
+    """Patch subgraph client."""
+    return mock.patch.object(
+        SubgraphClient,
+        attribute=method,
+        return_value={"units": response},
+    )
+
+
+def _fetch_component_dependencies(cls: Any) -> Any:
+    cls.dependencies = [1, 2]
+    return cls
+
+
+def patch_component_verification() -> Any:
+    """Patch component verificaation."""
+    return mock.patch.object(
+        MintHelper,
+        "fetch_component_dependencies",
+        new=_fetch_component_dependencies,
+    )
+
+
 @skip_docker_tests
 @pytest.mark.usefixtures("registries_scope_class")
 class BaseChainInteractionTest(BaseCliTest):
@@ -104,6 +128,8 @@ class BaseChainInteractionTest(BaseCliTest):
     ledger_api: LedgerApi
     crypto: Crypto
     chain_type: ChainType = ChainType.LOCAL
+    mint_manager: MintManager
+    service_manager: ServiceManager
 
     key_file: Path = ETHEREUM_KEY_DEPLOYER
 
@@ -120,6 +146,16 @@ class BaseChainInteractionTest(BaseCliTest):
         cls.ledger_api, cls.crypto = OnChainHelper.get_ledger_and_crypto_objects(
             chain_type=cls.chain_type,
             key=cls.key_file,
+        )
+        cls.mint_manager = MintManager(
+            ledger_api=cls.ledger_api,
+            crypto=cls.crypto,
+            chain_type=cls.chain_type,
+        )
+        cls.service_manager = ServiceManager(
+            ledger_api=cls.ledger_api,
+            crypto=cls.crypto,
+            chain_type=cls.chain_type,
         )
 
     @staticmethod
@@ -225,19 +261,13 @@ class BaseChainInteractionTest(BaseCliTest):
             assert (
                 service_mint_parameters is not None
             ), "Please provide service mint parameters"
-            token_id = mint_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
+            token_id = self.mint_manager.mint_service(
                 metadata_hash=metadata_hash,
-                chain_type=ChainType.LOCAL,
                 **service_mint_parameters,
             )
         else:
-            token_id = mint_component(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
+            token_id = self.mint_manager.mint_component(
                 metadata_hash=metadata_hash,
-                chain_type=ChainType.LOCAL,
                 component_type=(
                     UnitType.AGENT
                     if package_id.package_type == PackageType.AGENT

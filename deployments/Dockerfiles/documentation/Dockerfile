@@ -18,7 +18,7 @@ WORKDIR /build
 COPY docs/ /build/docs
 COPY mkdocs.yml /build
 
-RUN pip3 install tomte[docs]==0.2.13
+RUN pip3 install tomte[docs]==0.2.15
 RUN mkdocs build
 
 FROM python:3.10-alpine

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,9 +20,14 @@
 """Docker-compose Deployment Generator."""
 import ipaddress
 from pathlib import Path
-from typing import Dict, Optional, cast
+from typing import Dict, List, Optional, cast
 
-from aea.configurations.constants import DEFAULT_LEDGER, PRIVATE_KEY_PATH_SCHEMA
+from aea.configurations.constants import (
+    DEFAULT_LEDGER,
+    LEDGER,
+    PRIVATE_KEY,
+    PRIVATE_KEY_PATH_SCHEMA,
+)
 from docker import from_env
 
 from autonomy.constants import (
@@ -35,14 +40,17 @@ from autonomy.constants import (
     TENDERMINT_IMAGE_NAME,
     TENDERMINT_IMAGE_VERSION,
 )
-from autonomy.deploy.base import BaseDeploymentGenerator
+from autonomy.deploy.base import (
+    BaseDeploymentGenerator,
+    DEFAULT_RESOURCE_VALUES,
+    Resources,
+    tm_write_to_log,
+)
 from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
     DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
     DEPLOYMENT_KEY_DIRECTORY,
     INFO,
-    KEY_SCHEMA_PRIVATE_KEY,
-    KEY_SCHEMA_TYPE,
 )
 from autonomy.deploy.generators.docker_compose.templates import (
     ABCI_NODE_TEMPLATE,
@@ -76,7 +84,6 @@ def build_tendermint_node_config(  # pylint: disable=too-many-arguments
     tendermint_ports: Optional[Dict[int, int]] = None,
 ) -> str:
     """Build tendermint node config for docker compose."""
-
     config = TENDERMINT_NODE_TEMPLATE.format(
         node_id=node_id,
         container_name=container_name,
@@ -87,6 +94,7 @@ def build_tendermint_node_config(  # pylint: disable=too-many-arguments
         tendermint_image_name=TENDERMINT_IMAGE_NAME,
         tendermint_image_version=TENDERMINT_IMAGE_VERSION,
         network_name=network_name,
+        write_to_log=str(tm_write_to_log()).lower(),
     )
 
     if dev_mode:
@@ -105,7 +113,7 @@ def build_tendermint_node_config(  # pylint: disable=too-many-arguments
     return config
 
 
-def build_agent_config(  # pylint: disable=too-many-arguments
+def build_agent_config(  # pylint: disable=too-many-arguments,too-many-locals
     node_id: int,
     container_name: str,
     agent_vars: Dict,
@@ -117,9 +125,10 @@ def build_agent_config(  # pylint: disable=too-many-arguments
     open_aea_dir: Path = DEFAULT_OPEN_AEA_DIR,
     open_autonomy_dir: Path = DEFAULT_OPEN_AUTONOMY_DIR,
     agent_ports: Optional[Dict[int, int]] = None,
+    resources: Optional[Resources] = None,
 ) -> str:
     """Build agent config."""
-
+    resources = resources if resources is not None else DEFAULT_RESOURCE_VALUES
     agent_vars_string = "\n".join([f"      - {k}={v}" for k, v in agent_vars.items()])
     config = ABCI_NODE_TEMPLATE.format(
         node_id=node_id,
@@ -128,6 +137,9 @@ def build_agent_config(  # pylint: disable=too-many-arguments
         network_address=network_address,
         runtime_image=runtime_image,
         network_name=network_name,
+        agent_memory_request=resources["agent"]["requested"]["memory"],
+        agent_cpu_limit=resources["agent"]["limit"]["cpu"],
+        agent_memory_limit=resources["agent"]["limit"]["memory"],
     )
 
     if dev_mode:
@@ -276,6 +288,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     ),
                     network_name=network_name,
                     network_address=network.next_address,
+                    resources=self.resources,
                 )
                 for i in range(self.service_builder.service.number_of_agents)
             ]
@@ -331,18 +344,41 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
 
         return self
 
-    def populate_private_keys(
-        self,
-    ) -> "DockerComposeGenerator":
-        """Populate the private keys to the build directory for docker-compose mapping."""
+    def _populate_keys(self) -> None:
+        """Populate the keys directory"""
         keys_dir = self.build_dir / DEPLOYMENT_KEY_DIRECTORY
         for x in range(self.service_builder.service.number_of_agents):
             path = keys_dir / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=x)
-            ledger = self.service_builder.keys[x].get(KEY_SCHEMA_TYPE, DEFAULT_LEDGER)
-            key = self.service_builder.keys[x][KEY_SCHEMA_PRIVATE_KEY]
+            ledger = cast(List[Dict[str, str]], self.service_builder.keys)[x].get(
+                LEDGER, DEFAULT_LEDGER
+            )
+            key = cast(List[Dict[str, str]], self.service_builder.keys)[x][PRIVATE_KEY]
             keys_file = path / PRIVATE_KEY_PATH_SCHEMA.format(ledger)
             path.mkdir()
             with keys_file.open(mode="w", encoding=DEFAULT_ENCODING) as f:
                 f.write(key)
 
+    def _populate_keys_multiledger(self) -> None:
+        """Populate the keys directory with multiple set of keys"""
+        keys_dir = self.build_dir / DEPLOYMENT_KEY_DIRECTORY
+        for x in range(self.service_builder.service.number_of_agents):
+            path = keys_dir / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=x)
+            path.mkdir(exist_ok=True)
+            for keypair in cast(List[List[Dict[str, str]]], self.service_builder.keys)[
+                x
+            ]:
+                ledger = keypair.get(LEDGER, DEFAULT_LEDGER)
+                key = keypair[PRIVATE_KEY]
+                keys_file = path / PRIVATE_KEY_PATH_SCHEMA.format(ledger)
+                with keys_file.open(mode="w", encoding=DEFAULT_ENCODING) as f:
+                    f.write(key)
+
+    def populate_private_keys(
+        self,
+    ) -> "DockerComposeGenerator":
+        """Populate the private keys to the build directory for docker-compose mapping."""
+        if self.service_builder.multiledger:
+            self._populate_keys_multiledger()
+        else:
+            self._populate_keys()
         return self

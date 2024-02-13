@@ -1,5 +1,100 @@
 # Release History - `open-autonomy`
 
+# 0.14.3.post1 (2024-01-31)
+
+Autonomy:
+- Fixes the default value handling for the resource specifier flags on the `autonomy deploy build/from-token` commands
+
+# 0.14.3 (2024-01-30)
+
+Autonomy:
+- Updates the transaction settlement to reprice transaction when running into `ReplacementNotAllowed`
+- Adds support for specifying resources on the deployment builds using CLI flags and framework level environment variables
+
+# 0.14.2 (2024-01-29)
+
+Autonomy:
+- Adds support for using multiple ledgers in `keys.json`
+- Fixes single agent override indexing
+
+Packages:
+- Adds support for custom offence amounts
+
+# 0.14.1 (2024-01-23)
+
+Autonomy:
+- Pins `aiohttp<4.0.0,>=3.8.5`
+- Updates the deployment builder to use ledger identifier property in the `keys.json` to write the private key files in a deployment setup
+
+Packages:
+- Ports multi-ledger support on termination skill from `IEKIT`
+
+# 0.14.0 (2024-01-19)
+
+Autonomy:
+- Extends the list of retriable errors on transaction settlement
+- Integrates the autonolas subgraph to automate the dependency verification on the minting tools
+
+# 0.13.10 (2024-01-09)
+
+Packages:
+- Updates protocol packages to contain latest copyright headers
+
+# 0.13.9.post1 (2023-12-26)
+
+- Bumps `open-aea@1.43.0.post2`
+
+# 0.13.9 (2023-12-19)
+
+Autonomy:
+- Updates the tendermint image to support arm platforms
+- Updates the autonomy image to use `--timeout` flag on `aea install` command to avoid timeout failures on machines with limited resources
+
+Docs:
+- Fixes `hello-world` hash in the quick start guide
+- Adds requirements for developing and running on `raspberry-pi`
+
+# 0.13.8 (2023-11-30)
+
+Autonomy:
+- Implements transaction settlement on the `mint/service` command groups
+  - Adds support for retrying transaction on known error
+  - Adds support for repricing under priced transactions
+- Adds support for performing dry-run on on-chain interaction tools
+
+Chore:
+- Adds a script for bumping services
+
+# 0.13.7 (2023-11-23)
+
+Autonomy:
+- Adds support for logging to console on tendermint server
+
+# 0.13.6 (2023-11-21)
+
+Autonomy:
+- Fixes the start.sh script to use password if provided when issuing certificates
+
+Packages:
+- Renames the `chain_name` parameter to `chain_id` on transaction settlement skill
+
+Docs:
+- Updates the documentation on private key security in deployments
+
+# 0.13.5 (2023-11-14)
+
+Autonomy:
+- Pins `protobuf<4.25.0,>=4.21.6`
+
+Packages:
+- Ports changes on transaction settlement skill from `IEKit` and `agent-academy-2`
+- Updates the transaction settlement ABCI to handle safe-nonce reuse
+
+# 0.13.4 (2023-11-01)
+
+Autonomy:
+- Updates the mint tools to propagate `token` address to update service transactions
+
 # 0.13.3 (2023-11-01)
 
 - Synchronises the `on-chain` addresses with the latest protocol release

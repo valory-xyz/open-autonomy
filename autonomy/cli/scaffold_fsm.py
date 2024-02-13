@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -88,6 +88,10 @@ def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
 @pass_ctx
 def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None:
     """Add an ABCI skill scaffolding from an FSM specification."""
+    click.echo(
+        "`autonomy scaffold fsm` is deprecated, use `open-autonomy-compose` to scaffold FSM applications"
+    )
+
     ctx.registry_type = registry
 
     # check abstract_round_abci is in dependencies; if not, add it

@@ -8,6 +8,9 @@ This command group consists of a number of functionalities to mint components, a
 
 ## Options
 
+`--dry-run`
+: Perform a dry run for the transaction.
+
 `--use-ethereum`
 : Use the Ethereum chain profile to interact with the Autonolas Protocol registry contracts. This option requires that you define the following environment variable:
 
@@ -48,11 +51,14 @@ This command group consists of a number of functionalities to mint components, a
 
     The options `--use-ethereum`, `--use-goerli`, `--use-custom-chain` and `--use-local` are mutually exclusive.
 
-`--skip-hash-check`
-: Skip hash check when verifying dependencies on chain.
+`-t, --timeout FLOAT`
+: Timeout for on-chain interactions
 
-`--skip-dependencies-check`
-: Skip dependency verification.
+`-r, --retries INTEGER`
+: Max retries for on-chain interactions
+
+`--sleep FLOAT`
+: Sleep period between retries
 
 ## `autonomy mint protocol` / `contract` / `connection` / `skill`
 
@@ -77,9 +83,6 @@ autonomy mint skill [OPTIONS] PACKAGE_PATH
 `--password PASSWORD`
 : Password for the key file.
 
-`-d, --dependencies DEPENDENCY_ID`
-: Dependencies for the package.
-
 `--nft IPFS_HASH_OR_IMAGE_PATH`
 : IPFS hash or path to the image for the NFT representing the package. Note that if you are using a local chain this option is not required.
 
@@ -91,22 +94,51 @@ autonomy mint skill [OPTIONS] PACKAGE_PATH
 
 ### Examples
 
-Mint the `abstract_abci` skill with dependency IDs 35 and 42 in a local chain:
+Mint the `abstract_abci` skill in a local chain:
 
 ```bash
-autonomy mint --use-local skill --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 35 -d 42 ./packages/valory/skills/abstract_abci
+autonomy mint --use-local skill --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci
 ```
 
 Same as above, but using a hardware wallet:
 
 ```bash
-autonomy mint --use-local skill --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 35 -d 42 ./packages/valory/skills/abstract_abci
+autonomy mint --use-local skill --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci
 ```
 
 Update the minted `abstract_abci` skill using
 
 ```bash
-autonomy mint --use-local skill --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 35 -d 42 ./packages/valory/skills/abstract_abci --update <token_id>
+autonomy mint --use-local skill --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci --update <token_id>
+```
+
+Perform a dry run
+
+```bash
+autonomy mint --dry-run protocol ./packages/valory/protocols/abci --key key.txt
+```
+
+Output
+
+```bash
+=== Dry run output ===
+Method: RegistriesManagerContract.get_create_transaction
+Contract: 0x...
+Kwargs: 
+    owner: 0x...
+    component_type: UnitType.COMPONENT
+    metadata_hash: 0x...
+    sender: 0x...
+    §ncies: []
+Transaction: 
+    chainId: 31337
+    nonce: 0
+    value: 0
+    gas: 16000
+    maxFeePerGas: 4000000000
+    maxPriorityFeePerGas: 3000000000
+    to: 0x...
+    data: 0x...
 ```
 
 ## `autonomy mint agent`
@@ -129,9 +161,6 @@ autonomy mint agent [OPTIONS] PACKAGE_PATH
 `--password PASSWORD`
 : Password for the key file.
 
-`-d, --dependencies DEPENDENCY_ID`
-: Dependencies for the package. In order to be minted, agent packages require at least one dependency.
-
 `--nft NFT_HASH_OR_IMAGE_PATH`
 : IPFS hash or path to the image for the NFT representing the package. Note that if you are using a local chain this option is not required.
 
@@ -143,16 +172,16 @@ autonomy mint agent [OPTIONS] PACKAGE_PATH
 
 ### Examples
 
-Mint the `hello_world` agent with dependency IDs 34, 35, 38, 39, 42, 43, 44, 45, 46, 47, 48 and 49 in the Ethereum main chain:
+Mint the `hello_world` agent in the Ethereum main chain:
 
 ```bash
-autonomy mint --use-ethereum agent --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 34 -d 35 -d 38 -d 39 -d 42 -d 43 -d 44 -d 45 -d 46 -d 47 -d 48 -d 49 ./packages/valory/agents/hello_world
+autonomy mint --use-ethereum agent --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/agents/hello_world
 ```
 
 Same as above, but using a hardware wallet:
 
 ```bash
-autonomy mint --use-ethereum agent --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 34 -d 35 -d 38 -d 39 -d 42 -d 43 -d 44 -d 45 -d 46 -d 47 -d 48 -d 49 ./packages/valory/agents/hello_world
+autonomy mint --use-ethereum agent --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/agents/hello_world
 ```
 
 ## `autonomy mint service`

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -25,11 +25,12 @@ from typing import Any, Dict, List, Optional, Tuple, Type, cast
 
 import click
 from aea.configurations.base import PackageConfiguration
-from aea.configurations.data_types import PackageType
+from aea.configurations.data_types import PackageId, PackageType, PublicId
 from aea.configurations.loader import load_configuration_object
 from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import crypto_registry, ledger_apis_registry
 from aea.helpers.base import IPFSHash
+from aiohttp.client_exceptions import ClientError
 from texttable import Texttable
 
 from autonomy.chain.base import ServiceState, UnitType
@@ -45,42 +46,22 @@ from autonomy.chain.constants import (
     SERVICE_REGISTRY_CONTRACT,
     SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT,
 )
-from autonomy.chain.exceptions import (
-    ChainInteractionError,
-    ComponentMintFailed,
-    DependencyError,
-    FailedToRetrieveComponentMetadata,
-    InstanceRegistrationFailed,
-    InvalidMintParameter,
-    ServiceDeployFailed,
-    ServiceRegistrationFailed,
-    TerminateServiceFailed,
-    UnbondServiceFailed,
-)
+from autonomy.chain.exceptions import ChainInteractionError
 from autonomy.chain.metadata import NFTHashOrPath, publish_metadata
-from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH
-from autonomy.chain.mint import mint_component as _mint_component
-from autonomy.chain.mint import mint_service as _mint_service
-from autonomy.chain.mint import update_component as _update_component
-from autonomy.chain.mint import update_service as _update_service
-from autonomy.chain.service import activate_service as _activate_service
-from autonomy.chain.service import approve_erc20_usage
-from autonomy.chain.service import deploy_service as _deploy_service
+from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH, MintManager
 from autonomy.chain.service import (
+    ServiceManager,
+    approve_erc20_usage,
     get_activate_registration_amount,
     get_agent_instances,
     get_service_info,
     get_token_deposit_amount,
     is_service_token_secured,
 )
-from autonomy.chain.service import register_instance as _register_instance
-from autonomy.chain.service import terminate_service as _terminate_service
-from autonomy.chain.service import unbond_service as _unbond_service
+from autonomy.chain.subgraph.client import SubgraphClient
 from autonomy.chain.utils import (
     is_service_manager_token_compatible_chain,
     resolve_component_id,
-    verify_component_dependencies,
-    verify_service_dependencies,
 )
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS, Service
 
@@ -96,12 +77,16 @@ except ImportError:  # pragma: nocover
 class OnChainHelper:  # pylint: disable=too-few-public-methods
     """On-chain interaction helper."""
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         chain_type: ChainType,
         key: Optional[Path] = None,
         password: Optional[str] = None,
         hwi: bool = False,
+        timeout: Optional[float] = None,
+        retries: Optional[int] = None,
+        sleep: Optional[float] = None,
+        dry_run: bool = False,
     ) -> None:
         """Initialize object."""
         if key is None and not hwi:
@@ -116,6 +101,10 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
             password=password,
             hwi=hwi,
         )
+        self.timeout = timeout
+        self.retries = retries
+        self.sleep = sleep
+        self.dry_run = dry_run
 
     @staticmethod
     def load_hwi_plugin() -> Type[LedgerApi]:  # pragma: nocover
@@ -253,17 +242,41 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
     metadata_string: str
     token_id: Optional[int]
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         chain_type: ChainType,
         key: Optional[Path] = None,
         password: Optional[str] = None,
         hwi: bool = False,
         update_token: Optional[int] = None,
+        timeout: Optional[float] = None,
+        retries: Optional[int] = None,
+        sleep: Optional[float] = None,
+        subgraph: Optional[str] = None,
+        dry_run: bool = False,
     ) -> None:
         """Initialize object."""
-        super().__init__(chain_type, key, password, hwi)
+        super().__init__(
+            chain_type,
+            key,
+            password,
+            hwi,
+            timeout=timeout,
+            retries=retries,
+            sleep=sleep,
+            dry_run=dry_run,
+        )
         self.update_token = update_token
+        self.manager = MintManager(
+            ledger_api=self.ledger_api,
+            crypto=self.crypto,
+            chain_type=chain_type,
+            timeout=timeout,
+            retries=retries,
+            sleep=sleep,
+            dry_run=self.dry_run,
+        )
+        self.subgraph = SubgraphClient(url=subgraph)
 
     def load_package_configuration(
         self,
@@ -349,59 +362,59 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         self.nft = nft
         return self
 
-    def verify_component_dependencies(
-        self,
-        dependencies: Tuple[str],
-        skip_dependencies_check: bool = False,
-        skip_hash_check: bool = False,
-    ) -> "MintHelper":
+    def fetch_component_dependencies(self) -> "MintHelper":
         """Verify component dependencies."""
-        self.dependencies = list(map(int, dependencies))
-        if skip_dependencies_check:
-            return self
         if self.chain_type != ChainType.ETHEREUM:
+            self.dependencies = []
             return self
-        try:
-            verify_component_dependencies(
-                ledger_api=self.ledger_api,
-                contract_address=ContractConfigs.get(
-                    COMPONENT_REGISTRY_CONTRACT.name
-                ).contracts[self.chain_type],
-                dependencies=self.dependencies,
-                package_configuration=self.package_configuration,
-                skip_hash_check=skip_hash_check,
-            )
-            return self
-        except (FailedToRetrieveComponentMetadata, DependencyError) as e:
-            raise click.ClickException(f"Dependency verification failed; {e}") from e
 
-    def verify_service_dependencies(
-        self,
-        agent_id: int,
-        skip_dependencies_check: bool = False,
-        skip_hash_check: bool = False,
-    ) -> "MintHelper":
+        dependencies = []
+        try:
+            for ptype in PackageType:
+                if not hasattr(self.package_configuration, ptype.to_plural()):
+                    continue
+                for dependency in getattr(
+                    self.package_configuration, ptype.to_plural()
+                ):
+                    units = self.subgraph.get_record_by_package_id(
+                        package_id=PackageId(package_type=ptype, public_id=dependency)
+                    ).get("units", [])
+                    if len(units) == 0:
+                        raise click.ClickException(
+                            f"Could not find on-chain token for {dependency} of type {ptype}"
+                        )
+                    unit, *_ = sorted(units, key=lambda x: x["tokenId"])
+                    dependencies.append(unit["tokenId"])
+            self.dependencies = sorted(list(map(int, dependencies)))
+        except ClientError as e:
+            raise click.ClickException(message=f"Error interacting with subgraph; {e}")
+        return self
+
+    def verify_service_dependencies(self, agent_id: int) -> "MintHelper":
         """Verify component dependencies."""
         self.agent_id = agent_id
-        if skip_dependencies_check:
+        if self.chain_type in (ChainType.LOCAL, ChainType.GOERLI):
             return self
-        if self.chain_type != ChainType.ETHEREUM:
-            return self
+
         try:
-            verify_service_dependencies(
-                ledger_api=self.ledger_api,
-                contract_address=ContractConfigs.get(
-                    AGENT_REGISTRY_CONTRACT.name
-                ).contracts[self.chain_type],
-                agent_id=self.agent_id,
-                service_configuration=cast(Service, self.package_configuration),
-                skip_hash_check=skip_hash_check,
+            units = self.subgraph.get_component_by_token(
+                token_id=agent_id,
+                package_type=PackageType.AGENT,
+            ).get("units", [])
+        except ClientError as e:
+            raise click.ClickException(message=f"Error interacting with subgraph; {e}")
+        if len(units) == 0:
+            raise click.ClickException(f"No agents found with token ID {agent_id}")
+
+        unit, *_ = sorted(units, key=lambda x: x["tokenId"])
+        expected = PublicId.from_str(unit["publicId"]).to_any()
+        agent = cast(Service, self.package_configuration).agent.to_any()
+        if expected != agent:
+            raise click.ClickException(
+                f"Public ID `{expected}` for token {agent_id} does not match with the one "
+                f"defained in the service package `{agent}`"
             )
-            return self
-        except FailedToRetrieveComponentMetadata as e:
-            raise click.ClickException(f"Dependency verification failed; {e}") from e
-        except DependencyError as e:
-            raise click.ClickException(f"Dependency verification failed; {e}") from e
+        return self
 
     def publish_metadata(self) -> "MintHelper":
         """Publish metadata."""
@@ -432,21 +445,19 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         )
 
         try:
-            self.token_id = _mint_component(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
+            self.token_id = self.manager.mint_component(
                 metadata_hash=self.metadata_hash,
-                owner=owner,
                 component_type=component_type,
-                chain_type=self.chain_type,
+                owner=owner,
                 dependencies=self.dependencies,
             )
-        except InvalidMintParameter as e:
-            raise click.ClickException(f"Invalid parameters provided; {e}") from e
-        except ComponentMintFailed as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
-                f"Component mint failed with following error; {e}"
+                f"Component mint failed with following error; {e.__class__.__name__}({e})"
             ) from e
+
+        if self.dry_run:  # pragma: nocover
+            return
 
         click.echo("Component minted with:")
         click.echo(f"\tPublic ID: {self.package_configuration.public_id}")
@@ -454,7 +465,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         if self.token_id is not None:
             click.echo(f"\tToken ID: {self.token_id}")
             (Path.cwd() / f"{self.token_id}.json").write_text(self.metadata_string)
-        else:
+        else:  # pragma: nocover
             raise click.ClickException(
                 "Could not verify metadata hash to retrieve the token ID"
             )
@@ -495,11 +506,8 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         )
 
         try:
-            token_id = _mint_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
+            token_id = self.manager.mint_service(
                 metadata_hash=self.metadata_hash,
-                chain_type=self.chain_type,
                 agent_ids=[
                     self.agent_id,
                 ],
@@ -513,10 +521,13 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 token=token,
                 owner=owner,
             )
-        except ComponentMintFailed as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
-                f"Service mint failed with following error; {e}"
+                f"Component mint failed with following error; {e.__class__.__name__}({e})"
             ) from e
+
+        if self.dry_run:  # pragma: nocover
+            return
 
         click.echo("Service minted with:")
         click.echo(f"\tPublic ID: {self.package_configuration.public_id}")
@@ -524,7 +535,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         if token_id is not None:
             click.echo(f"\tToken ID: {token_id}")
             (Path.cwd() / f"{token_id}.json").write_text(self.metadata_string)
-        else:
+        else:  # pragma: nocover
             raise click.ClickException(
                 "Could not verify metadata hash to retrieve the token ID"
             )
@@ -542,20 +553,18 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             )
         )
         try:
-            self.token_id = _update_component(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                unit_id=cast(int, self.update_token),
+            self.token_id = self.manager.update_component(
                 metadata_hash=self.metadata_hash,
+                unit_id=cast(int, self.update_token),
                 component_type=component_type,
-                chain_type=self.chain_type,
             )
-        except InvalidMintParameter as e:
-            raise click.ClickException(f"Invalid parameters provided; {e}") from e
-        except ComponentMintFailed as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
-                f"Component update failed with following error; {e}"
+                f"Component update failed with following error; {e.__class__.__name__}({e})"
             ) from e
+
+        if self.dry_run:  # pragma: nocover
+            return
 
         click.echo("Component hash updated:")
         click.echo(f"\tPublic ID: {self.package_configuration.public_id}")
@@ -563,7 +572,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         if self.token_id is not None:
             click.echo(f"\tToken ID: {self.token_id}")
             (Path.cwd() / f"{self.token_id}.json").write_text(self.metadata_string)
-        else:
+        else:  # pragma: nocover
             raise click.ClickException(
                 "Could not verify metadata hash to retrieve the token ID"
             )
@@ -577,6 +586,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         number_of_slots: int,
         cost_of_bond: int,
         threshold: int,
+        token: Optional[str] = None,
     ) -> None:
         """Update service"""
 
@@ -599,12 +609,9 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             )
 
         try:
-            token_id = _update_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
+            token_id = self.manager.update_service(
                 metadata_hash=self.metadata_hash,
                 service_id=cast(int, self.update_token),
-                chain_type=self.chain_type,
                 agent_ids=[
                     self.agent_id,
                 ],
@@ -615,11 +622,15 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                     cost_of_bond,
                 ],
                 threshold=threshold,
+                token=token,
             )
-        except ComponentMintFailed as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
-                f"Service update failed with following error; {e}"
+                f"Component mint failed with following error; {e.__class__.__name__}({e})"
             ) from e
+
+        if self.dry_run:  # pragma: nocover
+            return
 
         click.echo("Service updated with:")
         click.echo(f"\tPublic ID: {self.package_configuration.public_id}")
@@ -627,7 +638,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         if token_id is not None:
             click.echo(f"\tToken ID: {token_id}")
             (Path.cwd() / f"{token_id}.json").write_text(self.metadata_string)
-        else:
+        else:  # pragma: nocover
             raise click.ClickException(
                 "Could not verify metadata hash to retrieve the token ID"
             )
@@ -639,17 +650,39 @@ class ServiceHelper(OnChainHelper):
     token: Optional[str]
     token_secured: bool
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         service_id: int,
         chain_type: ChainType,
         key: Optional[Path] = None,
         password: Optional[str] = None,
         hwi: bool = False,
+        timeout: Optional[float] = None,
+        retries: Optional[int] = None,
+        sleep: Optional[float] = None,
+        dry_run: bool = False,
     ) -> None:
         """Initialize object."""
         self.service_id = service_id
-        super().__init__(chain_type, key, password, hwi)
+        super().__init__(
+            chain_type,
+            key,
+            password,
+            hwi,
+            timeout=timeout,
+            retries=retries,
+            sleep=sleep,
+            dry_run=dry_run,
+        )
+        self.manager = ServiceManager(
+            ledger_api=self.ledger_api,
+            crypto=self.crypto,
+            chain_type=self.chain_type,
+            timeout=self.timeout,
+            retries=self.retries,
+            sleep=self.sleep,
+            dry_run=dry_run,
+        )
 
     def check_is_service_token_secured(
         self,
@@ -661,7 +694,7 @@ class ServiceHelper(OnChainHelper):
             self.token_secured = False
             return self
 
-        if self.chain_type == ChainType.CUSTOM:
+        if self.chain_type == ChainType.CUSTOM:  # pragma: nocover
             self.check_required_enviroment_variables(
                 configs=(ContractConfigs.service_registry_token_utility,)
             )
@@ -676,6 +709,7 @@ class ServiceHelper(OnChainHelper):
             raise click.ClickException(
                 "Service is token secured, please provice token address using `--token` flag"
             )
+        ContractConfigs.erc20.contracts[self.chain_type] = cast(str, self.token)
         return self
 
     def approve_erc20_usage(self, amount: int, spender: str) -> "ServiceHelper":
@@ -685,12 +719,16 @@ class ServiceHelper(OnChainHelper):
             approve_erc20_usage(
                 ledger_api=self.ledger_api,
                 crypto=self.crypto,
-                contract_address=cast(str, self.token),
+                chain_type=self.chain_type,
                 spender=spender,
                 amount=amount,
                 sender=self.crypto.address,
+                dry_run=self.dry_run,
+                timeout=self.timeout,
+                sleep=self.sleep,
+                retries=self.retries,
             )
-        except ChainInteractionError as e:
+        except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(f"Error getting approval : {e}")
         return self
 
@@ -719,23 +757,17 @@ class ServiceHelper(OnChainHelper):
         )
 
         try:
-            _activate_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                chain_type=self.chain_type,
-                service_id=self.service_id,
-            )
-        except ServiceRegistrationFailed as e:
-            raise click.ClickException(str(e)) from e
+            self.manager.activate(service_id=self.service_id)
+        except ChainInteractionError as e:  # pragma: nocover
+            raise click.ClickException(
+                f"Service activation failed with following error; {e.__class__.__name__}({e})"
+            ) from e
 
+        if self.dry_run:  # pragma: nocover
+            return
         click.echo("Service activated succesfully")
 
-    def register_instance(
-        self,
-        instances: List[str],
-        agent_ids: List[int],
-        timeout: Optional[float] = None,
-    ) -> None:
+    def register_instance(self, instances: List[str], agent_ids: List[int]) -> None:
         """Register agents instances on an activated service"""
 
         if self.token_secured:
@@ -761,25 +793,24 @@ class ServiceHelper(OnChainHelper):
         )
 
         try:
-            _register_instance(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                chain_type=self.chain_type,
+            self.manager.register_instance(
                 service_id=self.service_id,
                 instances=instances,
                 agent_ids=agent_ids,
-                timeout=timeout,
             )
-        except InstanceRegistrationFailed as e:
-            raise click.ClickException(str(e)) from e
+        except ChainInteractionError as e:  # pragma: nocover
+            raise click.ClickException(
+                f"Service activation failed with following error; {e.__class__.__name__}({e})"
+            ) from e
 
+        if self.dry_run:  # pragma: nocover
+            return
         click.echo("Agent instance registered succesfully")
 
     def deploy_service(
         self,
         reuse_multisig: bool = False,
         fallback_handler: Optional[str] = None,
-        timeout: Optional[float] = None,
     ) -> None:
         """Deploy a service with registration activated"""
 
@@ -794,18 +825,18 @@ class ServiceHelper(OnChainHelper):
         )
 
         try:
-            _deploy_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                chain_type=self.chain_type,
+            self.manager.deploy(
                 service_id=self.service_id,
                 reuse_multisig=reuse_multisig,
                 fallback_handler=fallback_handler,
-                timeout=timeout,
             )
-        except ServiceDeployFailed as e:
-            raise click.ClickException(str(e)) from e
+        except ChainInteractionError as e:  # pragma: nocover
+            raise click.ClickException(
+                f"Service deployment failed with following error; {e.__class__.__name__}({e})"
+            ) from e
 
+        if self.dry_run:  # pragma: nocover
+            return
         click.echo("Service deployed succesfully")
 
     def terminate_service(self) -> None:
@@ -819,15 +850,11 @@ class ServiceHelper(OnChainHelper):
         )
 
         try:
-            _terminate_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                chain_type=self.chain_type,
-                service_id=self.service_id,
-            )
-        except TerminateServiceFailed as e:
-            raise click.ClickException(str(e)) from e
-
+            self.manager.terminate(service_id=self.service_id)
+        except ChainInteractionError as e:  # pragma: nocover
+            raise click.ClickException(
+                f"Service terminatation failed with following error; {e.__class__.__name__}({e})"
+            ) from e
         click.echo("Service terminated succesfully")
 
     def unbond_service(self) -> None:
@@ -841,15 +868,11 @@ class ServiceHelper(OnChainHelper):
         )
 
         try:
-            _unbond_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                chain_type=self.chain_type,
-                service_id=self.service_id,
-            )
-        except UnbondServiceFailed as e:
-            raise click.ClickException(str(e)) from e
-
+            self.manager.unbond(service_id=self.service_id)
+        except ChainInteractionError as e:  # pragma: nocover
+            raise click.ClickException(
+                f"Service unbonding failed with following error; {e.__class__.__name__}({e})"
+            ) from e
         click.echo("Service unbonded succesfully")
 
 

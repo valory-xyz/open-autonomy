@@ -245,6 +245,10 @@ class SynchronizedData(
         deserialized = CollectionRound.deserialize_collection(serialized)
         return cast(Mapping[str, SynchronizeLateMessagesPayload], deserialized)
 
+    def get_chain_id(self, default_chain_id: str) -> str:
+        """Get the chain id."""
+        return cast(str, self.db.get("chain_id", default_chain_id))
+
 
 class FailedRound(DegenerateRound, ABC):
     """A round that represents that the period failed"""
@@ -458,7 +462,9 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
     collection_key = get_name(SynchronizedData.participant_to_check)
     selection_key = get_name(SynchronizedData.most_voted_check_result)
 
-    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
+    def end_block(  # pylint: disable=too-many-return-statements
+        self,
+    ) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         if self.threshold_reached:
             return_status, return_tx_hash = tx_hist_hex_to_payload(
@@ -495,6 +501,9 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                 return synchronized_data, Event.CHECK_LATE_ARRIVING_MESSAGE
             if return_status == VerificationStatus.NOT_VERIFIED:
                 return synchronized_data, Event.NEGATIVE
+            if return_status == VerificationStatus.BAD_SAFE_NONCE:
+                # in case a bad nonce was used, we need to recreate the tx from scratch
+                return synchronized_data, Event.NONE
 
             return synchronized_data, Event.NONE
 

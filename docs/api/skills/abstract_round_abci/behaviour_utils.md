@@ -746,7 +746,9 @@ SigningMessage object
 def send_raw_transaction(
     transaction: RawTransaction,
     use_flashbots: bool = False,
-    target_block_numbers: Optional[List[int]] = None
+    target_block_numbers: Optional[List[int]] = None,
+    raise_on_failed_simulation: bool = False,
+    chain_id: Optional[str] = None
 ) -> Generator[
         None,
         Union[None, SigningMessage, LedgerApiMessage],
@@ -771,6 +773,8 @@ _send_transaction_request:
 - `transaction`: transaction data
 - `use_flashbots`: whether to use flashbots for the transaction or not
 - `target_block_numbers`: the target block numbers in case we are using flashbots
+- `raise_on_failed_simulation`: whether to raise an exception if the transaction fails the simulation or not
+- `chain_id`: the chain name to use for the ledger call
 
 **Returns**:
 
@@ -840,8 +844,10 @@ the contract api response
 ```python
 def get_contract_api_response(
         performative: ContractApiMessage.Performative,
-        contract_address: Optional[str], contract_id: str,
+        contract_address: Optional[str],
+        contract_id: str,
         contract_callable: str,
+        ledger_id: Optional[str] = None,
         **kwargs: Any) -> Generator[None, None, ContractApiMessage]
 ```
 
@@ -858,6 +864,7 @@ Ledger connection (contract dispatcher) -> (ContractApiMessage | ContractApiMess
 - `contract_address`: the contract address
 - `contract_id`: the contract id
 - `contract_callable`: the callable to call on the contract
+- `ledger_id`: the ledger id, if not specified, the default ledger id is used
 - `kwargs`: keyword argument for the contract api request
 
 **Returns**:
@@ -869,7 +876,7 @@ the contract api response
 #### request`_`recovery`_`params
 
 ```python
-def request_recovery_params() -> Generator[None, None, bool]
+def request_recovery_params(should_log: bool) -> Generator[None, None, bool]
 ```
 
 Request the Tendermint recovery parameters from the other agents via the ACN.
@@ -976,6 +983,16 @@ class TmManager(BaseBehaviour)
 ```
 
 Util class to be used for managing the tendermint node.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TmManager.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(**kwargs: Any)
+```
+
+Initialize the `TmManager`.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TmManager.async_act"></a>
 

@@ -6,7 +6,7 @@ Ensure that your machine satisfies the following requirements:
 
 - [Python](https://www.python.org/) `>= 3.8` (recommended `>= 3.10`)
 - [Pip](https://pip.pypa.io/en/stable/installation/)
-- [Pipenv](https://pipenv.pypa.io/en/latest/installation/) `>=2021.x.xx`
+- [Pipenv](https://pipenv.pypa.io/en/latest/installation.html) `>=2021.x.xx`
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
@@ -14,6 +14,10 @@ Additionally, if you wish to deploy your service in a Kubernetes cluster:
 
 - [Kubernetes CLI](https://kubernetes.io/docs/tasks/tools/)
 - [minikube](https://minikube.sigs.k8s.io/docs/)
+
+
+!!! note
+    On raspberry-pi currently `Raspberry Pi OS (Legacy, 64-bit, Debian Bullseye)` is tested and supported, The base requirements are same as [above](#requirements).
 
 !!! tip
 	Although we will use these tools for demonstration purposes only, you might as well consider other local Kubernetes cluster options like [kind](https://kind.sigs.k8s.io/docs/user/quick-start/), or even additional tools like [Skaffold](https://skaffold.dev/) or [Helm](https://helm.sh/) to help you with your cluster deployments.
@@ -75,7 +79,7 @@ This is roughly how your workspace should look like:
     You can override the default registry in use (set up with `autonomy init`) for a particular command through the flags `--registry-path` and `--local`. For example, if the framework was initialized with the remote registry, the following command will fetch a runtime folder for the `hello_world` agent from the remote registry:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeiakoj6jpj5gqyjk5qz2ibgvplgd4azqwxmi56aei7xpu5z47np3e4
+    autonomy fetch valory/hello_world:0.1.0:bafybeib5grnum25svkpozqqnvpd7nmwoaypnc3l7lbnoj335nwgczsiyca
     ```
 
     On the other hand, if you want to fetch the copy stored in your local registry, then you can use:
@@ -106,25 +110,25 @@ If you plan to follow the guides in the next sections, you need to populate the 
     "dev": {
     },
     "third_party": {
-        "service/valory/hello_world/0.1.0": "bafybeicdcrhpekqbwzeam2fi7npnl6qfwejgo73ftwoy4tofwbrsl5ene4",
-        "agent/valory/hello_world/0.1.0": "bafybeiakoj6jpj5gqyjk5qz2ibgvplgd4azqwxmi56aei7xpu5z47np3e4",
-        "connection/valory/abci/0.1.0": "bafybeibiwiza4rqma5pzeoucndsibnu2pvune6cm37mpnvf5ilkrqyvg44",
-        "connection/valory/http_client/0.23.0": "bafybeifgeqgryx6b3s6eseyzyezygmeitcpt3tkor2eiycozoi6clgdrny",
-        "connection/valory/ipfs/0.1.0": "bafybeigfmqvlzbp67fttccpl4hsu3zaztbxv6vd7ikzra2hfppfkalgpji",
-        "connection/valory/ledger/0.19.0": "bafybeigdckv3e6bz6kfloz4ucqrsufft6k4jp6bwkbbcvh4fxvgbmzq3dm",
-        "contract/valory/service_registry/0.1.0": "bafybeiatuyvnip3gzzc26oieudmkgdkvil3nerzbfa2j7woi4sbusgxtye",
-        "protocol/open_aea/signing/1.0.0": "bafybeie7xyems76v5b4wc2lmaidcujizpxfzjnnwdeokmhje53g7ym25ii",
-        "protocol/valory/abci/0.1.0": "bafybeihmzlmmb4pdo3zkhg6ehuyaa4lhw7bfpclln2o2z7v3o6fcep26iu",
-        "protocol/valory/acn/1.1.0": "bafybeic2pxzfc3voxl2ejhcqyf2ehm4wm5gxvgx7bliloiqi2uppmq6weu",
-        "protocol/valory/contract_api/1.0.0": "bafybeialhbjvwiwcnqq3ysxcyemobcbie7xza66gaofcvla5njezkvhcka",
-        "protocol/valory/http/1.0.0": "bafybeiejoqgv7finfxo3rcvvovrlj5ccrbgxodjq43uo26ylpowsa3llfe",
-        "protocol/valory/ipfs/0.1.0": "bafybeiedxeismnx3k5ty4mvvhlqideixlhqmi5mtcki4lxqfa7uqh7p33u",
-        "protocol/valory/ledger_api/1.0.0": "bafybeige5agrztgzfevyglf7mb4o7pzfttmq4f6zi765y4g2zvftbyowru",
-        "protocol/valory/tendermint/0.1.0": "bafybeig6g6twajlwssfbfp5rlnu5mwzuu5kgak5cs4fich7rlkx6whesnu",
-        "skill/valory/abstract_abci/0.1.0": "bafybeih6ilyszil7opntt3tkasryghu7j2qj2m5txwoo4tsdsvkuxas7di",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeib5d3tt3jkd5b3sr2pbf2jkogicxxywve3z7n5ebau7vz4ibfsvq4",
-        "skill/valory/hello_world_abci/0.1.0": "bafybeibu3fdkjmawysvbwcn77pzpfw2d4the4ok7jod3jmdiqn4rzms37e",
-        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihge56dn3xep2dzomu7rtvbgo4uc2qqh7ljl3fubqdi2lq44gs5lq"
+        "service/valory/hello_world/0.1.0": "bafybeicehljk5ahlsy62t6a5by46uz3nguuxuh653mzoz4hfme22s6eodi",
+        "agent/valory/hello_world/0.1.0": "bafybeib5grnum25svkpozqqnvpd7nmwoaypnc3l7lbnoj335nwgczsiyca",
+        "connection/valory/abci/0.1.0": "bafybeifduae3yvckxlopuoif2i6s4q76r663pmc7itabq4fyznwzxrpnuu",
+        "connection/valory/http_client/0.23.0": "bafybeih5vzo22p2umhqo52nzluaanxx7kejvvpcpdsrdymckkyvmsim6gm",
+        "connection/valory/ipfs/0.1.0": "bafybeibsjllc2l62jvc4gdyv73irldlvbqlslytm4gw6xjvugcp5oylx44",
+        "connection/valory/ledger/0.19.0": "bafybeic3ft7l7ca3qgnderm4xupsfmyoihgi27ukotnz7b5hdczla2enya",
+        "contract/valory/service_registry/0.1.0": "bafybeidpkiceitrh3w2j4o7ctjjsdbn3ma4lfvnlpyvks53exdsyjhoc5i",
+        "protocol/open_aea/signing/1.0.0": "bafybeihv62fim3wl2bayavfcg3u5e5cxu3b7brtu4cn5xoxd6lqwachasi",
+        "protocol/valory/abci/0.1.0": "bafybeiaqmp7kocbfdboksayeqhkbrynvlfzsx4uy4x6nohywnmaig4an7u",
+        "protocol/valory/acn/1.1.0": "bafybeidluaoeakae3exseupaea4i3yvvk5vivyt227xshjlffywwxzcxqe",
+        "protocol/valory/contract_api/1.0.0": "bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i",
+        "protocol/valory/http/1.0.0": "bafybeifugzl63kfdmwrxwphrnrhj7bn6iruxieme3a4ntzejf6kmtuwmae",
+        "protocol/valory/ipfs/0.1.0": "bafybeiftxi2qhreewgsc5wevogi7yc5g6hbcbo4uiuaibauhv3nhfcdtvm",
+        "protocol/valory/ledger_api/1.0.0": "bafybeihdk6psr4guxmbcrc26jr2cbgzpd5aljkqvpwo64bvaz7tdti2oni",
+        "protocol/valory/tendermint/0.1.0": "bafybeig4mi3vmlv5zpbjbfuzcgida6j5f2nhrpedxicmrrfjweqc5r7cra",
+        "skill/valory/abstract_abci/0.1.0": "bafybeibzpyqubflekcvz4hehhjbipcfsmt7mwwespkuva3n5dmoriphrki",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeia7gznlazv26ozolikb6jcesbo7wdv544lwcl2pveoukgxh4z5m2m",
+        "skill/valory/hello_world_abci/0.1.0": "bafybeiabaamrsmq3ysbdk4gxym7in5urwyyfmegto3v5hgqc6etn7g6ubi",
+        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeid3xg5k2ol5adflqloy75ibgljmol6xsvzvezebsg7oudxeeolz7e"
     }
 }
 ```

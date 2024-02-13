@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -36,10 +36,6 @@ DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA = "agent_{agent_n}"
 KUBERNETES_AGENT_KEY_NAME = DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA + "_private_key.yaml"
 
 DEFAULT_ENCODING = "utf-8"
-
-KEY_SCHEMA_ADDRESS = "address"
-KEY_SCHEMA_PRIVATE_KEY = "private_key"
-KEY_SCHEMA_TYPE = "key_type"
 
 PERSISTENT_DATA_DIR = "persistent_data"
 LOG_DIR = "logs"

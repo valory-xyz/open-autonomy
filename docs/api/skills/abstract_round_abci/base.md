@@ -590,9 +590,9 @@ https://github.com/python/cpython/blob/3.10/Lib/copy.py#L182-L183
 #### `__`init`__`
 
 ```python
-def __init__(
-        setup_data: Dict[str, List[Any]],
-        cross_period_persisted_keys: Optional[FrozenSet[str]] = None) -> None
+def __init__(setup_data: Dict[str, List[Any]],
+             cross_period_persisted_keys: Optional[FrozenSet[str]] = None,
+             logger: Optional[logging.Logger] = None) -> None
 ```
 
 Initialize the AbciApp database.
@@ -605,6 +605,7 @@ before instantiating this class.
 
 - `setup_data`: the setup data
 - `cross_period_persisted_keys`: data keys that will be kept after a new period starts
+- `logger`: the logger of the abci app
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.setup_data"></a>
 

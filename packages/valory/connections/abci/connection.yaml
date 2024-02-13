@@ -9,7 +9,7 @@ fingerprint:
   Makefile: bafybeibdgarch56r46dfy7x7fouj52nbjpjs4fgtrd3prgtwelowyjan5i
   __init__.py: bafybeic2m6f6j42cbfxz3jcwhju2dcbbdcw6xyc7mslq7uk2hwe6ctcugi
   check_dependencies.py: bafybeihmhemryyl2iacwwrqebr7us7wx4otvwbdbtckwkl5kxqopidyzwm
-  connection.py: bafybeig3e43a44isn6ixvu43vp5orpbauv6jkma7w3fn52jjw3mk5agh6u
+  connection.py: bafybeialq56ta7w6ikkzugtmb75n2buaujhzwtgpcf4fuj2nx6i2bhcodu
   dialogues.py: bafybeibpdsphu5vqjpieczrb3ulhqfcq4l73qnx6j3zhbz4dpunwegboxq
   gogoproto/__init__.py: bafybeifmpcbkrpygdt7uvhpq6gaxgskofpczxktoalp2cwyouay46drcke
   gogoproto/gogo_pb2.py: bafybeifdutphcruyva7lcngujrcmfsaycyodyfjbgwcrxthiouotl4fxpu
@@ -55,7 +55,7 @@ fingerprint_ignore_patterns: []
 build_entrypoint: check_dependencies.py
 connections: []
 protocols:
-- valory/abci:0.1.0:bafybeihmzlmmb4pdo3zkhg6ehuyaa4lhw7bfpclln2o2z7v3o6fcep26iu
+- valory/abci:0.1.0:bafybeiaqmp7kocbfdboksayeqhkbrynvlfzsx4uy4x6nohywnmaig4an7u
 class_name: ABCIServerConnection
 config:
   host: 127.0.0.1
@@ -77,8 +77,8 @@ dependencies:
   hypothesis:
     version: ==6.21.6
   open-aea-test-autonomy:
-    version: ==0.13.3
+    version: ==0.14.3.post1
   protobuf:
-    version: <5.0.0,>=4.21.6
+    version: <4.25.0,>=4.21.6
 is_abstract: false
 cert_requests: []

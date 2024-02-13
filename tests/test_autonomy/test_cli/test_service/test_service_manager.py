@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@
 
 import binascii
 from typing import List, Optional
-from unittest import mock
 
 import pytest
 from aea.components.base import load_aea_package
@@ -39,14 +38,7 @@ from web3 import HTTPProvider, Web3
 from autonomy.chain.base import ServiceState, registry_contracts
 from autonomy.chain.config import ChainType
 from autonomy.chain.constants import ERC20_TOKEN_ADDRESS_LOCAL, HardhatAddresses
-from autonomy.chain.service import (
-    activate_service,
-    deploy_service,
-    get_service_info,
-    register_instance,
-    terminate_service,
-    unbond_service,
-)
+from autonomy.chain.service import get_service_info
 from autonomy.cli.helpers.chain import ServiceHelper
 
 from tests.conftest import ROOT_DIR
@@ -57,6 +49,7 @@ from tests.test_autonomy.test_chain.base import (
     DUMMY_SERVICE,
     NUMBER_OF_SLOTS_PER_AGENT,
     THRESHOLD,
+    patch_subgraph,
 )
 
 
@@ -78,7 +71,9 @@ class BaseServiceManagerTest(BaseChainInteractionTest):
         threshold: int = THRESHOLD,
     ) -> int:
         """Mint service component"""
-        with mock.patch("autonomy.cli.helpers.chain.verify_service_dependencies"):
+        with patch_subgraph(
+            response=[{"tokenId": AGENT_ID, "publicId": "dummy_author/dummy_agent"}]
+        ):
             service_id = self.mint_component(
                 package_id=DUMMY_SERVICE,
                 service_mint_parameters=dict(
@@ -94,22 +89,13 @@ class BaseServiceManagerTest(BaseChainInteractionTest):
 
     def activate_service(self, service_id: int) -> None:
         """Activate service"""
-        activate_service(
-            ledger_api=self.ledger_api,
-            crypto=self.crypto,
-            chain_type=self.chain_type,
-            service_id=service_id,
-        )
+        self.service_manager.activate(service_id=service_id)
 
     def register_instances(
         self, service_id: int, agent_instance: Optional[str] = None
     ) -> None:
         """Register agent instance."""
-
-        register_instance(
-            ledger_api=self.ledger_api,
-            crypto=self.crypto,
-            chain_type=self.chain_type,
+        self.service_manager.register_instance(
             service_id=service_id,
             instances=[(agent_instance or make_crypto("ethereum").address)],
             agent_ids=[AGENT_ID],
@@ -121,34 +107,18 @@ class BaseServiceManagerTest(BaseChainInteractionTest):
         reuse_multisig: bool = False,
     ) -> None:
         """Deploy service."""
-
-        deploy_service(
-            ledger_api=self.ledger_api,
-            crypto=self.crypto,
-            chain_type=self.chain_type,
+        self.service_manager.deploy(
             service_id=service_id,
             reuse_multisig=reuse_multisig,
         )
 
     def terminate_service(self, service_id: int) -> None:
         """Terminate service."""
-
-        terminate_service(
-            ledger_api=self.ledger_api,
-            crypto=self.crypto,
-            chain_type=self.chain_type,
-            service_id=service_id,
-        )
+        self.service_manager.terminate(service_id=service_id)
 
     def unbond_service(self, service_id: int) -> None:
         """Unbond service."""
-
-        unbond_service(
-            ledger_api=self.ledger_api,
-            crypto=self.crypto,
-            chain_type=self.chain_type,
-            service_id=service_id,
-        )
+        self.service_manager.unbond(service_id=service_id)
 
 
 class TestServiceManager(BaseServiceManagerTest):
@@ -227,7 +197,6 @@ class TestServiceManager(BaseServiceManagerTest):
         result = _run_command(str(service_id))
         # Will fail becaue the agent instance is already registered
         assert result.exit_code == 1, result.stdout
-        assert "Instance registration failed" in result.stderr
         assert "AgentInstanceRegistered" in result.stderr
 
     def test_deploy(
@@ -416,6 +385,21 @@ class TestServiceManager(BaseServiceManagerTest):
             service_id=str(service_id), message=ServiceState.PRE_REGISTRATION.name
         )
 
+    def test_dry_run(self) -> None:
+        """Test dry run."""
+        service_id = self.mint_service()
+        result = self.run_cli(
+            commands=(
+                "--dry-run",
+                "activate",
+                str(service_id),
+                "--key",
+                str(self.key_file),
+            )
+        )
+        assert result.exit_code == 0, result.stderr
+        assert "=== Dry run output ===" in result.output
+
 
 class TestERC20AsBond(BaseServiceManagerTest):
     """Test ERC20 token as bond."""
@@ -451,7 +435,9 @@ class TestERC20AsBond(BaseServiceManagerTest):
 
     def mint(self) -> int:
         """Mint service with token"""
-        with mock.patch("autonomy.cli.helpers.chain.verify_service_dependencies"):
+        with patch_subgraph(
+            response=[{"tokenId": AGENT_ID, "publicId": "dummy_author/dummy_agent"}]
+        ):
             service_id = self.mint_component(
                 package_id=DUMMY_SERVICE,
                 service_mint_parameters=dict(
@@ -492,7 +478,7 @@ class TestERC20AsBond(BaseServiceManagerTest):
                 ERC20_TOKEN_ADDRESS_LOCAL,
             )
         )
-        assert result.exit_code == 0, result.output
+        assert result.exit_code == 0, result.stderr
 
     def test_activate_failure(self) -> None:
         """Test activate with token."""
@@ -506,7 +492,7 @@ class TestERC20AsBond(BaseServiceManagerTest):
             )
         )
 
-        assert result.exit_code == 1, result.output
+        assert result.exit_code == 1, result.stderr
         assert (
             "Service is token secured, please provice token address using `--token` flag"
             in result.stderr
@@ -525,7 +511,7 @@ class TestERC20AsBond(BaseServiceManagerTest):
                 ERC20_TOKEN_ADDRESS_LOCAL,
             )
         )
-        assert result.exit_code == 0, result.output
+        assert result.exit_code == 0, result.stderr
 
         agent = make_crypto("ethereum")
         result = self.run_cli(
@@ -542,7 +528,7 @@ class TestERC20AsBond(BaseServiceManagerTest):
                 ERC20_TOKEN_ADDRESS_LOCAL,
             )
         )
-        assert result.exit_code == 0, result.output
+        assert result.exit_code == 0, result.stderr
 
     def test_register_instances_failure(self) -> None:
         """Test register instances with token."""
@@ -557,7 +543,7 @@ class TestERC20AsBond(BaseServiceManagerTest):
                 ERC20_TOKEN_ADDRESS_LOCAL,
             )
         )
-        assert result.exit_code == 0, result.output
+        assert result.exit_code == 0, result.stderr
 
         agent = make_crypto("ethereum")
         result = self.run_cli(

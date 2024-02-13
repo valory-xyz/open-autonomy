@@ -14,6 +14,36 @@ class ChainInteractionError(Exception)
 
 Base chain interaction failure.
 
+<a id="autonomy.chain.exceptions.RPCError"></a>
+
+## RPCError Objects
+
+```python
+class RPCError(ChainInteractionError)
+```
+
+RPC error.
+
+<a id="autonomy.chain.exceptions.TxBuildError"></a>
+
+## TxBuildError Objects
+
+```python
+class TxBuildError(ChainInteractionError)
+```
+
+Tx build error.
+
+<a id="autonomy.chain.exceptions.ChainTimeoutError"></a>
+
+## ChainTimeoutError Objects
+
+```python
+class ChainTimeoutError(ChainInteractionError)
+```
+
+Timeout error for interecting with chain.
+
 <a id="autonomy.chain.exceptions.ComponentMintFailed"></a>
 
 ## ComponentMintFailed Objects

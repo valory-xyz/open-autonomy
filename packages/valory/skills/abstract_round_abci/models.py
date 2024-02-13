@@ -68,6 +68,7 @@ MIN_RESET_PAUSE_DURATION = 10
 NUMBER_OF_RETRIES: int = 5
 DEFAULT_BACKOFF_FACTOR: float = 2.0
 DEFAULT_TYPE_NAME: str = "str"
+DEFAULT_CHAIN = "ethereum"
 
 
 class FrozenMixin:  # pylint: disable=too-few-public-methods
@@ -318,6 +319,8 @@ class BaseParams(
             "serious_slash_unit_amount", kwargs, int
         )
         self.setup_params: Dict[str, Any] = self._ensure("setup", kwargs, dict)
+        # TODO add to all configs
+        self.default_chain_id: str = kwargs.get("default_chain_id", DEFAULT_CHAIN)
 
         # we sanitize for null values as these are just kept for schema definitions
         skill_id = kwargs["skill_context"].skill_id
@@ -501,6 +504,7 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
                 AbciAppDB(
                     setup_data=AbciAppDB.data_to_lists(setup_params),
                     cross_period_persisted_keys=self.abci_app_cls.cross_period_persisted_keys,
+                    logger=self.context.logger,
                 )
             ),
             self.context.logger,
@@ -874,10 +878,10 @@ class BenchmarkTool(Model, TypeCheckMixin, FrozenMixin):
 
             with open(str(filepath), "w+", encoding="utf-8") as outfile:
                 json.dump(self.data, outfile)
-            self.context.logger.info(f"Saving benchmarking data for period: {period}")
+            self.context.logger.debug(f"Saving benchmarking data for period: {period}")
 
         except PermissionError as e:  # pragma: nocover
-            self.context.logger.info(f"Error saving benchmark data:\n{e}")
+            self.context.logger.error(f"Error saving benchmark data:\n{e}")
 
         if reset:
             self.reset()

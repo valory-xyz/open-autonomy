@@ -81,7 +81,7 @@ class RegistriesManagerContract(Contract):
         raise_on_try: bool = False,
     ) -> JSONLike:
         """Create a component."""
-
+        dependencies = list(sorted(dependencies or []))
         tx_params = ledger_api.build_transaction(
             contract_instance=cls.get_instance(
                 ledger_api=ledger_api, contract_address=contract_address
@@ -91,7 +91,7 @@ class RegistriesManagerContract(Contract):
                 "unitType": component_type.value,
                 "unitOwner": owner,
                 "unitHash": metadata_hash,
-                "dependencies": (dependencies or []),
+                "dependencies": dependencies,
             },
             tx_args={
                 "sender_address": sender,

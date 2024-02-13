@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -178,6 +178,7 @@ class TestYamlSnippets(BaseTestDocCode):
         "docs/configure_service/on-chain_deployment_checklist.md",  # just placeholder examples
         "docs/configure_service/configure_access_external_chains.md",  # just placeholder examples
         "docs/advanced_reference/developer_tooling/dev_mode.md",  # just placeholder examples
+        "docs/advanced_reference/commands/autonomy_deploy.md",  # blocks contain resource values on deployment configurations
     ]
 
 
@@ -243,12 +244,12 @@ class TestJsonSnippets(BaseTestDocCode):
     # instead of checking the code block as a whole.
 
     md_to_code = {
-        "docs/guides/deploy_service.md": {
-            "code_files": [
-                "by_line::deployments/keys/hardhat_keys.json",
-                "by_line::deployments/keys/hardhat_keys.json",
-            ],
-        },
+        # "docs/guides/deploy_service.md": { # noqa: E800
+        #     "code_files": [ # noqa: E800
+        #         "by_line::deployments/keys/hardhat_keys.json", # noqa: E800
+        #         "by_line::deployments/keys/hardhat_keys.json", # noqa: E800
+        #     ], # noqa: E800
+        # }, # noqa: E800
         "docs/guides/quick_start.md": {
             "code_files": ["by_line::deployments/keys/hardhat_keys.json"],
         },
@@ -261,6 +262,7 @@ class TestJsonSnippets(BaseTestDocCode):
     }
 
     skipped_files = [
+        "docs/guides/deploy_service.md",
         "docs/advanced_reference/commands/autonomy_deploy.md",
         "docs/guides/set_up.md",
     ]
