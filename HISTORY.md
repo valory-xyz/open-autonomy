@@ -323,9 +323,6 @@ Docs:
 Docs:
 - Improves cluster deployment section, now based on minikube #1924
 
-Chores:
-- Fixes a couple of minor issues in the Kubernetes deployment generator #1957
-
 # 0.10.3 (2023-05-03)
 
 Autonomy:
