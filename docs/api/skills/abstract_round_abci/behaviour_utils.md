@@ -876,7 +876,7 @@ the contract api response
 #### request`_`recovery`_`params
 
 ```python
-def request_recovery_params() -> Generator[None, None, bool]
+def request_recovery_params(should_log: bool) -> Generator[None, None, bool]
 ```
 
 Request the Tendermint recovery parameters from the other agents via the ACN.
@@ -983,6 +983,16 @@ class TmManager(BaseBehaviour)
 ```
 
 Util class to be used for managing the tendermint node.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TmManager.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(**kwargs: Any)
+```
+
+Initialize the `TmManager`.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TmManager.async_act"></a>
 
