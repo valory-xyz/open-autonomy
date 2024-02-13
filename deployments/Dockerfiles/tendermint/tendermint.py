@@ -242,26 +242,39 @@ class TendermintNode:
 
         self._stopping = True
         if platform.system() == "Windows":
-            os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
-            if self._process is None:
-                return
-            try:
-                self._process.wait(timeout=5)
-            except subprocess.TimeoutExpired:  # nosec
-                os.kill(self._process.pid, signal.CTRL_BREAK_EVENT)  # type: ignore  # pylint: disable=no-member
+            self._win_stop_tm()
         else:
-            self._process.send_signal(signal.SIGTERM)
-            self._process.wait(timeout=5)
-            if self._process is None:
-                return
-            poll = self._process.poll()
-            if poll is None:  # pragma: nocover
-                self._process.terminate()
-                self._process.wait(3)
+            # this will raise an exception if the process
+            # is not terminated within the specified timeout
+            self._unix_stop_tm()
 
         self._stopping = False
         self._process = None
         self.log("Tendermint process stopped\n")
+
+    def _win_stop_tm(self) -> None:
+        """Stop a Tendermint node process on Windows."""
+        os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
+        try:
+            self._process.wait(timeout=5)  # type: ignore
+        except subprocess.TimeoutExpired:  # nosec
+            os.kill(self._process.pid, signal.CTRL_BREAK_EVENT)  # type: ignore  # pylint: disable=no-member
+
+    def _unix_stop_tm(self) -> None:
+        """Stop a Tendermint node process on Unix."""
+        self._process.send_signal(signal.SIGTERM)  # type: ignore
+        try:
+            self._process.wait(timeout=5)  # type: ignore
+        except subprocess.TimeoutExpired:  # nosec
+            self.log("Tendermint process did not stop gracefully\n")
+
+        # if the process is still running poll will return None
+        poll = self._process.poll()  # type: ignore
+        if poll is not None:
+            return
+
+        self._process.terminate()  # type: ignore
+        self._process.wait(3)  # type: ignore
 
     def _stop_monitoring_thread(self) -> None:
         """Stop a monitoring process."""
