@@ -24,7 +24,7 @@ from typing import List, Optional, cast
 
 from aea.configurations.data_types import PackageId, PackageType
 from gql import Client, gql
-from gql.transport.aiohttp import AIOHTTPTransport
+from gql.transport.requests import RequestsHTTPTransport
 from typing_extensions import TypedDict
 
 from autonomy.chain.subgraph.queries import (
@@ -63,7 +63,7 @@ class SubgraphClient:
         """Initialize object"""
 
         self._url = url or SUBGRAPH_URL
-        self._transport = AIOHTTPTransport(
+        self._transport = RequestsHTTPTransport(
             url=self._url,
         )
         self.client = Client(
