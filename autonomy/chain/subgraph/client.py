@@ -24,10 +24,9 @@ from typing import List, Optional, cast
 
 from aea.configurations.data_types import PackageId, PackageType
 from gql import Client, gql
+from gql.transport.requests import RequestsHTTPTransport
 from typing_extensions import TypedDict
-from gql.transport.requests import (
-    RequestsHTTPTransport,
-)
+
 from autonomy.chain.subgraph.queries import (
     FIND_BY_PACKAGE_HASH,
     FIND_BY_PUBLIC_ID,
