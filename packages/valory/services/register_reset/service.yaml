@@ -8,12 +8,6 @@ aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
 fingerprint:
   README.md: bafybeiae4sog7e3hyjdujzp5qr2g3auobmqswqnaczh2zhlphuojnd2g6u
-  abci_build/agent_keys/agent_0_private_key.yaml: bafybeihpmwbsanovqbpulie7gz5udx2wxetsr4kumilffsbgr67anget6a
-  abci_build/agent_keys/agent_1_private_key.yaml: bafybeiafn2ujdjyx3ihamyokxdcokcv2wjmc7bw3mokfd2awnzabwm322e
-  abci_build/agent_keys/agent_2_private_key.yaml: bafybeicw25r4fuksqat3csvkq7delzvwsjuhwcckn7e3z7bkgekscrnqzm
-  abci_build/agent_keys/agent_3_private_key.yaml: bafybeiahzn2tl2pi5dnhfno5i6v2ouwzxxqu3vf5lhtdn4clkyw4jku5gq
-  abci_build/build.yaml: bafybeicasw67wuwngj74ispmzwhrauuhwlyjgocls5rawrnv7g4ragcstm
-  keys.json: bafybeiafloafha4cvayjd6cbfdeumgbxxun2loafyuyjessfzpekjxwwby
 fingerprint_ignore_patterns: []
 deployment: {}
 dependencies: {}
