@@ -1,5 +1,18 @@
 # Release History - `open-autonomy`
 
+# 0.14.4 (2024-02-15)
+
+Autonomy:
+- Updates the subgraph client to use synchronous transport
+- Updates the kubernetes build generators to use `loopback` address instead of `localhost`
+- Adds support for rebuilding the transaction on `OldNonce` error
+
+Packages:
+- Adds support for transaction settlements on `solana`
+- Adds agent for testing transaction settlement on `solana`
+- Updates the termination logic for tendermint node to handle timeout error on windows
+- Updates the logging strategies to hide unnecessary debugging information
+
 # 0.14.3.post1 (2024-01-31)
 
 Autonomy:
