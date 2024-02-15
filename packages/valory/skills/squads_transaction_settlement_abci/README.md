@@ -1,8 +1,8 @@
-# Transaction settlement abci for solana chain
+# Transaction settlement abci for `solana` chain
 
 ## Description
 
-This skill package provides functionalities for making transactions on solana via the [Squads Multisig Program](https://github.com/Squads-Protocol/v4) and the [Squads Multisig Contract](https://github.com/valory-xyz/open-autonomy/tree/9ec25e6b7973044a63d5b0f1db3930c467c224a3/packages/valory/contracts/squads_multisig).
+This skill package provides functionalities for making transactions on `solana` via the [Squads Multisig Program](https://github.com/Squads-Protocol/v4) and the [Squads Multisig Contract](https://github.com/valory-xyz/open-autonomy/tree/9ec25e6b7973044a63d5b0f1db3930c467c224a3/packages/valory/contracts/squads_multisig).
 
 ## Behaviours
 
@@ -39,4 +39,4 @@ This skill package provides functionalities for making transactions on solana vi
     Behaviour for verifying transaction
 
 
-This ABCI skill requires `most_voted_instruction_set` to be set on the sync db. Value of `most_voted_instruction_set` should be a list of serialized instructions.
+This ABCI skill requires `most_voted_instruction_set` to be set on the sync `db`. Value of `most_voted_instruction_set` should be a list of serialized instructions.

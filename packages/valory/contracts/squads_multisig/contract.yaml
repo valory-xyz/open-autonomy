@@ -6,7 +6,7 @@ description: The scaffold contract scaffolds a contract to be implemented by the
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: bafybeibvqzwqtapjpqyejydlhdlodcaon6xzgz6hsrttdueox3jcqys5bm
+  README.md: bafybeie2g3yfcwtch366pmuowhe6d4glkc7vgqspebifjvhhkxerd7imru
   __init__.py: bafybeieeus2bbbexmthy4pnsdtgen4flxzk3ao5ekjbocvmrkhhszffbgu
   build/SquadsMultisig.json: bafybeiey7jbufdyfroy3vahjrfiifsvwf7zaq5yjjb56zokhbg5t76hjcm
   contract.py: bafybeifbpcbyftdel2khyt5wqptllqkuoprqmb4tjqr5roaxhv5dk2ribm
