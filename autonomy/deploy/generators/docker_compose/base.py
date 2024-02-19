@@ -200,6 +200,8 @@ class Network:
                 return cast(
                     ipaddress.IPv4Network, ipaddress.ip_network(config["Subnet"])
                 )
+            if network.attrs["IPAM"]["Config"] is None:
+                continue
             for config in network.attrs["IPAM"]["Config"]:
                 used_subnets.add(config["Subnet"])
 
