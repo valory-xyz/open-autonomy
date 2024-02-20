@@ -319,6 +319,10 @@ jobs:
         run: |
           python -m pip install -U pip
           echo "::add-path::C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64"
+
+          choco source add -n chocolatey -s 'https://chocolatey.org/api/v2/'
+          choco source enable -n chocolatey
+
           choco install wget -y
           choco install protoc --version 24.3
           choco install mingw -y
