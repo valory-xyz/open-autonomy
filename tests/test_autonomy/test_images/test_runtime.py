@@ -40,13 +40,14 @@ from autonomy.deploy.constants import DOCKERFILES
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_images.base import BaseImageBuildTest
-
+import pytest
 
 AGENT = PackageId.from_uri_path("agent/valory/offend_slash/0.1.0")
 TENDERMINT_IMAGE = f"{TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}"
 
 
 @skip_docker_tests
+@pytest.mark.skip(reason="Requires latest images; Unskip after the release")
 class TestOpenAutonomyBaseImage(BaseImageBuildTest):
     """Test image build and run."""
 
@@ -64,7 +65,7 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
 
         cls.agent = str(
             AGENT.with_hash(
-                package_hash="bafybeibe6kgnwkuhcydk5gr3wvsybdlc7gfuzt2ia24czudsvxlbmdlrwe"
+                package_hash="bafybeih7chy5ajfycimrma3iqiu7u6ycoxrjnnlcwcfbgkbrou34m56cr4"
             ).public_id
         )
 
