@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import cast
 
 import docker
+import pytest
 from aea.configurations.data_types import PackageId
 from aea_test_autonomy.docker.tendermint import DEFAULT_ABCI_HOST, TendermintDockerImage
 from aea_test_autonomy.helpers.async_utils import wait_for_condition
@@ -40,7 +41,7 @@ from autonomy.deploy.constants import DOCKERFILES
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_images.base import BaseImageBuildTest
-import pytest
+
 
 AGENT = PackageId.from_uri_path("agent/valory/offend_slash/0.1.0")
 TENDERMINT_IMAGE = f"{TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}"
