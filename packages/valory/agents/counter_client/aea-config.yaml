@@ -15,7 +15,7 @@ protocols:
 - open_aea/signing:1.0.0:bafybeihv62fim3wl2bayavfcg3u5e5cxu3b7brtu4cn5xoxd6lqwachasi
 - valory/http:1.0.0:bafybeifugzl63kfdmwrxwphrnrhj7bn6iruxieme3a4ntzejf6kmtuwmae
 skills:
-- valory/counter_client:0.1.0:bafybeicb37pj26xbknovfox5hwpuh26p3p44uh32tclpj5cwpgvhbmdl4y
+- valory/counter_client:0.1.0:bafybeig7ilg6vpcctmnusgvl7y5oxjtrrmwkfduj5p4swuwph72oclwm3i
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -28,7 +28,8 @@ logging_config:
   version: 1
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.47.0
+    version: ==1.48.0
+customs: []
 default_connection: null
 ---
 public_id: valory/p2p_libp2p_client:0.1.0

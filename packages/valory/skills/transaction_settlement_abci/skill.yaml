@@ -31,14 +31,14 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeia2m32xfpsddrww7j3unkhcijuitlixffg66igrdyt6kgh5jvvwum
+- valory/gnosis_safe:0.1.0:bafybeihdfnnorsjvbxn44ipaungnoowwekbq7mdk4qfi232ik5yrhn6d3i
 protocols:
 - open_aea/signing:1.0.0:bafybeihv62fim3wl2bayavfcg3u5e5cxu3b7brtu4cn5xoxd6lqwachasi
 - valory/abci:0.1.0:bafybeiaqmp7kocbfdboksayeqhkbrynvlfzsx4uy4x6nohywnmaig4an7u
 - valory/contract_api:1.0.0:bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i
 - valory/ledger_api:1.0.0:bafybeihdk6psr4guxmbcrc26jr2cbgzpd5aljkqvpwo64bvaz7tdti2oni
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeib3te5ami7gi7vh6v2rvq7mjmatyqdzqwkqpn7qh6mzfmpc4ikq4q
+- valory/abstract_round_abci:0.1.0:bafybeigiacs66k4uq574fsichha4vy22d2gbdxa4mtnx2oume2b5wbw7qm
 behaviours:
   main:
     args: {}
@@ -89,6 +89,7 @@ models:
     args:
       cleanup_history_depth: 1
       cleanup_history_depth_current: null
+      default_chain_id: ethereum
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       finalize_timeout: 60.0
       genesis_config:
@@ -140,7 +141,6 @@ models:
       use_slashing: false
       use_termination: false
       validate_timeout: 1205
-      default_chain_id: ethereum
     class_name: TransactionParams
   randomness_api:
     args:
@@ -171,3 +171,4 @@ dependencies:
   web3:
     version: <7,>=6.0.0
 is_abstract: true
+customs: []

@@ -31,3 +31,4 @@ models:
     class_name: AbciDialogues
 dependencies: {}
 is_abstract: true
+customs: []

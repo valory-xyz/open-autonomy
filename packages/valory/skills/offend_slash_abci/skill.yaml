@@ -23,11 +23,11 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeib3te5ami7gi7vh6v2rvq7mjmatyqdzqwkqpn7qh6mzfmpc4ikq4q
-- valory/offend_abci:0.1.0:bafybeicynd7bp7g3jmdt3pe2qphhabs5uqo3yp3rzxnvwjxrdgb5xbcvuq
-- valory/registration_abci:0.1.0:bafybeigeferybxvqw4fl2cu2mcmfhfpxdruw3jtsswlmvhag3pav47ia5e
-- valory/reset_pause_abci:0.1.0:bafybeig2fb6i66uq5g3kzcd32rmv4z4xqjsslteqpz44adwxjd6op54uxq
-- valory/slashing_abci:0.1.0:bafybeicrscy3me5lxjyh6g4nvjimkqqi3ha2jpwha4i6sofdhov5fgzs4a
+- valory/abstract_round_abci:0.1.0:bafybeigiacs66k4uq574fsichha4vy22d2gbdxa4mtnx2oume2b5wbw7qm
+- valory/offend_abci:0.1.0:bafybeibcyn7shxawk36rwrjvt76kdozz7pifst6b2rb5lq646tl3yyswhi
+- valory/registration_abci:0.1.0:bafybeiffc477t4lwxevpfadkhpqdpwmbintaiuyjq7dsupam375xk7nype
+- valory/reset_pause_abci:0.1.0:bafybeiaanfiescjflxyss56iosu7wxfgnnnnrfitmniaqdy6wrtuv2ikla
+- valory/slashing_abci:0.1.0:bafybeih3aazpisqg5t7ftplb6hxvrxefnkk7oubco42gfvd5dmp7iso7em
 behaviours:
   main:
     args: {}
@@ -165,3 +165,4 @@ models:
     class_name: TendermintDialogues
 dependencies: {}
 is_abstract: false
+customs: []

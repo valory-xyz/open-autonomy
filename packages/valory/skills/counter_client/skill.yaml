@@ -49,3 +49,4 @@ models:
     class_name: State
 dependencies: {}
 is_abstract: false
+customs: []
