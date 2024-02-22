@@ -1,5 +1,13 @@
 # Release History - `open-autonomy`
 
+# 0.14.6 (2024-02-22)
+
+Autonomy:
+- Adds support for custom packages
+
+Packages:
+- Fixes a flay E2E test on the registration start up agent
+
 # 0.14.5 (2024-02-19)
 
 Autonomy:
