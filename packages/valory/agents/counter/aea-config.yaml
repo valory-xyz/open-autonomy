@@ -18,8 +18,8 @@ protocols:
 - open_aea/signing:1.0.0:bafybeihv62fim3wl2bayavfcg3u5e5cxu3b7brtu4cn5xoxd6lqwachasi
 - valory/abci:0.1.0:bafybeiaqmp7kocbfdboksayeqhkbrynvlfzsx4uy4x6nohywnmaig4an7u
 skills:
-- valory/abstract_abci:0.1.0:bafybeidbrzxykkdplynsh2z6iskqq26le2t4yvog4expn5v6g2iyyd7clq
-- valory/counter:0.1.0:bafybeib457jfpkhmsuvsvol5nkix4xvakuseyvwkicwoshuojnd6qqeceq
+- valory/abstract_abci:0.1.0:bafybeibwlzwk5u2kmgsgzwvdyuwmtpbahv76asq5kmuna25ewcx7eu7ewq
+- valory/counter:0.1.0:bafybeidahrrgturlouxkgxx5tgaqmuucgpyesm6vkdsluyyag3d3b2rj4y
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -53,6 +53,7 @@ dependencies:
     version: ==1.48.0
   open-aea-test-autonomy:
     version: ==0.14.5
+customs: []
 default_connection: null
 ---
 public_id: valory/abci:0.1.0

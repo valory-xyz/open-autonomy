@@ -21,7 +21,7 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihmzuwt3vvfbltwmduvqqtnm4ul46qqrqdmw5pqxfialno2vyyaq4
+- valory/abstract_round_abci:0.1.0:bafybeigiacs66k4uq574fsichha4vy22d2gbdxa4mtnx2oume2b5wbw7qm
 behaviours:
   main:
     args: {}
@@ -150,3 +150,4 @@ dependencies:
   web3:
     version: <7,>=6.0.0
 is_abstract: true
+customs: []

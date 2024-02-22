@@ -28,9 +28,9 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeihdk6psr4guxmbcrc26jr2cbgzpd5aljkqvpwo64bvaz7tdti2oni
 - valory/tendermint:0.1.0:bafybeig4mi3vmlv5zpbjbfuzcgida6j5f2nhrpedxicmrrfjweqc5r7cra
 skills:
-- valory/abstract_abci:0.1.0:bafybeidbrzxykkdplynsh2z6iskqq26le2t4yvog4expn5v6g2iyyd7clq
-- valory/abstract_round_abci:0.1.0:bafybeihmzuwt3vvfbltwmduvqqtnm4ul46qqrqdmw5pqxfialno2vyyaq4
-- valory/registration_abci:0.1.0:bafybeiah6yynq453ce2dopz6qjceaphllfamap75puq2237kjlqt637cyi
+- valory/abstract_abci:0.1.0:bafybeibwlzwk5u2kmgsgzwvdyuwmtpbahv76asq5kmuna25ewcx7eu7ewq
+- valory/abstract_round_abci:0.1.0:bafybeigiacs66k4uq574fsichha4vy22d2gbdxa4mtnx2oume2b5wbw7qm
+- valory/registration_abci:0.1.0:bafybeiffc477t4lwxevpfadkhpqdpwmbintaiuyjq7dsupam375xk7nype
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -69,6 +69,7 @@ dependencies:
     version: ==0.14.5
 skill_exception_policy: just_log
 connection_exception_policy: just_log
+customs: []
 default_connection: null
 ---
 public_id: valory/abci:0.1.0

@@ -24,10 +24,10 @@ protocols:
 - valory/http:1.0.0:bafybeifugzl63kfdmwrxwphrnrhj7bn6iruxieme3a4ntzejf6kmtuwmae
 - valory/ipfs:0.1.0:bafybeiftxi2qhreewgsc5wevogi7yc5g6hbcbo4uiuaibauhv3nhfcdtvm
 skills:
-- valory/abstract_abci:0.1.0:bafybeidbrzxykkdplynsh2z6iskqq26le2t4yvog4expn5v6g2iyyd7clq
-- valory/abstract_round_abci:0.1.0:bafybeihmzuwt3vvfbltwmduvqqtnm4ul46qqrqdmw5pqxfialno2vyyaq4
-- valory/register_reset_recovery_abci:0.1.0:bafybeihte36yiautsvq2xajyyf43f35cxntvve33eectzb7htd5mrgv52q
-- valory/registration_abci:0.1.0:bafybeiah6yynq453ce2dopz6qjceaphllfamap75puq2237kjlqt637cyi
+- valory/abstract_abci:0.1.0:bafybeibwlzwk5u2kmgsgzwvdyuwmtpbahv76asq5kmuna25ewcx7eu7ewq
+- valory/abstract_round_abci:0.1.0:bafybeigiacs66k4uq574fsichha4vy22d2gbdxa4mtnx2oume2b5wbw7qm
+- valory/register_reset_recovery_abci:0.1.0:bafybeiaqcfbvfco5coyw363pnfxic2o6tjimsrxqrd7qfnq5oiedys73m4
+- valory/registration_abci:0.1.0:bafybeiffc477t4lwxevpfadkhpqdpwmbintaiuyjq7dsupam375xk7nype
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -65,6 +65,7 @@ dependencies:
   open-aea-test-autonomy:
     version: ==0.14.5
 skill_exception_policy: stop_and_exit
+customs: []
 default_connection: null
 ---
 public_id: valory/abci:0.1.0

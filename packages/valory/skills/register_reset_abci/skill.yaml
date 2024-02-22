@@ -24,9 +24,9 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihmzuwt3vvfbltwmduvqqtnm4ul46qqrqdmw5pqxfialno2vyyaq4
-- valory/registration_abci:0.1.0:bafybeiah6yynq453ce2dopz6qjceaphllfamap75puq2237kjlqt637cyi
-- valory/reset_pause_abci:0.1.0:bafybeicr763xtvo5o7jja5h7zvll5d2qcd6r5lgo6pcl6jinfizos6ntza
+- valory/abstract_round_abci:0.1.0:bafybeigiacs66k4uq574fsichha4vy22d2gbdxa4mtnx2oume2b5wbw7qm
+- valory/registration_abci:0.1.0:bafybeiffc477t4lwxevpfadkhpqdpwmbintaiuyjq7dsupam375xk7nype
+- valory/reset_pause_abci:0.1.0:bafybeiaanfiescjflxyss56iosu7wxfgnnnnrfitmniaqdy6wrtuv2ikla
 behaviours:
   main:
     args: {}
@@ -143,3 +143,4 @@ models:
     class_name: TendermintDialogues
 dependencies: {}
 is_abstract: false
+customs: []
