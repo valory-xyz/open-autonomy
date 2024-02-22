@@ -1,6 +1,6 @@
 # Release History - `open-autonomy`
 
-# 0.14.4 (2024-02-19)
+# 0.14.5 (2024-02-19)
 
 Autonomy:
 - Fixes incompatibility issue with the latest docker release on the network generator
