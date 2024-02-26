@@ -20,6 +20,3 @@ To bump a repository containing a service to an updated version of {{open_autono
    autonomy --version
    aea --version
    ```
-
-
-
