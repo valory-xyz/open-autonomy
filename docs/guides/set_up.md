@@ -37,10 +37,11 @@ Additionally, if you wish to deploy your service in a Kubernetes cluster:
     touch Pipfile && pipenv --python 3.10 && pipenv shell
     ```
 
-2. **Install the {{open_autonomy}} framework:**
+2. **Install the {{open_autonomy}} framework and the [Open AEA Ethereum Ledger Plugin](https://pypi.org/project/open-aea-ledger-ethereum):**
 
     ```bash
     pip install open-autonomy[all]
+    pip install open-aea-ledger-ethereum
     ```
 
 3. **Initialize the framework** to work with the remote [IPFS](https://ipfs.io) registry by default. This means that when the framework will be fetching a component, it will do so from the remote registry:
