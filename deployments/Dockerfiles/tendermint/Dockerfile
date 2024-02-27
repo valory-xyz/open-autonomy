@@ -22,6 +22,7 @@ RUN mkdir -p /app /tm_state
 
 COPY app.py /app/
 COPY tendermint.py /app/
+COPY build.sh /app/
 
 WORKDIR /app
 RUN pip3 install Flask==2.0.2 requests==2.27.1 Werkzeug==2.0.3
@@ -39,13 +40,9 @@ WORKDIR /tendermint
 
 COPY config-template.toml /etc/tendermint/config-template.toml
 
-RUN adduser -D tendermint
-
-RUN chown -R tendermint /app
-RUN chown -R tendermint /tendermint
-RUN chown -R tendermint /tm_state
-
-USER tendermint
+RUN chmod 777 -R /app
+RUN chmod 777 -R /tendermint
+RUN chmod 777 -R /tm_state
 
 ENTRYPOINT ["/usr/bin/flask"]
 CMD ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
