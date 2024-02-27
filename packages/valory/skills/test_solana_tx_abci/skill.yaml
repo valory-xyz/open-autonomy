@@ -23,10 +23,10 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihu3tuissvhzdoayza7flhfe7o5uv6we5vxaai22u42cmfje665ti
-- valory/registration_abci:0.1.0:bafybeibigf37qb2bt6sgzgabcthnue5rxj2tyw72l2ermny4m22fpi25wy
-- valory/reset_pause_abci:0.1.0:bafybeigfjvtfvtxs3sgdvneq4fqe7dda2ucpt6nfdrxczjvor7dmw2gdqm
-- valory/squads_transaction_settlement_abci:0.1.0:bafybeidc5vkfstxbcuzvqrwsuhlr6ialhqbuvtmzt4yyjrbbzxosuyuiyu
+- valory/abstract_round_abci:0.1.0:bafybeigjrepaqpb3m7zunmt4hryos4vto4yyj3u6iyofdb2fotwho3bqvm
+- valory/registration_abci:0.1.0:bafybeif3ln6eg53ebrfe6uicjew4uqp2ynyrcxkw5wi4jm3ixqv3ykte4a
+- valory/reset_pause_abci:0.1.0:bafybeicm7onl72rfnn33pbvzwjpkl5gafeieyobfcnyresxz7kunjwmqea
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeifb4ykuq4immyhdt4yu5hdv3qxhqulolzf6vdeeztlolkfynrycsi
 behaviours:
   main:
     args: {}
@@ -124,17 +124,17 @@ models:
       slash_cooldown_hours: 3
       slash_threshold_amount: 10000000000000000
       sleep_time: 1
+      squad_vault: 492Ss1D6BSKtfFGZHbRq8ot5X8FcPcfP4EW9tKkYrQJn
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
       termination_sleep: 900
-      tx_timeout: 10.0
-      use_slashing: false
-      squad_vault: 492Ss1D6BSKtfFGZHbRq8ot5X8FcPcfP4EW9tKkYrQJn
       transfer_lamports: 100
       transfer_to_pubkey: 5Mh8XPnMjveUs8mXWofXpgw1seMZUfT2A6fEhdBgaRRW
+      tx_timeout: 10.0
+      use_slashing: false
       use_termination: false
       validate_timeout: 1205
     class_name: Params
@@ -163,3 +163,4 @@ models:
     class_name: TendermintDialogues
 dependencies: {}
 is_abstract: false
+customs: []

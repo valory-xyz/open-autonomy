@@ -23,10 +23,10 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihu3tuissvhzdoayza7flhfe7o5uv6we5vxaai22u42cmfje665ti
-- valory/registration_abci:0.1.0:bafybeibigf37qb2bt6sgzgabcthnue5rxj2tyw72l2ermny4m22fpi25wy
-- valory/reset_pause_abci:0.1.0:bafybeigfjvtfvtxs3sgdvneq4fqe7dda2ucpt6nfdrxczjvor7dmw2gdqm
-- valory/termination_abci:0.1.0:bafybeigk2o7a6exmwjzzp2o4kb6h5fovrcj3djsvy2aiycj364wwtvgjju
+- valory/abstract_round_abci:0.1.0:bafybeigjrepaqpb3m7zunmt4hryos4vto4yyj3u6iyofdb2fotwho3bqvm
+- valory/registration_abci:0.1.0:bafybeif3ln6eg53ebrfe6uicjew4uqp2ynyrcxkw5wi4jm3ixqv3ykte4a
+- valory/reset_pause_abci:0.1.0:bafybeicm7onl72rfnn33pbvzwjpkl5gafeieyobfcnyresxz7kunjwmqea
+- valory/termination_abci:0.1.0:bafybeie6h7j4hyhgj2wte64n3xyudxq4pgqcqjmslxi5tff4mb6vce2tay
 behaviours:
   main:
     args: {}
@@ -126,12 +126,12 @@ models:
       tendermint_max_retries: 5
       tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
+      termination_from_block: 0
       termination_sleep: 900
       tx_timeout: 10.0
       use_slashing: false
       use_termination: false
       validate_timeout: 1205
-      termination_from_block: 0
     class_name: Params
   randomness_api:
     args:
@@ -158,3 +158,4 @@ models:
     class_name: TendermintDialogues
 dependencies: {}
 is_abstract: false
+customs: []

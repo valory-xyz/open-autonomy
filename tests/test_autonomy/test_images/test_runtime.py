@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import cast
 
 import docker
+import pytest
 from aea.configurations.data_types import PackageId
 from aea_test_autonomy.docker.tendermint import DEFAULT_ABCI_HOST, TendermintDockerImage
 from aea_test_autonomy.helpers.async_utils import wait_for_condition
@@ -47,6 +48,7 @@ TENDERMINT_IMAGE = f"{TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}"
 
 
 @skip_docker_tests
+@pytest.mark.skip(reason="Requires latest images; Unskip after the release")
 class TestOpenAutonomyBaseImage(BaseImageBuildTest):
     """Test image build and run."""
 
@@ -64,7 +66,7 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
 
         cls.agent = str(
             AGENT.with_hash(
-                package_hash="bafybeibe6kgnwkuhcydk5gr3wvsybdlc7gfuzt2ia24czudsvxlbmdlrwe"
+                package_hash="bafybeih7chy5ajfycimrma3iqiu7u6ycoxrjnnlcwcfbgkbrou34m56cr4"
             ).public_id
         )
 

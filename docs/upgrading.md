@@ -5,6 +5,14 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.14.5` to `v0.14.6`
+
+No backwards incompatible changes
+
+## `v0.14.4` to `v0.14.5`
+
+No backwards incompatible changes
+
 ## `v0.14.3.post1` to `v0.14.4`
 
 No backwards incompatible changes

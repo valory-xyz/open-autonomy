@@ -23,14 +23,14 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeideg4rbyjiiez2cs6vgjxy5ouzvgizua37nb5ait4vnjtdtgt73ai
+- valory/gnosis_safe:0.1.0:bafybeictjc7saviboxbsdcey3trvokrgo7uoh76mcrxecxhlvcrp47aqg4
 - valory/multisend:0.1.0:bafybeig5byt5urg2d2bsecufxe5ql7f4mezg3mekfleeh32nmuusx66p4y
-- valory/service_registry:0.1.0:bafybeidiqbvrpdnrnj2ysfv26ea5w3auegdv3vonwevq74qe7dqfptncjm
+- valory/service_registry:0.1.0:bafybeiby5x4wfdywlenmoudbykdxohpq2nifqxfep5niqgxrjyrekyahzy
 protocols:
 - valory/contract_api:1.0.0:bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihu3tuissvhzdoayza7flhfe7o5uv6we5vxaai22u42cmfje665ti
-- valory/transaction_settlement_abci:0.1.0:bafybeifvoqo6g3rl6ji4ip6l4vpfc3uozp7tunnn5d7fq3dzry2p5ex4me
+- valory/abstract_round_abci:0.1.0:bafybeigjrepaqpb3m7zunmt4hryos4vto4yyj3u6iyofdb2fotwho3bqvm
+- valory/transaction_settlement_abci:0.1.0:bafybeid57tozt5f3kgzmu22nbr3c3oy4p7bi2bu66rqsgnlylq6xgh2ixe
 behaviours:
   main:
     args: {}
@@ -130,12 +130,12 @@ models:
       tendermint_max_retries: 5
       tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
+      termination_from_block: 0
       termination_sleep: 900
       tx_timeout: 10.0
       use_slashing: false
       use_termination: false
       validate_timeout: 1205
-      termination_from_block: 0
     class_name: TerminationParams
   requests:
     args: {}
@@ -152,3 +152,4 @@ models:
 dependencies:
   hexbytes: {}
 is_abstract: true
+customs: []

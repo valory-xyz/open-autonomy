@@ -14,12 +14,12 @@ fingerprint:
   tests/test_counter.py: bafybeiazi36djqnjzu5t6rn72mngsmntoqz7z7wqa53z3lccgblgsycnbi
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeiglxcmtaqecs6fgg7azfl2k3niwe33j7ornrgn7ycwpit556oluvy
+- valory/abci:0.1.0:bafybeifbnhe4f2bll3a5o3hqji3dqx4soov7hr266rdz5vunxgzo5hggbq
 contracts: []
 protocols:
 - valory/abci:0.1.0:bafybeiaqmp7kocbfdboksayeqhkbrynvlfzsx4uy4x6nohywnmaig4an7u
 skills:
-- valory/abstract_abci:0.1.0:bafybeih75fq4xdxouitqyp645i3p3vfmcliwwjnmqqni32h3xtf43fpowi
+- valory/abstract_abci:0.1.0:bafybeihljirk3d4rgvmx2nmz3p2mp27iwh2o5euce5gccwjwrpawyjzuaq
 behaviours: {}
 handlers:
   abci:
@@ -31,3 +31,4 @@ models:
     class_name: AbciDialogues
 dependencies: {}
 is_abstract: false
+customs: []
