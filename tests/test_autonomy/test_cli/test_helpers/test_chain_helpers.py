@@ -489,7 +489,7 @@ def test_verify_service_dependencies_failures() -> None:
 
     with pytest.raises(
         click.ClickException,
-        match="Error interacting with subgraph; Cannot connect to host",
+        match="Error interacting with subgraph",
     ), mock.patch.object(
         MintHelper,
         "get_ledger_and_crypto_objects",

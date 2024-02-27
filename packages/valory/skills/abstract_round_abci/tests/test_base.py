@@ -1704,10 +1704,10 @@ class TestAbciApp:
 
     def test_process_event_negative_case(self) -> None:
         """Test the 'process_event' method, negative case."""
-        with mock.patch.object(self.abci_app.logger, "info") as mock_info:
+        with mock.patch.object(self.abci_app.logger, "warning") as mock_warning:
             self.abci_app.process_event(ConcreteEvents.A)
-            mock_info.assert_called_with(
-                "cannot process event 'a' as current state is not set"
+            mock_warning.assert_called_with(
+                "Cannot process event 'a' as current state is not set"
             )
 
     def test_update_time(self) -> None:

@@ -65,6 +65,7 @@ DEFAULT_ABCI_PORT = 26658
 KUBERNETES_DEPLOYMENT = "kubernetes"
 DOCKER_COMPOSE_DEPLOYMENT = "docker-compose"
 
+LOOPBACK = "127.0.0.1"
 LOCALHOST = "localhost"
 TENDERMINT_P2P_PORT = 26656
 
@@ -583,7 +584,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         processed_overrides = deepcopy(overrides)
         if self.service.number_of_agents == 1:
             processed_overrides["config"]["host"] = (
-                LOCALHOST
+                LOOPBACK
                 if self.deplopyment_type == KUBERNETES_DEPLOYMENT
                 else self.get_abci_container_name(index=0)
             )
@@ -599,7 +600,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
 
         for idx, override in processed_overrides.items():
             override["config"]["host"] = (
-                LOCALHOST
+                LOOPBACK
                 if self.deplopyment_type == KUBERNETES_DEPLOYMENT
                 else self.get_abci_container_name(index=idx)
             )

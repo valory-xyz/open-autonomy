@@ -30,7 +30,7 @@ from aea.configurations.loader import load_configuration_object
 from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import crypto_registry, ledger_apis_registry
 from aea.helpers.base import IPFSHash
-from aiohttp.client_exceptions import ClientError
+from requests.exceptions import ConnectionError as RequestConnectionError
 from texttable import Texttable
 
 from autonomy.chain.base import ServiceState, UnitType
@@ -386,7 +386,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                     unit, *_ = sorted(units, key=lambda x: x["tokenId"])
                     dependencies.append(unit["tokenId"])
             self.dependencies = sorted(list(map(int, dependencies)))
-        except ClientError as e:
+        except RequestConnectionError as e:
             raise click.ClickException(message=f"Error interacting with subgraph; {e}")
         return self
 
@@ -401,7 +401,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 token_id=agent_id,
                 package_type=PackageType.AGENT,
             ).get("units", [])
-        except ClientError as e:
+        except RequestConnectionError as e:
             raise click.ClickException(message=f"Error interacting with subgraph; {e}")
         if len(units) == 0:
             raise click.ClickException(f"No agents found with token ID {agent_id}")

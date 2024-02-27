@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ from autonomy.deploy.base import (
     ENV_VAR_ID,
     ENV_VAR_LOG_LEVEL,
     KUBERNETES_DEPLOYMENT,
-    LOCALHOST,
+    LOOPBACK,
     NotValidKeysFile,
     ServiceBuilder,
     TENDERMINT_COM,
@@ -445,7 +445,7 @@ class TestServiceBuilder:
         ]
 
         for idx in range(spec.service.number_of_agents):
-            assert conn_config[idx]["config"]["host"] == LOCALHOST
+            assert conn_config[idx]["config"]["host"] == LOOPBACK
             assert conn_config[idx]["config"]["port"] == DEFAULT_ABCI_PORT
 
     def test_verify_agent_instances(

@@ -316,7 +316,7 @@ stringData:
 {string_data}
 kind: Secret
 metadata:
-  annotations:
+  annotations: {{}}
   name: agent-validator-{validator_ix}-key
 type: Opaque
 """

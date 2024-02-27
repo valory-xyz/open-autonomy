@@ -454,8 +454,8 @@ class AbstractResponseHandler(Handler, ABC):
     def _handle_missing_dialogues(self) -> None:
         """Handle missing dialogues in context."""
         expected_attribute_name = self._get_dialogues_attribute_name()
-        self.context.logger.info(
-            "cannot find Dialogues object in skill context with attribute name: %s",
+        self.context.logger.warning(
+            "Cannot find Dialogues object in skill context with attribute name: %s",
             expected_attribute_name,
         )
 
@@ -465,8 +465,8 @@ class AbstractResponseHandler(Handler, ABC):
 
         :param message: the unidentified message to be handled
         """
-        self.context.logger.info(
-            "received invalid message: unidentified dialogue. message=%s", message
+        self.context.logger.warning(
+            "Received invalid message: unidentified dialogue. message=%s", message
         )
 
     def _handle_unallowed_performative(self, message: Message) -> None:
@@ -479,13 +479,13 @@ class AbstractResponseHandler(Handler, ABC):
         :param message: the message
         """
         self.context.logger.warning(
-            "received invalid message: unallowed performative. message=%s.", message
+            "Received invalid message: unallowed performative. message=%s.", message
         )
 
     def _log_message_handling(self, message: Message) -> None:
         """Log the handling of the message."""
         self.context.logger.debug(
-            "calling registered callback with message=%s", message
+            "Calling registered callback with message=%s", message
         )
 
 
@@ -609,7 +609,7 @@ class TendermintHandler(Handler):
 
         if dialogue is None:
             log_message = self.LogMessages.unidentified_dialogue.value
-            self.context.logger.info(f"{log_message}: {message}")
+            self.context.logger.error(f"{log_message}: {message}")
             return
 
         message = cast(TendermintMessage, message)
@@ -617,7 +617,7 @@ class TendermintHandler(Handler):
         handler = getattr(self, handler_name, None)
         if handler is None:
             log_message = self.LogMessages.performative_not_recognized.value
-            self.context.logger.info(f"{log_message}: {message}")
+            self.context.logger.error(f"{log_message}: {message}")
             return
 
         handler(message, dialogue)
@@ -639,7 +639,7 @@ class TendermintHandler(Handler):
         self.context.outbox.put_message(response)
         log_message = self.LogMessages.sending_error_response.value
         log_message += f". Received: {message}, replied: {response}"
-        self.context.logger.info(log_message)
+        self.context.logger.error(log_message)
 
     def _not_registered_error(
         self, message: TendermintMessage, dialogue: TendermintDialogue
@@ -647,7 +647,7 @@ class TendermintHandler(Handler):
         """Check if sender is among on-chain registered addresses"""
         # do not respond to errors to avoid loops
         log_message = self.LogMessages.not_in_registered_addresses.value
-        self.context.logger.info(f"{log_message}: {message}")
+        self.context.logger.error(f"{log_message}: {message}")
         self._reply_with_tendermint_error(message, dialogue, log_message)
 
     def _check_registered(
@@ -765,12 +765,12 @@ class TendermintHandler(Handler):
         target_message = dialogue.get_message_by_id(message.target)
         if not target_message:
             log_message = self.LogMessages.received_error_without_target_message.value
-            self.context.logger.info(log_message)
+            self.context.logger.error(log_message)
             return
 
         log_message = self.LogMessages.received_error_response.value
         log_message += f". Received: {message}, in reply to: {target_message}"
-        self.context.logger.info(log_message)
+        self.context.logger.error(log_message)
         dialogues = cast(TendermintDialogues, self.dialogues)
         dialogues.dialogue_stats.add_dialogue_endstate(
             TendermintDialogue.EndState.NOT_COMMUNICATED, dialogue.is_self_initiated
