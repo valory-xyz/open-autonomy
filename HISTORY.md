@@ -3,7 +3,7 @@
 # 0.14.7 (2024-02-27)
 
 Autonomy:
-- Updated the tendermint image to run the tendermint node as none-root user
+- Updates the Tendermint image to run the Tendermint node as a non-root user
   
 Docs:
 - Updates `hello-world` hashes
