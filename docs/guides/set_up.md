@@ -37,10 +37,11 @@ Additionally, if you wish to deploy your service in a Kubernetes cluster:
     touch Pipfile && pipenv --python 3.10 && pipenv shell
     ```
 
-2. **Install the {{open_autonomy}} framework:**
+2. **Install the {{open_autonomy}} framework and the [Open AEA Ethereum Ledger Plugin](https://pypi.org/project/open-aea-ledger-ethereum):**
 
     ```bash
     pip install open-autonomy[all]
+    pip install open-aea-ledger-ethereum
     ```
 
 3. **Initialize the framework** to work with the remote [IPFS](https://ipfs.io) registry by default. This means that when the framework will be fetching a component, it will do so from the remote registry:
@@ -79,7 +80,7 @@ This is roughly how your workspace should look like:
     You can override the default registry in use (set up with `autonomy init`) for a particular command through the flags `--registry-path` and `--local`. For example, if the framework was initialized with the remote registry, the following command will fetch a runtime folder for the `hello_world` agent from the remote registry:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeihyqkidflfhwjr6ik5qmndei467jgud6435ipqi6cp4loxmf5wlny
+    autonomy fetch valory/hello_world:0.1.0:bafybeig6p6shyx6wmih2xlzu3h6rd7gul3fxqhpdoi77qidqmpzxf33spm
     ```
 
     On the other hand, if you want to fetch the copy stored in your local registry, then you can use:
@@ -110,8 +111,8 @@ If you plan to follow the guides in the next sections, you need to populate the 
     "dev": {
     },
     "third_party": {
-        "service/valory/hello_world/0.1.0": "bafybeifvk5uvlnmugnefhdxp26p6q2krc5i5ga6hlwgg6xyyn5b6hknmru",
-        "agent/valory/hello_world/0.1.0": "bafybeihyqkidflfhwjr6ik5qmndei467jgud6435ipqi6cp4loxmf5wlny",
+        "service/valory/hello_world/0.1.0": "bafybeidlyc47r7xofppfsh25ciaqpca73hxcappoijtofr5dml4ktmzksi",
+        "agent/valory/hello_world/0.1.0": "bafybeig6p6shyx6wmih2xlzu3h6rd7gul3fxqhpdoi77qidqmpzxf33spm",
         "connection/valory/abci/0.1.0": "bafybeifbnhe4f2bll3a5o3hqji3dqx4soov7hr266rdz5vunxgzo5hggbq",
         "connection/valory/http_client/0.23.0": "bafybeih5vzo22p2umhqo52nzluaanxx7kejvvpcpdsrdymckkyvmsim6gm",
         "connection/valory/ipfs/0.1.0": "bafybeiflaxrnepfn4hcnq5pieuc7ki7d422y3iqb54lv4tpgs7oywnuhhq",
@@ -127,7 +128,7 @@ If you plan to follow the guides in the next sections, you need to populate the 
         "protocol/valory/tendermint/0.1.0": "bafybeig4mi3vmlv5zpbjbfuzcgida6j5f2nhrpedxicmrrfjweqc5r7cra",
         "skill/valory/abstract_abci/0.1.0": "bafybeihljirk3d4rgvmx2nmz3p2mp27iwh2o5euce5gccwjwrpawyjzuaq",
         "skill/valory/abstract_round_abci/0.1.0": "bafybeigjrepaqpb3m7zunmt4hryos4vto4yyj3u6iyofdb2fotwho3bqvm",
-        "skill/valory/hello_world_abci/0.1.0": "bafybeic3p3iprukwyo7zb4knanmqteb5uptloh4fywwdvwikyelhkjws6q",
+        "skill/valory/hello_world_abci/0.1.0": "bafybeif6yvoz7tsxv5wuba26zvgcj5ndwusfgerokdubazcvy4b3khrtjy",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeid3xg5k2ol5adflqloy75ibgljmol6xsvzvezebsg7oudxeeolz7e"
     }
 }
