@@ -19,6 +19,7 @@
 
 """Docker-compose Deployment Generator."""
 import ipaddress
+import os
 from pathlib import Path
 from typing import Dict, List, Optional, cast
 
@@ -95,6 +96,7 @@ def build_tendermint_node_config(  # pylint: disable=too-many-arguments
         tendermint_image_version=TENDERMINT_IMAGE_VERSION,
         network_name=network_name,
         write_to_log=str(tm_write_to_log()).lower(),
+        user=os.environ.get("UID", "1000"),
     )
 
     if dev_mode:
@@ -236,7 +238,9 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             ]
         )
         self.tendermint_job_config = TENDERMINT_CONFIG_TEMPLATE.format(
-            validators=self.service_builder.service.number_of_agents, hosts=hosts
+            validators=self.service_builder.service.number_of_agents,
+            hosts=hosts,
+            user=os.environ.get("UID", "1000"),
         )
         client = from_env()
         image = f"{TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}"

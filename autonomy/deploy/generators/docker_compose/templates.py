@@ -20,7 +20,9 @@
 """Deployment Templates."""
 
 
-TENDERMINT_CONFIG_TEMPLATE: str = """/usr/bin/tendermint testnet --config /etc/tendermint/config-template.toml --v {validators} --o . {hosts}"""
+TENDERMINT_CONFIG_TEMPLATE: str = (
+    """bash /app/build.sh "{validators}" "{hosts}" "{user}" """
+)
 
 DOCKER_COMPOSE_TEMPLATE: str = """version: "2.4"
 services:
@@ -65,6 +67,7 @@ HARDHAT_NODE_TEMPLATE: str = """  hardhat:
 
 TENDERMINT_NODE_TEMPLATE: str = """
   {container_name}:
+    user: "{user}"
     mem_limit: 1024m
     mem_reservation: 256M
     cpus: 0.5
