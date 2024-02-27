@@ -48,7 +48,6 @@ TENDERMINT_IMAGE = f"{TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}"
 
 
 @skip_docker_tests
-@pytest.mark.skip(reason="Requires latest images; Unskip after the release")
 class TestOpenAutonomyBaseImage(BaseImageBuildTest):
     """Test image build and run."""
 
