@@ -23,7 +23,6 @@ from pathlib import Path
 from typing import cast
 
 import docker
-import pytest
 from aea.configurations.data_types import PackageId
 from aea_test_autonomy.docker.tendermint import DEFAULT_ABCI_HOST, TendermintDockerImage
 from aea_test_autonomy.helpers.async_utils import wait_for_condition
