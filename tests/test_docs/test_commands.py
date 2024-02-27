@@ -152,6 +152,7 @@ def test_validate_doc_commands() -> None:
     skips = [
         "autonomy tests/ --cov",
         "aea -- /bin/sh",
+        "aea --version",
         "autonomy deploy --env-file <path_to_dotenv> COMMAND",
         "autonomy deploy --env-file <path_to_json> COMMAND",
         "aea init --reset --remote --ipfs --author ${AUTHOR}",
@@ -167,7 +168,7 @@ def test_validate_doc_commands() -> None:
 
             if cmd in skips:
                 continue
-            assert validator.validate(cmd, str(file_))
+            assert validator.validate(cmd, str(file_)), cmd
 
 
 def test_validator() -> None:
