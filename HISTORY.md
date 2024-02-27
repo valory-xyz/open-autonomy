@@ -1,5 +1,14 @@
 # Release History - `open-autonomy`
 
+# 0.14.7 (2024-02-27)
+
+Autonomy:
+- Updated the tendermint image to run the tendermint node as none-root user
+  
+Docs:
+- Updates `hello-world` hashes
+- Updates the ledger plugin installation instructions
+
 # 0.14.6 (2024-02-22)
 
 Autonomy:
