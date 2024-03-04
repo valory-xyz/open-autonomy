@@ -131,6 +131,8 @@ def should_skip(module_path: Path) -> bool:
 def _generate_apidocs_aea_modules(executor: ThreadPoolExecutor) -> None:
     """Generate API docs for aea.* modules."""
     for module_path in filter(is_not_dir, Path(AEA_DIR).rglob("*")):
+        if "data" in module_path.parts and "contracts" in module_path.parts:
+            continue
         print(f"Processing {module_path}... ", end="")
         if should_skip(module_path):
             continue
