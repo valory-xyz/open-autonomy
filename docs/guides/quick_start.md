@@ -20,7 +20,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
 1. Fetch the [Hello World service](https://docs.autonolas.network/demos/hello-world/) from the remote registry. Within the workspace folder (not the remote registry) run:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeidlyc47r7xofppfsh25ciaqpca73hxcappoijtofr5dml4ktmzksi --service
+    autonomy fetch valory/hello_world:0.1.0:bafybeib3hqhevqk2ujyy43zl3wpjqvav6ezucp3ep4iyck475jb3hvhri4 --service
     ```
 
 2. Build the Docker image of the service agents:

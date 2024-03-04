@@ -79,21 +79,3 @@ def get_create_transaction(cls,
 
 Create a component.
 
-<a id="autonomy.data.contracts.registries_manager.contract.RegistriesManagerContract.get_update_hash_transaction"></a>
-
-#### get`_`update`_`hash`_`transaction
-
-```python
-@classmethod
-def get_update_hash_transaction(cls,
-                                ledger_api: LedgerApi,
-                                contract_address: str,
-                                component_type: UnitType,
-                                unit_id: int,
-                                metadata_hash: str,
-                                sender: str,
-                                raise_on_try: bool = False) -> JSONLike
-```
-
-Create a component.
-

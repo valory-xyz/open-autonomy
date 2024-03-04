@@ -9,13 +9,13 @@ fingerprint:
   README.md: bafybeiezmhsokdhxat2gzxgau2zotd5nqjepg5lb2y7ypijuuq75xnxxrq
   __init__.py: bafybeigdpqcsxpxp3akxdy5wcccfahom7pmbrnmututws2fmpcr7q6ryoe
   dialogues.py: bafybeib6cex55nl57xe6boa4c3z4ynlxstnospqjehdb5owpgtvzsu5ucm
-  handlers.py: bafybeigvaodg3tp6qq5h7jxufsnwyhq6zswilnyuwdqj5t7ku54ohybg3q
+  handlers.py: bafybeicgyvejmzuyl4j6vxo2javkp26x742hdmrzlizo4z4ma5pyp2vbhu
   tests/__init__.py: bafybeicnx4gezk2zrgz23mco2kv7ws3yd5yspku5e3ng4cb5tw7s2zexsu
   tests/test_dialogues.py: bafybeig3kubiyq7bqmetrka67fjk7vymgtjwguyui3yubbvgtzzhfizsdu
   tests/test_handlers.py: bafybeieeuwtu35ddaevr2wgnk33l7kdhrx7ruoeb5jiltiyn65ufdcnopu
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeichtqrs5wafa23zli4365ph74ve345c7qf4hyhwkywvln4ccn2jrm
+- valory/abci:0.1.0:bafybeiealuzcmfotybaurqd6qf7x5peohdm2xii5vxyp2ghgryiqoqj4pu
 contracts: []
 protocols:
 - valory/abci:0.1.0:bafybeiaqmp7kocbfdboksayeqhkbrynvlfzsx4uy4x6nohywnmaig4an7u

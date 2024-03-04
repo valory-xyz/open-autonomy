@@ -50,26 +50,15 @@ def get_state(cls, ledger_api: LedgerApi, contract_address: str,
 
 Get state.
 
-<a id="autonomy.data.contracts.component_registry.contract.ComponentRegistryContract.get_create_events"></a>
+<a id="autonomy.data.contracts.component_registry.contract.ComponentRegistryContract.filter_token_id_from_emitted_events"></a>
 
-#### get`_`create`_`events
-
-```python
-@classmethod
-def get_create_events(cls, ledger_api: LedgerApi, contract_address: str,
-                      receipt: JSONLike) -> Optional[int]
-```
-
-Returns `CreateUnit` event filter.
-
-<a id="autonomy.data.contracts.component_registry.contract.ComponentRegistryContract.get_update_hash_events"></a>
-
-#### get`_`update`_`hash`_`events
+#### filter`_`token`_`id`_`from`_`emitted`_`events
 
 ```python
 @classmethod
-def get_update_hash_events(cls, ledger_api: LedgerApi, contract_address: str,
-                           receipt: JSONLike) -> Optional[int]
+def filter_token_id_from_emitted_events(cls, ledger_api: LedgerApi,
+                                        contract_address: str,
+                                        metadata_hash: str) -> Optional[int]
 ```
 
 Returns `CreateUnit` event filter.
@@ -84,5 +73,5 @@ def get_token_uri(cls, ledger_api: LedgerApi, contract_address: str,
                   token_id: int) -> str
 ```
 
-Returns the latest metadata URI for a component.
+Returns `CreateUnit` event filter.
 

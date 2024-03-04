@@ -50,41 +50,6 @@ def get_state(cls, ledger_api: LedgerApi, contract_address: str,
 
 Get state.
 
-<a id="autonomy.data.contracts.service_registry.contract.ServiceRegistryContract.is_l1_chain"></a>
-
-#### is`_`l1`_`chain
-
-```python
-@staticmethod
-def is_l1_chain(ledger_api: LedgerApi) -> bool
-```
-
-Check if we're interecting with an L1 chain
-
-<a id="autonomy.data.contracts.service_registry.contract.ServiceRegistryContract.load_l2_build"></a>
-
-#### load`_`l2`_`build
-
-```python
-@staticmethod
-def load_l2_build() -> JSONLike
-```
-
-Load L2 ABI
-
-<a id="autonomy.data.contracts.service_registry.contract.ServiceRegistryContract.get_instance"></a>
-
-#### get`_`instance
-
-```python
-@classmethod
-def get_instance(cls,
-                 ledger_api: LedgerApi,
-                 contract_address: Optional[str] = None) -> Any
-```
-
-Get contract instance.
-
 <a id="autonomy.data.contracts.service_registry.contract.ServiceRegistryContract.verify_contract"></a>
 
 #### verify`_`contract
@@ -164,112 +129,56 @@ def get_token_uri(cls, ledger_api: LedgerApi, contract_address: str,
                   token_id: int) -> str
 ```
 
-Returns the latest metadata URI for a component.
+Resolve token URI
 
-<a id="autonomy.data.contracts.service_registry.contract.ServiceRegistryContract.get_create_events"></a>
+<a id="autonomy.data.contracts.service_registry.contract.ServiceRegistryContract.filter_token_id_from_emitted_events"></a>
 
-#### get`_`create`_`events
+#### filter`_`token`_`id`_`from`_`emitted`_`events
 
 ```python
 @classmethod
-def get_create_events(cls, ledger_api: LedgerApi, contract_address: str,
-                      receipt: JSONLike) -> Optional[int]
+def filter_token_id_from_emitted_events(
+        cls, ledger_api: LedgerApi, contract_address: str) -> Optional[int]
 ```
 
 Returns `CreateUnit` event filter.
 
-<a id="autonomy.data.contracts.service_registry.contract.ServiceRegistryContract.get_update_events"></a>
+<a id="autonomy.data.contracts.service_registry.contract.ServiceRegistryContract.verify_service_has_been_activated"></a>
 
-#### get`_`update`_`events
-
-```python
-@classmethod
-def get_update_events(cls, ledger_api: LedgerApi, contract_address: str,
-                      receipt: JSONLike) -> Optional[int]
-```
-
-Returns `CreateUnit` event filter.
-
-<a id="autonomy.data.contracts.service_registry.contract.ServiceRegistryContract.get_update_hash_events"></a>
-
-#### get`_`update`_`hash`_`events
+#### verify`_`service`_`has`_`been`_`activated
 
 ```python
 @classmethod
-def get_update_hash_events(cls, ledger_api: LedgerApi, contract_address: str,
-                           receipt: JSONLike) -> Optional[int]
-```
-
-Returns `CreateUnit` event filter.
-
-<a id="autonomy.data.contracts.service_registry.contract.ServiceRegistryContract.process_receipt"></a>
-
-#### process`_`receipt
-
-```python
-@classmethod
-def process_receipt(cls, ledger_api: LedgerApi, contract_address: str,
-                    event: str, receipt: JSONLike) -> JSONLike
+def verify_service_has_been_activated(cls, ledger_api: LedgerApi,
+                                      contract_address: str,
+                                      service_id: int) -> bool
 ```
 
 Checks for a successful service registration event in the latest block
 
-<a id="autonomy.data.contracts.service_registry.contract.ServiceRegistryContract.get_slash_data"></a>
+<a id="autonomy.data.contracts.service_registry.contract.ServiceRegistryContract.verify_agent_instance_registration"></a>
 
-#### get`_`slash`_`data
-
-```python
-@classmethod
-def get_slash_data(cls, ledger_api: LedgerApi, contract_address: str,
-                   agent_instances: List[str], amounts: List[int],
-                   service_id: int) -> Dict[str, bytes]
-```
-
-Gets the encoded arguments for a slashing tx, which should only be called via the multisig.
-
-<a id="autonomy.data.contracts.service_registry.contract.ServiceRegistryContract.process_slash_receipt"></a>
-
-#### process`_`slash`_`receipt
+#### verify`_`agent`_`instance`_`registration
 
 ```python
 @classmethod
-def process_slash_receipt(cls, ledger_api: LedgerApi, contract_address: str,
-                          tx_hash: str) -> Optional[JSONLike]
+def verify_agent_instance_registration(cls, ledger_api: LedgerApi,
+                                       contract_address: str, service_id: int,
+                                       instance_check: Set[str]) -> Set[str]
 ```
 
-Process the slash receipt.
+Checks for the registered instances and filters out the instances that are registered from the given array
 
-**Arguments**:
+<a id="autonomy.data.contracts.service_registry.contract.ServiceRegistryContract.verify_service_has_been_deployed"></a>
 
-- `ledger_api`: the ledger apis.
-- `contract_address`: the contract address.
-- `tx_hash`: the hash of a slash tx to be processed.
-
-**Returns**:
-
-a dictionary with the timestamp of the slashing and the `OperatorSlashed` events.
-
-<a id="autonomy.data.contracts.service_registry.contract.ServiceRegistryContract.get_operators_mapping"></a>
-
-#### get`_`operators`_`mapping
+#### verify`_`service`_`has`_`been`_`deployed
 
 ```python
 @classmethod
-def get_operators_mapping(cls, ledger_api: LedgerApi, contract_address: str,
-                          agent_instances: FrozenSet[str]) -> Dict[str, str]
+def verify_service_has_been_deployed(cls, ledger_api: LedgerApi,
+                                     contract_address: str,
+                                     service_id: int) -> bool
 ```
 
-Retrieve a mapping of the given agent instances to their operators.
-
-Please keep in mind that this method performs a call for each agent instance.
-
-**Arguments**:
-
-- `ledger_api`: the ledger api.
-- `contract_address`: the contract address.
-- `agent_instances`: the agent instances to be mapped.
-
-**Returns**:
-
-a mapping of the given agent instances to their operators.
+Checks for a successful service registration event in the latest block
 
