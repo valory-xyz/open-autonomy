@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ def get_all_extras() -> Dict:
         "click==8.0.2",
         "open-aea-cli-ipfs==1.48.0.post1",
         "texttable==1.6.7",
-        "python-dotenv>=0.14.5,<0.18.0",
+        "python-dotenv>=0.14.5,<0.22.0",
         "pytest>=7.0.0,<7.3.0",
         "coverage>=6.4.4,<8.0.0",
     ]
