@@ -264,7 +264,11 @@ def check_copyright(file: Path) -> Dict:
     if match is not None:
         return _validate_years(file, START_YEARS, *get_year_data(match))  # type: ignore
 
-    return {"check": False, "message": "Invalid copyright header.", "error_code": ErrorTypes.INVALID_HEADER}
+    return {
+        "check": False,
+        "message": "Invalid copyright header.",
+        "error_code": ErrorTypes.INVALID_HEADER,
+    }
 
 
 def run_check(files: Iterator[Path]) -> None:
