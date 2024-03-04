@@ -96,6 +96,7 @@ class ErrorTypes:  # pylint: disable=too-few-public-methods
     START_YEAR_GT_END_YEAR = 2
     END_YEAR_WRONG = 3
     END_YEAR_MISSING = 4
+    INVALID_HEADER = 5
 
 
 def get_modification_date(file: Path) -> datetime:
@@ -263,7 +264,7 @@ def check_copyright(file: Path) -> Dict:
     if match is not None:
         return _validate_years(file, START_YEARS, *get_year_data(match))  # type: ignore
 
-    return {"check": False, "message": "Invalid copyright header."}
+    return {"check": False, "message": "Invalid copyright header.", "error_code": ErrorTypes.INVALID_HEADER}
 
 
 def run_check(files: Iterator[Path]) -> None:
