@@ -65,6 +65,7 @@ base_deps = [
     "gql==3.5.0",
     "requests-toolbelt==1.0.0",  # Required for graphql client
     "aiohttp<4.0.0,>=3.8.5",
+    "typing_extensions>=3.10.0.2",
 ]
 base_deps.extend(all_extras["cli"])
 
