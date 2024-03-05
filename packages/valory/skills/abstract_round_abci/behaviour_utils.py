@@ -2194,19 +2194,22 @@ class TmManager(BaseBehaviour):
             yield from self._check_sync()
             return
 
-        # since we have reached this point, that means that the cause of blocks not being received
-        # cannot be fixed with a simple gentle reset,
-        # therefore, we request the recovery parameters via the ACN, and if we succeed, we use them to recover
-        acn_communication_success = yield from self.request_recovery_params(
-            should_log=not self.acn_communication_attempted
-        )
-        if not acn_communication_success:
-            if not self.acn_communication_attempted:
-                self.context.logger.error(
-                    "Failed to get the recovery parameters via the ACN. Cannot reset Tendermint."
-                )
-            self.acn_communication_attempted = True
-            return
+        is_multi_agent_service = self.synchronized_data.max_participants > 1
+        if is_multi_agent_service:
+            # since we have reached this point, that means that the cause of blocks not being received
+            # cannot be fixed with a simple gentle reset,
+            # therefore, we request the recovery parameters via the ACN, and if we succeed, we use them to recover
+            # we do not need to request the recovery parameters if this is a single-agent service
+            acn_communication_success = yield from self.request_recovery_params(
+                should_log=not self.acn_communication_attempted
+            )
+            if not acn_communication_success:
+                if not self.acn_communication_attempted:
+                    self.context.logger.error(
+                        "Failed to get the recovery parameters via the ACN. Cannot reset Tendermint."
+                    )
+                self.acn_communication_attempted = True
+                return
 
         recovery_params = self.shared_state.tm_recovery_params
         self.round_sequence.reset_state(
