@@ -1,5 +1,13 @@
 # Release History - `open-autonomy`
 
+# 0.14.8 (2024-03-06)
+
+Autonomy:
+- Pins `python-dotenv>=0.14.5,<0.22.0` and `typing_extensions>=3.10.0.2`
+
+Chore:
+- Skips data packages from the API generator script
+
 # 0.14.7 (2024-02-27)
 
 Autonomy:
