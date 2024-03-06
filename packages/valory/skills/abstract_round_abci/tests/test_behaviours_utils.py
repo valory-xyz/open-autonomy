@@ -2354,6 +2354,7 @@ class TestTmManager:
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.tm_manager = TmManager(name="", skill_context=self.context_mock)
         self.tm_manager._max_reset_retry = 1
+        self.tm_manager.synchronized_data.max_participants = 3  # type: ignore
 
     def test_async_act(self) -> None:
         """Test the async_act method of the TmManager."""

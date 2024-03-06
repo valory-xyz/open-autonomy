@@ -815,6 +815,7 @@ def test_reset_should_be_performed_when_tm_unhealthy() -> None:
         "reset_tendermint_with_wait",
         side_effect=dummy_reset_tendermint_with_wait,
     ) as mock_reset_tendermint:
+        behaviour.tm_manager.synchronized_data.max_participants = 3  # type: ignore
         assert behaviour.tm_manager is not None
         behaviour.tm_manager.gentle_reset_attempted = True
         behaviour.act()
