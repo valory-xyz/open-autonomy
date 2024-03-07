@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -815,6 +815,7 @@ def test_reset_should_be_performed_when_tm_unhealthy() -> None:
         "reset_tendermint_with_wait",
         side_effect=dummy_reset_tendermint_with_wait,
     ) as mock_reset_tendermint:
+        behaviour.tm_manager.synchronized_data.max_participants = 3  # type: ignore
         assert behaviour.tm_manager is not None
         behaviour.tm_manager.gentle_reset_attempted = True
         behaviour.act()
