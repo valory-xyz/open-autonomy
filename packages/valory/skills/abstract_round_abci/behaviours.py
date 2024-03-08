@@ -147,14 +147,21 @@ class _MetaRoundBehaviour(ABCMeta):
 
         # check uniqueness
         for b in behaviour_cls.behaviours:
-            round_to_behaviour[b.matching_round].append(b)
-            if len(round_to_behaviour[b.matching_round]) > 1:
-                behaviour_class_ids = [
-                    _behaviour_cls.auto_behaviour_id()
-                    for _behaviour_cls in round_to_behaviour[b.matching_round]
+            behaviours = round_to_behaviour.get(b.matching_round, None)
+            if behaviours is None:
+                raise ABCIAppInternalError(
+                    f"Behaviour {b.behaviour_id!r} specifies unknown {b.matching_round!r} as a matching round. "
+                    "Please make sure that the round is implemented and belongs to the FSM. "
+                    f"If {b.behaviour_id!r} is a background behaviour, please make sure that it is set correctly, "
+                    f"by overriding the corresponding attribute of the chained skill's behaviour."
+                )
+            behaviours.append(b)
+            if len(behaviours) > 1:
+                behaviour_cls_ids = [
+                    behaviour_cls_.auto_behaviour_id() for behaviour_cls_ in behaviours
                 ]
                 raise ABCIAppInternalError(
-                    f"behaviours {behaviour_class_ids} have the same matching round '{b.matching_round.auto_round_id()}'"
+                    f"behaviours {behaviour_cls_ids} have the same matching round '{b.matching_round.auto_round_id()}'"
                 )
 
         # check covering
@@ -164,8 +171,7 @@ class _MetaRoundBehaviour(ABCMeta):
                     raise ABCIAppInternalError(
                         f"round {round_cls.auto_round_id()} is a final round it shouldn't have any matching behaviours."
                     )
-                continue  # pragma: nocover
-            if len(behaviours) == 0:
+            elif len(behaviours) == 0:
                 raise ABCIAppInternalError(
                     f"round {round_cls.auto_round_id()} is not a matching round of any behaviour"
                 )
