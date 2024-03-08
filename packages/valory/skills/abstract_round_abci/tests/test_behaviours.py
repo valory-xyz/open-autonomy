@@ -249,8 +249,60 @@ class TestAbstractRoundBehaviour:
         with mock.patch.object(self.behaviour, "_process_current_round"):
             self.behaviour.act()
 
+    @pytest.mark.parametrize(
+        "no_round, error",
+        (
+            (
+                True,
+                "Behaviour 'behaviour_without_round' specifies unknown 'unknown' as a matching round. "
+                "Please make sure that the round is implemented and belongs to the FSM. "
+                "If 'behaviour_without_round' is a background behaviour, please make sure that it is set correctly, "
+                "by overriding the corresponding attribute of the chained skill's behaviour.",
+            ),
+            (False, "round round_1 is not a matching round of any behaviour"),
+        ),
+    )
+    def test_check_matching_round_consistency_no_behaviour(
+        self, no_round: bool, error: str
+    ) -> None:
+        """Test classmethod '_check_matching_round_consistency', when no behaviour or round is specified."""
+        rounds = [
+            MagicMock(**{"auto_round_id.return_value": f"round_{i}"}) for i in range(3)
+        ]
+        mock_behaviours = [
+            MagicMock(matching_round=round, behaviour_id=f"behaviour_{i}")
+            for i, round in enumerate(rounds[2:])
+        ]
+        if no_round:
+            mock_behaviours.append(
+                MagicMock(
+                    matching_round="unknown", behaviour_id="behaviour_without_round"
+                )
+            )
+
+        with mock.patch.object(
+            _MetaRoundBehaviour, "_check_all_required_classattributes_are_set"
+        ), mock.patch.object(
+            _MetaRoundBehaviour, "_check_behaviour_id_uniqueness"
+        ), mock.patch.object(
+            _MetaRoundBehaviour, "_check_initial_behaviour_in_set_of_behaviours"
+        ), pytest.raises(
+            ABCIAppInternalError,
+            match=error,
+        ):
+
+            class MyRoundBehaviour(AbstractRoundBehaviour):
+                abci_app_cls = MagicMock(
+                    get_all_round_classes=lambda _, include_background_rounds: rounds,
+                    final_states={
+                        rounds[0],
+                    },
+                )
+                behaviours = mock_behaviours  # type: ignore
+                initial_behaviour_cls = MagicMock()
+
     def test_check_matching_round_consistency(self) -> None:
-        """Test classmethod '_get_behaviour_id_to_behaviour_mapping', negative case."""
+        """Test classmethod '_check_matching_round_consistency', negative case."""
         rounds = [
             MagicMock(**{"auto_round_id.return_value": f"round_{i}"}) for i in range(3)
         ]
