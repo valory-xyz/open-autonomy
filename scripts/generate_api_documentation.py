@@ -24,7 +24,6 @@ import re
 import shutil
 import subprocess  # nosec
 import sys
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Set
 
