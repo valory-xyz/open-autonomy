@@ -24,7 +24,6 @@ import re
 import shutil
 import subprocess  # nosec
 import sys
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Set
 
@@ -128,7 +127,7 @@ def should_skip(module_path: Path) -> bool:
     return False
 
 
-def _generate_apidocs_aea_modules(executor: ThreadPoolExecutor) -> None:
+def _generate_apidocs_aea_modules() -> None:
     """Generate API docs for aea.* modules."""
     for module_path in filter(is_not_dir, Path(AEA_DIR).rglob("*")):
         if "data" in module_path.parts and "contracts" in module_path.parts:
@@ -141,10 +140,10 @@ def _generate_apidocs_aea_modules(executor: ThreadPoolExecutor) -> None:
         last = module_path.stem
         doc_file = API_DIR / Path(*parents_without_root) / f"{last}.md"
         dotted_path = ".".join(parents) + "." + last
-        executor.submit(make_pydoc, dotted_path, doc_file)
+        make_pydoc(dotted_path, doc_file)
 
 
-def _generate_apidocs_packages(executor: ThreadPoolExecutor) -> None:
+def _generate_apidocs_packages() -> None:
     """Generate API docs for default packages."""
     for component_type, default_package in DEFAULT_PACKAGES:
         public_id = PublicId.from_str(default_package)
@@ -159,10 +158,10 @@ def _generate_apidocs_packages(executor: ThreadPoolExecutor) -> None:
             suffix = Path(str(module_path.relative_to(package_dir))[:-3] + ".md")
             dotted_path = ".".join(module_path.parts)[:-3]
             doc_file = API_DIR / type_plural / name / suffix
-            executor.submit(make_pydoc, dotted_path, doc_file)
+            make_pydoc(dotted_path, doc_file)
 
 
-def _generate_apidocs_plugins(executor: ThreadPoolExecutor) -> None:
+def _generate_apidocs_plugins() -> None:
     """Generate API docs for cyrpto plugins."""
     for plugin in PLUGIN_DIR.iterdir():
         plugin_name = plugin.name
@@ -177,7 +176,7 @@ def _generate_apidocs_plugins(executor: ThreadPoolExecutor) -> None:
             suffix = Path(str(relative_module_path)[:-3] + ".md")
             dotted_path = ".".join(module_path.parts)[:-3]
             doc_file = API_DIR / "plugins" / plugin_module_name / suffix
-            executor.submit(make_pydoc, dotted_path, doc_file)
+            make_pydoc(dotted_path, doc_file)
 
 
 def make_pydoc(dotted_path: str, dest_file: Path) -> None:
@@ -216,10 +215,9 @@ def generate_api_docs() -> None:
     """Generate the api docs."""
     shutil.rmtree(API_DIR, ignore_errors=True)
     API_DIR.mkdir()
-    with ThreadPoolExecutor() as executor:
-        _generate_apidocs_packages(executor)
-        _generate_apidocs_aea_modules(executor)
-        _generate_apidocs_plugins(executor)
+    _generate_apidocs_packages()
+    _generate_apidocs_aea_modules()
+    _generate_apidocs_plugins()
 
 
 def install(package: str) -> int:
