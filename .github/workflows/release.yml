@@ -91,20 +91,20 @@ jobs:
     needs:
       - publish-autonomy-packages
     steps:
-    - uses: actions/checkout@v2
-    - name: Docker login
-      env:
-        DOCKER_USER: ${{secrets.DOCKER_USER}}
-        DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
-      run: |
-        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-    - name: Set up tag
-      run: echo export TAG=$(python3 -c "from setup import about; print(about[\"__version__\"])") > env.sh
-    - name: Build version tagged images
-      run: |
-        source env.sh
-        docker build -t valory/open-autonomy-docs:$TAG -f deployments/Dockerfiles/documentation/Dockerfile . --push
-        docker build -t valory/open-autonomy-docs:latest -f deployments/Dockerfiles/documentation/Dockerfile . --push
+      - uses: actions/checkout@v2
+      - name: Docker login
+        env:
+          DOCKER_USER: ${{secrets.DOCKER_USER}}
+          DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+        run: |
+          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+      - name: Set up tag
+        run: echo export TAG=$(python3 -c "from setup import about; print(about[\"__version__\"])") > env.sh
+      - name: Build version tagged images
+        run: |
+          source env.sh
+          docker build -t valory/open-autonomy-docs:$TAG -f deployments/Dockerfiles/documentation/Dockerfile . --push
+          docker build -t valory/open-autonomy-docs:latest -f deployments/Dockerfiles/documentation/Dockerfile . --push
 
   publish-deploy-images:
     name: Publish Deploy Images
@@ -191,3 +191,26 @@ jobs:
           docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy-hardhat:$TAG deployments/Dockerfiles/hardhat --push
           docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy-hardhat:latest deployments/Dockerfiles/hardhat --push
 
+  trigger-charlie:
+    name: Trigger automated bumping flow
+    runs-on: ubuntu-latest
+    needs:
+      - publish-deploy-images
+      - publish-user-images
+      - publish-helper-images
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-python@v3
+        with:
+          python-version: 3.10
+      - name: Run the trigger script
+        env:
+          CHARLIE_API: ${{secrets.CHARLIE_API}}
+          CHARLIE_TOKEN: ${{secrets.CHARLIE_TOKEN}}
+        run: |
+          sudo apt-get update --fix-missing
+          sudo apt-get autoremove
+          sudo apt-get autoclean
+          python -m pip install requests
+          python -m pip -e install '.[all]'
+          python scripts/trigger_bumping.py
