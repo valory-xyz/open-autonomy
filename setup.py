@@ -153,3 +153,4 @@ if __name__ == "__main__":
             "Source": "https://github.com/valory/open-autonomy",
         },
     )
+
