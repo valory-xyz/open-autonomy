@@ -19,14 +19,14 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/squads_multisig:0.1.0:bafybeic55yld3cs7ctsizbb6uvb2x2uscz7bha3xrj3fhnkihnosye5dbi
+- valory/squads_multisig:0.1.0:bafybeihdmsv6o2oatzpns7gny4msmhioxbqs2iq5jnxbq2rsm3hoaxmwsa
 protocols:
 - valory/contract_api:1.0.0:bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihdoyvlqb4njcuvjekft7uphhcyvhqd6u5p7s7m4hcltaz7fp3yuq
-- valory/registration_abci:0.1.0:bafybeiaz2rl3sn233edy4lrbrr4rffssspbbqmbced3webm7un4a74k27a
-- valory/reset_pause_abci:0.1.0:bafybeiekxiiqfn4sclcy4y3dtjdwc3a6srcqgcm47ufq2vzsi4ubzwqkeu
-- valory/squads_transaction_settlement_abci:0.1.0:bafybeiefcz2sbermo3ubuefgrabmaljf64c7zynyk7qz4jhdes3m2e4gqe
+- valory/abstract_round_abci:0.1.0:bafybeiakiyej5y7l2pny45ladcy2mlsl566llgq6u4gocrrkexiw24w2na
+- valory/registration_abci:0.1.0:bafybeibix6saxkujjgp3zzh6q6rfys33nns6oiy4sgk4j5ymkalxecjpbu
+- valory/reset_pause_abci:0.1.0:bafybeifpy6vnf2rx2fmk7oldq2x3u5645nfeydrsbiywviy3lskvtblk6a
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeictnwdabvaigf4r2o422nr6qnbwiacdyij3o5d3dpcqvxbilm75ci
 behaviours:
   main:
     args: {}
