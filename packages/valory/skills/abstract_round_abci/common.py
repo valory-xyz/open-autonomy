@@ -54,7 +54,7 @@ def random_selection(elements: List[Any], randomness: float) -> str:
 
 
 class RandomnessBehaviour(BaseBehaviour, ABC):
-    """Check whether Tendermint nodes are running."""
+    """Behaviour to collect randomness values from DRAND service for keeper agent selection."""
 
     payload_class: Type[BaseTxPayload]
 

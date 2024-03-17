@@ -27,7 +27,7 @@ Select a random element from a list.
 class RandomnessBehaviour(BaseBehaviour, ABC)
 ```
 
-Check whether Tendermint nodes are running.
+Behaviour to collect randomness values from DRAND service for keeper agent selection.
 
 <a id="packages.valory.skills.abstract_round_abci.common.RandomnessBehaviour.failsafe_randomness"></a>
 
