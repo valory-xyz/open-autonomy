@@ -29,7 +29,9 @@ from aea.configurations.constants import (
     PRIVATE_KEY,
     PRIVATE_KEY_PATH_SCHEMA,
 )
-from docker import from_env
+from docker import DockerClient, from_env
+from docker.constants import DEFAULT_NPIPE, IS_WINDOWS_PLATFORM
+from docker.errors import DockerException
 
 from autonomy.constants import (
     ACN_IMAGE_NAME,
@@ -72,6 +74,18 @@ SUBNET_OVERFLOW = 256
 DEFAULT_PACKAGES_PATH = Path.cwd().absolute() / "packages"
 DEFAULT_OPEN_AEA_DIR: Path = Path.home().absolute() / "open-aea"
 DEFAULT_OPEN_AUTONOMY_DIR: Path = Path.home().absolute() / "open-autonomy"
+
+
+def get_docker_client() -> DockerClient:
+    """Load docker client."""
+    try:
+        return from_env()
+    except DockerException:
+        return DockerClient(
+            DEFAULT_NPIPE
+            if IS_WINDOWS_PLATFORM
+            else f"unix://{Path.home()}/.docker/desktop/docker.sock"
+        )
 
 
 def build_tendermint_node_config(  # pylint: disable=too-many-arguments
@@ -193,7 +207,7 @@ class Network:
         self,
     ) -> ipaddress.IPv4Network:
         """Initialize network params."""
-        docker = from_env()
+        docker = get_docker_client()
         used_subnets = set()
         for network in docker.networks.list():
             # Network already exists
@@ -242,7 +256,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             hosts=hosts,
             user=os.environ.get("UID", "1000"),
         )
-        client = from_env()
+        client = get_docker_client()
         image = f"{TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}"
 
         run_log = client.containers.run(

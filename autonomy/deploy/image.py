@@ -26,7 +26,6 @@ from typing import Dict, Optional, Tuple
 
 from aea.cli.utils.config import get_default_author_from_cli_config
 from aea.configurations.data_types import Dependency, PublicId
-from docker import from_env
 
 from autonomy.constants import (
     AUTONOMY_IMAGE_NAME,
@@ -36,6 +35,7 @@ from autonomy.constants import (
 )
 from autonomy.data import DATA_DIR
 from autonomy.deploy.constants import DOCKERFILES
+from autonomy.deploy.generators.docker_compose.base import get_docker_client
 
 
 def generate_dependency_flag_var(dependencies: Tuple[Dependency, ...]) -> str:
@@ -71,7 +71,7 @@ def build_image(  # pylint: disable=too-many-arguments,too-many-locals
     tag: str
     path: str
     buildargs: Dict[str, str]
-    docker_client = from_env()
+    docker_client = get_docker_client()
     buildargs = {
         "AUTONOMY_IMAGE_NAME": AUTONOMY_IMAGE_NAME,
         "AUTONOMY_IMAGE_VERSION": AUTONOMY_IMAGE_VERSION,

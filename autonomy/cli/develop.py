@@ -21,12 +21,12 @@
 
 
 import click
-from docker import from_env
 
 from autonomy.constants import (
     DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE,
     SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME,
 )
+from autonomy.deploy.generators.docker_compose.base import get_docker_client
 
 
 @click.group(name="develop")
@@ -44,7 +44,7 @@ def develop_group() -> None:
 def run_service_locally(image: str) -> None:
     """Run the service registry contracts on a local network."""
     click.echo(f"Starting {image}.")
-    client = from_env()
+    client = get_docker_client()
     container = client.containers.run(
         image=image,
         detach=True,
