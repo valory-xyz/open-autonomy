@@ -4,6 +4,16 @@
 
 Docker-compose Deployment Generator.
 
+<a id="autonomy.deploy.generators.docker_compose.base.get_docker_client"></a>
+
+#### get`_`docker`_`client
+
+```python
+def get_docker_client() -> DockerClient
+```
+
+Load docker client.
+
 <a id="autonomy.deploy.generators.docker_compose.base.build_tendermint_node_config"></a>
 
 #### build`_`tendermint`_`node`_`config
