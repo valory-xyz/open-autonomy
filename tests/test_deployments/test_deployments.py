@@ -34,6 +34,7 @@ import pytest
 import yaml
 from aea.configurations.data_types import PublicId
 from aea.exceptions import AEAValidationError
+from docker.errors import DockerException
 
 from autonomy.configurations.base import Service
 from autonomy.configurations.validation import ConfigValidator
@@ -47,7 +48,10 @@ from autonomy.deploy.base import (
     NotValidKeysFile,
     ServiceBuilder,
 )
-from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
+from autonomy.deploy.generators.docker_compose.base import (
+    DockerComposeGenerator,
+    get_docker_client,
+)
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
@@ -444,3 +448,18 @@ class TestOverrideTypes(BaseDeploymentTests):
             app_instance.service.check_overrides_valid(app_instance.service.overrides)
             app_instance.generate_agents()
             deployment_instance.generate()
+
+
+@skip_docker_tests
+def test_get_docker_client() -> None:
+    """Test get_docker_client method."""
+
+    client = get_docker_client()
+    assert client.api.base_url == "http+docker://localhost"
+
+    with mock.patch(
+        "autonomy.deploy.generators.docker_compose.base.from_env",
+        side_effect=DockerException,
+    ):
+        with pytest.raises(DockerException, match="No such file or directory"):
+            client = get_docker_client()
