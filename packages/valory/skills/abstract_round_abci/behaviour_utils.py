@@ -764,7 +764,6 @@ class BaseBehaviour(
                     # we set the block stall deadline here because we pinged the /status endpoint
                     # and received a response from tm, which means that the communication is fine
                     self.round_sequence.set_block_stall_deadline()
-                    self.gentle_reset_attempted = False
                     return
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
             except (json.JSONDecodeError, KeyError):  # pragma: nocover
@@ -2234,6 +2233,7 @@ class TmManager(BaseBehaviour):
                 # By setting "on_startup" to True in the reset_tendermint_with_wait() call above,
                 # wait_from_last_timestamp() will not be called at all.
                 yield from self.sleep(self.hard_reset_sleep)
+                self.gentle_reset_attempted = False
                 return
 
         self.context.logger.error("Failed to reset tendermint.")
