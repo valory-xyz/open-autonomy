@@ -2454,7 +2454,7 @@ class TestTmManager:
                 with pytest.raises(StopIteration):
                     next(gen)
                 set_block_stall_deadline_mock.assert_called_once()
-                assert not self.tm_manager.gentle_reset_attempted
+                assert self.tm_manager.gentle_reset_attempted
                 return
 
             if not acn_communication_success:
