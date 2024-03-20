@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.14.9 (2024-03-20)
+
+Autonomy:
+- Adds support for loading docker client from `docker-desktop` context
+
 # 0.14.8 (2024-03-06)
 
 Autonomy:

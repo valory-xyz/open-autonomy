@@ -22,7 +22,7 @@
 __title__ = "open-autonomy"
 __description__ = "A framework for the creation of autonomous agent services."
 __url__ = "https://github.com/valory-xyz/open-autonomy.git"
-__version__ = "0.14.8"
+__version__ = "0.14.9"
 __author__ = "Valory AG"
 __license__ = "Apache-2.0"
 __copyright__ = "2021-2022 Valory AG"
