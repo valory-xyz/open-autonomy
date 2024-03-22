@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.14.10 (2024-03-21)
+
+Packages:
+- Fixes the recovery logic on the `abstract_round_abci` skill
+
 # 0.14.9 (2024-03-20)
 
 Autonomy:
