@@ -40,9 +40,11 @@ from pathlib import Path
 from typing import Dict, Iterator, Optional, Tuple, cast
 
 
+INIT_YEAR = 2021
 CURRENT_YEAR = datetime.now().year
+NEXT_YEAR = CURRENT_YEAR + 1
 GIT_PATH = shutil.which("git")
-START_YEARS = (2021, 2022, 2023)
+START_YEARS = tuple(range(INIT_YEAR, NEXT_YEAR))
 SHEBANG = "#!/usr/bin/env python3"
 HEADER_REGEX = re.compile(
     r"""(#!/usr/bin/env python3
