@@ -237,6 +237,7 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
             agent_instances=self.slashable_instances,
             amounts=self.slashable_amounts,
             service_id=self.params.on_chain_service_id,
+            chain_id=self.params.default_chain_id,
         )
         if response_msg.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
             self.context.logger.error(
@@ -268,6 +269,7 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
             value=_ETHER_VALUE,
             data=data,
             safe_tx_gas=_SAFE_GAS,
+            chain_id=self.params.default_chain_id,
         )
 
         if response_msg.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
@@ -398,6 +400,7 @@ class StatusResetBehaviour(SlashingBaseBehaviour):
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="process_slash_receipt",
             tx_hash=slash_tx_hash,
+            chain_id=self.params.default_chain_id,
         )
 
         if response_msg.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
@@ -433,6 +436,7 @@ class StatusResetBehaviour(SlashingBaseBehaviour):
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="get_operators_mapping",
             agent_instances=agent_instances,
+            chain_id=self.params.default_chain_id,
         )
 
         if response_msg.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
