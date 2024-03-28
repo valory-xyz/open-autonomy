@@ -1,10 +1,8 @@
 skill/valory/counter
 skill/valory/counter_client
-skill/valory/offend_slash_abci
 skill/valory/register_reset_recovery_abci
 skill/valory/register_termination_abci
 skill/valory/register_reset_abci
-skill/valory/slashing_abci
 skill/valory/test_ipfs_abci
 skill/valory/test_abci
 skill/valory/test_solana_tx_abci
