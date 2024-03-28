@@ -259,6 +259,7 @@ class BackgroundBehaviour(BaseBehaviour):
             contract_callable="get_service_owner",
             contract_address=self.params.service_registry_address,
             service_id=self.params.on_chain_service_id,
+            chain_id=self.params.default_chain_id,
         )
 
         if response.performative != ContractApiMessage.Performative.STATE:
@@ -301,6 +302,7 @@ class BackgroundBehaviour(BaseBehaviour):
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_owners",
             contract_address=self.synchronized_data.safe_contract_address,
+            chain_id=self.params.default_chain_id,
         )
 
         if response.performative != ContractApiMessage.Performative.STATE:
@@ -331,6 +333,7 @@ class BackgroundBehaviour(BaseBehaviour):
             contract_address=self.synchronized_data.safe_contract_address,
             owner=owner,
             threshold=threshold,
+            chain_id=self.params.default_chain_id,
         )
 
         if response.performative != ContractApiMessage.Performative.STATE:
@@ -362,6 +365,7 @@ class BackgroundBehaviour(BaseBehaviour):
             contract_address=self.synchronized_data.safe_contract_address,
             old_owner=old_owner,
             new_owner=new_owner,
+            chain_id=self.params.default_chain_id,
         )
 
         if response.performative != ContractApiMessage.Performative.STATE:
@@ -393,6 +397,7 @@ class BackgroundBehaviour(BaseBehaviour):
             data=data,
             safe_tx_gas=_SAFE_GAS,
             operation=SafeOperation.DELEGATE_CALL.value,
+            chain_id=self.params.default_chain_id,
         )
 
         if response.performative != ContractApiMessage.Performative.STATE:
@@ -461,6 +466,7 @@ class BackgroundBehaviour(BaseBehaviour):
             contract_id=str(MultiSendContract.contract_id),
             contract_callable="get_tx_data",
             multi_send_txs=transactions,
+            chain_id=self.params.default_chain_id,
         )
         if response.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
             self.context.logger.error(

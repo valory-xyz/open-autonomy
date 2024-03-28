@@ -25,9 +25,9 @@ protocols: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeih3enhagoql7kzpeyzzu2scpkif6y3ubakpralfnwxcvxexdyvy5i
 - valory/offend_abci:0.1.0:bafybeig5hcgcqec76focx53wfo2v3uqqduw3drm7lscmijhiyyy2xcib4u
-- valory/registration_abci:0.1.0:bafybeiek7zcsxbucjwzgqfftafhfrocvc7q4yxllh2q44jeemsjxg3rcfm
+- valory/registration_abci:0.1.0:bafybeidimn5gtmkwumnyuoit53eow3asv5sda3aksy74z6a4jsruc6dqhe
 - valory/reset_pause_abci:0.1.0:bafybeidw4mbx3os3hmv7ley7b3g3gja7ydpitr7mxbjpwzxin2mzyt5yam
-- valory/slashing_abci:0.1.0:bafybeieymg5sd77exgyblpbutglwh5nrvowa624jmwxbargpn6yru4cp7i
+- valory/slashing_abci:0.1.0:bafybeiec7e4pudg4hrgoknwt3cyfxvblmjnfszk3qnu72ln6cb3gt3x7ca
 behaviours:
   main:
     args: {}

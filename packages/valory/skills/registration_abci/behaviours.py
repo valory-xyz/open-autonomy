@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -174,6 +174,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             contract_address=service_registry_address,
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="verify_contract",
+            chain_id=self.params.default_chain_id,
         )
         contract_api_response = yield from self.get_contract_api_response(**kwargs)  # type: ignore
         if (
@@ -206,6 +207,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="get_agent_instances",
             service_id=on_chain_service_id,
+            chain_id=self.params.default_chain_id,
         )
         contract_api_response = yield from self.get_contract_api_response(**kwargs)  # type: ignore
         if contract_api_response.performative != ContractApiMessage.Performative.STATE:
