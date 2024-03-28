@@ -476,7 +476,9 @@ def check_unreferenced_events(abci_app_cls: Any) -> List[str]:
             )
 
         # Filter unreferenced events using referenced events since we don't explicitly return the unreferenced events
-        unreferenced_events = (round_transition_events - referenced_events) - abci_app_timeout_events
+        unreferenced_events = (
+            round_transition_events - referenced_events
+        ) - abci_app_timeout_events
         if len(unreferenced_events) > 0:
             error_strings.append(
                 f"Events {unreferenced_events} are defined in the round transitions of `{round_cls.__name__}` "
