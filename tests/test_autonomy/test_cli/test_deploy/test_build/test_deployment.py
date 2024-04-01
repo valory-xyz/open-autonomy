@@ -808,6 +808,100 @@ class TestExposePorts(BaseDeployBuildTest):
         ] == [{"containerPort": 8080}]
 
 
+class TestExtraVolumes(BaseDeployBuildTest):
+    """Test expose ports from service config."""
+
+    volume: Path
+
+    def setup(self) -> None:
+        """Setup test."""
+        super().setup()
+
+        self.volume = self.t / "extra_volume"
+        service_data = get_dummy_service_config(file_number=1)
+        service_data[0]["deployment"] = {
+            "agent": {"volumes": {f"{self.volume}": "/data"}}
+        }
+
+        with open("./service.yaml", "w+") as fp:
+            yaml.dump_all(service_data, fp)
+
+        with OS_ENV_PATCH:
+            self.spec = ServiceBuilder.from_dir(
+                self.t / "register_reset",
+                self.keys_file,
+            )
+
+    def test_expose_agent_ports_docker_compose(self) -> None:
+        """Test expose agent ports"""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"), OS_ENV_PATCH:
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_docker_compose_build(
+            build_dir=build_dir,
+        )
+        docker_compose = self.load_and_check_docker_compose_file(
+            path=build_dir / DockerComposeGenerator.output_name
+        )
+
+        assert self.volume.exists()
+        assert (
+            f"{self.volume}:/data:Z"
+            in docker_compose["services"][self.spec.get_abci_container_name(0)][
+                "volumes"
+            ]
+        )
+
+    def test_expose_agent_ports_kubernetes(self) -> None:
+        """Test expose agent ports"""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"), OS_ENV_PATCH:
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--kubernetes",
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_kubernetes_build(build_dir=build_dir)
+        build_config = self.load_kubernetes_config(build_dir)
+        assert self.volume.exists()
+        assert (
+            build_config[1]["spec"]["template"]["spec"]["volumes"][-1]["name"]
+            == "extra-volume"
+        )
+        assert (
+            build_config[1]["spec"]["template"]["spec"]["containers"][1][
+                "volumeMounts"
+            ][-1]["mountPath"]
+            == "/data"
+        )
+        assert (
+            build_config[1]["spec"]["template"]["spec"]["containers"][1][
+                "volumeMounts"
+            ][-1]["name"]
+            == "extra-volume"
+        )
+        assert build_config[-1]["metadata"]["name"] == "extra-volume"
+
+
 class TestLoadEnvVars(BaseDeployBuildTest):
     """Test expose ports from service config."""
 
