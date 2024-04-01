@@ -1105,6 +1105,7 @@ class BaseBehaviour(
         tx_digest: str,
         retry_timeout: Optional[int] = None,
         retry_attempts: Optional[int] = None,
+        **kwargs: Any,
     ) -> None:
         """
         Send transaction receipt request.
@@ -1129,6 +1130,7 @@ class BaseBehaviour(
             ),
             retry_timeout=retry_timeout,
             retry_attempts=retry_attempts,
+            kwargs=LedgerApiMessage.Kwargs(kwargs),
         )
         ledger_api_dialogue = cast(LedgerApiDialogue, ledger_api_dialogue)
         request_nonce = self._get_request_nonce_from_dialogue(ledger_api_dialogue)
@@ -1615,6 +1617,7 @@ class BaseBehaviour(
         tx_digest: str,
         retry_timeout: Optional[int] = None,
         retry_attempts: Optional[int] = None,
+        chain_id: Optional[str] = None,
     ) -> Generator[None, None, Optional[Dict]]:
         """
         Get transaction receipt.
@@ -1631,7 +1634,11 @@ class BaseBehaviour(
         :yield: LedgerApiMessage object
         :return: transaction receipt data
         """
-        self._send_transaction_receipt_request(tx_digest, retry_timeout, retry_attempts)
+        if chain_id is None:
+            chain_id = self.params.default_chain_id
+        self._send_transaction_receipt_request(
+            tx_digest, retry_timeout, retry_attempts, chain_id=chain_id
+        )
         transaction_receipt_msg = yield from self.wait_for_message()
         if (
             transaction_receipt_msg.performative == LedgerApiMessage.Performative.ERROR
