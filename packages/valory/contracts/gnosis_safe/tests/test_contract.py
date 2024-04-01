@@ -353,7 +353,10 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
                 self.ledger_api, "contract_address", cast(TxData, tx)
             )
             assert "revert_reason" in reason
-            assert reason["revert_reason"] == "ContractLogicError('reason')"
+            assert (
+                reason["revert_reason"] == "ContractLogicError('reason')"
+                or reason["revert_reason"] == "ContractLogicError('reason', None)"
+            )
 
         with mock.patch.object(self.ledger_api.api.eth, "call"), pytest.raises(
             ValueError, match=f"The given transaction has not been reverted!\ntx: {tx}"
