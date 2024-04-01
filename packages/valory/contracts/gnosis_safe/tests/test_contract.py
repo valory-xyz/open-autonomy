@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -353,7 +353,10 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
                 self.ledger_api, "contract_address", cast(TxData, tx)
             )
             assert "revert_reason" in reason
-            assert reason["revert_reason"] == "ContractLogicError('reason')"
+            assert (
+                reason["revert_reason"] == "ContractLogicError('reason')"
+                or reason["revert_reason"] == "ContractLogicError('reason', None)"
+            )
 
         with mock.patch.object(self.ledger_api.api.eth, "call"), pytest.raises(
             ValueError, match=f"The given transaction has not been reverted!\ntx: {tx}"
