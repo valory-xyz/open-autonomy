@@ -19,6 +19,7 @@
 
 """Script to create environment for benchmarking n agents."""
 
+from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
 
 import yaml
@@ -45,8 +46,11 @@ from autonomy.deploy.generators.kubernetes.templates import (
     HARDHAT_TEMPLATE,
     PORTS_CONFIG_DEPLOYMENT,
     PORT_CONFIG_DEPLOYMENT,
+    PVC_TEMPLATE,
     SECRET_KEY_TEMPLATE,
     SECRET_STRING_DATA_TEMPLATE,
+    VOLUME_CLAIM_TEMPLATE,
+    VOLUME_MOUNT_TEMPLATE,
 )
 
 
@@ -98,6 +102,19 @@ class KubernetesGenerator(BaseDeploymentGenerator):
                 ].get(LEDGER, DEFAULT_LEDGER)
             )
 
+        volume_mounts = ""
+        volume_claims = ""
+        extra_volumes = self.service_builder.service.deployment_config.get(
+            "agent", {}
+        ).get("volumes", {})
+        for host_dir, mount_path in extra_volumes.items():
+            host_path = Path(host_dir).resolve()
+            name = host_path.name.replace("_", "-")
+            volume_claims += VOLUME_CLAIM_TEMPLATE.format(name=name)
+            volume_mounts += VOLUME_MOUNT_TEMPLATE.format(
+                mount_path=mount_path, name=name
+            )
+
         resources = resources if resources is not None else DEFAULT_RESOURCE_VALUES
         agent_deployment = AGENT_NODE_TEMPLATE.format(
             runtime_image=runtime_image,
@@ -114,6 +131,8 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             agent_memory_request=resources["agent"]["requested"]["memory"],
             agent_cpu_limit=resources["agent"]["limit"]["cpu"],
             agent_memory_limit=resources["agent"]["limit"]["memory"],
+            volume_mounts=volume_mounts,
+            volume_claims=volume_claims,
         )
         agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
         build = []
@@ -142,12 +161,25 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             ]
         )
 
+        pvcs = ""
+        extra_volumes = self.service_builder.service.deployment_config.get(
+            "agent", {}
+        ).get("volumes", {})
+        for host_dir, _ in extra_volumes.items():
+            host_path = Path(host_dir).resolve()
+            name = host_path.name.replace("_", "-")
+            pvcs += PVC_TEMPLATE.format(
+                name=name,
+            )
+            host_path.mkdir(exist_ok=True, parents=True)
+
         self.tendermint_job_config = CLUSTER_CONFIGURATION_TEMPLATE.format(
             valory_app=self.service_builder.service.agent.name,
             number_of_validators=self.service_builder.service.number_of_agents,
             host_names=host_names,
             tendermint_image_name=TENDERMINT_IMAGE_NAME,
             tendermint_image_version=TENDERMINT_IMAGE_VERSION,
+            pvcs=pvcs,
         )
 
         return self

@@ -19,6 +19,31 @@
 
 """Kubernetes Templates module."""
 
+VOLUME_MOUNT_TEMPLATE = """
+          - mountPath: {mount_path}
+            name: {name}
+"""
+
+VOLUME_CLAIM_TEMPLATE = """
+        - name: {name}
+          persistentVolumeClaim:
+            claimName: '{name}'
+"""
+
+PVC_TEMPLATE = """
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {name}
+spec:
+  storageClassName: nfs-ephemeral
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1000M
+"""
 
 HARDHAT_TEMPLATE: str = """apiVersion: apps/v1
 kind: Deployment
@@ -158,6 +183,7 @@ spec:
   resources:
     requests:
       storage: 1000M
+{pvcs}
 """
 
 PORTS_CONFIG_DEPLOYMENT = "        ports:"
@@ -275,6 +301,7 @@ spec:
             name: nodes
           - mountPath: /agent_key
             name: agent-key
+{volume_mounts}
 {agent_ports_deployment}
       volumes:
         - name: agent-key
@@ -296,6 +323,7 @@ spec:
             claimName: 'nodes'
         - emptyDir: {{}}
           name: local-tendermint
+{volume_claims}
       initContainers:
         - name: copy-tendermint-configuration
           image: "ubuntu:20.04"
