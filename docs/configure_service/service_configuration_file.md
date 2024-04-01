@@ -413,6 +413,28 @@ deployment:
         26656: ${TM_NODE_0_P2P_PORT:int:26656}
 ```
 
+## Mount volumes for agent data
+
+Custom volumes can be mounted using the `deployment` configuration.
+
+```yaml title="service.yaml"
+# (...)
+deployment:
+  agent:
+    volumes:
+      <host_dir>: <container_dir>
+```
+
+For example, if you want to mount `./data` directory as `/data` volume
+
+```yaml title="service.yaml"
+# (...)
+deployment:
+  agent:
+    volumes:
+      ./data: /data
+```
+
 ## Override agent/component dependencies
 
 Service level dependencies can be defined using following format
