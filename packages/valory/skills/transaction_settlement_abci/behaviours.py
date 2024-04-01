@@ -480,6 +480,7 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
             to_be_validated_tx_hash,
             self.params.retry_timeout,
             self.params.retry_attempts,
+            chain_id=self.synchronized_data.get_chain_id(self.params.default_chain_id),
         )
         if response is None:  # pragma: nocover
             self.context.logger.error(
