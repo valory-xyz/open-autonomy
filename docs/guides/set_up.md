@@ -127,7 +127,7 @@ If you plan to follow the guides in the next sections, you need to populate the 
         "protocol/valory/ledger_api/1.0.0": "bafybeihdk6psr4guxmbcrc26jr2cbgzpd5aljkqvpwo64bvaz7tdti2oni",
         "protocol/valory/tendermint/0.1.0": "bafybeig4mi3vmlv5zpbjbfuzcgida6j5f2nhrpedxicmrrfjweqc5r7cra",
         "skill/valory/abstract_abci/0.1.0": "bafybeihat4giyc4bz6zopvahcj4iw53356pbtwfn7p4d5yflwly2qhahum",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeih3enhagoql7kzpeyzzu2scpkif6y3ubakpralfnwxcvxexdyvy5i",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeifxptyzqbbezjf5vbvy6tvtcrleyyl7uoxdcvdvdj2o56lrlxjyjm",
         "skill/valory/hello_world_abci/0.1.0": "bafybeiagjdjp5ut4svjyitsrkr4l7gosfefx5ebphrlkaa6a765fwuljai",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeid3xg5k2ol5adflqloy75ibgljmol6xsvzvezebsg7oudxeeolz7e"
     }
