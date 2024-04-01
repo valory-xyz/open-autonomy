@@ -786,9 +786,10 @@ SigningMessage object
 
 ```python
 def get_transaction_receipt(
-    tx_digest: str,
-    retry_timeout: Optional[int] = None,
-    retry_attempts: Optional[int] = None
+        tx_digest: str,
+        retry_timeout: Optional[int] = None,
+        retry_attempts: Optional[int] = None,
+        chain_id: Optional[str] = None
 ) -> Generator[None, None, Optional[Dict]]
 ```
 
