@@ -141,6 +141,7 @@ def build_agent_config(  # pylint: disable=too-many-arguments,too-many-locals
     open_aea_dir: Path = DEFAULT_OPEN_AEA_DIR,
     open_autonomy_dir: Path = DEFAULT_OPEN_AUTONOMY_DIR,
     agent_ports: Optional[Dict[int, int]] = None,
+    extra_volumes: Optional[Dict[str, str]] = None,
     resources: Optional[Resources] = None,
 ) -> str:
     """Build agent config."""
@@ -166,6 +167,11 @@ def build_agent_config(  # pylint: disable=too-many-arguments,too-many-locals
         config += f"      - {package_dir}:/home/ubuntu/packages:rw\n"
         config += f"      - {open_aea_dir}:/open-aea\n"
         config += f"      - {open_autonomy_dir}:/open-autonomy\n"
+
+    if extra_volumes is not None:
+        for host_dir, container_dir in extra_volumes.items():
+            config += f"      - {host_dir}:{container_dir}:Z\n"
+            Path(host_dir).resolve().mkdir(exist_ok=True, parents=True)
 
     if agent_ports is not None:
         port_mappings = map(
@@ -309,6 +315,9 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     network_name=network_name,
                     network_address=network.next_address,
                     resources=self.resources,
+                    extra_volumes=self.service_builder.service.deployment_config.get(
+                        "agent", {}
+                    ).get("volumes"),
                 )
                 for i in range(self.service_builder.service.number_of_agents)
             ]
