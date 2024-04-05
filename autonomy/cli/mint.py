@@ -387,7 +387,6 @@ def agent(  # pylint: disable=too-many-arguments
 @click.option(
     "--threshold",
     type=int,
-    required=True,
     help="Threshold for the minimum numbers required to run the service",
 )
 def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-arguments
@@ -397,7 +396,7 @@ def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-a
     agent_id: int,
     number_of_slots: int,
     cost_of_bond: int,
-    threshold: int,
+    threshold: Optional[int],
     password: Optional[str],
     nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],

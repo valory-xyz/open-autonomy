@@ -484,7 +484,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         self,
         number_of_slots: int,
         cost_of_bond: int,
-        threshold: int,
+        threshold: Optional[int] = None,
         token: Optional[str] = None,
         owner: Optional[str] = None,
     ) -> None:
@@ -585,7 +585,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
         self,
         number_of_slots: int,
         cost_of_bond: int,
-        threshold: int,
+        threshold: Optional[int] = None,
         token: Optional[str] = None,
     ) -> None:
         """Update service"""
