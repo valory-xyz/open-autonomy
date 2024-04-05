@@ -27,7 +27,9 @@ from aea.configurations.data_types import PackageId
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 
-from autonomy.chain.config import ChainConfigs
+from autonomy.chain.config import ChainConfigs, ChainType
+from autonomy.chain.service import get_service_info
+from autonomy.cli.helpers.chain import OnChainHelper
 
 from tests.test_autonomy.test_chain.base import (
     BaseChainInteractionTest,
@@ -183,6 +185,68 @@ class TestMintComponents(BaseChainInteractionTest):
         assert "Service updated with:" in result.output
         assert f"Token ID: {token_id}" in result.output
         self.verify_and_remove_metadata_file(token_id=token_id)
+
+    def test_mint_service_without_threshold(
+        self,
+    ) -> None:
+        """Test mint components."""
+        agent_id = self.mint_component(package_id=DUMMY_AGENT, dependencies=[1])
+        commands = [
+            DUMMY_SERVICE.package_type.value,
+            str(
+                DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
+                    package_id=DUMMY_SERVICE
+                )
+            ),
+            "--key",
+            str(ETHEREUM_KEY_DEPLOYER),
+            "-a",
+            str(agent_id),
+            *DEFAULT_SERVICE_MINT_PARAMETERS[2:-2],
+        ]
+
+        with patch_subgraph(
+            response=[{"tokenId": agent_id, "publicId": "dummy_author/dummy_agent"}]
+        ):
+            result = self.run_cli(commands=tuple(commands))
+
+        assert result.exit_code == 0, result.output
+        assert "Service minted with:" in result.output
+        assert "Metadata Hash:" in result.output
+        assert "Token ID:" in result.output
+
+        token_id = self.extract_token_id_from_output(output=result.output)
+        self.verify_minted_token_id(
+            token_id=token_id,
+            package_id=DUMMY_SERVICE,
+        )
+        ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(
+            chain_type=ChainType.LOCAL
+        )
+        _, _, _, threshold, *_ = get_service_info(
+            ledger_api=ledger_api, chain_type=ChainType.LOCAL, token_id=token_id
+        )
+        assert threshold == 3
+
+        # Test updates
+        commands += ["--update", str(token_id)]
+        with patch_subgraph(
+            response=[{"tokenId": agent_id, "publicId": "dummy_author/dummy_agent"}]
+        ):
+            result = self.run_cli(commands=tuple(commands))
+        assert result.exit_code == 0, result.stderr
+        assert "Service updated with:" in result.output
+        assert f"Token ID: {token_id}" in result.output
+
+        self.verify_and_remove_metadata_file(token_id=token_id)
+
+        ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(
+            chain_type=ChainType.LOCAL
+        )
+        _, _, _, threshold, *_ = get_service_info(
+            ledger_api=ledger_api, chain_type=ChainType.LOCAL, token_id=token_id
+        )
+        assert threshold == 3
 
     def test_update_service_failure(
         self,
