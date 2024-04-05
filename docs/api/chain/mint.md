@@ -31,6 +31,16 @@ def sort_service_dependency_metadata(
 
 Sort service dependencies and their respective parameters
 
+<a id="autonomy.chain.mint.get_min_threshold"></a>
+
+#### get`_`min`_`threshold
+
+```python
+def get_min_threshold(n: int) -> int
+```
+
+Calculate minimum threshold required for N number of agents.
+
 <a id="autonomy.chain.mint.MintManager"></a>
 
 ## MintManager Objects
@@ -100,7 +110,7 @@ def mint_service(metadata_hash: str,
                  agent_ids: List[int],
                  number_of_slots_per_agent: List[int],
                  cost_of_bond_per_agent: List[int],
-                 threshold: int,
+                 threshold: Optional[int] = None,
                  token: Optional[str] = None,
                  owner: Optional[str] = None) -> Optional[int]
 ```
@@ -117,7 +127,7 @@ def update_service(metadata_hash: str,
                    agent_ids: List[int],
                    number_of_slots_per_agent: List[int],
                    cost_of_bond_per_agent: List[int],
-                   threshold: int,
+                   threshold: Optional[int] = None,
                    token: Optional[str] = None) -> Optional[int]
 ```
 

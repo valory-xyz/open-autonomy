@@ -100,6 +100,11 @@ def sort_service_dependency_metadata(
     return ids_sorted, slots_sorted, securities_sorted
 
 
+def get_min_threshold(n: int) -> int:
+    """Calculate minimum threshold required for N number of agents."""
+    return ceil((n * 2 + 1) / 3)
+
+
 class MintManager:
     """Mint helper."""
 
@@ -244,7 +249,7 @@ class MintManager:
         agent_ids: List[int],
         number_of_slots_per_agent: List[int],
         cost_of_bond_per_agent: List[int],
-        threshold: int,
+        threshold: Optional[int] = None,
         token: Optional[str] = None,
         owner: Optional[str] = None,
     ) -> Optional[int]:
@@ -275,7 +280,10 @@ class MintManager:
             raise InvalidMintParameter("Cost of bond cannot be zero")
 
         number_of_agent_instances = sum(number_of_slots_per_agent)
-        if threshold < (ceil((number_of_agent_instances * 2 + 1) / 3)):
+        if threshold is None:
+            threshold = get_min_threshold(number_of_agent_instances)
+
+        if threshold < get_min_threshold(n=number_of_agent_instances):
             raise InvalidMintParameter(
                 "The threshold value should at least be greater than or equal to ceil((n * 2 + 1) / 3), "
                 "n is total number of agent instances in the service"
@@ -323,7 +331,7 @@ class MintManager:
         agent_ids: List[int],
         number_of_slots_per_agent: List[int],
         cost_of_bond_per_agent: List[int],
-        threshold: int,
+        threshold: Optional[int] = None,
         token: Optional[str] = None,
     ) -> Optional[int]:
         """Publish component on-chain."""
@@ -353,7 +361,10 @@ class MintManager:
             raise InvalidMintParameter("Cost of bond cannot be zero")
 
         number_of_agent_instances = sum(number_of_slots_per_agent)
-        if threshold < (ceil((number_of_agent_instances * 2 + 1) / 3)):
+        if threshold is None:
+            threshold = get_min_threshold(number_of_agent_instances)
+
+        if threshold < get_min_threshold(number_of_agent_instances):
             raise InvalidMintParameter(
                 "The threshold value should at least be greater than or equal to ceil((n * 2 + 1) / 3), "
                 "n is total number of agent instances in the service"

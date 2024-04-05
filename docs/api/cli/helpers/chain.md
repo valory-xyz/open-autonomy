@@ -198,7 +198,7 @@ Mint agent.
 ```python
 def mint_service(number_of_slots: int,
                  cost_of_bond: int,
-                 threshold: int,
+                 threshold: Optional[int] = None,
                  token: Optional[str] = None,
                  owner: Optional[str] = None) -> None
 ```
@@ -232,7 +232,7 @@ Update agent.
 ```python
 def update_service(number_of_slots: int,
                    cost_of_bond: int,
-                   threshold: int,
+                   threshold: Optional[int] = None,
                    token: Optional[str] = None) -> None
 ```
 

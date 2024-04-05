@@ -191,7 +191,6 @@ Mint an agent.
 @click.option(
     "--threshold",
     type=int,
-    required=True,
     help="Threshold for the minimum numbers required to run the service",
 )
 def service(ctx: Context,
@@ -200,7 +199,7 @@ def service(ctx: Context,
             agent_id: int,
             number_of_slots: int,
             cost_of_bond: int,
-            threshold: int,
+            threshold: Optional[int],
             password: Optional[str],
             nft: Optional[Union[Path, IPFSHash]],
             owner: Optional[str],
