@@ -68,4 +68,3 @@ setup(
         "Topic :: Software Development",
     ],
 )
-
