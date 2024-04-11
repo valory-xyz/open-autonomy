@@ -1,5 +1,5 @@
 .aea_version: &aea_version
-  AEA_VERSION: "1.50.0"
+  AEA_VERSION: "1.51.0"
   AUTHOR: "valory"
 .docker_args: &docker_args
   dockerfile: Dockerfile
