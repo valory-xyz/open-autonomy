@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.14.11.post1 (2024-04-11)
+
+Packages:
+- Fixes third party package hashes
+
 # 0.14.11 (2024-04-11)
 
 Autonomy:
