@@ -1,5 +1,16 @@
 # Release History - `open-autonomy`
 
+# 0.14.11 (2024-04-11)
+
+Autonomy:
+- Adds support for mounting custom volumes on the service deployments
+- Make threshold argument optional when minting a service
+
+Packages:
+- Updates the contract API calls to utilise the `chain_id` parameter
+Add support for specifying `chain_id` on `get_transaction_receipt`
+
+
 # 0.14.10 (2024-03-21)
 
 Packages:
