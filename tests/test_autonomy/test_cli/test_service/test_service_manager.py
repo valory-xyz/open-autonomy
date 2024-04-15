@@ -37,7 +37,7 @@ from web3 import HTTPProvider, Web3
 
 from autonomy.chain.base import ServiceState, registry_contracts
 from autonomy.chain.config import ChainType
-from autonomy.chain.constants import ERC20_TOKEN_ADDRESS_LOCAL, HardhatAddresses
+from autonomy.chain.constants import CHAIN_PROFILES, ERC20_TOKEN_ADDRESS_LOCAL
 from autonomy.chain.service import get_service_info
 from autonomy.cli.helpers.chain import ServiceHelper
 
@@ -634,7 +634,7 @@ class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
             skill_input_hex_to_payload,
         )
 
-        multisend_address = HardhatAddresses.multisend
+        multisend_address = CHAIN_PROFILES["local"]["multisend"]
         threshold = 1
         owner_to_swap = owners[0].address
         owners_to_remove = reversed(owners[1:])

@@ -23,17 +23,13 @@ import typing as t
 
 import pytest
 import requests
+from aea.protocols.generator.common import _camel_case_to_snake_case
 
 from autonomy.chain.config import ChainType
-from autonomy.chain.constants import (
-    ContractAddresses,
-    EthereumAddresses,
-    GoerliAddresses,
-)
+from autonomy.chain.constants import CHAIN_PROFILES
 
 
 ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/main/docs/configuration.json"
-CHAIN_SLUGS = {ChainType.ETHEREUM: "mainnet", ChainType.GOERLI: "goerli"}
 ADDRESSES_TO_CHECK = {
     "ComponentRegistry": "component_registry",
     "AgentRegistry": "agent_registry",
@@ -56,27 +52,29 @@ class TestAddresses:
         """Setup test class."""
         chain_configs = requests.get(url=ADDRESS_FILE_URL).json()
         cls.contracts = {
-            config["name"]: config["contracts"] for config in chain_configs
+            _camel_case_to_snake_case(config["name"]): config["contracts"]
+            for config in chain_configs
         }
 
-    @pytest.mark.parametrize(
-        argnames="chain,addresses",
-        argvalues=(
-            (ChainType.ETHEREUM, EthereumAddresses),
-            (ChainType.GOERLI, GoerliAddresses),
-        ),
-    )
-    def test_addresses_match(
-        self, chain: ChainType, addresses: ContractAddresses
-    ) -> None:
+    @pytest.mark.parametrize(argnames="chain", argvalues=list(ChainType))
+    def test_addresses_match(self, chain: ChainType) -> None:
         """Test addresses match with the remote file."""
-        contracts = self.contracts[CHAIN_SLUGS[chain]]
+        if chain in (ChainType.LOCAL, ChainType.CUSTOM):
+            return
+
+        if chain == ChainType.ETHEREUM:
+            contracts = self.contracts["mainnet"]
+        else:
+            contracts = self.contracts[chain.value]
+
         for contract in contracts:
             name = contract["name"]
             if name not in ADDRESSES_TO_CHECK:
                 continue
             address = contract["address"]
-            constant_address = addresses.get(name=ADDRESSES_TO_CHECK[name])
+            constant_address = CHAIN_PROFILES[chain.value][
+                _camel_case_to_snake_case(name)
+            ]
             assert (
                 address == constant_address
             ), f"Constant value and remote value does not match for `{name}`"
