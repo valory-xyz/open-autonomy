@@ -19,6 +19,8 @@
 
 """Chain constants"""
 
+import os
+from typing import cast
 
 from aea.configurations.constants import CONTRACTS, PACKAGES
 from aea.configurations.data_types import PublicId
@@ -166,6 +168,34 @@ CHAIN_PROFILES = {
         "operator_whitelist": "0x29086141ecdc310058fc23273F8ef7881d20C2f7",
         "gnosis_safe_multisig": "0x19936159B528C66750992C3cBcEd2e71cF4E4824",
         "gnosis_safe_same_address_multisig": "0x10100e74b7F706222F8A7C0be9FC7Ae1717Ad8B2",
+    },
+    "custom_chain": {
+        "component_registry": cast(
+            str, os.environ.get("CUSTOM_COMPONENT_REGISTRY_ADDRESS")
+        ),
+        "agent_registry": cast(str, os.environ.get("CUSTOM_AGENT_REGISTRY_ADDRESS")),
+        "registries_manager": cast(
+            str, os.environ.get("CUSTOM_REGISTRIES_MANAGER_ADDRESS")
+        ),
+        "service_manager": cast(str, os.environ.get("CUSTOM_SERVICE_MANAGER_ADDRESS")),
+        "service_registry": cast(
+            str, os.environ.get("CUSTOM_SERVICE_REGISTRY_ADDRESS")
+        ),
+        "gnosis_safe_proxy_factory": cast(
+            str, os.environ.get("CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS")
+        ),
+        "gnosis_safe_same_address_multisig": cast(
+            str, os.environ.get("CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS")
+        ),
+        "service_registry_token_utility": cast(
+            str, os.environ.get("CUSTOM_SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS")
+        ),
+        "multisend": cast(
+            str,
+            os.environ.get(
+                "CUSTOM_MULTISEND_ADDRESS", "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"
+            ),
+        ),
     },
 }
 
