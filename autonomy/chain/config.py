@@ -158,7 +158,12 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
     service_manager = ContractConfig(
         name="service_manager",
         contracts={
-            ChainType(chain_name): cast(str, container.get("service_manager"))
+            ChainType(chain_name): cast(
+                str,
+                container.get(
+                    "service_manager", container.get("service_manager_token")
+                ),
+            )
             for chain_name, container in CHAIN_PROFILES.items()
         },
     )

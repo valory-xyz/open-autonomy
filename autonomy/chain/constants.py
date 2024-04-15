@@ -57,7 +57,7 @@ CHAIN_PROFILES = {
         "service_registry_token_utility": "0x3Fb926116D454b95c669B6Bf2E7c3bad8d19affA",
         "service_manager_token": "0x2EA682121f815FBcF86EA3F3CaFdd5d67F2dB143",
         "operator_whitelist": "0x42042799B0DE38AdD2a70dc996f69f98E1a85260",
-        "gnosis_safe_multisig": "0x46C0D07F55d4F9B5Eed2Fc9680B5953e5fd7b461",
+        "gnosis_safe_proxy_factory": "0x46C0D07F55d4F9B5Eed2Fc9680B5953e5fd7b461",
         "gnosis_safe_same_address_multisig": "0xfa517d01DaA100cB1932FA4345F68874f7E7eF46",
     },
     "goerli": {
@@ -67,7 +67,7 @@ CHAIN_PROFILES = {
         "service_registry": "0x1cEe30D08943EB58EFF84DD1AB44a6ee6FEff63a",
         "service_registry_token_utility": "0x6d9b08701Af43D68D991c074A27E4d90Af7f2276",
         "service_manager_token": "0x1d333b46dB6e8FFd271b6C2D2B254868BD9A2dbd",
-        "gnosis_safe_multisig": "0x65dD51b02049ad1B6FF7fa9Ea3322E1D2CAb1176",
+        "gnosis_safe_proxy_factory": "0x65dD51b02049ad1B6FF7fa9Ea3322E1D2CAb1176",
         "gnosis_safe_same_address_multisig": "0x06467Cb835da623384a22aa902647784C1c9f5Ae",
         "operator_whitelist": "0x0338893fB1A1D9Df03F72CC53D8f786487d3D03E",
     },
@@ -76,7 +76,7 @@ CHAIN_PROFILES = {
         "service_manager": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
         "service_registry_token_utility": "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",
         "service_manager_token": "0x04b0007b2aFb398015B76e5f22993a1fddF83644",
-        "gnosis_safe_multisig": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
+        "gnosis_safe_proxy_factory": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
         "gnosis_safe_same_address_multisig": "0xd8BCC126ff31d2582018715d5291A508530587b0",
         "operator_whitelist": "0x526E064cB694E8f5B7DB299158e17F33055B3943",
     },
@@ -85,7 +85,7 @@ CHAIN_PROFILES = {
         "service_manager": "0x43d28764bB39936185c84906983fB57A8A905a4F",
         "service_registry_token_utility": "0x131b5551c81e9B3E89E9ACE30A5B3D45144E3e42",
         "service_manager_token": "0xE16adc7777B7C2a0d35033bd3504C028AB28EE8b",
-        "gnosis_safe_multisig": "0x9dEc6B62c197268242A768dc3b153AE7a2701396",
+        "gnosis_safe_proxy_factory": "0x9dEc6B62c197268242A768dc3b153AE7a2701396",
         "gnosis_safe_same_address_multisig": "0xd6AA4Ec948d84f6Db8EEf25104CeE0Ecd280C74e",
         "operator_whitelist": "0x118173028162C1b7c6Bf8488bd5dA2abd7c30F9D",
     },
@@ -94,7 +94,7 @@ CHAIN_PROFILES = {
         "service_registry_token_utility": "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",
         "service_manager_token": "0x04b0007b2aFb398015B76e5f22993a1fddF83644",
         "operator_whitelist": "0x526E064cB694E8f5B7DB299158e17F33055B3943",
-        "gnosis_safe_multisig": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
+        "gnosis_safe_proxy_factory": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
         "gnosis_safe_same_address_multisig": "0x6e7f594f680f7aBad18b7a63de50F0FeE47dfD06",
     },
     "chiado": {
@@ -102,7 +102,7 @@ CHAIN_PROFILES = {
         "service_registry_token_utility": "0xc2c7E40674f1C7Bb99eFe5680Efd79842502bED4",
         "service_manager_token": "0xc965a32185590Eb5a5fffDba29E96126b7650eDe",
         "operator_whitelist": "0x6f7661F52fE1919996d0A4F68D09B344093a349d",
-        "gnosis_safe_multisig": "0xeB49bE5DF00F74bd240DE4535DDe6Bc89CEfb994",
+        "gnosis_safe_proxy_factory": "0xeB49bE5DF00F74bd240DE4535DDe6Bc89CEfb994",
         "gnosis_safe_same_address_multisig": "0xE16adc7777B7C2a0d35033bd3504C028AB28EE8b",
     },
     "arbitrum_one": {
@@ -110,7 +110,7 @@ CHAIN_PROFILES = {
         "service_registry_token_utility": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
         "service_manager_token": "0x34C895f302D0b5cf52ec0Edd3945321EB0f83dd5",
         "operator_whitelist": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
-        "gnosis_safe_multisig": "0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b",
+        "gnosis_safe_proxy_factory": "0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b",
         "gnosis_safe_same_address_multisig": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",
     },
     "arbitrum_sepolia": {
@@ -118,7 +118,7 @@ CHAIN_PROFILES = {
         "service_registry_token_utility": "0xeB49bE5DF00F74bd240DE4535DDe6Bc89CEfb994",
         "service_manager_token": "0x5BA58970c2Ae16Cf6218783018100aF2dCcFc915",
         "operator_whitelist": "0x29086141ecdc310058fc23273F8ef7881d20C2f7",
-        "gnosis_safe_multisig": "0x19936159B528C66750992C3cBcEd2e71cF4E4824",
+        "gnosis_safe_proxy_factory": "0x19936159B528C66750992C3cBcEd2e71cF4E4824",
         "gnosis_safe_same_address_multisig": "0x10100e74b7F706222F8A7C0be9FC7Ae1717Ad8B2",
     },
     "optimistic": {
@@ -126,7 +126,7 @@ CHAIN_PROFILES = {
         "service_registry_token_utility": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",
         "service_manager_token": "0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB",
         "operator_whitelist": "0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b",
-        "gnosis_safe_multisig": "0xE43d4F4103b623B61E095E8bEA34e1bc8979e168",
+        "gnosis_safe_proxy_factory": "0xE43d4F4103b623B61E095E8bEA34e1bc8979e168",
         "gnosis_safe_same_address_multisig": "0xb09CcF0Dbf0C178806Aaee28956c74bd66d21f73",
     },
     "optimistic_sepolia": {
@@ -134,7 +134,7 @@ CHAIN_PROFILES = {
         "service_registry_token_utility": "0xeB49bE5DF00F74bd240DE4535DDe6Bc89CEfb994",
         "service_manager_token": "0x5BA58970c2Ae16Cf6218783018100aF2dCcFc915",
         "operator_whitelist": "0x29086141ecdc310058fc23273F8ef7881d20C2f7",
-        "gnosis_safe_multisig": "0x19936159B528C66750992C3cBcEd2e71cF4E4824",
+        "gnosis_safe_proxy_factory": "0x19936159B528C66750992C3cBcEd2e71cF4E4824",
         "gnosis_safe_same_address_multisig": "0x10100e74b7F706222F8A7C0be9FC7Ae1717Ad8B2",
     },
     "base": {
@@ -142,7 +142,7 @@ CHAIN_PROFILES = {
         "service_registry_token_utility": "0x34C895f302D0b5cf52ec0Edd3945321EB0f83dd5",
         "service_manager_token": "0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b",
         "operator_whitelist": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
-        "gnosis_safe_multisig": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",
+        "gnosis_safe_proxy_factory": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",
         "gnosis_safe_same_address_multisig": "0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB",
     },
     "base_sepolia": {
@@ -150,7 +150,7 @@ CHAIN_PROFILES = {
         "service_registry_token_utility": "0xeB49bE5DF00F74bd240DE4535DDe6Bc89CEfb994",
         "service_manager_token": "0x5BA58970c2Ae16Cf6218783018100aF2dCcFc915",
         "operator_whitelist": "0x29086141ecdc310058fc23273F8ef7881d20C2f7",
-        "gnosis_safe_multisig": "0x19936159B528C66750992C3cBcEd2e71cF4E4824",
+        "gnosis_safe_proxy_factory": "0x19936159B528C66750992C3cBcEd2e71cF4E4824",
         "gnosis_safe_same_address_multisig": "0x10100e74b7F706222F8A7C0be9FC7Ae1717Ad8B2",
     },
     "celo": {
@@ -158,7 +158,7 @@ CHAIN_PROFILES = {
         "service_registry_token_utility": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
         "service_manager_token": "0x34C895f302D0b5cf52ec0Edd3945321EB0f83dd5",
         "operator_whitelist": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
-        "gnosis_safe_multisig": "0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b",
+        "gnosis_safe_proxy_factory": "0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b",
         "gnosis_safe_same_address_multisig": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",
     },
     "celo_alfajores": {
@@ -166,7 +166,7 @@ CHAIN_PROFILES = {
         "service_registry_token_utility": "0xeB49bE5DF00F74bd240DE4535DDe6Bc89CEfb994",
         "service_manager_token": "0x5BA58970c2Ae16Cf6218783018100aF2dCcFc915",
         "operator_whitelist": "0x29086141ecdc310058fc23273F8ef7881d20C2f7",
-        "gnosis_safe_multisig": "0x19936159B528C66750992C3cBcEd2e71cF4E4824",
+        "gnosis_safe_proxy_factory": "0x19936159B528C66750992C3cBcEd2e71cF4E4824",
         "gnosis_safe_same_address_multisig": "0x10100e74b7F706222F8A7C0be9FC7Ae1717Ad8B2",
     },
     "custom_chain": {
@@ -215,7 +215,7 @@ CHAIN_NAME_TO_CHAIN_ID = {
     "base": 8453,
     "base_sepolia": 84532,
     "celo": 42220,
-    "celo_alfajores": 44787,
+    "celo_alfajores": 42220,
 }
 
 # Contract PublicIds
@@ -243,4 +243,12 @@ SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS = (
     31337,
     100,
     10200,
+    42161,
+    421614,
+    10,
+    11155420,
+    8453,
+    84532,
+    42220,
+    42220,
 )
