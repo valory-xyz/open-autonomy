@@ -30,16 +30,6 @@ from autonomy.chain.constants import CHAIN_PROFILES
 
 
 ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/main/docs/configuration.json"
-ADDRESSES_TO_CHECK = {
-    "ComponentRegistry": "component_registry",
-    "AgentRegistry": "agent_registry",
-    "RegistriesManager": "registries_manager",
-    "ServiceRegistry": "service_registry",
-    "ServiceRegistryTokenUtility": "service_registry_token_utility",
-    "ServiceManagerToken": "service_manager",
-    "GnosisSafeMultisig": "gnosis_safe_proxy_factory",
-    "GnosisSafeSameAddressMultisig": "gnosis_safe_same_address_multisig",  # noqa: E800
-}
 
 
 class TestAddresses:
@@ -68,13 +58,14 @@ class TestAddresses:
             contracts = self.contracts[chain.value]
 
         for contract in contracts:
-            name = contract["name"]
-            if name not in ADDRESSES_TO_CHECK:
-                continue
+            name = _camel_case_to_snake_case(contract["name"]).replace("_l2", "")
             address = contract["address"]
-            constant_address = CHAIN_PROFILES[chain.value][
-                _camel_case_to_snake_case(name)
-            ]
+            if name == "gnosis_safe_multisig":
+                constant_address = CHAIN_PROFILES[chain.value][
+                    "gnosis_safe_proxy_factory"
+                ]
+            else:
+                constant_address = CHAIN_PROFILES[chain.value][name]
             assert (
                 address == constant_address
             ), f"Constant value and remote value does not match for `{name}`"
