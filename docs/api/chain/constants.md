@@ -16,24 +16,3 @@ use from an editable/local installation
 
 nosec
 
-<a id="autonomy.chain.constants.ContractAddresses"></a>
-
-## ContractAddresses Objects
-
-```python
-@dataclass
-class ContractAddresses()
-```
-
-Contract addresses container for a chain.
-
-<a id="autonomy.chain.constants.ContractAddresses.get"></a>
-
-#### get
-
-```python
-def get(name: str) -> str
-```
-
-Returns the contract address.
-

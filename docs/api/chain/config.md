@@ -14,6 +14,39 @@ class ChainType(Enum)
 
 Chain types.
 
+<a id="autonomy.chain.config.ChainType.id"></a>
+
+#### id
+
+```python
+@property
+def id() -> Optional[int]
+```
+
+Chain ID
+
+<a id="autonomy.chain.config.ChainType.rpc"></a>
+
+#### rpc
+
+```python
+@property
+def rpc() -> Optional[str]
+```
+
+RPC String
+
+<a id="autonomy.chain.config.ChainType.rpc_env_name"></a>
+
+#### rpc`_`env`_`name
+
+```python
+@property
+def rpc_env_name() -> str
+```
+
+RPC Environment variable name
+
 <a id="autonomy.chain.config.ContractConfig"></a>
 
 ## ContractConfig Objects
