@@ -2403,25 +2403,36 @@ class TestRoundSequence:
             mock_loads.assert_not_called()
 
     @mock.patch("json.dumps")
-    def test_store_offence_status(self, mock_dumps: mock.MagicMock) -> None:
+    @pytest.mark.parametrize("slashing_enabled", (True, False))
+    def test_store_offence_status(
+        self, mock_dumps: mock.MagicMock, slashing_enabled: bool
+    ) -> None:
         """Test the `store_offence_status` method."""
         # Set up mock objects and return values
         self.round_sequence._offence_status = {"not_encoded": OffenceStatus()}
         mock_encoded_status = "encoded_status"
         mock_dumps.return_value = mock_encoded_status
 
+        self.round_sequence._slashing_enabled = slashing_enabled
+
         # Call the method to be tested
         self.round_sequence.store_offence_status()
 
-        # Check that `json.dumps()` was called with the correct arguments
-        mock_dumps.assert_called_once_with(
-            self.round_sequence.offence_status, cls=OffenseStatusEncoder, sort_keys=True
-        )
+        if slashing_enabled:
+            # Check that `json.dumps()` was called with the correct arguments, only if slashing is enabled
+            mock_dumps.assert_called_once_with(
+                self.round_sequence.offence_status,
+                cls=OffenseStatusEncoder,
+                sort_keys=True,
+            )
+            assert (
+                self.round_sequence.abci_app.synchronized_data.db.slashing_config
+                == mock_encoded_status
+            )
+            return
 
-        assert (
-            self.round_sequence.abci_app.synchronized_data.db.slashing_config
-            == mock_encoded_status
-        )
+        # otherwise check that it was not called
+        mock_dumps.assert_not_called()
 
     @given(
         validator=builds(Validator, address=binary(), power=integers()),
@@ -2913,7 +2924,7 @@ class TestRoundSequence:
         return all(current == last for current, last in current_last_pairs)
 
     @mock.patch.object(AbciApp, "process_event")
-    @mock.patch.object(RoundSequence, "store_offence_status")
+    @mock.patch.object(RoundSequence, "serialized_offence_status")
     @pytest.mark.parametrize("end_block_res", (None, (MagicMock(), MagicMock())))
     @pytest.mark.parametrize(
         "slashing_enabled, offence_status_",
@@ -2938,7 +2949,7 @@ class TestRoundSequence:
     )
     def test_update_round(
         self,
-        store_offence_status_mock: mock.Mock,
+        serialized_offence_status_mock: mock.Mock,
         process_event_mock: mock.Mock,
         end_block_res: Optional[Tuple[BaseSynchronizedData, Any]],
         slashing_enabled: bool,
@@ -2967,9 +2978,9 @@ class TestRoundSequence:
         )
 
         if slashing_enabled:
-            store_offence_status_mock.assert_called_once()
+            serialized_offence_status_mock.assert_called_once()
         else:
-            store_offence_status_mock.assert_not_called()
+            serialized_offence_status_mock.assert_not_called()
 
     @mock.patch.object(AbciApp, "process_event")
     @pytest.mark.parametrize(

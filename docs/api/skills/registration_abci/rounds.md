@@ -36,6 +36,17 @@ A round in which the agents get registered.
 
 This round waits until all agents have registered.
 
+<a id="packages.valory.skills.registration_abci.rounds.RegistrationStartupRound.params"></a>
+
+#### params
+
+```python
+@property
+def params() -> BaseParams
+```
+
+Return the params.
+
 <a id="packages.valory.skills.registration_abci.rounds.RegistrationStartupRound.end_block"></a>
 
 #### end`_`block

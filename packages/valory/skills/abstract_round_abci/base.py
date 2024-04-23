@@ -3230,6 +3230,9 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
 
     def store_offence_status(self) -> None:
         """Store the serialized offence status."""
+        if not self._slashing_enabled:
+            # if slashing is not enabled, we do not update anything
+            return
         encoded_status = self.serialized_offence_status()
         self.latest_synchronized_data.slashing_config = encoded_status
         self.abci_app.logger.debug(f"Updated db with: {encoded_status}")
@@ -3658,8 +3661,10 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             # neither the background rounds, nor the current round returned, so no update needs to be made
             return
 
-        if self._slashing_enabled:
-            self.store_offence_status()
+        # update the offence status at the end of each round
+        # this is done to ensure that the offence status is always up-to-date & in sync
+        # the next step is a no-op if slashing is not enabled
+        self.store_offence_status()
 
         self._last_round_transition_timestamp = self._blockchain.last_block.timestamp
         self._last_round_transition_height = self.height
