@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
 from warnings import warn
 
+from aea.cli.generate_key import _generate_multiple_keys
 from aea.configurations.base import (
     ConnectionConfig,
     ContractConfig,
@@ -252,6 +253,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         number_of_agents: Optional[int] = None,
         agent_instances: Optional[List[str]] = None,
         apply_environment_variables: bool = False,
+        dev_mode: bool = False,
     ) -> "ServiceBuilder":
         """Service builder from path."""
         service = load_service_config(
@@ -266,6 +268,13 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         )
 
         if keys_file is not None:
+            if dev_mode and not keys_file.exists():
+                # TODO: Add multiledger support
+                _generate_multiple_keys(
+                    n=service.number_of_agents,
+                    type_="ethereum",
+                    file=keys_file,
+                )
             service_builder.read_keys(keys_file=keys_file)
 
         if agent_instances is not None:
@@ -744,7 +753,6 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
 
     packages_dir: Path
     open_aea_dir: Path
-    open_autonomy_dir: Path
     resources: Resources
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -755,7 +763,6 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
         dev_mode: bool = False,
         packages_dir: Optional[Path] = None,
         open_aea_dir: Optional[Path] = None,
-        open_autonomy_dir: Optional[Path] = None,
         image_author: Optional[str] = None,
         resources: Optional[Resources] = None,
     ):
@@ -765,11 +772,8 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
         self.build_dir = build_dir
         self.use_tm_testnet_setup = use_tm_testnet_setup
         self.dev_mode = dev_mode
-        self.packages_dir = packages_dir or Path.cwd().absolute() / "packages"
-        self.open_aea_dir = open_aea_dir or Path.home().absolute() / "open-aea"
-        self.open_autonomy_dir = (
-            open_autonomy_dir or Path.home().absolute() / "open-autonomy"
-        )
+        self.packages_dir = packages_dir
+        self.open_aea_dir = open_aea_dir
 
         self.tendermint_job_config: Optional[str] = None
         self.image_author = image_author or DEFAULT_DOCKER_IMAGE_AUTHOR
