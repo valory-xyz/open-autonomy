@@ -260,8 +260,6 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                     str(ROOT_DIR),
                     "--open-aea-dir",
                     str(ROOT_DIR),
-                    "--open-autonomy-dir",
-                    str(ROOT_DIR),
                 )
             )
 
@@ -366,8 +364,6 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                     "--packages-dir",
                     str(ROOT_DIR),
                     "--open-aea-dir",
-                    str(ROOT_DIR),
-                    "--open-autonomy-dir",
                     str(ROOT_DIR),
                     "--use-hardhat",
                     "--use-acn",
@@ -574,8 +570,6 @@ class TestKubernetesBuild(BaseDeployBuildTest):
                     "--packages-dir",
                     str(ROOT_DIR),
                     "--open-aea-dir",
-                    str(ROOT_DIR),
-                    "--open-autonomy-dir",
                     str(ROOT_DIR),
                 )
             )

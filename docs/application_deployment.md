@@ -29,8 +29,6 @@ Options:
                                   Logging level for runtime.
   --packages-dir PATH             Path to packages dir (Use with dev mode)
   --open-aea-dir PATH             Path to open-aea repo (Use with dev mode)
-  --open-autonomy-dir PATH        Path to open-autonomy repo (Use with dev
-                                  mode)
   --aev                           Apply environment variable when loading
                                   service config.
   -ltm, --local-tm-setup          Use local tendermint chain setup.
