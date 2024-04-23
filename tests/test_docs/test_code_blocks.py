@@ -265,6 +265,7 @@ class TestJsonSnippets(BaseTestDocCode):
         "docs/guides/deploy_service.md",
         "docs/advanced_reference/commands/autonomy_deploy.md",
         "docs/guides/set_up.md",
+        "docs/guides/overview_of_the_development_process.md",
     ]
 
 
