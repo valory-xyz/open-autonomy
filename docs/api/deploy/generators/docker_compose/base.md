@@ -46,7 +46,6 @@ def build_agent_config(node_id: int,
                        dev_mode: bool = False,
                        package_dir: Path = DEFAULT_PACKAGES_PATH,
                        open_aea_dir: Path = DEFAULT_OPEN_AEA_DIR,
-                       open_autonomy_dir: Path = DEFAULT_OPEN_AUTONOMY_DIR,
                        agent_ports: Optional[Dict[int, int]] = None,
                        extra_volumes: Optional[Dict[str, str]] = None,
                        resources: Optional[Resources] = None) -> str
