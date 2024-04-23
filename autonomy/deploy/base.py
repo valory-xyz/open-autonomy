@@ -751,8 +751,8 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
     dev_mode: bool
     use_tm_testnet_setup: bool
 
-    packages_dir: Path
-    open_aea_dir: Path
+    packages_dir: Optional[Path]
+    open_aea_dir: Optional[Path]
     resources: Resources
 
     def __init__(  # pylint: disable=too-many-arguments

@@ -72,7 +72,7 @@ def _validate_packages_path(path: Optional[Path] = None) -> Path:
     )
 
 
-def _validate_open_aea_dir(path: Optional[Path] = None) -> None:
+def _validate_open_aea_dir(path: Optional[Path] = None) -> Path:
     """Validate open-aea directory."""
     path = Path(path or Path(AEA_DIR).parent).resolve()
     for child in ("aea", "plugins", "setup.py"):
