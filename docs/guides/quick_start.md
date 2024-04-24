@@ -17,11 +17,13 @@ Before starting this guide, ensure that your machine satisfies the framework req
     On **MacOS** and **Windows**, running Docker containers requires having Docker Desktop running as well. If you're using one of those operating systems, remember to start Docker Desktop
     before you run agent services.
 
-1. Fetch the [Hello World service](https://docs.autonolas.network/demos/hello-world/) from the remote registry. Within the workspace folder (not the remote registry) run:
+1. Fetch the [Hello World service](https://docs.autonolas.network/demos/hello-world/) from the remote registry. Within the workspace folder (not the local registry) run:
 
     ```bash
     autonomy fetch valory/hello_world:0.1.0:bafybeibp2iiojzyykcbkadqdszd35laq2ub34eovyghrsr33t2vrxmk2r4 --service
     ```
+
+    This command will download the service package corresponding to the specified hash from the remote IPFS registry and store it in the `hello_world` folder locally.
 
 2. Build the Docker image of the service agents:
 
@@ -30,6 +32,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
     autonomy build-image
     ```
 
+    This command reads the contents of the `service.yaml` file, which specifies the agent(s) that compose the service, together with some configuration parameters. With this information, the command builds the Docker image of the agent by downloading the appropriate components from the remote registry.
     After the command finishes, check that the image has been created:
 
     ```bash
@@ -38,7 +41,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 3. Prepare and build the service deployment:
 
-    1. Prepare a `keys.json` file containing wallet address and the private key for each of the agents.
+    1. Prepare a `keys.json` file containing wallet address and the private key for each of the agents. This file must specify as many keys as agents you want to deploy for the service.
 
         ??? example "Example of a `keys.json` file"
 
@@ -92,6 +95,8 @@ Before starting this guide, ensure that your machine satisfies the framework req
         autonomy deploy build keys.json -ltm
         ```
 
+        This command takes the configuration parameters specified inside the `service.yaml` and overrides them with the environment variables defined above. With the parameters defined, and the agent image ready, the output of this command is a Docker Compose deployment stored in the `abci_build` folder. The command takes care of configuring the necessary Tendermint images connected to each of the agents.
+
 4. Run the service:
 
     ```bash
@@ -99,7 +104,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
     autonomy deploy run
     ```
 
-    This will deploy the [Hello World service](https://docs.autonolas.network/demos/hello-world/) locally with four agents connected to four Tendermint nodes.
+    This command runs the Docker Compose deployment for the [Hello World service](https://docs.autonolas.network/demos/hello-world/) locally with four agents connected to four Tendermint nodes.
 
     You can cancel the local execution at any time by pressing ++ctrl+c++.
 
