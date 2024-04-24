@@ -33,9 +33,6 @@ autonomy build-image [OPTIONS] [AGENT_PUBLIC_ID]
 `--image-author TEXT`
 :   Author name for the image.
 
-`--dev`
-:   Build the agent image for the [`dev` mode](../developer_tooling/dev_mode.md).
-
 `--pull`
 :   Pull the latest dependencies when building the image.
 
@@ -83,14 +80,6 @@ autonomy build-image [OPTIONS] [AGENT_PUBLIC_ID]
     ```
 
     This will tag the image as `<custom_author>/oar-<agent_package>:<package_hash>`.
-
-* Build the runtime image for the  [`dev` mode](../developer_tooling/dev_mode.md):
-
-    ```bash
-    autonomy build-image --service-dir /your_service --dev
-    ```
-
-    This will tag the image as `<author>/oar-<agent_package>:dev`.
 
 * Include extra python packages:
 
