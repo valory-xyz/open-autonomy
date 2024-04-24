@@ -47,10 +47,10 @@ Additionally, if you wish to deploy your service in a Kubernetes cluster:
 3. **Initialize the framework** to work with the remote [IPFS](https://ipfs.io) registry by default. This means that when the framework will be fetching a component, it will do so from the remote registry:
 
     ```bash
-    autonomy init --remote --ipfs
+    autonomy init --remote --ipfs --author your_name
     ```
 
-    If you had previously initialized the framework, you need to use the flag `--reset` to change the configuration.
+    If you had previously initialized the framework, you need to use the flag `--reset` to change the configuration. Use only letters, numbers or underscores to specify your author handle.
 
 4. **Initialize the local registry:**
 
@@ -101,43 +101,3 @@ The **Dev template** comes with:
 * a preconfigured Pipenv environment with required dependencies,
 * an empty local registry,
 * a number of preconfigured linters via [Tox](https://tox.wiki/en/latest/).
-
-## Populate the local registry for the guides
-
-If you plan to follow the guides in the next sections, you need to populate the local registry with a number of [packages shipped with the framework](../package_list.md). To do so, edit the local registry index file (`./packages/packages.json`) and ensure that it has the following `third_party` entries:
-
-```json
-{
-    "dev": {
-    },
-    "third_party": {
-        "service/valory/hello_world/0.1.0": "bafybeibp2iiojzyykcbkadqdszd35laq2ub34eovyghrsr33t2vrxmk2r4",
-        "agent/valory/hello_world/0.1.0": "bafybeictwjngvb7qon4qisl3q4ztfzvj5pi26zhmpm2oqg6xx6vbz6jrya",
-        "connection/valory/abci/0.1.0": "bafybeihhtx7t5fsxaoajzq5nm4hrq57smigx7gqv35bss766txaaffjmsa",
-        "connection/valory/http_client/0.23.0": "bafybeihi772xgzpqeipp3fhmvpct4y6e6tpjp4sogwqrnf3wqspgeilg4u",
-        "connection/valory/ipfs/0.1.0": "bafybeifqca6e232lbvwrjhd7ioh43bo3evxfkpumdvcr6re2sdwjuntgna",
-        "connection/valory/ledger/0.19.0": "bafybeig7woeog4srdby75hpjkmx4rhpkzncbf4h2pm5r6varsp26pf2uhu",
-        "contract/valory/service_registry/0.1.0": "bafybeigrfupd7lo6aet376rwluqgm33jfghibkbvumfsdgrymqxoopqydq",
-        "protocol/open_aea/signing/1.0.0": "bafybeihv62fim3wl2bayavfcg3u5e5cxu3b7brtu4cn5xoxd6lqwachasi",
-        "protocol/valory/abci/0.1.0": "bafybeiaqmp7kocbfdboksayeqhkbrynvlfzsx4uy4x6nohywnmaig4an7u",
-        "protocol/valory/acn/1.1.0": "bafybeidluaoeakae3exseupaea4i3yvvk5vivyt227xshjlffywwxzcxqe",
-        "protocol/valory/contract_api/1.0.0": "bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i",
-        "protocol/valory/http/1.0.0": "bafybeifugzl63kfdmwrxwphrnrhj7bn6iruxieme3a4ntzejf6kmtuwmae",
-        "protocol/valory/ipfs/0.1.0": "bafybeiftxi2qhreewgsc5wevogi7yc5g6hbcbo4uiuaibauhv3nhfcdtvm",
-        "protocol/valory/ledger_api/1.0.0": "bafybeihdk6psr4guxmbcrc26jr2cbgzpd5aljkqvpwo64bvaz7tdti2oni",
-        "protocol/valory/tendermint/0.1.0": "bafybeig4mi3vmlv5zpbjbfuzcgida6j5f2nhrpedxicmrrfjweqc5r7cra",
-        "skill/valory/abstract_abci/0.1.0": "bafybeiedikuvfpdx7xhyrxcpp6ywi2d6qf6uqvlwmhgcal7qhw5duicvym",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeigb2qy7ln6mnqdghoej4nqaaz4d5j22pujrsjwvwoou6en7xw3csa",
-        "skill/valory/hello_world_abci/0.1.0": "bafybeiagjdjp5ut4svjyitsrkr4l7gosfefx5ebphrlkaa6a765fwuljai",
-        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeid3xg5k2ol5adflqloy75ibgljmol6xsvzvezebsg7oudxeeolz7e"
-    }
-}
-```
-
-Execute the following command after updating the `packages.json` file:
-
-```bash
-autonomy packages sync
-```
-
-The framework will fetch components from the remote registry into the local registry.
