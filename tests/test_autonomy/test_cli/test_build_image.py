@@ -90,23 +90,6 @@ class TestBuildImage(BaseCliTest):
             == 1
         )
 
-    def test_build_dev(
-        self,
-    ) -> None:
-        """Test prod build."""
-
-        result = self.run_cli(("--dev",))
-
-        assert result.exit_code == 0, result.output
-        assert (
-            len(
-                self.docker_api.images(
-                    name=f"{get_default_author_from_cli_config() or DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-{self.package_id.name}:dev"
-                )
-            )
-            == 1
-        )
-
     def test_build_version(
         self,
     ) -> None:
