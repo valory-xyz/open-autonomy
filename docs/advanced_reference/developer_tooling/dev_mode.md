@@ -37,7 +37,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
     Same thing goes for packages, if you're already in the `packages/` directory (eg. running the command from `packages/author/services/service`) you don't have to specify the value for `--packages-dir` flag explicitly.
 
-    > Note: When building development deployments you don't have to define keys manually, autonomy generates the keys automatically in development mode. You can still specify the keys file if you already have one and you're planning on using it.
+    > Note: When building development deployments you don't have to define keys manually, `autonomy` generates the keys automatically in development mode. You can still specify the keys file if you already have one and you're planning on using it.
 
 3. **Run the service.** Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally.
 
