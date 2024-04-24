@@ -33,6 +33,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     SlashingNotConfiguredError,
     get_name,
 )
+from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 
 
@@ -58,6 +59,11 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
     payload_class = RegistrationPayload
     synchronized_data_class = BaseSynchronizedData
 
+    @property
+    def params(self) -> BaseParams:
+        """Return the params."""
+        return self.context.params
+
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if not self.collection_threshold_reached:
@@ -65,10 +71,11 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
 
         try:
             _ = self.context.state.round_sequence.offence_status
+            # only use slashing if it is configured and the `use_slashing` is set to True
+            if self.params.use_slashing:
+                self.context.state.round_sequence.enable_slashing()
         except SlashingNotConfiguredError:
             self.context.logger.warning("Slashing has not been enabled!")
-        else:
-            self.context.state.round_sequence.enable_slashing()
 
         self.context.state.round_sequence.sync_db_and_slashing(self.common_payload)
 
