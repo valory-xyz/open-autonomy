@@ -12,7 +12,6 @@ Image helpers.
 def build_image(agent: Optional[PublicId],
                 service_dir: Optional[Path],
                 pull: bool = False,
-                dev: bool = False,
                 version: Optional[str] = None,
                 image_author: Optional[str] = None,
                 extra_dependencies: Optional[Tuple[Dependency, ...]] = None,
