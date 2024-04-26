@@ -58,7 +58,7 @@ base_deps = [
     "pytest>=7.2.1,<8",
     "valory-docker-compose==1.29.3",
     "werkzeug>=2.0.3,<3",
-    "docker>=6.1.2,<7",
+    "docker>=6.1.2",
     "hexbytes",
     "jsonschema<4.4.0,>=4.3.0",
     "protobuf<4.25.0,>=4.21.6",
