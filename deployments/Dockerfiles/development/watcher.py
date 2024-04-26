@@ -34,11 +34,11 @@ from watchdog.observers import Observer
 
 
 ID = os.environ.get("ID")
-ROOT = "/home/ubuntu"
+ROOT = "/root"
 AGENT_DIR = ROOT + "/agent"
-PACKAGES_PATH = "/home/ubuntu/packages"
+PACKAGES_PATH = "/root/packages"
 OPEN_AEA_PATH = "/open-aea"
-BASE_START_FILE = "/home/ubuntu/start.sh"
+BASE_START_FILE = "/root/run.sh"
 TENDERMINT_COM_URL = os.environ.get("TENDERMINT_COM_URL", f"http://node{ID}:8080")
 
 
@@ -58,7 +58,7 @@ def call_vote() -> None:
     caused by one of the agents left behind this method will help.
     """
     write("Calling vote.")
-    with open(f"/logs/{ID}.vote", "w+") as fp:
+    with open(f"/logs/{ID}.vote", "w+", encoding="utf-8") as fp:
         fp.write(str(ID))
 
 
@@ -87,15 +87,17 @@ class AEARunner:
         self,
     ) -> None:
         """Start AEA process."""
-
         if self.process is not None:
             return
-        write("Starting Agent.")
         os.chdir(ROOT)
+
+        write("Starting Agent.")
         if Path(AGENT_DIR).exists():
             shutil.rmtree(AGENT_DIR)
-        self.process = subprocess.Popen(  # nosec
-            ["/bin/bash", BASE_START_FILE], preexec_fn=os.setsid
+
+        self.process = subprocess.Popen(  # nosec # pylint: disable=subprocess-popen-preexec-fn,consider-using-with
+            ["/bin/bash", BASE_START_FILE],
+            preexec_fn=os.setsid,
         )
 
     def stop(
@@ -106,7 +108,8 @@ class AEARunner:
             return
         write("Stopping Agent.")
         os.killpg(
-            os.getpgid(self.process.pid), signal.SIGTERM
+            os.getpgid(self.process.pid),
+            signal.SIGTERM,
         )  # kills process instantly compared to process.terminate
         self.process = None
 
@@ -115,11 +118,13 @@ class EventHandler(FileSystemEventHandler):
     """Handle file updates."""
 
     def __init__(
-        self, aea_runner: AEARunner, fingerprint_on_restart: bool = True
+        self,
+        aea: AEARunner,
+        fingerprint_on_restart: bool = True,
     ) -> None:
         """Initialize object."""
         super().__init__()
-        self.aea = aea_runner
+        self.aea = aea
         self.fingerprint_on_restart = fingerprint_on_restart
 
     @staticmethod
@@ -168,15 +173,15 @@ class EventHandler(FileSystemEventHandler):
 
 if __name__ == "__main__":
     aea_runner = AEARunner()
-
     package_observer = Observer()
     package_observer.schedule(
-        EventHandler(aea_runner=aea_runner), PACKAGES_PATH, recursive=True
+        EventHandler(aea=aea_runner, fingerprint_on_restart=True),
+        PACKAGES_PATH,
+        recursive=True,
     )
-
     open_aea_observer = Observer()
     open_aea_observer.schedule(
-        EventHandler(aea_runner=aea_runner, fingerprint_on_restart=False),
+        EventHandler(aea=aea_runner, fingerprint_on_restart=False),
         OPEN_AEA_PATH,
         recursive=True,
     )

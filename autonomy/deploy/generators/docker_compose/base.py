@@ -36,6 +36,7 @@ from docker.errors import DockerException
 from autonomy.constants import (
     ACN_IMAGE_NAME,
     ACN_IMAGE_VERSION,
+    DEVELOPMENT_IMAGE,
     DOCKER_COMPOSE_YAML,
     HARDHAT_IMAGE_NAME,
     HARDHAT_IMAGE_VERSION,
@@ -73,7 +74,6 @@ SUBNET_OVERFLOW = 256
 
 DEFAULT_PACKAGES_PATH = Path.cwd().absolute() / "packages"
 DEFAULT_OPEN_AEA_DIR: Path = Path.home().absolute() / "open-aea"
-DEFAULT_OPEN_AUTONOMY_DIR: Path = Path.home().absolute() / "open-autonomy"
 
 
 def get_docker_client() -> DockerClient:
@@ -137,9 +137,8 @@ def build_agent_config(  # pylint: disable=too-many-arguments,too-many-locals
     network_name: str,
     network_address: str,
     dev_mode: bool = False,
-    package_dir: Path = DEFAULT_PACKAGES_PATH,
-    open_aea_dir: Path = DEFAULT_OPEN_AEA_DIR,
-    open_autonomy_dir: Path = DEFAULT_OPEN_AUTONOMY_DIR,
+    package_dir: Optional[Path] = None,
+    open_aea_dir: Optional[Path] = None,
     agent_ports: Optional[Dict[int, int]] = None,
     extra_volumes: Optional[Dict[str, str]] = None,
     resources: Optional[Resources] = None,
@@ -161,12 +160,9 @@ def build_agent_config(  # pylint: disable=too-many-arguments,too-many-locals
 
     if dev_mode:
         config += "      - ./persistent_data/benchmarks:/benchmarks:Z\n"
-        config += (
-            "      - ./persistent_data/venvs:/home/ubuntu/.local/share/virtualenvs:Z\n"
-        )
-        config += f"      - {package_dir}:/home/ubuntu/packages:rw\n"
+        config += "      - ./persistent_data/venvs:/root/.local/share/virtualenvs:Z\n"
+        config += f"      - {package_dir}:/root/packages:rw\n"
         config += f"      - {open_aea_dir}:/open-aea\n"
-        config += f"      - {open_autonomy_dir}:/open-autonomy\n"
 
     if extra_volumes is not None:
         for host_dir, container_dir in extra_volumes.items():
@@ -247,7 +243,6 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
 
     def generate_config_tendermint(self) -> "DockerComposeGenerator":
         """Generate the command to configure tendermint testnet."""
-
         if not self.use_tm_testnet_setup:
             return self
 
@@ -286,13 +281,14 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         network = Network(name=network_name)
         image_version = image_version or self.service_builder.service.agent.hash
         if self.dev_mode:
-            image_version = "dev"
+            runtime_image = DEVELOPMENT_IMAGE
+        else:
+            runtime_image = OAR_IMAGE.format(
+                image_author=self.image_author,
+                agent=self.service_builder.service.agent.name,
+                version=image_version,
+            )
 
-        runtime_image = OAR_IMAGE.format(
-            image_author=self.image_author,
-            agent=self.service_builder.service.agent.name,
-            version=image_version,
-        )
         agent_vars = self.service_builder.generate_agents()
         agents = "".join(
             [
@@ -306,7 +302,6 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     dev_mode=self.dev_mode,
                     package_dir=self.packages_dir,
                     open_aea_dir=self.open_aea_dir,
-                    open_autonomy_dir=self.open_autonomy_dir,
                     agent_ports=(
                         self.service_builder.service.deployment_config.get("agent", {})
                         .get("ports", {})

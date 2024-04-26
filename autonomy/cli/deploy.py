@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Optional, cast
 
 import click
+from aea import AEA_DIR
 from aea.cli.registry.settings import REGISTRY_REMOTE
 from aea.cli.utils.click_utils import (
     password_option,
@@ -59,9 +60,27 @@ from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerato
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 
 
-PACKAGES_DIR = "packages_dir"
-OPEN_AEA_DIR = "open_aea_dir"
-OPEN_AUTONOMY_DIR = "open_autonomy_dir"
+def _validate_packages_path(path: Optional[Path] = None) -> Path:
+    """Find packages dir for development mode."""
+    path = Path(path or Path.cwd()).resolve()
+    while path != path.root:
+        if path.name == "packages" and (path / "packages.json").exists():
+            return path
+        path = path.parent
+    raise click.ClickException(
+        "Please provide path to packages directory for development mode"
+    )
+
+
+def _validate_open_aea_dir(path: Optional[Path] = None) -> Path:
+    """Validate open-aea directory."""
+    path = Path(path or Path(AEA_DIR).parent).resolve()
+    for child in ("aea", "plugins", "setup.py"):
+        if not (path / child).exists():
+            raise click.ClickException(
+                "Please provide valid open-aea repository path for development mode"
+            )
+    return path
 
 
 @click.group(name="deploy")
@@ -137,11 +156,6 @@ def deploy_group(
     help="Path to open-aea repo (Use with dev mode)",
 )
 @click.option(
-    "--open-autonomy-dir",
-    type=click.Path(),
-    help="Path to open-autonomy repo (Use with dev mode)",
-)
-@click.option(
     "--aev",
     is_flag=True,
     default=False,
@@ -207,7 +221,6 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     password: Optional[str] = None,
     open_aea_dir: Optional[Path] = None,
     packages_dir: Optional[Path] = None,
-    open_autonomy_dir: Optional[Path] = None,
     log_level: str = INFO,
     aev: bool = False,
     image_version: Optional[str] = None,
@@ -228,28 +241,14 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
         )
 
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
-    if not keys_file.exists():
+    if not keys_file.exists() and not dev_mode:
         message = f"No such file or directory: {keys_file}. Please provide valid path for keys file."
         raise click.ClickException(message)
 
     build_dir = Path(output_dir or DEFAULT_BUILD_FOLDER).absolute()
-    packages_dir = Path(packages_dir or Path.cwd() / "packages").absolute()
-    open_aea_dir = Path(open_aea_dir or Path.home() / "open-aea").absolute()
-    open_autonomy_dir = Path(
-        open_autonomy_dir or Path.home() / "open-autonomy"
-    ).absolute()
-
     if dev_mode:
-        for name, path in (
-            (PACKAGES_DIR, packages_dir),
-            (OPEN_AEA_DIR, open_aea_dir),
-            (OPEN_AUTONOMY_DIR, open_autonomy_dir),
-        ):
-            if not path.exists():
-                flag = "--" + "-".join(name.split("_"))
-                raise click.ClickException(
-                    f"Path does not exist @ {path} for {name}; Please provide proper value for {flag}"
-                )
+        packages_dir = _validate_packages_path(path=packages_dir)
+        open_aea_dir = _validate_open_aea_dir(path=open_aea_dir)
 
     ctx = cast(Context, click_context.obj)
     ctx.registry_type = registry
@@ -263,7 +262,6 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             number_of_agents=number_of_agents,
             packages_dir=packages_dir,
             open_aea_dir=open_aea_dir,
-            open_autonomy_dir=open_autonomy_dir,
             log_level=log_level,
             apply_environment_variables=aev,
             image_version=image_version,

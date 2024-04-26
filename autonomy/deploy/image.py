@@ -60,7 +60,6 @@ class ImageProfiles:  # pylint: disable=too-few-public-methods
 def build_image(  # pylint: disable=too-many-arguments,too-many-locals
     agent: PublicId,
     pull: bool = False,
-    dev: bool = False,
     version: Optional[str] = None,
     image_author: Optional[str] = None,
     extra_dependencies: Optional[Tuple[Dependency, ...]] = None,
@@ -80,19 +79,15 @@ def build_image(  # pylint: disable=too-many-arguments,too-many-locals
         "EXTRA_DEPENDENCIES": generate_dependency_flag_var(extra_dependencies or ()),
     }
 
-    if dev:
-        path = str(DATA_DIR / DOCKERFILES / "dev")
-    else:
-        image_version = version or agent.hash
-        path = str(DATA_DIR / DOCKERFILES / "agent")
-
+    image_version = version or agent.hash
+    path = str(DATA_DIR / DOCKERFILES / "agent")
     if dockerfile is not None:  # pragma: nocover
         path = str(Path(dockerfile).parent)
 
     tag = OAR_IMAGE.format(
         image_author=image_author or DEFAULT_DOCKER_IMAGE_AUTHOR,
         agent=agent.name,
-        version="dev" if dev else image_version,
+        version=image_version,
     )
 
     stream = docker_client.api.build(

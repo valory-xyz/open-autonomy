@@ -33,7 +33,6 @@ def build_image(  # pylint: disable=too-many-arguments
     agent: Optional[PublicId],
     service_dir: Optional[Path],
     pull: bool = False,
-    dev: bool = False,
     version: Optional[str] = None,
     image_author: Optional[str] = None,
     extra_dependencies: Optional[Tuple[Dependency, ...]] = None,
@@ -51,7 +50,6 @@ def build_image(  # pylint: disable=too-many-arguments
     _build_image(
         agent=agent,
         pull=pull,
-        dev=dev,
         version=version,
         image_author=image_author,
         extra_dependencies=extra_dependencies,

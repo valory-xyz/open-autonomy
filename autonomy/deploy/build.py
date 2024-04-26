@@ -41,7 +41,6 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     dev_mode: bool = False,
     packages_dir: Optional[Path] = None,
     open_aea_dir: Optional[Path] = None,
-    open_autonomy_dir: Optional[Path] = None,
     agent_instances: Optional[List[str]] = None,
     multisig_address: Optional[str] = None,
     consensus_threshold: Optional[int] = None,
@@ -55,6 +54,10 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     resources: Optional[Resources] = None,
 ) -> str:
     """Generate the deployment for the service."""
+    if dev_mode and type_of_deployment != DockerComposeGenerator.deployment_type:
+        raise RuntimeError(
+            "Development mode can only be used with docker-compose deployments"
+        )
 
     service_builder = ServiceBuilder.from_dir(
         path=service_path,
@@ -62,6 +65,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         number_of_agents=number_of_agents,
         agent_instances=agent_instances,
         apply_environment_variables=apply_environment_variables,
+        dev_mode=dev_mode,
     )
     service_builder.deplopyment_type = type_of_deployment
     service_builder.log_level = log_level
@@ -79,7 +83,6 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         dev_mode=dev_mode,
         packages_dir=packages_dir,
         open_aea_dir=open_aea_dir,
-        open_autonomy_dir=open_autonomy_dir,
         use_tm_testnet_setup=use_tm_testnet_setup,
         image_author=image_author,
         resources=resources,

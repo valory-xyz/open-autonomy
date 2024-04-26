@@ -31,7 +31,6 @@ Image build profiles.
 ```python
 def build_image(agent: PublicId,
                 pull: bool = False,
-                dev: bool = False,
                 version: Optional[str] = None,
                 image_author: Optional[str] = None,
                 extra_dependencies: Optional[Tuple[Dependency, ...]] = None,

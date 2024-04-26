@@ -164,7 +164,8 @@ def from_dir(cls,
              keys_file: Optional[Path] = None,
              number_of_agents: Optional[int] = None,
              agent_instances: Optional[List[str]] = None,
-             apply_environment_variables: bool = False) -> "ServiceBuilder"
+             apply_environment_variables: bool = False,
+             dev_mode: bool = False) -> "ServiceBuilder"
 ```
 
 Service builder from path.
@@ -286,7 +287,6 @@ def __init__(service_builder: ServiceBuilder,
              dev_mode: bool = False,
              packages_dir: Optional[Path] = None,
              open_aea_dir: Optional[Path] = None,
-             open_autonomy_dir: Optional[Path] = None,
              image_author: Optional[str] = None,
              resources: Optional[Resources] = None)
 ```

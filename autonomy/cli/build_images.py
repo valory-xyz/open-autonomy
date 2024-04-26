@@ -79,6 +79,10 @@ def build_image(  # pylint: disable=too-many-arguments
     image_author: Optional[str] = None,
 ) -> None:
     """Build runtime images for autonomous agents."""
+    if dev:
+        click.echo(
+            "`--dev` flag is deprecated, development mode does not require you to build docker image manually anymore."
+        )
 
     with reraise_as_click_exception(ImageBuildFailed, FileNotFoundError):
         _build_image(
@@ -86,7 +90,6 @@ def build_image(  # pylint: disable=too-many-arguments
             service_dir=service_dir,
             extra_dependencies=extra_dependencies,
             pull=pull,
-            dev=dev,
             version=version,
             image_author=image_author,
             dockerfile=dockerfile,

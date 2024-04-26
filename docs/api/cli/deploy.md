@@ -81,11 +81,6 @@ Deploy an agent service.
     help="Path to open-aea repo (Use with dev mode)",
 )
 @click.option(
-    "--open-autonomy-dir",
-    type=click.Path(),
-    help="Path to open-autonomy repo (Use with dev mode)",
-)
-@click.option(
     "--aev",
     is_flag=True,
     default=False,
@@ -153,7 +148,6 @@ def build_deployment_command(
         password: Optional[str] = None,
         open_aea_dir: Optional[Path] = None,
         packages_dir: Optional[Path] = None,
-        open_autonomy_dir: Optional[Path] = None,
         log_level: str = INFO,
         aev: bool = False,
         image_version: Optional[str] = None,

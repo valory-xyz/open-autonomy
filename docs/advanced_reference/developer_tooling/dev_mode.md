@@ -16,61 +16,30 @@ Before starting this guide, ensure that your machine satisfies the framework req
     autonomy fetch valory/oracle_hardhat:0.1.0:<hash> --service
     ```
 
-2. **Build the agents' image.** Navigate to the local folder of the service, and build the Docker image of the service agents in `dev` mode.
+2. **Build the deployment.** Within the service folder, execute the command below to build the service deployment in `dev` mode, including a pre-configured Hardhat instance.
 
     ```bash
-    cd oracle_hardhat
-    autonomy build-image --dev
+    autonomy deploy build --dev --packages-dir ~/service/packages --open-aea-dir ~/git/open-aea/ --use-hardhat -ltm
     ```
 
-    After the command finishes building the image, you can see that it has been created by executing:
-
-    ```bash
-    docker image ls | grep oracle_hardhat
-    ```
-
-3. **Prepare the keys file.** Within the service folder, prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that make up the service.
-
-    ??? example "Example of a `keys.json` file"
-
-        <span style="color:red">**WARNING: Use this file for testing purposes only. Never use the keys or addresses provided in this example in a production environment or for personal use.**</span>
-
-        ```json
-        [
-        {
-            "address": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-            "private_key": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-        },
-        {
-            "address": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-            "private_key": "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
-        },
-        {
-            "address": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-            "private_key": "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a"
-        },
-        {
-            "address": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-            "private_key": "0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6"
-        }
-        ]
-        ```
-
-4. **Build the deployment.** Within the service folder, execute the command below to build the service deployment in `dev` mode, including a pre-configured Hardhat instance.
-
-    ```bash
-    autonomy deploy build keys.json --dev --packages-dir ~/git/open-autonomy/packages --open-autonomy-dir ~/git/open-aea/ --open-aea-dir ~/git/open-autonomy/ --use-hardhat -ltm
-    ```
-
+    This will create a deployment environment in `dev` mode within the `./abci_build` folder.
+  
     You must modify the paths in the command above appropriately, pointing to:
 
     * the path to the local registry (/packages directory),
-    * the path to the local {{open_autonomy_repository}},
     * the path to the local {{open_aea_repository}}.
+  
+    If you don't want to specify the `open-aea` repository manually, you can install the `open-aea` in editable mode using
 
-    This will create a deployment environment in `dev` mode within the `./abci_build` folder.
+    ```bash
+    pip3 install -e PATH_TO_OPEN_AEA_REPOSITORY
+    ```
 
-5. **Run the service.** Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally.
+    Same thing goes for packages, if you're already in the `packages/` directory (eg. running the command from `packages/author/services/service`) you don't have to specify the value for `--packages-dir` flag explicitly.
+
+    > Note: When building development deployments you don't have to define keys manually, `autonomy` generates the keys automatically in development mode. You can still specify the keys file if you already have one and you're planning on using it.
+
+3. **Run the service.** Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally.
 
     ```bash
     cd abci_build
@@ -83,7 +52,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 Once the agents are running, you can make changes to the agent's code as well as the local {{open_aea_repository}}, and it will trigger the service restart.
 
-The trigger is caused by any Python file closing in either the `open-autonomy/packages` or the `open-aea/` directory. So even if you haven't made any change and still want to restart the service, just open any Python file press `Ctrl+S` or save it from the file menu and it will trigger the restart.
+The trigger is caused by any Python file closing in either the `service/packages` or the `open-aea/` directory. So even if you haven't made any change and still want to restart the service, just open any Python file press `Ctrl+S` or save it from the file menu and it will trigger the restart.
 
 
 ## Hardhat instance
