@@ -31,9 +31,9 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 def get_all_extras() -> Dict:
     cli_deps = [
-        "click==8.0.2",
-        "open-aea-cli-ipfs==1.51.0",
-        "texttable==1.6.7",
+        "click>=8.0.2,<9",
+        "open-aea-cli-ipfs>=1.51.0,<2",
+        "texttable>=1.6.7,<2",
         "python-dotenv>=0.14.5,<0.22.0",
         "pytest>=7.0.0,<7.3.0",
         "coverage>=6.4.4,<8.0.0",
@@ -53,17 +53,17 @@ all_extras = get_all_extras()
 
 base_deps = [
     "Flask>=2.0.2,<3.0.0",
-    "open-aea[all]==1.51.0",
+    "open-aea[all]>=1.51.0,<2",
     "watchdog>=2.1.6",
-    "pytest==7.2.1",
+    "pytest>=7.2.1,<8",
     "valory-docker-compose==1.29.3",
-    "werkzeug==2.0.3",
-    "docker==6.1.2",
+    "werkzeug>=2.0.3,<3",
+    "docker>=6.1.2,<2",
     "hexbytes",
     "jsonschema<4.4.0,>=4.3.0",
     "protobuf<4.25.0,>=4.21.6",
-    "gql==3.5.0",
-    "requests-toolbelt==1.0.0",  # Required for graphql client
+    "gql>=3.5.0,<4",
+    "requests-toolbelt>=1.0.0,<2",  # Required for graphql client
     "aiohttp<4.0.0,>=3.8.5",
     "typing_extensions>=3.10.0.2",
 ]
@@ -153,5 +153,3 @@ if __name__ == "__main__":
             "Source": "https://github.com/valory/open-autonomy",
         },
     )
-
-
