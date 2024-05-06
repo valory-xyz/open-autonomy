@@ -31,7 +31,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 def get_all_extras() -> Dict:
     cli_deps = [
-        "click==8.0.2",
+        "click>=8.1.0,<9",
         "open-aea-cli-ipfs==1.52.0",
         "texttable==1.6.7",
         "python-dotenv>=0.14.5,<0.22.0",
