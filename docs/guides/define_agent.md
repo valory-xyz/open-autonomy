@@ -120,7 +120,7 @@ If you have [populated the local registry](./overview_of_the_development_process
               propagate: true
         dependencies:
           open-aea-ledger-ethereum:
-            version: ==1.51.0
+            version: ==1.52.0
           open-aea-test-autonomy:
             version: ==0.12.1.post1
         default_connection: null
