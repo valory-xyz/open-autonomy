@@ -2469,10 +2469,26 @@ class AbciApp(
         for app in self.background_apps:
             app.setup(self._initial_synchronized_data, self.context)
 
+    def _get_synced_value(self, db_key: str, default: Any = None) -> Any:
+        """Get the value of a specific database key using the synchronized data."""
+        try:
+            # try to find the value using the synchronized data as suggested in #2131
+            return getattr(self.synchronized_data, db_key)
+        except (ValueError, AttributeError):
+            # if there is no property with the same name as the key in the db
+            # or the property raised because of using `get_strict` and the key not being present in the db
+            return self.synchronized_data.db.get(db_key, default)
+
     def setup(self) -> None:
         """Set up the behaviour."""
         self.schedule_round(self.initial_round_cls)
         self._setup_background()
+        # set the cross-period persisted keys; avoid raising when the first period ends without a key in the db
+        update = {
+            db_key: self._get_synced_value(db_key)
+            for db_key in self.cross_period_persisted_keys
+        }
+        self.synchronized_data.db.update(**update)
 
     def _log_start(self) -> None:
         """Log the entering in the round."""
@@ -2925,9 +2941,11 @@ class AvailabilityWindow:
         return {
             "max_length": self._max_length,
             # Please note that the value cannot be represented if the max length of the availability window is > 14_285
-            "array": int("".join(str(int(flag)) for flag in self._window), base=2)
-            if len(self._window)
-            else 0,
+            "array": (
+                int("".join(str(int(flag)) for flag in self._window), base=2)
+                if len(self._window)
+                else 0
+            ),
             "num_positive": self._num_positive,
             "num_negative": self._num_negative,
         }
