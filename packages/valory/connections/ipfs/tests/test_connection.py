@@ -198,6 +198,14 @@ class TestIpfsConnection:
             ),
             (
                 {
+                    "dummy_dir/dummy_dir_nested/dummy_filename1": "dummy_content",
+                    "dummy_dir/dummy_dir_nested/dummy_filename2": "dummy_content",
+                },
+                "Successfully stored files with hash: QmcYhNziJDuwmRVg8TYY5S5fUycuBguM6zxukgMDnVQt8H.",
+                "debug",
+            ),
+            (
+                {
                     "dummy_dir1/dummy_filename1": "dummy_content",
                     "dummy_dir2/dummy_filename2": "dummy_content",
                 },
