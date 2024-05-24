@@ -185,9 +185,9 @@ def test_tx_not_found(capsys: Any) -> None:
     settler.transact(mock.Mock(), contract="service_registry", kwargs={})  # type: ignore
     captured = capsys.readouterr()
 
-    assert "Error occured when interacting with chain" in captured.out
+    assert "Error getting transaction receipt" in captured.out
     assert "Transaction with hash HASH not found" in captured.out
-    assert "will retry in 3.0..." in captured.out
+    assert "Will retry in 3.0..." in captured.out
 
 
 def test_already_known(capsys: Any) -> None:
