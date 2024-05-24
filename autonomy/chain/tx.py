@@ -193,13 +193,27 @@ class TxSettler:
                 if not should_retry(error):
                     raise ChainInteractionError(error) from e
                 if should_reprice(error):
-                    print("Repricing the transaction...")
+                    print(f"Low gas error: {e}; Repricing the transaction...")
                     tx_dict = self._reprice(cast(Dict, tx_dict))
-                    continue
+                    continue  # pragma: nocover
+                if "Transaction with hash" in error and "not found" in error:
+                    already_known = True
+                    print(
+                        f"Error getting transaction receipt: {e}; "
+                        f"Will retry in {self.sleep}..."
+                    )
+                    time.sleep(self.sleep)
+                    continue  # pragma: nocover
+
                 if should_rebuild(error):
                     tx_dict = None
-                print(f"Error occured when interacting with chain: {e}; ")
-                print(f"will retry in {self.sleep}...")
+
+                tx_digest = None
+                already_known = False
+                print(
+                    f"Error occured when interacting with chain: {e}; "
+                    f"will retry in {self.sleep}..."
+                )
                 time.sleep(self.sleep)
         raise ChainTimeoutError("Timed out when waiting for transaction to go through")
 
