@@ -1,5 +1,13 @@
 # Release History - `open-autonomy`
 
+# 0.14.13 (2024-05-27)
+
+Autonomy:
+- Adds support for `transaction not found` error on the transaction settlment tool
+
+Packages:
+- Adds a test for testing the usage of nested directories with the `IPFS` connection 
+
 # 0.14.12 (2024-05-08)
 
 Autonomy:
