@@ -5,6 +5,10 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.14.12` to `v0.14.13`
+
+No backwards incompatible changes
+
 ## `v0.14.11.post1` to `v0.14.12`
 
 - This release pins `click>=8.1.0,<9` so update your environments to avoid dependency conflicts
