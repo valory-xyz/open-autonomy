@@ -70,7 +70,7 @@ dependencies:
   open-aea-ledger-solana:
     version: ==1.53.0
   open-aea-test-autonomy:
-    version: ==0.14.12
+    version: ==0.14.13
 customs: []
 default_connection: null
 ---
