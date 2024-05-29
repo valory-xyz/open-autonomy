@@ -334,52 +334,52 @@ autonomy analyse service [OPTIONS]
 :   Public ID of the service
 
 `--use-celo-alfajores`            
-:   To use celo-alfajores chain profile to interact with the contracts
+:   To use `celo-alfajores` chain profile to interact with the contracts
 
 `--use-celo`                      
-:   To use celo chain profile to interact with the contracts
+:   To use `celo` chain profile to interact with the contracts
 
 `--use-base-sepolia`              
-:   To use base-sepolia chain profile to interact with the contracts
+:   To use `base-sepolia` chain profile to interact with the contracts
 
 `--use-base`                      
-:   To use base chain profile to interact with the contracts
+:   To use `base` chain profile to interact with the contracts
 
 `--use-optimistic-sepolia`        
-:   To use optimistic-sepolia chain profile to interact with the contracts
+:   To use `optimistic-sepolia` chain profile to interact with the contracts
 
 `--use-optimistic`                
-:   To use optimistic chain profile to interact with the contracts
+:   To use `optimistic` chain profile to interact with the contracts
 
 `--use-arbitrum-sepolia`          
-:   To use arbitrum-sepolia chain profile to interact with the contracts
+:   To use `arbitrum-sepolia` chain profile to interact with the contracts
 
 `--use-arbitrum-one`              
-:   To use arbitrum-one chain profile to interact with the contracts
+:   To use `arbitrum-one` chain profile to interact with the contracts
 
 `--use-chiado`                    
-:   To use chiado chain profile to interact with the contracts
+:   To use `chiado` chain profile to interact with the contracts
 
 `--use-gnosis`                    
-:   To use gnosis chain profile to interact with the contracts
+:   To use `gnosis` chain profile to interact with the contracts
 
 `--use-polygon-mumbai`            
-:   To use polygon-mumbai chain profile to interact with the contracts
+:   To use `polygon-mumbai` chain profile to interact with the contracts
 
 `--use-polygon`                   
-:   To use polygon chain profile to interact with the contracts
+:   To use `polygon` chain profile to interact with the contracts
 
 `--use-ethereum`                  
-:   To use ethereum chain profile to interact with the contracts
+:   To use `ethereum` chain profile to interact with the contracts
 
 `--use-goerli`                    
-:   To use goerli chain profile to interact with the contracts
+:   To use `goerli` chain profile to interact with the contracts
 
 `--use-custom-chain`              
-:   To use custom-chain chain profile to interact with the contracts
+:   To use `custom-chain` chain profile to interact with the contracts
 
 `--use-local`                     
-:   To use local chain profile to interact with the contracts
+:   To use `local` chain profile to interact with the contracts
 
 
 `--help`
