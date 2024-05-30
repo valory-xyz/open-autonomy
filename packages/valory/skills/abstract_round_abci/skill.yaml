@@ -62,7 +62,7 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeig3x4xypkuhcdcd7d4z5tixhowtrsp2ktdm47z75ul4r36ojcqb64
 - valory/http_client:0.23.0:bafybeihi772xgzpqeipp3fhmvpct4y6e6tpjp4sogwqrnf3wqspgeilg4u
-- valory/ipfs:0.1.0:bafybeid6nl2yorscnovtzdy6v5szv2qltkfa4b3r62e4yjrkaxeqbiuyhq
+- valory/ipfs:0.1.0:bafybeigcijdbwgdekow5c2ikeltetoteabfp52ewy3xfkd7ygaqbl7j3ke
 - valory/ledger:0.19.0:bafybeig7woeog4srdby75hpjkmx4rhpkzncbf4h2pm5r6varsp26pf2uhu
 - valory/p2p_libp2p_client:0.1.0:bafybeid3xg5k2ol5adflqloy75ibgljmol6xsvzvezebsg7oudxeeolz7e
 contracts:
@@ -157,7 +157,7 @@ dependencies:
   pytz:
     version: ==2022.2.1
   requests:
-    version: '>=2.28.1,<2.31.2'
+    version: <2.31.2,>=2.28.1
   typing_extensions:
     version: '>=3.10.0.2'
 is_abstract: true

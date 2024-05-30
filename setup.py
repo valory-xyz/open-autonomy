@@ -63,7 +63,7 @@ base_deps = [
     "jsonschema<4.4.0,>=4.3.0",
     "protobuf<4.25.0,>=4.21.6",
     "gql==3.5.0",
-    "requests>=2.28.1,<2.31.2",
+    "requests<2.31.2,>=2.28.1",
     "requests-toolbelt==1.0.0",  # Required for graphql client
     "aiohttp<4.0.0,>=3.8.5",
     "typing_extensions>=3.10.0.2",
