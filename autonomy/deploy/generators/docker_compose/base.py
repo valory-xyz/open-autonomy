@@ -165,9 +165,13 @@ def build_agent_config(  # pylint: disable=too-many-arguments,too-many-locals
         config += f"      - {open_aea_dir}:/open-aea\n"
 
     if extra_volumes is not None:
-        for host_dir, container_dir in extra_volumes.items():
-            config += f"      - {host_dir}:{container_dir}:Z\n"
-            Path(host_dir).resolve().mkdir(exist_ok=True, parents=True)
+        if all(isinstance(i, int) for i in extra_volumes):
+            extra_volumes = extra_volumes.get(node_id, {})  # type: ignore
+        for host_dir, container_dir in extra_volumes.items():  # type: ignore
+            vol_dir = Path(host_dir).resolve()
+            if not vol_dir.exists():
+                vol_dir.mkdir(parents=True)
+            config += f"      - {vol_dir}:{container_dir}:Z\n"
 
     if agent_ports is not None:
         port_mappings = map(

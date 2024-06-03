@@ -425,6 +425,17 @@ deployment:
       <host_dir>: <container_dir>
 ```
 
+Or specify volumes specific to agent
+
+```yaml title="service.yaml"
+# (...)
+deployment:
+  agent:
+    volumes:
+      <agent_index>:
+        <host_dir>: <container_dir>
+```
+
 For example, if you want to mount `./data` directory as `/data` volume
 
 ```yaml title="service.yaml"
@@ -434,6 +445,21 @@ deployment:
     volumes:
       ./data: /data
 ```
+
+and
+
+```yaml title="service.yaml"
+# (...)
+deployment:
+  agent:
+    volumes:
+      0:
+        ./data_0: /data
+      1:
+        ./data_1: /data
+```
+
+**Note**: When specifying the host directory path, use absolute path instead of relative path to avoid mounting related errors.
 
 ## Override agent/component dependencies
 
