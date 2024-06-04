@@ -5,6 +5,10 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.14.13` to `v0.14.14`
+
+-  pin `requests` to `>=2.28.1,<2.31.2`
+
 ## `v0.14.12` to `v0.14.13`
 
 No backwards incompatible changes
