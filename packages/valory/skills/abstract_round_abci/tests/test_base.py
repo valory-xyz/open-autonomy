@@ -31,6 +31,7 @@ from collections import deque
 from contextlib import suppress
 from copy import copy, deepcopy
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from time import sleep
 from typing import (
@@ -566,6 +567,31 @@ class TestAbciAppDB:
                 "The database's `cross_period_persisted_keys` have been altered indirectly, "
                 "by updating an item passed via the `__init__`!"
             )
+
+    class EnumTest(Enum):
+        """A test Enum class"""
+
+        test = 10
+
+    @pytest.mark.parametrize(
+        "data_in, expected_output",
+        (
+            (0, 0),
+            ([], []),
+            ({"test": 2}, {"test": 2}),
+            (EnumTest.test, 10),
+            (b"test", b"test".hex()),
+            ({3, 4}, "[3, 4]"),
+            (object(), None),
+        ),
+    )
+    def test_normalize(self, data_in: Any, expected_output: Any) -> None:
+        """Test `normalize`."""
+        if expected_output is None:
+            with pytest.raises(ValueError):
+                self.db.normalize(data_in)
+            return
+        assert self.db.normalize(data_in) == expected_output
 
     @pytest.mark.parametrize("data", {0: [{"test": 2}]})
     def test_reset_index(self, data: Dict) -> None:
