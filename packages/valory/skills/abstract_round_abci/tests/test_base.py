@@ -1695,6 +1695,29 @@ class TestAbciApp:
         self.abci_app._last_timestamp = expected
         assert expected == self.abci_app.last_timestamp
 
+    @pytest.mark.parametrize(
+        "db_key, sync_classes, default, property_found",
+        (
+            ("", set(), "default", False),
+            ("non_existing_key", {BaseSynchronizedData}, True, False),
+            ("participants", {BaseSynchronizedData}, {}, False),
+            ("is_keeper_set", {BaseSynchronizedData}, True, True),
+        ),
+    )
+    def test_get_synced_value(
+        self,
+        db_key: str,
+        sync_classes: Set[Type[BaseSynchronizedData]],
+        default: Any,
+        property_found: bool,
+    ) -> None:
+        """Test the `_get_synced_value` method."""
+        res = self.abci_app._get_synced_value(db_key, sync_classes, default)
+        if property_found:
+            assert res == getattr(self.abci_app.synchronized_data, db_key)
+            return
+        assert res == self.abci_app.synchronized_data.db.get(db_key, default)
+
     def test_process_event(self) -> None:
         """Test the 'process_event' method, positive case, with timeout events."""
         self.abci_app.add_background_app(STUB_SLASH_CONFIG)
