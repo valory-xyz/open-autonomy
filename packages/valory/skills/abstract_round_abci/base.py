@@ -2489,23 +2489,44 @@ class AbciApp(
         for app in self.background_apps:
             app.setup(self._initial_synchronized_data, self.context)
 
-    def _get_synced_value(self, db_key: str, default: Any = None) -> Any:
+    def _get_synced_value(
+        self,
+        db_key: str,
+        sync_classes: Set[Type[BaseSynchronizedData]],
+        default: Any = None,
+    ) -> Any:
         """Get the value of a specific database key using the synchronized data."""
-        try:
+        for cls in sync_classes:
             # try to find the value using the synchronized data as suggested in #2131
-            return getattr(self.synchronized_data, db_key)
-        except (ValueError, AttributeError):
-            # if there is no property with the same name as the key in the db
-            # or the property raised because of using `get_strict` and the key not being present in the db
-            return self.synchronized_data.db.get(db_key, default)
+            synced_data = cls(db=self.synchronized_data.db)
+            try:
+                res = getattr(synced_data, db_key)
+            except AttributeError:
+                # if the property does not exist in the db try the next synced data class
+                continue
+            except ValueError:
+                # if the property raised because of using `get_strict` and the key not being present in the db
+                break
+
+            # if there is a property with the same name as the key in the db, return the result, normalized
+            return AbciAppDB.normalize(res)
+
+        # as a last resort, try to get the value from the db
+        return self.synchronized_data.db.get(db_key, default)
 
     def setup(self) -> None:
         """Set up the behaviour."""
         self.schedule_round(self.initial_round_cls)
         self._setup_background()
+        # iterate through all the rounds and get all the unique synced data classes
+        sync_classes = {
+            _round.synchronized_data_class for _round in self.transition_function
+        }
+        # Add `BaseSynchronizedData` in case it does not exist (TODO: investigate and remove as it might always exist)
+        sync_classes.add(BaseSynchronizedData)
         # set the cross-period persisted keys; avoid raising when the first period ends without a key in the db
         update = {
-            db_key: self._get_synced_value(db_key)
+            db_key: self._get_synced_value(db_key, sync_classes)
             for db_key in self.cross_period_persisted_keys
         }
         self.synchronized_data.db.update(**update)
