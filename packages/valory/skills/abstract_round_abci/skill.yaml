@@ -9,7 +9,7 @@ fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeihxbinbrvhj2edqthpzc2mywfzxzkf7l4v5uj6ubwnffrwgzelmre
   abci_app_chain.py: bafybeibhzrixbp5x26wqhb6ogtr3af5lc4tax7lcsvk4v5rvg4psrq5yzi
-  base.py: bafybeifwq7l5pwmnbtok7vxpwkltbegguubijwt4pfgf7numx6x57g2pdi
+  base.py: bafybeihm7lf4nfqcwfvs4antge2l7eyc7vrafaw6p5canlxwy4qy4akwme
   behaviour_utils.py: bafybeidhnu2ucjhlluwthpl4d6374nzmvjopy7byc2uyirajb3kswfggle
   behaviours.py: bafybeifzbzy2ppabm6dpgvbsuvpgduyg7g7rei6u4ouy3nnak5top5be5u
   common.py: bafybeib4coyhaxvpup7m25lsab2lpebv2wrkjp2cwihuitxmaibo6u6z2m
@@ -38,7 +38,7 @@ fingerprint:
   tests/data/dummy_abci/payloads.py: bafybeiczldqiumb7prcusb7l5vb575vschwyseyigpupvteldfyz7h6fyi
   tests/data/dummy_abci/rounds.py: bafybeihhheznpcntg4z5cdd7dysnivo2g4x5biv7blriyiyoouqp6xf5aq
   tests/test_abci_app_chain.py: bafybeihqvjkcwkwxowhb3umtk52us4pd5f6nbppw4ycx76oljw4j3j7xpa
-  tests/test_base.py: bafybeif5q5gubmgbhdu5kiymx2ei7nkw2qg34537hebgtsclzzlrytns64
+  tests/test_base.py: bafybeihtx2ktf6uck2l6yw72lvnvm5y224vlgawxette75cluc6juedeqe
   tests/test_base_rounds.py: bafybeiadkpwuhz6y5k5ffvoqvyi6nqetf5ov5bmodejge7yvscm6yqzpse
   tests/test_behaviours.py: bafybeibxxev34avddvezqumr56k7txmqkubl2c5u6y7ydjqn6kp3wabbvq
   tests/test_behaviours_utils.py: bafybeidkxzhu26r2shkblz2l3syzc62uet4cxrdbschnf7vuwuuior6xkm
