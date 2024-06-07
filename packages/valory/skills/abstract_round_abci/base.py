@@ -543,6 +543,26 @@ class AbciAppDB:
                 f"cross period persisted keys ({self.cross_period_persisted_keys}): {not_in_cross_period}"
             )
 
+    @staticmethod
+    def normalize(value: Any) -> str:
+        """Attempt to normalize a non-primitive type to insert it into the db."""
+        if is_json_serializable(value):
+            return value
+
+        if isinstance(value, Enum):
+            return value.value
+
+        if isinstance(value, bytes):
+            return value.hex()
+
+        if isinstance(value, set):
+            try:
+                return json.dumps(list(value))
+            except TypeError:
+                pass
+
+        raise ValueError(f"Cannot normalize {value} to insert it in the db!")
+
     @property
     def setup_data(self) -> Dict[str, Any]:
         """
