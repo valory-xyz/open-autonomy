@@ -12,9 +12,9 @@ fingerprint:
   tests/test_register_reset_recovery.py: bafybeiajrzfeqcdvapjhdjggyxya2g3gdxboodpagld6uyclrsrfsiri7u
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeig3x4xypkuhcdcd7d4z5tixhowtrsp2ktdm47z75ul4r36ojcqb64
+- valory/abci:0.1.0:bafybeia6etkacvqend7xj6viejkqgo7ozu3yn4yg3qezfthf2xhrjjwse4
 - valory/http_client:0.23.0:bafybeihi772xgzpqeipp3fhmvpct4y6e6tpjp4sogwqrnf3wqspgeilg4u
-- valory/ipfs:0.1.0:bafybeihf2sojt6yod2oyr4w7zokn42cobgdpxg2egoshlflwpzxkowaeem
+- valory/ipfs:0.1.0:bafybeigcijdbwgdekow5c2ikeltetoteabfp52ewy3xfkd7ygaqbl7j3ke
 - valory/ledger:0.19.0:bafybeig7woeog4srdby75hpjkmx4rhpkzncbf4h2pm5r6varsp26pf2uhu
 - valory/p2p_libp2p_client:0.1.0:bafybeid3xg5k2ol5adflqloy75ibgljmol6xsvzvezebsg7oudxeeolz7e
 contracts: []
@@ -24,10 +24,10 @@ protocols:
 - valory/http:1.0.0:bafybeifugzl63kfdmwrxwphrnrhj7bn6iruxieme3a4ntzejf6kmtuwmae
 - valory/ipfs:0.1.0:bafybeiftxi2qhreewgsc5wevogi7yc5g6hbcbo4uiuaibauhv3nhfcdtvm
 skills:
-- valory/abstract_abci:0.1.0:bafybeif4uvml6c3ypq6sk3udgzssyjnxepojdcu4igmwqmo6bdvave5l5i
-- valory/abstract_round_abci:0.1.0:bafybeihnb4dd2ey2vjhlbprtxhnpc4q4resnsdrhpavjqnqaq467d6ouey
-- valory/register_reset_recovery_abci:0.1.0:bafybeieudkzrgnsgq3337rh7kme6mchnpnmgtzmqd6revh4ee2begwlw3q
-- valory/registration_abci:0.1.0:bafybeibqbggb642wxntkivyamjpkaevcv54v6tvttlhbe2mq4oqmqtfbiu
+- valory/abstract_abci:0.1.0:bafybeieeaseuy5rbbw465knz27vccvpkfge43q7isl7fkdlfapwd7bpi24
+- valory/abstract_round_abci:0.1.0:bafybeib733xfbndtpvkf44mtk7oyodnficgloo6xhn7xmqxxeos33es65u
+- valory/register_reset_recovery_abci:0.1.0:bafybeibwmnyucdudtrpmt4n22jf7ynozjbb6ikyvaic3becnslt4vytg7i
+- valory/registration_abci:0.1.0:bafybeibc7duasoaw5b4ene5oxfba2dmdzstsrws6ipi57ymgdtoxjadn54
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -63,7 +63,7 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==1.53.0
   open-aea-test-autonomy:
-    version: ==0.14.13
+    version: ==0.14.14.post1
 skill_exception_policy: stop_and_exit
 customs: []
 default_connection: null

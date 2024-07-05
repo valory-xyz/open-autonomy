@@ -64,6 +64,7 @@ base_deps = [
     "protobuf<4.25.0,>=4.21.6",
     "gql>=3.5.0,<4",
     "requests-toolbelt>=1.0.0,<2",  # Required for graphql client
+    "requests<2.31.2,>=2.28.1",
     "aiohttp<4.0.0,>=3.8.5",
     "typing_extensions>=3.10.0.2",
 ]

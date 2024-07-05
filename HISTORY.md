@@ -1,5 +1,19 @@
 # Release History - `open-autonomy`
 
+
+# 0.14.14.post1 (2024-06-13)
+
+Autonomy:
+- fix for 0.14.14 issue with _get_synced_value
+
+# 0.14.14 (2024-06-04)
+
+Autonomy:
+- fix: crashing when a cross-period persisted key is not set
+- fix: pin requests to >=2.28.1,<2.31.2
+- documentation on release process updated
+- some fixes
+
 # 0.14.13 (2024-05-27)
 
 Autonomy:
