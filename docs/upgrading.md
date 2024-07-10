@@ -5,13 +5,26 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.14.14` to `v0.14.14.post2`
+
+No backwards incompatible changes.
+
+## `v0.14.14.post1` to `v0.14.14.post2`
+
+The breaking feature introduced in `v0.14.14` and `v0.14.14.post1` has been removed.
+For more information please check the `HISTORY.md` file.
+
 ## `v0.14.14` to `v0.14.14.post1`
 
-No backwards incompatible changes. bug fixes only
+A breaking feature was introduced. 
+We suggest using the `v0.14.14.post2` release instead.
+For more information please check the `HISTORY.md` file.
 
 ## `v0.14.13` to `v0.14.14`
 
--  pin `requests` to `>=2.28.1,<2.31.2`
+A breaking feature was introduced. 
+We suggest using the `v0.14.14.post2` release instead.
+For more information please check the `HISTORY.md` file.
 
 ## `v0.14.12` to `v0.14.13`
 

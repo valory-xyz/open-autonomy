@@ -113,9 +113,6 @@ class MyAbciApp(AbciApp):
             get_name(BaseSynchronizedData.generated_value),
         },
     }
-    cross_period_persisted_keys: FrozenSet[str] = frozenset({
-        get_name(BaseSynchronizedData.persisted_value),
-    })
     # (...)
 ```
 
@@ -132,26 +129,19 @@ direction LR
 <figcaption>State diagram of the FSM implemented by MyAbciApp</figcaption>
 </figure>
 
-- The mandatory field `initial_round_cls` indicates the round associated to the initial state of the FSM.
+The mandatory field `initial_round_cls` indicates the round associated to the initial state of the FSM.
 The set of `initial_states` is optionally provided by the developer. If none is provided,
 provided a set containing the `initial_round_cls` is inferred automatically.
 When the {{fsm_app}} processes an `Event` it schedules the round associated to the next state by looking at the corresponding transition from the `transition_function` and sets the associated timeouts, if
 any.
-- The `db_pre_conditions` and `db_post_conditions` are conditions that need to be met when entering and when leaving 
+The `db_pre_conditions` and `db_post_conditions` are conditions that need to be met when entering and when leaving 
 the `AbciApp`. These are taken into consideration when chaining FSMs, in order to make sure that
 the required data exist in the synchronized data. Therefore, an application can fail early, before running any rounds,
 and inform the user about an incorrect chaining attempt. 
 The pre- and post- conditions on the synchronized data need to be defined for each initial and final state 
 in an `AbciApp`. If there are no conditions required for an app, they can be mapped to an empty list. 
 Otherwise, the list should contain the names of all the required properties in the synchronized data.
-- The cross-period persisted keys allow the apps to persist information in the synchronized database without them being cleaned up.
-By setting any key as cross-period, its value in the database will be accessible at all periods.
-Moreover, as of `v0.14.14.post1`, there is a mechanism that presets the values to their defaults at startup.
-The default value will be the one that the corresponding property returns.
-If there is no property matching the name of the key, then the framework will attempt to set the value in the synced db.
-If no value is found there, the value `None` will be set.
-Before `v0.14.14.post1`, developers must set a value for all the cross-period keys before the period 0 ends.
-- The suggested way to reference the names of the properties is to use the `get_name` function, defined in the `abstract_round_abci`, 
+The suggested way to do this is to use the `get_name` function, defined in the `abstract_round_abci`, 
 so that strings are avoided as they can get out of sync.
 
 In addition to the `AbciApp`class, the {{fsm_app}} also requires that the `AbstractRoundBehaviour` class be implemented in order to run the state transition logic contained in it.

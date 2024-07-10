@@ -1,6 +1,11 @@
 # Release History - `open-autonomy`
 
 
+# 0.14.14.post2 (2024-07-10)
+
+Autonomy:
+- Reverts the breaking change introduced in the latest release, and more specifically in PRs #2236, #2241, #2244.
+
 # 0.14.14.post1 (2024-06-13)
 
 Autonomy:

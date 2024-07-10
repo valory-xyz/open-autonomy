@@ -31,7 +31,6 @@ from collections import deque
 from contextlib import suppress
 from copy import copy, deepcopy
 from dataclasses import dataclass
-from enum import Enum
 from pathlib import Path
 from time import sleep
 from typing import (
@@ -567,31 +566,6 @@ class TestAbciAppDB:
                 "The database's `cross_period_persisted_keys` have been altered indirectly, "
                 "by updating an item passed via the `__init__`!"
             )
-
-    class EnumTest(Enum):
-        """A test Enum class"""
-
-        test = 10
-
-    @pytest.mark.parametrize(
-        "data_in, expected_output",
-        (
-            (0, 0),
-            ([], []),
-            ({"test": 2}, {"test": 2}),
-            (EnumTest.test, 10),
-            (b"test", b"test".hex()),
-            ({3, 4}, "[3, 4]"),
-            (object(), None),
-        ),
-    )
-    def test_normalize(self, data_in: Any, expected_output: Any) -> None:
-        """Test `normalize`."""
-        if expected_output is None:
-            with pytest.raises(ValueError):
-                self.db.normalize(data_in)
-            return
-        assert self.db.normalize(data_in) == expected_output
 
     @pytest.mark.parametrize("data", {0: [{"test": 2}]})
     def test_reset_index(self, data: Dict) -> None:
@@ -1694,29 +1668,6 @@ class TestAbciApp:
         expected = MagicMock()
         self.abci_app._last_timestamp = expected
         assert expected == self.abci_app.last_timestamp
-
-    @pytest.mark.parametrize(
-        "db_key, sync_classes, default, property_found",
-        (
-            ("", set(), "default", False),
-            ("non_existing_key", {BaseSynchronizedData}, True, False),
-            ("participants", {BaseSynchronizedData}, {}, False),
-            ("is_keeper_set", {BaseSynchronizedData}, True, True),
-        ),
-    )
-    def test_get_synced_value(
-        self,
-        db_key: str,
-        sync_classes: Set[Type[BaseSynchronizedData]],
-        default: Any,
-        property_found: bool,
-    ) -> None:
-        """Test the `_get_synced_value` method."""
-        res = self.abci_app._get_synced_value(db_key, sync_classes, default)
-        if property_found:
-            assert res == getattr(self.abci_app.synchronized_data, db_key)
-            return
-        assert res == self.abci_app.synchronized_data.db.get(db_key, default)
 
     def test_process_event(self) -> None:
         """Test the 'process_event' method, positive case, with timeout events."""
