@@ -1,4 +1,4 @@
-open-autonomy[all]==0.14.14.post1
+open-autonomy[all]==0.14.14.post2
 open-aea[all]==1.53.0
 open-aea-cli-ipfs==1.53.0
 open-aea-ledger-ethereum==1.53.0
