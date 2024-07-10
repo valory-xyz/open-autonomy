@@ -607,6 +607,17 @@ before instantiating this class.
 - `cross_period_persisted_keys`: data keys that will be kept after a new period starts
 - `logger`: the logger of the abci app
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.normalize"></a>
+
+#### normalize
+
+```python
+@staticmethod
+def normalize(value: Any) -> str
+```
+
+Attempt to normalize a non-primitive type to insert it into the db.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.setup_data"></a>
 
 #### setup`_`data
