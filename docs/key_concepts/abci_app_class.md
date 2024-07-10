@@ -146,11 +146,11 @@ in an `AbciApp`. If there are no conditions required for an app, they can be map
 Otherwise, the list should contain the names of all the required properties in the synchronized data.
 - The cross-period persisted keys allow the apps to persist information in the synchronized database without them being cleaned up.
 By setting any key as cross-period, its value in the database will be accessible at all periods.
-Moreover, as of `v0.14.14.post1`, there is a mechanism that presets the values to their defaults at startup.
+Moreover, as of `v0.15.0`, there is a mechanism that presets the values to their defaults at startup.
 The default value will be the one that the corresponding property returns.
-If there is no property matching the name of the key, then the framework will attempt to set the value in the synced db.
+If there is no property matching the name of the key, then the framework will attempt to set the value from the synced db.
 If no value is found there, the value `None` will be set.
-Before `v0.14.14.post1`, developers must set a value for all the cross-period keys before the period 0 ends.
+Before `v0.15.0`, developers must set a value for all the cross-period keys before the period 0 ends.
 - The suggested way to reference the names of the properties is to use the `get_name` function, defined in the `abstract_round_abci`, 
 so that strings are avoided as they can get out of sync.
 
