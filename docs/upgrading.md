@@ -5,6 +5,19 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.14.14.post2` to `v0.15.0`
+
+- After this release, developers do not need to make sure that cross-period persisted keys preexist in the database
+  before the first period ends anymore. 
+  You may remove any additional logic you had in place to protect from that (#2131).
+- The cross-period persisted keys are now initialized by the framework during startup. 
+  The corresponding property is used to get the value. 
+  If a property with the same name does not exist, then the pre-existing value in the db is used, otherwise `None`.
+- You need to keep the above in mind when:
+  1. Reading cross-period values from the db.
+  2. Implementing properties for cross-period keys, 
+     as the returned value will end up being the one that will be writen to the db during startup.
+
 ## `v0.14.14` to `v0.14.14.post2`
 
 No backwards incompatible changes.
