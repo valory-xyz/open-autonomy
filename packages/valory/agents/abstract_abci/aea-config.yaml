@@ -11,14 +11,14 @@ fingerprint:
   tests/test_abstract_abci.py: bafybeic4hileugdjd6bwy4n5beqrjo5auwalz5twt3lyx6m62kb65nc6ca
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeia6etkacvqend7xj6viejkqgo7ozu3yn4yg3qezfthf2xhrjjwse4
+- valory/abci:0.1.0:bafybeibe5opulxvsjan6dnjspdxxlusdm3yx67rza5ynhvcip4luzrkop4
 - valory/p2p_libp2p_client:0.1.0:bafybeid3xg5k2ol5adflqloy75ibgljmol6xsvzvezebsg7oudxeeolz7e
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeihv62fim3wl2bayavfcg3u5e5cxu3b7brtu4cn5xoxd6lqwachasi
 - valory/abci:0.1.0:bafybeiaqmp7kocbfdboksayeqhkbrynvlfzsx4uy4x6nohywnmaig4an7u
 skills:
-- valory/abstract_abci:0.1.0:bafybeieeaseuy5rbbw465knz27vccvpkfge43q7isl7fkdlfapwd7bpi24
+- valory/abstract_abci:0.1.0:bafybeidb6mfbe7v4ot2fm4h2h66wjr4sbmxox5vrbkw7pcffihta2afvk4
 default_ledger: ethereum
 required_ledgers:
 - ethereum
