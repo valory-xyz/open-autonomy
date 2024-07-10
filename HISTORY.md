@@ -1,6 +1,11 @@
 # Release History - `open-autonomy`
 
 
+# 0.15.0 (2024-07-10)
+
+Autonomy:
+- Reintroduces the breaking feature from PRs #2236, #2241, #2244.
+
 # 0.14.14.post2 (2024-07-10)
 
 Autonomy:
