@@ -27,7 +27,7 @@ base_deps = [
     "open-aea[all]>=1.53.0,<2.0.0",
     "pytest>=7.2.1,<8",
     "open-aea-ledger-ethereum>=1.53.0,<2.0.0",
-    "docker>=6.1.2",
+    "docker>=6.1.2,<7",
 ]
 
 setup(
