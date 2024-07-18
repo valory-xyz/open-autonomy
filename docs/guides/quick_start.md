@@ -13,15 +13,13 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 ## Step-by-step instructions
 
-!!! note
-    On **MacOS** and **Windows**, running Docker containers requires having Docker Desktop running as well. If you're using one of those operating systems, remember to start Docker Desktop
-    before you run agent services.
-
 1. Fetch the [Hello World service](https://docs.autonolas.network/demos/hello-world/) from the remote registry. Within the workspace folder (not the local registry) run:
 
+    <div class="dynamic-hash" packages-json-url="https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/packages.json" key="service/valory/hello_world/0.1.0">
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeibp2iiojzyykcbkadqdszd35laq2ub34eovyghrsr33t2vrxmk2r4 --service
+    autonomy fetch valory/hello_world:0.1.0:<hash> --service
     ```
+    </div>
 
     This command will download the service package corresponding to the specified hash from the remote IPFS registry and store it in the `hello_world` folder locally.
 
