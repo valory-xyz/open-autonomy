@@ -45,6 +45,7 @@ In the workspace folder, create a file `fsm_specification.yaml`, which formally 
     ```yaml title="fsm_specification.yaml"
     alphabet_in:
     - DONE
+    - NONE
     - NO_MAJORITY
     - RESET_TIMEOUT
     - ROUND_TIMEOUT
@@ -61,6 +62,7 @@ In the workspace folder, create a file `fsm_specification.yaml`, which formally 
     - SelectKeeperRound
     transition_func:
         (CollectRandomnessRound, DONE): SelectKeeperRound
+        (CollectRandomnessRound, NONE): CollectRandomnessRound
         (CollectRandomnessRound, NO_MAJORITY): CollectRandomnessRound
         (CollectRandomnessRound, ROUND_TIMEOUT): CollectRandomnessRound
         (PrintMessageRound, DONE): ResetAndPauseRound
@@ -70,6 +72,4 @@ In the workspace folder, create a file `fsm_specification.yaml`, which formally 
         (ResetAndPauseRound, NO_MAJORITY): RegistrationRound
         (ResetAndPauseRound, RESET_TIMEOUT): RegistrationRound
         (SelectKeeperRound, DONE): PrintMessageRound
-        (SelectKeeperRound, NO_MAJORITY): RegistrationRound
-        (SelectKeeperRound, ROUND_TIMEOUT): RegistrationRound
     ```
