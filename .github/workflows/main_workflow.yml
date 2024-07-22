@@ -267,15 +267,19 @@ jobs:
       - if: matrix.os == 'macos-12'
         name: Install dependencies (macos-12)
         run: |
-          tar --version
+          pip install tomte[tox]==0.2.17
+
+          # brew install protobuf
+          # brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/72457f0166d5619a83f508f2345b22d0617b5021/Formula/protobuf.rb
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-osx-x86_64.zip
+          unzip protoc-24.3-osx-x86_64.zip -d protoc
+          
           # install protolint
           curl -L -o protolint.tar.gz https://github.com/yoheimuta/protolint/releases/download/v0.50.2/protolint_0.50.2_darwin_amd64.tar.gz
           tar -xzvf protolint.tar.gz
           sudo mv protolint /usr/local/bin/protolint
           sudo chmod +x /usr/local/bin/protolint
-          
-          echo "Installed protolint"
-          
+
           # install ipfs
           curl -L -o ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_darwin-amd64.tar.gz
           tar -xvzf ipfs.tar.gz
@@ -284,8 +288,6 @@ jobs:
           cd ..
           rm -rf go-ipfs
           ipfs init
-
-          echo "Installed IPFS"
 
           # install Tendermint
           wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_darwin_amd64.tar.gz
@@ -297,14 +299,6 @@ jobs:
           sudo chmod +x skaffold
           sudo install skaffold /usr/local/bin/
           skaffold --help
-
-          pip install tomte[tox]==0.2.17
-          # brew install gcc
-          # brew install protobuf
-          # brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/72457f0166d5619a83f508f2345b22d0617b5021/Formula/protobuf.rb
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-osx-x86_64.zip
-          unzip protoc-24.3-osx-x86_64.zip -d protoc
-          sudo mv protoc/bin/protoc /usr/local/bin/protoc
 
       - if: matrix.os == 'macos-12'
         name: Framework unit tests macos-12
