@@ -134,7 +134,7 @@ jobs:
         # install IPFS
         sudo apt-get install -y wget
         sudo npm install -g markdown-spellcheck
-        wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
+        wget -O ./go-ipfs.tar.gz https://github.com/ipfs/kubo/releases/download/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
         tar xvfz go-ipfs.tar.gz
         sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
         ipfs init
@@ -228,7 +228,7 @@ jobs:
 
           # install IPFS
           sudo apt-get install -y wget
-          wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
+          wget -O ./go-ipfs.tar.gz https://github.com/ipfs/kubo/releases/download/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
           tar xvfz go-ipfs.tar.gz
           sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
           ipfs init
@@ -273,18 +273,21 @@ jobs:
         name: Install dependencies (macos-12)
         run: |
           pip install tomte[tox]==0.2.17
-          brew install gcc
+
           # brew install protobuf
           # brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/72457f0166d5619a83f508f2345b22d0617b5021/Formula/protobuf.rb
           wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-osx-x86_64.zip
           unzip protoc-24.3-osx-x86_64.zip -d protoc
-          sudo mv protoc/bin/protoc /usr/local/bin/protoc
-          brew tap yoheimuta/protolint
-          brew install protolint
+          
+          # install protolint
+          curl -L -o protolint.tar.gz https://github.com/yoheimuta/protolint/releases/download/v0.50.2/protolint_0.50.2_darwin_amd64.tar.gz
+          tar -xzvf protolint.tar.gz
+          sudo mv protolint /usr/local/bin/protolint
+          sudo chmod +x /usr/local/bin/protolint
 
           # install ipfs
-          curl -O https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_darwin-amd64.tar.gz
-          tar -xvzf go-ipfs_v0.6.0_darwin-amd64.tar.gz
+          curl -L -o ipfs.tar.gz https://github.com/ipfs/kubo/releases/download/v0.6.0/go-ipfs_v0.6.0_darwin-amd64.tar.gz
+          tar -xvzf ipfs.tar.gz
           cd go-ipfs
           sudo ./install.sh
           cd ..
@@ -342,13 +345,13 @@ jobs:
           #protolint version
 
           # install ipfs
-          curl https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_windows-amd64.zip -o go-ipfs_v0.6.0.zip
-          Expand-Archive -Path go-ipfs_v0.6.0.zip -DestinationPath ~\Apps\
+          curl -L -o go-ipfs.zip https://github.com/ipfs/kubo/releases/download/v0.6.0/go-ipfs_v0.6.0_windows-amd64.zip
+          Expand-Archive -Path go-ipfs.zip -DestinationPath ~\Apps\
           cp ~\Apps\go-ipfs\ipfs.exe C:\Users\runneradmin\go\bin\
           ipfs init
 
           # install Tendermint
-          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_windows_amd64.tar.gz
+          curl -L -o tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_windows_amd64.tar.gz
           tar -xvzf tendermint.tar.gz
           cp tendermint.exe C:\Users\runneradmin\go\bin\
 
