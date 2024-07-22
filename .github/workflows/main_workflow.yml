@@ -278,8 +278,8 @@ jobs:
           tar --version
             
           # install protolint
-          wget https://github.com/yoheimuta/protolint/releases/download/v0.50.2/protolint_0.50.2_darwin_amd64.tar.gz
-          tar -xzf protolint_0.50.2_darwin_amd64.tar.gz
+          curl -L -o protolint.tar.gz https://github.com/yoheimuta/protolint/releases/download/v0.50.2/protolint_0.50.2_darwin_amd64.tar.gz
+          tar -xzf protolint.tar.gz
           sudo mv protolint /usr/local/bin/protolint
           sudo chmod +x /usr/local/bin/protolint
           
