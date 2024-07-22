@@ -275,8 +275,6 @@ jobs:
           unzip protoc-24.3-osx-x86_64.zip -d protoc
           sudo mv protoc/bin/protoc /usr/local/bin/protoc
             
-          tar --version
-            
           # install protolint
           curl -L -o protolint.tar.gz https://github.com/yoheimuta/protolint/releases/download/v0.50.2/protolint_0.50.2_darwin_amd64.tar.gz
           tar -xzf protolint.tar.gz
