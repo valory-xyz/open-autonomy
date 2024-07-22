@@ -274,6 +274,8 @@ jobs:
           sudo mv protolint /usr/local/bin/protolint
           sudo chmod +x /usr/local/bin/protolint
           
+          echo "Installed protolint"
+          
           # install ipfs
           curl -O https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_darwin-amd64.tar.gz
           tar -xvzf go-ipfs_v0.6.0_darwin-amd64.tar.gz
@@ -283,9 +285,11 @@ jobs:
           rm -rf go-ipfs
           ipfs init
 
+          echo "Installed IPFS"
+
           # install Tendermint
           wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_darwin_amd64.tar.gz
-          gtar -xf tendermint.tar.gz
+          tar -xf tendermint.tar.gz
           sudo mv tendermint /usr/local/bin/tendermint
 
           # install skaffold
