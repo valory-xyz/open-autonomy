@@ -275,7 +275,7 @@ jobs:
           sudo chmod +x /usr/local/bin/protolint
           
           pip install tomte[tox]==0.2.17
-          brew install gcc
+          # brew install gcc
           # brew install protobuf
           # brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/72457f0166d5619a83f508f2345b22d0617b5021/Formula/protobuf.rb
           wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-osx-x86_64.zip
