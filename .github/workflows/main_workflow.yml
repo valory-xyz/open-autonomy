@@ -340,8 +340,8 @@ jobs:
           #protolint version
 
           # install ipfs
-          curl https://github.com/ipfs/kubo/releases/download/v0.6.0/go-ipfs_v0.6.0_windows-amd64.zip -o go-ipfs_v0.6.0.zip
-          Expand-Archive -Path go-ipfs_v0.6.0.zip -DestinationPath ~\Apps\
+          curl https://github.com/ipfs/kubo/releases/download/v0.6.0/go-ipfs_v0.6.0_windows-amd64.zip -o go-ipfs.zip
+          Expand-Archive -Path go-ipfs.zip -DestinationPath ~\Apps\
           cp ~\Apps\go-ipfs\ipfs.exe C:\Users\runneradmin\go\bin\
           ipfs init
 
