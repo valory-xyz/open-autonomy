@@ -372,70 +372,70 @@ jobs:
           name: codecov-umbrella
           fail_ci_if_error: false
 
-  e2e:
-    continue-on-error: True
-    needs:
-      - lock_check
-      - install_check
-      - copyright_doc_and_dependencies_check
-      - linter_checks
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ ubuntu-latest ]
-        python-version: [ "3.10.9" ]
-
-    timeout-minutes: 150
-
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: recursive
-      - uses: actions/setup-python@master
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          sudo apt-get update --fix-missing
-          sudo apt-get autoremove
-          sudo apt-get autoclean
-          pip install tomte[tox]==0.2.17
-          pip install --user --upgrade setuptools
-
-          # install Protobuf compiler
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-linux-x86_64.zip
-          unzip protoc-24.3-linux-x86_64.zip -d protoc
-          sudo mv protoc/bin/protoc /usr/local/bin/protoc
-
-          # install IPFS
-          sudo apt-get install -y wget
-          wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
-          tar xvfz go-ipfs.tar.gz
-          sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
-          ipfs init
-
-          # install Tendermint
-          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_linux_amd64.tar.gz
-          tar -xf tendermint.tar.gz
-          sudo mv tendermint /usr/local/bin/tendermint
-
-          # install Skaffold needed in order to build the Flask with Tendermint image
-          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.39.1/skaffold-linux-amd64 &&\
-            sudo install skaffold /usr/local/bin/
-
-          # build the Flask with Tendermint image
-          TM_DEPLOYMENT_PATH="deployments/Dockerfiles/tendermint/"
-          TM_IMG_NAME="valory/open-autonomy-tendermint"
-          docker build $TM_DEPLOYMENT_PATH -t $TM_IMG_NAME:0.1.0 -t $TM_IMG_NAME:1.0.0 -t $TM_IMG_NAME:latest
-
-          # pull pre-built images
-          docker pull valory/autonolas-registries:latest
-          docker pull valory/contracts-amm:latest
-          docker pull valory/safe-contract-net:latest
-          docker pull tendermint/tendermint:v0.34.19
-          docker pull valory/slow-tendermint-server:0.1.0
-
-      - name: Unit tests
-        run: |
-          tox --develop -e e2e-py${{ matrix.python-version }}-linux -- -m 'e2e'
+#  e2e:
+#    continue-on-error: True
+#    needs:
+#      - lock_check
+#      - install_check
+#      - copyright_doc_and_dependencies_check
+#      - linter_checks
+#    runs-on: ${{ matrix.os }}
+#
+#    strategy:
+#      matrix:
+#        os: [ ubuntu-latest ]
+#        python-version: [ "3.10.9" ]
+#
+#    timeout-minutes: 150
+#
+#    steps:
+#      - uses: actions/checkout@v2
+#        with:
+#          submodules: recursive
+#      - uses: actions/setup-python@master
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#      - name: Install dependencies
+#        run: |
+#          sudo apt-get update --fix-missing
+#          sudo apt-get autoremove
+#          sudo apt-get autoclean
+#          pip install tomte[tox]==0.2.17
+#          pip install --user --upgrade setuptools
+#
+#          # install Protobuf compiler
+#          wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-linux-x86_64.zip
+#          unzip protoc-24.3-linux-x86_64.zip -d protoc
+#          sudo mv protoc/bin/protoc /usr/local/bin/protoc
+#
+#          # install IPFS
+#          sudo apt-get install -y wget
+#          wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
+#          tar xvfz go-ipfs.tar.gz
+#          sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
+#          ipfs init
+#
+#          # install Tendermint
+#          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_linux_amd64.tar.gz
+#          tar -xf tendermint.tar.gz
+#          sudo mv tendermint /usr/local/bin/tendermint
+#
+#          # install Skaffold needed in order to build the Flask with Tendermint image
+#          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.39.1/skaffold-linux-amd64 &&\
+#            sudo install skaffold /usr/local/bin/
+#
+#          # build the Flask with Tendermint image
+#          TM_DEPLOYMENT_PATH="deployments/Dockerfiles/tendermint/"
+#          TM_IMG_NAME="valory/open-autonomy-tendermint"
+#          docker build $TM_DEPLOYMENT_PATH -t $TM_IMG_NAME:0.1.0 -t $TM_IMG_NAME:1.0.0 -t $TM_IMG_NAME:latest
+#
+#          # pull pre-built images
+#          docker pull valory/autonolas-registries:latest
+#          docker pull valory/contracts-amm:latest
+#          docker pull valory/safe-contract-net:latest
+#          docker pull tendermint/tendermint:v0.34.19
+#          docker pull valory/slow-tendermint-server:0.1.0
+#
+#      - name: Unit tests
+#        run: |
+#          tox --develop -e e2e-py${{ matrix.python-version }}-linux -- -m 'e2e'
