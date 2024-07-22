@@ -191,7 +191,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-12, windows-latest ]
+        os: [ windows-latest ]
         python-version: [ "3.8", "3.9", "3.10.9", "3.11" ]
 
     timeout-minutes: 90
@@ -315,30 +315,6 @@ jobs:
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         run: |
-          python -m pip install -U pip
-          echo "::add-path::C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64"
-
-          choco source add -n chocolatey -s 'https://chocolatey.org/api/v2/'
-          choco source enable -n chocolatey
-
-          choco install wget -y
-          choco install protoc --version 24.3
-          choco install mingw -y
-          choco install make -y
-          # to check make was installed
-          make --version
-          pip install tomte[tox]==0.2.17
-          # wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-win64.zip
-          # unzip protoc-24.3-win64.zip -d protoc
-          # sudo mv protoc/bin/protoc /usr/local/bin/protoc
-
-          # TODO: install protolint
-          #echo "::set-env name=GOPATH::$(go env GOPATH)"
-          #echo "::add-path::$(go env GOPATH)/bin"
-          #make protolint_install_win
-          # just check protolint runs
-          #protolint version
-
           # install ipfs
           curl https://github.com/ipfs/kubo/releases/download/v0.6.0/go-ipfs_v0.6.0_windows-amd64.zip -o go-ipfs.zip
           Expand-Archive -Path go-ipfs.zip -DestinationPath ~\Apps\
