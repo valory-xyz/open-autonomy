@@ -281,13 +281,13 @@ jobs:
           
           # install protolint
           curl -L -o protolint.tar.gz https://github.com/yoheimuta/protolint/releases/download/v0.50.2/protolint_0.50.2_darwin_amd64.tar.gz
-          gtar -xzf protolint.tar.gz
+          tar -xzvf protolint.tar.gz
           sudo mv protolint /usr/local/bin/protolint
           sudo chmod +x /usr/local/bin/protolint
           
           # install ipfs
           curl -O https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_darwin-amd64.tar.gz
-          gtar -xvzf go-ipfs_v0.6.0_darwin-amd64.tar.gz
+          tar -xvzf go-ipfs_v0.6.0_darwin-amd64.tar.gz
           cd go-ipfs
           sudo ./install.sh
           cd ..
