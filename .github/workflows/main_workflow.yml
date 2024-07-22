@@ -277,7 +277,7 @@ jobs:
           
           echo "Installed protoc"
           brew reinstall libarchive
-#          echo 'PATH="/usr/local/opt/libarchive/bin:$PATH"' >> $GITHUB_ENV
+          # echo 'PATH="/usr/local/opt/libarchive/bin:$PATH"' >> $GITHUB_ENV
           
           # install protolint
           curl -L -o protolint.tar.gz https://github.com/yoheimuta/protolint/releases/download/v0.50.2/protolint_0.50.2_darwin_amd64.tar.gz
