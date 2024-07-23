@@ -5,6 +5,10 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.15.0` to `v0.15.1`
+
+No backwards incompatible changes.
+
 ## `v0.14.14.post2` to `v0.15.0`
 
 - After this release, developers do not need to make sure that cross-period persisted keys preexist in the database
