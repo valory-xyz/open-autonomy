@@ -19,9 +19,11 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 1. Fetch the [Hello World service](https://docs.autonolas.network/demos/hello-world/) from the remote registry. Within the workspace folder (not the local registry) run:
 
+    <div class="dynamic-hash" packages-json-url="https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/packages.json" key="service/valory/hello_world/0.1.0">
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeihl6j7ihkytk4t4ca2ffhctpzydwi6r4a354ubjasttuv2pw4oaci --service
+    autonomy fetch valory/hello_world:0.1.0:<hash> --service
     ```
+    </div>
 
     This command will download the service package corresponding to the specified hash from the remote IPFS registry and store it in the `hello_world` folder locally.
 

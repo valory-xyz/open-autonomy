@@ -33,7 +33,7 @@ ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-regis
 
 
 class TestAddresses:
-    """Test addesses."""
+    """Test addresses."""
 
     contracts: t.Dict[str, t.List[t.Dict[str, str]]]
 

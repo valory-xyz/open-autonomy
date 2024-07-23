@@ -72,4 +72,7 @@ In the workspace folder, create a file `fsm_specification.yaml`, which formally 
         (ResetAndPauseRound, NO_MAJORITY): RegistrationRound
         (ResetAndPauseRound, RESET_TIMEOUT): RegistrationRound
         (SelectKeeperRound, DONE): PrintMessageRound
+        (SelectKeeperRound, NONE): RegistrationRound
+        (SelectKeeperRound, NO_MAJORITY): RegistrationRound
+        (SelectKeeperRound, ROUND_TIMEOUT): RegistrationRound
     ```

@@ -180,8 +180,6 @@ nav:
             - Base: 'api/plugins/aea_test_autonomy/helpers/base.md'
             - Contracts: 'api/plugins/aea_test_autonomy/helpers/contracts.md'
             - Tendermint Utils: 'api/plugins/aea_test_autonomy/helpers/tendermint_utils.md'
-        - Data:
-          - Watcher: 'api/data/Dockerfiles/dev/watcher.md'
       - Connections:
         - ABCI:
           - Check Dependencies: 'api/connections/abci/check_dependencies.md'
@@ -320,3 +318,4 @@ extra_javascript:
     - javascripts/mathjax.js
     - https://polyfill.io/v3/polyfill.min.js?features=es6
     - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+    - javascripts/dynamic-hash.js
