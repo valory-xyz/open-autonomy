@@ -71,7 +71,7 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==1.54.0
   open-aea-test-autonomy:
-    version: ==0.15.1
+    version: ==0.15.2
 customs: []
 default_connection: null
 ---
