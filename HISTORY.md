@@ -1,9 +1,13 @@
 # Release History - `open-autonomy`
 
 
+# 0.15.1 (2024-08-05)
+
+- Bumps `open-aea@1.55.0` #2253
+
 # 0.15.1 (2024-07-22)
 
-- Bumps `open-aea@1.54.0`
+- Bumps `open-aea@1.54.0` #2252
 
 # 0.15.0 (2024-07-10)
 
