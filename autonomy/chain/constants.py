@@ -59,6 +59,9 @@ CHAIN_PROFILES = {
         "operator_whitelist": "0x42042799B0DE38AdD2a70dc996f69f98E1a85260",
         "gnosis_safe_proxy_factory": "0x46C0D07F55d4F9B5Eed2Fc9680B5953e5fd7b461",
         "gnosis_safe_same_address_multisig": "0xfa517d01DaA100cB1932FA4345F68874f7E7eF46",
+        "staking_token": "0x0Dc23eEf3bC64CF3cbd8f9329B57AE4C4f28d5d2",
+        "staking_verifier": "0x4503b79d468e81Ad2d4bd6Db991810da269bA777",
+        "staking_factory": "0xEBdde456EA288b49f7D5975E7659bA1Ccf607efc",
     },
     "goerli": {
         "component_registry": "0x7Fd1F4b764fA41d19fe3f63C85d12bf64d2bbf68",
