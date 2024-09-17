@@ -5,6 +5,13 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.15.2` to `v0.16.0`
+
+- The `priority_fee_estimation_trigger` has been removed from the `eip1559` configuration of the ledger connection.
+- The `default_priority_fee` is now optional. 
+  If it is set to `None`, dynamic pricing will be applied. 
+  Otherwise, the specified value will be used.
+
 ## `v0.15.1` to `v0.15.2`
 
 No backwards incompatible changes.
