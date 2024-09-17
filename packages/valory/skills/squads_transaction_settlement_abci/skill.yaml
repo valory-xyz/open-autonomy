@@ -17,11 +17,11 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/squads_multisig:0.1.0:bafybeifok3vypz2qds4weyt2ajtr6ynrsbh2lhdk4nkkw6euv3gf635rge
+- valory/squads_multisig:0.1.0:bafybeie6scbntpyh7gd4fieih3qmulm6si3mwqqiailg43dkkgc2kp4itm
 protocols:
 - valory/contract_api:1.0.0:bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeibovsktd3uxur45nrcomq5shcn46cgxd5idmhxbmjhg32c5abyqim
+- valory/abstract_round_abci:0.1.0:bafybeigh5u54bi3b4nxlbz46hw6dmmatzdwe5lewmk7l3kzd4qzds4cz6e
 behaviours:
   main:
     args: {}
@@ -146,7 +146,7 @@ models:
     class_name: TendermintDialogues
 dependencies:
   open-aea-test-autonomy:
-    version: ==0.15.2
+    version: ==0.16.0
   web3:
     version: <7,>=6.0.0
 is_abstract: true
