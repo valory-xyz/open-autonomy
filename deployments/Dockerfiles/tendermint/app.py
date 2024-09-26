@@ -32,6 +32,11 @@ import requests
 from flask import Flask, Response, jsonify, request
 from werkzeug.exceptions import InternalServerError, NotFound
 
+from deployments.Dockerfiles.tendermint.tendermint import (
+    DEFAULT_P2P_LISTEN_ADDRESS,
+    DEFAULT_RPC_LISTEN_ADDRESS,
+)
+
 
 try:
     from .tendermint import TendermintNode, TendermintParams  # type: ignore
@@ -154,7 +159,7 @@ class PeriodDumper:
 
         self.resets = 0
         self.logger = logger
-        self.dump_dir = dump_dir or Path("/tm_state")
+        self.dump_dir = dump_dir or Path(os.environ.get("TMSTATE") or "/tm_state")
 
         if self.dump_dir.is_dir():
             shutil.rmtree(str(self.dump_dir), onerror=self.readonly_handler)
@@ -195,6 +200,8 @@ def create_app(  # pylint: disable=too-many-statements
     write_to_log = os.environ.get("WRITE_TO_LOG", "false").lower() == "true"
     tendermint_params = TendermintParams(
         proxy_app=os.environ["PROXY_APP"],
+        rpc_laddr=os.environ.get("RPC_LADDR", DEFAULT_RPC_LISTEN_ADDRESS),
+        p2p_laddr=os.environ.get("P2P_LADDR", DEFAULT_P2P_LISTEN_ADDRESS),
         consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
         home=os.environ["TMHOME"],
         use_grpc=os.environ["USE_GRPC"] == "true",

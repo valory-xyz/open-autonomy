@@ -18,11 +18,15 @@
 # ------------------------------------------------------------------------------
 
 """Deployment helpers."""
+import json
 import os
+import platform
 import shutil
+import subprocess  # nosec
+import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import click
 from aea.configurations.data_types import PublicId
@@ -53,6 +57,7 @@ from autonomy.deploy.constants import (
     VENVS_DIR,
 )
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
+from autonomy.deploy.generators.localhost.utils import check_tendermint_version
 from autonomy.deploy.image import build_image
 
 
@@ -161,6 +166,127 @@ def run_deployment(
         raise click.ClickException(e)
     except KeyboardInterrupt:  # pragma: no cover
         stop_deployment(build_dir=build_dir)
+
+
+def _prepare_agent_env(working_dir: Path) -> None:
+    """Prepare agent env, add keys, run aea commands."""
+    env = json.loads((working_dir / "agent.json").read_text(encoding="utf-8"))
+    # Patch for trader agent
+    if "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_STORE_PATH" in env:
+        data_dir = working_dir / "data"
+        data_dir.mkdir(exist_ok=True)
+        env["SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_STORE_PATH"] = str(data_dir)
+
+    # TODO: Dynamic port allocation, backport to service builder
+    env["CONNECTION_ABCI_CONFIG_HOST"] = "localhost"
+    env["CONNECTION_ABCI_CONFIG_PORT"] = "26658"
+
+    for var in env:
+        # Fix tendermint connection params
+        if var.endswith("MODELS_PARAMS_ARGS_TENDERMINT_COM_URL"):
+            env[var] = "http://localhost:8080"
+
+        if var.endswith("MODELS_PARAMS_ARGS_TENDERMINT_URL"):
+            env[var] = "http://localhost:26657"
+
+        if var.endswith("MODELS_PARAMS_ARGS_TENDERMINT_P2P_URL"):
+            env[var] = "localhost:26656"
+
+        if var.endswith("MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR"):
+            benchmarks_dir = working_dir / "benchmarks"
+            benchmarks_dir.mkdir(exist_ok=True, parents=True)
+            env[var] = str(benchmarks_dir.resolve())
+
+    (working_dir / "agent.json").write_text(
+        json.dumps(env, indent=2),
+        encoding="utf-8",
+    )
+
+
+def _run_aea_cmd(
+    args: List[str],
+    cwd: Optional[Path] = None,
+    stdout: int = subprocess.PIPE,
+    stderr: int = subprocess.PIPE,
+    **kwargs: Any,
+) -> None:
+    """Run an aea command in a subprocess."""
+    result = subprocess.run(  # pylint: disable=subprocess-run-check # nosec
+        args=[sys.executable, "-m", "aea.cli", *args],
+        cwd=cwd,
+        stdout=stdout,
+        stderr=stderr,
+        **kwargs,
+    )
+    if result.returncode != 0:
+        std_error = result.stderr.decode()
+        if "Item with name ethereum already present!" not in std_error:
+            raise RuntimeError(f"Error running: {args} @ {cwd}\n{std_error}")
+
+
+def _setup_agent(working_dir: Path) -> None:
+    """Setup agent."""
+    _prepare_agent_env(working_dir)
+    _run_aea_cmd(["add-key", "ethereum"], cwd=working_dir)
+    _run_aea_cmd(["issue-certificates"], cwd=working_dir)
+
+
+def _start_localhost_agent(working_dir: Path) -> None:
+    """Start localhost agent process."""
+    env = json.loads((working_dir / "agent.json").read_text(encoding="utf-8"))
+    subprocess.run(  # pylint: disable=subprocess-run-check # nosec
+        args=[sys.executable, "-m", "aea.cli", "run"],
+        cwd=working_dir,
+        env={**os.environ, **env},
+        creationflags=(
+            0x00000008 if platform.system() == "Windows" else 0
+        ),  # Detach process from the main process
+    )
+
+
+def _start_localhost_tendermint(working_dir: Path) -> subprocess.Popen:
+    """Start localhost tendermint process."""
+    check_tendermint_version()
+    env = json.loads((working_dir / "tendermint.json").read_text(encoding="utf-8"))
+    flask_app_path = (
+        Path(__file__).parent.parent.parent.parent
+        / "deployments"
+        / "Dockerfiles"
+        / "tendermint"
+        / "app.py"
+    )
+    process = subprocess.Popen(  # pylint: disable=consider-using-with # nosec
+        args=[
+            "flask",
+            "run",
+            "--host",
+            "localhost",
+            "--port",
+            "8080",
+        ],
+        cwd=working_dir,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        env={**os.environ, **env, "FLASK_APP": f"{flask_app_path}:create_server"},
+        creationflags=(
+            0x00000008 if platform.system() == "Windows" else 0
+        ),  # Detach process from the main process
+    )
+    (working_dir / "tendermint.pid").write_text(
+        data=str(process.pid),
+        encoding="utf-8",
+    )
+    return process
+
+
+def run_host_deployment(build_dir: Path) -> None:
+    """Run host deployment."""
+    _setup_agent(build_dir)
+    tm_process = _start_localhost_tendermint(build_dir)
+    try:
+        _start_localhost_agent(build_dir)
+    except Exception:  # pylint: disable=broad-except
+        tm_process.terminate()
 
 
 def stop_deployment(build_dir: Path) -> None:

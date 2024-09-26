@@ -17,6 +17,16 @@ def run_deployment(build_dir: Path,
 
 Run deployment.
 
+<a id="autonomy.cli.helpers.deployment.run_host_deployment"></a>
+
+#### run`_`host`_`deployment
+
+```python
+def run_host_deployment(build_dir: Path) -> None
+```
+
+Run host deployment.
+
 <a id="autonomy.cli.helpers.deployment.stop_deployment"></a>
 
 #### stop`_`deployment
