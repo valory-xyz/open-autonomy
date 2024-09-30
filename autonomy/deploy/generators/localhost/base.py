@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,12 +19,11 @@
 
 """Localhost Deployment Generator."""
 import json
-import shutil
 import subprocess  # nosec
 import typing as t
-from pathlib import Path
 
 from aea.configurations.constants import (
+    DEFAULT_AEA_CONFIG_FILE,
     DEFAULT_LEDGER,
     LEDGER,
     PRIVATE_KEY,
@@ -34,14 +33,29 @@ from aea.helpers.io import open_file
 from aea.helpers.yaml_utils import yaml_load_all
 
 from autonomy.deploy.base import BaseDeploymentGenerator
-from autonomy.deploy.constants import DEFAULT_ENCODING
-from autonomy.deploy.generators.localhost.utils import check_tendermint_version
+from autonomy.deploy.constants import (
+    AGENT_VARS_CONFIG_FILE,
+    DEFAULT_ENCODING,
+    TENDERMINT_VARS_CONFIG_FILE,
+    TM_ENV_CREATE_EMPTY_BLOCKS,
+    TM_ENV_P2P_LADDR,
+    TM_ENV_PROXY_APP,
+    TM_ENV_RPC_LADDR,
+    TM_ENV_TMHOME,
+    TM_ENV_TMSTATE,
+    TM_ENV_USE_GRPC,
+    TM_STATE_DIR,
+)
+from autonomy.deploy.generators.localhost.utils import (
+    check_tendermint_version,
+    setup_agent,
+)
 
 
 class HostDeploymentGenerator(BaseDeploymentGenerator):
     """Localhost deployment."""
 
-    output_name: str = "agent.json"
+    output_name: str = AGENT_VARS_CONFIG_FILE
     deployment_type: str = "localhost"
 
     def generate_config_tendermint(self) -> "HostDeploymentGenerator":
@@ -62,17 +76,16 @@ class HostDeploymentGenerator(BaseDeploymentGenerator):
 
         # TODO: Dynamic port allocation
         params = {
-            "TMHOME": tmhome,
-            "TMSTATE": str(self.build_dir / "tm_state"),
-            "P2P_LADDR": "tcp://localhost:26656",
-            "RPC_LADDR": "tcp://localhost:26657",
-            "PROXY_APP": "tcp://localhost:26658",
-            "CREATE_EMPTY_BLOCKS": "true",
-            "USE_GRPC": "false",
+            TM_ENV_TMHOME: tmhome,
+            TM_ENV_TMSTATE: str(self.build_dir / TM_STATE_DIR),
+            TM_ENV_P2P_LADDR: "tcp://localhost:26656",
+            TM_ENV_RPC_LADDR: "tcp://localhost:26657",
+            TM_ENV_PROXY_APP: "tcp://localhost:26658",
+            TM_ENV_CREATE_EMPTY_BLOCKS: "true",
+            TM_ENV_USE_GRPC: "false",
         }
-        (self.build_dir / "tendermint.json").write_text(
+        (self.build_dir / TENDERMINT_VARS_CONFIG_FILE).write_text(
             json.dumps(params, indent=2),
-            encoding="utf-8",
         )
 
         return self
@@ -90,7 +103,6 @@ class HostDeploymentGenerator(BaseDeploymentGenerator):
         )
         (self.build_dir / self.output_name).write_text(
             json.dumps(self.output, indent=2),
-            encoding="utf-8",
         )
 
         return self
@@ -118,13 +130,8 @@ class HostDeploymentGenerator(BaseDeploymentGenerator):
         """Write output to build dir"""
         super().write_config()
         # copy private keys
-        with open_file("aea-config.yaml", "r", encoding="utf-8") as fp:
+        with open_file(DEFAULT_AEA_CONFIG_FILE, "r") as fp:
             aea_config = yaml_load_all(fp)
-        for path in aea_config[0].get("private_key_paths", {}).values():
-            if Path(path).exists():
-                shutil.copy(path, self.build_dir)
 
-        # copy config and vendor
-        shutil.copy("aea-config.yaml", self.build_dir)
-        shutil.copytree("vendor", self.build_dir / "vendor")
+        setup_agent(self.build_dir, aea_config[0])
         return self

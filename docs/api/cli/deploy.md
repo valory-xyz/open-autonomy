@@ -54,11 +54,17 @@ Deploy an agent service.
     help="Number of services.",
 )
 @click.option(
+    "--localhost",
+    "deployment_type",
+    flag_value=HostDeploymentGenerator.deployment_type,
+    help="Use localhost as a backend.",
+)
+@click.option(
     "--docker",
     "deployment_type",
     flag_value=DockerComposeGenerator.deployment_type,
     default=True,
-    help="Use docker as a backend.",
+    help="Use docker as a backend. (default)",
 )
 @click.option(
     "--kubernetes",
@@ -140,6 +146,13 @@ Deploy an agent service.
     help="Set agent memory usage limit.",
     default=DEFAULT_AGENT_MEMORY_LIMIT,
 )
+@click.option(
+    "--mkdir",
+    type=str,
+    help=
+    "Comma-separated list of directory names to create in the build directory.",
+    default=None,
+)
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @image_author_option
@@ -166,7 +179,8 @@ def build_deployment_command(
         agent_cpu_limit: Optional[float] = None,
         agent_memory_limit: Optional[int] = None,
         agent_cpu_request: Optional[float] = None,
-        agent_memory_request: Optional[int] = None) -> None
+        agent_memory_request: Optional[int] = None,
+        mkdir: Optional[str] = None) -> None
 ```
 
 Build deployment setup for n agents.
@@ -200,10 +214,24 @@ Build deployment setup for n agents.
     default=False,
     help="Run service in the background.",
 )
+@click.option(
+    "--localhost",
+    "deployment_type",
+    flag_value="localhost",
+    help="Use localhost as a backend.",
+)
+@click.option(
+    "--docker",
+    "deployment_type",
+    flag_value="docker",
+    help="Use docker as a backend. (default)",
+    default=True,
+)
 def run(build_dir: Path,
         no_recreate: bool,
         remove_orphans: bool,
-        detach: bool = False) -> None
+        detach: bool = False,
+        deployment_type: str = "localhost") -> None
 ```
 
 Run deployment.

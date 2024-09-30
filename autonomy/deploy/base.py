@@ -66,6 +66,7 @@ DEFAULT_ABCI_PORT = 26658
 
 KUBERNETES_DEPLOYMENT = "kubernetes"
 DOCKER_COMPOSE_DEPLOYMENT = "docker-compose"
+LOCALHOST_DEPLOYMENT = "localhost"
 
 LOOPBACK = "127.0.0.1"
 LOCALHOST = "localhost"
@@ -466,14 +467,14 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         """Try update the tendermint parameters"""
 
         is_kubernetes_deployment = self.deplopyment_type == KUBERNETES_DEPLOYMENT
+        is_localhost_deployment = self.deplopyment_type == LOCALHOST_DEPLOYMENT
 
         def _update_tendermint_params(
             param_args: Dict,
             idx: int,
-            is_kubernetes_deployment: bool = False,
         ) -> None:
             """Update tendermint params"""
-            if is_kubernetes_deployment:
+            if is_kubernetes_deployment or is_localhost_deployment:
                 param_args[TENDERMINT_URL_PARAM] = TENDERMINT_NODE_LOCAL
                 param_args[TENDERMINT_COM_URL_PARAM] = TENDERMINT_COM_LOCAL
             else:
@@ -504,7 +505,6 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
                         _update_tendermint_params(
                             param_args=param_args,
                             idx=0,
-                            is_kubernetes_deployment=is_kubernetes_deployment,
                         )
                 else:
                     param_args = self._get_config_from_json_path(
@@ -513,7 +513,6 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
                     _update_tendermint_params(
                         param_args=param_args,
                         idx=0,
-                        is_kubernetes_deployment=is_kubernetes_deployment,
                     )
                 return
 
@@ -530,7 +529,6 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
                 _update_tendermint_params(
                     param_args=param_args,
                     idx=agent_idx,
-                    is_kubernetes_deployment=is_kubernetes_deployment,
                 )
         except KeyError:  # pragma: nocover
             logging.warning(
@@ -611,9 +609,9 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         processed_overrides = deepcopy(overrides)
         if self.service.number_of_agents == 1:
             processed_overrides["config"]["host"] = (
-                LOOPBACK
-                if self.deplopyment_type == KUBERNETES_DEPLOYMENT
-                else self.get_abci_container_name(index=0)
+                self.get_abci_container_name(index=0)
+                if self.deplopyment_type == DOCKER_COMPOSE_DEPLOYMENT
+                else LOOPBACK
             )
             processed_overrides["config"]["port"] = processed_overrides["config"].get(
                 "port", DEFAULT_ABCI_PORT
@@ -627,9 +625,9 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
 
         for idx, override in processed_overrides.items():
             override["config"]["host"] = (
-                LOOPBACK
-                if self.deplopyment_type == KUBERNETES_DEPLOYMENT
-                else self.get_abci_container_name(index=idx)
+                self.get_abci_container_name(index=idx)
+                if self.deplopyment_type == DOCKER_COMPOSE_DEPLOYMENT
+                else LOOPBACK
             )
             override["config"]["port"] = override["config"].get(
                 "port", DEFAULT_ABCI_PORT

@@ -19,6 +19,7 @@
 
 """Constants for generating deployments environment."""
 
+from pathlib import Path
 from string import Template
 
 
@@ -34,6 +35,23 @@ Build Length          $size\n\n
 DEPLOYMENT_KEY_DIRECTORY = "agent_keys"
 DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA = "agent_{agent_n}"
 KUBERNETES_AGENT_KEY_NAME = DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA + "_private_key.yaml"
+TENDERMINT_BIN_UNIX = "tendermint"
+TENDERMINT_BIN_WINDOWS = "tendermint.exe"
+TENDERMINT_VARS_CONFIG_FILE = "tendermint.json"
+AGENT_VARS_CONFIG_FILE = "agent.json"
+TENDERMINT_FLASK_APP_PATH = (
+    Path("deployments") / "Dockerfiles" / "tendermint" / "app.py"
+)
+DEATTACH_WINDOWS_FLAG = 0x00000008
+
+TM_ENV_TMHOME = "TMHOME"
+TM_ENV_TMSTATE = "TMSTATE"
+TM_ENV_PROXY_APP = "PROXY_APP"
+TM_ENV_P2P_LADDR = "P2P_LADDR"
+TM_ENV_RPC_LADDR = "RPC_LADDR"
+TM_ENV_PROXY_APP = "PROXY_APP"
+TM_ENV_CREATE_EMPTY_BLOCKS = "CREATE_EMPTY_BLOCKS"
+TM_ENV_USE_GRPC = "USE_GRPC"
 
 DEFAULT_ENCODING = "utf-8"
 

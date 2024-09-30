@@ -40,6 +40,7 @@ from autonomy.cli.helpers.deployment import (
     build_and_deploy_from_token,
     build_deployment,
     run_deployment,
+    run_host_deployment,
     stop_deployment,
 )
 from autonomy.cli.helpers.env import load_env_file
@@ -60,6 +61,7 @@ from autonomy.deploy.base import (
 from autonomy.deploy.constants import INFO, LOGGING_LEVELS
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
+from autonomy.deploy.generators.localhost.base import HostDeploymentGenerator
 
 
 def _validate_packages_path(path: Optional[Path] = None) -> Path:
@@ -131,11 +133,17 @@ def deploy_group(
     help="Number of services.",
 )
 @click.option(
+    "--localhost",
+    "deployment_type",
+    flag_value=HostDeploymentGenerator.deployment_type,
+    help="Use localhost as a backend.",
+)
+@click.option(
     "--docker",
     "deployment_type",
     flag_value=DockerComposeGenerator.deployment_type,
     default=True,
-    help="Use docker as a backend.",
+    help="Use docker as a backend. (default)",
 )
 @click.option(
     "--kubernetes",
@@ -215,6 +223,12 @@ def deploy_group(
     help="Set agent memory usage limit.",
     default=DEFAULT_AGENT_MEMORY_LIMIT,
 )
+@click.option(
+    "--mkdir",
+    type=str,
+    help="Comma-separated list of directory names to create in the build directory.",
+    default=None,
+)
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @image_author_option
@@ -242,6 +256,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     agent_memory_limit: Optional[int] = None,
     agent_cpu_request: Optional[float] = None,
     agent_memory_request: Optional[int] = None,
+    mkdir: Optional[str] = None,
 ) -> None:
     """Build deployment setup for n agents."""
     if password is not None:  # pragma: nocover
@@ -290,6 +305,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
                 use_acn=use_acn,
                 use_tm_testnet_setup=use_tm_testnet_setup,
                 image_author=image_author,
+                mkdir=mkdir,
                 resources={
                     "agent": {
                         "limit": {"cpu": agent_cpu_limit, "memory": agent_memory_limit},
@@ -329,16 +345,42 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     default=False,
     help="Run service in the background.",
 )
+@click.option(
+    "--localhost",
+    "deployment_type",
+    flag_value="localhost",
+    help="Use localhost as a backend.",
+)
+@click.option(
+    "--docker",
+    "deployment_type",
+    flag_value="docker",
+    help="Use docker as a backend. (default)",
+    default=True,
+)
 def run(
-    build_dir: Path, no_recreate: bool, remove_orphans: bool, detach: bool = False
+    build_dir: Path,
+    no_recreate: bool,
+    remove_orphans: bool,
+    detach: bool = False,
+    deployment_type: str = "localhost",
 ) -> None:
     """Run deployment."""
     build_dir = Path(build_dir or Path.cwd()).absolute()
-    if not (build_dir / DockerComposeGenerator.output_name).exists():
+    deployment = (
+        HostDeploymentGenerator
+        if deployment_type == "localhost"
+        else DockerComposeGenerator
+    )
+    if not (build_dir / deployment.output_name).exists():
         raise click.ClickException(
             f"Deployment configuration does not exist @ {build_dir}"
         )
-    run_deployment(build_dir, no_recreate, remove_orphans, detach=detach)
+    click.echo(f"Running build @ {build_dir}")
+    if deployment_type == "localhost":
+        run_host_deployment(build_dir)
+    else:
+        run_deployment(build_dir, no_recreate, remove_orphans, detach=detach)
 
 
 @deploy_group.command(name="stop")

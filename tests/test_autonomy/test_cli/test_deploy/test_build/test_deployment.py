@@ -28,8 +28,18 @@ from typing import Dict, List, Optional, Tuple
 from unittest import mock
 
 import yaml
+from aea.cli.registry.settings import REGISTRY_LOCAL
 from aea.cli.utils.config import get_default_author_from_cli_config
-from aea.configurations.constants import DEFAULT_ENV_DOTFILE, PACKAGES
+from aea.cli.utils.constants import CLI_CONFIG_PATH, DEFAULT_CLI_CONFIG
+from aea.configurations.constants import (
+    CONNECTION,
+    CONTRACT,
+    DEFAULT_AEA_CONFIG_FILE,
+    DEFAULT_ENV_DOTFILE,
+    PACKAGES,
+    PROTOCOL,
+    SKILL,
+)
 from aea_test_autonomy.configurations import (
     ETHEREUM_ENCRYPTED_KEYS,
     ETHEREUM_ENCRYPTION_PASSWORD,
@@ -39,6 +49,7 @@ from autonomy.constants import (
     DEFAULT_BUILD_FOLDER,
     DEFAULT_DOCKER_IMAGE_AUTHOR,
     DOCKER_COMPOSE_YAML,
+    VALORY,
 )
 from autonomy.deploy.base import (
     DEFAULT_AGENT_CPU_LIMIT,
@@ -49,12 +60,26 @@ from autonomy.deploy.base import (
     build_hash_id,
 )
 from autonomy.deploy.constants import (
+    AGENT_VARS_CONFIG_FILE,
     DEBUG,
     DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
     DEPLOYMENT_KEY_DIRECTORY,
+    INFO,
     KUBERNETES_AGENT_KEY_NAME,
+    PERSISTENT_DATA_DIR,
+    TENDERMINT_VARS_CONFIG_FILE,
+    TM_ENV_CREATE_EMPTY_BLOCKS,
+    TM_ENV_P2P_LADDR,
+    TM_ENV_PROXY_APP,
+    TM_ENV_RPC_LADDR,
+    TM_ENV_TMHOME,
+    TM_ENV_TMSTATE,
+    TM_ENV_USE_GRPC,
+    TM_STATE_DIR,
 )
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
+from autonomy.deploy.generators.localhost.utils import _run_aea_cmd
+from autonomy.replay.agent import ETHEREUM_PRIVATE_KEY_FILE
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.base import get_dummy_service_config
@@ -146,6 +171,57 @@ class BaseDeployBuildTest(BaseCliTest):
         return docker_compose
 
     @staticmethod
+    def check_localhost_build(build_dir: Path) -> None:
+        """Check localhost build directory."""
+        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
+        assert all(
+            [
+                child in build_tree
+                for child in {
+                    ".certs",
+                    DEFAULT_AEA_CONFIG_FILE,
+                    DEPLOYMENT_KEY_DIRECTORY,
+                    ETHEREUM_PRIVATE_KEY_FILE,
+                    PERSISTENT_DATA_DIR,
+                    AGENT_VARS_CONFIG_FILE,
+                    "data",
+                    "node",
+                    TENDERMINT_VARS_CONFIG_FILE,
+                }
+            ]
+        )
+
+    def load_and_check_localhost_build(self, path: Path) -> None:
+        """Load localhost build config."""
+        with open(path / TENDERMINT_VARS_CONFIG_FILE, "r", encoding="utf-8") as fp:
+            assert json.load(fp) == {
+                TM_ENV_TMHOME: (
+                    self.t / "register_reset" / DEFAULT_BUILD_FOLDER / "node"
+                ).as_posix(),
+                TM_ENV_TMSTATE: (
+                    self.t / "register_reset" / DEFAULT_BUILD_FOLDER / TM_STATE_DIR
+                ).as_posix(),
+                TM_ENV_P2P_LADDR: "tcp://localhost:26656",
+                TM_ENV_RPC_LADDR: "tcp://localhost:26657",
+                TM_ENV_PROXY_APP: "tcp://localhost:26658",
+                TM_ENV_CREATE_EMPTY_BLOCKS: "true",
+                TM_ENV_USE_GRPC: "false",
+            }
+        with open(path / AGENT_VARS_CONFIG_FILE, "r", encoding="utf-8") as fp:
+            assert json.load(fp) == {
+                "ID": "0",
+                "AEA_AGENT": "valory/register_reset:0.1.0:bafybeia4pxlphcvco3ttlv3tytklriwvuwxxxr5m2tdry32yc5vogxtm7u",
+                "LOG_LEVEL": INFO,
+                "AEA_PASSWORD": "",
+                "CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_ADDRESS": "http://host.docker.internal:8545",
+                "CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_CHAIN_ID": "31337",
+                "CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_POA_CHAIN": "False",
+                "CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_DEFAULT_GAS_PRICE_STRATEGY": "eip1559",
+                "CONNECTION_ABCI_CONFIG_HOST": "127.0.0.1",
+                "CONNECTION_ABCI_CONFIG_PORT": "26658",
+            }
+
+    @staticmethod
     def check_docker_compose_build(
         build_dir: Path,
     ) -> None:
@@ -161,6 +237,73 @@ class BaseDeployBuildTest(BaseCliTest):
                 ]
             ]
         )
+
+
+class TestLocalhostBuilds(BaseDeployBuildTest):
+    """Test localhost builds."""
+
+    def setup(self) -> None:
+        """Setup test for localhost deployment."""
+        super().setup()
+        shutil.copy(
+            ROOT_DIR
+            / PACKAGES
+            / VALORY
+            / "agents"
+            / "register_reset"
+            / DEFAULT_AEA_CONFIG_FILE,
+            self.t / "register_reset",
+        )
+        aea_cli_config = DEFAULT_CLI_CONFIG
+        aea_cli_config["registry_config"]["settings"][REGISTRY_LOCAL][
+            "default_packages_path"
+        ] = (ROOT_DIR / PACKAGES).as_posix()
+        Path(CLI_CONFIG_PATH).write_text(yaml.dump(aea_cli_config))
+
+        with open(self.t / "register_reset" / DEFAULT_AEA_CONFIG_FILE, "r") as fp:
+            agent_config = next(yaml.safe_load_all(fp))
+        agent_config["private_key_paths"]["ethereum"] = ETHEREUM_PRIVATE_KEY_FILE
+        with open(self.t / "register_reset" / DEFAULT_AEA_CONFIG_FILE, "w") as fp:
+            yaml.dump(agent_config, fp)
+
+        # add all the components
+        for component_type in (CONNECTION, CONTRACT, SKILL, PROTOCOL):
+            for component_name in agent_config[component_type + "s"]:
+                _run_aea_cmd(
+                    [
+                        "--skip-consistency-check",
+                        "add",
+                        component_type,
+                        component_name,
+                        "--mixed",
+                    ],
+                    cwd=self.t / "register_reset",
+                    ignore_error="already exists",
+                )
+
+        # prepare ethereum private key
+        with open(self.t / "register_reset" / ETHEREUM_PRIVATE_KEY_FILE, "w") as fp:
+            fp.write(  # mock private key
+                "0x0000000000000000000000000000000000000000000000000000000000000001"
+            )
+
+    def test_localhost_build(
+        self,
+    ) -> None:
+        """Test that the build command works."""
+
+        build_dir = self.t / "register_reset" / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"), OS_ENV_PATCH:
+            result = self.run_cli(
+                (str(self.keys_file), "--localhost", "--mkdir", "data")
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+        assert (build_dir / "data").exists()
+
+        self.check_localhost_build(build_dir=build_dir)
+        self.load_and_check_localhost_build(path=build_dir)
 
 
 class TestDockerComposeBuilds(BaseDeployBuildTest):

@@ -14,3 +14,13 @@ def check_tendermint_version() -> Path
 
 Check tendermint version.
 
+<a id="autonomy.deploy.generators.localhost.utils.setup_agent"></a>
+
+#### setup`_`agent
+
+```python
+def setup_agent(working_dir: Path, agent_config: dict[str, Any]) -> None
+```
+
+Setup locally deployed agent.
+
