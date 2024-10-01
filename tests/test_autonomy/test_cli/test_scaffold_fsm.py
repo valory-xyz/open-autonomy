@@ -96,12 +96,14 @@ class BaseScaffoldFSMTest(AEATestCaseMany):
         fsm_spec_file: Path,
         scaffold_args: Optional[List] = None,
         cli_args: Optional[List] = None,
+        skill_name: Optional[str] = None,
     ) -> click.testing.Result:
         """Scaffold FSM."""
         scaffold_args = scaffold_args or []
         cli_args = cli_args or []
-        *_, skill_name, _ = fsm_spec_file.parts
-        skill_name = f"test_skill_{skill_name}"
+        if skill_name is None:
+            *_, skill_name, _ = fsm_spec_file.parts
+            skill_name = f"test_skill_{skill_name}"
         scaffold_args = [
             *cli_args,
             "scaffold",
@@ -146,6 +148,13 @@ class TestScaffoldFSM(BaseScaffoldFSMTest):
         assert (
             self.t / self.agent_name / "skills" / skill_name / fsm_spec_file.name
         ).exists(), "spec file not copied in scaffolded skill"
+
+    def test_failure_due_to_name(self) -> None:
+        """Test failure due to name."""
+        with pytest.raises(click.ClickException):
+            self.scaffold_fsm(
+                fsm_specifications[0], skill_name="test"  # without `_abci`
+            )
 
 
 class TestScaffoldFSMAutonomyTests(BaseScaffoldFSMTest):

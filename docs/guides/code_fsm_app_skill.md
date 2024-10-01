@@ -19,13 +19,13 @@ You must ensure that your machine satisfies the [framework requirements](./set_u
 1. **Generate the {{fsm_app}} template classes.** Place the FSM specification `fsm_specification.yaml` [that you have created in the previous step](./draft_service_idea_and_define_fsm_specification.md#define-the-fsm-specification) in the workspace folder. Use the scaffold tool to generate an {{fsm_app}} with template classes:
 
     ```bash
-    autonomy scaffold -tlr fsm your_fsm_app --spec fsm_specification.yaml
+    autonomy scaffold -tlr fsm your_fsm_app_abci --spec fsm_specification.yaml
     ```
 
-    This command will download the required packages to the local registry, and generate the {{fsm_app}} skill with a template for the [required classes](../key_concepts/fsm_app_introduction.md). The `-tlr` flag indicates that the {{fsm_app}} skill will be generated in the local registry (`./packages`). The actual path will be
+    Make sure to end the name with `_abci`. This command will download the required packages to the local registry, and generate the {{fsm_app}} skill with a template for the [required classes](../key_concepts/fsm_app_introduction.md). The `-tlr` flag indicates that the {{fsm_app}} skill will be generated in the local registry (`./packages`). The actual path will be
 
     ```
-    ./packages/your_name/skills/your_fsm_app/
+    ./packages/your_name/skills/your_fsm_app_abci/
     ```
 
     You can explore this path and take a look at the generated classes.

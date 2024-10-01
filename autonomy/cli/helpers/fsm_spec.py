@@ -107,6 +107,11 @@ def check_one(
 ) -> None:
     """Check for one."""
 
+    if not package_path.name.endswith("_abci"):
+        raise ValueError(  # pragma: no cover
+            f"The name of the skill '{package_path.name}' must end with `_abci`."
+        )
+
     spec_file = package_path / cast(
         Path, FSMSpecificationLoader.OutputFormats.default_output_files.get(spec_format)
     )
