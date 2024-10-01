@@ -65,10 +65,10 @@ from autonomy.deploy.generators.localhost.utils import check_tendermint_version
 from autonomy.deploy.image import build_image
 
 
-def _build_dirs(build_dir: Path, mkdir: Optional[str] = None) -> None:
+def _build_dirs(build_dir: Path, mkdir: list[str] = []) -> None:
     """Build necessary directories."""
 
-    mkdirs = [(new_dir_name,) for new_dir_name in mkdir.split(",")] if mkdir else []
+    mkdirs = [(new_dir_name,) for new_dir_name in mkdir]
 
     for dir_path in [
         (PERSISTENT_DATA_DIR,),

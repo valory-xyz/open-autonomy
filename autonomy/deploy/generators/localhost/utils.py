@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Localhost Deployment utilities."""
+import json
 import os
 import platform
 import shutil
@@ -28,7 +29,11 @@ from typing import Any, List, Optional
 
 from aea.configurations.constants import DEFAULT_AEA_CONFIG_FILE, VENDOR
 
-from autonomy.deploy.constants import TENDERMINT_BIN_UNIX, TENDERMINT_BIN_WINDOWS
+from autonomy.deploy.constants import (
+    BENCHMARKS_DIR,
+    TENDERMINT_BIN_UNIX,
+    TENDERMINT_BIN_WINDOWS,
+)
 
 
 LOCAL_TENDERMINT_VERSION = "0.34.19"
@@ -86,8 +91,39 @@ def _run_aea_cmd(
             raise RuntimeError(f"Error running: {args} @ {cwd}\n{result_error}")
 
 
+def _prepare_agent_env(working_dir: Path) -> None:
+    """Prepare agent env, add keys, run aea commands."""
+    env = json.loads((working_dir / "agent.json").read_text(encoding="utf-8"))
+
+    # TODO: Dynamic port allocation, backport to service builder
+    env["CONNECTION_ABCI_CONFIG_HOST"] = "localhost"
+    env["CONNECTION_ABCI_CONFIG_PORT"] = "26658"
+
+    for var in env:
+        # Fix tendermint connection params
+        if var.endswith("MODELS_PARAMS_ARGS_TENDERMINT_COM_URL"):
+            env[var] = "http://localhost:8080"
+
+        if var.endswith("MODELS_PARAMS_ARGS_TENDERMINT_URL"):
+            env[var] = "http://localhost:26657"
+
+        if var.endswith("MODELS_PARAMS_ARGS_TENDERMINT_P2P_URL"):
+            env[var] = "localhost:26656"
+
+        if var.endswith("MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR"):
+            benchmarks_dir = working_dir / BENCHMARKS_DIR
+            benchmarks_dir.mkdir(exist_ok=True, parents=True)
+            env[var] = str(benchmarks_dir.resolve())
+
+    (working_dir / "agent.json").write_text(
+        json.dumps(env, indent=2),
+        encoding="utf-8",
+    )
+
+
 def setup_agent(working_dir: Path, agent_config: dict[str, Any]) -> None:
     """Setup locally deployed agent."""
+    _prepare_agent_env(working_dir)
     shutil.copy(DEFAULT_AEA_CONFIG_FILE, working_dir)
 
     # add dependencies

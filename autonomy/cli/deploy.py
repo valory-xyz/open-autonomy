@@ -226,8 +226,9 @@ def deploy_group(
 @click.option(
     "--mkdir",
     type=str,
-    help="Comma-separated list of directory names to create in the build directory.",
-    default=None,
+    help="Directory names to create in the build directory.",
+    default=[],
+    multiple=True,
 )
 @registry_flag()
 @password_option(confirmation_prompt=True)
@@ -240,6 +241,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     output_dir: Optional[Path],
     dev_mode: bool,
     registry: str,
+    mkdir: list[str],
     number_of_agents: Optional[int] = None,
     number_of_services: int = 1,
     password: Optional[str] = None,
@@ -256,7 +258,6 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     agent_memory_limit: Optional[int] = None,
     agent_cpu_request: Optional[float] = None,
     agent_memory_request: Optional[int] = None,
-    mkdir: Optional[str] = None,
 ) -> None:
     """Build deployment setup for n agents."""
     if password is not None:  # pragma: nocover
@@ -362,8 +363,8 @@ def run(
     build_dir: Path,
     no_recreate: bool,
     remove_orphans: bool,
-    detach: bool = False,
-    deployment_type: str = "localhost",
+    detach: bool,
+    deployment_type: str,
 ) -> None:
     """Run deployment."""
     build_dir = Path(build_dir or Path.cwd()).absolute()
