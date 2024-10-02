@@ -145,7 +145,7 @@ class TestGenerateSpecs(BaseCliTest):
                 "--app-class",
                 "SOME_CLASS_NAME",
                 "--package",
-                str(Path(*self.skill_path.parts, "dummy")),
+                str(Path(*self.skill_path.parts, "dummy_abci")),
                 "--yaml",
             )
         )
@@ -167,6 +167,13 @@ class TestGenerateSpecs(BaseCliTest):
 
         assert result.exit_code == 1, result.output
         assert 'Class "SomeAppName" is not in' in result.stdout, result.output
+
+        self.skill_path = self.skill_path.rename(self.skill_path.parent / "offend")
+        result = self.run_cli(("--package", str(self.skill_path)))
+        assert result.exit_code == 1, result.output
+        assert (
+            "The name of the skill 'offend' must end with `_abci`." in result.stdout
+        ), result.output
 
 
 class TestCheckSpecs(BaseCliTest):

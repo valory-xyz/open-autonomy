@@ -92,6 +92,9 @@ def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None:
         "`autonomy scaffold fsm` is deprecated, use `open-autonomy-compose` to scaffold FSM applications"
     )
 
+    if not skill_name.endswith("_abci"):
+        raise click.ClickException("Skill name must end with '_abci'")
+
     ctx.registry_type = registry
 
     # check abstract_round_abci is in dependencies; if not, add it

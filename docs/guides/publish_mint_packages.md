@@ -23,7 +23,7 @@ The components developed in the local registry have to be referenced in the inde
     "dev": {
         "service/your_name/your_service/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
         "agent/your_name/your_agent/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
-        "skill/your_name/your_fsm_app/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000"
+        "skill/your_name/your_fsm_app_abci/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000"
         /* (1)! */
     },
     "third_party": {
