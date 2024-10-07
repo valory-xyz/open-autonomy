@@ -22,7 +22,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
     autonomy deploy build --dev --packages-dir ~/service/packages --open-aea-dir ~/git/open-aea/ --use-hardhat -ltm
     ```
 
-    This will create a deployment environment in `dev` mode within the `./abci_build` folder.
+    This will create a deployment environment in `dev` mode within the `./abci_build_*` folder.
   
     You must modify the paths in the command above appropriately, pointing to:
 
@@ -39,10 +39,10 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
     > Note: When building development deployments you don't have to define keys manually, `autonomy` generates the keys automatically in development mode. You can still specify the keys file if you already have one and you're planning on using it.
 
-3. **Run the service.** Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally.
+3. **Run the service.** Navigate to the deployment environment folder (`./abci_build_*`) and run the deployment locally.
 
     ```bash
-    cd abci_build
+    cd abci_build_*
     autonomy deploy run
     ```
 

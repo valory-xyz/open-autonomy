@@ -57,7 +57,7 @@ Options:
 
 For example, in order to build a deployment from scratch for oracle abci, first ensure you have a clean build environment and then build the images:
 ```bash
-rm -rf abci_build
+rm -rf abci_build_*
 autonomy build-image valory/oracle_hardhat
 ```
 
@@ -66,12 +66,12 @@ Next, run the command to generate the relevant build configuration:
 autonomy deploy build deployments/keys/hardhat_keys.json
 ```
 
-A build configuration will be output to `./abci_build`.
+A build configuration will be output to `./abci_build_*/`.
 
 This can then be launched using the appropriate tool. For example, to launch a deployment using docker-compose.
 
 ```bash
-cd abci_build/
+cd abci_build_*/
 docker-compose up --force-recreate
 ```
 
