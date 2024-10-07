@@ -41,7 +41,7 @@ autonomy deploy --env-file <path_to_json> COMMAND [ARGS]
 
 Build a service deployment.
 
-This command must be executed within a service folder. That is, a folder containing the service configuration file (`service.yaml`). The deployment will be created in the subfolder `./abci_build`.
+This command must be executed within a service folder. That is, a folder containing the service configuration file (`service.yaml`). The deployment will be created in the subfolder `./abci_build_*`.
 
 ### Usage
 
@@ -201,7 +201,7 @@ on kubernetes deployment.
 
 Run a service deployment locally stored.
 
-This command is a wrapper around `docker-compose up` to run the service deployment. To execute this command you need to be located within the deployment environment subfolder (`./abci_build`), or specify it with the option `--build-dir`.
+This command is a wrapper around `docker-compose up` to run the service deployment. To execute this command you need to be located within the deployment environment subfolder (`./abci_build_*`), or specify it with the option `--build-dir`.
 
 ### Usage
 
@@ -229,16 +229,16 @@ autonomy deploy run [OPTIONS]
 ### Examples
 
 ```bash
-autonomy deploy run --build-dir ./abci_build
+autonomy deploy run --build-dir ./abci_build_hAsH
 ```
 
-Runs the service deployment stored locally in the directory `./abci_build`.
+Runs the service deployment stored locally in the directory `./abci_build_hAsH`.
 
 To provide password for the private keys
 
 ```bash
 export OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD=PASSWORD
-autonomy deploy run --build-dir ./abci_build
+autonomy deploy run --build-dir ./abci_build_hAsH
 ```
 
 ## `autonomy deploy from-token`

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -155,6 +155,9 @@ class TestFromToken(BaseChainInteractionTest):
         with mock.patch(
             "autonomy.cli.helpers.deployment.fetch_service_ipfs",
             return_value=service_dir,
+        ), mock.patch(
+            "autonomy.cli.helpers.deployment.build_hash_id",
+            return_value="test",
         ), run_deployment_patch as rdp, (
             build_image_patch
         ), default_remote_registry_patch, default_ipfs_node_patch, ipfs_resolve_patch:
@@ -171,7 +174,7 @@ class TestFromToken(BaseChainInteractionTest):
 
             rdp.assert_not_called()
 
-        assert (self.t / "service" / "abci_build" / "build.yaml").exists()
+        assert (self.t / "service" / "abci_build_test" / "build.yaml").exists()
 
     def test_fail_on_chain_resolve_connection_error(self) -> None:
         """Run test."""

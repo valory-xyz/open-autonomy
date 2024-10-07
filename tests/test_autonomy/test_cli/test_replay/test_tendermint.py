@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ from unittest import mock
 import flask
 
 from autonomy.cli import cli
+from autonomy.cli.helpers.deployment import build_hash_id
 from autonomy.constants import DEFAULT_BUILD_FOLDER
 from autonomy.deploy.constants import PERSISTENT_DATA_DIR, TM_STATE_DIR
 from autonomy.replay.tendermint import TendermintNetwork
@@ -97,6 +98,7 @@ class TestTendermintRunner(BaseCliTest):
         """Test run."""
 
         os.chdir(self.t / "register_reset")
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with OS_ENV_PATCH:
             result = self.cli_runner.invoke(
                 cli,
@@ -105,7 +107,7 @@ class TestTendermintRunner(BaseCliTest):
                     "build",
                     str(self.keys_path),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--local",
                 ),
             )
@@ -114,26 +116,14 @@ class TestTendermintRunner(BaseCliTest):
         os.chdir(self.t)
 
         addrbook_file = (
-            (
-                self.t
-                / DEFAULT_BUILD_FOLDER
-                / PERSISTENT_DATA_DIR
-                / TM_STATE_DIR
-                / "addrbook.json"
-            )
+            (build_dir / PERSISTENT_DATA_DIR / TM_STATE_DIR / "addrbook.json")
             .resolve()
             .absolute()
         )
         addrbook_file.write_text(json.dumps(ADDRBOOK_DATA))
 
         config_toml = (
-            (
-                self.t
-                / DEFAULT_BUILD_FOLDER
-                / PERSISTENT_DATA_DIR
-                / TM_STATE_DIR
-                / "config.toml"
-            )
+            (build_dir / PERSISTENT_DATA_DIR / TM_STATE_DIR / "config.toml")
             .resolve()
             .absolute()
         )
@@ -144,7 +134,7 @@ class TestTendermintRunner(BaseCliTest):
         ), mock.patch.object(TendermintNetwork, "stop") as stop_mock, mock.patch.object(
             flask.Flask, "run", new=ctrl_c
         ):
-            result = self.run_cli(("--build", str(self.t / DEFAULT_BUILD_FOLDER)))
+            result = self.run_cli(("--build", str(build_dir)))
             assert result.exit_code == 0, result.output
             stop_mock.assert_any_call()
 

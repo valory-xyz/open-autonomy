@@ -88,7 +88,7 @@ As a summary, the sequence of events that should occur so that the benchmark inf
 3. The {{fsm_app}} reaches the `ResetAndPauseRound` (`reset_pause_abci` round and calls the `BenchmarkTool.save()` method.
 4. Wait for as many periods as you wish before stopping the service. Note that any measurement not saved at the end of a period will be lost.
 
-The benchmark data will be stored in the folder `<service_folder>/abci_build/persistent_data/benchmarks`.
+The benchmark data will be stored in the folder `<service_folder>/abci_build_*/persistent_data/benchmarks`.
 
 ## Use the command line to aggregate benchmark information
 
@@ -96,17 +96,17 @@ The benchmark data will be stored in the folder `<service_folder>/abci_build/per
 
 2. **Wait for service execution.** Wait until the service has completed at least one period before cancelling the execution. That is, wait until the `ResetAndPauseRound` round has occurred at least once. As commented above, this is required because benchmark data is saved in this state. Once you have a data dump, you can stop the local execution by pressing `Ctrl-C`.
 
-3. **Aggregate the benchmark data.** The benchmark data will be stored in the folder `<service_folder>/abci_build/persistent_data/benchmarks`. Aggregate the data for all periods executing:
+3. **Aggregate the benchmark data.** The benchmark data will be stored in the folder `<service_folder>/abci_build_*/persistent_data/benchmarks`. Aggregate the data for all periods executing:
 
     ```bash
-    autonomy analyse benchmarks abci_build/persistent_data/benchmarks
+    autonomy analyse benchmarks abci_build_*/persistent_data/benchmarks
     ```
 
     This will generate a `benchmarks.html` file containing benchmark stats in your current directory.
     By default the script will generate output for all periods but you can specify which period to generate output for. Similarly, block types aggregation is configurable as well. For example,
 
     ```bash
-    autonomy analyse benchmarks abci_build/persistent_data/benchmarks --period 2 --block-type consensus
+    autonomy analyse benchmarks abci_build_*/persistent_data/benchmarks --period 2 --block-type consensus
     ```
 
     will aggregate stats for `consensus` code blocks in the second period.

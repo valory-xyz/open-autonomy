@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ from typing import Any, Tuple
 from unittest import mock
 
 from autonomy.cli import cli
+from autonomy.cli.helpers.deployment import build_hash_id
+from autonomy.constants import DEFAULT_BUILD_FOLDER
 from autonomy.deploy.base import TENDERMINT_COM_URL_PARAM, TENDERMINT_URL_PARAM
 from autonomy.replay.agent import AgentRunner
 
@@ -102,6 +104,7 @@ class TestAgentRunner(BaseCliTest):
     def test_run(self) -> None:
         """Test run."""
 
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.cli_runner.invoke(
                 cli,
@@ -111,13 +114,12 @@ class TestAgentRunner(BaseCliTest):
                     str(self.keys_path),
                     "--local",
                     "--o",
-                    str(self.t / "abci_build"),
+                    str(build_dir),
                 ),
             )
 
         assert result.exit_code == 0, result.output
 
-        build_dir = self.t / "abci_build"
         with mock.patch.object(AgentRunner, "start", new=ctrl_c), mock.patch.object(
             AgentRunner, "stop"
         ) as stop_mock, mock.patch(

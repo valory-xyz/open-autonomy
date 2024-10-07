@@ -298,18 +298,18 @@ autonomy analyse benchmarks [OPTIONS] PATH
 
 ### Examples
 
-The benchmark data will be stored in the folder `<service_folder>/abci_build/persistent_data/benchmarks`.
+The benchmark data will be stored in the folder `<service_folder>/abci_build_hAsH/persistent_data/benchmarks`.
 
 To aggregate stats for all periods, execute:
 
 ```bash
-autonomy analyse benchmarks abci_build/persistent_data/benchmarks
+autonomy analyse benchmarks abci_build_hAsH/persistent_data/benchmarks
 ```
 
 To aggregate stats for `consensus` block type in the second period, execute:
 
 ```bash
-    autonomy analyse benchmarks abci_build/persistent_data/benchmarks --period 2 --block-type consensus
+    autonomy analyse benchmarks abci_build_hAsH/persistent_data/benchmarks --period 2 --block-type consensus
 ```
 
 ## `autonomy analyse service`

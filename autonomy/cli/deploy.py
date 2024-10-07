@@ -38,6 +38,7 @@ from autonomy.chain.config import ChainType
 from autonomy.cli.helpers.deployment import (
     build_and_deploy_from_token,
     build_deployment,
+    build_hash_id,
     run_deployment,
     stop_deployment,
 )
@@ -245,7 +246,9 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
         message = f"No such file or directory: {keys_file}. Please provide valid path for keys file."
         raise click.ClickException(message)
 
-    build_dir = Path(output_dir or DEFAULT_BUILD_FOLDER).absolute()
+    build_dir = Path(
+        output_dir or DEFAULT_BUILD_FOLDER.format(build_hash_id())
+    ).absolute()
     if dev_mode:
         packages_dir = _validate_packages_path(path=packages_dir)
         open_aea_dir = _validate_open_aea_dir(path=open_aea_dir)

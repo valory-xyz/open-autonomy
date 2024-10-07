@@ -34,6 +34,7 @@ from aea_test_autonomy.configurations import (
     ETHEREUM_ENCRYPTION_PASSWORD,
 )
 
+from autonomy.cli.helpers.deployment import build_hash_id
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_DOCKER_IMAGE_AUTHOR
 from autonomy.deploy.base import (
     DEFAULT_AGENT_CPU_LIMIT,
@@ -157,13 +158,13 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--local",
                 )
             )
@@ -185,13 +186,13 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--local",
                     "--local-tm-setup",
                 )
@@ -205,13 +206,13 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--local",
                     "--log-level",
                     DEBUG,
@@ -247,13 +248,13 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--dev",
                     "--local",
                     "--packages-dir",
@@ -298,30 +299,27 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
         keys_file = Path(ETHEREUM_ENCRYPTED_KEYS)
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
 
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--password",
                     ETHEREUM_ENCRYPTION_PASSWORD,
                     "--local",
                 )
             )
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
         assert result.exit_code == 0, result.stderr
         assert (
             "WARNING: `--password` flag has been deprecated, use `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` to export the password value"
             in result.stdout
         )
         assert build_dir.exists()
-
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
         assert result.exit_code == 0, result.output
-        assert build_dir.exists()
 
         docker_compose_file = build_dir / DockerComposeGenerator.output_name
         with open(docker_compose_file, "r", encoding="utf-8") as fp:
@@ -353,12 +351,13 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
 
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--dev",
                     "--local",
                     "--packages-dir",
@@ -369,8 +368,6 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                     "--use-acn",
                 )
             )
-
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
 
         assert result.exit_code == 0, result.output
         assert build_dir.exists()
@@ -391,7 +388,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())),
                     "--dev",
                     "--local",
                 )
@@ -426,13 +423,13 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--local",
                     "--log-level",
                     DEBUG,
@@ -463,14 +460,14 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         image_author = "some_author"
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--local",
                     "--log-level",
                     DEBUG,
@@ -506,13 +503,13 @@ class TestKubernetesBuild(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--kubernetes",
                     "--local",
                 )
@@ -528,13 +525,13 @@ class TestKubernetesBuild(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--kubernetes",
                     "--local",
                     "--log-level",
@@ -557,13 +554,13 @@ class TestKubernetesBuild(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--kubernetes",
                     "--dev",
                     "--local",
@@ -586,14 +583,14 @@ class TestKubernetesBuild(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
         keys_file = Path(ETHEREUM_ENCRYPTED_KEYS)
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
 
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--kubernetes",
                     "--password",
                     ETHEREUM_ENCRYPTION_PASSWORD,
@@ -634,14 +631,14 @@ class TestKubernetesBuild(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
 
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--local",
                     "--kubernetes",
                     "--local-tm-setup",
@@ -666,13 +663,13 @@ class TestKubernetesBuild(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--kubernetes",
                     "--local",
                     "--log-level",
@@ -696,14 +693,14 @@ class TestKubernetesBuild(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         image_author = "some_image_author"
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--kubernetes",
                     "--local",
                     "--log-level",
@@ -748,13 +745,13 @@ class TestExposePorts(BaseDeployBuildTest):
     def test_expose_agent_ports_docker_compose(self) -> None:
         """Test expose agent ports"""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                 )
             )
 
@@ -778,13 +775,13 @@ class TestExposePorts(BaseDeployBuildTest):
     def test_expose_agent_ports_kubernetes(self) -> None:
         """Test expose agent ports"""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--kubernetes",
                 )
             )
@@ -829,13 +826,13 @@ class TestExtraVolumes(BaseDeployBuildTest):
     def test_expose_agent_ports_docker_compose(self) -> None:
         """Test expose agent ports"""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                 )
             )
 
@@ -860,13 +857,13 @@ class TestExtraVolumes(BaseDeployBuildTest):
     def test_expose_agent_ports_kubernetes(self) -> None:
         """Test expose agent ports"""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--kubernetes",
                 )
             )
@@ -917,13 +914,13 @@ class TestLoadEnvVars(BaseDeployBuildTest):
 
     def _run_test(self) -> None:
         """Run test."""
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                 )
             )
 
@@ -982,11 +979,9 @@ class TestResourceSpecification(BaseDeployBuildTest):
     def test_default_resources_docker_compose(self) -> None:
         """Test custom resources"""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
-            result = self.run_cli(
-                (str(self.keys_file), "--o", str(self.t / DEFAULT_BUILD_FOLDER))
-            )
+            result = self.run_cli((str(self.keys_file), "--o", str(build_dir)))
 
         assert result.exit_code == 0, result.output
         assert build_dir.exists()
@@ -1014,13 +1009,13 @@ class TestResourceSpecification(BaseDeployBuildTest):
     def test_default_resources_kuberntes(self) -> None:
         """Test custom resources"""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--kubernetes",
                 )
             )
@@ -1056,13 +1051,13 @@ class TestResourceSpecification(BaseDeployBuildTest):
     def test_custom_resources_docker_compose(self) -> None:
         """Test custom resources"""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--agent-cpu-limit",
                     "2.0",
                     "--agent-memory-limit",
@@ -1092,13 +1087,13 @@ class TestResourceSpecification(BaseDeployBuildTest):
     def test_custom_resources_kuberntes(self) -> None:
         """Test custom resources"""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
                     "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    str(build_dir),
                     "--kubernetes",
                     "--agent-cpu-request",
                     "1.0",

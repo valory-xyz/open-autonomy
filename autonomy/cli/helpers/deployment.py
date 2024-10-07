@@ -21,6 +21,7 @@
 import os
 import shutil
 import time
+from base64 import urlsafe_b64encode
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -110,6 +111,11 @@ def _load_compose_project(build_dir: Path) -> Project:
                 "please use `--aev` flag if you intend to use environment variables."
             )
         raise
+
+
+def build_hash_id() -> str:
+    """Generate a random 4 character hash id for the deployment build directory name."""
+    return urlsafe_b64encode(bytes(os.urandom(3))).decode()
 
 
 def run_deployment(
@@ -300,7 +306,7 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
     *_, service_hash = service_metadata["code_uri"].split("//")
     public_id = PublicId(author="valory", name="service", package_hash=service_hash)
     service_path = fetch_service_ipfs(public_id)
-    build_dir = service_path / DEFAULT_BUILD_FOLDER
+    build_dir = service_path / DEFAULT_BUILD_FOLDER.format(build_hash_id())
 
     with cd(service_path):
         build_deployment(

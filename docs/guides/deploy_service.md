@@ -153,17 +153,17 @@ We illustrate the full local deployment workflow using the `hello_world` service
     === "Docker Compose"
 
         ```bash
-        rm -rf abci_build #(1)!
+        rm -rf abci_build_* #(1)!
         autonomy deploy build keys.json -ltm #(2)!
         ```
 
         1. Delete previous deployments, if necessary.
         2. `-ltm` stands for "use local Tendermint node". Check out the [`autonomy deploy build`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-build) command documentation to learn more about its parameters and options.
 
-        This will create a deployment environment within the `./abci_build` folder with the following structure:
+        This will create a deployment environment within the `./abci_build_*` folder with the following structure:
 
         ```bash
-        abci_build/
+        abci_build_*/
         ├── agent_keys
         │   ├── agent_0
         │   ├── agent_1
@@ -185,17 +185,17 @@ We illustrate the full local deployment workflow using the `hello_world` service
     === "Kubernetes"
 
         ```bash
-        rm -rf abci_build #(1)!
+        rm -rf abci_build_* #(1)!
         autonomy deploy build keys.json -ltm --kubernetes #(2)!
         ```
 
         1. Delete previous deployments, if necessary.
         2. `-ltm` stands for "use local Tendermint node". Check out the [`autonomy deploy build`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-build) command documentation to learn more about its parameters and options.
 
-        This will create a deployment environment within the `./abci_build` folder with the following structure:
+        This will create a deployment environment within the `./abci_build_*` folder with the following structure:
 
         ```
-        abci_build/
+        abci_build_*/
         ├── agent_keys
         │   ├── agent_0_private_key.yaml
         │   ├── agent_1_private_key.yaml
@@ -209,12 +209,12 @@ We illustrate the full local deployment workflow using the `hello_world` service
             └── venvs
         ```
 
-5. **Execute the deployment.** Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally.
+5. **Execute the deployment.** Navigate to the deployment environment folder (`./abci_build_*`) and run the deployment locally.
 
     === "Docker Compose"
 
         ```bash
-        cd abci_build
+        cd abci_build_*
         autonomy deploy run #(1)!
         ```
 
@@ -231,7 +231,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
 
         1. Create the minikube Kubernetes cluster.
             ```bash
-            cd abci_build
+            cd abci_build_*
             minikube start --driver=docker
             ```
 

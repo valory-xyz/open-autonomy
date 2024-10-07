@@ -418,7 +418,7 @@ autonomy/data/contracts/service_registry_token_utility
 
 generate_abciapp_spec.py
 generate_abci_docstrings
-abci_build/
+abci_build_*
 keys.json
 leak_report
 temp/
