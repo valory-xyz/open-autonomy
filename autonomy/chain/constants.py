@@ -63,17 +63,6 @@ CHAIN_PROFILES = {
         "staking_verifier": "0x4503b79d468e81Ad2d4bd6Db991810da269bA777",
         "staking_factory": "0xEBdde456EA288b49f7D5975E7659bA1Ccf607efc",
     },
-    "goerli": {
-        "component_registry": "0x7Fd1F4b764fA41d19fe3f63C85d12bf64d2bbf68",
-        "agent_registry": "0xEB5638eefE289691EcE01943f768EDBF96258a80",
-        "registries_manager": "0x10c5525F77F13b28f42c5626240c001c2D57CAd4",
-        "service_registry": "0x1cEe30D08943EB58EFF84DD1AB44a6ee6FEff63a",
-        "service_registry_token_utility": "0x6d9b08701Af43D68D991c074A27E4d90Af7f2276",
-        "service_manager_token": "0x1d333b46dB6e8FFd271b6C2D2B254868BD9A2dbd",
-        "gnosis_safe_proxy_factory": "0x65dD51b02049ad1B6FF7fa9Ea3322E1D2CAb1176",
-        "gnosis_safe_same_address_multisig": "0x06467Cb835da623384a22aa902647784C1c9f5Ae",
-        "operator_whitelist": "0x0338893fB1A1D9Df03F72CC53D8f786487d3D03E",
-    },
     "polygon": {
         "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
         "service_manager": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
@@ -224,7 +213,6 @@ CHAIN_PROFILES = {
 CHAIN_NAME_TO_CHAIN_ID = {
     "local": 31337,
     "ethereum": 1,
-    "goerli": 5,
     "polygon": 137,
     "polygon_mumbai": 80001,
     "gnosis": 100,

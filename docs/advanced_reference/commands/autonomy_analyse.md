@@ -372,9 +372,6 @@ autonomy analyse service [OPTIONS]
 `--use-ethereum`                  
 :   To use `ethereum` chain profile to interact with the contracts
 
-`--use-goerli`                    
-:   To use `goerli` chain profile to interact with the contracts
-
 `--use-custom-chain`              
 :   To use `custom-chain` chain profile to interact with the contracts
 

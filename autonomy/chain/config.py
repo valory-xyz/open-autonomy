@@ -30,7 +30,6 @@ from autonomy.chain.constants import CHAIN_NAME_TO_CHAIN_ID, CHAIN_PROFILES
 DEFAULT_LOCAL_RPC = "http://127.0.0.1:8545"
 DEFAULT_LOCAL_CHAIN_ID = 31337
 CUSTOM_CHAIN_RPC = "CUSTOM_CHAIN_RPC"
-GOERLI_CHAIN_RPC = "GOERLI_CHAIN_RPC"
 ETHEREUM_CHAIN_RPC = "ETHEREUM_CHAIN_RPC"
 
 
@@ -47,7 +46,6 @@ class ChainType(Enum):
 
     LOCAL = "local"
     CUSTOM = "custom_chain"
-    GOERLI = "goerli"
     ETHEREUM = "ethereum"
     POLYGON = "polygon"
     POLYGON_MUMBAI = "polygon_mumbai"
