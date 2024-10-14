@@ -24,8 +24,8 @@ Finally, build the deployment and run it:
 ```bash
 export OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD=${PASSWORD}
 autonomy deploy build  ../generated_keys.json --kubernetes --dev
-kubectl apply -f abci_build/
-kubectl apply -f abci_build/agent_keys
+kubectl apply -f abci_build_*/
+kubectl apply -f abci_build_*/agent_keys
 ```
 
 This will deploy a private hardhat container to the cluster, along with the associated agent service, configured to use the hardhat container.

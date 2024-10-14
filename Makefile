@@ -207,7 +207,7 @@ protolint_install_win:
 	powershell -command '$$env:GO111MODULE="on"; go install github.com/yoheimuta/protolint/cmd/protolint@v0.27.0'
 
 teardown-docker-compose:
-	cd abci_build/ && \
+	cd $(find . -type d -name "abci_build*" | head -1) && \
 		docker-compose kill && \
 		docker-compose down && \
 		echo "Deployment torndown!" && \

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import click
 from aea.cli.utils.click_utils import reraise_as_click_exception
 from aea.configurations.constants import PACKAGES
 
+from autonomy.cli.helpers.deployment import build_hash_id
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DOCKER_COMPOSE_YAML
 from autonomy.deploy.constants import PERSISTENT_DATA_DIR, TM_STATE_DIR
 from autonomy.replay.agent import AgentRunner
@@ -38,7 +39,6 @@ from autonomy.replay.utils import (
 
 
 REGISTRY_PATH = Path(PACKAGES)
-BUILD_DIR = Path(DEFAULT_BUILD_FOLDER)
 
 
 @click.group(name="replay")
@@ -52,7 +52,7 @@ def replay_group() -> None:
     "--build",
     "build_path",
     type=click.Path(exists=True, dir_okay=True),
-    default=BUILD_DIR,
+    default=Path(DEFAULT_BUILD_FOLDER.format(build_hash_id())),
     help="Path to build dir.",
 )
 @click.option(
@@ -86,7 +86,7 @@ def run_agent(agent: int, build_path: Path, registry_path: Path) -> None:
     "--build",
     "build_dir",
     type=click.Path(dir_okay=True, exists=True),
-    default=BUILD_DIR,
+    default=Path(DEFAULT_BUILD_FOLDER.format(build_hash_id())),
     help="Path to build directory.",
 )
 def run_tendermint(build_dir: Path) -> None:

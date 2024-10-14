@@ -97,12 +97,12 @@ Before starting this guide, ensure that your machine satisfies the framework req
         autonomy deploy build keys.json -ltm
         ```
 
-        This command takes the configuration parameters specified inside the `service.yaml` and overrides them with the environment variables defined above. With the parameters defined, and the agent image ready, the output of this command is a Docker Compose deployment stored in the `abci_build` folder. The command takes care of configuring the necessary Tendermint images connected to each of the agents.
+        This command takes the configuration parameters specified inside the `service.yaml` and overrides them with the environment variables defined above. With the parameters defined, and the agent image ready, the output of this command is a Docker Compose deployment stored in the `abci_build_*` folder. The command takes care of configuring the necessary Tendermint images connected to each of the agents.
 
 4. Run the service:
 
     ```bash
-    cd abci_build
+    cd abci_build_*
     autonomy deploy run
     ```
 

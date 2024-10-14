@@ -71,9 +71,9 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
     !!!note
         It is also possible to generate a deployment using a local service configuration. See the Commands section for the complete details.
 
-6. The build configuration will be located in `./abci_build`. Run the deployment using
+6. The build configuration will be located in `./abci_build_*`. Run the deployment using
     ```bash
-    cd abci_build
+    cd abci_build_*
     autonomy deploy run
     ```
 
