@@ -358,20 +358,20 @@ This means, in particular, that there is no need to define the `ALL_PARTICIPANTS
     === "Docker Compose"
 
         ```bash
-        autonomy deploy from-token <ID> keys.json --use-goerli # (1)!
+        autonomy deploy from-token <ID> keys.json --use-arbitrum-sepolia # (1)!
         ```
 
-        1. `--use-goerli` indicates that the service is registered in the Görli testnet. Check out the [`autonomy deploy from-token`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-from-token) command documentation to learn more about its parameters and options.
+        1. `--use-arbitrum-sepolia` indicates that the service is registered in the Arbirum Sepolia testnet. Check out the [`autonomy deploy from-token`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-from-token) command documentation to learn more about its parameters and options.
 
         The Docker Compose deployment will be built and run for the agents whose keys are defined in the `keys.json` file. If you just want to build the deployment without running it, simply add the flag `--no-deploy`.
 
     === "Kubernetes"
 
         ```bash
-        autonomy deploy from-token <ID> keys.json --use-goerli --kubernetes # (1)!
+        autonomy deploy from-token <ID> keys.json --use-arbitrum-sepolia --kubernetes # (1)!
         ```
 
-        2. `--use-goerli` indicates that the service is registered in the Görli testnet. Check out the [`autonomy deploy from-token`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-from-token) command documentation to learn more about its parameters and options.
+        2. `--use-arbitrum-sepolia` indicates that the service is registered in the Arbirum Sepolia testnet. Check out the [`autonomy deploy from-token`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-from-token) command documentation to learn more about its parameters and options.
 
         The Kubernetes deployment will be built for the agents whose keys are defined in the `keys.json` file. You need to deploy the service in the local cluster manually. Follow the instructions in Step 5 of the [local deployment - full workflow](#local-deployment-full-workflow) section.
 

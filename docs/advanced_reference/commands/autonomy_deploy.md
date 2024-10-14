@@ -323,9 +323,6 @@ autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
 `--use-ethereum`                  
 :   To use `ethereum` chain profile to interact with the contracts
 
-`--use-goerli`                    
-:   To use `goerli` chain profile to interact with the contracts
-
 `--use-custom-chain`              
 :   To use `custom-chain` chain profile to interact with the contracts
 
@@ -339,10 +336,10 @@ autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
 ### Examples
 
 ```bash
-autonomy deploy from-token --use-goerli 2 keys.json
+autonomy deploy from-token --use-ethereum 2 keys.json
 ```
 
-Runs the service deployment registered with `TOKEN_ID`=2 in the Görli on-chain protocol. The deployment will be run for as many agents as keys are defined in the `keys.json` file. 
+Runs the service deployment registered with `TOKEN_ID`=2 on the Ethereum mainnet. The deployment will be run for as many agents as keys are defined in the `keys.json` file. 
 
 
 ## `autonomy deploy stop`

@@ -47,9 +47,6 @@ This command group consists of a number of functionalities to manage [the life c
 `--use-ethereum`
 : Use the Ethereum chain profile to interact with the Autonolas Protocol registry contracts.
 
-`--use-goerli`
-: Use the Goerli chain profile to interact with the Autonolas Protocol registry contracts.
-
 To use these chain profiles, you have to export an environment variable that defines the RPC endpoint in the format `<CHAIN_NAME>_CHAIN_RPC`. For example if you want to use Ethereum (`--use-ethereum`), you have to export `ETHEREUM_CHAIN_RPC`. For Polygon Mumbai (`--use-polygon-mumbai`) you have to export `POLYGON_MUMBAI_CHAIN_RPC`, and so on.
 
 `--use-custom-chain`

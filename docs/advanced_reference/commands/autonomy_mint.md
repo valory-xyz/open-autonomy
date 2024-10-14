@@ -47,9 +47,6 @@ This command group consists of a number of functionalities to mint components, a
 `--use-ethereum`
 :   Use the `Ethereum` chain profile to interact with the Autonolas Protocol registry contracts.
 
-`--use-goerli`                    
-:   Use the `Goerli` chain profile to interact with the Autonolas Protocol registry contracts.
-
 To use these chain profile, you will have to export an environment variable for RPC in `<CHAIN_NAME>_CHAIN_RPC` format. For example if you want to use `ethereum`, you will have to export `ETHEREUM_CHAIN_RPC` and for `polygon-mumbai` it would be `POLYGON_MUMBAI_CHAIN_RPC`
 
 `--use-custom-chain`

@@ -2,7 +2,7 @@ The {{open_autonomy}} framework supports that agent services access different ex
 by defining certain configuration parameters appropriately.
 
 For example, if you are developing a service to be run in Ethereum, you might first want to use
-a development environment like [Hardhat](https://hardhat.org/) or [Ganache](https://trufflesuite.com/ganache/) as your testbed, then migrate to a public testnet like [Görli](https://goerli.net/), and ultimately run your service in the Ethereum main chain.
+a development environment like [Hardhat](https://hardhat.org/) or [Ganache](https://trufflesuite.com/ganache/) as your testbed, then migrate to a public testnet like [Arbitrum Sepolia](https://sepolia.arbiscan.io/), and ultimately run your service in the Ethereum main chain.
 
 To use a service in a particular chain, you must ensure that the the relevant agent addresses are funded in that chain.
 

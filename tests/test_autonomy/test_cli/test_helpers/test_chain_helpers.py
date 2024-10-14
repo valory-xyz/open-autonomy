@@ -98,12 +98,12 @@ class TestMintComponentMethod:
             click.ClickException,
             match=(
                 "RPC URL cannot be `None`, "
-                "Please set the environment variable for goerli chain "
-                "using `GOERLI_CHAIN_RPC` environment variable"
+                "Please set the environment variable for ethereum chain "
+                "using `ETHEREUM_CHAIN_RPC` environment variable"
             ),
         ):
             MintHelper(
-                chain_type=ChainType.GOERLI,
+                chain_type=ChainType.ETHEREUM,
                 key=ETHEREUM_KEY_DEPLOYER,
             ).load_package_configuration(
                 package_path=PACKAGE_DIR,
@@ -117,14 +117,14 @@ class TestMintComponentMethod:
 
         with pytest.raises(
             click.ClickException,
-            match="Please provide hash for NFT image to mint component on `goerli` chain",
+            match="Please provide hash for NFT image to mint component on `ethereum` chain",
         ):
             with mock.patch(
                 "autonomy.cli.helpers.chain.ChainConfigs.get",
                 return_value=ChainConfigs.local,
             ):
                 MintHelper(
-                    chain_type=ChainType.GOERLI,
+                    chain_type=ChainType.ETHEREUM,
                     key=ETHEREUM_KEY_DEPLOYER,
                 ).load_package_configuration(
                     package_path=PACKAGE_DIR,
@@ -477,7 +477,7 @@ def test_get_ledger_and_crypto_failure() -> None:
         match="Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet",
     ):
         MintHelper(
-            chain_type=ChainType.GOERLI,
+            chain_type=ChainType.ETHEREUM,
         ).load_package_configuration(
             package_path=PACKAGE_DIR,
             package_type=PackageType.PROTOCOL,

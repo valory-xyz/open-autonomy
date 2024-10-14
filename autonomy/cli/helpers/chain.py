@@ -393,7 +393,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
     def verify_service_dependencies(self, agent_id: int) -> "MintHelper":
         """Verify component dependencies."""
         self.agent_id = agent_id
-        if self.chain_type in (ChainType.LOCAL, ChainType.GOERLI):
+        if self.chain_type == ChainType.LOCAL:
             return self
 
         try:
