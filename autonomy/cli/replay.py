@@ -26,8 +26,8 @@ import click
 from aea.cli.utils.click_utils import reraise_as_click_exception
 from aea.configurations.constants import PACKAGES
 
-from autonomy.cli.helpers.deployment import build_hash_id
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DOCKER_COMPOSE_YAML
+from autonomy.deploy.base import build_hash_id
 from autonomy.deploy.constants import PERSISTENT_DATA_DIR, TM_STATE_DIR
 from autonomy.replay.agent import AgentRunner
 from autonomy.replay.tendermint import build_tendermint_apps

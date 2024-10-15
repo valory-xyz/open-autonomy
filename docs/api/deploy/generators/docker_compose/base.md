@@ -68,7 +68,9 @@ Class to represent network of the service.
 #### `__`init`__`
 
 ```python
-def __init__(name: str, base: ipaddress.IPv4Network = BASE_SUBNET) -> None
+def __init__(name: str,
+             base: ipaddress.IPv4Network = BASE_SUBNET,
+             used_subnets: Optional[Set[str]] = None) -> None
 ```
 
 Initialize.

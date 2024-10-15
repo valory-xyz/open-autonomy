@@ -47,6 +47,13 @@ Deploy an agent service.
     help="Number of agents.",
 )
 @click.option(
+    "--number-of-services",
+    "number_of_services",
+    type=int,
+    default=1,
+    help="Number of services.",
+)
+@click.option(
     "--docker",
     "deployment_type",
     flag_value=DockerComposeGenerator.deployment_type,
@@ -145,6 +152,7 @@ def build_deployment_command(
         dev_mode: bool,
         registry: str,
         number_of_agents: Optional[int] = None,
+        number_of_services: int = 1,
         password: Optional[str] = None,
         open_aea_dir: Optional[Path] = None,
         packages_dir: Optional[Path] = None,

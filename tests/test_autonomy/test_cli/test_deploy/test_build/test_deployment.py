@@ -22,8 +22,9 @@
 import json
 import os
 import shutil
+from itertools import cycle
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 from unittest import mock
 
 import yaml
@@ -34,14 +35,18 @@ from aea_test_autonomy.configurations import (
     ETHEREUM_ENCRYPTION_PASSWORD,
 )
 
-from autonomy.cli.helpers.deployment import build_hash_id
-from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_DOCKER_IMAGE_AUTHOR
+from autonomy.constants import (
+    DEFAULT_BUILD_FOLDER,
+    DEFAULT_DOCKER_IMAGE_AUTHOR,
+    DOCKER_COMPOSE_YAML,
+)
 from autonomy.deploy.base import (
     DEFAULT_AGENT_CPU_LIMIT,
     DEFAULT_AGENT_CPU_REQUEST,
     DEFAULT_AGENT_MEMORY_LIMIT,
     DEFAULT_AGENT_MEMORY_REQUEST,
     ServiceBuilder,
+    build_hash_id,
 )
 from autonomy.deploy.constants import (
     DEBUG,
@@ -85,8 +90,7 @@ class BaseDeployBuildTest(BaseCliTest):
         )
         with OS_ENV_PATCH:
             self.spec = ServiceBuilder.from_dir(
-                self.t / "register_reset",
-                self.keys_file,
+                self.t / "register_reset", self.keys_file, service_hash_id="test"
             )
         os.chdir(self.t / "register_reset")
 
@@ -111,10 +115,19 @@ class BaseDeployBuildTest(BaseCliTest):
     def load_and_check_docker_compose_file(
         self,
         path: Path,
+        service_hash_id: Optional[str] = None,
     ) -> Dict:
         """Load docker compose config."""
         with open(path, "r", encoding="utf-8") as fp:
             docker_compose = yaml.safe_load(fp)
+
+        if service_hash_id is not None:
+            with OS_ENV_PATCH:
+                self.spec = ServiceBuilder.from_dir(
+                    self.t / "register_reset",
+                    self.keys_file,
+                    service_hash_id=service_hash_id,
+                )
 
         assert any(
             [key in docker_compose for key in ["version", "services", "networks"]]
@@ -159,7 +172,9 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         """Run tests."""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
-        with mock.patch("os.chown"), OS_ENV_PATCH:
+        with mock.patch("os.chown"), OS_ENV_PATCH, mock.patch(
+            "autonomy.cli.deploy.build_hash_id", return_value="test"
+        ):
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -187,7 +202,9 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         """Run tests."""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
-        with mock.patch("os.chown"), OS_ENV_PATCH:
+        with mock.patch("os.chown"), OS_ENV_PATCH, mock.patch(
+            "autonomy.cli.deploy.build_hash_id", return_value="test"
+        ):
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -207,7 +224,9 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         """Run tests."""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
-        with mock.patch("os.chown"), OS_ENV_PATCH:
+        with mock.patch("os.chown"), OS_ENV_PATCH, mock.patch(
+            "autonomy.cli.deploy.build_hash_id", return_value="test"
+        ):
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -249,7 +268,9 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         """Run tests."""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
-        with mock.patch("os.chown"), OS_ENV_PATCH:
+        with mock.patch("os.chown"), OS_ENV_PATCH, mock.patch(
+            "autonomy.cli.deploy.build_hash_id", return_value="test"
+        ):
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -301,7 +322,9 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         keys_file = Path(ETHEREUM_ENCRYPTED_KEYS)
         build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
 
-        with mock.patch("os.chown"), OS_ENV_PATCH:
+        with mock.patch("os.chown"), OS_ENV_PATCH, mock.patch(
+            "autonomy.cli.deploy.build_hash_id", return_value="test"
+        ):
             result = self.run_cli(
                 (
                     str(keys_file),
@@ -352,7 +375,9 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         """Run tests."""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
-        with mock.patch("os.chown"), OS_ENV_PATCH:
+        with mock.patch("os.chown"), OS_ENV_PATCH, mock.patch(
+            "autonomy.cli.deploy.build_hash_id", return_value="test"
+        ):
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -383,7 +408,9 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
 
-        with mock.patch("os.chown"), OS_ENV_PATCH:
+        with mock.patch("os.chown"), OS_ENV_PATCH, mock.patch(
+            "autonomy.cli.deploy.build_hash_id", return_value="test"
+        ):
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -424,7 +451,9 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         """Run tests."""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
-        with mock.patch("os.chown"), OS_ENV_PATCH:
+        with mock.patch("os.chown"), OS_ENV_PATCH, mock.patch(
+            "autonomy.cli.deploy.build_hash_id", return_value="test"
+        ):
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -462,7 +491,9 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         image_author = "some_author"
-        with mock.patch("os.chown"), OS_ENV_PATCH:
+        with mock.patch("os.chown"), OS_ENV_PATCH, mock.patch(
+            "autonomy.cli.deploy.build_hash_id", return_value="test"
+        ):
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -493,6 +524,47 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
             ].split("/")[0]
             == image_author
         )
+
+    def test_docker_compose_build_multiple(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        mock_build_hash_id_cycle = cycle(["test", "test2"])
+
+        def mock_build_hash_id() -> str:
+            """Mock build hash id."""
+            return next(mock_build_hash_id_cycle)
+
+        with mock.patch("os.chown"), OS_ENV_PATCH, mock.patch(
+            "autonomy.cli.deploy.build_hash_id", new=mock_build_hash_id
+        ):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--number-of-services",
+                    "2",
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+
+        builds_count = 0
+        for build_dir in Path.cwd().glob("abci_build_*"):
+            if not (build_dir / DOCKER_COMPOSE_YAML).exists():
+                continue
+
+            builds_count += 1
+
+            self.check_docker_compose_build(
+                build_dir=build_dir,
+            )
+            self.load_and_check_docker_compose_file(
+                path=build_dir / DockerComposeGenerator.output_name,
+                service_hash_id=mock_build_hash_id(),
+            )
+
+        assert builds_count == 2
 
 
 class TestKubernetesBuild(BaseDeployBuildTest):

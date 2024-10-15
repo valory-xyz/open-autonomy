@@ -19,6 +19,7 @@
 
 """Deploy CLI module."""
 
+import os
 import shutil
 from pathlib import Path
 from typing import Optional, cast
@@ -38,7 +39,6 @@ from autonomy.chain.config import ChainType
 from autonomy.cli.helpers.deployment import (
     build_and_deploy_from_token,
     build_deployment,
-    build_hash_id,
     run_deployment,
     stop_deployment,
 )
@@ -55,6 +55,7 @@ from autonomy.deploy.base import (
     DEFAULT_AGENT_MEMORY_LIMIT,
     DEFAULT_AGENT_MEMORY_REQUEST,
     NotValidKeysFile,
+    build_hash_id,
 )
 from autonomy.deploy.constants import INFO, LOGGING_LEVELS
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
@@ -121,6 +122,13 @@ def deploy_group(
     type=int,
     default=None,
     help="Number of agents.",
+)
+@click.option(
+    "--number-of-services",
+    "number_of_services",
+    type=int,
+    default=1,
+    help="Number of services.",
 )
 @click.option(
     "--docker",
@@ -219,6 +227,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     dev_mode: bool,
     registry: str,
     number_of_agents: Optional[int] = None,
+    number_of_services: int = 1,
     password: Optional[str] = None,
     open_aea_dir: Optional[Path] = None,
     packages_dir: Optional[Path] = None,
@@ -246,9 +255,6 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
         message = f"No such file or directory: {keys_file}. Please provide valid path for keys file."
         raise click.ClickException(message)
 
-    build_dir = Path(
-        output_dir or DEFAULT_BUILD_FOLDER.format(build_hash_id())
-    ).absolute()
     if dev_mode:
         packages_dir = _validate_packages_path(path=packages_dir)
         open_aea_dir = _validate_open_aea_dir(path=open_aea_dir)
@@ -256,35 +262,47 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     ctx = cast(Context, click_context.obj)
     ctx.registry_type = registry
 
-    try:
-        build_deployment(
-            keys_file=keys_file,
-            build_dir=build_dir,
-            deployment_type=deployment_type,
-            dev_mode=dev_mode,
-            number_of_agents=number_of_agents,
-            packages_dir=packages_dir,
-            open_aea_dir=open_aea_dir,
-            log_level=log_level,
-            apply_environment_variables=aev,
-            image_version=image_version,
-            use_hardhat=use_hardhat,
-            use_acn=use_acn,
-            use_tm_testnet_setup=use_tm_testnet_setup,
-            image_author=image_author,
-            resources={
-                "agent": {
-                    "limit": {"cpu": agent_cpu_limit, "memory": agent_memory_limit},
-                    "requested": {
-                        "cpu": agent_cpu_request,
-                        "memory": agent_memory_request,
-                    },
-                }
-            },
-        )
-    except (NotValidKeysFile, FileNotFoundError, FileExistsError) as e:
-        shutil.rmtree(build_dir)
-        raise click.ClickException(str(e)) from e
+    abci_build_count = len(
+        [name for name in os.listdir() if name.startswith("abci_build_")]
+    )
+
+    for service_index in range(number_of_services):
+        service_hash_id = build_hash_id()
+        build_dir = Path(
+            output_dir or DEFAULT_BUILD_FOLDER.format(service_hash_id)
+        ).absolute()
+
+        try:
+            build_deployment(
+                service_hash_id=service_hash_id,
+                service_offset=abci_build_count + service_index,
+                keys_file=keys_file,
+                build_dir=build_dir,
+                deployment_type=deployment_type,
+                dev_mode=dev_mode,
+                number_of_agents=number_of_agents,
+                packages_dir=packages_dir,
+                open_aea_dir=open_aea_dir,
+                log_level=log_level,
+                apply_environment_variables=aev,
+                image_version=image_version,
+                use_hardhat=use_hardhat,
+                use_acn=use_acn,
+                use_tm_testnet_setup=use_tm_testnet_setup,
+                image_author=image_author,
+                resources={
+                    "agent": {
+                        "limit": {"cpu": agent_cpu_limit, "memory": agent_memory_limit},
+                        "requested": {
+                            "cpu": agent_cpu_request,
+                            "memory": agent_memory_request,
+                        },
+                    }
+                },
+            )
+        except (NotValidKeysFile, FileNotFoundError, FileExistsError) as e:
+            shutil.rmtree(build_dir)
+            raise click.ClickException(str(e)) from e
 
 
 @deploy_group.command(name="run")

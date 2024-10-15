@@ -27,9 +27,12 @@ from typing import Any, Tuple
 from unittest import mock
 
 from autonomy.cli import cli
-from autonomy.cli.helpers.deployment import build_hash_id
 from autonomy.constants import DEFAULT_BUILD_FOLDER
-from autonomy.deploy.base import TENDERMINT_COM_URL_PARAM, TENDERMINT_URL_PARAM
+from autonomy.deploy.base import (
+    TENDERMINT_COM_URL_PARAM,
+    TENDERMINT_URL_PARAM,
+    build_hash_id,
+)
 from autonomy.replay.agent import AgentRunner
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
