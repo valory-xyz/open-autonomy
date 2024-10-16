@@ -1,5 +1,16 @@
 # Release History - `open-autonomy`
 
+# 0.17.0 (2024-10-17)
+
+Autonomy:
+- Checks the names of skills at the time of scaffolding and analysing #2260
+- Fixes the services' stopping when running `autonomy deploy stop` #2265
+- Deprecates the Görli chain #2266
+- Introduces support for running multiple services on docker #2265, #2267
+
+Docs:
+- Adds information about the naming of skills in the documentation #2260
+- Updates the service docs to add the available options for chain profiles (same as in autonomy mint) #2261, #2262
 
 # 0.16.1 (2024-09-24)
 
