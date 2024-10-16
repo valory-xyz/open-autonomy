@@ -147,7 +147,7 @@ dependencies:
   open-aea-cli-ipfs:
     version: ==1.57.0
   open-aea-test-autonomy:
-    version: ==0.16.1
+    version: ==0.17.0
   protobuf:
     version: <4.25.0,>=4.21.6
   py-ecc:
