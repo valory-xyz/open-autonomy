@@ -7,13 +7,13 @@ Below we describe the additional manual steps required to upgrade between differ
 
 ## `v0.16.1` to `v0.17.0`
 
-- The structure of the build folder when using Docker has been updated. 
-  The folder is now named `abci_build_{index}`, 
-  where `{index}` is an incrementing number corresponding to the total number of existing builds, 
+- The structure of the build folder has been updated. 
+  The folder is now named `abci_build_{uuid}`, 
+  where `{uuid}` is a 4-character random hash, 
   replacing the previous format of `abci_build`.
 - The naming convention for service containers has been revised. 
-  Previously, containers were named `{service_name}_{abci|tm}_{index}`. 
-  Now, the format has changed to `{service_name}_{abci|tm}_{uuid}`, 
+  Previously, containers were named `{trimmed_service_name}_{abci|tm}_{index}`. 
+  Now, the format has changed to `{trimmed_service_name}{uuid}_{abci|tm}_{index}`, 
   where `{uuid}` is a unique identifier.
 
 ## `v0.16.0` to `v0.16.1`
