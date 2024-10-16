@@ -21,8 +21,9 @@
 import ipaddress
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, cast
+from typing import Dict, List, Optional, Set, cast
 
+import yaml
 from aea.configurations.constants import (
     DEFAULT_LEDGER,
     LEDGER,
@@ -33,6 +34,7 @@ from docker import DockerClient, from_env
 from docker.constants import DEFAULT_NPIPE, IS_WINDOWS_PLATFORM
 from docker.errors import DockerException
 
+from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
 from autonomy.constants import (
     ACN_IMAGE_NAME,
     ACN_IMAGE_VERSION,
@@ -192,10 +194,12 @@ class Network:
         self,
         name: str,
         base: ipaddress.IPv4Network = BASE_SUBNET,
+        used_subnets: Optional[Set[str]] = None,
     ) -> None:
         """Initialize."""
         self.name = name
         self.base = base
+        self.used_subnets = set() if used_subnets is None else used_subnets
         self.subnet = self.build()
 
         self._address_offeset = NETWORK_ADDRESS_OFFSET
@@ -214,7 +218,7 @@ class Network:
     ) -> ipaddress.IPv4Network:
         """Initialize network params."""
         docker = get_docker_client()
-        used_subnets = set()
+        used_subnets = self.used_subnets
         for network in docker.networks.list():
             # Network already exists
             if f"abci_build_{self.name}" == network.attrs["Name"]:
@@ -244,6 +248,55 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
 
     output_name: str = DOCKER_COMPOSE_YAML
     deployment_type: str = "docker-compose"
+
+    def _find_occupied_networks(self, network_name: str) -> Set[str]:
+        """Find occupied networks on the host system."""
+        used_ports: Dict[str, str] = {}  # find occupied ports
+        for config_name in ("agent", "tendermint"):
+            for port_mapping in (
+                self.service_builder.service.deployment_config.get(config_name, {})
+                .get("ports", {})
+                .values()
+            ):
+                for host_port, _ in port_mapping.items():
+                    if host_port in used_ports:
+                        print(
+                            f"WARNING: Port {host_port} is already used by {used_ports[host_port]}."
+                        )
+                    else:
+                        used_ports[str(host_port)] = DEFAULT_SERVICE_CONFIG_FILE
+
+        used_networks = set()  # find occupied networks
+        for build in Path.cwd().glob("abci_build_*"):
+            if not (build / DOCKER_COMPOSE_YAML).exists():
+                continue
+
+            compose_config = yaml.safe_load((build / DOCKER_COMPOSE_YAML).read_text())
+            for subnet in (
+                compose_config.get("networks", {})
+                .get(network_name, {})
+                .get("ipam", {})
+                .get("config", [])
+            ):
+                used_networks.add(subnet["subnet"])
+
+            services = compose_config.get("services", {})
+            for name, service in services.items():
+                for port_mapping_str in service.get("ports", []):
+                    port_mapping = port_mapping_str.split(":")
+                    if len(port_mapping) != 2:
+                        continue
+
+                    host_port = port_mapping[0]
+                    if host_port in used_ports:
+                        print(
+                            f"WARNING: Port {host_port} is already used by {used_ports[host_port]}."
+                            f" Please adjust the port in {build / DOCKER_COMPOSE_YAML} manually.",
+                        )
+                    else:
+                        used_ports[host_port] = name
+
+        return used_networks
 
     def generate_config_tendermint(self) -> "DockerComposeGenerator":
         """Generate the command to configure tendermint testnet."""
@@ -280,9 +333,9 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         use_acn: bool = False,
     ) -> "DockerComposeGenerator":
         """Generate the new configuration."""
-
         network_name = f"service_{self.service_builder.service.name}_localnet"
-        network = Network(name=network_name)
+        used_networks = self._find_occupied_networks(network_name)
+        network = Network(name=network_name, used_subnets=used_networks)
         image_version = image_version or self.service_builder.service.agent.hash
         if self.dev_mode:
             runtime_image = DEVELOPMENT_IMAGE

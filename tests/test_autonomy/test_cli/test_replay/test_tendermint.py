@@ -30,8 +30,8 @@ from unittest import mock
 import flask
 
 from autonomy.cli import cli
-from autonomy.cli.helpers.deployment import build_hash_id
 from autonomy.constants import DEFAULT_BUILD_FOLDER
+from autonomy.deploy.base import build_hash_id
 from autonomy.deploy.constants import PERSISTENT_DATA_DIR, TM_STATE_DIR
 from autonomy.replay.tendermint import TendermintNetwork
 

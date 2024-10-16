@@ -22,6 +22,7 @@ import abc
 import json
 import logging
 import os
+from base64 import urlsafe_b64encode
 from copy import copy, deepcopy
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
@@ -144,6 +145,11 @@ DEFAULT_RESOURCE_VALUES = Resources(
 )
 
 
+def build_hash_id() -> str:
+    """Generate a random 4 character hash id for the deployment build directory name."""
+    return urlsafe_b64encode(bytes(os.urandom(3))).decode()
+
+
 class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
     """Class to assist with generating deployments."""
 
@@ -156,6 +162,8 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         keys: Optional[List[Union[List[Dict[str, str]], Dict[str, str]]]] = None,
         agent_instances: Optional[List[str]] = None,
         apply_environment_variables: bool = False,
+        service_hash_id: Optional[str] = None,
+        service_offset: int = 0,
     ) -> None:
         """Initialize the Base Deployment."""
         if apply_environment_variables:
@@ -167,8 +175,14 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
             )
 
         self.service = service
+        self.service_hash_id = (
+            build_hash_id() if service_hash_id is None else service_hash_id
+        )
+        self.service_offset = service_offset
 
-        self._service_name_clean = self.service.name.replace("_", "")
+        self._service_name_clean = (
+            self.service.name.replace("_", "") + self.service_hash_id
+        )
         self._keys = keys or []
         self._agent_instances = agent_instances
         self._all_participants = self.try_get_all_participants()
@@ -254,6 +268,8 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         agent_instances: Optional[List[str]] = None,
         apply_environment_variables: bool = False,
         dev_mode: bool = False,
+        service_hash_id: Optional[str] = None,
+        service_offset: int = 0,
     ) -> "ServiceBuilder":
         """Service builder from path."""
         service = load_service_config(
@@ -264,6 +280,8 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
 
         service_builder = cls(
             service=service,
+            service_hash_id=service_hash_id,
+            service_offset=service_offset,
             apply_environment_variables=apply_environment_variables,
         )
 

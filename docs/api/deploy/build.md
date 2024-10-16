@@ -9,7 +9,9 @@ Script for generating deployment environments.
 #### generate`_`deployment
 
 ```python
-def generate_deployment(type_of_deployment: str,
+def generate_deployment(service_hash_id: str,
+                        service_offset: int,
+                        type_of_deployment: str,
                         keys_file: Path,
                         service_path: Path,
                         build_dir: Path,

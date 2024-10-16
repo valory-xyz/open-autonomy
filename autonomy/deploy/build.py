@@ -33,6 +33,8 @@ DEPLOYMENT_OPTIONS: Dict[str, Type[BaseDeploymentGenerator]] = {
 
 
 def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
+    service_hash_id: str,
+    service_offset: int,
     type_of_deployment: str,
     keys_file: Path,
     service_path: Path,
@@ -66,6 +68,8 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         agent_instances=agent_instances,
         apply_environment_variables=apply_environment_variables,
         dev_mode=dev_mode,
+        service_hash_id=service_hash_id,
+        service_offset=service_offset,
     )
     service_builder.deplopyment_type = type_of_deployment
     service_builder.log_level = log_level

@@ -21,7 +21,6 @@
 import os
 import shutil
 import time
-from base64 import urlsafe_b64encode
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -42,7 +41,7 @@ from autonomy.cli.helpers.registry import fetch_service_ipfs
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
 from autonomy.configurations.loader import load_service_config
 from autonomy.constants import DEFAULT_BUILD_FOLDER
-from autonomy.deploy.base import Resources
+from autonomy.deploy.base import Resources, build_hash_id
 from autonomy.deploy.build import generate_deployment
 from autonomy.deploy.constants import (
     AGENT_KEYS_DIR,
@@ -111,11 +110,6 @@ def _load_compose_project(build_dir: Path) -> Project:
                 "please use `--aev` flag if you intend to use environment variables."
             )
         raise
-
-
-def build_hash_id() -> str:
-    """Generate a random 4 character hash id for the deployment build directory name."""
-    return urlsafe_b64encode(bytes(os.urandom(3))).decode()
 
 
 def run_deployment(
@@ -200,6 +194,8 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     use_tm_testnet_setup: bool = False,
     image_author: Optional[str] = None,
     resources: Optional[Resources] = None,
+    service_hash_id: Optional[str] = None,
+    service_offset: int = 0,
 ) -> None:
     """Build deployment."""
 
@@ -215,7 +211,12 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     build_dir.mkdir()
     _build_dirs(build_dir)
 
+    if service_hash_id is None:
+        service_hash_id = build_hash_id()
+
     report = generate_deployment(
+        service_hash_id=service_hash_id,
+        service_offset=service_offset,
         service_path=Path.cwd(),
         type_of_deployment=deployment_type,
         keys_file=keys_file,

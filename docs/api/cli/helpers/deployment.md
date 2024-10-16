@@ -4,16 +4,6 @@
 
 Deployment helpers.
 
-<a id="autonomy.cli.helpers.deployment.build_hash_id"></a>
-
-#### build`_`hash`_`id
-
-```python
-def build_hash_id() -> str
-```
-
-Generate a random 4 character hash id for the deployment build directory name.
-
 <a id="autonomy.cli.helpers.deployment.run_deployment"></a>
 
 #### run`_`deployment
@@ -59,7 +49,9 @@ def build_deployment(keys_file: Path,
                      use_acn: bool = False,
                      use_tm_testnet_setup: bool = False,
                      image_author: Optional[str] = None,
-                     resources: Optional[Resources] = None) -> None
+                     resources: Optional[Resources] = None,
+                     service_hash_id: Optional[str] = None,
+                     service_offset: int = 0) -> None
 ```
 
 Build deployment.

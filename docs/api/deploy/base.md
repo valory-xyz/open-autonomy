@@ -66,6 +66,16 @@ class Resources(TypedDict)
 
 Deployment resources.
 
+<a id="autonomy.deploy.base.build_hash_id"></a>
+
+#### build`_`hash`_`id
+
+```python
+def build_hash_id() -> str
+```
+
+Generate a random 4 character hash id for the deployment build directory name.
+
 <a id="autonomy.deploy.base.ServiceBuilder"></a>
 
 ## ServiceBuilder Objects
@@ -85,7 +95,9 @@ def __init__(service: Service,
              keys: Optional[List[Union[List[Dict[str, str]],
                                        Dict[str, str]]]] = None,
              agent_instances: Optional[List[str]] = None,
-             apply_environment_variables: bool = False) -> None
+             apply_environment_variables: bool = False,
+             service_hash_id: Optional[str] = None,
+             service_offset: int = 0) -> None
 ```
 
 Initialize the Base Deployment.
@@ -165,7 +177,9 @@ def from_dir(cls,
              number_of_agents: Optional[int] = None,
              agent_instances: Optional[List[str]] = None,
              apply_environment_variables: bool = False,
-             dev_mode: bool = False) -> "ServiceBuilder"
+             dev_mode: bool = False,
+             service_hash_id: Optional[str] = None,
+             service_offset: int = 0) -> "ServiceBuilder"
 ```
 
 Service builder from path.
