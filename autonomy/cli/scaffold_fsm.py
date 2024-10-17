@@ -96,6 +96,7 @@ def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None:
         raise click.ClickException("Skill name must end with '_abci'")
 
     ctx.registry_type = registry
+    scaffold_fsm = ScaffoldABCISkill(ctx, skill_name, Path(spec))
 
     # check abstract_round_abci is in dependencies; if not, add it
     _add_abstract_round_abci_if_not_present(ctx)
@@ -105,8 +106,6 @@ def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None:
     preserve_cwd = ctx.cwd
     scaffold_item(ctx, SKILL, skill_name)
     ctx.cwd = preserve_cwd
-
-    scaffold_fsm = ScaffoldABCISkill(ctx, skill_name, Path(spec))
     scaffold_fsm.do_scaffolding()
 
     if ctx.config[TO_LOCAL_REGISTRY_FLAG]:
