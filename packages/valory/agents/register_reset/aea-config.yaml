@@ -22,9 +22,9 @@ fingerprint:
   tests/test_register_reset.py: bafybeiecdipytoorhfpecbzd5pyx7e5zjpxsjc6yyqxezq2q6bhz7yuk7i
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeibvb5gixohtgx22oymwlb2nntdzicdu2jkbs66azvmag6zf7vgfoq
+- valory/abci:0.1.0:bafybeiakwvcz7fousp2xpnavept764fbnfboz6vvwvyuhj256spvjyfnli
 - valory/http_client:0.23.0:bafybeihi772xgzpqeipp3fhmvpct4y6e6tpjp4sogwqrnf3wqspgeilg4u
-- valory/ipfs:0.1.0:bafybeiegnapkvkamis47v5ioza2haerrjdzzb23rptpmcydyneas7jc2wm
+- valory/ipfs:0.1.0:bafybeidgwcqdgr5qt4fkgd77tqlskqkfcuc2feglzpi5ns72jxzcev5y4q
 - valory/ledger:0.19.0:bafybeigntoericenpzvwejqfuc3kqzo2pscs76qoygg5dbj6f4zxusru5e
 - valory/p2p_libp2p_client:0.1.0:bafybeid3xg5k2ol5adflqloy75ibgljmol6xsvzvezebsg7oudxeeolz7e
 contracts: []
@@ -34,11 +34,11 @@ protocols:
 - valory/http:1.0.0:bafybeifugzl63kfdmwrxwphrnrhj7bn6iruxieme3a4ntzejf6kmtuwmae
 - valory/ipfs:0.1.0:bafybeiftxi2qhreewgsc5wevogi7yc5g6hbcbo4uiuaibauhv3nhfcdtvm
 skills:
-- valory/abstract_abci:0.1.0:bafybeidhxykmvnc35de2ne52vwncoowcvcsc6xwja4txg6j27wicadojuq
-- valory/abstract_round_abci:0.1.0:bafybeid3f7hted4j44fpmlg6hbjadtldir6k2jauo7gyptuezwpbvkqsrm
-- valory/register_reset_abci:0.1.0:bafybeieepo5xipv2pg5374aamx73kilw65gdv3g3r65vtzvarje2atdlce
-- valory/registration_abci:0.1.0:bafybeihu4srivuolt4hdw6ovwl33p7bcsm44soaebqpfjvy32jbbtypwum
-- valory/reset_pause_abci:0.1.0:bafybeib6yae55mfof2yamd7plwr6twuxobfvpurm4bede6rhcqhllyoxnm
+- valory/abstract_abci:0.1.0:bafybeicf455v2kqkmhrdt6vftxizmzx2sp22m7lfax4qhhcp7bhtnoqiqy
+- valory/abstract_round_abci:0.1.0:bafybeihinmp6fj7vsooudtfxr7e64scleawt5dqlfqwrhovuw57gbfmc3u
+- valory/register_reset_abci:0.1.0:bafybeifousslxneywi2jb7bldr3dv4ggtb7wb5u627464cifkpgeitnjji
+- valory/registration_abci:0.1.0:bafybeibcfl2uo4idyfln5swilditxmb3ekvbkknvtlr43u7jksdy2q6p6e
+- valory/reset_pause_abci:0.1.0:bafybeigimcyxyvnrdxtleq5iwe3e6osko533uhl46k2zgelrd6kjagisme
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -69,9 +69,9 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.57.0
+    version: ==1.58.0
   open-aea-test-autonomy:
-    version: ==0.17.0
+    version: ==0.18.0
 customs: []
 default_connection: null
 ---

@@ -1,5 +1,12 @@
 # Release History - `open-autonomy`
 
+# 0.18.0 (2024-10-18)
+
+Autonomy:
+- Fixes the cleanup on scaffolding validation failure #2269
+- Adds support for dictionary overrides #2270
+- Bumps `open-aea@1.58.0` #2271
+
 # 0.17.0 (2024-10-17)
 
 Autonomy:

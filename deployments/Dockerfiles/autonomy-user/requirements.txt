@@ -1,5 +1,5 @@
-open-autonomy[all]==0.17.0
-open-aea[all]==1.57.0
-open-aea-cli-ipfs==1.57.0
-open-aea-ledger-ethereum==1.57.0
+open-autonomy[all]==0.18.0
+open-aea[all]==1.58.0
+open-aea-cli-ipfs==1.58.0
+open-aea-ledger-ethereum==1.58.0
 protobuf>=4.21.6,<5.0.0
