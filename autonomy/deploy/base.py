@@ -169,7 +169,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         if apply_environment_variables:
             warn(  # pragma: no cover
                 "`apply_environment_variables` argument is deprecated and will be removed in v1.0.0, "
-                "usage of environment varibales is default now.",
+                "usage of environment variables is default now.",
                 DeprecationWarning,
                 stacklevel=2,
             )

@@ -18,7 +18,7 @@ echo "Successfully built the host dependencies."
 
 echo "Installing the necessary python dependencies!"
 aea install --timeout 600 $EXTRA_DEPENDENCIES || exit 1
-echo "Successfully Installed the python dependecies."
+echo "Successfully Installed the python dependencies."
 
 echo "Done."
 cd ..
