@@ -5,6 +5,14 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.17.0` to `v0.18.0`
+
+- The agent and service configurations for dictionaries should now be in the following form: 
+  `${dict:{"some_key": "some_value"}`. 
+  For more information, please take a look at an example upgrade in https://github.com/valory-xyz/trader/pull/311. 
+- The generated builds do not include the environment variables of the agents inside the compose file anymore.
+  Instead, they exist in a separate environment file per agent and are referenced in the compose file.
+
 ## `v0.16.1` to `v0.17.0`
 
 - The structure of the build folder has been updated. 
