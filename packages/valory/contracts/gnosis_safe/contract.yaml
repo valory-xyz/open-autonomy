@@ -29,7 +29,7 @@ dependencies:
   eth_typing: {}
   hexbytes: {}
   open-aea-ledger-ethereum:
-    version: ==1.57.0
+    version: ==1.58.0
   open-aea-test-autonomy:
     version: ==0.17.0
   packaging: {}
