@@ -731,13 +731,10 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
             ENV_VAR_ID: agent_n,
             ENV_VAR_AEA_AGENT: self.service.agent,
             ENV_VAR_LOG_LEVEL: self.log_level,
-        }
-        if self.deplopyment_type == DOCKER_COMPOSE_DEPLOYMENT:
-            agent_vars[ENV_VAR_AEA_PASSWORD] = "$OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD"
-        else:
-            agent_vars[ENV_VAR_AEA_PASSWORD] = os.environ.get(
+            ENV_VAR_AEA_PASSWORD: os.environ.get(
                 "OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD", ""
-            )
+            ),
+        }
         return agent_vars
 
     def generate_agent(
