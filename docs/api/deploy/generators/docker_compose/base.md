@@ -32,12 +32,23 @@ def build_tendermint_node_config(
 
 Build tendermint node config for docker compose.
 
+<a id="autonomy.deploy.generators.docker_compose.base.to_env_file"></a>
+
+#### to`_`env`_`file
+
+```python
+def to_env_file(agent_vars: Dict, node_id: int, build_dir: Path) -> None
+```
+
+Create a env file under the `agent_build` folder.
+
 <a id="autonomy.deploy.generators.docker_compose.base.build_agent_config"></a>
 
 #### build`_`agent`_`config
 
 ```python
 def build_agent_config(node_id: int,
+                       build_dir: Path,
                        container_name: str,
                        agent_vars: Dict,
                        runtime_image: str,

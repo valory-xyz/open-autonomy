@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Docker-compose Deployment Generator."""
+
 import ipaddress
 import os
 from pathlib import Path
@@ -131,8 +132,19 @@ def build_tendermint_node_config(  # pylint: disable=too-many-arguments
     return config
 
 
+def to_env_file(agent_vars: Dict, node_id: int, build_dir: Path) -> None:
+    """Create a env file under the `agent_build` folder."""
+    agent_vars["PYTHONHASHSEED"] = 0
+    agent_vars["LOG_FILE"] = f"/logs/aea_{node_id}.txt"
+    env_file_path = build_dir / f"agent_{node_id}.env"
+    with open(env_file_path, "w", encoding=DEFAULT_ENCODING) as env_file:
+        for key, value in agent_vars.items():
+            env_file.write(f"{key}={value}\n")
+
+
 def build_agent_config(  # pylint: disable=too-many-arguments,too-many-locals
     node_id: int,
+    build_dir: Path,
     container_name: str,
     agent_vars: Dict,
     runtime_image: str,
@@ -147,13 +159,13 @@ def build_agent_config(  # pylint: disable=too-many-arguments,too-many-locals
 ) -> str:
     """Build agent config."""
     resources = resources if resources is not None else DEFAULT_RESOURCE_VALUES
-    agent_vars_string = "\n".join([f"      - {k}={v}" for k, v in agent_vars.items()])
+    to_env_file(agent_vars, node_id, build_dir)
     config = ABCI_NODE_TEMPLATE.format(
         node_id=node_id,
         container_name=container_name,
-        agent_vars=agent_vars_string,
         network_address=network_address,
         runtime_image=runtime_image,
+        env_file=f"agent_{node_id}.env",
         network_name=network_name,
         agent_memory_request=resources["agent"]["requested"]["memory"],
         agent_cpu_limit=resources["agent"]["limit"]["cpu"],
@@ -167,13 +179,9 @@ def build_agent_config(  # pylint: disable=too-many-arguments,too-many-locals
         config += f"      - {open_aea_dir}:/open-aea\n"
 
     if extra_volumes is not None:
-        if all(isinstance(i, int) for i in extra_volumes):
-            extra_volumes = extra_volumes.get(node_id, {})  # type: ignore
-        for host_dir, container_dir in extra_volumes.items():  # type: ignore
-            vol_dir = Path(host_dir).resolve()
-            if not vol_dir.exists():
-                vol_dir.mkdir(parents=True)
-            config += f"      - {vol_dir}:{container_dir}:Z\n"
+        for host_dir, container_dir in extra_volumes.items():
+            config += f"      - {host_dir}:{container_dir}:Z\n"
+            Path(host_dir).resolve().mkdir(exist_ok=True, parents=True)
 
     if agent_ports is not None:
         port_mappings = map(
@@ -354,6 +362,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     container_name=self.service_builder.get_abci_container_name(
                         index=i
                     ),
+                    build_dir=self.build_dir,
                     runtime_image=runtime_image,
                     agent_vars=agent_vars[i],
                     dev_mode=self.dev_mode,

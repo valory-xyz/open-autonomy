@@ -104,10 +104,7 @@ ABCI_NODE_TEMPLATE: str = """
     cpus: {agent_cpu_limit}
     container_name: {container_name}
     image: {runtime_image}
-    environment:
-      - PYTHONHASHSEED=0
-      - LOG_FILE=/logs/aea_{node_id}.txt
-{agent_vars}
+    env_file: {env_file}
     networks:
       {network_name}:
         ipv4_address: {network_address}
