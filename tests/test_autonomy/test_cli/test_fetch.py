@@ -24,6 +24,7 @@ import shutil
 from pathlib import Path
 from unittest import mock
 
+import pytest
 from aea.cli.fetch import NotAnAgentPackage
 from aea.configurations.constants import (
     DEFAULT_README_FILE,
@@ -32,12 +33,15 @@ from aea.configurations.constants import (
 from aea.configurations.loader import ConfigLoader
 from aea.helpers.base import cd
 from aea.helpers.io import open_file
+from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 
+from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
 from autonomy.cli.helpers.registry import IPFSTool
 from autonomy.configurations.base import Service
 
-from tests.conftest import ROOT_DIR
+from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.base import get_dummy_service_config
+from tests.test_autonomy.test_chain.base import BaseChainInteractionTest
 from tests.test_autonomy.test_cli.base import BaseCliTest, cli
 
 
@@ -221,3 +225,88 @@ class TestFetchServiceCommand(FetchTest):
                 "if you intend to download an agent please use "
                 "`--agent` flag or check the hash"
             ) in result.output
+
+
+@pytest.mark.integration
+@skip_docker_tests
+class TestFromToken(BaseChainInteractionTest):
+    """Test fetch from token id."""
+
+    package_type = "service"
+
+    default_ipfs_node_patch = mock.patch(
+        "autonomy.cli.helpers.registry.get_ipfs_node_multiaddr",
+        new=lambda: "/dns/registry.autonolas.tech/tcp/443/https",
+    )
+    ipfs_resolve_patch = mock.patch(
+        "autonomy.cli.helpers.deployment.resolve_component_id",
+        return_value={
+            "name": "valory/oracle_hardhat",
+            "description": "Oracle service.",
+            "code_uri": "ipfs://bafybeiansmhkoovd6jlnyurm2w4qzhpmi43gxlyenq33ioovy2rh4gziji",
+            "image": "bafybeiansmhkoovd6jlnyurm2w4qzhpmi43gxlyenq33ioovy2rh4gziji",
+            "attributes": [{"trait_type": "version", "value": "0.1.0"}],
+        },
+    )
+
+    def setup(self) -> None:
+        """Setup the test."""
+        super().setup()
+
+        self.packages_dir = self.t / "packages"
+        self.cli_options = ("fetch", "1")
+
+        shutil.copytree(ROOT_DIR / "packages", self.packages_dir)
+        os.chdir(self.t)
+
+    def test_from_token(self) -> None:
+        """Run test."""
+
+        service_dir = self.t / "service"
+        service_dir.mkdir()
+
+        service_file = service_dir / "service.yaml"
+        service_file.write_text(
+            (
+                ROOT_DIR
+                / "tests"
+                / "data"
+                / "dummy_service_config_files"
+                / "service_0.yaml"
+            ).read_text()
+        )
+
+        with mock.patch(
+            "autonomy.cli.fetch.fetch_service_ipfs",
+            return_value=service_dir,
+        ), self.default_ipfs_node_patch, self.ipfs_resolve_patch:
+            result = self.run_cli()
+
+            assert result.exit_code == 0, result.stdout
+            assert "Service name: valory/oracle_hardhat" in result.stdout
+
+    def test_fail_on_chain_resolve_connection_error(self) -> None:
+        """Run test."""
+
+        with self.default_ipfs_node_patch, self.ipfs_resolve_patch, mock.patch(
+            "autonomy.cli.helpers.deployment.resolve_component_id",
+            side_effect=FailedToRetrieveComponentMetadata(
+                "Error connecting RPC endpoint"
+            ),
+        ):
+            result = self.run_cli()
+
+            assert result.exit_code == 1, result.stdout
+            assert "Error connecting RPC endpoint" in result.stderr, result.output
+
+    def test_fail_on_chain_resolve_bad_contract_call(self) -> None:
+        """Run test."""
+
+        with self.default_ipfs_node_patch, self.ipfs_resolve_patch, mock.patch(
+            "autonomy.cli.helpers.deployment.resolve_component_id",
+            side_effect=Exception,
+        ):
+            result = self.run_cli()
+
+            assert result.exit_code == 1, result.stdout
+            assert "Cannot find the service registry deployment;" in result.stderr

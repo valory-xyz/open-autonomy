@@ -25,7 +25,9 @@ from pathlib import Path
 from typing import Any, Callable, Generator, Optional, Union, cast
 
 import click
+from aea.cli.utils.click_utils import PublicIdParameter
 from aea.cli.utils.config import get_default_author_from_cli_config
+from aea.configurations.data_types import PublicId
 from aea.helpers.base import IPFSHash, SimpleId
 
 from autonomy.analyse.abci.app_spec import FSMSpecificationLoader
@@ -158,3 +160,19 @@ def image_author_option(fn: Callable) -> Callable:
         default=None,
         callback=_validate,
     )(fn)
+
+
+class PublicIdOrHashOrTokenId(PublicIdParameter):
+    """A click parameter that can be a public id, an IPFS hash or a token id."""
+
+    def get_metavar(self, param: Any) -> str:
+        """Return the metavar default for this param if it provides one."""
+        return "PUBLIC_ID_OR_HASH_OR_TOKEN_ID"
+
+    def convert(self, value: str, param: Any, ctx: Optional[click.Context]) -> PublicId:
+        """Returns integer token id if value is numeric, else try to parse public id or hash."""
+
+        if value.isnumeric():
+            return int(value)
+
+        return super().convert(value, param, ctx)

@@ -18,16 +18,19 @@
 # ------------------------------------------------------------------------------
 """Implementation of the 'autonomy fetch' subcommand."""
 
-from typing import cast
+from typing import Union, cast
 
 import click
 from aea.cli.fetch import NotAnAgentPackage, do_fetch
-from aea.cli.utils.click_utils import PublicIdParameter, registry_flag
+from aea.cli.utils.click_utils import registry_flag
 from aea.cli.utils.context import Context
 from aea.configurations.base import PublicId
 from aea.configurations.constants import AGENT, SERVICE
 
-from autonomy.cli.helpers.registry import fetch_service
+from autonomy.chain.config import ChainType
+from autonomy.cli.helpers.deployment import _resolve_on_chain_token_id
+from autonomy.cli.helpers.registry import fetch_service, fetch_service_ipfs
+from autonomy.cli.utils.click_utils import PublicIdOrHashOrTokenId, chain_selection_flag
 
 
 @click.command(name="fetch")
@@ -51,21 +54,38 @@ from autonomy.cli.helpers.registry import fetch_service
     help="Specify the package type as service.",
     flag_value=SERVICE,
 )
-@click.argument("public-id", type=PublicIdParameter(), required=True)
+@click.argument("public-id", type=PublicIdOrHashOrTokenId(), required=True)
+@chain_selection_flag(help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 def fetch(
     click_context: click.Context,
-    public_id: PublicId,
+    public_id: Union[PublicId, int],
     alias: str,
     package_type: str,
     registry: str,
+    chain_type: str,
 ) -> None:
     """Fetch an agent from the registry."""
     ctx = cast(Context, click_context.obj)
     ctx.registry_type = registry
 
     try:
-        if package_type == AGENT:
+        if isinstance(public_id, int):
+            (
+                service_metadata,
+                *_,
+            ) = _resolve_on_chain_token_id(
+                token_id=public_id,
+                chain_type=ChainType(chain_type),
+            )
+
+            click.echo("Service name: " + service_metadata["name"])
+            *_, service_hash = service_metadata["code_uri"].split("//")
+            public_id = PublicId(
+                author="valory", name="service", package_hash=service_hash
+            )
+            fetch_service_ipfs(public_id)
+        elif package_type == AGENT:
             do_fetch(ctx, public_id, alias)
         else:
             fetch_service(ctx, public_id, alias)
