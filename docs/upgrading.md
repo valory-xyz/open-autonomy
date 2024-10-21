@@ -5,6 +5,10 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.18.0` to `v0.18.1`
+
+No backwards incompatible changes.
+
 ## `v0.17.0` to `v0.18.0`
 
 - The agent and service configurations for dictionaries should now be in the following form: 
