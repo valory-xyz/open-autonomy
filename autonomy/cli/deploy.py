@@ -444,7 +444,7 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
         )
 
     click.echo(
-        "Deprecation Warning: `autonomy deploy from-token` is being deprecated.\n"
+        "DEPRECATION WARNING: `autonomy deploy from-token` is being deprecated.\n"
         "Please use `autonomy fetch <token_id>` instead to fetch the service, "
         "followed by `build-image`, `deploy build`, and `deploy run` as usual."
     )
