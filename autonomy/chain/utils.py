@@ -30,6 +30,7 @@ from autonomy.chain.base import registry_contracts
 from autonomy.chain.constants import SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS
 from autonomy.chain.exceptions import DependencyError, FailedToRetrieveComponentMetadata
 from autonomy.chain.metadata import IPFS_URI_PREFIX
+from autonomy.constants import OLAS_DOCS_URL
 
 
 def get_ipfs_hash_from_uri(uri: str) -> str:
@@ -61,7 +62,11 @@ def resolve_component_id(
             token_id=token_id,
         )
     except RequestConnectionError as e:
-        raise FailedToRetrieveComponentMetadata("Error connecting to the RPC") from e
+        raise FailedToRetrieveComponentMetadata(
+            "Error connecting to the RPC. Please make sure that "
+            "you have set the chain RPC environment variable correctly. "
+            f"You can read more about the configurations on {OLAS_DOCS_URL}/open-autonomy/advanced_reference/commands/autonomy_service/#options."
+        ) from e
 
     try:
         return r_get(url=metadata_uri).json()
