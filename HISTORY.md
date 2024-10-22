@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.18.0 (2024-10-22)
+
+Autonomy:
+- Updates the chain configuration to include Mode #2272
+
 # 0.18.0 (2024-10-18)
 
 Autonomy:
