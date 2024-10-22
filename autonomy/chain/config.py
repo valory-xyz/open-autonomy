@@ -59,6 +59,8 @@ class ChainType(Enum):
     BASE_SEPOLIA = "base_sepolia"
     CELO = "celo"
     CELO_ALFAJORES = "celo_alfajores"
+    MODE = "mode"
+    MODE_SEPOLIA = "mode_sepolia"
 
     @property
     def id(self) -> Optional[int]:
