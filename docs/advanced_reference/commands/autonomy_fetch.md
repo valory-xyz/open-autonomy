@@ -117,5 +117,5 @@ autonomy fetch valory/hello_world:0.1.0:bafybeihl6j7ihkytk4t4ca2ffhctpzydwi6r4a3
 
 Fetch the agent service with the token ID `123` on Gnosis chain:
 ```bash
-autonomy fetch 751 --use-gnosis
+autonomy fetch 123 --use-gnosis
 ```
