@@ -353,27 +353,59 @@ This means, in particular, that there is no need to define the `ALL_PARTICIPANTS
         ]
         ```
 
-3. **Deploy the service.** Execute the following command:
+3. **Fetch the service.** Fetch the service from the remote registry using token ID.
+
+    ```bash
+    autonomy fetch <TOKEN_ID> --use-arbitrum-sepolia # (1)!
+    ```
+
+    1. `--use-arbitrum-sepolia` indicates that the service is registered in the Arbirum Sepolia testnet. Check out the [`autonomy fetch`](../../../advanced_reference/commands/autonomy_fetch) command documentation to learn more about its parameters and options.
+
+    Fetch the service with the desired token ID on arbitrum sepolia network.
+
+
+4. **Build the agents' image.** Build the Docker image of the agents of the service.
+
+    ```bash
+    autonomy build-image --service-dir your_service/ # (2)!
+    ```
+
+    2. Check out the [`autonomy build-image`](../../../advanced_reference/commands/autonomy_build-image) command documentation to learn more about its parameters and options.
+
+    This command builds the Docker runtime images for the agent defined in a service configuration file service.yaml.
+
+
+5. **Build the deployment.** Build the service deployment.
+
+    ```bash
+    cd your_service/
+    ```
+
+    This command must be executed within a service folder. That is, a folder containing the service configuration file (`service.yaml`). The deployment will be created in the subfolder `./abci_build_*`.
 
     === "Docker Compose"
 
         ```bash
-        autonomy deploy from-token <ID> keys.json --use-arbitrum-sepolia # (1)!
+        autonomy deploy build path/to/keys.json -ltm # (3)!
         ```
-
-        1. `--use-arbitrum-sepolia` indicates that the service is registered in the Arbirum Sepolia testnet. Check out the [`autonomy deploy from-token`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-from-token) command documentation to learn more about its parameters and options.
-
-        The Docker Compose deployment will be built and run for the agents whose keys are defined in the `keys.json` file. If you just want to build the deployment without running it, simply add the flag `--no-deploy`.
 
     === "Kubernetes"
 
         ```bash
-        autonomy deploy from-token <ID> keys.json --use-arbitrum-sepolia --kubernetes # (1)!
+        autonomy deploy build path/to/keys.json --kubernetes # (3)!
         ```
 
-        2. `--use-arbitrum-sepolia` indicates that the service is registered in the Arbirum Sepolia testnet. Check out the [`autonomy deploy from-token`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-from-token) command documentation to learn more about its parameters and options.
+    3. Check out the [`autonomy deploy build`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-build) command documentation to learn more about its parameters and options.
 
-        The Kubernetes deployment will be built for the agents whose keys are defined in the `keys.json` file. You need to deploy the service in the local cluster manually. Follow the instructions in Step 5 of the [local deployment - full workflow](#local-deployment-full-workflow) section.
+6. **Start the service.** Run the service:
+
+    ```bash
+    autonomy deploy run # (4)!
+    ```
+
+    4. Check out the [`autonomy deploy run`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-run) command documentation to learn more about its parameters and options.
+
+    Run a service deployment locally stored.
 
 ## Cloud deployment
 

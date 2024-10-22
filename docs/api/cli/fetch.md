@@ -30,10 +30,13 @@ Implementation of the 'autonomy fetch' subcommand.
     help="Specify the package type as service.",
     flag_value=SERVICE,
 )
-@click.argument("public-id", type=PublicIdParameter(), required=True)
+@click.argument("public-id", type=PublicIdOrHashOrTokenId(), required=True)
+@chain_selection_flag(
+    help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
-def fetch(click_context: click.Context, public_id: PublicId, alias: str,
-          package_type: str, registry: str) -> None
+def fetch(click_context: click.Context, public_id: Union[PublicId,
+                                                         int], alias: str,
+          package_type: str, registry: str, chain_type: str) -> None
 ```
 
 Fetch an agent from the registry.

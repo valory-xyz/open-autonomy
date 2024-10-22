@@ -443,6 +443,12 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
             "use `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` to export the password value"
         )
 
+    click.echo(
+        "DEPRECATION WARNING: `autonomy deploy from-token` is being deprecated.\n"
+        "Please use `autonomy fetch <token_id>` instead to fetch the service, "
+        "followed by `build-image`, `deploy build`, and `deploy run` as usual."
+    )
+
     ctx = cast(Context, click_context.obj)
     ctx.registry_type = REGISTRY_REMOTE
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()

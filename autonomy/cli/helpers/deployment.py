@@ -253,7 +253,10 @@ def _resolve_on_chain_token_id(
 
     try:
         metadata = resolve_component_id(
-            ledger_api=ledger_api, contract_address=contract_address, token_id=token_id
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+            token_id=token_id,
+            is_service=True,
         )
         info = get_agent_instances(
             ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
