@@ -65,7 +65,7 @@ from autonomy.deploy.generators.localhost.utils import check_tendermint_version
 from autonomy.deploy.image import build_image
 
 
-def _build_dirs(build_dir: Path, mkdir: list[str] = []) -> None:
+def _build_dirs(build_dir: Path, mkdir: List[str]) -> None:
     """Build necessary directories."""
 
     mkdirs = [(new_dir_name,) for new_dir_name in mkdir]
@@ -257,7 +257,7 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     resources: Optional[Resources] = None,
     service_hash_id: Optional[str] = None,
     service_offset: int = 0,
-    mkdir: Optional[str] = None,
+    mkdir: Optional[List[str]] = None,
 ) -> None:
     """Build deployment."""
 
@@ -271,7 +271,8 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
 
     click.echo(f"Building deployment @ {build_dir}")
     build_dir.mkdir()
-    _build_dirs(build_dir, mkdir)
+    if mkdir is not None:
+        _build_dirs(build_dir, mkdir)
 
     if service_hash_id is None:
         service_hash_id = build_hash_id()

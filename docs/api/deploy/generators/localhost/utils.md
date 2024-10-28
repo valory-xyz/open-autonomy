@@ -19,7 +19,7 @@ Check tendermint version.
 #### setup`_`agent
 
 ```python
-def setup_agent(working_dir: Path, agent_config: dict[str, Any]) -> None
+def setup_agent(working_dir: Path, agent_config: Dict[str, Any]) -> None
 ```
 
 Setup locally deployed agent.

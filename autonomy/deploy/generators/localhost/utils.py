@@ -25,7 +25,7 @@ import shutil
 import subprocess  # nosec
 import sys
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from aea.configurations.constants import DEFAULT_AEA_CONFIG_FILE, VENDOR
 
@@ -74,7 +74,7 @@ def _run_aea_cmd(
     cwd: Optional[Path] = None,
     stdout: int = subprocess.PIPE,
     stderr: int = subprocess.PIPE,
-    ignore_error: str | None = None,
+    ignore_error: Optional[str] = None,
     **kwargs: Any,
 ) -> None:
     """Run an aea command in a subprocess."""
@@ -121,7 +121,7 @@ def _prepare_agent_env(working_dir: Path) -> None:
     )
 
 
-def setup_agent(working_dir: Path, agent_config: dict[str, Any]) -> None:
+def setup_agent(working_dir: Path, agent_config: Dict[str, Any]) -> None:
     """Setup locally deployed agent."""
     _prepare_agent_env(working_dir)
     shutil.copy(DEFAULT_AEA_CONFIG_FILE, working_dir)
@@ -139,5 +139,3 @@ def setup_agent(working_dir: Path, agent_config: dict[str, Any]) -> None:
                 cwd=working_dir,
                 ignore_error="already present",
             )
-
-    _run_aea_cmd(["issue-certificates"], cwd=working_dir)

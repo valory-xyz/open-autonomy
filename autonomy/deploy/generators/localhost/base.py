@@ -47,6 +47,7 @@ from autonomy.deploy.constants import (
     TM_STATE_DIR,
 )
 from autonomy.deploy.generators.localhost.utils import (
+    _run_aea_cmd,
     check_tendermint_version,
     setup_agent,
 )
@@ -114,6 +115,7 @@ class HostDeploymentGenerator(BaseDeploymentGenerator):
         ledger = kp.get(LEDGER, DEFAULT_LEDGER)
         keys_file = self.build_dir / PRIVATE_KEY_PATH_SCHEMA.format(ledger)
         keys_file.write_text(key, encoding=DEFAULT_ENCODING)
+        _run_aea_cmd(["issue-certificates"], cwd=self.build_dir)
 
     def _populate_keys_multiledger(self) -> None:
         """Populate the keys directory with multiple set of keys"""

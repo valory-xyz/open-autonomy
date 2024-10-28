@@ -62,7 +62,7 @@ def build_deployment(keys_file: Path,
                      resources: Optional[Resources] = None,
                      service_hash_id: Optional[str] = None,
                      service_offset: int = 0,
-                     mkdir: Optional[str] = None) -> None
+                     mkdir: Optional[List[str]] = None) -> None
 ```
 
 Build deployment.

@@ -149,9 +149,9 @@ Deploy an agent service.
 @click.option(
     "--mkdir",
     type=str,
-    help=
-    "Comma-separated list of directory names to create in the build directory.",
-    default=None,
+    help="Directory names to create in the build directory.",
+    default=[],
+    multiple=True,
 )
 @registry_flag()
 @password_option(confirmation_prompt=True)
@@ -164,6 +164,7 @@ def build_deployment_command(
         output_dir: Optional[Path],
         dev_mode: bool,
         registry: str,
+        mkdir: List[str],
         number_of_agents: Optional[int] = None,
         number_of_services: int = 1,
         password: Optional[str] = None,
@@ -179,8 +180,7 @@ def build_deployment_command(
         agent_cpu_limit: Optional[float] = None,
         agent_memory_limit: Optional[int] = None,
         agent_cpu_request: Optional[float] = None,
-        agent_memory_request: Optional[int] = None,
-        mkdir: Optional[str] = None) -> None
+        agent_memory_request: Optional[int] = None) -> None
 ```
 
 Build deployment setup for n agents.
@@ -227,11 +227,8 @@ Build deployment setup for n agents.
     help="Use docker as a backend. (default)",
     default=True,
 )
-def run(build_dir: Path,
-        no_recreate: bool,
-        remove_orphans: bool,
-        detach: bool = False,
-        deployment_type: str = "localhost") -> None
+def run(build_dir: Path, no_recreate: bool, remove_orphans: bool, detach: bool,
+        deployment_type: str) -> None
 ```
 
 Run deployment.

@@ -102,11 +102,9 @@ class TestRun(BaseCliTest):
             json.dump({}, fp)
         with open(build_path / AGENT_VARS_CONFIG_FILE, "w") as fp:
             json.dump({}, fp)
-        with (
-            mock.patch("autonomy.cli.helpers.deployment.subprocess.run"),
-            mock.patch("autonomy.cli.helpers.deployment.subprocess.Popen"),
-            mock.patch("autonomy.cli.helpers.deployment.check_tendermint_version"),
-        ):
+        with mock.patch("autonomy.cli.helpers.deployment.subprocess.run"), mock.patch(
+            "autonomy.cli.helpers.deployment.subprocess.Popen"
+        ), mock.patch("autonomy.cli.helpers.deployment.check_tendermint_version"):
             result = self.run_cli(("--localhost", "--build-dir", build_path.as_posix()))
             assert result.exit_code == 0, result.output
             assert "Running build @" in result.output

@@ -168,6 +168,7 @@ def test_validate_doc_commands() -> None:
 
             if cmd in skips:
                 continue
+            print(cmd)
             assert validator.validate(cmd, str(file_)), cmd
 
 

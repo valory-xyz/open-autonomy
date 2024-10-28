@@ -22,7 +22,7 @@
 import os
 import shutil
 from pathlib import Path
-from typing import Optional, cast
+from typing import List, Optional, cast
 
 import click
 from aea import AEA_DIR
@@ -241,7 +241,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     output_dir: Optional[Path],
     dev_mode: bool,
     registry: str,
-    mkdir: list[str],
+    mkdir: List[str],
     number_of_agents: Optional[int] = None,
     number_of_services: int = 1,
     password: Optional[str] = None,
