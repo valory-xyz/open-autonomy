@@ -27,13 +27,3 @@
 | `Gnosis Safe Multisig` | `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS` | [`0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE`](https://gnosisscan.io/address/0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE) |
 | `Gnosis Safe Same Address Multisig` | `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` | [`0x6e7f594f680f7aBad18b7a63de50F0FeE47dfD06`](https://gnosisscan.io/address/0x6e7f594f680f7aBad18b7a63de50F0FeE47dfD06) |
 | `Multisend` | `CUSTOM_MULTISEND_ADDRESS` | [`0x40A2aCCbd92BCA938b02010E17A5b8929b49130D`](https://gnosisscan.io/address/0x40A2aCCbd92BCA938b02010E17A5b8929b49130D) |
-
-## Chiado (10200)
-| Name | Environment Variable | Address |
-| ---- | -------------------- | ------- |
-| `Service Registry L 2` | `CUSTOM_SERVICE_REGISTRY_ADDRESS` | [`0x31D3202d8744B16A120117A053459DDFAE93c855`](https://gnosis-chiado.blockscout.com/address/0x31D3202d8744B16A120117A053459DDFAE93c855) |
-| `Service Registry Token Utility` | `CUSTOM_SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS` | [`0xc2c7E40674f1C7Bb99eFe5680Efd79842502bED4`](https://gnosis-chiado.blockscout.com/address/0xc2c7E40674f1C7Bb99eFe5680Efd79842502bED4) |
-| `Service Manager Token` | `CUSTOM_SERVICE_MANAGER_ADDRESS` | [`0xc965a32185590Eb5a5fffDba29E96126b7650eDe`](https://gnosis-chiado.blockscout.com/address/0xc965a32185590Eb5a5fffDba29E96126b7650eDe) |
-| `Gnosis Safe Multisig` | `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS` | [`0xeB49bE5DF00F74bd240DE4535DDe6Bc89CEfb994`](https://gnosis-chiado.blockscout.com/address/0xeB49bE5DF00F74bd240DE4535DDe6Bc89CEfb994) |
-| `Gnosis Safe Same Address Multisig` | `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` | [`0xE16adc7777B7C2a0d35033bd3504C028AB28EE8b`](https://gnosis-chiado.blockscout.com/address/0xE16adc7777B7C2a0d35033bd3504C028AB28EE8b) |
-| `Multisend` | `CUSTOM_MULTISEND_ADDRESS` | [`0x40A2aCCbd92BCA938b02010E17A5b8929b49130D`](https://gnosis-chiado.blockscout.com/address/0x40A2aCCbd92BCA938b02010E17A5b8929b49130D) |

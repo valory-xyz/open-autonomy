@@ -356,12 +356,12 @@ This means, in particular, that there is no need to define the `ALL_PARTICIPANTS
 3. **Fetch the service.** Fetch the service from the remote registry using token ID.
 
     ```bash
-    autonomy fetch <TOKEN_ID> --use-arbitrum-sepolia # (1)!
+    autonomy fetch <TOKEN_ID> --use-mode # (1)!
     ```
 
-    1. `--use-arbitrum-sepolia` indicates that the service is registered in the Arbirum Sepolia testnet. Check out the [`autonomy fetch`](../../../advanced_reference/commands/autonomy_fetch) command documentation to learn more about its parameters and options.
+    1. `--use-mode` indicates that the service is registered in the Mode network. Check out the [`autonomy fetch`](../../../advanced_reference/commands/autonomy_fetch) command documentation to learn more about its parameters and options.
 
-    Fetch the service with the desired token ID on arbitrum sepolia network.
+    Fetch the service with the desired token ID on Mode network.
 
 
 4. **Build the agents' image.** Build the Docker image of the agents of the service.

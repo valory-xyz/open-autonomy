@@ -43,7 +43,6 @@ BLOCKSCAN_URLS = {
     "polygon": "https://polygonscan.com/address/",
     "polygonMumbai": "https://mumbai.polygonscan.com/address/",
     "gnosis": "https://gnosisscan.io/address/",
-    "chiado": "https://gnosis-chiado.blockscout.com/address/",
 }
 
 
@@ -88,8 +87,6 @@ def main() -> None:
         data += section
     Path(DOC_FILE).write_text(data, encoding="utf-8")
 
-
-# [`0xeB49bE5DF00F74bd240DE4535DDe6Bc89CEfb994`](https://gnosis-chiado.blockscout.com/address/0xeB49bE5DF00F74bd240DE4535DDe6Bc89CEfb994)
 
 if __name__ == "__main__":
     main()
