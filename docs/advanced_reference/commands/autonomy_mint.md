@@ -14,32 +14,17 @@ This command group consists of a number of functionalities to mint components, a
 `--use-celo`                      
 :   Use the `Celo` chain profile to interact with the Autonolas Protocol registry contracts.
 
-`--use-base-sepolia`              
-:   Use the `Base Sepolia` profile to interact with the Autonolas Protocol registry contracts.
-
 `--use-base`                      
 :   Use the `Base` chain profile to interact with the Autonolas Protocol registry contracts.
-
-`--use-optimistic-sepolia`        
-:   Use the `Optimistic Sepolia` chain profile to interact with the Autonolas Protocol registry contracts.
 
 `--use-optimistic`                
 :   Use the `Optimistic` chain profile to interact with the Autonolas Protocol registry contracts.
 
-`--use-arbitrum-sepolia`          
-:   Use the `Arbitrum Sepolia` chain profile to interact with the Autonolas Protocol registry contracts.
-
 `--use-arbitrum-one`              
 :   Use the `Arbitrum One` chain profile to interact with the Autonolas Protocol registry contracts.
 
-`--use-chiado`                    
-:   Use the `Chiado` chain profile to interact with the Autonolas Protocol registry contracts.
-
 `--use-gnosis`                    
 :   Use the `Gnosis` chain profile to interact with the Autonolas Protocol registry contracts.
-
-`--use-polygon-mumbai`            
-:   Use the `Polygon Mumbai` chain profile to interact with the Autonolas Protocol registry contracts.
 
 `--use-polygon`                   
 :   Use the `Polygon` chain profile to interact with the Autonolas Protocol registry contracts.
@@ -47,7 +32,7 @@ This command group consists of a number of functionalities to mint components, a
 `--use-ethereum`
 :   Use the `Ethereum` chain profile to interact with the Autonolas Protocol registry contracts.
 
-To use these chain profile, you will have to export an environment variable for RPC in `<CHAIN_NAME>_CHAIN_RPC` format. For example if you want to use `ethereum`, you will have to export `ETHEREUM_CHAIN_RPC` and for `polygon-mumbai` it would be `POLYGON_MUMBAI_CHAIN_RPC`
+To use these chain profile, you will have to export an environment variable for RPC in `<CHAIN_NAME>_CHAIN_RPC` format. For example if you want to use `ethereum`, you will have to export `ETHEREUM_CHAIN_RPC`.
 
 `--use-custom-chain`
 : Use the custom-chain profile to interact with the Autonolas Protocol registry contracts. This profile requires that you define some parameters and [contract addresses](../on_chain_addresses.md) as environment variables (see also the {{ autonolas_protocol }} documentation for more information):

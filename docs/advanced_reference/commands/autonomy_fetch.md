@@ -28,32 +28,17 @@ autonomy fetch [OPTIONS] PUBLIC_ID_OR_HASH_OR_TOKEN_ID
 `--use-celo`                      
 :   Use the `Celo` chain profile to find the token with the given token ID.
 
-`--use-base-sepolia`              
-:   Use the `Base Sepolia` profile to find the token with the given token ID.
-
 `--use-base`                      
 :   Use the `Base` chain profile to find the token with the given token ID.
-
-`--use-optimistic-sepolia`        
-:   Use the `Optimistic Sepolia` chain profile to find the token with the given token ID.
 
 `--use-optimistic`                
 :   Use the `Optimistic` chain profile to find the token with the given token ID.
 
-`--use-arbitrum-sepolia`          
-:   Use the `Arbitrum Sepolia` chain profile to find the token with the given token ID.
-
 `--use-arbitrum-one`              
 :   Use the `Arbitrum One` chain profile to find the token with the given token ID.
 
-`--use-chiado`                    
-:   Use the `Chiado` chain profile to find the token with the given token ID.
-
 `--use-gnosis`                    
 :   Use the `Gnosis` chain profile to find the token with the given token ID.
-
-`--use-polygon-mumbai`            
-:   Use the `Polygon Mumbai` chain profile to find the token with the given token ID.
 
 `--use-polygon`                   
 :   Use the `Polygon` chain profile to find the token with the given token ID.
@@ -61,7 +46,7 @@ autonomy fetch [OPTIONS] PUBLIC_ID_OR_HASH_OR_TOKEN_ID
 `--use-ethereum`
 :   Use the `Ethereum` chain profile to find the token with the given token ID.
 
-To use these chain profile, you will have to export an environment variable for RPC in `<CHAIN_NAME>_CHAIN_RPC` format. For example if you want to use `ethereum`, you will have to export `ETHEREUM_CHAIN_RPC` and for `polygon-mumbai` it would be `POLYGON_MUMBAI_CHAIN_RPC`
+To use these chain profile, you will have to export an environment variable for RPC in `<CHAIN_NAME>_CHAIN_RPC` format. For example if you want to use `ethereum`, you will have to export `ETHEREUM_CHAIN_RPC`.
 
 `--use-custom-chain`
 : Use the custom-chain profile to find the token with the given token ID. This profile requires that you define some parameters and [contract addresses](../on_chain_addresses.md) as environment variables (see also the {{ autonolas_protocol }} documentation for more information):

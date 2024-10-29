@@ -48,19 +48,12 @@ class ChainType(Enum):
     CUSTOM = "custom_chain"
     ETHEREUM = "ethereum"
     POLYGON = "polygon"
-    POLYGON_MUMBAI = "polygon_mumbai"
     GNOSIS = "gnosis"
-    CHIADO = "chiado"
     ARBITRUM_ONE = "arbitrum_one"
-    ARBITRUM_SEPOLIA = "arbitrum_sepolia"
     OPTIMISTIC = "optimistic"
-    OPTIMISTIC_SEPOLIA = "optimistic_sepolia"
     BASE = "base"
-    BASE_SEPOLIA = "base_sepolia"
     CELO = "celo"
-    CELO_ALFAJORES = "celo_alfajores"
     MODE = "mode"
-    MODE_SEPOLIA = "mode_sepolia"
 
     @property
     def id(self) -> Optional[int]:

@@ -1,6 +1,12 @@
 # Release History - `open-autonomy`
 
-# 0.18.0 (2024-10-22)
+# 0.18.2 (2024-10-29)
+
+Autonomy:
+- Improves the flow when fetching from a TokenID #2273
+- Bumps `open-aea@1.59.0` #2275
+
+# 0.18.1 (2024-10-22)
 
 Autonomy:
 - Updates the chain configuration to include Mode #2272

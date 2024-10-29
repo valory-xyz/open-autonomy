@@ -75,15 +75,6 @@ CHAIN_PROFILES = {
         "staking_verifier": "0x8Bc0a5c5B1612A16983B01ecd7ae130E728390CB",
         "staking_factory": "0x46C0D07F55d4F9B5Eed2Fc9680B5953e5fd7b461",
     },
-    "polygon_mumbai": {
-        "service_registry": "0xf805DfF246CC208CD2F08ffaD242b7C32bc93623",
-        "service_manager": "0x43d28764bB39936185c84906983fB57A8A905a4F",
-        "service_registry_token_utility": "0x131b5551c81e9B3E89E9ACE30A5B3D45144E3e42",
-        "service_manager_token": "0xE16adc7777B7C2a0d35033bd3504C028AB28EE8b",
-        "gnosis_safe_proxy_factory": "0x9dEc6B62c197268242A768dc3b153AE7a2701396",
-        "gnosis_safe_same_address_multisig": "0xd6AA4Ec948d84f6Db8EEf25104CeE0Ecd280C74e",
-        "operator_whitelist": "0x118173028162C1b7c6Bf8488bd5dA2abd7c30F9D",
-    },
     "gnosis": {
         "service_registry": "0x9338b5153AE39BB89f50468E608eD9d764B755fD",
         "service_registry_token_utility": "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",
@@ -94,14 +85,6 @@ CHAIN_PROFILES = {
         "staking_token": "0xEa00be6690a871827fAfD705440D20dd75e67AB1",
         "staking_verifier": "0x1D59DadE4FAeA7771eC7221420012d413175404C",
         "staking_factory": "0xb0228CA253A88Bc8eb4ca70BCAC8f87b381f4700",
-    },
-    "chiado": {
-        "service_registry": "0x31D3202d8744B16A120117A053459DDFAE93c855",
-        "service_registry_token_utility": "0xc2c7E40674f1C7Bb99eFe5680Efd79842502bED4",
-        "service_manager_token": "0xc965a32185590Eb5a5fffDba29E96126b7650eDe",
-        "operator_whitelist": "0x6f7661F52fE1919996d0A4F68D09B344093a349d",
-        "gnosis_safe_proxy_factory": "0xeB49bE5DF00F74bd240DE4535DDe6Bc89CEfb994",
-        "gnosis_safe_same_address_multisig": "0xE16adc7777B7C2a0d35033bd3504C028AB28EE8b",
     },
     "arbitrum_one": {
         "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
@@ -114,14 +97,6 @@ CHAIN_PROFILES = {
         "staking_verifier": "0x7Fd1F4b764fA41d19fe3f63C85d12bf64d2bbf68",
         "staking_factory": "0xEB5638eefE289691EcE01943f768EDBF96258a80",
     },
-    "arbitrum_sepolia": {
-        "service_registry": "0x31D3202d8744B16A120117A053459DDFAE93c855",
-        "service_registry_token_utility": "0xeB49bE5DF00F74bd240DE4535DDe6Bc89CEfb994",
-        "service_manager_token": "0x5BA58970c2Ae16Cf6218783018100aF2dCcFc915",
-        "operator_whitelist": "0x29086141ecdc310058fc23273F8ef7881d20C2f7",
-        "gnosis_safe_proxy_factory": "0x19936159B528C66750992C3cBcEd2e71cF4E4824",
-        "gnosis_safe_same_address_multisig": "0x10100e74b7F706222F8A7C0be9FC7Ae1717Ad8B2",
-    },
     "optimistic": {
         "service_registry": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
         "service_registry_token_utility": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",
@@ -132,14 +107,6 @@ CHAIN_PROFILES = {
         "staking_token": "0x63C2c53c09dE534Dd3bc0b7771bf976070936bAC",
         "staking_verifier": "0x526E064cB694E8f5B7DB299158e17F33055B3943",
         "staking_factory": "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",
-    },
-    "optimistic_sepolia": {
-        "service_registry": "0x31D3202d8744B16A120117A053459DDFAE93c855",
-        "service_registry_token_utility": "0xeB49bE5DF00F74bd240DE4535DDe6Bc89CEfb994",
-        "service_manager_token": "0x5BA58970c2Ae16Cf6218783018100aF2dCcFc915",
-        "operator_whitelist": "0x29086141ecdc310058fc23273F8ef7881d20C2f7",
-        "gnosis_safe_proxy_factory": "0x19936159B528C66750992C3cBcEd2e71cF4E4824",
-        "gnosis_safe_same_address_multisig": "0x10100e74b7F706222F8A7C0be9FC7Ae1717Ad8B2",
     },
     "base": {
         "service_registry": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
@@ -152,14 +119,6 @@ CHAIN_PROFILES = {
         "staking_verifier": "0x10c5525F77F13b28f42c5626240c001c2D57CAd4",
         "staking_factory": "0x1cEe30D08943EB58EFF84DD1AB44a6ee6FEff63a",
     },
-    "base_sepolia": {
-        "service_registry": "0x31D3202d8744B16A120117A053459DDFAE93c855",
-        "service_registry_token_utility": "0xeB49bE5DF00F74bd240DE4535DDe6Bc89CEfb994",
-        "service_manager_token": "0x5BA58970c2Ae16Cf6218783018100aF2dCcFc915",
-        "operator_whitelist": "0x29086141ecdc310058fc23273F8ef7881d20C2f7",
-        "gnosis_safe_proxy_factory": "0x19936159B528C66750992C3cBcEd2e71cF4E4824",
-        "gnosis_safe_same_address_multisig": "0x10100e74b7F706222F8A7C0be9FC7Ae1717Ad8B2",
-    },
     "celo": {
         "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
         "service_registry_token_utility": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
@@ -170,14 +129,6 @@ CHAIN_PROFILES = {
         "staking_token": "0xe1E1B286EbE95b39F785d8069f2248ae9C41b7a9",
         "staking_verifier": "0xc40C79C275F3fA1F3f4c723755C81ED2D53A8D81",
         "staking_factory": "0x1c2cD884127b080F940b7546c1e9aaf525b1FA55",
-    },
-    "celo_alfajores": {
-        "service_registry": "0x31D3202d8744B16A120117A053459DDFAE93c855",
-        "service_registry_token_utility": "0xeB49bE5DF00F74bd240DE4535DDe6Bc89CEfb994",
-        "service_manager_token": "0x5BA58970c2Ae16Cf6218783018100aF2dCcFc915",
-        "operator_whitelist": "0x29086141ecdc310058fc23273F8ef7881d20C2f7",
-        "gnosis_safe_proxy_factory": "0x19936159B528C66750992C3cBcEd2e71cF4E4824",
-        "gnosis_safe_same_address_multisig": "0x10100e74b7F706222F8A7C0be9FC7Ae1717Ad8B2",
     },
     "mode": {
         "service_registry": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
@@ -190,14 +141,6 @@ CHAIN_PROFILES = {
         "staking_native_token": "0x88DE734655184a09B70700aE4F72364d1ad23728",
         "staking_verifier": "0x87c511c8aE3fAF0063b3F3CF9C6ab96c4AA5C60c",
         "staking_factory": "0x75D529FAe220bC8db714F0202193726b46881B76",
-    },
-    "mode_sepolia": {
-        "service_registry": "0x5BA58970c2Ae16Cf6218783018100aF2dCcFc915",
-        "service_registry_token_utility": "0x10100e74b7F706222F8A7C0be9FC7Ae1717Ad8B2",
-        "service_manager_token": "0x7bedCA17D29e53C8062d10902a6219F8d1E3B9B5",
-        "operator_whitelist": "0x19936159B528C66750992C3cBcEd2e71cF4E4824",
-        "gnosis_safe_proxy_factory": "0x0a50009D55Ed5700ac8FF713709d5Ad5fa843896",
-        "gnosis_safe_same_address_multisig": "0x77290FF625fc576f465D0256F6a12Ce4480a5b8a",
     },
     "custom_chain": {
         "component_registry": cast(
@@ -234,19 +177,12 @@ CHAIN_NAME_TO_CHAIN_ID = {
     "local": 31337,
     "ethereum": 1,
     "polygon": 137,
-    "polygon_mumbai": 80001,
     "gnosis": 100,
-    "chiado": 10200,
     "arbitrum_one": 42161,
-    "arbitrum_sepolia": 421614,
     "optimistic": 10,
-    "optimistic_sepolia": 11155420,
     "base": 8453,
-    "base_sepolia": 84532,
     "celo": 42220,
-    "celo_alfajores": 42220,
     "mode": 34443,
-    "mode_sepolia": 919,
 }
 
 # Contract PublicIds
