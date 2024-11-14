@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -116,6 +116,7 @@ class SlashingCheckRound(CollectSameUntilThresholdRound):
         get_name(SynchronizedData.slashing_in_flight),
         get_name(SynchronizedData.slashing_majority_reached),
     )
+    required_class_attributes: Tuple[str, ...] = tuple()
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""

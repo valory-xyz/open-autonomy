@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -63,6 +63,11 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
 ADDRESS_LENGTH = 42
 TX_HASH_LENGTH = 66
 RETRIES_LENGTH = 64
+
+DONE_EVENT_ATTRIBUTE = "done_event"
+NO_MAJORITY_EVENT_ATTRIBUTE = "no_majority_event"
+COLLECTION_KEY_ATTRIBUTE = "collection_key"
+SELECTION_KEY_ATTRIBUTE = "selection_key"
 
 
 class Event(Enum):
@@ -271,6 +276,8 @@ class FinalizationRound(OnlyKeeperSendsRound):
     payload_class = FinalizationTxPayload
     synchronized_data_class = SynchronizedData
 
+    required_class_attributes: Tuple[str, ...] = tuple()
+
     def end_block(  # pylint: disable=too-many-return-statements
         self,
     ) -> Optional[
@@ -340,6 +347,7 @@ class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
     payload_class = RandomnessPayload
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
+    none_event = Event.NONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = get_name(SynchronizedData.participant_to_randomness)
     selection_key = (
@@ -357,6 +365,12 @@ class SelectKeeperTransactionSubmissionARound(CollectSameUntilThresholdRound):
     no_majority_event = Event.NO_MAJORITY
     collection_key = get_name(SynchronizedData.participant_to_selection)
     selection_key = get_name(SynchronizedData.keepers)
+    required_class_attributes: Tuple[str, ...] = (
+        DONE_EVENT_ATTRIBUTE,
+        NO_MAJORITY_EVENT_ATTRIBUTE,
+        COLLECTION_KEY_ATTRIBUTE,
+        SELECTION_KEY_ATTRIBUTE,
+    )
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
@@ -380,6 +394,8 @@ class SelectKeeperTransactionSubmissionBAfterTimeoutRound(
     SelectKeeperTransactionSubmissionBRound
 ):
     """A round in which a new keeper is selected for tx submission after a round timeout of the previous keeper"""
+
+    required_class_attributes: Tuple[str, ...] = tuple()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
@@ -461,6 +477,8 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
     synchronized_data_class = SynchronizedData
     collection_key = get_name(SynchronizedData.participant_to_check)
     selection_key = get_name(SynchronizedData.most_voted_check_result)
+
+    required_class_attributes: Tuple[str, ...] = tuple()
 
     def end_block(  # pylint: disable=too-many-return-statements
         self,
@@ -603,6 +621,8 @@ class ResetRound(CollectSameUntilThresholdRound):
     payload_class = ResetPayload
     synchronized_data_class = SynchronizedData
 
+    required_class_attributes: Tuple[str, ...] = tuple()
+
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
@@ -653,6 +673,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     Transition states:
         0. RandomnessTransactionSubmissionRound
             - done: 1.
+            - none: 0.
             - round timeout: 0.
             - no majority: 0.
         1. SelectKeeperTransactionSubmissionARound
@@ -730,6 +751,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         RandomnessTransactionSubmissionRound: {
             Event.DONE: SelectKeeperTransactionSubmissionARound,
+            Event.NONE: RandomnessTransactionSubmissionRound,
             Event.ROUND_TIMEOUT: RandomnessTransactionSubmissionRound,
             Event.NO_MAJORITY: RandomnessTransactionSubmissionRound,
         },
