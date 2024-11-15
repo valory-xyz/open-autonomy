@@ -94,6 +94,16 @@ SERIOUS_OFFENCE_ENUM_MIN = 1000
 NUMBER_OF_BLOCKS_TRACKED = 10_000
 NUMBER_OF_ROUNDS_TRACKED = 50
 
+DONE_EVENT_ATTRIBUTE = "done_event"
+NO_MAJORITY_EVENT_ATTRIBUTE = "no_majority_event"
+NONE_EVENT_ATTRIBUTE = "none_event"
+NEGATIVE_EVENT_ATTRIBUTE = "negative_event"
+FAIL_EVENT_ATTRIBUTE = "fail_event"
+PAYLOAD_KEY_ATTRIBUTE = "payload_key"
+COLLECTION_KEY_ATTRIBUTE = "collection_key"
+SELECTION_KEY_ATTRIBUTE = "selection_key"
+REQUIRED_BLOCK_CONFIRMATIONS_ATTRIBUTE = "required_block_confirmations"
+
 EventType = TypeVar("EventType")
 
 
@@ -1062,6 +1072,8 @@ class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound):
 
     round_id: str
 
+    required_class_attributes: Tuple[str, ...] = tuple()
+
     def __init__(
         self,
         synchronized_data: BaseSynchronizedData,
@@ -1073,6 +1085,16 @@ class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound):
         self.block_confirmations = 0
         self._previous_round_payload_class = previous_round_payload_class
         self.context = context
+
+        self._check_required_attributes()
+
+    def _check_required_attributes(self) -> None:
+        """Check that required attributes are set."""
+        for attribute in self.required_class_attributes:
+            if not hasattr(self, attribute):
+                raise AbstractRoundInternalError(
+                    f"'{attribute}' not set on {self.__class__}"
+                )
 
     @classmethod
     def auto_round_id(cls) -> str:
@@ -1549,6 +1571,14 @@ class CollectSameUntilThresholdRound(CollectionRound, ABC):
     collection_key: str
     selection_key: Union[str, Tuple[str, ...]]
 
+    required_class_attributes: Tuple[str, ...] = (
+        DONE_EVENT_ATTRIBUTE,
+        NO_MAJORITY_EVENT_ATTRIBUTE,
+        NONE_EVENT_ATTRIBUTE,
+        COLLECTION_KEY_ATTRIBUTE,
+        SELECTION_KEY_ATTRIBUTE,
+    )
+
     @property
     def threshold_reached(
         self,
@@ -1630,6 +1660,12 @@ class OnlyKeeperSendsRound(AbstractRound, ABC):
     done_event: Any
     fail_event: Any
     payload_key: Union[str, Tuple[str, ...]]
+
+    required_class_attributes: Tuple[str, ...] = (
+        DONE_EVENT_ATTRIBUTE,
+        FAIL_EVENT_ATTRIBUTE,
+        PAYLOAD_KEY_ATTRIBUTE,
+    )
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Handle a deploy safe payload."""
@@ -1726,6 +1762,14 @@ class VotingRound(CollectionRound, ABC):
     no_majority_event: Any
     collection_key: str
 
+    required_class_attributes: Tuple[str, ...] = (
+        DONE_EVENT_ATTRIBUTE,
+        NEGATIVE_EVENT_ATTRIBUTE,
+        NONE_EVENT_ATTRIBUTE,
+        NO_MAJORITY_EVENT_ATTRIBUTE,
+        COLLECTION_KEY_ATTRIBUTE,
+    )
+
     @property
     def vote_count(self) -> Counter:
         """Get agent payload vote count"""
@@ -1790,6 +1834,12 @@ class CollectDifferentUntilThresholdRound(CollectionRound, ABC):
     collection_key: str
     required_block_confirmations: int = 0
 
+    required_class_attributes: Tuple[str, ...] = (
+        DONE_EVENT_ATTRIBUTE,
+        COLLECTION_KEY_ATTRIBUTE,
+        REQUIRED_BLOCK_CONFIRMATIONS_ATTRIBUTE,
+    )
+
     @property
     def collection_threshold_reached(
         self,
@@ -1840,6 +1890,11 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound, AB
 
     none_event: Any
     selection_key: Union[str, Tuple[str, ...]]
+
+    required_class_attributes: Tuple[str, ...] = (
+        NONE_EVENT_ATTRIBUTE,
+        SELECTION_KEY_ATTRIBUTE,
+    )
 
     def _get_non_empty_values(self) -> Dict[str, Tuple[Any, ...]]:
         """Get the non-empty values from the payload, for all attributes."""
@@ -3802,6 +3857,8 @@ class PendingOffencesRound(CollectSameUntilThresholdRound):
 
     payload_class = PendingOffencesPayload
     synchronized_data_class = BaseSynchronizedData
+
+    required_class_attributes: Tuple[str, ...] = tuple()
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the `PendingOffencesRound`."""

@@ -506,6 +506,7 @@ Initial states: {RandomnessTransactionSubmissionRound}
 Transition states:
     0. RandomnessTransactionSubmissionRound
         - done: 1.
+        - none: 0.
         - round timeout: 0.
         - no majority: 0.
     1. SelectKeeperTransactionSubmissionARound

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -544,7 +544,7 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
         test_round.block_confirmations = 0
         test_round.required_block_confirmations = required_confirmations
         test_round.collection_key = "collection_key"
-        test_round.done_event = 0
+        test_round.done_event = DummyEvent.DONE
         assert (
             test_round.synchronized_data.consensus_threshold <= required_confirmations
         ), "Incorrect test parametrization: required confirmations cannot be set with a smalled value than the consensus threshold"
@@ -609,9 +609,9 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
 
         non_empty_values = test_round._get_non_empty_values()
         assert non_empty_values == {
-            tuple(sorted(self.participants))[i]: (f"agent_{i}", False)
-            if i != none_payload_idx
-            else (False,)
+            tuple(sorted(self.participants))[i]: (
+                (f"agent_{i}", False) if i != none_payload_idx else (False,)
+            )
             for i in range(4)
         }
 
