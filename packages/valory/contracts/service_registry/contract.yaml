@@ -21,6 +21,6 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==1.60.0
   open-aea-test-autonomy:
-    version: ==0.18.2
+    version: ==0.18.3
   web3:
     version: <7,>=6.0.0
