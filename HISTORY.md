@@ -1,5 +1,13 @@
 # Release History - `open-autonomy`
 
+# 0.18.3 (2024-11-18)
+
+Packages:
+- Strictly check if the required properties are defined in derived classes from AbstractRound #2276
+
+Chores:
+- Bumps `open-aea@1.60.0` #2280
+
 # 0.18.2 (2024-10-29)
 
 Autonomy:
