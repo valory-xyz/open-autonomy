@@ -27,8 +27,9 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from aea.configurations.constants import DEFAULT_AEA_CONFIG_FILE, VENDOR
+from aea.configurations.constants import AGENT
 
+from autonomy.chain.config import ChainType
 from autonomy.deploy.constants import (
     BENCHMARKS_DIR,
     TENDERMINT_BIN_UNIX,
@@ -72,8 +73,8 @@ def check_tendermint_version() -> Path:
 def _run_aea_cmd(
     args: List[str],
     cwd: Optional[Path] = None,
-    stdout: int = subprocess.PIPE,
-    stderr: int = subprocess.PIPE,
+    stdout: Optional[int] = None,
+    stderr: Optional[int] = subprocess.PIPE,
     ignore_error: Optional[str] = None,
     **kwargs: Any,
 ) -> None:
@@ -91,7 +92,7 @@ def _run_aea_cmd(
             raise RuntimeError(f"Error running: {args} @ {cwd}\n{result_error}")
 
 
-def _prepare_agent_env(working_dir: Path) -> None:
+def _prepare_agent_env(working_dir: Path) -> Dict[str, Any]:
     """Prepare agent env, add keys, run aea commands."""
     env = json.loads((working_dir / "agent.json").read_text(encoding="utf-8"))
 
@@ -120,22 +121,23 @@ def _prepare_agent_env(working_dir: Path) -> None:
         encoding="utf-8",
     )
 
+    return env
 
-def setup_agent(working_dir: Path, agent_config: Dict[str, Any]) -> None:
+
+def setup_agent(working_dir: Path, agent_dir: Path, keys_file: Path) -> None:
     """Setup locally deployed agent."""
-    _prepare_agent_env(working_dir)
-    shutil.copy(DEFAULT_AEA_CONFIG_FILE, working_dir)
+    env = _prepare_agent_env(working_dir)
 
-    # add dependencies
-    if (working_dir.parent / VENDOR).exists():
-        shutil.copytree(working_dir.parent / VENDOR, working_dir / VENDOR)
+    _run_aea_cmd(
+        ["fetch", env["AEA_AGENT"], "--alias", AGENT],
+        cwd=working_dir,
+    )
 
     # add private keys
-    for ledger_name, path in agent_config.get("private_key_paths", {}).items():
-        if Path(path).exists():
-            shutil.copy(path, working_dir)
-            _run_aea_cmd(
-                ["add-key", ledger_name],
-                cwd=working_dir,
-                ignore_error="already present",
-            )
+    shutil.copy(keys_file, agent_dir)
+    _run_aea_cmd(
+        ["add-key", ChainType.ETHEREUM.value],
+        cwd=agent_dir,
+        ignore_error="already present",
+    )
+    _run_aea_cmd(["issue-certificates"], cwd=agent_dir)

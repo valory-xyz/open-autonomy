@@ -14,6 +14,17 @@ class HostDeploymentGenerator(BaseDeploymentGenerator)
 
 Localhost deployment.
 
+<a id="autonomy.deploy.generators.localhost.base.HostDeploymentGenerator.agent_dir"></a>
+
+#### agent`_`dir
+
+```python
+@property
+def agent_dir() -> Path
+```
+
+Path to the agent directory.
+
 <a id="autonomy.deploy.generators.localhost.base.HostDeploymentGenerator.generate_config_tendermint"></a>
 
 #### generate`_`config`_`tendermint

@@ -379,7 +379,7 @@ def run(
         )
     click.echo(f"Running build @ {build_dir}")
     if deployment_type == "localhost":
-        run_host_deployment(build_dir)
+        run_host_deployment(build_dir, detach)
     else:
         run_deployment(build_dir, no_recreate, remove_orphans, detach=detach)
 

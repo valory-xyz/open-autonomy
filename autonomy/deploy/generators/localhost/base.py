@@ -21,16 +21,14 @@
 import json
 import subprocess  # nosec
 import typing as t
+from pathlib import Path
 
 from aea.configurations.constants import (
-    DEFAULT_AEA_CONFIG_FILE,
     DEFAULT_LEDGER,
     LEDGER,
     PRIVATE_KEY,
     PRIVATE_KEY_PATH_SCHEMA,
 )
-from aea.helpers.io import open_file
-from aea.helpers.yaml_utils import yaml_load_all
 
 from autonomy.deploy.base import BaseDeploymentGenerator
 from autonomy.deploy.constants import (
@@ -47,7 +45,6 @@ from autonomy.deploy.constants import (
     TM_STATE_DIR,
 )
 from autonomy.deploy.generators.localhost.utils import (
-    _run_aea_cmd,
     check_tendermint_version,
     setup_agent,
 )
@@ -58,6 +55,11 @@ class HostDeploymentGenerator(BaseDeploymentGenerator):
 
     output_name: str = AGENT_VARS_CONFIG_FILE
     deployment_type: str = "localhost"
+
+    @property
+    def agent_dir(self) -> Path:
+        """Path to the agent directory."""
+        return self.build_dir / "agent"
 
     def generate_config_tendermint(self) -> "HostDeploymentGenerator":
         """Generate tendermint configuration."""
@@ -115,7 +117,7 @@ class HostDeploymentGenerator(BaseDeploymentGenerator):
         ledger = kp.get(LEDGER, DEFAULT_LEDGER)
         keys_file = self.build_dir / PRIVATE_KEY_PATH_SCHEMA.format(ledger)
         keys_file.write_text(key, encoding=DEFAULT_ENCODING)
-        _run_aea_cmd(["issue-certificates"], cwd=self.build_dir)
+        setup_agent(self.build_dir, self.agent_dir, keys_file)
 
     def _populate_keys_multiledger(self) -> None:
         """Populate the keys directory with multiple set of keys"""
@@ -131,9 +133,4 @@ class HostDeploymentGenerator(BaseDeploymentGenerator):
     def write_config(self) -> "BaseDeploymentGenerator":
         """Write output to build dir"""
         super().write_config()
-        # copy private keys
-        with open_file(DEFAULT_AEA_CONFIG_FILE, "r") as fp:
-            aea_config = yaml_load_all(fp)
-
-        setup_agent(self.build_dir, aea_config[0])
         return self

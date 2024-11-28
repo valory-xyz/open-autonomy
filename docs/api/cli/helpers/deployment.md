@@ -22,7 +22,7 @@ Run deployment.
 #### run`_`host`_`deployment
 
 ```python
-def run_host_deployment(build_dir: Path) -> None
+def run_host_deployment(build_dir: Path, detach: bool = False) -> None
 ```
 
 Run host deployment.

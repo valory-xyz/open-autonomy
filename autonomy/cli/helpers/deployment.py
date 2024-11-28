@@ -26,9 +26,10 @@ import subprocess  # nosec
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 import click
+from aea.configurations.constants import AGENT
 from aea.configurations.data_types import PublicId
 from aea.helpers.base import cd
 from compose.cli import main as docker_compose
@@ -178,14 +179,18 @@ def _get_deattached_creation_flags() -> int:
     return DEATTACH_WINDOWS_FLAG if platform.system() == "Windows" else 0
 
 
-def _start_localhost_agent(working_dir: Path) -> None:
+def _start_localhost_agent(working_dir: Path, detach: bool) -> None:
     """Start localhost agent process."""
     env = json.loads((working_dir / AGENT_VARS_CONFIG_FILE).read_text())
-    subprocess.run(  # pylint: disable=subprocess-run-check # nosec
+    process_fn: Callable = subprocess.Popen if detach else subprocess.run  # type: ignore[assignment]
+    process = process_fn(  # pylint: disable=subprocess-run-check # nosec
         args=[sys.executable, "-m", "aea.cli", "run"],
-        cwd=working_dir,
+        cwd=working_dir / AGENT,
         env={**os.environ, **env},
         creationflags=_get_deattached_creation_flags(),  # Detach process from the main process
+    )
+    (working_dir / "agent.pid").write_text(
+        data=str(process.pid),
     )
 
 
@@ -215,13 +220,17 @@ def _start_localhost_tendermint(working_dir: Path) -> subprocess.Popen:
     return process
 
 
-def run_host_deployment(build_dir: Path) -> None:
+def run_host_deployment(build_dir: Path, detach: bool = False) -> None:
     """Run host deployment."""
     tm_process = _start_localhost_tendermint(build_dir)
     try:
-        _start_localhost_agent(build_dir)
-    finally:
+        _start_localhost_agent(build_dir, detach)
+    except Exception as e:  # pylint: disable=broad-except
+        click.echo(e)
         tm_process.terminate()
+    finally:
+        if not detach:
+            tm_process.terminate()
 
 
 def stop_deployment(build_dir: Path) -> None:
@@ -271,9 +280,6 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
 
     click.echo(f"Building deployment @ {build_dir}")
     build_dir.mkdir()
-    if mkdir is not None:
-        _build_dirs(build_dir, mkdir)
-
     if service_hash_id is None:
         service_hash_id = build_hash_id()
 
@@ -300,6 +306,9 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         image_author=image_author,
         resources=resources,
     )
+    if mkdir is not None:
+        _build_dirs(build_dir, mkdir)
+
     click.echo(report)
 
 

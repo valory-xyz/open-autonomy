@@ -40,7 +40,7 @@ TENDERMINT_BIN_WINDOWS = "tendermint.exe"
 TENDERMINT_VARS_CONFIG_FILE = "tendermint.json"
 AGENT_VARS_CONFIG_FILE = "agent.json"
 TENDERMINT_FLASK_APP_PATH = (
-    Path("deployments") / "Dockerfiles" / "tendermint" / "app.py"
+    Path("autonomy") / "deploy" / "generators" / "localhost" / "tendermint" / "app.py"
 )
 DEATTACH_WINDOWS_FLAG = 0x00000008
 
