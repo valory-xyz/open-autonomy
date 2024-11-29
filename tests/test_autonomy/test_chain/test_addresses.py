@@ -29,7 +29,7 @@ from autonomy.chain.config import ChainType
 from autonomy.chain.constants import CHAIN_PROFILES
 
 
-ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/main/docs/configuration.json"
+ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/refs/tags/v1.2.4/docs/configuration.json"
 
 
 class TestAddresses:
