@@ -205,6 +205,7 @@ class IpfsConnection(Connection):
         except (
             ValueError,
             requests.exceptions.ChunkedEncodingError,
+            requests.exceptions.HTTPError,
         ) as e:  # pragma: no cover
             err = str(e)
             self.logger.error(err)
