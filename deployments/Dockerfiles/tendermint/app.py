@@ -32,30 +32,11 @@ import requests
 from flask import Flask, Response, jsonify, request
 from werkzeug.exceptions import InternalServerError, NotFound
 
-from autonomy.deploy.constants import (
-    TM_ENV_CREATE_EMPTY_BLOCKS,
-    TM_ENV_P2P_LADDR,
-    TM_ENV_PROXY_APP,
-    TM_ENV_RPC_LADDR,
-    TM_ENV_TMHOME,
-    TM_ENV_USE_GRPC,
-)
-
 
 try:
-    from .tendermint import (  # type: ignore
-        DEFAULT_P2P_LISTEN_ADDRESS,
-        DEFAULT_RPC_LISTEN_ADDRESS,
-        TendermintNode,
-        TendermintParams,
-    )
+    from .tendermint import TendermintNode, TendermintParams  # type: ignore
 except ImportError:
-    from tendermint import (  # type: ignore
-        DEFAULT_P2P_LISTEN_ADDRESS,
-        DEFAULT_RPC_LISTEN_ADDRESS,
-        TendermintNode,
-        TendermintParams,
-    )
+    from tendermint import TendermintNode, TendermintParams  # type: ignore
 
 ENCODING = "utf-8"
 DEFAULT_LOG_FILE = "log.log"
@@ -113,7 +94,7 @@ def update_peers(validators: List[Dict], config_path: Path) -> None:
     new_peer_string = 'persistent_peers = "'
     for peer in validators:
         hostname = peer["hostname"]
-        if hostname in ("localhost", "0.0.0.0"):  # nosec
+        if hostname in ("localhost", "0.0.0.0"):
             # This (tendermint) node will be running in a docker container and no other node
             # will be running in the same container. If we receive either localhost or 0.0.0.0,
             # we make an assumption that the address belongs to a node running on the
@@ -173,7 +154,7 @@ class PeriodDumper:
 
         self.resets = 0
         self.logger = logger
-        self.dump_dir = dump_dir or Path(os.environ.get("TMSTATE") or "/tm_state")
+        self.dump_dir = dump_dir or Path("/tm_state")
 
         if self.dump_dir.is_dir():
             shutil.rmtree(str(self.dump_dir), onerror=self.readonly_handler)
@@ -213,12 +194,10 @@ def create_app(  # pylint: disable=too-many-statements
     """Create the Tendermint server app"""
     write_to_log = os.environ.get("WRITE_TO_LOG", "false").lower() == "true"
     tendermint_params = TendermintParams(
-        proxy_app=os.environ[TM_ENV_PROXY_APP],
-        rpc_laddr=os.environ.get(TM_ENV_RPC_LADDR, DEFAULT_RPC_LISTEN_ADDRESS),
-        p2p_laddr=os.environ.get(TM_ENV_P2P_LADDR, DEFAULT_P2P_LISTEN_ADDRESS),
-        consensus_create_empty_blocks=os.environ[TM_ENV_CREATE_EMPTY_BLOCKS] == "true",
-        home=os.environ[TM_ENV_TMHOME],
-        use_grpc=os.environ[TM_ENV_USE_GRPC] == "true",
+        proxy_app=os.environ["PROXY_APP"],
+        consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
+        home=os.environ["TMHOME"],
+        use_grpc=os.environ["USE_GRPC"] == "true",
     )
 
     app = Flask(__name__)
@@ -297,7 +276,7 @@ def create_app(  # pylint: disable=too-many-statements
     def app_hash() -> Tuple[Any, int]:
         """Get the app hash."""
         try:
-            non_routable, loopback = "0.0.0.0", "127.0.0.1"  # nosec
+            non_routable, loopback = "0.0.0.0", "127.0.0.1"
             endpoint = f"{tendermint_params.rpc_laddr.replace('tcp', 'http').replace(non_routable, loopback)}/block"
             height = request.args.get("height")
             params = {"height": height} if height is not None else None
