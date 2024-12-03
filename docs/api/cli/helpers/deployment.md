@@ -17,6 +17,16 @@ def run_deployment(build_dir: Path,
 
 Run deployment.
 
+<a id="autonomy.cli.helpers.deployment.run_host_deployment"></a>
+
+#### run`_`host`_`deployment
+
+```python
+def run_host_deployment(build_dir: Path, detach: bool = False) -> None
+```
+
+Run host deployment.
+
 <a id="autonomy.cli.helpers.deployment.stop_deployment"></a>
 
 #### stop`_`deployment
@@ -51,7 +61,8 @@ def build_deployment(keys_file: Path,
                      image_author: Optional[str] = None,
                      resources: Optional[Resources] = None,
                      service_hash_id: Optional[str] = None,
-                     service_offset: int = 0) -> None
+                     service_offset: int = 0,
+                     mkdir: Optional[List[str]] = None) -> None
 ```
 
 Build deployment.

@@ -18,13 +18,18 @@
 # ------------------------------------------------------------------------------
 
 """Deployment helpers."""
+import json
 import os
+import platform
 import shutil
+import subprocess  # nosec
+import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 import click
+from aea.configurations.constants import AGENT
 from aea.configurations.data_types import PublicId
 from aea.helpers.base import cd
 from compose.cli import main as docker_compose
@@ -45,19 +50,26 @@ from autonomy.deploy.base import Resources, build_hash_id
 from autonomy.deploy.build import generate_deployment
 from autonomy.deploy.constants import (
     AGENT_KEYS_DIR,
+    AGENT_VARS_CONFIG_FILE,
     BENCHMARKS_DIR,
+    DEATTACH_WINDOWS_FLAG,
     INFO,
     LOG_DIR,
     PERSISTENT_DATA_DIR,
+    TENDERMINT_FLASK_APP_PATH,
+    TENDERMINT_VARS_CONFIG_FILE,
     TM_STATE_DIR,
     VENVS_DIR,
 )
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
+from autonomy.deploy.generators.localhost.utils import check_tendermint_version
 from autonomy.deploy.image import build_image
 
 
-def _build_dirs(build_dir: Path) -> None:
+def _build_dirs(build_dir: Path, mkdir: List[str]) -> None:
     """Build necessary directories."""
+
+    mkdirs = [(new_dir_name,) for new_dir_name in mkdir]
 
     for dir_path in [
         (PERSISTENT_DATA_DIR,),
@@ -66,9 +78,9 @@ def _build_dirs(build_dir: Path) -> None:
         (PERSISTENT_DATA_DIR, BENCHMARKS_DIR),
         (PERSISTENT_DATA_DIR, VENVS_DIR),
         (AGENT_KEYS_DIR,),
-    ]:
+    ] + mkdirs:
         path = Path(build_dir, *dir_path)
-        path.mkdir()
+        path.mkdir(exist_ok=True, parents=True)
         # TOFIX: remove this safely
         try:
             os.chown(path, 1000, 1000)
@@ -119,7 +131,6 @@ def run_deployment(
     detach: bool = False,
 ) -> None:
     """Run deployment."""
-    click.echo(f"Running build @ {build_dir}")
     try:
         project = _load_compose_project(build_dir=build_dir)
         commands = docker_compose.TopLevelCommand(project=project)
@@ -163,6 +174,65 @@ def run_deployment(
         stop_deployment(build_dir=build_dir)
 
 
+def _get_deattached_creation_flags() -> int:
+    """Get Popen creation flag based on the platform."""
+    return DEATTACH_WINDOWS_FLAG if platform.system() == "Windows" else 0
+
+
+def _start_localhost_agent(working_dir: Path, detach: bool) -> None:
+    """Start localhost agent process."""
+    env = json.loads((working_dir / AGENT_VARS_CONFIG_FILE).read_text())
+    process_fn: Callable = subprocess.Popen if detach else subprocess.run  # type: ignore[assignment]
+    process = process_fn(  # pylint: disable=subprocess-run-check # nosec
+        args=[sys.executable, "-m", "aea.cli", "run"],
+        cwd=working_dir / AGENT,
+        env={**os.environ, **env},
+        creationflags=_get_deattached_creation_flags(),  # Detach process from the main process
+    )
+    (working_dir / "agent.pid").write_text(
+        data=str(process.pid),
+    )
+
+
+def _start_localhost_tendermint(working_dir: Path) -> subprocess.Popen:
+    """Start localhost tendermint process."""
+    check_tendermint_version()
+    env = json.loads((working_dir / TENDERMINT_VARS_CONFIG_FILE).read_text())
+    flask_app_path = Path(__file__).parents[3] / TENDERMINT_FLASK_APP_PATH
+    process = subprocess.Popen(  # pylint: disable=consider-using-with # nosec
+        args=[
+            "flask",
+            "run",
+            "--host",
+            "localhost",
+            "--port",
+            "8080",
+        ],
+        cwd=working_dir,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        env={**os.environ, **env, "FLASK_APP": f"{flask_app_path}:create_server"},
+        creationflags=_get_deattached_creation_flags(),  # Detach process from the main process
+    )
+    (working_dir / "tendermint.pid").write_text(
+        data=str(process.pid),
+    )
+    return process
+
+
+def run_host_deployment(build_dir: Path, detach: bool = False) -> None:
+    """Run host deployment."""
+    tm_process = _start_localhost_tendermint(build_dir)
+    try:
+        _start_localhost_agent(build_dir, detach)
+    except Exception as e:  # pylint: disable=broad-except
+        click.echo(e)
+        tm_process.terminate()
+    finally:
+        if not detach:
+            tm_process.terminate()
+
+
 def stop_deployment(build_dir: Path) -> None:
     """Stop running deployment."""
     try:
@@ -196,6 +266,7 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     resources: Optional[Resources] = None,
     service_hash_id: Optional[str] = None,
     service_offset: int = 0,
+    mkdir: Optional[List[str]] = None,
 ) -> None:
     """Build deployment."""
 
@@ -209,8 +280,6 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
 
     click.echo(f"Building deployment @ {build_dir}")
     build_dir.mkdir()
-    _build_dirs(build_dir)
-
     if service_hash_id is None:
         service_hash_id = build_hash_id()
 
@@ -237,6 +306,9 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         image_author=image_author,
         resources=resources,
     )
+    if mkdir is not None:
+        _build_dirs(build_dir, mkdir)
+
     click.echo(report)
 
 

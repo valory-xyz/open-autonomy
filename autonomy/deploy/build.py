@@ -24,11 +24,13 @@ from autonomy.deploy.base import BaseDeploymentGenerator, Resources, ServiceBuil
 from autonomy.deploy.constants import DEPLOYMENT_REPORT, INFO
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
+from autonomy.deploy.generators.localhost.base import HostDeploymentGenerator
 
 
 DEPLOYMENT_OPTIONS: Dict[str, Type[BaseDeploymentGenerator]] = {
     "kubernetes": KubernetesGenerator,
     "docker-compose": DockerComposeGenerator,
+    "localhost": HostDeploymentGenerator,
 }
 
 
@@ -56,9 +58,14 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     resources: Optional[Resources] = None,
 ) -> str:
     """Generate the deployment for the service."""
-    if dev_mode and type_of_deployment != DockerComposeGenerator.deployment_type:
+    if type_of_deployment == HostDeploymentGenerator.deployment_type:
+        if number_of_agents is not None and number_of_agents > 1:
+            raise RuntimeError(
+                "Host deployment currently only supports single agent deployments"
+            )
+    elif dev_mode:
         raise RuntimeError(
-            "Development mode can only be used with docker-compose deployments"
+            "Development mode can only be used with localhost deployments"
         )
 
     service_builder = ServiceBuilder.from_dir(

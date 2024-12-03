@@ -33,6 +33,7 @@ from autonomy.configurations.base import Service
 from autonomy.deploy.base import BaseDeploymentGenerator, ServiceBuilder
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
+from autonomy.deploy.generators.localhost.base import HostDeploymentGenerator
 
 from tests.conftest import ROOT_DIR
 
@@ -52,7 +53,10 @@ def get_dummy_service() -> Service:
 
 
 @skip_docker_tests
-@pytest.mark.parametrize("generator_cls", (DockerComposeGenerator, KubernetesGenerator))
+@pytest.mark.parametrize(
+    "generator_cls",
+    (DockerComposeGenerator, KubernetesGenerator, HostDeploymentGenerator),
+)
 @pytest.mark.parametrize("image_version", [None, "0.1.0"])
 @pytest.mark.parametrize("use_hardhat", [False, True])
 @pytest.mark.parametrize("use_acn", [False, True])
@@ -84,5 +88,9 @@ def test_versioning(
             )
 
             deployment_generator.generate(**generate_kwargs)
-            expected = f"valory/oar-oracle:{image_version or AGENT.hash}"
+            oar_image = "oar-"
+            if generator_cls == HostDeploymentGenerator:
+                oar_image = ""
+                image_version = f"latest:{AGENT.hash}"
+            expected = f"valory/{oar_image}oracle:{image_version or AGENT.hash}"
             assert expected in deployment_generator.output
