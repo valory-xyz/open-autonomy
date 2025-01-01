@@ -77,7 +77,7 @@ docker-compose up --force-recreate
 
 This will spawn:
 
-- a network of `n` Tendermint nodes, each one trying to connect to a separate ABCI application instance;
+- a network of `n` CometBFT nodes, each one trying to connect to a separate ABCI application instance;
 - `n` AEAs, each one running an instance of the ABCI application, and a finite-state machine behaviour to interact with the round phases.
 
 The logs of a single AEA or node can then be inspected with `docker logs {container_id} --follow`.

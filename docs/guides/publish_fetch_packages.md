@@ -1,3 +1,5 @@
+[← Back to Guides](./index.md)
+
 The {{open_autonomy}} framework works with the concept of **package**: a collection of files that implement a specific component or functionality.
 Publishing a package is simply the process of storing the package into a registry (or in other words, a repository), either locally or remotely.
 

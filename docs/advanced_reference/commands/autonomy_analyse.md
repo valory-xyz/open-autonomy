@@ -1,3 +1,5 @@
+[← Back to CLI Reference](../../cli_overview.md)
+
 Tools for analysing and verifying agent services.
 
 This command group consists of a number of functionalities to analyse and verify agent services, including {{fsm_app}} skill consistency checks. See the appropriate subcommands for more information.

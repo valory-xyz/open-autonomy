@@ -1,4 +1,6 @@
 
+[← Back to Guides](./index.md)
+
 Recall that the [{{fsm_app}} skill](../key_concepts/fsm_app_introduction.md) is the core part of the agent that encodes the business logic of the service. Developing the {{fsm_app}} is possibly most demanding step in the development process.
 
 <figure markdown>

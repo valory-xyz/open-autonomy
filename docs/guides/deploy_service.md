@@ -1,3 +1,5 @@
+[← Back to Guides](./index.md)
+
 # Deploy the service
 
 The final step in the development process is [deploying the service](./overview_of_the_development_process.md). There are multiple deployment options to consider, such as deploying on your local machine for testing, deploying on a cluster within your own infrastructure, or deploying on a cloud provider.
@@ -280,19 +282,19 @@ For deploying services that have been registered in the {{ autonolas_protocol }}
         After executing these commands, the minikube cluster will start provisioning and starting $N$ pods in the cluster. Each pod contains:
 
         * one agent container, running an instance of the corresponding {{fsm_app}}.
-        * one CometBFT node associated to the agent.
+        * one CometBFT node associated with the agent.
 
 6. **Examine the deployment.**
 
     === "Docker Compose"
 
-        To inspect the logs of a single agent or CometBFT node you can execute `docker logs <container_id> --follow` in a separate terminal.
+        To inspect the logs of a single agent or CometBFT node, you can execute `docker logs <container_id> --follow` in a separate terminal.
 
         You can cancel the local execution at any time by pressing ++ctrl+c++.   
 
     === "Kubernetes"
 
-        You can access the cluster dashboard by executing `minikube dashboard` in a separate terminal. To examine the logs of a single agent or CometBFT node you can execute:
+        You can access the cluster dashboard by executing `minikube dashboard` in a separate terminal. To examine the logs of a single agent or CometBFT node, you can execute:
 
         1. Get the Kubernetes pod names.
             ```bash

@@ -1,3 +1,5 @@
+[← Back to CLI Reference](../../cli_overview.md)
+
 Tools for replaying agent execution from previous runs.
 
 This command group provides functionality to re-run agents and their associated CometBFT nodes using data dumps from previous executions. This is particularly useful for:

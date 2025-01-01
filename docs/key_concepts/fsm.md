@@ -1,3 +1,5 @@
+[← Back to Key Concepts](./index.md)
+
 A [finite-state machine](https://en.wikipedia.org/wiki/Finite-state_machine) (FSM) is a mathematical model of computation that can be
 used to represent a sequential logic of state transitions.
 We use FSMs to describe systems that have a finite number of _states_ and can transition from one state to another due to some _event_. At any given time the FSM can be in exactly one particular state, and the reception of this event will make the application to transit to a new state. FSMs will be a central part to define the {{fsm_app}} in an agent service (because we express the business logic of such services as FSMs).

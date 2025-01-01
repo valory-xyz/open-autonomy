@@ -1,9 +1,11 @@
+[← Back to Guides](./index.md)
+
 The purpose of this guide is to provide step-by-step instructions to gain familiarity with the [overall development process](./overview_of_the_development_process.md) of the {{open_autonomy}} framework.
 
 We will show how to use the CLI to run a local deployment of the [Hello World service](https://docs.autonolas.network/demos/hello-world/), which comprises:
 
 - 4 Docker containers implementing the 4 agents of the service, and
-- 4 Docker containers implementing a Tendermint node for each agent.
+- 4 Docker containers implementing a CometBFT node for each agent.
 
 <figure markdown>
   ![Hello World service](../images/hello_world_demo_architecture.svg){align=center}

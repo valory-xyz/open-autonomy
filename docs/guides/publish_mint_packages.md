@@ -1,3 +1,5 @@
+[← Back to Guides](./index.md)
+
 Once you have finished developing and testing your service locally, you can publish your software packages to the remote registry and mint them in the {{ autonolas_protocol }}. Minting software packages will produce a representation of them on-chain, in the form of NFTs.
 
 <figure markdown>

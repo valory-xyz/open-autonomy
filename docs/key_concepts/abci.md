@@ -1,3 +1,5 @@
+[← Back to Key Concepts](./index.md)
+
 The [Application BlockChain Interface (ABCI)](https://github.com/cometbft/cometbft/blob/main/spec/abci/README.md) defines the boundary between the consensus engine (the blockchain) and an application to be replicated across a number of platforms.
 The ABCI lets the application logic communicate with the consensus engine in a transparent way so that all agents' internal state are synchronized. The application to be replicated can be written in any programming language, and it communicates with the consensus engine of each agent through a variety of methods, e.g., Unix or TCP sockets. In our case, we leverage the ABCI to replicate the sate of the {{fsm_app}} within the agents of an agent service.
 
