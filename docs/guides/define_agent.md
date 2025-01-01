@@ -142,7 +142,8 @@ If you have [populated the local registry](./overview_of_the_development_process
                 safe_contract_address: ${str:'0x0000000000000000000000000000000000000000'}
                 consensus_threshold: ${int:null}
               # Default local development endpoints - DO NOT USE IN PRODUCTION
-              # These endpoints assume you are running local CometBFT nodes
+              # Note: These endpoints assume you are running local CometBFT nodes
+              # DO NOT USE IN PRODUCTION - For local development and testing only
               tendermint_url: ${str:http://localhost:26657}
               tendermint_com_url: ${str:http://localhost:8080}
         ---
@@ -265,13 +266,15 @@ If you have [populated the local registry](./overview_of_the_development_process
 
          ```bash
          rm -rf ~/.tendermint #(1)!
-         tendermint init
-         tendermint node --proxy_app=tcp://127.0.0.1:26658 --rpc.laddr=tcp://127.0.0.1:26657 --p2p.laddr=tcp://0.0.0.0:26656 --p2p.seeds= --consensus.create_empty_blocks=true
+         # Note: These commands are for local development only
+         # DO NOT USE IN PRODUCTION - For local testing and development
+         cometbft init
+         cometbft node --proxy_app=tcp://127.0.0.1:26658 --rpc.laddr=tcp://127.0.0.1:26657 --p2p.laddr=tcp://0.0.0.0:26656 --p2p.seeds= --consensus.create_empty_blocks=true
          ```
 
-         1. This will prevent errors caused by dirty files from earlier executions of Tendermint. Ensure that you don't want to keep these files.
+         1. This will prevent errors caused by dirty files from earlier executions of CometBFT. Ensure that you don't want to keep these files.
 
-    At this point, you should see how your agent runs and exchanges messages with the Tendermint node. Note that, while running an isolated agent might be useful to quickly test and debug certain functionalities, you need to build and test a whole service deployment to ensure that it works as intended.
+    At this point, you should see how your agent runs and exchanges messages with the CometBFT node. Note that, while running an isolated agent might be useful to quickly test and debug certain functionalities, you need to build and test a whole service deployment to ensure that it works as intended.
 
 
 

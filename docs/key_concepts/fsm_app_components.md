@@ -28,10 +28,10 @@ This ledger is local with respect to the `Period`, i.e., its
 existence is controlled by, and only relevant in context of, the `Period`. It is
 distributed and decentralized with respect to the AEAs in the system, all of
 whom run a local consensus node. The underlying consensus engine (currently
-Tendermint) allows decentralized state replication among different processes.
+CometBFT) allows decentralized state replication among different processes.
 
 The transitions in the FSM are triggered by the delivery of blocks from the
-consensus engine through the [ABCI](./abci.md). The transactions that are  contained in these blocks are submitted by AEAs `Behaviours`, and can lead to updates of the shared `SynchronizedData`.
+consensus engine through the [ABCI](./abci.md). The transactions that are contained in these blocks are submitted by AEAs `Behaviours`, and can lead to updates of the shared `SynchronizedData`.
 
 Each round has its own business logic, which specifies how the participants'
 transactions are validated or the conditions that trigger a transition to
@@ -56,7 +56,7 @@ is a side effect of block validation: each block header carries the timestamp of
     {{fsm_app}} current state round is defined to trigger a timeout event set at  $T=5$ seconds. When $B_2$ is delivered, the timeout event had already been triggered (because $T<t_2-t_1$), and the associated transition had already happened in the FSM, regardless of the content of $B_2$.
 
 The `ABCIHandler`, is in charge of receiving the transactions through the
-[`DeliverTx`](https://github.com/cometbft/cometbft/blob/main/spec/abci/abci.md#delivertx)
+[`DeliverTx`](https://docs.cometbft.com/v0.37/spec/abci/abci++_methods#delivertx)
 ABCI requests, and forwards them to the current active round, which produces the
 response for `DeliverTx`. The `end_block` abstract method is called on the ABCI request `EndBlock`, and determines the round successor by setting the event to
 take the transition to the next state, as defined by the transition function in the `AbciApp`.

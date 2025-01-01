@@ -1,7 +1,7 @@
 # Debugging Using Tenderly
 
 
-[Tenderly](https://tenderly.co/) is a _comprehensive Ethereum Developer Platform for real-time monitoring, alerting, debugging, and simulating Smart Contracts_. When debugging transactions and contract calls, it can be useful to help us understand what is going on with the execution. [This guide](https://docs.tenderly.co/debugger/how-to-use-tenderly-debugger) contains a more detailed explanation on Tenderly, but for the basics:
+[Tenderly](https://tenderly.co/) is a _comprehensive Ethereum Developer Platform for real-time monitoring, alerting, debugging, and simulating Smart Contracts_. When debugging transactions and contract calls, it can be useful to help us understand what is going on with the execution. [This guide](https://docs.tenderly.co/monitoring/how-to-use-tenderly-debugger) contains a more detailed explanation on Tenderly, but for the basics:
 
 - Create a Tenderly account and project.
 

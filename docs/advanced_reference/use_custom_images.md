@@ -11,9 +11,9 @@ The {{open_autonomy}} framework uses up to 6 different Docker images when buildi
 
 : This image extends the base image `valory/open-autonomy`. It contains the agent package for a service and a deployment environment for the same agent. This image is built through the `autonomy build-image` command.
 
-`valory/open-autonomy-tendermint`
+`valory/open-autonomy-cometbft`
 
-: Defines a Tendermint node in the deployment setup. The deployment builder will use `valory/open-autonomy-tendermint` as the name and the current version of the framework as the version tag. You can change the name and the version tag of the image by exporting the environment variables `TENDERMINT_IMAGE_NAME` and `TENDERMINT_IMAGE_VERSION`, respectively.
+: Defines a CometBFT node in the deployment setup. The deployment builder will use `valory/open-autonomy-cometbft` as the name and the current version of the framework as the version tag. You can change the name and the version tag of the image by exporting the environment variables `COMETBFT_IMAGE_NAME` and `COMETBFT_IMAGE_VERSION`, respectively.
 
 ## Images used in testing only
 

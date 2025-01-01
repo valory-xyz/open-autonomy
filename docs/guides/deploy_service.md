@@ -162,7 +162,7 @@ For deploying services that have been registered in the {{ autonolas_protocol }}
         ```
 
         1. Delete previous deployments, if necessary.
-        2. `-ltm` stands for "use local Tendermint node". Check out the [`autonomy deploy build`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-build) command documentation to learn more about its parameters and options.
+        2. `-ltm` stands for "use local CometBFT node". Check out the [`autonomy deploy build`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-build) command documentation to learn more about its parameters and options.
 
         This will create a deployment environment within the `./abci_build_*` folder with the following structure:
 
@@ -181,7 +181,7 @@ For deploying services that have been registered in the {{ autonolas_protocol }}
         ├── persistent_data
         │   ├── benchmarks
         │   ├── logs
-        │   ├── tm_state
+        │   ├── consensus_state  # Directory for CometBFT node state
         │   └── venvs
         └── docker-compose.yaml
         ```
@@ -194,7 +194,7 @@ For deploying services that have been registered in the {{ autonolas_protocol }}
         ```
 
         1. Delete previous deployments, if necessary.
-        2. `-ltm` stands for "use local Tendermint node". Check out the [`autonomy deploy build`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-build) command documentation to learn more about its parameters and options.
+        2. `-ltm` stands for "use local CometBFT node". Check out the [`autonomy deploy build`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-build) command documentation to learn more about its parameters and options.
 
         This will create a deployment environment within the `./abci_build_*` folder with the following structure:
 
@@ -209,7 +209,7 @@ For deploying services that have been registered in the {{ autonolas_protocol }}
         └── persistent_data
             ├── benchmarks
             ├── logs
-            ├── tm_state
+            ├── consensus_state  # Directory for CometBFT node state
             └── venvs
         ```
 
@@ -227,7 +227,7 @@ For deploying services that have been registered in the {{ autonolas_protocol }}
         This will spawn in the local machine:
 
         * $N$ agents containers, each one running an instance of the corresponding {{fsm_app}}.
-        * a network of $N$ Tendermint nodes, one per agent.
+        * a network of $N$ CometBFT nodes, one per agent.
 
     === "Kubernetes"
 
@@ -280,19 +280,19 @@ For deploying services that have been registered in the {{ autonolas_protocol }}
         After executing these commands, the minikube cluster will start provisioning and starting $N$ pods in the cluster. Each pod contains:
 
         * one agent container, running an instance of the corresponding {{fsm_app}}.
-        * one Tendermint node associated to the agent.
+        * one CometBFT node associated to the agent.
 
 6. **Examine the deployment.**
 
     === "Docker Compose"
 
-        To inspect the logs of a single agent or Tendermint node you can execute `docker logs <container_id> --follow` in a separate terminal.
+        To inspect the logs of a single agent or CometBFT node you can execute `docker logs <container_id> --follow` in a separate terminal.
 
         You can cancel the local execution at any time by pressing ++ctrl+c++.   
 
     === "Kubernetes"
 
-        You can access the cluster dashboard by executing `minikube dashboard` in a separate terminal. To examine the logs of a single agent or Tendermint node you can execute:
+        You can access the cluster dashboard by executing `minikube dashboard` in a separate terminal. To examine the logs of a single agent or CometBFT node you can execute:
 
         1. Get the Kubernetes pod names.
             ```bash
@@ -304,7 +304,7 @@ For deploying services that have been registered in the {{ autonolas_protocol }}
             kubectl exec -it <pod-name> -c aea -- /bin/sh
             ```
 
-        3. Access the logs of the Tendermint node in pod `<pod-name>`.
+        3. Access the logs of the CometBFT node in pod `<pod-name>`.
             ```bash 
             kubectl exec -it <pod-name> -c node0 -- /bin/sh
             ```

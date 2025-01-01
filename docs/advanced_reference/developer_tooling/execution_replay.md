@@ -9,7 +9,8 @@ The replay functionality of the dev mode allows to replay a previous execution o
 3. **Recreate the CometBFT network.** Spawn a CometBFT network with the available dumps.
 
     ```bash
-    autonomy replay tendermint
+    # Replay using local CometBFT network
+autonomy replay tendermint
     ```
 
 4. **Replay agent execution.** Now, you can run replays for specified agents using

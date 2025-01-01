@@ -102,7 +102,7 @@ To build and view the documentation locally:
 
 1. Install documentation dependencies:
    ```bash
-   pip install mkdocs-material
+   pip install mkdocs-material mkdocs-macros-plugin
    ```
 
 2. In the project root directory, run:

@@ -1,14 +1,14 @@
 # Counter Agent Service Demo
 
 This demo shows how to run an agent service implementing a counter.
-It is a simple example that illustrates how state-machine replication is achieved across different agents through the consensus gadget, which is Tendermint, in this case. Note that, unlike the remaining demos, due to its simplicity, the business logic of this service is not encoded as an {{fsm_app}}. Rather, it is implemented as a simple skill (`counter`) containing an `ABCIHandler`. The skill does not contain proactive behaviours, which means that no client calls are made to the consensus gadget.
+It is a simple example that illustrates how state-machine replication is achieved across different agents through the consensus gadget, which is CometBFT, in this case. Note that, unlike the remaining demos, due to its simplicity, the business logic of this service is not encoded as an {{fsm_app}}. Rather, it is implemented as a simple skill (`counter`) containing an `ABCIHandler`. The skill does not contain proactive behaviours, which means that no client calls are made to the consensus gadget.
 
 ## Architecture of the Demo
 
 This demo is composed of:
 
 - A set of four [CometBFT](https://cometbft.com/) nodes (`node0`, `node1`, `node2`, `node3`).
-- A set of four AEAs (`abci0`, `abci1`, `abci2`, `abci3`), in one-to-one connection with their corresponding Tendermint
+- A set of four AEAs (`abci0`, `abci1`, `abci2`, `abci3`), in one-to-one connection with their corresponding CometBFT
 node.
 
 <figure markdown>
@@ -77,31 +77,32 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
     autonomy deploy run
     ```
 
-    This will deploy a local counter service with four agents connected to four Tendermint nodes.
+    This will deploy a local counter service with four agents connected to four CometBFT nodes.
 
 7. The logs of a single agent or [CometBFT](https://cometbft.com/) node can be inspected in another terminal with, e.g.,
     ```bash
     docker logs <container_id> --follow
     ```
     where `<container_id>` refers to the Docker container ID for either an agent
-    (`abci0`, `abci1`, `abci2` and `abci3`) or a Tendermint node (`node0`, `node1`, `node2` and `node3`).
+    (`abci0`, `abci1`, `abci2` and `abci3`) or a CometBFT node (`node0`, `node1`, `node2` and `node3`).
 
 
 
 ## Interacting with the Demo
 
-Recall that each agent has the skill `counter`, and the consensus gadget (Tendermint) manages the consensus protocol for incoming transactions. The `counter` skill implements the `ABCICounterHandler` which receives (and responds to) callbacks from the Tendermint network when certain events happen, in particular, when a client sends a transaction to the local blockchain managed by Tendermint.
+Recall that each agent has the skill `counter`, and the consensus gadget (CometBFT) manages the consensus protocol for incoming transactions. The `counter` skill implements the `ABCICounterHandler` which receives (and responds to) callbacks from the CometBFT network when certain events happen, in particular, when a client sends a transaction to the local blockchain managed by CometBFT.
 
 Once the agent service is up, you can interact with it.
-The four Tendermint nodes, `node0`, `node1`, `node2`, and `node3`, are listening at ports `26657`, `26667`, `26677`, and `26687`, respectively.
-To query the state of the service from Tendermint `node0`, execute the following HTTP request:
+The four CometBFT nodes, `node0`, `node1`, `node2`, and `node3`, are listening at ports `26657`, `26667`, `26677`, and `26687`, respectively.
+To query the state of the service from CometBFT `node0`, execute the following HTTP request:
 
 ```bash
-# Note: This command assumes you are running a local node on the default port
+# Note: This command assumes you are running a local CometBFT node on the default port (26657)
+# DO NOT USE IN PRODUCTION - For local development and testing only
 curl http://localhost:26657/abci_query
 ```
 
-What will happen behind the scenes is that the Tendermint node `node0`
+What will happen behind the scenes is that the CometBFT node `node0`
 will send a `request_query` ABCI request to the agent `abci0` which will be handled by the `ABCICounterHandler`. The handler will reply
 with a `response_query` ABCI response, containing the current state of the service.
 
@@ -136,7 +137,8 @@ You can verify that running the same query against the other
 nodes will give you the same response, e.g.
 
 ```bash
-# Note: This command assumes you are running a local node on port 26667
+# Note: This command assumes you are running a local CometBFT node on port 26667
+# DO NOT USE IN PRODUCTION - For local development and testing only
 curl http://localhost:26667/abci_query
 ```
 
@@ -146,12 +148,14 @@ To send a transaction and update the ABCI application state:
 
 ```bash
 # Note: This command assumes you are running a local node on the default port
+# Note: This command assumes you are running a local CometBFT node on the default port (26657)
+# DO NOT USE IN PRODUCTION - For local development and testing only
 curl http://localhost:26657/broadcast_tx_commit\?tx\=0x01
 ```
 
 where `0x01` is the new value for the distributed counter.
 
-Once the request is received, the Tendermint node will
+Once the request is received, the CometBFT node will
 first check that the transaction is indeed valid against
 the current state of the application by sending
 a `check_tx` request to the ABCI application.
@@ -162,7 +166,7 @@ In our case, since the state before the transaction was `0x00`,
 and since `0x01` is a unitary increment of the counter,
 the transaction is valid.
 
-After the Tendermint network managed to reach a consensus,
+After the CometBFT network managed to reach a consensus,
 the command above receives this HTTP response:
 
 ```
@@ -208,7 +212,7 @@ describes
 the reason why the transaction is considered valid by the ABCI application.
 
 Note that we would have obtained the same result
-by interacting with another available Tendermint node;
+by interacting with another available CometBFT node;
 you can try by replacing the port `26657`
 with one of `26667`, `26677` and `26687`.
 
@@ -252,8 +256,9 @@ describes  the reason why the transaction has been rejected.
 
 Now, the query request
 ```bash
-# Note: This command assumes you are running a local node on port 26667
-curl http://localhost:26667/abci_query
+# Note: This command assumes you are running a local CometBFT node on port 26667
+# DO NOT USE IN PRODUCTION - For local development and testing only
+curl http://localhost:26667/abci_query  # Local CometBFT RPC endpoint
 ```
 
 returns the updated counter value:
@@ -282,7 +287,7 @@ returns the updated counter value:
 ### Interact through an AEA
 
 In this section we will see an example of
-how to use an AEA to interact with the Tendermint network built above.
+how to use an AEA to interact with the CometBFT network built above.
 
 First, open a terminal to the root of this repository,
 and fetch the `counter_client` agent:
@@ -300,10 +305,10 @@ autonomy generate-key ethereum
 autonomy install
 ```
 
-You can see the Tendermint node the skill is configured to interact with
+You can see the CometBFT node the skill is configured to interact with
 using the following command:
 ```bash
-autonomy config get vendor.valory.skills.counter_client.models.params.args.tendermint_url
+autonomy config get vendor.valory.skills.counter_client.models.params.args.cometbft_url
 ```
 
 It will print `localhost:26657`, i.e. `node0`.
