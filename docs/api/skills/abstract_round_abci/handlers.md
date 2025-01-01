@@ -34,7 +34,7 @@ def info(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
 
 Handle the 'info' request.
 
-As per Tendermint spec (https://github.com/tendermint/spec/blob/038f3e025a19fed9dc96e718b9834ab1b545f136/spec/abci/abci.md#info):
+As per CometBFT spec ([ABCI Info](https://github.com/cometbft/cometbft/blob/main/spec/abci/abci.md#info)):
 
 - Return information about the application state.
 - Used to sync Tendermint with the application during a handshake that happens on startup.
@@ -60,7 +60,7 @@ def init_chain(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
 
 Handle a message of REQUEST_INIT_CHAIN performative.
 
-As per Tendermint spec (https://github.com/tendermint/spec/blob/038f3e025a19fed9dc96e718b9834ab1b545f136/spec/abci/abci.md#initchain):
+As per CometBFT spec ([ABCI InitChain](https://github.com/cometbft/cometbft/blob/main/spec/abci/abci.md#initchain)):
 
 - Called once upon genesis.
 - If ResponseInitChain.Validators is empty, the initial validator set will be the RequestInitChain.Validators.
@@ -137,7 +137,7 @@ def commit(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
 
 Handle the 'commit' request.
 
-As per Tendermint spec (https://github.com/tendermint/spec/blob/038f3e025a19fed9dc96e718b9834ab1b545f136/spec/abci/abci.md#commit):
+As per CometBFT spec ([ABCI Commit](https://github.com/cometbft/cometbft/blob/main/spec/abci/abci.md#commit)):
 
 Empty request meant to signal to the app it can write state transitions to state.
 

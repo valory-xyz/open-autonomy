@@ -127,8 +127,8 @@ Below we show the steps to register the `hello_world` service and all its requir
 
 2. **Configure your browser and wallet.** To explore the status of the protocol in this local blockchain using the {{ autonolas_protocol_registry_dapp }}, you need to configure a software wallet in your browser, for example [Metamask](https://metamask.io/). Add a new chain with the following parameters:
 
-    * RPC URL: http://localhost:8545
-    * Chain ID: 31337
+    * RPC URL: http://localhost:8545  # Local development endpoint - assumes running a local Ethereum node
+    * Chain ID: 31337  # Default chain ID for local Hardhat node
     * Currency symbol: GO
 
     Import an account using one of the private keys listed above. For example, `0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d`.

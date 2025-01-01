@@ -37,8 +37,10 @@ At agent level, the agent configuration file `aea-config.yaml` should contain an
     config:
       ledger_apis:
         ethereum:
+          # Default local development endpoint - DO NOT USE IN PRODUCTION
+          # This endpoint assumes you are running a local Ethereum node (e.g., Hardhat)
           address: ${str:http://localhost:8545}
-          chain_id: ${int:31337}
+          chain_id: ${int:31337}  # Default local chain ID for Hardhat
           <other_params>
     ```
 === "Using hardcoded values"

@@ -74,7 +74,7 @@ nav:
     - Analise and test: 'configure_service/analise_test.md'
   - Advanced reference:
     - 'advanced_reference/index.md'
-    # - publish fetch: 'guides/publish_fetch_packages.md'
+    - CLI Overview: 'cli_overview.md'
     - Commands:
       - autonomy deploy: 'advanced_reference/commands/autonomy_deploy.md'
       - autonomy build-image: 'advanced_reference/commands/autonomy_build-image.md'
@@ -83,7 +83,11 @@ nav:
       - autonomy fetch: 'advanced_reference/commands/autonomy_fetch.md'
       - autonomy scaffold: 'advanced_reference/commands/autonomy_scaffold.md'           
       - autonomy mint: 'advanced_reference/commands/autonomy_mint.md'           
-      - autonomy service: 'advanced_reference/commands/autonomy_service.md'           
+      - autonomy service: 'advanced_reference/commands/autonomy_service.md'
+      - autonomy develop: 'advanced_reference/commands/autonomy_develop.md'
+      - autonomy hash: 'advanced_reference/commands/autonomy_hash.md'
+      - autonomy publish: 'advanced_reference/commands/autonomy_publish.md'
+      - autonomy push-all: 'advanced_reference/commands/autonomy_push_all.md'           
     - Developer tooling:
       - Dev mode: 'advanced_reference/developer_tooling/dev_mode.md'
       - Execution replay: 'advanced_reference/developer_tooling/execution_replay.md'

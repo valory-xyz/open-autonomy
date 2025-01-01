@@ -56,7 +56,7 @@ is a side effect of block validation: each block header carries the timestamp of
     {{fsm_app}} current state round is defined to trigger a timeout event set at  $T=5$ seconds. When $B_2$ is delivered, the timeout event had already been triggered (because $T<t_2-t_1$), and the associated transition had already happened in the FSM, regardless of the content of $B_2$.
 
 The `ABCIHandler`, is in charge of receiving the transactions through the
-[`DeliverTx`](https://github.com/tendermint/spec/blob/95cf253b6df623066ff7cd4074a94e7a3f147c7a/spec/abci/abci.md#delivertx)
+[`DeliverTx`](https://github.com/cometbft/cometbft/blob/main/spec/abci/abci.md#delivertx)
 ABCI requests, and forwards them to the current active round, which produces the
 response for `DeliverTx`. The `end_block` abstract method is called on the ABCI request `EndBlock`, and determines the round successor by setting the event to
 take the transition to the next state, as defined by the transition function in the `AbciApp`.

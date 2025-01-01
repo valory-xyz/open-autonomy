@@ -141,6 +141,8 @@ If you have [populated the local registry](./overview_of_the_development_process
                 all_participants: ${list:[]}
                 safe_contract_address: ${str:'0x0000000000000000000000000000000000000000'}
                 consensus_threshold: ${int:null}
+              # Default local development endpoints - DO NOT USE IN PRODUCTION
+              # These endpoints assume you are running local CometBFT nodes
               tendermint_url: ${str:http://localhost:26657}
               tendermint_com_url: ${str:http://localhost:8080}
         ---

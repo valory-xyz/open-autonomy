@@ -582,8 +582,8 @@ The effect of this on the memory usage should not be a big concern, because:
      e.g., to perform a decision on a behaviour, which means that the gc will collect them before they are noticed.
 
 * the in-built `copy` module is used, which automatically detects if an item is immutable and skips copying it.
-For more information take a look at the `_deepcopy_atomic` method and its usage:
-https://github.com/python/cpython/blob/3.10/Lib/copy.py#L182-L183
+For more information take a look at the `_deepcopy_atomic` method and its usage in the Python standard library:
+[CPython implementation](https://github.com/python/cpython/blob/main/Lib/copy.py)
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.__init__"></a>
 

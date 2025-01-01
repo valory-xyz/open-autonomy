@@ -24,6 +24,18 @@ Additionally, if you wish to deploy your service in a Kubernetes cluster:
 
 ## Set up the framework
 
+### Populate the local registry for the guides
+
+Before proceeding with the guides, you'll need to populate your local registry with some default components:
+
+```bash
+autonomy packages sync
+```
+
+This will download and set up the necessary components in your local registry.
+
+## Set up the framework
+
 1. **Create a workspace folder:**
 
     ```bash

@@ -9,7 +9,27 @@ We will show how to use the CLI to run a local deployment of the [Hello World se
   ![Hello World service](../images/hello_world_demo_architecture.svg){align=center}
 </figure>
 
-Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder.
+Before starting this guide, ensure that your machine satisfies the [framework requirements](#requirements) and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder.
+
+## Requirements
+
+Before you begin, ensure you have:
+- Python 3.8 or higher
+- pip (Python package installer)
+- Docker Engine
+- Docker Compose
+
+## Setup
+
+1. Install the Open Autonomy framework:
+   ```bash
+   pip install open-autonomy[all]
+   ```
+
+2. Verify the installation:
+   ```bash
+   autonomy --version
+   ```
 
 ## Step-by-step instructions
 
@@ -128,13 +148,13 @@ abci2    | [2022-01-01 00:00:00,000] [INFO] [agent] printed_message=Agent agent 
 (...)
 ```
 
-The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
+The logs of a single agent or [CometBFT](https://cometbft.com/) node can be inspected in another terminal with, e.g.,
 
 ```bash
 docker logs <container_id> --follow
 ```
 
 where `<container_id>` refers to the Docker container ID for an agent
-(`abci0`, `abci1`, `abci2` and `abci3`) or a [Tendermint](https://tendermint.com/) node (`node0`, `node1`, `node2` and `node3`).
+(`abci0`, `abci1`, `abci2` and `abci3`) or a [CometBFT](https://cometbft.com/) node (`node0`, `node1`, `node2` and `node3`).
 
 Try to inspect the service agent logs yourself and identify when they say the default "HELLO_WORLD!" message or your custom message.

@@ -78,6 +78,8 @@ See also the [service level overrides](../configure_service/service_configuratio
             - '0x0000000000000000000000000000000000000000'
             safe_contract_address: '0x0000000000000000000000000000000000000000'
             consensus_threshold: null            
+          # Local development endpoints - DO NOT USE IN PRODUCTION
+          # These endpoints assume you are running local CometBFT nodes
           tendermint_url: http://localhost:26657
           tendermint_com_url: http://localhost:8080
           service_registry_address: null

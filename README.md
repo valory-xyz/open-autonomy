@@ -96,6 +96,24 @@ the dependencies:
 
       autonomy packages sync --update-packages
 
+## Building documentation locally
+
+To build and view the documentation locally:
+
+1. Install documentation dependencies:
+   ```bash
+   pip install mkdocs-material
+   ```
+
+2. In the project root directory, run:
+   ```bash
+   mkdocs serve
+   ```
+
+3. Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) in your browser to view the documentation.
+
+The documentation will automatically rebuild when you make changes to the files in the `docs/` directory.
+
 ## Cite
 
 If you are using our software in a publication, please

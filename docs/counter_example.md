@@ -7,7 +7,7 @@ It is a simple example that illustrates how state-machine replication is achieve
 
 This demo is composed of:
 
-- A set of four [Tendermint](https://tendermint.com/) nodes (`node0`, `node1`, `node2`, `node3`).
+- A set of four [CometBFT](https://cometbft.com/) nodes (`node0`, `node1`, `node2`, `node3`).
 - A set of four AEAs (`abci0`, `abci1`, `abci2`, `abci3`), in one-to-one connection with their corresponding Tendermint
 node.
 
@@ -79,7 +79,7 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
 
     This will deploy a local counter service with four agents connected to four Tendermint nodes.
 
-7. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
+7. The logs of a single agent or [CometBFT](https://cometbft.com/) node can be inspected in another terminal with, e.g.,
     ```bash
     docker logs <container_id> --follow
     ```
@@ -96,7 +96,8 @@ Once the agent service is up, you can interact with it.
 The four Tendermint nodes, `node0`, `node1`, `node2`, and `node3`, are listening at ports `26657`, `26667`, `26677`, and `26687`, respectively.
 To query the state of the service from Tendermint `node0`, execute the following HTTP request:
 
-```
+```bash
+# Note: This command assumes you are running a local node on the default port
 curl http://localhost:26657/abci_query
 ```
 
@@ -135,6 +136,7 @@ You can verify that running the same query against the other
 nodes will give you the same response, e.g.
 
 ```bash
+# Note: This command assumes you are running a local node on port 26667
 curl http://localhost:26667/abci_query
 ```
 
@@ -143,6 +145,7 @@ curl http://localhost:26667/abci_query
 To send a transaction and update the ABCI application state:
 
 ```bash
+# Note: This command assumes you are running a local node on the default port
 curl http://localhost:26657/broadcast_tx_commit\?tx\=0x01
 ```
 
@@ -249,6 +252,7 @@ describes  the reason why the transaction has been rejected.
 
 Now, the query request
 ```bash
+# Note: This command assumes you are running a local node on port 26667
 curl http://localhost:26667/abci_query
 ```
 
