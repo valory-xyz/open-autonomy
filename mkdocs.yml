@@ -1,116 +1,87 @@
-site_name: Open Autonomy
-site_url: https://valory.xyz/
-site_description: A framework for the creation of autonomous agent services.
+site_name: Open Autonomy Framework
+site_url: https://docs.autonolas.network/
+site_description: Documentation for the Open Autonomy Framework
+site_author: Valory AG
+copyright: Valory AG 2021-2023
+
+repo_name: valory-xyz/open-autonomy
 repo_url: https://github.com/valory-xyz/open-autonomy
-site_author: developer@valory.xyz
-edit_uri: edit/main/docs/
-
-# TODO: Set true after fixing the material dependency
-strict: false
-
-
-theme:
-  name: 'material'
-  language: en
-  favicon: images/favicon.ico
-  logo: images/logo.svg  
-  icon:
-    admonition:
-      abstract: material/book-open-variant  
-  features:
-    - navigation.indexes
-    - navigation.top
-    - navigation.tracking
-    - navigation.footer
-    - search.highlight
-    - search.share
-    - search.suggest
-    - content.code.copy
-    - content.code.annotate
-    - content.tabs.link
-
-extra_css:
-  - stylesheets/extra.css
-
+edit_uri: ""
 
 nav:
-  - Home: 'index.md'
-  - Get started:
-    - What is an agent service: 'get_started/what_is_an_agent_service.md'
-    - Why do we need agent services: 'get_started/why_do_we_need_agent_services.md'
-    - Agent services compared to...: 'get_started/agent_services_compared_to.md'
+  - Get Started:
+    - What is an agent service?: 'get_started/what_is_an_agent_service.md'
+    - Why do we need agent services?: 'get_started/why_do_we_need_agent_services.md'
     - Use cases: 'get_started/use_cases.md'
+    - Agent services compared to: 'get_started/agent_services_compared_to.md'
   - Guides:
-    - 'guides/index.md'
-    - Set up: 'guides/set_up.md'
+    - Overview: 'guides/index.md'
     - Quick start: 'guides/quick_start.md'
+    - Set up: 'guides/set_up.md'
     - Overview of the development process: 'guides/overview_of_the_development_process.md'
-    - Draft the service idea and define the FSM specification: 'guides/draft_service_idea_and_define_fsm_specification.md'
-    - Code the FSM App skill: 'guides/code_fsm_app_skill.md'
-    - Define the agent: 'guides/define_agent.md'
-    - Define the service: 'guides/define_service.md'
+    - Draft service idea and define FSM specification: 'guides/draft_service_idea_and_define_fsm_specification.md'
+    - Define agent: 'guides/define_agent.md'
+    - Code FSM app skill: 'guides/code_fsm_app_skill.md'
+    - Define service: 'guides/define_service.md'
+    - Deploy service: 'guides/deploy_service.md'
+    - Publish and fetch packages: 'guides/publish_fetch_packages.md'
     - Publish and mint packages: 'guides/publish_mint_packages.md'
-    - Deploy the service: 'guides/deploy_service.md'
-    - Bumping the service: 'guides/bumping_services.md'
-  - Key concepts:
-    - 'key_concepts/index.md'    
-    - Autonomous economic agents: 'key_concepts/aea.md'
-    - Finite-state machines: 'key_concepts/fsm.md'
-    - The Application BlockChain Interface: 'key_concepts/abci.md'
-    - FSM Apps:
-      - Introduction to FSM Apps: 'key_concepts/fsm_app_introduction.md'
-      - Components of an FSM App: 'key_concepts/fsm_app_components.md'
-      - The AbciApp class: 'key_concepts/abci_app_class.md'
-      - The AbstractRoundBehaviour class: 'key_concepts/abci_app_abstract_round_behaviour.md'
-      - The AsyncBehaviour class: 'key_concepts/abci_app_async_behaviour.md'
-      - The AbstractRound class: 'key_concepts/abci_app_abstract_round.md'
-      - Interactions between components: 'key_concepts/abci_app_interactions.md'
-      - Sequence diagram: 'key_concepts/poc-diagram.md'
-    - Threat model: 'key_concepts/threat_model.md'
+    - Bumping services: 'guides/bumping_services.md'
+  - Key Concepts:
+    - Overview: 'key_concepts/index.md'
+    - AEA: 'key_concepts/aea.md'
+    - FSM:
+      - Overview: 'key_concepts/fsm.md'
+      - FSM App:
+        - Introduction: 'key_concepts/fsm_app_introduction.md'
+        - Components: 'key_concepts/fsm_app_components.md'
+    - ABCI:
+      - Overview: 'key_concepts/abci.md'
+      - ABCI App:
+        - Class: 'key_concepts/abci_app_class.md'
+        - Abstract Round: 'key_concepts/abci_app_abstract_round.md'
+        - Abstract Round Behaviour: 'key_concepts/abci_app_abstract_round_behaviour.md'
+        - Async Behaviour: 'key_concepts/abci_app_async_behaviour.md'
+      - Implementation:
+        - Component Interactions: 'key_concepts/abci_app_interactions.md'
+        - Sequence Diagrams: 'key_concepts/poc-diagram.md'
+    - Security:
+      - Threat Model: 'key_concepts/threat_model.md'
   - Configure the service:
     - The service configuration file: 'configure_service/service_configuration_file.md'
     - Configure access to external chains: 'configure_service/configure_access_external_chains.md'
     - On-chain deployment checklist: 'configure_service/on-chain_deployment_checklist.md'
     - Analise and test: 'configure_service/analise_test.md'
-  - Advanced reference:
-    - 'advanced_reference/index.md'
-    # - publish fetch: 'guides/publish_fetch_packages.md'
-    - Commands:
-      - autonomy deploy: 'advanced_reference/commands/autonomy_deploy.md'
-      - autonomy build-image: 'advanced_reference/commands/autonomy_build-image.md'
-      - autonomy replay: 'advanced_reference/commands/autonomy_replay.md'
-      - autonomy analyse: 'advanced_reference/commands/autonomy_analyse.md'
-      - autonomy fetch: 'advanced_reference/commands/autonomy_fetch.md'
-      - autonomy scaffold: 'advanced_reference/commands/autonomy_scaffold.md'           
-      - autonomy mint: 'advanced_reference/commands/autonomy_mint.md'           
-      - autonomy service: 'advanced_reference/commands/autonomy_service.md'           
-    - Developer tooling:
-      - Dev mode: 'advanced_reference/developer_tooling/dev_mode.md'
-      - Execution replay: 'advanced_reference/developer_tooling/execution_replay.md'
+  - Developer Tools:
+    - Overview: 'advanced_reference/index.md'
+    - Local Development:
+      - Dev Mode: 'advanced_reference/developer_tooling/dev_mode.md'
+      - Execution Replay: 'advanced_reference/developer_tooling/execution_replay.md'
       - Benchmarking: 'advanced_reference/developer_tooling/benchmarking.md'
-      - Debugging in the cluster: 'advanced_reference/developer_tooling/debugging_in_the_cluster.md'
-      - Debugging using Tenderly: 'advanced_reference/developer_tooling/debugging_using_tenderly.md'
+    - Debugging:
+      - Cluster Debugging: 'advanced_reference/developer_tooling/debugging_in_the_cluster.md'
+      - Tenderly Integration: 'advanced_reference/developer_tooling/debugging_using_tenderly.md'
     - Deployment:
       - Container Control Flow: 'control_flow.md'
-    - Using custom images in a deployment: 'advanced_reference/use_custom_images.md'
-    - Using custom dockerfile: advanced_reference/developer_tooling/custom_agent_image.md
-    - On Chain Addresses: 'advanced_reference/on_chain_addresses.md'
-    - API:
-      - Library:
-        - Constants: 'api/constants.md'
-        - Analyse:
-          - ABCI:
-            - App Spec: 'api/analyse/abci/app_spec.md'
-            - Docstrings: 'api/analyse/abci/docstrings.md'
-            - Handlers: 'api/analyse/handlers.md'
-            - Logs:
-              - Base: 'api/analyse/logs/base.md'
-              - Collection: 'api/analyse/logs/collection.md'
-              - Db: 'api/analyse/logs/db.md'
-          - Benchmark:
-            - Aggregate: 'api/analyse/benchmark/aggregate.md'
-            - HTML: 'api/analyse/benchmark/html.md'
-        - CLI:
+      - Custom Images: 'advanced_reference/use_custom_images.md'
+      - Custom Dockerfile: 'advanced_reference/developer_tooling/custom_agent_image.md'
+      - On-Chain Addresses: 'advanced_reference/on_chain_addresses.md'
+  - API Reference:
+    - Core Library:
+      - Constants: 'api/constants.md'
+      - Analysis Tools:
+        - ABCI:
+          - App Spec: 'api/analyse/abci/app_spec.md'
+          - Docstrings: 'api/analyse/abci/docstrings.md'
+          - Handlers: 'api/analyse/handlers.md'
+          - Logs:
+            - Base: 'api/analyse/logs/base.md'
+            - Collection: 'api/analyse/logs/collection.md'
+            - Db: 'api/analyse/logs/db.md'
+        - Benchmark:
+          - Aggregate: 'api/analyse/benchmark/aggregate.md'
+          - HTML: 'api/analyse/benchmark/html.md'
+        - CLI: 
           - Analyse: 'api/cli/analyse.md'
           - Core: 'api/cli/core.md'
           - Deploy: 'api/cli/deploy.md'
@@ -188,134 +159,127 @@ nav:
           - Tendermint Decoder: 'api/connections/abci/tendermint_decoder.md'
           - Tendermint Encoder: 'api/connections/abci/tendermint_encoder.md'
           - Scripts: 'api/connections/abci/scripts/genproto.md'
-          - Tests - Helper:
-            - Helper: 'api/connections/abci/tests/helper.md'
-            - Base: 'api/connections/abci/tests/test_fuzz/base.md'
-            - Mock Node - Node: 'api/connections/abci/tests/test_fuzz/mock_node/node.md'
-            - Mock Node - Channels Base: 'api/connections/abci/tests/test_fuzz/mock_node/channels/base.md'
-            - Mock Node - Channels GRPC: 'api/connections/abci/tests/test_fuzz/mock_node/channels/grpc_channel.md'
-            - Mock Node - Channels TCP: 'api/connections/abci/tests/test_fuzz/mock_node/channels/tcp_channel.md'
       - Contracts:
         - Gnosis Safe:
           - Contract: 'api/contracts/gnosis_safe/contract.md'
-        - Gnosis Safe Proxy Factory:
-          - Contract: 'api/contracts/gnosis_safe_proxy_factory/contract.md'
+          - Dialogues: 'api/contracts/gnosis_safe/dialogues.md'
       - Protocols:
         - ABCI:
-          - Custom Types: 'api/protocols/abci/custom_types.md'
-          - Dialogues: 'api/protocols/abci/dialogues.md'
           - Message: 'api/protocols/abci/message.md'
-          - Serialization: 'api/protocols/abci/serialization.md'
+          - Dialogues: 'api/protocols/abci/dialogues.md'
+          - Custom Types: 'api/protocols/abci/custom_types.md'
       - Skills:
-        - Abstract ABCI:
-          - Dialogues: 'api/skills/abstract_abci/dialogues.md'
-          - Handlers: 'api/skills/abstract_abci/handlers.md'
         - Abstract Round ABCI:
-          - Abci App Chain: 'api/skills/abstract_round_abci/abci_app_chain.md'
           - Base: 'api/skills/abstract_round_abci/base.md'
-          - Behaviour Utils: 'api/skills/abstract_round_abci/behaviour_utils.md'
-          - Behaviour: 'api/skills/abstract_round_abci/behaviours.md'
-          - Common: 'api/skills/abstract_round_abci/common.md'
-          - Dialogues: 'api/skills/abstract_round_abci/dialogues.md'
+          - Behaviours: 'api/skills/abstract_round_abci/behaviours.md'
           - Handlers: 'api/skills/abstract_round_abci/handlers.md'
           - Models: 'api/skills/abstract_round_abci/models.md'
-          - Test Tools:
-            - ABCI App: 'api/skills/abstract_round_abci/test_tools/abci_app.md'
-            - Base: 'api/skills/abstract_round_abci/test_tools/base.md'
-            - Common: 'api/skills/abstract_round_abci/test_tools/common.md'
-            - Integration: 'api/skills/abstract_round_abci/test_tools/integration.md'
-            - Rounds: 'api/skills/abstract_round_abci/test_tools/rounds.md'
-          - IO:
-            - IPFS: 'api/skills/abstract_round_abci/io_/ipfs.md'
-            - Load: 'api/skills/abstract_round_abci/io_/load.md'
-            - Paths: 'api/skills/abstract_round_abci/io_/paths.md'
-            - Store: 'api/skills/abstract_round_abci/io_/store.md'
-          - Utils: 'api/skills/abstract_round_abci/utils.md'
+          - Payloads: 'api/skills/abstract_round_abci/payloads.md'
         - Registration ABCI:
           - Behaviours: 'api/skills/registration_abci/behaviours.md'
-          - Payloads: 'api/skills/registration_abci/payloads.md'
-          - Rounds: 'api/skills/registration_abci/rounds.md'
-          - Dialogues: 'api/skills/registration_abci/dialogues.md'
           - Handlers: 'api/skills/registration_abci/handlers.md'
           - Models: 'api/skills/registration_abci/models.md'
-        - Transaction Settlement ABCI:
-          - Behaviours: 'api/skills/transaction_settlement_abci/behaviours.md'
-          - Payloads: 'api/skills/transaction_settlement_abci/payloads.md'
-          - Rounds: 'api/skills/transaction_settlement_abci/rounds.md'
-          - Dialogues: 'api/skills/transaction_settlement_abci/dialogues.md'
-          - Handlers: 'api/skills/transaction_settlement_abci/handlers.md'
-          - Models: 'api/skills/transaction_settlement_abci/models.md'
-          - Payload Tools: 'api/skills/transaction_settlement_abci/payload_tools.md'
-          - Test Tools: 'api/skills/transaction_settlement_abci/test_tools/integration.md'
-      - Exceptions: 'exceptions.md'
-    - Package list: 'package_list.md'
-  - Version: 'version.md'
+          - Payloads: 'api/skills/registration_abci/payloads.md'
+        - Reset Pause ABCI:
+          - Behaviours: 'api/skills/reset_pause_abci/behaviours.md'
+          - Handlers: 'api/skills/reset_pause_abci/handlers.md'
+          - Models: 'api/skills/reset_pause_abci/models.md'
+          - Payloads: 'api/skills/reset_pause_abci/payloads.md'
+        - Termination ABCI:
+          - Behaviours: 'api/skills/termination_abci/behaviours.md'
+          - Handlers: 'api/skills/termination_abci/handlers.md'
+          - Models: 'api/skills/termination_abci/models.md'
+          - Payloads: 'api/skills/termination_abci/payloads.md'
+  - CLI Guide:
+    - Overview: 'cli_overview.md'
+    - Core Commands:
+      - autonomy analyse: 'advanced_reference/commands/autonomy_analyse.md'
+      - autonomy build-image: 'advanced_reference/commands/autonomy_build-image.md'
+      - autonomy deploy: 'advanced_reference/commands/autonomy_deploy.md'
+      - autonomy fetch: 'advanced_reference/commands/autonomy_fetch.md'
+      - autonomy hash: 'advanced_reference/commands/autonomy_hash.md'
+      - autonomy mint: 'advanced_reference/commands/autonomy_mint.md'
+      - autonomy publish: 'advanced_reference/commands/autonomy_publish.md'
+      - autonomy push-all: 'advanced_reference/commands/autonomy_push_all.md'
+      - autonomy scaffold: 'advanced_reference/commands/autonomy_scaffold.md'
+      - autonomy service: 'advanced_reference/commands/autonomy_service.md'
+    - Development Commands:
+      - autonomy develop: 'advanced_reference/commands/autonomy_develop.md'
+      - autonomy replay: 'advanced_reference/commands/autonomy_replay.md'
+  - Questions and Answers: 'questions-and-answers.md'
+  - Application Deployment: 'application_deployment.md'
+  - Counter Example: 'counter_example.md'
   - Upgrading: 'upgrading.md'
-  - FAQ: 'questions-and-answers.md'
 
+theme:
+  name: material
+  # Temporarily commenting out custom theme for testing
+  # custom_dir: docs/custom_theme
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotation
+    - content.code.copy
+  language: en
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+      primary: teal
+      accent: purple
+    - scheme: slate
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+      primary: teal
+      accent: lime
 
 plugins:
-  - macros:
-      on_error_fail: true
-      on_undefined: strict
   - search
-
+  - macros
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_root_heading: true
+            show_source: true
+            docstring_style: google
 
 markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
   - admonition
-  - attr_list
-  - pymdownx.details
-  - pymdownx.keys
-  - pymdownx.superfences
-  - pymdownx.tabbed:
-      alternate_style: true
-  - pymdownx.highlight
-  - pymdownx.emoji:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.arithmatex:
       generic: true
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
-  - def_list  
+  - footnotes
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.mark
+  - attr_list
   - md_in_html
-  - toc:
-      title: On this page
-      toc_depth: 3
-
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
 
 extra:
-  open_aea: '[Open AEA](https://github.com/valory-xyz/open-aea)'
-  open_aea_doc: '[Open AEA documentation](https://open-aea.docs.autonolas.tech)'
-  open_aea_api: '[Open AEA API](https://open-aea.docs.autonolas.tech/api)'
-  fsm_app: 'FSM App'
-  open_autonomy: '[Open Autonomy](https://github.com/valory-xyz/open-autonomy)'
-  open_autonomy_api: '[Open Autonomy API](https://docs.autonolas.network)'
-  open_aea_repository: '[Open AEA repository](https://github.com/valory-xyz/open-aea)'
-  open_autonomy_repository: '[Open Autonomy repository](https://github.com/valory-xyz/open-autonomy)'
-  autonolas_whitepaper: '[Autonolas Whitepaper](https://www.autonolas.network/documents/whitepaper/Whitepaper%20v1.0.pdf)'
-  autonolas_protocol: '[Autonolas Protocol](https://docs.autonolas.network/protocol)'
-  autonolas_protocol_registry_dapp_link: 'https://registry.olas.network'
-  autonolas_protocol_registry_dapp: '[Autonolas Registry web app](https://registry.olas.network)'
-  autonolas_protocol_tokenomics_dapp: '[Autonolas Tokenomics web app](https://tokenomics.olas.network)'
   social:
+    - icon: fontawesome/brands/github-alt
+      link: https://github.com/valory-xyz
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/autonolas
-      name: Autonolas on Twitter
     - icon: fontawesome/brands/discord
       link: https://discord.com/invite/z2PT65jKqQ
-      name: Autonolas on Discord
-    - icon: fontawesome/brands/github
-      link: https://github.com/valory-xyz
-      name: Autonolas on GitHub
 
-
-extra_javascript:
-    - https://unpkg.com/mermaid@8.10.1/dist/mermaid.min.js
-    - javascripts/mathjax.js
-    - https://polyfill.io/v3/polyfill.min.js?features=es6
-    - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
-    - javascripts/dynamic-hash.js
+extra_css:
+  - stylesheets/extra.css

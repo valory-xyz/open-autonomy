@@ -57,7 +57,7 @@ The trigger is caused by any Python file closing in either the `service/packages
 
 ## Hardhat instance
 
-By default the command that builds the service deployment (`autonomy deploy build`) only includes the agent nodes and the Tendermint nodes. If you want to include a local Hardhat node as a test blockchain for the ledger connection, you can do so by using the `--use-hardhat` flag in that command.
+By default the command that builds the service deployment (`autonomy deploy build`) only includes the agent nodes and the CometBFT nodes. If you want to include a local Hardhat node as a test blockchain for the ledger connection, you can do so by using the `--use-hardhat` flag in that command.
 
 The deployment setup will include a Hardhat node (image `valory/open-autonomy-hardhat`) using `hardhat` as container name. Therefore, in order to use this node, you must set a [service-level override](../../configure_service/service_configuration_file.md#service-level-overrides) so that the `valory/ledger` connection address is set to `http://hardhat:8545`.
 You can achieve this by editing the service configuration file `service.yaml` as follows:
@@ -83,7 +83,8 @@ type: connection
 config:
   ledger_apis:
     ethereum:
-      address: ${LEDGER_RPC:str:http://localhost:8545}
+      # DO NOT USE IN PRODUCTION - For local development and testing only
+      address: ${LEDGER_RPC:str:http://localhost:8545}  # Local development endpoint
 ```
 
 ```bash

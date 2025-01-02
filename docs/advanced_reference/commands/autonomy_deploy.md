@@ -1,3 +1,5 @@
+[← Back to CLI Reference](../../cli_overview.md)
+
 Build or run agent service deployments.
 
 This command group consists of a number of functionalities for building service deployments, run locally stored service deployments, and run service deployments defined in the on-chain protocol. See the appropriate subcommands for more information.

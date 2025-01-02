@@ -1,3 +1,5 @@
+[← Back to Getting Started](./index.md)
+
 An **agent service** is an off-chain autonomous service which runs as a multi-agent-system (MAS) and is crypto-economically secured on a public blockchain.
 
 Agent services enable complex processing, take action on their own and run continuously. Moreover, agent services are crypto-native by construction, that is, they are **decentralized**, **trust-minimized**, **transparent**, and **robust**.
@@ -24,7 +26,7 @@ This is what an agent service looks like:
 
 * **{{fsm_app}}**: The core component inside an agent that defines the business logic of the service. {{fsm_app}} implements the underlying mechanisms for agents to synchronize their internal state and run the business logic in a decentralized fashion.
 
-* **Consensus gadget:** The infrastructure that enables agents to synchronize the service state and reach consensus on certain important decisions. From a technical point of view, the consensus gadget implements a blockchain based on [Tendermint](https://tendermint.com/) that is pruned periodically. By consensus gadget we usually refer to the collection of consensus nodes + consensus network.
+* **Consensus gadget:** The infrastructure that enables agents to synchronize the service state and reach consensus on certain important decisions. From a technical point of view, the consensus gadget implements a blockchain based on [CometBFT](https://cometbft.com/) that is pruned periodically. By consensus gadget we usually refer to the collection of consensus nodes + consensus network.
 
 * **Agent service multisig [Safe](https://safe.global/):** Smart contract based Multisig  that secures the service by requiring a threshold of agents to sign any transaction before it is executed.
 

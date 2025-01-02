@@ -1,4 +1,6 @@
-The figure below presents the development process with {{open_autonomy}}: from the idea of an off-chain service to its deployment in production. If you have completed the [quick start guide](../quick_start) you have already navigated through a significant part of this process.
+[← Back to Guides](./index.md)
+
+The figure below presents the development process with {{open_autonomy}}: from the idea of an off-chain service to its deployment in production. If you have completed the [quick start guide](./quick_start.md) you have already navigated through a significant part of this process.
 
 <figure markdown>
 ![](../images/development_process.svg)

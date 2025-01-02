@@ -1,3 +1,5 @@
+[← Back to Guides](./index.md)
+
 The first task when designing an agent service is to describe its business logic into a [finite-state machine (FSM)](../key_concepts/fsm.md). You must be able to identify the different states of the service, and what are the events that trigger a change from one state to another.
 
 <figure markdown>

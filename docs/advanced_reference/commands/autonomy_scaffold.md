@@ -1,3 +1,5 @@
+[← Back to CLI Reference](../../cli_overview.md)
+
 Tools for scaffolding agent components.
 
 This command group consists of a number of functionalities that generate boilerplate code that acts as a template to speed up the development of agent components. See the appropriate subcommands for more information.
