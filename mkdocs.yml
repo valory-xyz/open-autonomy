@@ -48,6 +48,7 @@ nav:
     - Security:
       - Threat Model: 'key_concepts/threat_model.md'
   - Configure the service:
+    - Overview: 'configure_service/index.md'
     - The service configuration file: 'configure_service/service_configuration_file.md'
     - Configure access to external chains: 'configure_service/configure_access_external_chains.md'
     - On-chain deployment checklist: 'configure_service/on-chain_deployment_checklist.md'
