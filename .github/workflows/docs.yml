@@ -30,6 +30,7 @@ jobs:
           pip install mkdocs-material
           pip install mkdocstrings[python]
           pip install mkdocs-include-markdown-plugin
+          pip install mkdocs-macros-plugin
       - name: Install package
         run: pip install -e .
       - name: Build site
