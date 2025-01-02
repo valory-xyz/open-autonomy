@@ -203,6 +203,8 @@ nav:
       - autonomy push-all: 'advanced_reference/commands/autonomy_push_all.md'
       - autonomy scaffold: 'advanced_reference/commands/autonomy_scaffold.md'
       - autonomy service: 'advanced_reference/commands/autonomy_service.md'
+      - autonomy fetch service-files: 'advanced_reference/commands/autonomy_fetch_service_files.md'
+      - autonomy kubernetes-deployment: 'advanced_reference/commands/autonomy_kubernetes_deployment.md'
     - Development Commands:
       - autonomy develop: 'advanced_reference/commands/autonomy_develop.md'
       - autonomy replay: 'advanced_reference/commands/autonomy_replay.md'
