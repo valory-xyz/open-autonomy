@@ -26,17 +26,56 @@ autonomy fetch [OPTIONS] PUBLIC_ID_OR_HASH
 - `--local`: Use a local registry
 - `--alias`: Provide a local alias for the service
 
-### Example: Fetching the Hello World Service
+### Example: Fetching Services
 
 1. From a local registry:
 ```bash
 autonomy fetch valory/hello_world:0.1.0 --service --local
 ```
 
-2. From a remote registry:
+2. From a remote registry using package ID:
 ```bash
 autonomy fetch valory/hello_world:0.1.0 --service --remote
 ```
+
+3. Using IPFS hash:
+```bash
+autonomy fetch valory/service:QmHash123... --service
+```
+
+4. Using on-chain token ID:
+```bash
+autonomy fetch 42 --service --chain ethereum
+```
+
+### Viewing Remote Registry Files
+
+Before fetching a service, you can inspect its contents in the remote registry:
+
+1. View service metadata:
+```bash
+# Using package ID
+autonomy packages info valory/hello_world:0.1.0 --remote
+
+# Using token ID
+autonomy packages info 42 --chain ethereum
+```
+
+2. List available versions:
+```bash
+autonomy packages list --remote | grep hello_world
+```
+
+3. Inspect service configuration:
+```bash
+# Download and view service.yaml without fetching entire package
+curl -L https://gateway.autonolas.tech/ipfs/<hash>/service.yaml
+```
+
+4. Browse IPFS contents:
+If the service is stored on IPFS, you can browse its contents through:
+- IPFS gateway: `https://gateway.autonolas.tech/ipfs/<hash>/`
+- Local IPFS node (if running): `http://localhost:8080/ipfs/<hash>/`
 
 ## Viewing Service Files
 
