@@ -1,8 +1,8 @@
 [← Back to CLI Reference](../../cli_overview.md)
 
-Tools to manage services minted in the {{ autonolas_protocol }}.
+Tools to manage services minted in the [Autonolas Protocol](https://docs.autonolas.network/).
 
-This command group consists of a number of functionalities to manage [the life cycle of services](https://docs.autonolas.network/protocol/life_cycle_of_a_service/) that have been minted in the {{ autonolas_protocol }}.
+This command group consists of a number of functionalities to manage [the life cycle of services](https://docs.autonolas.network/protocol/life_cycle_of_a_service/) that have been minted in the [Autonolas Protocol](https://docs.autonolas.network/).
 
 !!! info
 
@@ -37,7 +37,7 @@ This command group consists of a number of functionalities to manage [the life c
 To use these chain profiles, you have to export an environment variable that defines the RPC endpoint in the format `<CHAIN_NAME>_CHAIN_RPC`. For example, if you want to use Ethereum (`--use-ethereum`), you have to export `ETHEREUM_CHAIN_RPC`.
 
 `--use-custom-chain`
-: Use the custom-chain profile to interact with the Autonolas Protocol registry contracts. This profile requires that you define some parameters and [contract addresses](../on_chain_addresses.md) as environment variables (see also the {{ autonolas_protocol }} documentation for more information):
+: Use the custom-chain profile to interact with the Autonolas Protocol registry contracts. This profile requires that you define some parameters and [contract addresses](../on_chain_addresses.md) as environment variables (see also the [Autonolas Protocol](https://docs.autonolas.network/) documentation for more information):
 
     - `CUSTOM_CHAIN_RPC` : RPC endpoint for the custom chain.
     - `CUSTOM_CHAIN_ID` : chain ID.

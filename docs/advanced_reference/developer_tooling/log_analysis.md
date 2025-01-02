@@ -1,4 +1,4 @@
-The {{open_autonomy}} framework provides a log analyser tool for analysing the runtime logs for an agent. Using this tool you apply perform various types filters to the logs to extract the specific types of logs.
+The Open Autonomy framework provides a log analyser tool for analysing the runtime logs for an agent. Using this tool you apply perform various types filters to the logs to extract the specific types of logs.
 
 To use the tool, place the log files into a folder and make sure the log files follow the `aea_{n}.txt` naming pattern. For example let's say we have logs for 4 agents named `aea_0.txt`, `aea_1.txt`, `aea_2.txt` and `aea_3.txt` placed inside `logs/` folder. You can run following command to retrieve logs for `aea_0`
 
