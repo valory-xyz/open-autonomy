@@ -1,13 +1,13 @@
 [← Back to Guides](./index.md)
 
-To bump a repository containing a service to an updated version of {{open_autonomy}}, follow these steps:
+To bump a repository containing a service to an updated version of [Open Autonomy](https://docs.autonolas.network/), follow these steps:
 
 1. Bump the PyPI package `open-autonomy` and any relevant dependency to the desired version in the files
    - `tox.ini`,
    - `Pipfile` (for Pipenv repositories),
    - `pyproject.toml` (for Poetry repositories).
 
-   Also, update any reference of the bumped packages within the `packages` folder. For convenience, we provide [this script](https://github.com/valory-xyz/open-autonomy/blob/main/scripts/bump.py) to help you bump the dependencies to the latest version of {{open_autonomy}}.
+   Also, update any reference of the bumped packages within the `packages` folder. For convenience, we provide [this script](https://github.com/valory-xyz/open-autonomy/blob/main/scripts/bump.py) to help you bump the dependencies to the latest version of [Open Autonomy](https://docs.autonolas.network/).
 2. Create a new virtual environment and install the bumped dependencies.
 3. Perform sync and lock the packages:
 

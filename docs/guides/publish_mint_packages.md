@@ -1,17 +1,17 @@
 [← Back to Guides](./index.md)
 
-Once you have finished developing and testing your service locally, you can publish your software packages to the remote registry and mint them in the {{ autonolas_protocol }}. Minting software packages will produce a representation of them on-chain, in the form of NFTs.
+Once you have finished developing and testing your service locally, you can publish your software packages to the remote registry and mint them in the [Autonolas Protocol](https://docs.autonolas.network/protocol/). Minting software packages will produce a representation of them on-chain, in the form of NFTs.
 
 <figure markdown>
 ![](../images/development_process_publish_mint_packages.svg)
 <figcaption>Part of the development process covered in this guide</figcaption>
 </figure>
 
-You can mint packages using the {{ autonolas_protocol_registry_dapp }} or using the Open Autonomy CLI.
+You can mint packages using the [Autonolas Protocol Registry](https://registry.olas.network/) or using the Open Autonomy CLI.
 
 ## What will you learn
 
-This guide covers step 6 of the [development process](./overview_of_the_development_process.md). You will learn how to publish the software packages developed in the local registry (components, agents and services) to the remote registry, and how to mint them in the {{ autonolas_protocol }}.
+This guide covers step 6 of the [development process](./overview_of_the_development_process.md). You will learn how to publish the software packages developed in the local registry (components, agents and services) to the remote registry, and how to mint them in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
 
 You must ensure that your machine satisfies the [framework requirements](./set_up.md#requirements), you have [set up the framework](./set_up.md#set-up-the-framework), and you have a local registry [populated with some default components](./overview_of_the_development_process.md#populate-the-local-registry-for-the-guides). As a result you should have a Pipenv workspace folder with an initialized local registry (`./packages`) in it.
 
@@ -67,9 +67,9 @@ To mint a software package, all the packages it depends on must be minted first.
 
 ### Using the Autonolas Protocol web app
 
-The {{ autonolas_protocol_registry_dapp }} is a front-end that provides an intuitive GUI to mint components, agents and services, and manage the life cycle of services in the Autonolas Protocol.
+The [Autonolas Protocol Registry](https://registry.olas.network/) is a front-end that provides an intuitive GUI to mint components, agents and services, and manage the life cycle of services in the Autonolas Protocol.
 
-We refer to the [Autonolas Protocol docs](https://docs.autonolas.network/protocol/), where you can find instructions on how to mint [components](https://docs.autonolas.network/protocol/mint_packages_nfts/#mint-a-component) (including the {{fsm_app}} skill), [agents](https://docs.autonolas.network/protocol/mint_packages_nfts/#mint-an-agent), and [services](https://docs.autonolas.network/protocol/mint_packages_nfts/#mint-a-service).
+We refer to the [Autonolas Protocol docs](https://docs.autonolas.network/protocol/), where you can find instructions on how to mint [components](https://docs.autonolas.network/protocol/mint_packages_nfts/#mint-a-component) (including the [FSM App](../key_concepts/fsm_app_introduction.md) skill), [agents](https://docs.autonolas.network/protocol/mint_packages_nfts/#mint-an-agent), and [services](https://docs.autonolas.network/protocol/mint_packages_nfts/#mint-a-service).
 
 ### Using the Open Autonomy CLI
 
@@ -110,7 +110,7 @@ Refer to the documentation on the [`autonomy mint` command](../advanced_referenc
 
 ### Testing the Autonolas Protocol locally
 
-If you are new to the framework, we provide a way to help you test the {{ autonolas_protocol }} without spending any token on a real chain.
+If you are new to the framework, we provide a way to help you test the [Autonolas Protocol](https://docs.autonolas.network/protocol/) without spending any token on a real chain.
 Namely, we provide a Docker image (`valory/autonolas-registries`) containing a local blockchain (a Hardhat node) with the Autonolas Protocol registry contracts deployed on it. The image also contains a few testing keys and addresses.
 
 Below we show the steps to register the `hello_world` service and all its required packages.
@@ -127,7 +127,7 @@ Below we show the steps to register the `hello_world` service and all its requir
     
         <span style="color:red">**WARNING: Use these keys for testing purposes only. Never use the keys or addresses provided in this example in a production environment or for personal use.**</span>
 
-2. **Configure your browser and wallet.** To explore the status of the protocol in this local blockchain using the {{ autonolas_protocol_registry_dapp }}, you need to configure a software wallet in your browser, for example [Metamask](https://metamask.io/). Add a new chain with the following parameters:
+2. **Configure your browser and wallet.** To explore the status of the protocol in this local blockchain using the [Autonolas Protocol Registry](https://registry.olas.network/), you need to configure a software wallet in your browser, for example [Metamask](https://metamask.io/). Add a new chain with the following parameters:
 
     * RPC URL: http://localhost:8545  # Local development endpoint - assumes running a local Ethereum node
     * Chain ID: 31337  # Default chain ID for local Hardhat node
@@ -190,7 +190,7 @@ Below we show the steps to register the `hello_world` service and all its requir
     autonomy mint --use-local service --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --agent-id {{ num_minted_agents + 1 }} --number-of-slots 4 --cost-of-bond 10000000000000000 --threshold 3 ./packages/valory/services/hello_world/
     ```
 
-5. **Explore the protocol using the web app.** Use the {{ autonolas_protocol_registry_dapp }} to explore the packages that you have minted. Ensure that you are connected to the local  blockchain configured in Step 2 above through Metamask.
+5. **Explore the protocol using the web app.** Use the [Autonolas Protocol Registry](https://registry.olas.network/) to explore the packages that you have minted. Ensure that you are connected to the local  blockchain configured in Step 2 above through Metamask.
 
     !!! warning "Important"
 

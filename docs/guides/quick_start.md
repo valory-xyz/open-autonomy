@@ -1,6 +1,6 @@
 [← Back to Guides](./index.md)
 
-The purpose of this guide is to provide step-by-step instructions to gain familiarity with the [overall development process](./overview_of_the_development_process.md) of the {{open_autonomy}} framework.
+The purpose of this guide is to provide step-by-step instructions to gain familiarity with the [overall development process](./overview_of_the_development_process.md) of the Open Autonomy framework.
 
 We will show how to use the CLI to run a local deployment of the [Hello World service](https://docs.autonolas.network/demos/hello-world/), which comprises:
 
