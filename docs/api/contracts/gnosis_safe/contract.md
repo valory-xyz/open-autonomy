@@ -117,7 +117,7 @@ def get_raw_safe_transaction_hash(cls,
 
 Get the hash of the raw Safe transaction.
 
-Adapted from https://github.com/gnosis/gnosis-py/blob/69f1ee3263086403f6017effa0841c6a2fbba6d6/gnosis/safe/safe_tx.py#L125
+Adapted from [gnosis-py safe_tx.py](https://github.com/safe-global/safe-py/blob/main/gnosis/safe/safe_tx.py)
 
 Note, because safe_nonce is included in the tx_hash the agents implicitly agree on the order of txs if they agree on a tx_hash.
 
@@ -486,8 +486,7 @@ def get_remove_owner_data(cls, ledger_api: EthereumApi, contract_address: str,
 
 Get a removeOwner() encoded tx.
 
-This method acts as a wrapper for `removeOwner()`
-https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L70
+This method acts as a wrapper for [`removeOwner()`](https://github.com/safe-global/safe-contracts/blob/main/contracts/base/OwnerManager.sol)
 
 **Arguments**:
 
@@ -512,8 +511,7 @@ def get_swap_owner_data(cls, ledger_api: EthereumApi, contract_address: str,
 
 Get a swapOwner() encoded tx.
 
-This method acts as a wrapper for `swapOwner()`
-https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L94
+This method acts as a wrapper for [`swapOwner()`](https://github.com/safe-global/safe-contracts/blob/main/contracts/base/OwnerManager.sol)
 
 **Arguments**:
 

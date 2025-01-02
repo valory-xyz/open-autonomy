@@ -1,3 +1,5 @@
+[← Back to Guides](./index.md)
+
 The {{open_autonomy}} framework works with the concept of **package**: a collection of files that implement a specific component or functionality.
 Publishing a package is simply the process of storing the package into a registry (or in other words, a repository), either locally or remotely.
 
@@ -71,7 +73,7 @@ You can either:
 Regardless of the methodology that you choose to develop your packages, it is important that they are developed with a clear separation of concerns, so that they can be reused in other projects.
 
 ## How to tell the framework what registry to use
-The `push`, `add`, `publish` and `fetch` commands use, by default, the registry specified when the framework was initiated (command `autonomy init`). See for example the [set up guide](./set_up#set-up), where we initialized the framework to use the default remote [IPFS](https://ipfs.io) registry.
+The `push`, `add`, `publish` and `fetch` commands use, by default, the registry specified when the framework was initiated (command `autonomy init`). See for example the [set up guide](./set_up.md), where we initialized the framework to use the default remote [IPFS](https://ipfs.io) registry.
 
 Additionally, the framework configuration can be overridden per command by using the flags `--local` or `--remote` in any of the commands  `push`, `add`, `publish` or `fetch`.
 

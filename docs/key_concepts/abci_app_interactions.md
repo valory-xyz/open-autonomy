@@ -1,3 +1,5 @@
+[← Back to Key Concepts](./index.md)
+
 In this section we present sequence diagrams in order to help understand the transmitted messages and method calls between the software components that are part of an {{fsm_app}}.
 
 
@@ -92,7 +94,7 @@ pool. (Not all components are included in the diagram.)
 <div class="mermaid">
     sequenceDiagram
         participant ConsensusEngine
-        participant ABCIServerConnection as ABCIServerConnection<br/>TendermintDecoder
+        participant ABCIServerConnection as ABCIServerConnection<br/>CometBFTDecoder
         participant ABCIRoundHandler
         note over ConsensusEngine,ABCIServerConnection: client submits transaction tx
         ConsensusEngine->>ABCIServerConnection: [Request] CheckTx(tx)
@@ -121,7 +123,7 @@ The following diagram describes the delivery of transactions in a block:
 <div class="mermaid">
     sequenceDiagram
         participant ConsensusEngine
-        participant ABCIServerConnection as ABCIServerConnection<br/>TendermintDecoder
+        participant ABCIServerConnection as ABCIServerConnection<br/>CometBFTDecoder
         participant ABCIRoundHandler
         participant RoundSequence
         participant ABCIApp
