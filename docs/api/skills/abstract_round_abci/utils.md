@@ -98,11 +98,11 @@ ClassVar. Returns None for unsupported types.
 **Examples**:
 
   get_origin(Literal[42]) is Literal
-  get_origin(int) is None
-  get_origin(ClassVar[int]) is ClassVar
+  get_origin(`int`) is None
+  get_origin(ClassVar[`int`]) is ClassVar
   get_origin(Generic) is Generic
   get_origin(Generic[T]) is Generic
-  get_origin(Union[T, int]) is Union
+  get_origin(Union[T, `int`]) is Union
   get_origin(List[Tuple[T, T]][int]) == list
 
 <a id="packages.valory.skills.abstract_round_abci.utils.get_args"></a>
@@ -119,11 +119,11 @@ For unions, basic simplifications used by Union constructor are performed.
 
 **Examples**:
 
-  get_args(Dict[str, int]) == (str, int)
-  get_args(int) == ()
-  get_args(Union[int, Union[T, int], str][int]) == (int, str)
-  get_args(Union[int, Tuple[T, int]][str]) == (int, Tuple[str, int])
-  get_args(Callable[[], T][int]) == ([], int)
+  get_args(Dict[`str`, `int`]) == (`str`, `int`)
+  get_args(`int`) == ()
+  get_args(Union[`int`, Union[T, `int`], `str`][`int`]) == (`int`, `str`)
+  get_args(Union[`int`, Tuple[T, `int`]][`str`]) == (`int`, Tuple[`str`, `int`])
+  get_args(Callable[[], T][`int`]) == ([], `int`)
 
 <a id="packages.valory.skills.abstract_round_abci.utils.is_pep604_union"></a>
 
@@ -204,7 +204,7 @@ Check class type.
 #### check`_`int
 
 ```python
-def check_int(value: Any, ty: Type[Any]) -> Result
+def check_int(value: Any, ty: Type[`int`]) -> Result
 ```
 
 Check int type.
@@ -316,7 +316,7 @@ Check typeddict.
 #### check`_`type
 
 ```python
-def check_type(name: str, value: Any, type_hint: Any) -> None
+def check_type(name: `str`, value: Any, type_hint: Any) -> None
 ```
 
 Check value against type hint recursively
@@ -346,7 +346,7 @@ Checks if the given object is json serializable.
 #### filter`_`negative
 
 ```python
-def filter_negative(mapping: Dict[str, int]) -> Iterator[str]
+def filter_negative(mapping: Dict[`str`, `int`]) -> Iterator[`str`]
 ```
 
 Return the keys of a dictionary for which the values are negative integers.
@@ -356,7 +356,7 @@ Return the keys of a dictionary for which the values are negative integers.
 #### consensus`_`threshold
 
 ```python
-def consensus_threshold(nb: int) -> int
+def consensus_threshold(nb: `int`) -> `int`
 ```
 
 Get consensus threshold.
