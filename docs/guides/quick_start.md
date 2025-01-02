@@ -43,7 +43,7 @@ Before you begin, ensure you have:
 
     <div class="dynamic-hash" packages-json-url="https://raw.githubusercontent.com/valory-xyz/hello-world/main/packages/packages.json" key="service/valory/hello_world/0.1.0">
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:<hash> --service
+    autonomy fetch valory/hello_world:0.1.0:bafybeihl6j7ihkytk4t4ca2ffhctpzydwi6r4a354ubjasttuv2pw4oaci --service
     ```
     </div>
 
