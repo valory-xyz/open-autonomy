@@ -145,12 +145,12 @@ Common issues and solutions:
 ## Next Steps
 
 After deploying your service:
-- [Monitor service performance](./monitor_service.md)
-- [Upgrade service components](./upgrade_service.md)
-- [Configure service parameters](./configure_service.md)
+- [Monitor service performance](../../guides/deploy_service.md#managing-the-deployment)
+- [Upgrade service components](../../guides/bumping_services.md)
+- [Configure service parameters](../../configure_service/service_configuration_file.md)
 
 ## Additional Resources
 
 - [Kubernetes Documentation](https://kubernetes.io/docs/)
-- [Open Autonomy Deployment Reference](../api/cli/deploy.md)
-- [Service Configuration Guide](../key_concepts/service_config.md)
+- [Open Autonomy Deployment Reference](../../api/cli/deploy.md)
+- [Service Configuration Guide](../../configure_service/service_configuration_file.md)

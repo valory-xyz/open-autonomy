@@ -96,12 +96,12 @@ ls -R
 ## Next Steps
 
 After fetching and viewing service files, you might want to:
-- [Deploy the service](./deploy_service.md)
-- [Customize the service configuration](./customize_service.md)
-- [Launch a Kubernetes cluster](./kubernetes_deployment.md)
+- [Deploy the service](../../guides/deploy_service.md)
+- [Configure the service](../../configure_service/service_configuration_file.md)
+- [Launch a Kubernetes cluster](./autonomy_kubernetes_deployment.md)
 
 ## Additional Resources
 
-- [Open Autonomy CLI Reference](../api/cli/fetch.md)
-- [Service Configuration Guide](../key_concepts/service_config.md)
-- [Package Management Guide](../guides/manage_packages.md)
+- [Open Autonomy CLI Reference](../../api/cli/fetch.md)
+- [Service Configuration Guide](../../configure_service/service_configuration_file.md)
+- [Package Management Guide](../../guides/publish_fetch_packages.md)
