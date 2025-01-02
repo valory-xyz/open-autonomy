@@ -1,3 +1,5 @@
+[← Back to Configure Service](./index.md)
+
 The {{open_autonomy}} framework supports that agent services access different external chains
 by defining certain configuration parameters appropriately.
 

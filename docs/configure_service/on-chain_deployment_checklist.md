@@ -1,3 +1,5 @@
+[← Back to Configure Service](./index.md)
+
 This section details a requirement checklist that need to be satisfied so that your agent service can be properly deployed on-chain.
 
 ## Required {{fsm_app}} skill models

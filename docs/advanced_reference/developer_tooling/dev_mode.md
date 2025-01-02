@@ -1,4 +1,6 @@
-The {{open_autonomy}} framework comes with *developer mode* (`dev` mode) tooling to enable faster service developing and debugging. The `dev` mode supports running agent services with a number of functionalities enabled:
+[← Back to Developer Tools](../index.md)
+
+The Open Autonomy framework comes with *developer mode* (`dev` mode) tooling to enable faster service developing and debugging. The `dev` mode supports running agent services with a number of functionalities enabled:
 
 * **Hot reload**, which enables hot code swapping and reflects changes on the agent code as well as on the local `open-aea` repository without rebuilding or restarting the containers manually.
 * **Hardhat Instance**, which enables the inclusion of a pre-configured Hardhat Instance image in the deployment, which can be used as a test blockchain.
@@ -27,7 +29,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
     You must modify the paths in the command above appropriately, pointing to:
 
     * the path to the local registry (/packages directory),
-    * the path to the local {{open_aea_repository}}.
+    * the path to the local [Open AEA](https://open-aea.docs.autonolas.tech/) repository.
   
     If you don't want to specify the `open-aea` repository manually, you can install the `open-aea` in editable mode using
 
@@ -50,7 +52,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 ## Hot reload
 
-Once the agents are running, you can make changes to the agent's code as well as the local {{open_aea_repository}}, and it will trigger the service restart.
+Once the agents are running, you can make changes to the agent's code as well as the local [Open AEA](https://open-aea.docs.autonolas.tech/) repository, and it will trigger the service restart.
 
 The trigger is caused by any Python file closing in either the `service/packages` or the `open-aea/` directory. So even if you haven't made any change and still want to restart the service, just open any Python file press `Ctrl+S` or save it from the file menu and it will trigger the restart.
 
