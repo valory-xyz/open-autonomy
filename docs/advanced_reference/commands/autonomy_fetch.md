@@ -1,3 +1,5 @@
+[← Back to CLI Reference](../../cli_overview.md)
+
 Fetch an agent or agent service from a registry using its public ID, hash, or token ID.
 
 ## Usage

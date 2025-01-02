@@ -78,8 +78,13 @@ See also the [service level overrides](../configure_service/service_configuratio
             - '0x0000000000000000000000000000000000000000'
             safe_contract_address: '0x0000000000000000000000000000000000000000'
             consensus_threshold: null            
-          tendermint_url: http://localhost:26657
-          tendermint_com_url: http://localhost:8080
+          # Local development endpoints - DO NOT USE IN PRODUCTION
+          # Note: These endpoints assume you are running local CometBFT nodes
+          # DO NOT USE IN PRODUCTION - For local development and testing only
+          # DO NOT USE IN PRODUCTION - For local development and testing only
+          # Note: These endpoints assume you are running local CometBFT nodes
+          tendermint_url: http://localhost:26657  # Local CometBFT RPC endpoint
+          tendermint_com_url: http://localhost:8080  # Local CometBFT communication endpoint
           service_registry_address: null
           share_tm_config_on_startup: false
           on_chain_service_id: null
@@ -143,8 +148,10 @@ See also the [service level overrides](../configure_service/service_configuratio
             all_participants: ${list:[]}
             safe_contract_address: ${str:'0x0000000000000000000000000000000000000000'}
             consensus_threshold: ${int:null}
-          tendermint_url: ${str:http://localhost:26657}
-          tendermint_com_url: ${str:http://localhost:8080}
+          # DO NOT USE IN PRODUCTION - For local development and testing only
+          # Note: These endpoints assume you are running local CometBFT nodes
+          tendermint_url: ${str:http://localhost:26657}  # Local CometBFT RPC endpoint
+          tendermint_com_url: ${str:http://localhost:8080}  # Local CometBFT communication endpoint
           service_registry_address: ${str:null}
           share_tm_config_on_startup: ${bool:false}
           on_chain_service_id: ${int:null}
@@ -161,8 +168,10 @@ See also the [service level overrides](../configure_service/service_configuratio
     config:
       ledger_apis:
         ethereum:
-          address: ${ETHEREUM_ADDRESS:str:http://localhost:8545}
-          chain_id: ${ETHEREUM_CHAIN_ID:int:31337}
+          # DO NOT USE IN PRODUCTION - For local development and testing only
+          # Note: This endpoint assumes you are running a local Ethereum node
+          address: ${ETHEREUM_ADDRESS:str:http://localhost:8545}  # Local development endpoint
+          chain_id: ${ETHEREUM_CHAIN_ID:int:31337}  # Default local chain ID for Hardhat
           poa_chain: ${ETHEREUM_POA_CHAIN:bool:false}
           default_gas_price_strategy: ${DEFAULT_GAS_PRICE_STRATEGY:str:eip1559}
  

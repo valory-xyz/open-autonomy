@@ -1,3 +1,5 @@
+[← Back to Guides](./index.md)
+
 The purpose of this guide is to set up your system to work with the {{open_autonomy}} framework. All the remaining guides assume that you have followed these set up instructions.
 
 ## Requirements
@@ -21,6 +23,18 @@ Additionally, if you wish to deploy your service in a Kubernetes cluster:
 
 !!! tip
 	Although we will use these tools for demonstration purposes only, you might as well consider other local Kubernetes cluster options like [kind](https://kind.sigs.k8s.io/docs/user/quick-start/), or even additional tools like [Skaffold](https://skaffold.dev/) or [Helm](https://helm.sh/) to help you with your cluster deployments.
+
+## Set up the framework
+
+### Populate the local registry for the guides
+
+Before proceeding with the guides, you'll need to populate your local registry with some default components:
+
+```bash
+autonomy packages sync
+```
+
+This will download and set up the necessary components in your local registry.
 
 ## Set up the framework
 

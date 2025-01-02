@@ -1,3 +1,5 @@
+[← Back to Getting Started](./index.md)
+
 Decentralized ledger technologies (DLTs), such as blockchains, face several challenges, for example:
 
 * [the blockchain trilemma](https://www.ledger.com/academy/what-is-the-blockchain-trilemma),
