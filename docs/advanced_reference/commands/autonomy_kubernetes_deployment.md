@@ -145,7 +145,7 @@ Common issues and solutions:
 ## Next Steps
 
 After deploying your service:
-- [Monitor service performance](../../guides/deploy_service.md#examine-the-deployment)
+- [Monitor service performance](../../guides/deploy_service.md#monitoring)
 - [Upgrade service components](../../guides/bumping_services.md)
 - [Configure service parameters](../../configure_service/service_configuration_file.md)
 

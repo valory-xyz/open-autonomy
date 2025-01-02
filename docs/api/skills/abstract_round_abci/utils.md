@@ -67,7 +67,7 @@ the content result
 #### get`_`value`_`with`_`type
 
 ```python
-def get_value_with_type(value: Any, type_name: `str`) -> Any
+def get_value_with_type(value: Any, type_name: str) -> Any
 ```
 
 Get the given value as the specified type.
@@ -77,7 +77,7 @@ Get the given value as the specified type.
 #### parse`_`tendermint`_`p2p`_`url
 
 ```python
-def parse_tendermint_p2p_url(url: `str`) -> Tuple[`str`, `int`]
+def parse_tendermint_p2p_url(url: str) -> Tuple[str, int]
 ```
 
 Parse tendermint P2P url.
