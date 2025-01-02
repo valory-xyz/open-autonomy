@@ -2,7 +2,7 @@
 
 !!!note
     For clarity, the snippets of code presented here are a simplified version of the actual
-    implementation. We refer the reader to the {{open_autonomy_api}} for the complete details.
+    implementation. We refer the reader to the [Open Autonomy API](https://docs.autonolas.network/open-autonomy/api/) for the complete details.
 
 The `AsyncBehaviour` class, introduced in the `valory/abstract_round_abci`
 Skill, is a mixin class that allows the AEA developer to use

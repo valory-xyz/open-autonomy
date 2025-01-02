@@ -2,14 +2,14 @@
 
 !!!note
     For clarity, the snippets of code presented here are a simplified version of the actual
-    implementation. We refer the reader to the {{open_autonomy_api}} for the complete details.
+    implementation. We refer the reader to the [Open Autonomy API](https://docs.autonolas.network/) for the complete details.
 
-The `AbstractRound` class is the parent class of all the `Round` subclasses of an {{fsm_app}}. It is in charge of processing the requests coming from the ABCI Handler, and it defines a number of abstract methods that must be implemented by its subclasses, namely:
+The `AbstractRound` class is the parent class of all the `Round` subclasses of an FSM app. It is in charge of processing the requests coming from the ABCI Handler, and it defines a number of abstract methods that must be implemented by its subclasses, namely:
   - `end_block()`
   - `check_payload()`
   - `process_payload()`
 
-For convenience, the {{open_autonomy}} framework provides a collection of helper classes that derive from the `AbstractRound` class that represent common situations when defining custom rounds. This way the developer is freed from having to implement the `check_payload()` and `process_payload()` methods above. These classes are:
+For convenience, the Open Autonomy framework provides a collection of helper classes that derive from the `AbstractRound` class that represent common situations when defining custom rounds. This way the developer is freed from having to implement the `check_payload()` and `process_payload()` methods above. These classes are:
 
   - `CollectDifferentUntilAllRound`: This class represents logic for rounds where a round needs to collect different payloads from each agent.
   - `CollectSameUntilAllRound`:     This class represents logic for when a round needs to collect the same payload from all the agents.
