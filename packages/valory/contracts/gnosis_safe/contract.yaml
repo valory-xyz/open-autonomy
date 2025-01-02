@@ -31,7 +31,7 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==1.60.0
   open-aea-test-autonomy:
-    version: ==0.18.3
+    version: ==0.18.4
   packaging: {}
   pycryptodome:
     version: ==3.18.0
