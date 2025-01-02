@@ -61,6 +61,9 @@ nav:
     - Debugging:
       - Cluster Debugging: 'advanced_reference/developer_tooling/debugging_in_the_cluster.md'
       - Tenderly Integration: 'advanced_reference/developer_tooling/debugging_using_tenderly.md'
+    - CLI Commands:
+      - Fetch Service Files: 'advanced_reference/commands/autonomy_fetch_service_files.md'
+      - Kubernetes Deployment: 'advanced_reference/commands/autonomy_kubernetes_deployment.md'
     - Deployment:
       - Container Control Flow: 'control_flow.md'
       - Custom Images: 'advanced_reference/use_custom_images.md'
