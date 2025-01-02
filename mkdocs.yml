@@ -72,7 +72,7 @@ nav:
       - On-Chain Addresses: 'advanced_reference/on_chain_addresses.md'
   - API Reference:
     - Core Library:
-      - Constants: 'api/constants.md'
+      - Constants: 'api/analyse/constants.md'
       - Analysis Tools:
         - ABCI:
           - App Spec: 'api/analyse/abci/app_spec.md'
