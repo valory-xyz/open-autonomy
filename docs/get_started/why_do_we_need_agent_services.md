@@ -11,7 +11,7 @@ Decentralized ledger technologies (DLTs), such as blockchains, face several chal
 
 In contrast with the increasing growth of on-chain applications (particularly in DeFi), **the off-chain design space has seen a lack of innovation**. A lot of the technology is centralized, lacks fault tolerance, the code is often opaque and offers little composability.
 
-Currently, a standardised approach for off-chain application development is missing in the blockchain space. This is where the {{open_aea}} and the {{open_autonomy}} frameworks come in, as open-source frameworks for developers to implement off-chain services which are secured on-chain and can interact with smart contracts.
+Currently, a standardised approach for off-chain application development is missing in the blockchain space. This is where the [Open AEA](https://open-aea.docs.autonolas.tech/) and the Open Autonomy frameworks come in, as open-source frameworks for developers to implement off-chain services which are secured on-chain and can interact with smart contracts.
 
 <figure markdown>
 ![](../images/centralized_decentralized_world.svg)

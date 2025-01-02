@@ -30,7 +30,7 @@ on the security of the underlying blockchain. However, due to their nature, they
 
 **Custom decentralized services** are services like oracles, bridges or keepers which are run off-chain by a group of operators, thus providing the required level of trust and security. These services run off-chain, which enables them to do complex processing. The main drawback of this approach is that there is no standardized approach to build and compose such services. This severely limits the growth of the ecosystem of applications in the off-chain space.
 
-This is where **autonomous services** (implemented as agent services with the {{open_autonomy}} framework) comes into play in the broader ecosystem of crypto software. Agent services are composable, crypto-native services that can execute complex processing, take action on their own and run continuously.
+This is where **autonomous services** (implemented as agent services with the Open Autonomy framework) comes into play in the broader ecosystem of crypto software. Agent services are composable, crypto-native services that can execute complex processing, take action on their own and run continuously.
 
 For a more detailed discussion, take a look at the [Autonolas Education](https://www.autonolas.network/education-articles) article series.
 
@@ -47,7 +47,7 @@ This is often a question that new developers in the field of agent systems and m
 | Architecture & Execution | A single agent, typically run and controlled by a single entity. | A set of agents run by a collection of independent operators. Agents have a synchronized shared state. |
 | Trust model | Not applicable. The owner controls and designs and manages their own agent. | Agent services are decentralized and transparent, and can be crypto-economically secured on a public blockchain. They can be regarded as drop-in replacements of trusted entities (on complex service infrastructures), thus relaxing the trust requirements on them. |
 | Example | Automated, personal asset management: an agent determines the best strategy to invest owners assets. | Automated asset management as a service. Users subscribe to the service, which execute elaborate investing strategies to maximize the capital gains, in exchange for a service fee. |
-| Frameworks   | {{open_aea}} | {{open_autonomy}} + {{open_aea}} |
+| Frameworks   | [Open AEA](https://open-aea.docs.autonolas.tech/) | Open Autonomy + [Open AEA](https://open-aea.docs.autonolas.tech/) |
 
 ## Progressive decentralization
 

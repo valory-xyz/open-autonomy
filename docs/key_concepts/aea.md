@@ -1,7 +1,7 @@
 [← Back to Key Concepts](./index.md)
 
 !!!note
-    This page presents a brief overview of the {{open_aea}} framework. We refer the reader to the {{open_aea_doc}} for the complete details.
+    This page presents a brief overview of the [Open AEA](https://open-aea.docs.autonolas.tech/) framework. We refer the reader to the [Open AEA Documentation](https://open-aea.docs.autonolas.tech/) for the complete details.
 
 
 An [intelligent agent](https://en.wikipedia.org/wiki/Intelligent_agent) is a computer program that observes its environment, processes the perceived information, and executes actions in order to achieve some predefined goals. Intelligent agents can be designed to work autonomously by gathering data on a regular, pre-programmed schedule, or when a user prompts them in real time.
@@ -21,7 +21,7 @@ uncertain.
 
 
 !!! warning "Important"
-    Every agent service built with the {{open_autonomy}} framework is a MAS composed of several AEAs that interact between them to achieve the goals of the service.
+    Every agent service built with the [Open Autonomy](https://docs.autonolas.network/) framework is a MAS composed of several AEAs that interact between them to achieve the goals of the service.
 
 
 ## How Agent Services Are Secured
@@ -95,11 +95,11 @@ of the transaction and the AEA's current
 
 
 ### Skills
-[`Skills`](https://open-aea.docs.autonolas.tech/skill/) are the core focus of the {{open_aea}} framework's extensibility, as they implement business logic to deliver economic value for the AEA.  They represent the AEAs knowledge, that is, self-contained capabilities that AEAs can dynamically take on board, in order to expand their effectiveness in different situations. Skills exhibit both reactive and proactive actions as follows:
+[`Skills`](https://open-aea.docs.autonolas.tech/skill/) are the core focus of the [Open AEA](https://open-aea.docs.autonolas.tech/) framework's extensibility, as they implement business logic to deliver economic value for the AEA.  They represent the AEAs knowledge, that is, self-contained capabilities that AEAs can dynamically take on board, in order to expand their effectiveness in different situations. Skills exhibit both reactive and proactive actions as follows:
 
 - [`Handlers`](https://open-aea.docs.autonolas.tech/api/skills/base/#handler-objects) implement AEAs' reactive behaviour. Each [`Skill`](https://open-aea.docs.autonolas.tech/skill/) has zero, one or more handler objects. There is a one-to-one correspondence between [`Handlers`](https://open-aea.docs.autonolas.tech/api/skills/base/#handler-objects) and [`Protocols`](https://open-aea.docs.autonolas.tech/api/protocols/base/#protocol-objects) in an AEA (also known as registered protocols). If an AEA understands a [`Protocol`](https://open-aea.docs.autonolas.tech/api/protocols/base/#protocol-objects) referenced in a received [`Envelope`](https://open-aea.docs.autonolas.tech/api/mail/base/#envelope-objects) (i.e., the protocol is registered in this AEA), this envelope is sent to the corresponding [`Handler`](https://open-aea.docs.autonolas.tech/api/skills/base/#handler-objects) which executes the AEA's reaction to this [`Message`](https://open-aea.docs.autonolas.tech/api/protocols/base/).
 
-- [`Behaviours`](https://open-aea.docs.autonolas.tech/api/skills/base/#behaviour-objects) encapsulate actions which further the AEAs goal and are initiated by internals of the AEA rather than external events. [`Behaviours`](https://open-aea.docs.autonolas.tech/api/skills/base/#behaviour-objects) implement AEAs' proactiveness. The {{open_aea}} framework provides a number of abstract base classes implementing different types of simple and composite [`Behaviours`](https://open-aea.docs.autonolas.tech/api/skills/base/#behaviour-objects) (e.g., cyclic, one-shot, finite-state-machine, etc), and these define how often and in what order a behaviour and its sub-behaviours must be executed. [`Behaviours`](https://open-aea.docs.autonolas.tech/api/skills/base/#behaviour-objects) act as a user in a traditional blockchain.
+- [`Behaviours`](https://open-aea.docs.autonolas.tech/api/skills/base/#behaviour-objects) encapsulate actions which further the AEAs goal and are initiated by internals of the AEA rather than external events. [`Behaviours`](https://open-aea.docs.autonolas.tech/api/skills/base/#behaviour-objects) implement AEAs' proactiveness. The [Open AEA](https://open-aea.docs.autonolas.tech/) framework provides a number of abstract base classes implementing different types of simple and composite [`Behaviours`](https://open-aea.docs.autonolas.tech/api/skills/base/#behaviour-objects) (e.g., cyclic, one-shot, finite-state-machine, etc), and these define how often and in what order a behaviour and its sub-behaviours must be executed. [`Behaviours`](https://open-aea.docs.autonolas.tech/api/skills/base/#behaviour-objects) act as a user in a traditional blockchain.
 
 
 - Since there might exist a need to share a certain context which is relevant both
@@ -135,7 +135,7 @@ Note that [`Skills`](https://open-aea.docs.autonolas.tech/skill/) are one of the
 services, because a special type of [`Skill`](https://open-aea.docs.autonolas.tech/skill/) is what will define the agent
 service business logic.
 
-Therefore, we briefly provide a general overview on how an AEA [`Skill`](https://open-aea.docs.autonolas.tech/skill/) is implemented in the {{open_aea}} framework. See also the {{open_aea_doc}} for the complete details.
+Therefore, we briefly provide a general overview on how an AEA [`Skill`](https://open-aea.docs.autonolas.tech/skill/) is implemented in the [Open AEA](https://open-aea.docs.autonolas.tech/) framework. See also the [Open AEA Documentation](https://open-aea.docs.autonolas.tech/) for the complete details.
 
 
 The [`AbstractAgent`](https://open-aea.docs.autonolas.tech/api/abstract_agent/) class

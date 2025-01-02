@@ -1,4 +1,4 @@
-The {{open_autonomy}} framework uses up to 6 different Docker images when building a service deployment with the command `autonomy deploy build`. Some of these images are for testing purposes and they are only included if indicated explicitly.
+The [Open Autonomy](https://docs.autonolas.network/) framework uses up to 6 different Docker images when building a service deployment with the command `autonomy deploy build`. Some of these images are for testing purposes and they are only included if indicated explicitly.
 
 ## Images used in production and testing
 

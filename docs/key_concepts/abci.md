@@ -1,7 +1,7 @@
 [← Back to Key Concepts](./index.md)
 
 The [Application BlockChain Interface (ABCI)](https://github.com/cometbft/cometbft/blob/main/spec/abci/README.md) defines the boundary between the consensus engine (the blockchain) and an application to be replicated across a number of platforms.
-The ABCI lets the application logic communicate with the consensus engine in a transparent way so that all agents' internal state are synchronized. The application to be replicated can be written in any programming language, and it communicates with the consensus engine of each agent through a variety of methods, e.g., Unix or TCP sockets. In our case, we leverage the ABCI to replicate the sate of the {{fsm_app}} within the agents of an agent service.
+The ABCI lets the application logic communicate with the consensus engine in a transparent way so that all agents' internal state are synchronized. The application to be replicated can be written in any programming language, and it communicates with the consensus engine of each agent through a variety of methods, e.g., Unix or TCP sockets. In our case, we leverage the ABCI to replicate the sate of the [FSM App](./fsm_app_introduction.md) within the agents of an agent service.
 
 The ABCI standard was introduced with the
 [CometBFT project](https://docs.cosmos.network/v0.47/core/cometbft) (now part of Cosmos). Nevertheless,
@@ -13,11 +13,11 @@ In the remaining of this section, we will use [CometBFT](https://docs.cometbft.c
 
     ABCI Apps are only reactive and specify how
     a transaction updates the application state.
-    On the other hand, {{fsm_app}}s rely on the low-level ABCI application layer to replicate the state consistently among different instances,
+    On the other hand, [FSM App](./fsm_app_introduction.md)s rely on the low-level ABCI application layer to replicate the state consistently among different instances,
     but they also exhibit _proactive behaviour_. For example, periodically
     execute some routines, monitor the value of the crypto assets of the final customer, etc.
 
-    In other words, {{fsm_app}}s rely on the underlying ABCI, but an {{fsm_app}} **is not** an ABCI App.
+    In other words, [FSM App](./fsm_app_introduction.md)s rely on the underlying ABCI, but an [FSM App](./fsm_app_introduction.md) **is not** an ABCI App.
 
 
 ## Brief Overview of CometBFT
@@ -107,7 +107,7 @@ A quick overview of the ABCI protocol is depicted in the diagram below. See the 
 <figcaption>Overview of the flow of messages via the ABCI protocol</figcaption>
 </figure>
 
-## ABCI Apps and the {{open_autonomy}} framework
+## ABCI Apps and the [Open Autonomy](https://docs.autonolas.network/) framework
 
 The reader might have noticed that we have used the concepts of "reactive callbacks" from the CometBFT blockchain to the ABCI App, and "proactive calls" from the ABCI App to the blockchain.
 This is by no means a coincidence with the architecture of an [AEA](./aea.md): the former are associated to reactive Handlers, whereas the latter are associated to proactive Behaviours in an AEA Skill.

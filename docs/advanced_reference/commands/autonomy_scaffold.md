@@ -7,7 +7,7 @@ This command group consists of a number of functionalities that generate boilerp
 
 !!! warning "Important"
 
-    This command group extends the {{open_aea}} command `scaffold` with the subcommand `fsm` to generate boilerplate code for {{fsm_app}} skills. We refer to the {{open_aea_doc}} for more information related the subcommands `connection`, `contract`, `decision-maker-handler`, `error-handler`, `protocol` and `skill`.
+    This command group extends the [Open AEA](https://open-aea.docs.autonolas.tech/) command `scaffold` with the subcommand `fsm` to generate boilerplate code for FSM App skills. We refer to the [Open AEA documentation](https://open-aea.docs.autonolas.tech/) for more information related the subcommands `connection`, `contract`, `decision-maker-handler`, `error-handler`, `protocol` and `skill`.
 
 ## Usage
 ```bash
@@ -27,16 +27,16 @@ autonomy scaffold [OPTIONS] COMMAND [ARGS]
 
 ## `autonomy scaffold fsm`
 
-Scaffold {{fsm_app}} skills based on an {{fsm_app}} specification file (YAML).
+Scaffold FSM App skills based on an FSM App specification file (YAML).
 
-This command produces the necessary boilerplate code to create an empty, but functional, {{fsm_app}} skill. The command needs an initialized local registry to work, and it must be called in the folder containing the registry, or one of its direct subfolders.
+This command produces the necessary boilerplate code to create an empty, but functional, FSM App skill. The command needs an initialized local registry to work, and it must be called in the folder containing the registry, or one of its direct subfolders.
 
 The command will produce the following files under `<local_repository>/<vendor>/skills/<fsm_app_skill_name>`:
 
 - `__init__.py`: Python package definition file.
 - `behaviours.py`: Boilerplate for behaviours and the [`RoundBehaviour` class](../../key_concepts/abci_app_abstract_round_behaviour.md).
 - `dialogues.py`: Boilerplate for dialogues.
-- `fsm_specification.yaml`: {{fsm_app}} specification file.
+- `fsm_specification.yaml`: FSM App specification file.
 - `handlers.py`: Boilerplate for handlers.
 - `models.py`: Boilerplate for models.
 - `payloads.py`: Boilerplate for payloads.
@@ -57,7 +57,7 @@ autonomy scaffold fsm [OPTIONS] SKILL_NAME
 :   To use a local registry.
 
 `--spec FILE`
-:   {{fsm_app}} specification file (YAML).
+:   FSM App specification file (YAML).
 
 `--help`
 :   Show the help message and exit.
@@ -67,4 +67,4 @@ autonomy scaffold fsm [OPTIONS] SKILL_NAME
 scaffold -tlr fsm --spec fsm_specification.yaml my_fsm_app_skill
 ```
 
-Generates an {{fsm_app}} skill named "my_fsm_app_skill" according to the specification described in the file `fsm_specification.yaml`, and stores it to the local registry.
+Generates an FSM App skill named "my_fsm_app_skill" according to the specification described in the file `fsm_specification.yaml`, and stores it to the local registry.

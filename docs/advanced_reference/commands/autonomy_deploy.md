@@ -250,7 +250,7 @@ autonomy deploy run --build-dir ./abci_build_hAsH
 
 Run a service deployment minted on-chain protocol.
 
-This command allows to deploy services directly without having the need to explicitly fetch them locally (also known as "one-click deployment"). The command requires the `TOKEN_ID` which can be checked in the {{ autonolas_protocol_registry_dapp }}. See the [mint a service on-chain](../../guides/publish_mint_packages.md) guide for more information.
+This command allows to deploy services directly without having the need to explicitly fetch them locally (also known as "one-click deployment"). The command requires the `TOKEN_ID` which can be checked in the [Autonolas Protocol Registry](https://registry.olas.network/). See the [mint a service on-chain](../../guides/publish_mint_packages.md) guide for more information.
 
 To understand how to use various chain profiles refer to `Chain Selection` section on the `autonomy mint` command documentation.
 

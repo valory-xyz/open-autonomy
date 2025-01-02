@@ -51,7 +51,7 @@ autonomy fetch [OPTIONS] PUBLIC_ID_OR_HASH_OR_TOKEN_ID
 To use these chain profile, you will have to export an environment variable for RPC in `<CHAIN_NAME>_CHAIN_RPC` format. For example if you want to use `ethereum`, you will have to export `ETHEREUM_CHAIN_RPC`.
 
 `--use-custom-chain`
-: Use the custom-chain profile to find the token with the given token ID. This profile requires that you define some parameters and [contract addresses](../on_chain_addresses.md) as environment variables (see also the {{ autonolas_protocol }} documentation for more information):
+: Use the custom-chain profile to find the token with the given token ID. This profile requires that you define some parameters and [contract addresses](../on_chain_addresses.md) as environment variables (see also the [Autonolas Protocol](https://docs.autonolas.network/) documentation for more information):
 
     - `CUSTOM_CHAIN_RPC` : RPC endpoint for the custom chain.
     - `CUSTOM_CHAIN_ID` : chain ID.

@@ -1,6 +1,6 @@
 [← Back to Key Concepts](./index.md)
 
-In this section we present sequence diagrams in order to help understand the transmitted messages and method calls between the software components that are part of an {{fsm_app}}.
+In this section we present sequence diagrams in order to help understand the transmitted messages and method calls between the software components that are part of an [FSM App](./fsm_app_introduction.md).
 
 
 

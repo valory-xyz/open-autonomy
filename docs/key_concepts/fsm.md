@@ -2,7 +2,7 @@
 
 A [finite-state machine](https://en.wikipedia.org/wiki/Finite-state_machine) (FSM) is a mathematical model of computation that can be
 used to represent a sequential logic of state transitions.
-We use FSMs to describe systems that have a finite number of _states_ and can transition from one state to another due to some _event_. At any given time the FSM can be in exactly one particular state, and the reception of this event will make the application to transit to a new state. FSMs will be a central part to define the {{fsm_app}} in an agent service (because we express the business logic of such services as FSMs).
+We use FSMs to describe systems that have a finite number of _states_ and can transition from one state to another due to some _event_. At any given time the FSM can be in exactly one particular state, and the reception of this event will make the application to transit to a new state. FSMs will be a central part to define the [FSM App](./fsm_app_introduction.md) in an agent service (because we express the business logic of such services as FSMs).
 
 The rules to transition from one state of the FSM to another are governed by the so-called _transition function_. The transition function takes as input the current state and the received event and outputs the next state where the FSM will transit. A compact way of visualizing an FSM and its transition function is through a multi
 digraph with a finite number of nodes, depicting the possible states of the system, and a finite number of labelled arcs, representing the transitions from one state to another.
@@ -44,4 +44,4 @@ digraph with a finite number of nodes, depicting the possible states of the syst
     | (Release, PRODUCT_RELEASED) | Idle    |
 
 
-FSMs let us define all the steps that an application of a service must follow, or in other words, the application logic. Roughly speaking, the {{fsm_app}} defining an agent service is essentially an FSM replicated across the number of AEAs that compose the service, including additional proactive functionalities. Although it is not stritly necessary to understand how {{fsm_app}}s work, you can read more about FSM replication [here](https://en.wikipedia.org/wiki/State_machine_replication).
+FSMs let us define all the steps that an application of a service must follow, or in other words, the application logic. Roughly speaking, the [FSM App](./fsm_app_introduction.md) defining an agent service is essentially an FSM replicated across the number of AEAs that compose the service, including additional proactive functionalities. Although it is not stritly necessary to understand how [FSM App](./fsm_app_introduction.md)s work, you can read more about FSM replication [here](https://en.wikipedia.org/wiki/State_machine_replication).

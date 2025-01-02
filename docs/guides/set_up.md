@@ -1,6 +1,6 @@
 [← Back to Guides](./index.md)
 
-The purpose of this guide is to set up your system to work with the {{open_autonomy}} framework. All the remaining guides assume that you have followed these set up instructions.
+The purpose of this guide is to set up your system to work with the Open Autonomy framework. All the remaining guides assume that you have followed these set up instructions.
 
 ## Requirements
 
@@ -51,7 +51,7 @@ This will download and set up the necessary components in your local registry.
     touch Pipfile && pipenv --python 3.10 && pipenv shell
     ```
 
-2. **Install the {{open_autonomy}} framework and the [Open AEA Ethereum Ledger Plugin](https://pypi.org/project/open-aea-ledger-ethereum):**
+2. **Install the Open Autonomy framework and the [Open AEA Ethereum Ledger Plugin](https://pypi.org/project/open-aea-ledger-ethereum):**
 
     ```bash
     pip install open-autonomy[all]
