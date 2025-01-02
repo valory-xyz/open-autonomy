@@ -4,11 +4,11 @@ An **agent service** is an off-chain autonomous service which runs as a multi-ag
 
 Agent services enable complex processing, take action on their own and run continuously. Moreover, agent services are crypto-native by construction, that is, they are **decentralized**, **trust-minimized**, **transparent**, and **robust**.
 
-See [some use cases](./use_cases.md) of agent services that can be built with the {{open_autonomy}} framework.
+See [some use cases](./use_cases.md) of agent services that can be built with the Open Autonomy framework.
 
 ## Architecture
 
-The {{open_aea}} framework provides the necessary components for building single agents. {{open_autonomy}} extends this framework to a service architecture, making possible to build applications as distributed systems (that is, agent services) that can be run by multiple, independent operators.
+The [Open AEA](https://open-aea.docs.autonolas.tech/) framework provides the necessary components for building single agents. Open Autonomy extends this framework to a service architecture, making possible to build applications as distributed systems (that is, agent services) that can be run by multiple, independent operators.
 
 The internal state of an agent service is replicated across all the agents in the service through a **consensus gadget** (a sort of short-lived blockchain).
 
@@ -24,7 +24,7 @@ This is what an agent service looks like:
 
 * **Agent**: The software unit that aggregates the runtime and functionalities to execute the service. Each agent is made up of a number of components that implement different functionalities, for example, what communication protocols the agent understands.
 
-* **{{fsm_app}}**: The core component inside an agent that defines the business logic of the service. {{fsm_app}} implements the underlying mechanisms for agents to synchronize their internal state and run the business logic in a decentralized fashion.
+* **FSM App**: The core component inside an agent that defines the business logic of the service. FSM App implements the underlying mechanisms for agents to synchronize their internal state and run the business logic in a decentralized fashion.
 
 * **Consensus gadget:** The infrastructure that enables agents to synchronize the service state and reach consensus on certain important decisions. From a technical point of view, the consensus gadget implements a blockchain based on [CometBFT](https://cometbft.com/) that is pruned periodically. By consensus gadget we usually refer to the collection of consensus nodes + consensus network.
 
@@ -32,23 +32,23 @@ This is what an agent service looks like:
 
 ## How it works
 
-The {{fsm_app}}, which encodes the business logic of the service, is structured as a [finite-state machine](../key_concepts/fsm.md) defining a series of steps that each agent in the service must follow in order to achieve the intended functionality.
+The FSM App, which encodes the business logic of the service, is structured as a [finite-state machine](../key_concepts/fsm.md) defining a series of steps that each agent in the service must follow in order to achieve the intended functionality.
 
 !!! example
 
-    This is a _toy example_ of how an {{fsm_app}} defines the business logic of an oracle service that collects prices from a source and publishes it on a blockchain:
+    This is a _toy example_ of how an FSM App defines the business logic of an oracle service that collects prices from a source and publishes it on a blockchain:
 
     <figure markdown>
-    ![Oracle {{fsm_app}} - toy example](../images/toy_oracle_fsm_app.svg)
+    ![Oracle FSM App - toy example](../images/toy_oracle_fsm_app.svg)
     </figure>
 
-The {{fsm_app}} replicates automatically the state and transitions across agents using the consensus gadget. This ensures that the execution flow of the service, its inputs and outputs are synchronized across all agents, creating a distributed (and decentralized) application with shared state that is fault tolerant.
+The FSM App replicates automatically the state and transitions across agents using the consensus gadget. This ensures that the execution flow of the service, its inputs and outputs are synchronized across all agents, creating a distributed (and decentralized) application with shared state that is fault tolerant.
 
 !!! tip
 
-    When developing an agent service, the developer can focus on defining the steps of the service in the {{fsm_app}} as if it were a standalone application, and get the replication mechanism "for free".
+    When developing an agent service, the developer can focus on defining the steps of the service in the FSM App as if it were a standalone application, and get the replication mechanism "for free".
 
-    The {{open_autonomy}} framework will provide most of the machinery to ensure that the agents' state is replicated as the service is executed.
+    The Open Autonomy framework will provide most of the machinery to ensure that the agents' state is replicated as the service is executed.
 
 If at some point the service needs to execute an action involving an external service, e.g., settling a transaction on a blockchain, then the following occurs:
 
