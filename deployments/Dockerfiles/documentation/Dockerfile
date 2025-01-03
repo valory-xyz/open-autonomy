@@ -1,27 +1,22 @@
-FROM ubuntu:22.04 as base
-ENV DEBIAN_FRONTEND noninteractive
+FROM python:3.11-slim as base
 
-RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y                                                       \
-       python3-venv                                                          \
-       python3-pip                                                           \
-       python3-dev                                                           \
-       git
+RUN apt-get update && apt-get install -y git
 
-# needed by Pipenv
-ENV LC_ALL C.UTF-8
-ENV LANG C.UTF-8
-
-RUN mkdir /build
 WORKDIR /build
 
 COPY docs/ /build/docs
 COPY mkdocs.yml /build
 
-RUN pip3 install tomte[docs]==0.2.17
+RUN pip install --no-cache-dir \
+    mkdocs-material \
+    mkdocstrings[python] \
+    mkdocs-include-markdown-plugin \
+    mkdocs-macros-plugin
+
+RUN pip install -e .
 RUN mkdocs build
 
-FROM python:3.10-alpine
+FROM python:3.11-alpine
 COPY --from=base /build/site /site
 
 WORKDIR /site
