@@ -27,7 +27,7 @@ DEFAULT_KEYS_FILE = "keys.json"
 DEFAULT_IMAGE_VERSION = "latest"
 SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME = "autonolas-registries"
 DOCKER_COMPOSE_YAML = "docker-compose.yaml"
-VALORY = "explorelabsxyz"
+VALORY = "valory"
 
 AUTONOMY_IMAGE_VERSION = os.environ.get(
     "AUTONOMY_IMAGE_VERSION", DEFAULT_AUTONOMY_VERSION
@@ -44,26 +44,26 @@ SERVICE_REGISTRY_IMAGE_VERSION = os.environ.get(
 )
 ACN_IMAGE_VERSION = os.environ.get("ACN_IMAGE_VERSION", DEFAULT_IMAGE_VERSION)
 
-AUTONOMY_IMAGE_NAME = os.environ.get("AUTONOMY_IMAGE_NAME", "explorelabsxyz/open-autonomy")
+AUTONOMY_IMAGE_NAME = os.environ.get("AUTONOMY_IMAGE_NAME", "valory/open-autonomy")
 DEVELOPMENT_IMAGE_NAME = os.environ.get(
-    "AUTONOMY_IMAGE_NAME", "explorelabsxyz/open-autonomy-dev"
+    "AUTONOMY_IMAGE_NAME", "valory/open-autonomy-dev"
 )
 TENDERMINT_IMAGE_NAME = os.environ.get(
-    "TENDERMINT_IMAGE_NAME", "explorelabsxyz/open-autonomy-tendermint"
+    "TENDERMINT_IMAGE_NAME", "valory/open-autonomy-tendermint"
 )
 HARDHAT_IMAGE_NAME = os.environ.get(
-    "HARDHAT_IMAGE_NAME", "explorelabsxyz/open-autonomy-hardhat"
+    "HARDHAT_IMAGE_NAME", "valory/open-autonomy-hardhat"
 )
 SERVICE_REGISTRY_IMAGE_NAME = os.environ.get(
-    "SERVICE_REGISTRY_IMAGE_NAME", f"explorelabsxyz/{SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME}"
+    "SERVICE_REGISTRY_IMAGE_NAME", f"valory/{SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME}"
 )
 DEVELOPMENT_IMAGE = f"{DEVELOPMENT_IMAGE_NAME}:{DEVELOPMENT_IMAGE_VERSION}"
 
 DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE = (
     f"{SERVICE_REGISTRY_IMAGE_NAME}:{SERVICE_REGISTRY_IMAGE_VERSION}"
 )
-ACN_IMAGE_NAME = os.environ.get("ACN_IMAGE_NAME", "explorelabsxyz/open-acn-node")
-DEFAULT_DOCKER_IMAGE_AUTHOR = "explorelabsxyz"
+ACN_IMAGE_NAME = os.environ.get("ACN_IMAGE_NAME", "valory/open-acn-node")
+DEFAULT_DOCKER_IMAGE_AUTHOR = "valory"
 OAR_IMAGE = "{image_author}/oar-{agent}:{version}"
-ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "explorelabsxyz/abstract_round_abci:0.1.0:bafybeihok6my64yug6s2xqnbdviwetakzj2gkzsnw2r3bzgp62lvwdnx5q"
+ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeihok6my64yug6s2xqnbdviwetakzj2gkzsnw2r3bzgp62lvwdnx5q"
 OLAS_DOCS_URL = "https://docs.autonolas.network"
