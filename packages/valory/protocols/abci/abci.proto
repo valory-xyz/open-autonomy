@@ -6,11 +6,11 @@ message AbciMessage{
 
   // Custom Types
   message CheckTxType{
-    enum _CheckTxType {
+    enum CheckTxTypeEnum {
       NEW            = 0;
       RECHECK        = 1;
     }
-    _CheckTxType type = 1;
+    CheckTxTypeEnum type = 1;
   }
 
   message ConsensusParams{
@@ -66,8 +66,8 @@ message AbciMessage{
       int64 height = 3;
       // The corresponding time where the offense occurred
       Timestamp time = 4;
-      // Total voting power of the validator set in case the ABCI application does
-      // not store historical validators.
+      // Total voting power of the validator set in case the ABCI application
+      // does not store historical validators.
       // https://github.com/tendermint/tendermint/issues/4581
       int64 total_voting_power = 5;
     }
@@ -104,7 +104,7 @@ message AbciMessage{
     bytes next_validators_hash = 9;   // validators for the next block
     bytes consensus_hash       = 10;  // consensus params for current block
     bytes app_hash             = 11;  // state after txs from the previous block
-    bytes last_results_hash    = 12;  // root hash of all results from the txs from the previous block
+    bytes last_results_hash    = 12;  // root hash of all results from previous block txs
         
     // consensus info
     bytes evidence_hash    = 13;  // evidence included in the block
@@ -387,7 +387,8 @@ message AbciMessage{
     Request_Offer_Snapshot_Performative request_offer_snapshot = 18;
     Request_Query_Performative request_query = 19;
     Request_Set_Option_Performative request_set_option = 20;
-    Response_Apply_Snapshot_Chunk_Performative response_apply_snapshot_chunk = 21;
+    Response_Apply_Snapshot_Chunk_Performative
+      response_apply_snapshot_chunk = 21;
     Response_Begin_Block_Performative response_begin_block = 22;
     Response_Check_Tx_Performative response_check_tx = 23;
     Response_Commit_Performative response_commit = 24;
