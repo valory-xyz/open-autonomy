@@ -213,7 +213,7 @@ theme:
     - navigation.instant
     - navigation.tracking
     - navigation.sections
-    - navigation.expand
+    - navigation.collapse
     - navigation.indexes
     - navigation.top
     - toc.follow
