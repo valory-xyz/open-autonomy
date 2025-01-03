@@ -73,11 +73,6 @@ profiles:
         docker:
           <<: *release_docker_args
 
-      - image: valory/open-autonomy-docs
-        docker:
-          <<: *release_docker_args
-          dockerfile: deployments/Dockerfiles/documentation/Dockerfile
-
       - image: valory/open-autonomy-user
         context: deployments/Dockerfiles/autonomy-user
         docker:
@@ -108,11 +103,6 @@ profiles:
         context: deployments/Dockerfiles/hardhat
         docker:
           <<: *docker_args
-
-      - image: valory/open-autonomy-docs
-        docker:
-          <<: *docker_args
-          dockerfile: deployments/Dockerfiles/documentation/Dockerfile
 
       - image: valory/open-autonomy-user
         context: deployments/Dockerfiles/autonomy-user
