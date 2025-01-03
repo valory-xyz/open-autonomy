@@ -262,9 +262,6 @@ markdown_extensions:
   - pymdownx.mark
   - attr_list
   - md_in_html
-  - pymdownx.emoji:
-      emoji_index: "materialx.emoji.twemoji"
-      emoji_generator: "materialx.emoji.to_svg"
 
 extra:
   social:
