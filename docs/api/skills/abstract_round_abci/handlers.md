@@ -34,7 +34,7 @@ def info(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
 
 Handle the 'info' request.
 
-As per CometBFT spec ([ABCI Info](https://github.com/cometbft/cometbft/blob/main/spec/abci/abci.md#info)):
+As per Tendermint spec (https://github.com/tendermint/spec/blob/038f3e025a19fed9dc96e718b9834ab1b545f136/spec/abci/abci.md#info):
 
 - Return information about the application state.
 - Used to sync Tendermint with the application during a handshake that happens on startup.
@@ -60,7 +60,7 @@ def init_chain(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
 
 Handle a message of REQUEST_INIT_CHAIN performative.
 
-As per CometBFT spec ([ABCI InitChain](https://github.com/cometbft/cometbft/blob/main/spec/abci/abci.md#initchain)):
+As per Tendermint spec (https://github.com/tendermint/spec/blob/038f3e025a19fed9dc96e718b9834ab1b545f136/spec/abci/abci.md#initchain):
 
 - Called once upon genesis.
 - If ResponseInitChain.Validators is empty, the initial validator set will be the RequestInitChain.Validators.
@@ -137,7 +137,7 @@ def commit(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
 
 Handle the 'commit' request.
 
-As per CometBFT spec ([ABCI Commit](https://github.com/cometbft/cometbft/blob/main/spec/abci/abci.md#commit)):
+As per Tendermint spec (https://github.com/tendermint/spec/blob/038f3e025a19fed9dc96e718b9834ab1b545f136/spec/abci/abci.md#commit):
 
 Empty request meant to signal to the app it can write state transitions to state.
 
@@ -264,16 +264,16 @@ Implement the contract api handler.
 
 <a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler"></a>
 
-## CometBFTHandler Objects
+## TendermintHandler Objects
 
 ```python
-class CometBFTHandler(Handler)
+class TendermintHandler(Handler)
 ```
 
-The CometBFT config-sharing request / response handler.
+The Tendermint config-sharing request / response handler.
 
 This handler is used to share the information necessary
-to set up the CometBFT network. The agents use it during
+to set up the Tendermint network. The agents use it during
 the RegistrationStartupBehaviour, and communicate with
 each other over the Agent Communication Network using a
 p2p_libp2p or p2p_libp2p_client connection.
@@ -288,7 +288,7 @@ This handler does NOT use the ABCI connection.
 class LogMessages(Enum)
 ```
 
-Log messages used in the CometBFTHandler
+Log messages used in the TendermintHandler
 
 <a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.LogMessages.__str__"></a>
 
@@ -320,7 +320,7 @@ def teardown() -> None
 
 Tear down the handler.
 
-<a id="packages.valory.skills.abstract_round_abci.handlers.CometBFTHandler.initial_tm_configs"></a>
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.initial_tm_configs"></a>
 
 #### initial`_`tm`_`configs
 
@@ -329,9 +329,9 @@ Tear down the handler.
 def initial_tm_configs() -> Dict[str, Dict[str, Any]]
 ```
 
-A mapping of the other agents' addresses to their initial CometBFT configuration.
+A mapping of the other agents' addresses to their initial Tendermint configuration.
 
-<a id="packages.valory.skills.abstract_round_abci.handlers.CometBFTHandler.initial_tm_configs"></a>
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.initial_tm_configs"></a>
 
 #### initial`_`tm`_`configs
 
@@ -340,7 +340,7 @@ A mapping of the other agents' addresses to their initial CometBFT configuration
 def initial_tm_configs(configs: Dict[str, Dict[str, Any]]) -> None
 ```
 
-A mapping of the other agents' addresses to their initial CometBFT configuration.
+A mapping of the other agents' addresses to their initial Tendermint configuration.
 
 <a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.dialogues"></a>
 
@@ -351,7 +351,7 @@ A mapping of the other agents' addresses to their initial CometBFT configuration
 def dialogues() -> Optional[TendermintDialogues]
 ```
 
-CometBFT config-sharing request / response protocol dialogues
+Tendermint config-sharing request / response protocol dialogues
 
 <a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.handle"></a>
 
@@ -361,7 +361,7 @@ CometBFT config-sharing request / response protocol dialogues
 def handle(message: Message) -> None
 ```
 
-Handle incoming CometBFT config-sharing messages
+Handle incoming Tendermint config-sharing messages
 
 <a id="packages.valory.skills.abstract_round_abci.handlers.IpfsHandler"></a>
 

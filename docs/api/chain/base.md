@@ -14,7 +14,7 @@ class UnitType(Enum)
 
 Unit type
 
-Same as [IRegistry.sol](https://github.com/valory-xyz/autonolas-registries/blob/main/contracts/interfaces/IRegistry.sol)
+Same as https://github.com/valory-xyz/autonolas-registries/blob/v1.0.1/contracts/interfaces/IRegistry.sol#L6-L9
 
 <a id="autonomy.chain.base.ServiceState"></a>
 
@@ -26,7 +26,7 @@ class ServiceState(Enum)
 
 Service state
 
-Same as [ServiceRegistry.sol](https://github.com/valory-xyz/autonolas-registries/blob/main/contracts/ServiceRegistry.sol)
+Same as https://github.com/valory-xyz/autonolas-registries/blob/v1.0.1/contracts/ServiceRegistry.sol#L41-L48
 
 <a id="autonomy.chain.base.RegistryContracts"></a>
 
