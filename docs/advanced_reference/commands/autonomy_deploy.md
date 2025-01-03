@@ -105,7 +105,7 @@ autonomy deploy build [OPTIONS] [KEYS_FILE]
 :   Set agent memory usage limit.
 
 `--number-of-services INTEGER`
-:   Number of services (i.e., separate deployment folders) to build. Default is 1.
+Number of services (i.e., separate deployment folders) to build. Default is 1.
 
 `--remote``
 :   To use `a remote registry.

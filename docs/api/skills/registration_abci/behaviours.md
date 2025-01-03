@@ -55,7 +55,7 @@ Agent registration to the FSM App.
 def initial_tm_configs() -> Dict[str, Dict[str, Any]]
 ```
 
-A mapping of the other agents' addresses to their initial CometBFT configuration.
+A mapping of the other agents' addresses to their initial Tendermint configuration.
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.initial_tm_configs"></a>
 
@@ -66,7 +66,7 @@ A mapping of the other agents' addresses to their initial CometBFT configuration
 def initial_tm_configs(configs: Dict[str, Dict[str, Any]]) -> None
 ```
 
-A mapping of the other agents' addresses to their initial CometBFT configuration.
+A mapping of the other agents' addresses to their initial Tendermint configuration.
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.LogMessages"></a>
 
@@ -91,14 +91,13 @@ For ease of use in formatted string literals
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.tendermint_parameter_url"></a>
 
 #### tendermint`_`parameter`_`url
-> Note: This property is deprecated and will be renamed to cometbft_parameter_url in a future version.
 
 ```python
 @property
 def tendermint_parameter_url() -> str
 ```
 
-CometBFT URL for obtaining and updating parameters
+Tendermint URL for obtaining and updating parameters
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.is_correct_contract"></a>
 
@@ -136,24 +135,22 @@ Get addresses of agents registered for the service
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.get_tendermint_configuration"></a>
 
 #### get`_`tendermint`_`configuration
-> Note: This method is deprecated and will be renamed to get_cometbft_configuration in a future version.
 
 ```python
 def get_tendermint_configuration() -> Generator[None, None, bool]
 ```
 
-Make HTTP GET request to obtain agent's local CometBFT node parameters
+Make HTTP GET request to obtain agent's local Tendermint node parameters
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.request_tendermint_info"></a>
 
 #### request`_`tendermint`_`info
-> Note: This method is deprecated and will be renamed to request_cometbft_info in a future version.
 
 ```python
 def request_tendermint_info() -> Generator[None, None, bool]
 ```
 
-Request CometBFT info from other agents
+Request Tendermint info from other agents
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.format_genesis_data"></a>
 
@@ -174,7 +171,7 @@ Format collected agent info for genesis update
 def request_update() -> Generator[None, None, bool]
 ```
 
-Make HTTP POST request to update agent's local CometBFT node
+Make HTTP POST request to update agent's local Tendermint node
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.wait_for_block"></a>
 
@@ -197,15 +194,15 @@ def async_act() -> Generator
 Do the action.
 
 Steps:
-1. Collect personal CometBFT configuration
+1. Collect personal Tendermint configuration
 2. Make Service Registry contract call to retrieve addresses
    of the other agents registered on-chain for the service.
-3. Request CometBFT configuration from registered agents.
+3. Request Tendermint configuration from registered agents.
    This is done over the Agent Communication Network using
    the p2p_libp2p_client connection.
-4. Update CometBFT configuration via genesis.json with the
+4. Update Tendermint configuration via genesis.json with the
    information of the other validators (agents).
-5. Restart CometBFT to establish the validator network.
+5. Restart Tendermint to establish the validator network.
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationBehaviour"></a>
 

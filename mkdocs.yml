@@ -1,11 +1,11 @@
 site_name: Open Autonomy Framework
-site_url: https://docs.autonolas.network/
+site_url: https://explorelabsxyz.github.io/open-autonomy/
 site_description: Documentation for the Open Autonomy Framework
 site_author: Valory AG
 copyright: Valory AG 2021-2023
 
-repo_name: valory-xyz/open-autonomy
-repo_url: https://github.com/valory-xyz/open-autonomy
+repo_name: ExploreLabsxyz/open-autonomy
+repo_url: https://github.com/ExploreLabsxyz/open-autonomy
 edit_uri: ""
 
 nav:
@@ -48,6 +48,7 @@ nav:
     - Security:
       - Threat Model: 'key_concepts/threat_model.md'
   - Configure the service:
+    - Overview: 'configure_service/index.md'
     - The service configuration file: 'configure_service/service_configuration_file.md'
     - Configure access to external chains: 'configure_service/configure_access_external_chains.md'
     - On-chain deployment checklist: 'configure_service/on-chain_deployment_checklist.md'
@@ -71,7 +72,7 @@ nav:
       - On-Chain Addresses: 'advanced_reference/on_chain_addresses.md'
   - API Reference:
     - Core Library:
-      - Constants: 'api/constants.md'
+      - Constants: 'api/analyse/constants.md'
       - Analysis Tools:
         - ABCI:
           - App Spec: 'api/analyse/abci/app_spec.md'
@@ -268,7 +269,7 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github-alt
-      link: https://github.com/valory-xyz
+      link: https://github.com/ExploreLabsxyz
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/autonolas
     - icon: fontawesome/brands/discord
