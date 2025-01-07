@@ -223,10 +223,10 @@ class VerifyTxRound(CollectSameUntilThresholdRound):
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """End block."""
         # TODO: Fix implementation
-        # This round makes an assumption that the transactio was executed
-        # succesfuly and value for VerifyTxPayload.verified is `True`
-        # This is to keep things simple for now, We'll continue with
-        # A proper round implementation in the next iteration
+        # This round makes an assumption that the transaction was executed successfully
+        # and the value for `VerifyTxPayload.verified` is `True`.
+        # This is to keep things simple for now.
+        # We'll continue with a proper round implementation in the next iteration.
         if self.threshold_reached:
             return self.synchronized_data, Event.DONE
         return None
