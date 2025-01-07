@@ -62,6 +62,7 @@ class SolanaRound(CollectSameUntilThresholdRound):
 
     payload_class = SolanaTransactionPayload
     synchronized_data_class = BaseSynchronizedData
+    extended_requirements = ()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """End block."""

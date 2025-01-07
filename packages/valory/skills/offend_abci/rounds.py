@@ -48,7 +48,7 @@ class OffendRound(CollectSameUntilThresholdRound):
 
     synchronized_data_class = BaseSynchronizedData
     payload_class = OffencesPayload
-    required_class_attributes: Tuple[str, ...] = tuple()
+    extended_requirements: Tuple[str, ...] = tuple()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""

@@ -94,6 +94,9 @@ SERIOUS_OFFENCE_ENUM_MIN = 1000
 NUMBER_OF_BLOCKS_TRACKED = 10_000
 NUMBER_OF_ROUNDS_TRACKED = 50
 
+SYNCHRONIZED_DATA_CLASS_ATTRIBUTE = "synchronized_data_class"
+PAYLOAD_CLASS_ATTRIBUTE = "payload_class"
+
 DONE_EVENT_ATTRIBUTE = "done_event"
 NO_MAJORITY_EVENT_ATTRIBUTE = "no_majority_event"
 NONE_EVENT_ATTRIBUTE = "none_event"
@@ -1039,14 +1042,26 @@ class _MetaAbstractRound(ABCMeta):
         mcs, abstract_round_cls: Type["AbstractRound"]
     ) -> None:
         """Check that required class attributes are set."""
-        if not hasattr(abstract_round_cls, "synchronized_data_class"):
-            raise AbstractRoundInternalError(
-                f"'synchronized_data_class' not set on {abstract_round_cls}"
+        required_class_attributes = getattr(
+            abstract_round_cls, "required_class_attributes", None
+        )
+        if not required_class_attributes:
+            raise TypeError(
+                f"Class {abstract_round_cls.__name__} must define `required_class_attributes`!"
             )
-        if not hasattr(abstract_round_cls, "payload_class"):
-            raise AbstractRoundInternalError(
-                f"'payload_class' not set on {abstract_round_cls}"
-            )
+
+        for attr in required_class_attributes:
+            if not hasattr(abstract_round_cls, attr):
+                raise AbstractRoundInternalError(
+                    f"'{attr}' not set in {abstract_round_cls}!"
+                )
+
+        extended_requirements = getattr(abstract_round_cls, "extended_requirements", ())
+        for attr in extended_requirements:
+            if not hasattr(abstract_round_cls, attr):
+                raise AbstractRoundInternalError(
+                    f"'{attr}' not set in {abstract_round_cls}!"
+                )
 
 
 class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound):
@@ -1072,7 +1087,11 @@ class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound):
 
     round_id: str
 
-    required_class_attributes: Tuple[str, ...] = tuple()
+    required_class_attributes: Tuple[str, ...] = (
+        SYNCHRONIZED_DATA_CLASS_ATTRIBUTE,
+        PAYLOAD_CLASS_ATTRIBUTE,
+    )
+    extended_requirements: Tuple[str, ...] = ()
 
     def __init__(
         self,
@@ -1085,16 +1104,6 @@ class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound):
         self.block_confirmations = 0
         self._previous_round_payload_class = previous_round_payload_class
         self.context = context
-
-        self._check_required_attributes()
-
-    def _check_required_attributes(self) -> None:
-        """Check that required attributes are set."""
-        for attribute in self.required_class_attributes:
-            if not hasattr(self, attribute):
-                raise AbstractRoundInternalError(
-                    f"'{attribute}' not set on {self.__class__}"
-                )
 
     @classmethod
     def auto_round_id(cls) -> str:
@@ -1571,7 +1580,7 @@ class CollectSameUntilThresholdRound(CollectionRound, ABC):
     collection_key: str
     selection_key: Union[str, Tuple[str, ...]]
 
-    required_class_attributes: Tuple[str, ...] = (
+    extended_requirements: Tuple[str, ...] = (
         DONE_EVENT_ATTRIBUTE,
         NO_MAJORITY_EVENT_ATTRIBUTE,
         NONE_EVENT_ATTRIBUTE,
@@ -1661,7 +1670,7 @@ class OnlyKeeperSendsRound(AbstractRound, ABC):
     fail_event: Any
     payload_key: Union[str, Tuple[str, ...]]
 
-    required_class_attributes: Tuple[str, ...] = (
+    extended_requirements: Tuple[str, ...] = (
         DONE_EVENT_ATTRIBUTE,
         FAIL_EVENT_ATTRIBUTE,
         PAYLOAD_KEY_ATTRIBUTE,
@@ -1762,7 +1771,7 @@ class VotingRound(CollectionRound, ABC):
     no_majority_event: Any
     collection_key: str
 
-    required_class_attributes: Tuple[str, ...] = (
+    extended_requirements: Tuple[str, ...] = (
         DONE_EVENT_ATTRIBUTE,
         NEGATIVE_EVENT_ATTRIBUTE,
         NONE_EVENT_ATTRIBUTE,
@@ -1834,7 +1843,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound, ABC):
     collection_key: str
     required_block_confirmations: int = 0
 
-    required_class_attributes: Tuple[str, ...] = (
+    extended_requirements: Tuple[str, ...] = (
         DONE_EVENT_ATTRIBUTE,
         COLLECTION_KEY_ATTRIBUTE,
         REQUIRED_BLOCK_CONFIRMATIONS_ATTRIBUTE,
@@ -1891,7 +1900,7 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound, AB
     none_event: Any
     selection_key: Union[str, Tuple[str, ...]]
 
-    required_class_attributes: Tuple[str, ...] = (
+    extended_requirements: Tuple[str, ...] = (
         NONE_EVENT_ATTRIBUTE,
         SELECTION_KEY_ATTRIBUTE,
     )
@@ -3858,7 +3867,7 @@ class PendingOffencesRound(CollectSameUntilThresholdRound):
     payload_class = PendingOffencesPayload
     synchronized_data_class = BaseSynchronizedData
 
-    required_class_attributes: Tuple[str, ...] = tuple()
+    extended_requirements: Tuple[str, ...] = tuple()
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the `PendingOffencesRound`."""

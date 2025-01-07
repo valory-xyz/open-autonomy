@@ -32,6 +32,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     CollectSameUntilThresholdRound,
     DegenerateRound,
+    NONE_EVENT_ATTRIBUTE,
     OnlyKeeperSendsRound,
     get_name,
 )
@@ -117,6 +118,12 @@ class CreateTxRandomnessRound(CollectSameUntilThresholdRound):
         get_name(SynchronizedData.most_voted_randomness_round),
         get_name(SynchronizedData.most_voted_randomness),
     )
+    # the none event is not required because the `RandomnessPayload` does not allow for `None` values
+    extended_requirements = tuple(
+        attribute
+        for attribute in CollectSameUntilThresholdRound.extended_requirements
+        if attribute != NONE_EVENT_ATTRIBUTE
+    )
 
 
 class CreateTxSelectKeeperRound(CollectSameUntilThresholdRound):
@@ -128,6 +135,12 @@ class CreateTxSelectKeeperRound(CollectSameUntilThresholdRound):
     no_majority_event = Event.NO_MAJORITY
     collection_key = get_name(SynchronizedData.participant_to_selection)
     selection_key = get_name(SynchronizedData.keepers)
+    # the none event is not required because the `SelectKeeperPayload` does not allow for `None` values
+    extended_requirements = tuple(
+        attribute
+        for attribute in CollectSameUntilThresholdRound.extended_requirements
+        if attribute != NONE_EVENT_ATTRIBUTE
+    )
 
 
 class CreateTxRound(OnlyKeeperSendsRound):
@@ -136,6 +149,7 @@ class CreateTxRound(OnlyKeeperSendsRound):
     keeper_payload: Optional[CreateTxPayload] = None
     payload_class = CreateTxPayload
     synchronized_data_class = SynchronizedData
+    extended_requirements = ()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
@@ -158,7 +172,7 @@ class ApproveTxRound(CollectSameUntilThresholdRound):
 
     payload_class = ApproveTxPayload
     synchronized_data_class = SynchronizedData
-    collection_key = get_name(SynchronizedData.tx_pda)
+    extended_requirements = ()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """End block."""
@@ -167,29 +181,12 @@ class ApproveTxRound(CollectSameUntilThresholdRound):
         return None
 
 
-class ExecuteTxRandomnessRound(CollectSameUntilThresholdRound):
+class ExecuteTxRandomnessRound(CreateTxRandomnessRound):
     """A round for generating randomness"""
 
-    payload_class = RandomnessPayload
-    synchronized_data_class = SynchronizedData
-    done_event = Event.DONE
-    no_majority_event = Event.NO_MAJORITY
-    collection_key = get_name(SynchronizedData.participant_to_randomness)
-    selection_key = (
-        get_name(SynchronizedData.most_voted_randomness_round),
-        get_name(SynchronizedData.most_voted_randomness),
-    )
 
-
-class ExecuteTxSelectKeeperRound(CollectSameUntilThresholdRound):
+class ExecuteTxSelectKeeperRound(CreateTxSelectKeeperRound):
     """A round in which a keeper is selected for transaction submission"""
-
-    payload_class = SelectKeeperPayload
-    synchronized_data_class = SynchronizedData
-    done_event = Event.DONE
-    no_majority_event = Event.NO_MAJORITY
-    collection_key = get_name(SynchronizedData.participant_to_selection)
-    selection_key = get_name(SynchronizedData.keepers)
 
 
 class ExecuteTxRound(OnlyKeeperSendsRound):
@@ -198,6 +195,7 @@ class ExecuteTxRound(OnlyKeeperSendsRound):
     keeper_payload: Optional[ExecuteTxPayload] = None
     payload_class = CreateTxPayload
     synchronized_data_class = SynchronizedData
+    extended_requirements = ()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """End block."""
@@ -220,6 +218,7 @@ class VerifyTxRound(CollectSameUntilThresholdRound):
 
     payload_class = VerifyTxPayload
     synchronized_data_class = SynchronizedData
+    extended_requirements = ()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """End block."""

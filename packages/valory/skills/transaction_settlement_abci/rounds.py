@@ -32,12 +32,15 @@ from packages.valory.skills.abstract_round_abci.base import (
     AppState,
     BaseSynchronizedData,
     BaseTxPayload,
+    COLLECTION_KEY_ATTRIBUTE,
     CollectDifferentUntilThresholdRound,
     CollectNonEmptyUntilThresholdRound,
     CollectSameUntilThresholdRound,
     CollectionRound,
     DegenerateRound,
+    NONE_EVENT_ATTRIBUTE,
     OnlyKeeperSendsRound,
+    SELECTION_KEY_ATTRIBUTE,
     TransactionNotValidError,
     VALUE_NOT_PROVIDED,
     VotingRound,
@@ -63,11 +66,6 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
 ADDRESS_LENGTH = 42
 TX_HASH_LENGTH = 66
 RETRIES_LENGTH = 64
-
-DONE_EVENT_ATTRIBUTE = "done_event"
-NO_MAJORITY_EVENT_ATTRIBUTE = "no_majority_event"
-COLLECTION_KEY_ATTRIBUTE = "collection_key"
-SELECTION_KEY_ATTRIBUTE = "selection_key"
 
 
 class Event(Enum):
@@ -275,8 +273,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
     keeper_payload: Optional[FinalizationTxPayload] = None
     payload_class = FinalizationTxPayload
     synchronized_data_class = SynchronizedData
-
-    required_class_attributes: Tuple[str, ...] = tuple()
+    extended_requirements = ()
 
     def end_block(  # pylint: disable=too-many-return-statements
         self,
@@ -365,11 +362,11 @@ class SelectKeeperTransactionSubmissionARound(CollectSameUntilThresholdRound):
     no_majority_event = Event.NO_MAJORITY
     collection_key = get_name(SynchronizedData.participant_to_selection)
     selection_key = get_name(SynchronizedData.keepers)
-    required_class_attributes: Tuple[str, ...] = (
-        DONE_EVENT_ATTRIBUTE,
-        NO_MAJORITY_EVENT_ATTRIBUTE,
-        COLLECTION_KEY_ATTRIBUTE,
-        SELECTION_KEY_ATTRIBUTE,
+    # the none event is not required because the `SelectKeeperPayload` does not allow for `None` values
+    extended_requirements = tuple(
+        attribute
+        for attribute in CollectSameUntilThresholdRound.extended_requirements
+        if attribute != NONE_EVENT_ATTRIBUTE
     )
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
@@ -394,8 +391,6 @@ class SelectKeeperTransactionSubmissionBAfterTimeoutRound(
     SelectKeeperTransactionSubmissionBRound
 ):
     """A round in which a new keeper is selected for tx submission after a round timeout of the previous keeper"""
-
-    required_class_attributes: Tuple[str, ...] = tuple()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
@@ -477,8 +472,10 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
     synchronized_data_class = SynchronizedData
     collection_key = get_name(SynchronizedData.participant_to_check)
     selection_key = get_name(SynchronizedData.most_voted_check_result)
-
-    required_class_attributes: Tuple[str, ...] = tuple()
+    extended_requirements: Tuple[str, ...] = (
+        COLLECTION_KEY_ATTRIBUTE,
+        SELECTION_KEY_ATTRIBUTE,
+    )
 
     def end_block(  # pylint: disable=too-many-return-statements
         self,
@@ -620,8 +617,7 @@ class ResetRound(CollectSameUntilThresholdRound):
 
     payload_class = ResetPayload
     synchronized_data_class = SynchronizedData
-
-    required_class_attributes: Tuple[str, ...] = tuple()
+    extended_requirements = ()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""

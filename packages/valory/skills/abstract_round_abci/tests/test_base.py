@@ -1283,7 +1283,7 @@ class TestAbstractRound:
         """Test that the 'payload_class' must be set in concrete classes."""
 
         with pytest.raises(
-            AbstractRoundInternalError, match="'payload_class' not set on .*"
+            AbstractRoundInternalError, match="'payload_class' not set in .*"
         ):
 
             class MyConcreteRound(AbstractRound):

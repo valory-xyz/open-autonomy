@@ -79,7 +79,7 @@ class BackgroundRound(CollectSameUntilThresholdRound):
 
     payload_class = BackgroundPayload
     synchronized_data_class = SynchronizedData
-    required_class_attributes: Tuple[str, ...] = tuple()
+    extended_requirements = ()
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""

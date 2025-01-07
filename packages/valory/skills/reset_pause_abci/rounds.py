@@ -48,7 +48,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
     payload_class = ResetPausePayload
     _allow_rejoin_payloads = True
     synchronized_data_class = BaseSynchronizedData
-    required_class_attributes: Tuple[str, ...] = tuple()
+    extended_requirements: Tuple[str, ...] = tuple()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""

@@ -32,6 +32,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     CollectionRound,
     DeserializedCollection,
+    SELECTION_KEY_ATTRIBUTE,
     TransactionNotValidError,
     get_name,
 )
@@ -116,7 +117,7 @@ class SlashingCheckRound(CollectSameUntilThresholdRound):
         get_name(SynchronizedData.slashing_in_flight),
         get_name(SynchronizedData.slashing_majority_reached),
     )
-    required_class_attributes: Tuple[str, ...] = tuple()
+    extended_requirements: Tuple[str, ...] = (SELECTION_KEY_ATTRIBUTE,)
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
