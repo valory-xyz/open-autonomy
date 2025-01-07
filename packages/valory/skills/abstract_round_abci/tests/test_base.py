@@ -259,6 +259,23 @@ def test_abstract_round_instantiation_without_attributes_raises_error() -> None:
             synchronized_data_class = MagicMock()
 
 
+def test_specific_round_instantiation_without_extended_requirements_raises_error() -> (
+    None
+):
+    """Test that definition of concrete subclass of CollectSameUntilThresholdRound without extended raises error."""
+    with pytest.raises(AbstractRoundInternalError):
+
+        class MyRoundBehaviour(abci_base.CollectSameUntilThresholdRound):
+            """Example behaviour class with the `selection_key` attr - which is an extended_requirement - missing."""
+
+            payload_class = MagicMock()
+            synchronized_data_class = MagicMock()
+            done_event = MagicMock()
+            no_majority_event = MagicMock()
+            none_event = MagicMock()
+            collection_key = MagicMock()
+
+
 class TestTransactions:
     """Test Transactions class."""
 
