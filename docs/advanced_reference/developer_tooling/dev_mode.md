@@ -1,4 +1,6 @@
-The {{open_autonomy}} framework comes with *developer mode* (`dev` mode) tooling to enable faster service developing and debugging. The `dev` mode supports running agent services with a number of functionalities enabled:
+[← Back to Developer Tools](../index.md)
+
+The Open Autonomy framework comes with *developer mode* (`dev` mode) tooling to enable faster service developing and debugging. The `dev` mode supports running agent services with a number of functionalities enabled:
 
 * **Hot reload**, which enables hot code swapping and reflects changes on the agent code as well as on the local `open-aea` repository without rebuilding or restarting the containers manually.
 * **Hardhat Instance**, which enables the inclusion of a pre-configured Hardhat Instance image in the deployment, which can be used as a test blockchain.
@@ -27,7 +29,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
     You must modify the paths in the command above appropriately, pointing to:
 
     * the path to the local registry (/packages directory),
-    * the path to the local {{open_aea_repository}}.
+    * the path to the local [Open AEA](https://open-aea.docs.autonolas.tech/) repository.
   
     If you don't want to specify the `open-aea` repository manually, you can install the `open-aea` in editable mode using
 
@@ -50,14 +52,14 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 ## Hot reload
 
-Once the agents are running, you can make changes to the agent's code as well as the local {{open_aea_repository}}, and it will trigger the service restart.
+Once the agents are running, you can make changes to the agent's code as well as the local [Open AEA](https://open-aea.docs.autonolas.tech/) repository, and it will trigger the service restart.
 
 The trigger is caused by any Python file closing in either the `service/packages` or the `open-aea/` directory. So even if you haven't made any change and still want to restart the service, just open any Python file press `Ctrl+S` or save it from the file menu and it will trigger the restart.
 
 
 ## Hardhat instance
 
-By default the command that builds the service deployment (`autonomy deploy build`) only includes the agent nodes and the Tendermint nodes. If you want to include a local Hardhat node as a test blockchain for the ledger connection, you can do so by using the `--use-hardhat` flag in that command.
+By default the command that builds the service deployment (`autonomy deploy build`) only includes the agent nodes and the CometBFT nodes. If you want to include a local Hardhat node as a test blockchain for the ledger connection, you can do so by using the `--use-hardhat` flag in that command.
 
 The deployment setup will include a Hardhat node (image `valory/open-autonomy-hardhat`) using `hardhat` as container name. Therefore, in order to use this node, you must set a [service-level override](../../configure_service/service_configuration_file.md#service-level-overrides) so that the `valory/ledger` connection address is set to `http://hardhat:8545`.
 You can achieve this by editing the service configuration file `service.yaml` as follows:
@@ -83,7 +85,8 @@ type: connection
 config:
   ledger_apis:
     ethereum:
-      address: ${LEDGER_RPC:str:http://localhost:8545}
+      # DO NOT USE IN PRODUCTION - For local development and testing only
+      address: ${LEDGER_RPC:str:http://localhost:8545}  # Local development endpoint
 ```
 
 ```bash

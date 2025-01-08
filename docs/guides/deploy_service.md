@@ -1,3 +1,5 @@
+[← Back to Guides](./index.md)
+
 # Deploy the service
 
 The final step in the development process is [deploying the service](./overview_of_the_development_process.md). There are multiple deployment options to consider, such as deploying on your local machine for testing, deploying on a cluster within your own infrastructure, or deploying on a cloud provider.
@@ -7,11 +9,11 @@ The final step in the development process is [deploying the service](./overview_
 <figcaption>Part of the development process covered in this guide</figcaption>
 </figure>
 
-The framework supports Docker Compose and Kubernetes cluster deployments. Additionally, the framework automates several steps in the deployment process for services registered in the {{ autonolas_protocol }}.
+The framework supports Docker Compose and Kubernetes cluster deployments. Additionally, the framework automates several steps in the deployment process for services registered in the [Autonolas Protocol](https://docs.autonolas.network/).
 
 !!! tip
 
-    Local service deployments are commonly used for testing services during active development. These deployments allow you to test and validate your service before minting it in the {{ autonolas_protocol }}, ensuring its readiness for production use.
+    Local service deployments are commonly used for testing services during active development. These deployments allow you to test and validate your service before minting it in the [Autonolas Protocol](https://docs.autonolas.network/), ensuring its readiness for production use.
 
 ## What you will learn
 
@@ -45,7 +47,11 @@ We illustrate the full local deployment workflow using the `hello_world` service
     autonomy build-image #(1)!
     ```
 
-    1. Check out the [`autonomy build-image`](../../../advanced_reference/commands/autonomy_build-image) command documentation to learn more about its parameters and options.
+    1. Check out the [`autonomy build-image`](../advanced_reference/commands/autonomy_build-image.md) command documentation to learn more about its parameters and options.
+
+## On-chain deployment
+
+For deploying services that have been registered in the [Autonolas Protocol](https://docs.autonolas.network/), please refer to the [on-chain deployment checklist](../configure_service/on-chain_deployment_checklist.md).
 
     After the command finishes, you can check that the image has been created by executing:
 
@@ -158,7 +164,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
         ```
 
         1. Delete previous deployments, if necessary.
-        2. `-ltm` stands for "use local Tendermint node". Check out the [`autonomy deploy build`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-build) command documentation to learn more about its parameters and options.
+        2. `-ltm` stands for "use local CometBFT node". Check out the [`autonomy deploy build`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-build) command documentation to learn more about its parameters and options.
 
         This will create a deployment environment within the `./abci_build_*` folder with the following structure:
 
@@ -177,7 +183,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
         ├── persistent_data
         │   ├── benchmarks
         │   ├── logs
-        │   ├── tm_state
+        │   ├── consensus_state  # Directory for CometBFT node state
         │   └── venvs
         └── docker-compose.yaml
         ```
@@ -190,7 +196,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
         ```
 
         1. Delete previous deployments, if necessary.
-        2. `-ltm` stands for "use local Tendermint node". Check out the [`autonomy deploy build`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-build) command documentation to learn more about its parameters and options.
+        2. `-ltm` stands for "use local CometBFT node". Check out the [`autonomy deploy build`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-build) command documentation to learn more about its parameters and options.
 
         This will create a deployment environment within the `./abci_build_*` folder with the following structure:
 
@@ -205,7 +211,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
         └── persistent_data
             ├── benchmarks
             ├── logs
-            ├── tm_state
+            ├── consensus_state  # Directory for CometBFT node state
             └── venvs
         ```
 
@@ -218,12 +224,12 @@ We illustrate the full local deployment workflow using the `hello_world` service
         autonomy deploy run #(1)!
         ```
 
-        1. Check out the [`autonomy deploy run`](../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-run) command documentation to learn more about its parameters and options.
+        1. Check out the [`autonomy deploy run`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-run) command documentation to learn more about its parameters and options.
 
         This will spawn in the local machine:
 
-        * $N$ agents containers, each one running an instance of the corresponding {{fsm_app}}.
-        * a network of $N$ Tendermint nodes, one per agent.
+        * $N$ agents containers, each one running an instance of the corresponding FSM App.
+        * a network of $N$ CometBFT nodes, one per agent.
 
     === "Kubernetes"
 
@@ -275,20 +281,20 @@ We illustrate the full local deployment workflow using the `hello_world` service
 
         After executing these commands, the minikube cluster will start provisioning and starting $N$ pods in the cluster. Each pod contains:
 
-        * one agent container, running an instance of the corresponding {{fsm_app}}.
-        * one Tendermint node associated to the agent.
+        * one agent container, running an instance of the corresponding FSM App.
+        * one CometBFT node associated with the agent.
 
 6. **Examine the deployment.**
 
     === "Docker Compose"
 
-        To inspect the logs of a single agent or Tendermint node you can execute `docker logs <container_id> --follow` in a separate terminal.
+        To inspect the logs of a single agent or CometBFT node, you can execute `docker logs <container_id> --follow` in a separate terminal.
 
         You can cancel the local execution at any time by pressing ++ctrl+c++.   
 
     === "Kubernetes"
 
-        You can access the cluster dashboard by executing `minikube dashboard` in a separate terminal. To examine the logs of a single agent or Tendermint node you can execute:
+        You can access the cluster dashboard by executing `minikube dashboard` in a separate terminal. To examine the logs of a single agent or CometBFT node, you can execute:
 
         1. Get the Kubernetes pod names.
             ```bash
@@ -300,7 +306,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
             kubectl exec -it <pod-name> -c aea -- /bin/sh
             ```
 
-        3. Access the logs of the Tendermint node in pod `<pod-name>`.
+        3. Access the logs of the CometBFT node in pod `<pod-name>`.
             ```bash 
             kubectl exec -it <pod-name> -c node0 -- /bin/sh
             ```
@@ -309,7 +315,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
 
 ## Local deployment of minted services
 
-The framework provides a convenient method to deploy agent services minted in the {{ autonolas_protocol }}. This has the benefit that some configuration parameters of the {{fsm_app}} skill will be overridden automatically with values obtained on-chain. Namely:
+The framework provides a convenient method to deploy agent services minted in the [Autonolas Protocol](https://docs.autonolas.network/). This has the benefit that some configuration parameters of the FSM App skill will be overridden automatically with values obtained on-chain. Namely:
 
 ```yaml title="skill.yaml"
 # (...)
@@ -324,7 +330,7 @@ models:
 
 This means, in particular, that there is no need to define the `ALL_PARTICIPANTS` environment variable.
 
-1. **Find the service ID.** Explore the [services section]({{ autonolas_protocol_registry_dapp_link }}/services) in the {{ autonolas_protocol_registry_dapp }}, and note the token ID of the service that you want to deploy. The service must be in [Deployed state](https://docs.autonolas.network/protocol/life_cycle_of_a_service/#deployed).
+1. **Find the service ID.** Explore the [services section](https://registry.olas.network/services) in the [Autonolas Protocol Registry](https://registry.olas.network/), and note the token ID of the service that you want to deploy. The service must be in [Deployed state](https://docs.autonolas.network/protocol/life_cycle_of_a_service/#deployed).
 
 2. **Prepare the keys file.** Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that you wish to deploy in the local machine.
 
@@ -359,7 +365,7 @@ This means, in particular, that there is no need to define the `ALL_PARTICIPANTS
     autonomy fetch <TOKEN_ID> --use-mode # (1)!
     ```
 
-    1. `--use-mode` indicates that the service is registered in the Mode network. Check out the [`autonomy fetch`](../../../advanced_reference/commands/autonomy_fetch) command documentation to learn more about its parameters and options.
+    1. `--use-mode` indicates that the service is registered in the Mode network. Check out the [`autonomy fetch`](../advanced_reference/commands/autonomy_fetch.md) command documentation to learn more about its parameters and options.
 
     Fetch the service with the desired token ID on Mode network.
 
@@ -370,7 +376,7 @@ This means, in particular, that there is no need to define the `ALL_PARTICIPANTS
     autonomy build-image --service-dir your_service/ # (2)!
     ```
 
-    2. Check out the [`autonomy build-image`](../../../advanced_reference/commands/autonomy_build-image) command documentation to learn more about its parameters and options.
+    2. Check out the [`autonomy build-image`](../advanced_reference/commands/autonomy_build-image.md) command documentation to learn more about its parameters and options.
 
     This command builds the Docker runtime images for the agent defined in a service configuration file service.yaml.
 
@@ -395,7 +401,7 @@ This means, in particular, that there is no need to define the `ALL_PARTICIPANTS
         autonomy deploy build path/to/keys.json --kubernetes # (3)!
         ```
 
-    3. Check out the [`autonomy deploy build`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-build) command documentation to learn more about its parameters and options.
+    3. Check out the [`autonomy deploy build`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-build) command documentation to learn more about its parameters and options.
 
 6. **Start the service.** Run the service:
 
@@ -403,7 +409,7 @@ This means, in particular, that there is no need to define the `ALL_PARTICIPANTS
     autonomy deploy run # (4)!
     ```
 
-    4. Check out the [`autonomy deploy run`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-run) command documentation to learn more about its parameters and options.
+    4. Check out the [`autonomy deploy run`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-run) command documentation to learn more about its parameters and options.
 
     Run a service deployment locally stored.
 

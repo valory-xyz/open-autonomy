@@ -1,3 +1,5 @@
+[← Back to Key Concepts](./index.md)
+
 ## Communication
 This diagram shows the communication flow between the AEAs and their environment.
 

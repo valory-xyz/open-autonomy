@@ -1,4 +1,4 @@
-The {{open_autonomy}} framework provides a benchmark tool to assist with the process of measuring the performance of an agent service. The tool is designed to measure time spent within the execution of code blocks in the behaviours that compose an {{fsm_app}}. It differentiates between two kinds of code blocks:
+The Open Autonomy framework provides a benchmark tool to assist with the process of measuring the performance of an agent service. The tool is designed to measure time spent within the execution of code blocks in the behaviours that compose an FSM App. It differentiates between two kinds of code blocks:
 
 * **Local code blocks**: used to measure the time taken in local computations, for example, preparation of payloads or computing a local function.
 * **Consensus code blocks**: used to measure the time taken by the logic in the execution of the consensus algorithm by the agents.
@@ -11,7 +11,7 @@ The benchmark tool is encapsulated in the class
 packages.valory.skills.abstract_round_abci.models.BenchmarkTool
 ```
 
-To set up the tool, you need to follow a couple of steps detailed below. Note that these steps are automatically done if you use the [{{fsm_app}} scaffold tool](../../guides/code_fsm_app_skill.md).
+To set up the tool, you need to follow a couple of steps detailed below. Note that these steps are automatically done if you use the [FSM App scaffold tool](../../guides/code_fsm_app_skill.md).
 
 1. Import the class `BenchmarkTool` in the `models.py` of your skill, and extend it, if required.
 
@@ -79,13 +79,13 @@ class MyBehaviour(BaseBehaviour, ABC):
 
 ## Save the benchmark data
 
-The benchmark data is saved upon calling the method `BenchmarkTool.save()`. This function call is executed at the end of every period by the `ResetAndPauseBehaviour` (within the `reset_pause_abci` {{fsm_app}} skill). Hence, the `reset_pause_abci` {{fsm_app}} must be chained appropriately in the composed FSM, marking the end of a period in the business logic of the service.
+The benchmark data is saved upon calling the method `BenchmarkTool.save()`. This function call is executed at the end of every period by the `ResetAndPauseBehaviour` (within the `reset_pause_abci` FSM App skill). Hence, the `reset_pause_abci` FSM App must be chained appropriately in the composed FSM, marking the end of a period in the business logic of the service.
 
 As a summary, the sequence of events that should occur so that the benchmark information is saved correctly is as follows:
 
-1. The overall {{fsm_app}} is composed with the `reset_pause_abci` {{fsm_app}}.
+1. The overall FSM App is composed with the `reset_pause_abci` FSM App.
 2. Any intermediate behaviour executes local and/or consensus blocks contexts within their `async_act()` method.
-3. The {{fsm_app}} reaches the `ResetAndPauseRound` (`reset_pause_abci` round and calls the `BenchmarkTool.save()` method.
+3. The FSM App reaches the `ResetAndPauseRound` (`reset_pause_abci` round and calls the `BenchmarkTool.save()` method.
 4. Wait for as many periods as you wish before stopping the service. Note that any measurement not saved at the end of a period will be lost.
 
 The benchmark data will be stored in the folder `<service_folder>/abci_build_*/persistent_data/benchmarks`.

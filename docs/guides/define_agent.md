@@ -1,3 +1,5 @@
+[← Back to Guides](./index.md)
+
 The next step consists in defining the service agent. All agents in the service share the same code base.
 However, each operator can configure their agent instance. For example, in an oracle service,
 each operator can define a different data provider.
@@ -9,17 +11,17 @@ each operator can define a different data provider.
 
 ## What you will learn
 
-This guide covers step 3 of the [development process](./overview_of_the_development_process.md). You will learn how to define the service agent, how to add the {{fsm_app}}, and how to add other existing components required by your agent.
+This guide covers step 3 of the [development process](./overview_of_the_development_process.md). You will learn how to define the service agent, how to add the FSM App, and how to add other existing components required by your agent.
 
 You must ensure that your machine satisfies the [framework requirements](./set_up.md#requirements), you have [set up the framework](./set_up.md#set-up-the-framework), and you have a local registry [populated with some default components](./overview_of_the_development_process.md#populate-the-local-registry-for-the-guides). As a result you should have a Pipenv workspace folder with an initialized local registry (`./packages`) in it.
 
 ## Step-by-step instructions
 
-In order to deploy and run a service you need an agent with a working {{fsm_app}}. We base this guide on a default {{fsm_app}} available in the remote registry, namely, the `hello_world_abci` {{fsm_app}}. As a result, we will define an agent implementing a functionality equivalent to the [Hello World service](https://docs.autonolas.network/demos/hello-world/). You can, of course, use your own {{fsm_app}} to define your agent.
+In order to deploy and run a service you need an agent with a working FSM App. We base this guide on a default FSM App available in the remote registry, namely, the `hello_world_abci` FSM App. As a result, we will define an agent implementing a functionality equivalent to the [Hello World service](https://docs.autonolas.network/demos/hello-world/). You can, of course, use your own FSM App to define your agent.
 
 !!! warning "Important"
 
-    If you have just [scaffolded an {{fsm_app}} in the previous step](./code_fsm_app_skill.md) but you didn't complete coding the business logic, then an agent that uses that {{fsm_app}} will fail to run. For this reason, we recommend that you use the `hello_world_abci` {{fsm_app}} in a first read of this guide.
+    If you have just [scaffolded an FSM App in the previous step](./code_fsm_app_skill.md) but you didn't complete coding the business logic, then an agent that uses that FSM App will fail to run. For this reason, we recommend that you use the `hello_world_abci` FSM App in a first read of this guide.
 
 1. **Ensure that the components required by your agent are in the local registry.** All the required components by your agent and their dependencies must be downloaded to the local registry. You can read [how to add missing components to the local registry](#).
 If you have [populated the local registry](./overview_of_the_development_process.md#populate-the-local-registry-for-the-guides) with the required components to follow these guides, you do not need to take any further action.
@@ -44,8 +46,8 @@ If you have [populated the local registry](./overview_of_the_development_process
 
             Ensure that `author` and `agent_name` match the path within the local registry.
 
-      * A reference to the {{fsm_app}} skill.
-      * References to other components required by the agent (or dependencies of the {{fsm_app}} skill), under the relevant sections.
+      * A reference to the FSM App skill.
+      * References to other components required by the agent (or dependencies of the FSM App skill), under the relevant sections.
 
         !!! warning "Important"
 
@@ -55,13 +57,13 @@ If you have [populated the local registry](./overview_of_the_development_process
             * Protocols: `open_aea/signing`, `valory/abci`, `valory/acn`(*).
             * Skills: `valory/abstract_abci`, `valory/abstract_round_abci`, `valory/termination_abci`(*).
 
-            (*) Components required only if the service is minted in the {{ autonolas_protocol }}.
+            (*) Components required only if the service is minted in the [Autonolas Protocol](https://docs.autonolas.network/).
 
       * Configuration overrides that specify values for component parameters. These overrides are separated by YAML document separators `---` and will be discussed in a further section.
 
     ???+ example "Example of an `aea-config.yaml` file"
 
-        This is a complete example of an agent configuration file that uses the `hello_world_abci` {{fsm_app}} and overrides some required component parameters. 
+        This is a complete example of an agent configuration file that uses the `hello_world_abci` FSM App and overrides some required component parameters. 
 
         You will notice that there are a lot of parameters to be configured for the required components. For an initial read of this guide, you can ignore these parameters, but it is important that you identify how the references to the particular component parameter being overridden.
 
@@ -141,6 +143,9 @@ If you have [populated the local registry](./overview_of_the_development_process
                 all_participants: ${list:[]}
                 safe_contract_address: ${str:'0x0000000000000000000000000000000000000000'}
                 consensus_threshold: ${int:null}
+              # Default local development endpoints - DO NOT USE IN PRODUCTION
+              # Note: These endpoints assume you are running local CometBFT nodes
+              # DO NOT USE IN PRODUCTION - For local development and testing only
               tendermint_url: ${str:http://localhost:26657}
               tendermint_com_url: ${str:http://localhost:8080}
         ---
@@ -234,7 +239,7 @@ If you have [populated the local registry](./overview_of_the_development_process
          autonomy add-key ethereum your_agent_key.txt
          ```
 
-         If your agent is using an {{fsm_app}}, you also need to override the variable `all_participants` in the `aea-config.yaml` file with the wallet address of this private key as follows:
+         If your agent is using an FSM App, you also need to override the variable `all_participants` in the `aea-config.yaml` file with the wallet address of this private key as follows:
 
          ```yaml title="aea-config.yaml"
          # (...)
@@ -263,13 +268,15 @@ If you have [populated the local registry](./overview_of_the_development_process
 
          ```bash
          rm -rf ~/.tendermint #(1)!
-         tendermint init
-         tendermint node --proxy_app=tcp://127.0.0.1:26658 --rpc.laddr=tcp://127.0.0.1:26657 --p2p.laddr=tcp://0.0.0.0:26656 --p2p.seeds= --consensus.create_empty_blocks=true
+         # Note: These commands are for local development only
+         # DO NOT USE IN PRODUCTION - For local testing and development
+         cometbft init
+         cometbft node --proxy_app=tcp://127.0.0.1:26658 --rpc.laddr=tcp://127.0.0.1:26657 --p2p.laddr=tcp://0.0.0.0:26656 --p2p.seeds= --consensus.create_empty_blocks=true
          ```
 
-         1. This will prevent errors caused by dirty files from earlier executions of Tendermint. Ensure that you don't want to keep these files.
+         1. This will prevent errors caused by dirty files from earlier executions of CometBFT. Ensure that you don't want to keep these files.
 
-    At this point, you should see how your agent runs and exchanges messages with the Tendermint node. Note that, while running an isolated agent might be useful to quickly test and debug certain functionalities, you need to build and test a whole service deployment to ensure that it works as intended.
+    At this point, you should see how your agent runs and exchanges messages with the CometBFT node. Note that, while running an isolated agent might be useful to quickly test and debug certain functionalities, you need to build and test a whole service deployment to ensure that it works as intended.
 
 
 

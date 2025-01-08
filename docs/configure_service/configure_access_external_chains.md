@@ -1,3 +1,5 @@
+[← Back to Configure Service](./index.md)
+
 The {{open_autonomy}} framework supports that agent services access different external chains
 by defining certain configuration parameters appropriately.
 
@@ -37,8 +39,14 @@ At agent level, the agent configuration file `aea-config.yaml` should contain an
     config:
       ledger_apis:
         ethereum:
+          # Default local development endpoint - DO NOT USE IN PRODUCTION
+          # Note: This endpoint assumes you are running a local Ethereum node (e.g., Hardhat)
+          # DO NOT USE IN PRODUCTION - For local development and testing only
+          # Default local development endpoint - DO NOT USE IN PRODUCTION
+          # Note: This endpoint assumes you are running a local Ethereum node (e.g., Hardhat)
+          # DO NOT USE IN PRODUCTION - For local development and testing only
           address: ${str:http://localhost:8545}
-          chain_id: ${int:31337}
+          chain_id: ${int:31337}  # Default local chain ID for Hardhat
           <other_params>
     ```
 === "Using hardcoded values"
@@ -51,8 +59,10 @@ At agent level, the agent configuration file `aea-config.yaml` should contain an
     config:
       ledger_apis:
         ethereum:
-          address: http://host.docker.internal:8545
-          chain_id: 31337
+          # DO NOT USE IN PRODUCTION - For local development and testing only
+          # Note: This endpoint assumes you are running a local Ethereum node
+          address: http://host.docker.internal:8545  # Local development endpoint
+          chain_id: 31337  # Default local chain ID for Hardhat
           <other_params>
     ```
 
@@ -74,8 +84,10 @@ Similarly, service-level overrides for the `valory/ledger` connection are define
     config:
       ledger_apis:
         ethereum:
-          address: ${MY_CHAIN_ADDRESS:str:http://localhost:8545}
-          chain_id: ${MY_CHAIN_ID:int:31337}
+          # DO NOT USE IN PRODUCTION - For local development and testing only
+          # Note: This endpoint assumes you are running a local Ethereum node
+          address: ${MY_CHAIN_ADDRESS:str:http://localhost:8545}  # Local development endpoint
+          chain_id: ${MY_CHAIN_ID:int:31337}  # Default local chain ID for Hardhat
           <other_params>
     ```
 

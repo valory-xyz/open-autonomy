@@ -1,3 +1,5 @@
+[← Back to CLI Reference](../../cli_overview.md)
+
 Builds the agent image for a service.
 
 This command builds the Docker runtime images for the agent defined in a service configuration file `service.yaml`. By default, the command tags the generated images as

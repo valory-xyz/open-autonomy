@@ -1,3 +1,6 @@
+[← Back to Key Concepts](./index.md)
+
+
 It is important to note that autonomous services (and hence agent services) do not need to store the history of the common service state permanently. This implies that agent services may be internally using blockchain-like technology, but they never implement a standard L1/L2 layer.
 
 Autonomous services work under the following threat model:

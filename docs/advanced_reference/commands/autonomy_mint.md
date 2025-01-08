@@ -1,6 +1,8 @@
-Tools for minting software packages in the {{ autonolas_protocol }}.
+[← Back to CLI Reference](../../cli_overview.md)
 
-This command group consists of a number of functionalities to mint components, agents and services in the {{ autonolas_protocol }}. These commands are the CLI alternative to mint packages using the {{ autonolas_protocol_registry_dapp }}. See the appropriate subcommands for more information.
+Tools for minting software packages in the [Autonolas Protocol](https://docs.autonolas.network/).
+
+This command group consists of a number of functionalities to mint components, agents and services in the [Autonolas Protocol](https://docs.autonolas.network/). These commands are the CLI alternative to mint packages using the [Autonolas Protocol Registry](https://registry.olas.network/). See the appropriate subcommands for more information.
 
 !!! info
 

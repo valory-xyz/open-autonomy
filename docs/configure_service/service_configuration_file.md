@@ -1,3 +1,5 @@
+[← Back to Configure Service](./index.md)
+
 The service configuration file `service.yaml` is a YAML file where the main attributes of the agent service are set up, including the particular agent that defines the service. An important feature of service configuration files is that they can override attributes defined in agent or component configurations.
 
 
@@ -82,7 +84,7 @@ There are a number of mandatory attributes that define the service, which are su
 | `author`                      | Author name.                                                                                                                                                                                          |
 | `version`                     | Agent service version, in the format `<major>.<minor>.<patch>`.                                                                                                                                       |
 | `description`                 | Description of the agent service.                                                                                                                                                                     |
-| `aea_version`                 | {{open_aea}} version supported by the service.                                                                                                                                                        |
+| `aea_version`                 | [Open AEA](https://open-aea.docs.autonolas.tech/) version supported by the service.                                                                                                                                                        |
 | `license`                     | License identifier.                                                                                                                                                                                   |
 | `fingerprint`                 | List with entries `<file>: <hash>` for all the files that compose the agent service. |
 | `fingerprint_ignore_patterns` | Filename patterns to be ignored.                                                                                                                                                                      |
@@ -93,9 +95,9 @@ There are a number of mandatory attributes that define the service, which are su
 
 ## Service-level overrides
 
-The {{open_aea}} framework already has the notion of [component overrides](https://open-aea.docs.autonolas.tech/overrides/): if a component uses another component, the former can override configuration values of the sub-component.
+The [Open AEA](https://open-aea.docs.autonolas.tech/) framework already has the notion of [component overrides](https://open-aea.docs.autonolas.tech/overrides/): if a component uses another component, the former can override configuration values of the sub-component.
 
-Similarly, the {{open_autonomy}} framework has the notion of service-level overrides. You can define them in the service configuration file `service.yaml`, which will be used to generate the deployment environment for the agents.
+Similarly, the Open Autonomy framework has the notion of service-level overrides. You can define them in the service configuration file `service.yaml`, which will be used to generate the deployment environment for the agents.
 
 Service-level overrides follow the mandatory service-specific attributes, separated by `---`.
 You can, for example, override the default `HELLO_WORLD!` string that each agent prints on their console in the [Hello World service](https://docs.autonolas.network/demos/hello-world/), which is originally defined in the `hello_world_abci` skill.

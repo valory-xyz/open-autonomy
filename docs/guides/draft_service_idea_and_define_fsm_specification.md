@@ -1,3 +1,5 @@
+[← Back to Guides](./index.md)
+
 The first task when designing an agent service is to describe its business logic into a [finite-state machine (FSM)](../key_concepts/fsm.md). You must be able to identify the different states of the service, and what are the events that trigger a change from one state to another.
 
 <figure markdown>
@@ -7,7 +9,7 @@ The first task when designing an agent service is to describe its business logic
 
 ## What you will learn
 
-This guide covers steps 1 and 2 of the [development process](./overview_of_the_development_process.md). You will learn how to write the {{fsm_app}} specification that defines the main steps in the business logic of your service. The actual coding of the {{fsm_app}} will be covered in the next step.
+This guide covers steps 1 and 2 of the [development process](./overview_of_the_development_process.md). You will learn how to write the [FSM App](../key_concepts/fsm_app_introduction.md) specification that defines the main steps in the business logic of your service. The actual coding of the [FSM App](../key_concepts/fsm_app_introduction.md) will be covered in the next step.
 
 We will use as an example the FSM used in the [Hello World service](https://docs.autonolas.network/demos/hello-world/), where a set of 4 agents coordinate and take turns to print a "Hello World" message in their local console.
 

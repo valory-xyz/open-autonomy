@@ -1,12 +1,14 @@
+[← Back to CLI Reference](../../cli_overview.md)
+
 Tools for analysing and verifying agent services.
 
-This command group consists of a number of functionalities to analyse and verify agent services, including {{fsm_app}} skill consistency checks. See the appropriate subcommands for more information.
+This command group consists of a number of functionalities to analyse and verify agent services, including [FSM App](../../key_concepts/fsm_app_introduction.md) skill consistency checks. See the appropriate subcommands for more information.
 
 
 
 ## `autonomy analyse docstrings `
 
-Analyse {{fsm_app}} skill docstring definitions.
+Analyse [FSM App](../../key_concepts/fsm_app_introduction.md) skill docstring definitions.
 
 This command verifies that the [`AbciApp` class](../../key_concepts/abci_app_class.md) docstring is follows a standard format.
 
@@ -62,21 +64,21 @@ autonomy analyse docstrings [OPTIONS]
 :   Show the help message and exit.
 
 ### Examples
-To analyse all the {{fsm_app}} skill docstrings within the local registry, run the following command in the directory containing the registry:
+To analyse all the [FSM App](../../key_concepts/fsm_app_introduction.md) skill docstrings within the local registry, run the following command in the directory containing the registry:
 
 ```bash
 autonomy analyse docstrings
 ```
 
 
-To update/fix the {{fsm_app}} skill docstrings, run the following command:
+To update/fix the [FSM App](../../key_concepts/fsm_app_introduction.md) skill docstrings, run the following command:
 ```bash
 autonomy analyse docstrings --update
 ```
 
 ## `autonomy analyse fsm-specs`
 
-Verify the {{fsm_app}} against its specification or generate the {{fsm_app}} specification file.
+Verify the [FSM App](../../key_concepts/fsm_app_introduction.md) against its specification or generate the [FSM App](../../key_concepts/fsm_app_introduction.md) specification file.
 
 ### Usage
 
@@ -89,17 +91,17 @@ Usage: autonomy analyse fsm-specs [OPTIONS]
 ```
 --package PATH
 ```
-:   Path to the package containing the {{fsm_app}} skill.
+:   Path to the package containing the [FSM App](../../key_concepts/fsm_app_introduction.md) skill.
 
 ```
 --app-class ABCI_APP_CLASS
 ```
-:   Name of the `AbciApp` class of the {{fsm_app}}.
+:   Name of the `AbciApp` class of the [FSM App](../../key_concepts/fsm_app_introduction.md).
 
 ```
 --update
 ```
-:    Update/create the {{fsm_app}} definition file if check fails.
+:    Update/create the [FSM App](../../key_concepts/fsm_app_introduction.md) definition file if check fails.
 
 ```
 --yaml
@@ -123,22 +125,22 @@ Usage: autonomy analyse fsm-specs [OPTIONS]
 
 
 ### Examples
-Analyse the {{fsm_app}} specification for the `hello_world_abci`:
+Analyse the [FSM App](../../key_concepts/fsm_app_introduction.md) specification for the `hello_world_abci`:
 ```bash
 autonomy analyse fsm-specs --package ./packages/valory/skills/hello_world_abci
 ```
 
-Update/create the {{fsm_app}} specification for the `hello_world_abci` in YAML format:
+Update/create the [FSM App](../../key_concepts/fsm_app_introduction.md) specification for the `hello_world_abci` in YAML format:
 ```bash
 autonomy analyse fsm-specs --package ./packages/valory/skills/hello_world_abci --app-class HelloWorldAbciApp --update
 ```
 
-Export the {{fsm_app}} specification for the `hello_world_abci` in Mermaid format:
+Export the [FSM App](../../key_concepts/fsm_app_introduction.md) specification for the `hello_world_abci` in Mermaid format:
 ```bash
 autonomy analyse fsm-specs --package ./packages/valory/skills/hello_world_abci --app-class HelloWorldAbciApp --update --mermaid
 ```
 
-Analyse all the {{fsm_app}} specifications in a local registry. This command must be executed
+Analyse all the [FSM App](../../key_concepts/fsm_app_introduction.md) specifications in a local registry. This command must be executed
 in a directory containing the local registry:
 ```bash
 autonomy analyse fsm-specs
@@ -148,7 +150,7 @@ autonomy analyse fsm-specs
 
 Verify existence of handler definitions.
 
-This command verifies that all the {{fsm_app}} skills in a local registry (except the explicitly excluded ones) have defined the specified handlers.
+This command verifies that all the [FSM App](../../key_concepts/fsm_app_introduction.md) skills in a local registry (except the explicitly excluded ones) have defined the specified handlers.
 
 ### Usage
 ``` bash
@@ -168,7 +170,7 @@ autonomy analyse handlers [OPTIONS]
 
 ### Examples
 
-Ensure that handlers `http` and `signing` are defined in all the {{fsm_app}} skills in a local registry, except the skills `excluded_skill_1` and `excluded_skill_2`:
+Ensure that handlers `http` and `signing` are defined in all the [FSM App](../../key_concepts/fsm_app_introduction.md) skills in a local registry, except the skills `excluded_skill_1` and `excluded_skill_2`:
 
 ```bash
 autonomy analyse handlers -h http -h signing -i excluded_skill_1 -i excluded_skill_2
@@ -178,7 +180,7 @@ autonomy analyse handlers -h http -h signing -i excluded_skill_1 -i excluded_ski
 
 Check dialogues definitions in a skill package.
 
-This command verifies that all the {{fsm_app}} skills in a local registry (except the explicitly excluded ones) have defined the specified dialogues.
+This command verifies that all the [FSM App](../../key_concepts/fsm_app_introduction.md) skills in a local registry (except the explicitly excluded ones) have defined the specified dialogues.
 
 ### Usage
 ``` bash
@@ -197,7 +199,7 @@ autonomy analyse dialogues [OPTIONS]
 
 ### Examples
 
-Ensure that dialogues `abci_dialogues` and `http_dialogues` are defined in all the {{fsm_app}} skills in a local registry, except the skills `excluded_skill_1` and `excluded_skill_2`:
+Ensure that dialogues `abci_dialogues` and `http_dialogues` are defined in all the FSM App skills in a local registry, except the skills `excluded_skill_1` and `excluded_skill_2`:
 
 ```bash
 autonomy analyse dialogues -d abci_dialogues -d http_dialogues -i excluded_skill_1 -i excluded_skill_2
@@ -260,8 +262,61 @@ autonomy analyse logs [OPTIONS]
 :   Show the help message and exit.
 
 ### Examples
-!!! info
-    This section will be added soon.
+
+1. Basic log analysis from a directory:
+   ```bash
+   # Analyze logs from a specific build directory
+   autonomy analyse logs --from-dir ./abci_build_123456/persistent_data/logs
+   ```
+
+2. Filter logs by agent and time range:
+   ```bash
+   # View logs for agents 0 and 1 between specific times
+   autonomy analyse logs --from-dir ./logs \
+     -a 0 -a 1 \
+     --start-time "2024-01-20 10:00:00,000" \
+     --end-time "2024-01-20 11:00:00,000"
+   ```
+
+3. Filter by period and round:
+   ```bash
+   # View logs for period 2 and RegistrationRound
+   autonomy analyse logs --from-dir ./logs \
+     --period 2 \
+     --round RegistrationRound
+   ```
+
+4. View FSM execution path:
+   ```bash
+   # Show only the FSM state transitions
+   autonomy analyse logs --from-dir ./logs --fsm
+   ```
+
+5. Filter by log level and behaviour:
+   ```bash
+   # View ERROR logs for a specific behaviour
+   autonomy analyse logs --from-dir ./logs \
+     --log-level ERROR \
+     --behaviour RegistrationBehaviour
+   ```
+
+6. Use regex patterns to filter logs:
+   ```bash
+   # Include lines with "consensus" and exclude lines with "debug"
+   autonomy analyse logs --from-dir ./logs \
+     -ir ".*consensus.*" \
+     -er ".*debug.*"
+   ```
+
+7. Reset database and analyze specific agent:
+   ```bash
+   # Reset the log database and analyze agent 0
+   autonomy analyse logs --from-dir ./logs \
+     --reset-db \
+     -a 0
+   ```
+
+These examples demonstrate various ways to filter and analyze agent service logs. You can combine multiple options to narrow down the log output to exactly what you need for debugging or analysis.
 
 
 ## `autonomy analyse benchmarks`

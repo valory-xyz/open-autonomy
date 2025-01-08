@@ -1,13 +1,15 @@
+[← Back to Main](./index.md)
+
 ## Definitions
 
 ??? note "What is an autonomous service?"
     An autonomous service is a decentralized service that runs off-chain and provides functionalities to objects living on-chain. Autonomous services are outside the purview and control of a single authority, and can be designed for a variety of purposes, including acting as a decentralized oracle for smart contracts, or executing complex investing strategies that cannot be easily encoded on-chain.
 
 ??? note "What is an agent service?"
-    An agent service is an autonomous service which is implemented as a multi-agent system using Autonomous Economic Agents (AEAs) using the {{open_autonomy}} framework, which is built on top of {{open_aea}}.
+    An agent service is an autonomous service which is implemented as a multi-agent system using Autonomous Economic Agents (AEAs) using the Open Autonomy framework, which is built on top of [Open AEA](https://open-aea.docs.autonolas.tech/).
 
-??? note "What is an {{fsm_app}}?"
-    An {{fsm_app}} is an application that implements the business logic of an agent service as a finite-state machine. The internal state of an {{fsm_app}} is replicated and synchronized across all the agents forming the agent service.
+??? note "What is an FSM app?"
+    An FSM app is an application that implements the business logic of an agent service as a finite-state machine. The internal state of an FSM app is replicated and synchronized across all the agents forming the agent service.
 
 ??? note "What is a keeper agent?"
     It is one of the agents for which the agents have voted to be in charge of executing a certain operation (e.g., settling a transaction on a blockchain).
@@ -16,12 +18,12 @@
     The consensus gadget is the infrastructure, local to a service, that enables the agents in that service to run a consensus algorithm to synchronize and replicate the service state. It consists of the consensus gadget nodes (one node per agent) plus the consensus gadget network (which can be the Internet or a dedicated network).
 
 ??? note "What is a period?"
-    In the context of agent services, a period is the sequence of states in the {{fsm_app}} that execute the main functionality of the service. Usually, services are designed to cycle through these states, for example, an oracle service will cycle through states like "collect observations" - "compute value" - "publish value on-chain".
+    In the context of agent services, a period is the sequence of states in the FSM app that execute the main functionality of the service. Usually, services are designed to cycle through these states, for example, an oracle service will cycle through states like "collect observations" - "compute value" - "publish value on-chain".
 
 ## How it works
 
-??? note "Can I reuse the same {{fsm_app}} multiple times when creating a composed {{fsm_app}}?"
-    No. The Open Autonomy framework currently only supports a single instance of a given {{fsm_app}} in a composition.
+??? note "Can I reuse the same FSM app multiple times when creating a composed FSM app?"
+    No. The Open Autonomy framework currently only supports a single instance of a given FSM app in a composition.
 
 ??? note "Composability, extensibility and reusability are advantages also present in other tech stacks. What makes Autonolas different?"
     Autonolas is not just a framework where devs can build on: it is a complete, novel ecosystem that provides an SDK, a reward system for developers and operators and a governance protocol on top, all of them decentralized.
@@ -29,7 +31,7 @@
     In the same way companies like Apple or Google offer SDKs to accelerate devs work plus an app store to monetize their work, Autonolas offers the same capabilities but in a decentralized way: developers register components, operators run services that use those components, consumers use and pay for those services so both developers and operators are compensated for their work. And all the parameters that govern the network can be voted on.
 
 ??? note "How do agents communicate with other agents?"
-    Different forms of communication are used depending on the service status. Before the agents can establish a temporary blockchain (Tendermint network) that serves as consensus engine they need to exchange the necessary information with others in order to be able to do so. This information includes the network address of their Tendermint node and the associated public key. They do so by connecting to the Agent Communication Network (ACN), where they can send messages to other agents, in this case requesting their Tendermint configuration details, using their on-chain registered address. The list of registered addresses is retrieved from the service registry smart contract and can be used to filter out request coming from any party that is not registered to operate in this service as well. Once all configurations have been exchanged the Tendermint network can be established and is used as a consensus engine.
+    Different forms of communication are used depending on the service status. Before the agents can establish a temporary blockchain (CometBFT network) that serves as consensus engine they need to exchange the necessary information with others in order to be able to do so. This information includes the network address of their CometBFT node and the associated public key. They do so by connecting to the Agent Communication Network (ACN), where they can send messages to other agents, in this case requesting their Tendermint configuration details, using their on-chain registered address. The list of registered addresses is retrieved from the service registry smart contract and can be used to filter out request coming from any party that is not registered to operate in this service as well. Once all configurations have been exchanged the Tendermint network can be established and is used as a consensus engine.
 
 ??? note "Can services use other services?"
     Yes, an agent service can be composed from other agent services, analogously to microservices. Sub-services can deliver all sorts of results which are consumed by a higher level service to create a higher level outcome.
@@ -52,7 +54,7 @@
     6. All agents wait for the transaction to be mined and validate the output.
     7. Done
 
-??? note "Do all agent services have to be implemented as {{fsm_app}}s with Open Autonomy?"
+??? note "Do all agent services have to be implemented as FSM apps with Open Autonomy?"
     Certainly not. For extremely simple applications, you can consider implementing an agent service by appropriately extending the `ABCIHandler` class to handle the consensus gadget callbacks, and if required, manually implement the agent `Behaviours` that execute client calls to the consensus gadget. However, **we strongly advise against this approach**, as the complexity, maintainability and composability of the resulting service will be severely affected.
 
 ## Security
