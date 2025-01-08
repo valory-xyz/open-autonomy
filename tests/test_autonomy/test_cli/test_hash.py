@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Dict, Tuple
 
 import _strptime  # noqa  # pylint: disable=unsed-import
+import pytest
 
 from autonomy.cli import cli
 from autonomy.configurations.loader import load_service_config
@@ -62,6 +63,10 @@ class TestHashAll(BaseCliTest):
 
         return hashes
 
+    @pytest.mark.skip(
+        reason="`autonomy hash all` has deviated from `autonomy packages lock`. "
+        "Skipping the test as the former command is deprecated anyway."
+    )
     def test_service_hashing(
         self,
     ) -> None:

@@ -1,5 +1,17 @@
 # Release History - `open-autonomy`
 
+# 0.18.4 (2025-01-08)
+
+Autonomy:
+- Fixes the contract addresses of gnosis safe proxy factory on Optimism and Base chains #2285
+- Adds the option to build and deploy an agent locally without using docker #2258
+
+Packages:
+- IPFS connection now handles the HTTPError exception #2284
+
+Chores:
+- Upgrades macOS version in the workflow #2281
+
 # 0.18.3 (2024-11-18)
 
 Packages:
