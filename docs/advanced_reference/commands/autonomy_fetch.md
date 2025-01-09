@@ -113,72 +113,7 @@ autonomy fetch 123 --service --chain ethereum
 
 ### Viewing Remote Registry Files
 
-Before fetching a service, you can inspect its contents in the remote registry:
-
-1. View service metadata:
-```bash
-# Using package ID
-autonomy packages info valory/hello_world:0.1.0 --remote
-
-# Using token ID
-autonomy packages info 42 --chain ethereum
-```
-
-2. List available versions:
-```bash
-autonomy packages list --remote | grep hello_world
-```
-
-3. Inspect service configuration:
-```bash
-# Download and view service.yaml without fetching entire package
-curl -L https://gateway.autonolas.tech/ipfs/<hash>/service.yaml
-```
-
-4. Browse IPFS contents:
-If the service is stored on IPFS, you can browse its contents through:
-- IPFS gateway: `https://gateway.autonolas.tech/ipfs/<hash>/`
-- Local IPFS node (if running): `http://localhost:8080/ipfs/<hash>/`
-
-### Viewing Service Files
-
-After fetching a service, its files are stored in your local packages directory. Here's how to view them:
-
-#### Service Directory Structure
-
-The service files are organized in the following structure:
-```
-packages/
-└── valory/
-    └── hello_world/
-        ├── service.yaml       # Service configuration
-        ├── contracts/         # Smart contracts
-        ├── protocols/         # Communication protocols
-        ├── skills/           # Service skills
-        └── vendor/           # Dependencies
-```
-
-#### Important Files
-
-1. `service.yaml`: Contains service configuration and metadata
-2. `contracts/`: Smart contracts used by the service
-3. `protocols/`: Communication protocols for agent interactions
-4. `skills/`: Core service functionality
-5. `vendor/`: Third-party dependencies
-
-#### Listing Service Files
-
-To view all files in a fetched service:
-
-1. Navigate to the service directory:
-```bash
-cd packages/valory/hello_world
-```
-
-2. List all files recursively:
-```bash
-ls -R
-```
+Before fetching a service, you can inspect its contents in on IPFS through `https://gateway.autonolas.tech/ipfs/<hash>/`
 
 ## Common Issues and Solutions
 
@@ -194,16 +129,3 @@ ls -R
 ### Permission Issues
 - Verify write permissions in packages directory
 - Run with appropriate permissions
-
-## Next Steps
-
-After fetching and viewing service files, you might want to:
-- [Deploy the service](../../guides/deploy_service.md)
-- [Configure the service](../../configure_service/service_configuration_file.md)
-- [Launch a Kubernetes cluster](./autonomy_kubernetes_deployment.md)
-
-## Additional Resources
-
-- [Open Autonomy CLI Reference](../../api/cli/fetch.md)
-- [Service Configuration Guide](../../configure_service/service_configuration_file.md)
-- [Package Management Guide](../../guides/publish_fetch_packages.md)
