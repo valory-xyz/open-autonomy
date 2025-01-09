@@ -50,19 +50,6 @@ autonomy fetch valory/service:0.1.0
 
 [Detailed fetch documentation](./advanced_reference/commands/autonomy_fetch.md)
 
-### autonomy hash
-Hashing utilities for packages.
-
-```bash
-# Generate IPFS hashes for all packages
-autonomy hash all
-
-# Get hash for a specific file
-autonomy hash hash-file path/to/file
-```
-
-[Detailed hash documentation](./advanced_reference/commands/autonomy_hash.md)
-
 ### autonomy mint
 Mint components and services on-chain.
 
@@ -72,16 +59,6 @@ autonomy mint service --service path/to/service --key path/to/key.json
 ```
 
 [Detailed mint documentation](./advanced_reference/commands/autonomy_mint.md)
-
-### autonomy publish
-Publish agent or service packages to the registry.
-
-```bash
-# Publish current package
-autonomy publish
-```
-
-[Detailed publish documentation](./advanced_reference/commands/autonomy_publish.md)
 
 ### autonomy push-all
 Push all available packages to a registry.
