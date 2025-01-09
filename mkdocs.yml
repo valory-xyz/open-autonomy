@@ -89,8 +89,6 @@ nav:
       - autonomy mint: 'advanced_reference/commands/autonomy_mint.md'           
       - autonomy service: 'advanced_reference/commands/autonomy_service.md'
       - autonomy develop: 'advanced_reference/commands/autonomy_develop.md'
-      - autonomy hash: 'advanced_reference/commands/autonomy_hash.md'
-      - autonomy publish: 'advanced_reference/commands/autonomy_publish.md'
       - autonomy push-all: 'advanced_reference/commands/autonomy_push_all.md'
     - Developer tooling:
       - Dev mode: 'advanced_reference/developer_tooling/dev_mode.md'
