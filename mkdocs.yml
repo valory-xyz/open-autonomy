@@ -36,6 +36,7 @@ extra_css:
 nav:
   - Home: 'index.md'
   - Get started:
+    - 'get_started/index.md'
     - What is an agent service: 'get_started/what_is_an_agent_service.md'
     - Why do we need agent services: 'get_started/why_do_we_need_agent_services.md'
     - Agent services compared to...: 'get_started/agent_services_compared_to.md'
@@ -69,6 +70,7 @@ nav:
       - Sequence diagram: 'key_concepts/poc-diagram.md'
     - Threat model: 'key_concepts/threat_model.md'
   - Configure the service:
+    - 'configure_service/index.md'
     - The service configuration file: 'configure_service/service_configuration_file.md'
     - Configure access to external chains: 'configure_service/configure_access_external_chains.md'
     - On-chain deployment checklist: 'configure_service/on-chain_deployment_checklist.md'
@@ -77,6 +79,7 @@ nav:
     - 'advanced_reference/index.md'
     # - publish fetch: 'guides/publish_fetch_packages.md'
     - Commands:
+      - 'advanced_reference/commands/index.md'
       - autonomy deploy: 'advanced_reference/commands/autonomy_deploy.md'
       - autonomy build-image: 'advanced_reference/commands/autonomy_build-image.md'
       - autonomy replay: 'advanced_reference/commands/autonomy_replay.md'
