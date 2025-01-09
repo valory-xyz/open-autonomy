@@ -96,11 +96,6 @@ Fetch the agent service `hello_world` from a local registry with an explicit pat
 autonomy --registry-path=./packages fetch valory/hello_world:0.1.0 --service --local
 ```
 
-Fetch the agent `hello_world` from a remote registry using package ID:
-```bash
-autonomy fetch valory/hello_world:0.1.0 --service --remote
-```
-
 Fetch the agent service `hello_world` from a remote registry using [IPFS](https://ipfs.io) hash:
 ```bash
 autonomy fetch valory/hello_world:0.1.0:bafybeihl6j7ihkytk4t4ca2ffhctpzydwi6r4a354ubjasttuv2pw4oaci --service --remote
@@ -113,7 +108,7 @@ autonomy fetch 123 --use-gnosis
 
 Fetch the agent service with the token ID `123` using on-chain token ID:
 ```bash
-autonomy fetch 42 --service --chain ethereum
+autonomy fetch 123 --service --chain ethereum
 ```
 
 ### Viewing Remote Registry Files
