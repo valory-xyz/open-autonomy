@@ -39,8 +39,8 @@ nav:
     - 'get_started/index.md'
     - What is an agent service: 'get_started/what_is_an_agent_service.md'
     - Why do we need agent services: 'get_started/why_do_we_need_agent_services.md'
-    - Agent services compared to...: 'get_started/agent_services_compared_to.md'
     - Use cases: 'get_started/use_cases.md'
+    - Agent services compared: 'get_started/agent_services_compared_to.md'
   - Guides:
     - 'guides/index.md'
     - Set up: 'guides/set_up.md'
