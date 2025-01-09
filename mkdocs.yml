@@ -52,7 +52,6 @@ nav:
     - Define the service: 'guides/define_service.md'
     - Publish and mint packages: 'guides/publish_mint_packages.md'
     - Deploy the service: 'guides/deploy_service.md'
-    - Deploy using kubernets: 'guides/deploy_service_kubernetes.md'
     - Bumping the service: 'guides/bumping_services.md'
   - Key concepts:
     - 'key_concepts/index.md'    
