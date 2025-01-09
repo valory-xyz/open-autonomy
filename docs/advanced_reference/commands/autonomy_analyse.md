@@ -260,8 +260,61 @@ autonomy analyse logs [OPTIONS]
 :   Show the help message and exit.
 
 ### Examples
-!!! info
-    This section will be added soon.
+
+Analyze logs from the build directory `./abci_build_hAsH/persistent_data/logs`:
+
+   ```bash   
+   autonomy analyse logs --from-dir ./abci_build_hAsH/persistent_data/logs
+   ```
+
+View logs for agents `0` and `1` between specific times:
+
+   ```bash   
+   autonomy analyse logs --from-dir ./logs
+     -a 0 -a 1 \
+     --start-time "2024-01-20 10:00:00,000" \
+     --end-time "2024-01-20 11:00:00,000"
+   ```
+
+View logs for period `2` and round `RegistrationRound`:
+
+   ```bash
+   # View logs for period 2 and RegistrationRound
+   autonomy analyse logs --from-dir ./logs \
+     --period 2 \
+     --round RegistrationRound
+   ```
+
+View only the FSM state transitions:
+
+   ```bash   
+   autonomy analyse logs --from-dir ./logs --fsm
+   ```
+
+Filter by log level `ERROR` and behaviour `RegistrationBehaviour`:
+
+   ```bash   
+   autonomy analyse logs --from-dir ./logs \
+     --log-level ERROR \
+     --behaviour RegistrationBehaviour
+   ```
+
+Use regex patterns to filter logs, include lines with `consensus` and exclude lines with `debug`
+
+   ```bash
+   autonomy analyse logs --from-dir ./logs \
+     -ir ".*consensus.*" \
+     -er ".*debug.*"
+   ```
+
+Reset the log database and analyze agent `0`:
+   ```bash
+   autonomy analyse logs --from-dir ./logs \
+     --reset-db \
+     -a 0
+   ```
+
+These examples demonstrate various ways to filter and analyze agent service logs. You can combine multiple options to narrow down the log output to exactly what you need for debugging or analysis.
 
 
 ## `autonomy analyse benchmarks`
