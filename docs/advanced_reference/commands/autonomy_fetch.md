@@ -106,11 +106,6 @@ Fetch the agent service with the token ID `123` on Gnosis chain:
 autonomy fetch 123 --use-gnosis
 ```
 
-Fetch the agent service with the token ID `123` using on-chain token ID:
-```bash
-autonomy fetch 123 --service --chain ethereum
-```
-
 ### Viewing Remote Registry Files
 
 Before fetching a service, you can inspect its contents in on IPFS through `https://gateway.autonolas.tech/ipfs/<hash>/`
