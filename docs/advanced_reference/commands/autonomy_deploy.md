@@ -106,10 +106,10 @@ autonomy deploy build [OPTIONS] [KEYS_FILE]
     Number of services (i.e., separate deployment folders) to build. Default is 1.
 
 `--remote`
-:   To use `a remote registry.
+:   To use a remote registry.
 
 `--local`
-:   To use `a local registry.
+:   To use a local registry.
 
 `-p`
 :   Ask for password interactively.
