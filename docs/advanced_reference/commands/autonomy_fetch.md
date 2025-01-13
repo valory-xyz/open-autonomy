@@ -1,4 +1,5 @@
 Fetch an agent or agent service from a registry using its public ID, hash, or token ID.
+The `autonomy fetch` command allows you to download service files from either a local or remote registry.
 
 ## Usage
 ```bash
@@ -95,7 +96,7 @@ Fetch the agent service `hello_world` from a local registry with an explicit pat
 autonomy --registry-path=./packages fetch valory/hello_world:0.1.0 --service --local
 ```
 
-Fetch the agent service `hello_world` from a remote registry ([IPFS](https://ipfs.io)):
+Fetch the agent service `hello_world` from a remote registry using [IPFS](https://ipfs.io) hash:
 ```bash
 autonomy fetch valory/hello_world:0.1.0:bafybeihl6j7ihkytk4t4ca2ffhctpzydwi6r4a354ubjasttuv2pw4oaci --service --remote
 ```
@@ -104,3 +105,22 @@ Fetch the agent service with the token ID `123` on Gnosis chain:
 ```bash
 autonomy fetch 123 --use-gnosis
 ```
+
+### Viewing Remote Registry Files
+
+Before fetching a service, you can inspect its contents in on IPFS through `https://gateway.autonolas.tech/ipfs/<hash>/`
+
+## Common Issues and Solutions
+
+### Service Not Found
+- Verify the service ID is correct
+- Check registry connection
+- Ensure you're using the correct registry flag (--local or --remote)
+
+### Missing Dependencies
+- Run `autonomy packages sync` to update local packages
+- Check service requirements in `service.yaml`
+
+### Permission Issues
+- Verify write permissions in packages directory
+- Run with appropriate permissions

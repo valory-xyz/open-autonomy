@@ -36,10 +36,11 @@ extra_css:
 nav:
   - Home: 'index.md'
   - Get started:
+    - 'get_started/index.md'
     - What is an agent service: 'get_started/what_is_an_agent_service.md'
     - Why do we need agent services: 'get_started/why_do_we_need_agent_services.md'
-    - Agent services compared to...: 'get_started/agent_services_compared_to.md'
     - Use cases: 'get_started/use_cases.md'
+    - Agent services compared: 'get_started/agent_services_compared_to.md'
   - Guides:
     - 'guides/index.md'
     - Set up: 'guides/set_up.md'
@@ -68,6 +69,7 @@ nav:
       - Sequence diagram: 'key_concepts/poc-diagram.md'
     - Threat model: 'key_concepts/threat_model.md'
   - Configure the service:
+    - 'configure_service/index.md'
     - The service configuration file: 'configure_service/service_configuration_file.md'
     - Configure access to external chains: 'configure_service/configure_access_external_chains.md'
     - On-chain deployment checklist: 'configure_service/on-chain_deployment_checklist.md'
@@ -76,6 +78,7 @@ nav:
     - 'advanced_reference/index.md'
     # - publish fetch: 'guides/publish_fetch_packages.md'
     - Commands:
+      - 'advanced_reference/commands/index.md'
       - autonomy deploy: 'advanced_reference/commands/autonomy_deploy.md'
       - autonomy build-image: 'advanced_reference/commands/autonomy_build-image.md'
       - autonomy replay: 'advanced_reference/commands/autonomy_replay.md'
@@ -83,7 +86,9 @@ nav:
       - autonomy fetch: 'advanced_reference/commands/autonomy_fetch.md'
       - autonomy scaffold: 'advanced_reference/commands/autonomy_scaffold.md'           
       - autonomy mint: 'advanced_reference/commands/autonomy_mint.md'           
-      - autonomy service: 'advanced_reference/commands/autonomy_service.md'           
+      - autonomy service: 'advanced_reference/commands/autonomy_service.md'
+      - autonomy develop: 'advanced_reference/commands/autonomy_develop.md'
+      - autonomy push-all: 'advanced_reference/commands/autonomy_push_all.md'
     - Developer tooling:
       - Dev mode: 'advanced_reference/developer_tooling/dev_mode.md'
       - Execution replay: 'advanced_reference/developer_tooling/execution_replay.md'
