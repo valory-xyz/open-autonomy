@@ -35,6 +35,6 @@ jobs:
         pip install tomte[tox]==0.2.17
         sudo npm install -g markdown-spellcheck
     - name: Generate Documentation
-      run: tox -e docs
+      run: mkdocs build --clean --strict
     - name: Check spelling
       run: tox -e spell-check
