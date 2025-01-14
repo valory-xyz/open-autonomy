@@ -1,3 +1,17 @@
+[tool.poetry]
+name = "open-autonomy"
+version = "0.1.0"
+description = "Open Autonomy Framework"
+authors = ["developer-valory <develope@valory.xyz>"]
+license = "Apache-2.0 license"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+tomte = {extras = ["tox","docs"], version = "==0.2.15"}
+mkdocs-monorepo-plugin = "^1.0.5"
+
+[tool.poetry.dev-dependencies]
+
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools", "wheel","poetry-core>=1.0.0"]
 build_backend = "setuptools.build_meta"
