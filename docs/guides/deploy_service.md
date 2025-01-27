@@ -45,7 +45,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
     autonomy build-image #(1)!
     ```
 
-    1. Check out the [`autonomy build-image`](../../../advanced_reference/commands/autonomy_build-image) command documentation to learn more about its parameters and options.
+    1. Check out the [`autonomy build-image`](../advanced_reference/commands/autonomy_build-image.md) command documentation to learn more about its parameters and options.
 
     After the command finishes, you can check that the image has been created by executing:
 
@@ -158,7 +158,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
         ```
 
         1. Delete previous deployments, if necessary.
-        2. `-ltm` stands for "use local Tendermint node". Check out the [`autonomy deploy build`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-build) command documentation to learn more about its parameters and options.
+        2. `-ltm` stands for "use local Tendermint node". Check out the [`autonomy deploy build`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-build) command documentation to learn more about its parameters and options.
 
         This will create a deployment environment within the `./abci_build_*` folder with the following structure:
 
@@ -190,7 +190,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
         ```
 
         1. Delete previous deployments, if necessary.
-        2. `-ltm` stands for "use local Tendermint node". Check out the [`autonomy deploy build`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-build) command documentation to learn more about its parameters and options.
+        2. `-ltm` stands for "use local Tendermint node". Check out the [`autonomy deploy build`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-build) command documentation to learn more about its parameters and options.
 
         This will create a deployment environment within the `./abci_build_*` folder with the following structure:
 
@@ -218,7 +218,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
         autonomy deploy run #(1)!
         ```
 
-        1. Check out the [`autonomy deploy run`](../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-run) command documentation to learn more about its parameters and options.
+        1. Check out the [`autonomy deploy run`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-run) command documentation to learn more about its parameters and options.
 
         This will spawn in the local machine:
 
@@ -359,7 +359,7 @@ This means, in particular, that there is no need to define the `ALL_PARTICIPANTS
     autonomy fetch <TOKEN_ID> --use-mode # (1)!
     ```
 
-    1. `--use-mode` indicates that the service is registered in the Mode network. Check out the [`autonomy fetch`](../../../advanced_reference/commands/autonomy_fetch) command documentation to learn more about its parameters and options.
+    1. `--use-mode` indicates that the service is registered in the Mode network. Check out the [`autonomy fetch`](../advanced_reference/commands/autonomy_fetch.md) command documentation to learn more about its parameters and options.
 
     Fetch the service with the desired token ID on Mode network.
 
@@ -370,7 +370,7 @@ This means, in particular, that there is no need to define the `ALL_PARTICIPANTS
     autonomy build-image --service-dir your_service/ # (2)!
     ```
 
-    2. Check out the [`autonomy build-image`](../../../advanced_reference/commands/autonomy_build-image) command documentation to learn more about its parameters and options.
+    2. Check out the [`autonomy build-image`](../advanced_reference/commands/autonomy_build-image.md) command documentation to learn more about its parameters and options.
 
     This command builds the Docker runtime images for the agent defined in a service configuration file service.yaml.
 
@@ -395,7 +395,7 @@ This means, in particular, that there is no need to define the `ALL_PARTICIPANTS
         autonomy deploy build path/to/keys.json --kubernetes # (3)!
         ```
 
-    3. Check out the [`autonomy deploy build`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-build) command documentation to learn more about its parameters and options.
+    3. Check out the [`autonomy deploy build`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-build) command documentation to learn more about its parameters and options.
 
 6. **Start the service.** Run the service:
 
@@ -403,7 +403,7 @@ This means, in particular, that there is no need to define the `ALL_PARTICIPANTS
     autonomy deploy run # (4)!
     ```
 
-    4. Check out the [`autonomy deploy run`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-run) command documentation to learn more about its parameters and options.
+    4. Check out the [`autonomy deploy run`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-run) command documentation to learn more about its parameters and options.
 
     Run a service deployment locally stored.
 

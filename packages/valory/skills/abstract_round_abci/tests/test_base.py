@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -257,6 +257,23 @@ def test_abstract_round_instantiation_without_attributes_raises_error() -> None:
 
         class MyRoundBehaviourB(AbstractRound):
             synchronized_data_class = MagicMock()
+
+
+def test_specific_round_instantiation_without_extended_requirements_raises_error() -> (
+    None
+):
+    """Test that definition of concrete subclass of CollectSameUntilThresholdRound without extended raises error."""
+    with pytest.raises(AbstractRoundInternalError):
+
+        class MyRoundBehaviour(abci_base.CollectSameUntilThresholdRound):
+            """Example behaviour class with the `selection_key` attr - which is an extended_requirement - missing."""
+
+            payload_class = MagicMock()
+            synchronized_data_class = MagicMock()
+            done_event = MagicMock()
+            no_majority_event = MagicMock()
+            none_event = MagicMock()
+            collection_key = MagicMock()
 
 
 class TestTransactions:
@@ -1283,7 +1300,7 @@ class TestAbstractRound:
         """Test that the 'payload_class' must be set in concrete classes."""
 
         with pytest.raises(
-            AbstractRoundInternalError, match="'payload_class' not set on .*"
+            AbstractRoundInternalError, match="'payload_class' not set in .*"
         ):
 
             class MyConcreteRound(AbstractRound):

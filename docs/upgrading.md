@@ -5,6 +5,13 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.18.4` to `v0.19.0`
+
+- The agent now performs an early failure check when attributes for rounds are missing. 
+  This check is implemented in the metaclass using a specialized attribute named `extended_requirements`. 
+  To customize the attributes being checked for a specific round, 
+  developers must modify the `extended_requirements` attribute.
+
 ## `v0.18.3` to `v0.18.4`
 
 No backwards incompatible changes.

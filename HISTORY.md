@@ -1,5 +1,14 @@
 # Release History - `open-autonomy`
 
+# 0.19.0 (TBD)
+
+Docs:
+- Performs general improvements #2291
+- Fixes broken links #2293
+
+Packages:
+- Fails early when rounds' attributes are missing #2294
+
 # 0.18.4 (2025-01-08)
 
 Autonomy:
