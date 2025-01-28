@@ -24,6 +24,17 @@ TENDERMINT_CONFIG_TEMPLATE: str = (
     """bash /app/build.sh "{validators}" "{hosts}" "{user}" """
 )
 
+MINIMAL_DOCKER_COMPOSE_TEMPLATE: str = """
+version: '3.8'
+
+services:
+  app:
+    image: nrosavalory/langchain-agent
+    ports:
+      - "8080:80"
+
+"""
+
 DOCKER_COMPOSE_TEMPLATE: str = """version: "2.4"
 services:
 {hardhat_node}{acn_node}{tendermint_nodes}{abci_nodes}

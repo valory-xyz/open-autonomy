@@ -68,6 +68,7 @@ from autonomy.deploy.generators.docker_compose.templates import (
     PORT_MAPPING_CONFIG,
     TENDERMINT_CONFIG_TEMPLATE,
     TENDERMINT_NODE_TEMPLATE,
+    MINIMAL_DOCKER_COMPOSE_TEMPLATE
 )
 
 
@@ -423,14 +424,16 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 network_address=network.next_address,
             )
 
-        self.output = DOCKER_COMPOSE_TEMPLATE.format(
-            abci_nodes=agents,
-            tendermint_nodes=tendermint_nodes,
-            hardhat_node=hardhat_node,
-            acn_node=acn_node,
-            network_name=network_name,
-            subnet=str(network.subnet),
-        )
+        # self.output = DOCKER_COMPOSE_TEMPLATE.format(
+        #     abci_nodes=agents,
+        #     tendermint_nodes=tendermint_nodes,
+        #     hardhat_node=hardhat_node,
+        #     acn_node=acn_node,
+        #     network_name=network_name,
+        #     subnet=str(network.subnet),
+        # )
+
+        self.output = MINIMAL_DOCKER_COMPOSE_TEMPLATE
 
         return self
 
