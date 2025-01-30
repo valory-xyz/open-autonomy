@@ -14,4 +14,4 @@ mkdocs-monorepo-plugin = "^1.0.5"
 
 [build-system]
 requires = ["setuptools", "wheel","poetry-core>=1.0.0"]
-build_backend = "setuptools.build_meta"
+build-backend = "setuptools.build_meta"

@@ -24,6 +24,18 @@ TENDERMINT_CONFIG_TEMPLATE: str = (
     """bash /app/build.sh "{validators}" "{hosts}" "{user}" """
 )
 
+CUSTOM_DOCKER_COMPOSE_TEMPLATE: str = """
+version: '3.8'
+
+services:
+  app:
+    image: {docker_image_name}
+    ports:
+      - "8080:80"
+    env_file:
+      - .env
+"""
+
 DOCKER_COMPOSE_TEMPLATE: str = """version: "2.4"
 services:
 {hardhat_node}{acn_node}{tendermint_nodes}{abci_nodes}
