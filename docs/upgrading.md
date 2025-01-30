@@ -7,6 +7,12 @@ Below we describe the additional manual steps required to upgrade between differ
 
 ## `v0.18.4` to `v0.19.0`
 
+- The ledger has introduced a new configuration, called `min_allowed_tip`. 
+  The value is set to 1GWEI. However, this limit only applies for Gnosis.
+  This is not expected to cause important differences in the calculated tip for the rest of the chains,
+  because there is an outlier detection mechanism.
+  However, the best practice would be to override this value to `0` for any chain other than Gnosis.
+  This is planned to be changed in the next `open-aea` version to improve DevX and make this a non-breaking change.
 - The agent now performs an early failure check when attributes for rounds are missing. 
   This check is implemented in the metaclass using a specialized attribute named `extended_requirements`. 
   To customize the attributes being checked for a specific round, 

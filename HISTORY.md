@@ -12,6 +12,9 @@ Packages:
 Chores:
 - Bumps `open-aea@1.62.0` #2297
 
+CI:
+- Fixes the release flow #2298
+
 # 0.18.4 (2025-01-08)
 
 Autonomy:
