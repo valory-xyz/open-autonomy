@@ -68,7 +68,7 @@ from autonomy.deploy.generators.docker_compose.templates import (
     PORT_MAPPING_CONFIG,
     TENDERMINT_CONFIG_TEMPLATE,
     TENDERMINT_NODE_TEMPLATE,
-    MINIMAL_DOCKER_COMPOSE_TEMPLATE
+    CUSTOM_DOCKER_COMPOSE_TEMPLATE
 )
 
 
@@ -340,100 +340,106 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         image_version: Optional[str] = None,
         use_hardhat: bool = False,
         use_acn: bool = False,
+        custom_docker_image_name: Optional[str] = None,
     ) -> "DockerComposeGenerator":
         """Generate the new configuration."""
-        network_name = f"service_{self.service_builder.service.name}_localnet"
-        used_networks = self._find_occupied_networks(network_name)
-        network = Network(name=network_name, used_subnets=used_networks)
-        image_version = image_version or self.service_builder.service.agent.hash
-        if self.dev_mode:
-            runtime_image = DEVELOPMENT_IMAGE
+        
+        if custom_docker_image_name is not None:
+            self.output = CUSTOM_DOCKER_COMPOSE_TEMPLATE.format(
+                docker_image_name=custom_docker_image_name                
+            )
         else:
-            runtime_image = OAR_IMAGE.format(
-                image_author=self.image_author,
-                agent=self.service_builder.service.agent.name,
-                version=image_version,
+            network_name = f"service_{self.service_builder.service.name}_localnet"
+            used_networks = self._find_occupied_networks(network_name)
+            network = Network(name=network_name, used_subnets=used_networks)
+            image_version = image_version or self.service_builder.service.agent.hash
+            if self.dev_mode:
+                runtime_image = DEVELOPMENT_IMAGE
+            else:
+                runtime_image = OAR_IMAGE.format(
+                    image_author=self.image_author,
+                    agent=self.service_builder.service.agent.name,
+                    version=image_version,
+                )
+
+            agent_vars = self.service_builder.generate_agents()
+            agents = "".join(
+                [
+                    build_agent_config(
+                        node_id=i,
+                        container_name=self.service_builder.get_abci_container_name(
+                            index=i
+                        ),
+                        build_dir=self.build_dir,
+                        runtime_image=runtime_image,
+                        agent_vars=agent_vars[i],
+                        dev_mode=self.dev_mode,
+                        package_dir=self.packages_dir,
+                        open_aea_dir=self.open_aea_dir,
+                        agent_ports=(
+                            self.service_builder.service.deployment_config.get("agent", {})
+                            .get("ports", {})
+                            .get(i)
+                        ),
+                        network_name=network_name,
+                        network_address=network.next_address,
+                        resources=self.resources,
+                        extra_volumes=self.service_builder.service.deployment_config.get(
+                            "agent", {}
+                        ).get("volumes"),
+                    )
+                    for i in range(self.service_builder.service.number_of_agents)
+                ]
+            )
+            tendermint_nodes = "".join(
+                [
+                    build_tendermint_node_config(
+                        node_id=i,
+                        container_name=self.service_builder.get_tm_container_name(index=i),
+                        abci_node=self.service_builder.get_abci_container_name(index=i),
+                        dev_mode=self.dev_mode,
+                        log_level=self.service_builder.log_level,
+                        tendermint_ports=(
+                            self.service_builder.service.deployment_config.get(
+                                "tendermint", {}
+                            )
+                            .get("ports", {})
+                            .get(i)
+                        ),
+                        network_name=network_name,
+                        network_address=network.next_address,
+                    )
+                    for i in range(self.service_builder.service.number_of_agents)
+                ]
             )
 
-        agent_vars = self.service_builder.generate_agents()
-        agents = "".join(
-            [
-                build_agent_config(
-                    node_id=i,
-                    container_name=self.service_builder.get_abci_container_name(
-                        index=i
-                    ),
-                    build_dir=self.build_dir,
-                    runtime_image=runtime_image,
-                    agent_vars=agent_vars[i],
-                    dev_mode=self.dev_mode,
-                    package_dir=self.packages_dir,
-                    open_aea_dir=self.open_aea_dir,
-                    agent_ports=(
-                        self.service_builder.service.deployment_config.get("agent", {})
-                        .get("ports", {})
-                        .get(i)
-                    ),
+            hardhat_node = ""
+            if use_hardhat:
+                hardhat_node = HARDHAT_NODE_TEMPLATE.format(
+                    hardhat_image_name=HARDHAT_IMAGE_NAME,
+                    hardhat_image_version=HARDHAT_IMAGE_VERSION,
                     network_name=network_name,
                     network_address=network.next_address,
-                    resources=self.resources,
-                    extra_volumes=self.service_builder.service.deployment_config.get(
-                        "agent", {}
-                    ).get("volumes"),
                 )
-                for i in range(self.service_builder.service.number_of_agents)
-            ]
-        )
-        tendermint_nodes = "".join(
-            [
-                build_tendermint_node_config(
-                    node_id=i,
-                    container_name=self.service_builder.get_tm_container_name(index=i),
-                    abci_node=self.service_builder.get_abci_container_name(index=i),
-                    dev_mode=self.dev_mode,
-                    log_level=self.service_builder.log_level,
-                    tendermint_ports=(
-                        self.service_builder.service.deployment_config.get(
-                            "tendermint", {}
-                        )
-                        .get("ports", {})
-                        .get(i)
-                    ),
+
+            acn_node = ""
+            if use_acn:
+                acn_node = ACN_NODE_TEMPLATE.format(
+                    acn_image_name=ACN_IMAGE_NAME,
+                    acn_image_version=ACN_IMAGE_VERSION,
                     network_name=network_name,
                     network_address=network.next_address,
                 )
-                for i in range(self.service_builder.service.number_of_agents)
-            ]
-        )
-
-        hardhat_node = ""
-        if use_hardhat:
-            hardhat_node = HARDHAT_NODE_TEMPLATE.format(
-                hardhat_image_name=HARDHAT_IMAGE_NAME,
-                hardhat_image_version=HARDHAT_IMAGE_VERSION,
-                network_name=network_name,
-                network_address=network.next_address,
+            
+                    
+            self.output = DOCKER_COMPOSE_TEMPLATE.format(
+            abci_nodes=agents,
+            tendermint_nodes=tendermint_nodes,
+            hardhat_node=hardhat_node,
+            acn_node=acn_node,
+            network_name=network_name,
+            subnet=str(network.subnet),
             )
-
-        acn_node = ""
-        if use_acn:
-            acn_node = ACN_NODE_TEMPLATE.format(
-                acn_image_name=ACN_IMAGE_NAME,
-                acn_image_version=ACN_IMAGE_VERSION,
-                network_name=network_name,
-                network_address=network.next_address,
-            )
-
-        # self.output = DOCKER_COMPOSE_TEMPLATE.format(
-        #     abci_nodes=agents,
-        #     tendermint_nodes=tendermint_nodes,
-        #     hardhat_node=hardhat_node,
-        #     acn_node=acn_node,
-        #     network_name=network_name,
-        #     subnet=str(network.subnet),
-        # )
-
-        self.output = MINIMAL_DOCKER_COMPOSE_TEMPLATE
 
         return self
 
