@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -444,7 +444,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             )
             key = cast(List[Dict[str, str]], self.service_builder.keys)[x][PRIVATE_KEY]
             keys_file = path / PRIVATE_KEY_PATH_SCHEMA.format(ledger)
-            path.mkdir()
+            path.mkdir(parents=True)
             with keys_file.open(mode="w", encoding=DEFAULT_ENCODING) as f:
                 f.write(key)
 
