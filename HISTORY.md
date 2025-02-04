@@ -1,6 +1,6 @@
 # Release History - `open-autonomy`
 
-# 0.19.0 (TBD)
+# 0.19.0 (2025-01-30)
 
 Docs:
 - Performs general improvements #2291
@@ -8,6 +8,12 @@ Docs:
 
 Packages:
 - Fails early when rounds' attributes are missing #2294
+
+Chores:
+- Bumps `open-aea@1.62.0` #2297
+
+CI:
+- Fixes the release flow #2298
 
 # 0.18.4 (2025-01-08)
 
