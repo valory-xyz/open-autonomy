@@ -1,5 +1,12 @@
 # Release History - `open-autonomy`
 
+# 0.19.1 (2025-02-04)
+Autonomy:
+- Temporarily works around an issue with the path directory when using the build command #2292
+
+Chores:
+- Bumps `open-aea@1.63.0` #2299
+
 # 0.19.0 (2025-01-30)
 
 Docs:
