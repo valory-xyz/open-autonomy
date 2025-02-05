@@ -18,7 +18,7 @@ connections:
 - valory/ledger:0.19.0:bafybeibiayfscw4badpr545f47hsvc2r5lgfpgzib5q4h4u6kkosdsytby
 - valory/p2p_libp2p_client:0.1.0:bafybeic6ayusdwy4dks75njwk32ac7ur7salgllwf4fdc34ue5z2k5iz4q
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeiafqx6bmocwolrdcuwe6j2xpr3lbbrrczwvki6fzwokb6diec5co4
+- valory/gnosis_safe:0.1.0:bafybeie6hxj7vfaf57kvhxlbp7ktuk3crpxeqoonluxrakrywpifqkcst4
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeigrzbxae4t77f55qzo6gftqp3ocrfwaeofhefs32c76rmef2p7aja
 - valory/multisend:0.1.0:bafybeig5byt5urg2d2bsecufxe5ql7f4mezg3mekfleeh32nmuusx66p4y
 - valory/service_registry:0.1.0:bafybeidiymnku4jpw43x425igkfm7no5pmfqz26nnjwozvjhac5gmqzdcy
@@ -33,12 +33,12 @@ protocols:
 - valory/tendermint:0.1.0:bafybeigydrbfrlmr4f7shbtqx44kvmbg22im27mxdap2e3m5tkti6t445y
 skills:
 - valory/abstract_abci:0.1.0:bafybeial2ybbl4knr5j6pcr26bqhwp24n6kkzv7ot6xup7p6tc4sgtwwna
-- valory/abstract_round_abci:0.1.0:bafybeigwg5fs2mmdszxtt7hzpx36xdz2xatgvnlqurwnhgrbhey4ra22c4
-- valory/register_termination_abci:0.1.0:bafybeigyontaooxf6wvwf6ag3tbzimq264sora57eum7tefbpreqnfwwse
-- valory/registration_abci:0.1.0:bafybeieqeytrq6erfs2wplnfpvcibf7dkf6wdiovj2ip3g7in7sexk7j34
-- valory/reset_pause_abci:0.1.0:bafybeib2uwmgzkyive53dhwnq5pvhrn7hlxndgt32gtshgiclf2xeu4x2q
-- valory/termination_abci:0.1.0:bafybeia6okr6w6qwapt2bib3dtei67htoejbdicgeh4rvhnmfusdewyjnq
-- valory/transaction_settlement_abci:0.1.0:bafybeifxwspkoivegwtefgpjpd5v5y5745agdiu2xwjkeh7gkcnvrnqboq
+- valory/abstract_round_abci:0.1.0:bafybeiatl7nlxu3b7jolr75mxk72sorwcfk7qjmkc3rwboljn2mv4yi6xu
+- valory/register_termination_abci:0.1.0:bafybeih5ignhxmrrm2i4vmtyyqgxuywgwoht5qvjhf25hkakukpwjekrcu
+- valory/registration_abci:0.1.0:bafybeigzt2djzaa3okndyccyetsj3armjtzehzbkylfluatfezlmyncrcy
+- valory/reset_pause_abci:0.1.0:bafybeihmcklph6cgi6iv2pphep7mmbz5ysznemv5nfjkhdfv2t4nsuhnha
+- valory/termination_abci:0.1.0:bafybeiazxckjns7vmyezijbxvung7rpayo2zjlenspsi4nafuzywo7z43a
+- valory/transaction_settlement_abci:0.1.0:bafybeie7kdfxbdwehpvcqbouvrbs2lk2f6vz2mf5q2qbu3j5r3prkriywm
 default_ledger: ethereum
 required_ledgers:
 - ethereum
