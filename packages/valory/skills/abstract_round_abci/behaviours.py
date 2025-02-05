@@ -211,7 +211,7 @@ class PendingOffencesBehaviour(BaseBehaviour):
         Checks the pending offences.
 
         This behaviour simply checks if the set of pending offences is not empty.
-        When it’s not empty, it pops the offence from the set, and sends it to the rest of the agents via a payload
+        When it is not empty, it pops the offence from the set, and sends it to the rest of the agents via a payload
 
         :return: None
         :yield: None

@@ -182,7 +182,7 @@ class GnosisSafeContract(Contract):
             ledger_api.api.from_wei(account_balance, "ether"), 6
         )
         _logger.info(
-            "Network %s - Sender %s - Balance: %sΞ",
+            "Network %s - Sender %s - Balance: %s ETH",
             ledger_api.api.net.version,
             account_address,
             ether_account_balance,
