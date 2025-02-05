@@ -21,12 +21,12 @@ connections: []
 contracts:
 - valory/squads_multisig:0.1.0:bafybeiccdhney6y3btaatz5gjp5kcs66d3zh2ukvxxg2d5sco23qtzguvy
 protocols:
-- valory/contract_api:1.0.0:bafybeid247uig2ekykdumh7ewhp2cdq7rchaeqjj6e7urx35zfpdl5zrn4
+- valory/contract_api:1.0.0:bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigwg5fs2mmdszxtt7hzpx36xdz2xatgvnlqurwnhgrbhey4ra22c4
-- valory/registration_abci:0.1.0:bafybeieqeytrq6erfs2wplnfpvcibf7dkf6wdiovj2ip3g7in7sexk7j34
-- valory/reset_pause_abci:0.1.0:bafybeib2uwmgzkyive53dhwnq5pvhrn7hlxndgt32gtshgiclf2xeu4x2q
-- valory/squads_transaction_settlement_abci:0.1.0:bafybeicz5gyo6pckt2oqhaou6jpzlw3lj2zgb66z7owwhpj5iqn2netzie
+- valory/abstract_round_abci:0.1.0:bafybeidmhlpcersefmtnz56hume3oh2nvavx5jidbtwf3w7ivb5plni4ji
+- valory/registration_abci:0.1.0:bafybeif3fajbpufkljpvg76uwl7x5tofhp6ep5i2btuyb53m63sbcfgd74
+- valory/reset_pause_abci:0.1.0:bafybeihe22rb56cnuw4bxfzogoikx25it6imrdfamdz4v4mxkviqbivdda
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeigvwgzn64ak7se7p4jxrdnawxs6pfrjx4c6nsz6jktv64tpxfsmbm
 behaviours:
   main:
     args: {}

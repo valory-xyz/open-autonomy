@@ -19,9 +19,9 @@ connections: []
 contracts:
 - valory/squads_multisig:0.1.0:bafybeiccdhney6y3btaatz5gjp5kcs66d3zh2ukvxxg2d5sco23qtzguvy
 protocols:
-- valory/contract_api:1.0.0:bafybeid247uig2ekykdumh7ewhp2cdq7rchaeqjj6e7urx35zfpdl5zrn4
+- valory/contract_api:1.0.0:bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigwg5fs2mmdszxtt7hzpx36xdz2xatgvnlqurwnhgrbhey4ra22c4
+- valory/abstract_round_abci:0.1.0:bafybeidmhlpcersefmtnz56hume3oh2nvavx5jidbtwf3w7ivb5plni4ji
 behaviours:
   main:
     args: {}
