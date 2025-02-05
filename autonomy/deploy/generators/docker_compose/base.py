@@ -62,13 +62,13 @@ from autonomy.deploy.constants import (
 from autonomy.deploy.generators.docker_compose.templates import (
     ABCI_NODE_TEMPLATE,
     ACN_NODE_TEMPLATE,
+    CUSTOM_DOCKER_COMPOSE_TEMPLATE,
     DOCKER_COMPOSE_TEMPLATE,
     HARDHAT_NODE_TEMPLATE,
     PORTS,
     PORT_MAPPING_CONFIG,
     TENDERMINT_CONFIG_TEMPLATE,
     TENDERMINT_NODE_TEMPLATE,
-    CUSTOM_DOCKER_COMPOSE_TEMPLATE
 )
 
 
@@ -343,10 +343,10 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         custom_docker_image_name: Optional[str] = None,
     ) -> "DockerComposeGenerator":
         """Generate the new configuration."""
-        
+
         if custom_docker_image_name is not None:
             self.output = CUSTOM_DOCKER_COMPOSE_TEMPLATE.format(
-                docker_image_name=custom_docker_image_name                
+                docker_image_name=custom_docker_image_name
             )
         else:
             network_name = f"service_{self.service_builder.service.name}_localnet"
@@ -377,7 +377,9 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                         package_dir=self.packages_dir,
                         open_aea_dir=self.open_aea_dir,
                         agent_ports=(
-                            self.service_builder.service.deployment_config.get("agent", {})
+                            self.service_builder.service.deployment_config.get(
+                                "agent", {}
+                            )
                             .get("ports", {})
                             .get(i)
                         ),
@@ -386,7 +388,9 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                         resources=self.resources,
                         extra_volumes=self.service_builder.service.deployment_config.get(
                             "agent", {}
-                        ).get("volumes"),
+                        ).get(
+                            "volumes"
+                        ),
                     )
                     for i in range(self.service_builder.service.number_of_agents)
                 ]
@@ -395,7 +399,9 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 [
                     build_tendermint_node_config(
                         node_id=i,
-                        container_name=self.service_builder.get_tm_container_name(index=i),
+                        container_name=self.service_builder.get_tm_container_name(
+                            index=i
+                        ),
                         abci_node=self.service_builder.get_abci_container_name(index=i),
                         dev_mode=self.dev_mode,
                         log_level=self.service_builder.log_level,
@@ -430,15 +436,14 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     network_name=network_name,
                     network_address=network.next_address,
                 )
-            
-                    
+
             self.output = DOCKER_COMPOSE_TEMPLATE.format(
-            abci_nodes=agents,
-            tendermint_nodes=tendermint_nodes,
-            hardhat_node=hardhat_node,
-            acn_node=acn_node,
-            network_name=network_name,
-            subnet=str(network.subnet),
+                abci_nodes=agents,
+                tendermint_nodes=tendermint_nodes,
+                hardhat_node=hardhat_node,
+                acn_node=acn_node,
+                network_name=network_name,
+                subnet=str(network.subnet),
             )
 
         return self
