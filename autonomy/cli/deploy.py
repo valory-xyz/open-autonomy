@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ from autonomy.deploy.generators.localhost.base import HostDeploymentGenerator
 def _validate_packages_path(path: Optional[Path] = None) -> Path:
     """Find packages dir for development mode."""
     path = Path(path or Path.cwd()).resolve()
-    while path != path.root:
+    while path != Path(path.root):
         if path.name == "packages" and (path / "packages.json").exists():
             return path
         path = path.parent
