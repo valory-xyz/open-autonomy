@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2024 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ from autonomy.constants import (
 )
 from autonomy.deploy.constants import DOCKERFILES
 
-from tests.conftest import ROOT_DIR, skip_docker_tests
+from tests.conftest import ROOT_DIR, get_package_hash_from_latest_tag, skip_docker_tests
 from tests.test_autonomy.test_images.base import BaseImageBuildTest
 
 
@@ -64,7 +64,7 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
 
         cls.agent = str(
             AGENT.with_hash(
-                package_hash="bafybeih7chy5ajfycimrma3iqiu7u6ycoxrjnnlcwcfbgkbrou34m56cr4"
+                get_package_hash_from_latest_tag(package=AGENT.to_uri_path)
             ).public_id
         )
 

@@ -27,7 +27,7 @@ from abc import ABC
 from contextlib import suppress
 from glob import glob
 from pathlib import Path
-from typing import Any, List, Tuple, cast
+from typing import Any, List, Tuple, Type, cast
 from unittest import mock
 
 import pytest
@@ -212,14 +212,16 @@ class BaseDeploymentTests(ABC, CleanDirectoryClass):
         return str(self.working_dir / TEST_DEPLOYMENT_PATH)
 
     def load_deployer_and_app(
-        self, app: str, deployer: BaseDeploymentGenerator, **kwargs: Any
+        self, app: str, deployer: Type[BaseDeploymentGenerator], **kwargs: Any
     ) -> Tuple[BaseDeploymentGenerator, ServiceBuilder]:
         """Handles loading the 2 required instances"""
         app_instance = ServiceBuilder.from_dir(
             path=Path(app).parent,
             keys_file=DEFAULT_KEY_PATH,
         )
-        instance = deployer(service_builder=app_instance, build_dir=self.temp_dir.name, **kwargs)  # type: ignore
+        instance = deployer(
+            service_builder=app_instance, build_dir=Path(self.temp_dir.name), **kwargs
+        )
         return instance, app_instance
 
 

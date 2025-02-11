@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ from unittest import mock
 
 import pytest
 from aea.cli.fetch import NotAnAgentPackage
+from aea.cli.registry.settings import REMOTE_IPFS
 from aea.configurations.constants import (
     DEFAULT_README_FILE,
     DEFAULT_SERVICE_CONFIG_FILE,
@@ -189,6 +190,9 @@ class TestFetchServiceCommand(FetchTest):
     ) -> None:
         """Test fetch service in mixed mode."""
         with mock.patch(
+            "autonomy.cli.helpers.registry.get_default_remote_registry",
+            return_value=REMOTE_IPFS,
+        ), mock.patch(
             "autonomy.cli.helpers.registry.fetch_service_local",
             side_effect=Exception("expected"),
         ) as fetch_local_mock, mock.patch(
