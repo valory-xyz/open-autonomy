@@ -457,7 +457,7 @@ class GnosisSafeContract(Contract):
             and max_priority_fee_per_gas is None
         ):
             gas_pricing = ledger_api.try_get_gas_pricing(old_price=old_price)
-            if gas_price is None:
+            if gas_pricing is None:
                 _logger.warning(f"Could not get gas price with {old_price=}")
             else:
                 tx_parameters.update(gas_pricing)
