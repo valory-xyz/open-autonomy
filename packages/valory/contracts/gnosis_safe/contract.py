@@ -456,7 +456,12 @@ class GnosisSafeContract(Contract):
             and max_fee_per_gas is None
             and max_priority_fee_per_gas is None
         ):
-            tx_parameters.update(ledger_api.try_get_gas_pricing(old_price=old_price))
+            gas_pricing = ledger_api.try_get_gas_pricing(old_price=old_price)
+            if gas_price is None:
+                _logger.warning(f"Could not get gas price with {old_price=}")
+            else:
+                tx_parameters.update(gas_pricing)
+
         # note, the next line makes an eth_estimateGas call if gas is not set!
         transaction_dict = w3_tx.build_transaction(tx_parameters)
         if configured_gas != MIN_GAS:
