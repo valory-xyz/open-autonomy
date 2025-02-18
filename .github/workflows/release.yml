@@ -135,7 +135,7 @@ jobs:
 
   publish-user-images:
     name: Publish User Images
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs:
       - publish-autonomy-packages
     steps:
