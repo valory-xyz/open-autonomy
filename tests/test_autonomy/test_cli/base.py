@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import sys
 import tempfile
 from contextlib import suppress
 from pathlib import Path
-from typing import Optional, Sequence, Tuple
+from typing import Optional, Sequence, Tuple, Union
 
 import pytest
 from _pytest.capture import CaptureFixture  # type: ignore
@@ -61,7 +61,9 @@ class BaseCliTest:
         """Setup test."""
         self.t = Path(tempfile.mkdtemp())
 
-    def run_cli(self, commands: Optional[Tuple[str, ...]] = None) -> Result:
+    def run_cli(
+        self, commands: Optional[Tuple[Union[str, Path], ...]] = None
+    ) -> Result:
         """Run CLI."""
         if commands is None:
             return self.cli_runner.invoke(cli=cli, args=self.cli_options)

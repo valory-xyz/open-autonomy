@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ else:
 CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
 ROOT_DIR = Path(CUR_PATH, "..").resolve().absolute()
 DATA_DIR = ROOT_DIR / "tests" / "data"
+PACKAGES_DIR = ROOT_DIR / "packages"
 
 skip_docker_tests = pytest.mark.skipif(
     platform.system() != "Linux",

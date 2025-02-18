@@ -12,7 +12,6 @@ env:
 
 jobs:
   lock_check:
-    continue-on-error: False
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -46,7 +45,6 @@ jobs:
         ptime pipenv lock
 
   install_check:
-    continue-on-error: False
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -64,7 +62,6 @@ jobs:
         autonomy --help
 
   copyright_doc_and_dependencies_check:
-    continue-on-error: False
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -102,7 +99,6 @@ jobs:
       run: tox -e check-dependencies
 
   linter_checks:
-    continue-on-error: False
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -186,7 +182,6 @@ jobs:
           gitleaks detect --report-format json --report-path leak_report -v
 
   test:
-    continue-on-error: True
     needs:
       - lock_check
       - install_check
@@ -195,6 +190,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false  # prevents all matrix jobs from canceling if one fails
       matrix:
         os: [ ubuntu-latest, macos-latest-large, windows-latest ]
         python-version: [ "3.8", "3.9", "3.10.9", "3.11" ]
@@ -381,7 +377,6 @@ jobs:
           fail_ci_if_error: false
 
   e2e:
-    continue-on-error: True
     needs:
       - lock_check
       - install_check

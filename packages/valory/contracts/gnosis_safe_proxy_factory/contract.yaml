@@ -11,7 +11,7 @@ fingerprint:
   build/ProxyFactory_V1_3_0.json: bafybeibmhgw6us3nzg5d4vb3krg3udxgnux66vuz26pjcigdjc7zn5jrxm
   contract.py: bafybeiefqqgav5dfw5p7nnwd3yq7ls4636dgsaolkau2nd5tslsvp66m6u
   tests/__init__.py: bafybeied5o76k2pgmpqlofnfo2mhoncecnigkm24t26qrnhhqzvtg3g3b4
-  tests/test_contract.py: bafybeidgcxvkl4xjg5dbjzl3o6ffoylkdewrpni6lxm3624qrebbwmqeay
+  tests/test_contract.py: bafybeihquccgb6o3oqquoijtm2hfk4z3e4iinvimuperibms3vi53cupxe
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: GnosisSafeProxyFactoryContract
@@ -21,6 +21,6 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==1.64.0
   open-aea-test-autonomy:
-    version: ==0.19.3
+    version: ==0.19.4
   web3:
     version: <7,>=6.0.0
