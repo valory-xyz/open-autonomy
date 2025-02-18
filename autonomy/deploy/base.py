@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -99,6 +99,7 @@ DEFAULT_AGENT_MEMORY_LIMIT = int(os.environ.get("AUTONOMY_AGENT_MEMORY_LIMIT", 1
 DEFAULT_AGENT_CPU_LIMIT = float(os.environ.get("AUTONOMY_AGENT_CPU_LIMIT", 1.0))
 DEFAULT_AGENT_MEMORY_REQUEST = int(os.environ.get("AUTONOMY_AGENT_MEMORY_REQUEST", 256))
 DEFAULT_AGENT_CPU_REQUEST = float(os.environ.get("AUTONOMY_AGENT_CPU_REQUEST", 1.0))
+AUTONOMY_PKEY_PASSWORD = "OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD"  # nosec
 
 
 def tm_write_to_log() -> bool:
@@ -729,9 +730,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
             ENV_VAR_ID: agent_n,
             ENV_VAR_AEA_AGENT: self.service.agent,
             ENV_VAR_LOG_LEVEL: self.log_level,
-            ENV_VAR_AEA_PASSWORD: os.environ.get(
-                "OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD", ""
-            ),
+            ENV_VAR_AEA_PASSWORD: os.environ.get(AUTONOMY_PKEY_PASSWORD, ""),
         }
         return agent_vars
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -51,6 +51,8 @@ class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
         """Get deployment kwargs."""
         return dict(
             gas=DEFAULT_GAS,
+            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
+            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
 
     def test_deploy(self) -> None:
@@ -70,6 +72,8 @@ class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
             b"",
             1,
             gas=DEFAULT_GAS,
+            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
+            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
             nonce=1,
         )
         assert len(result) == 2
