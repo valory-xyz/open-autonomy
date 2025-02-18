@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -101,6 +101,8 @@ class BaseContractTest(BaseGanacheContractTest):
             owners=cls.owners(),
             threshold=int(cls.threshold()),
             gas=DEFAULT_GAS,
+            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
+            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
 
     @classmethod
@@ -156,6 +158,8 @@ class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
             owners=cls.owners(),
             threshold=int(cls.threshold()),
             gas=DEFAULT_GAS,
+            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
+            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
 
     @classmethod
