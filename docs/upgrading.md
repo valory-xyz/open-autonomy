@@ -5,6 +5,14 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.19.2` to `v0.19.3`
+
+No backwards incompatible changes.
+
+## `v0.19.1` to `v0.19.2`
+
+No backwards incompatible changes.
+
 ## `v0.19.0` to `v0.19.1`
 
 No backwards incompatible changes.

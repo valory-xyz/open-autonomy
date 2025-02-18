@@ -1,5 +1,13 @@
 # Release History - `open-autonomy`
 
+# 0.19.3 (2025-02-13)
+Chores:
+- Bumps `open-aea@1.64.0` #2307
+
+# 0.19.2 (2025-02-05)
+Packages:
+- Fixes char encodings for Windows #2300
+
 # 0.19.1 (2025-02-04)
 Autonomy:
 - Temporarily works around an issue with the path directory when using the build command #2292
