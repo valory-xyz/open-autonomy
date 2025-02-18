@@ -16,6 +16,12 @@ nosec
 
 nosec
 
+<a id="autonomy.deploy.base.AUTONOMY_PKEY_PASSWORD"></a>
+
+#### AUTONOMY`_`PKEY`_`PASSWORD
+
+nosec
+
 <a id="autonomy.deploy.base.tm_write_to_log"></a>
 
 #### tm`_`write`_`to`_`log
