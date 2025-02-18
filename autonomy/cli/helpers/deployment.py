@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -66,10 +66,10 @@ from autonomy.deploy.generators.localhost.utils import check_tendermint_version
 from autonomy.deploy.image import build_image
 
 
-def _build_dirs(build_dir: Path, mkdir: List[str]) -> None:
-    """Build necessary directories."""
+def _build_dirs(build_dir: Path, mkdir: Optional[List[str]] = None) -> None:
+    """Build the necessary directories."""
 
-    mkdirs = [(new_dir_name,) for new_dir_name in mkdir]
+    mkdirs = [(new_dir_name,) for new_dir_name in mkdir] if mkdir else []
 
     for dir_path in [
         (PERSISTENT_DATA_DIR,),
@@ -282,6 +282,7 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     build_dir.mkdir()
     if service_hash_id is None:
         service_hash_id = build_hash_id()
+    _build_dirs(build_dir, mkdir)
 
     report = generate_deployment(
         service_hash_id=service_hash_id,
@@ -306,8 +307,6 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         image_author=image_author,
         resources=resources,
     )
-    if mkdir is not None:
-        _build_dirs(build_dir, mkdir)
 
     click.echo(report)
 

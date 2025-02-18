@@ -22,6 +22,7 @@
 import ipaddress
 import os
 from pathlib import Path
+from string import Template
 from typing import Dict, List, Optional, Set, cast
 
 import yaml
@@ -77,6 +78,7 @@ SUBNET_OVERFLOW = 256
 
 DEFAULT_PACKAGES_PATH = Path.cwd().absolute() / "packages"
 DEFAULT_OPEN_AEA_DIR: Path = Path.home().absolute() / "open-aea"
+AGENT_ENV_TEMPLATE = Template("agent_${node_id}.env")
 
 
 def get_docker_client() -> DockerClient:
@@ -136,7 +138,7 @@ def to_env_file(agent_vars: Dict, node_id: int, build_dir: Path) -> None:
     """Create a env file under the `agent_build` folder."""
     agent_vars["PYTHONHASHSEED"] = 0
     agent_vars["LOG_FILE"] = f"/logs/aea_{node_id}.txt"
-    env_file_path = build_dir / f"agent_{node_id}.env"
+    env_file_path = build_dir / AGENT_ENV_TEMPLATE.substitute(node_id=node_id)
     with open(env_file_path, "w", encoding=DEFAULT_ENCODING) as env_file:
         for key, value in agent_vars.items():
             env_file.write(f"{key}={value}\n")
@@ -444,7 +446,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             )
             key = cast(List[Dict[str, str]], self.service_builder.keys)[x][PRIVATE_KEY]
             keys_file = path / PRIVATE_KEY_PATH_SCHEMA.format(ledger)
-            path.mkdir(parents=True)
+            path.mkdir()
             with keys_file.open(mode="w", encoding=DEFAULT_ENCODING) as f:
                 f.write(key)
 

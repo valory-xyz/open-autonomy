@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -31,6 +31,9 @@ from typing import Tuple, cast
 from unittest import mock
 
 import pytest
+import yaml
+from aea.cli.registry.settings import REGISTRY_LOCAL
+from aea.cli.utils.constants import CLI_CONFIG_PATH, DEFAULT_CLI_CONFIG
 from aea.configurations.constants import PACKAGES
 from jsonschema.exceptions import ValidationError
 
@@ -208,6 +211,18 @@ class TestCheckSpecs(BaseCliTest):
 
         self.specification_path = self.t / self.skill_path / "fsm_specification.yaml"
         os.chdir(self.t)
+        DEFAULT_CLI_CONFIG["registry_config"]["settings"][REGISTRY_LOCAL][
+            "default_packages_path"
+        ] = (self.t / PACKAGES).as_posix()
+        Path(CLI_CONFIG_PATH).write_text(yaml.dump(DEFAULT_CLI_CONFIG))
+
+    def teardown(self) -> None:
+        """Teardown class."""
+        super().teardown()
+        DEFAULT_CLI_CONFIG["registry_config"]["settings"][REGISTRY_LOCAL][
+            "default_packages_path"
+        ] = None
+        Path(CLI_CONFIG_PATH).write_text(yaml.dump(DEFAULT_CLI_CONFIG))
 
     def _corrupt_spec_file(
         self,
@@ -244,19 +259,19 @@ class TestCheckSpecs(BaseCliTest):
             in stderr
         )
 
-    def test_check_all(
+    def test_analyse_fsm_specs(
         self,
     ) -> None:
-        """Test --check-all flag."""
+        """Test the `analyse fsm-specs` command."""
         return_code, stdout, stderr = self.run_cli_subprocess(())
 
         assert return_code == 0, stderr
         assert "Done" in stdout
 
-    def test_check_all_when_packages_is_not_in_working_dir(
+    def test_analyse_fsm_specs_when_packages_is_not_in_working_dir(
         self,
     ) -> None:
-        """Test --check-all flag when the packages directory is not in the working directory."""
+        """Test `analyse fsm-specs` command when the packages directory is not in the working directory."""
         return_code, stdout, stderr = self.run_cli_subprocess(())
 
         assert return_code == 0
@@ -266,7 +281,7 @@ class TestCheckSpecs(BaseCliTest):
     def test_check_fail_when_packages_dir_is_not_named_packages(
         self,
     ) -> None:
-        """Test --check-all flag when the packages directory is not named 'packages'."""
+        """Test `analyse fsm-specs` command when the packages directory is not named 'packages'."""
         wrong_dir = self.t / "some-directory"
         wrong_dir.mkdir(exist_ok=True)
 
@@ -281,21 +296,15 @@ class TestCheckSpecs(BaseCliTest):
         assert return_code == 1, stderr
         assert f"packages directory {wrong_dir} is not named '{PACKAGES}'" in stderr
 
-    def test_check_all_fail(
+    def test_analyse_fsm_specs_fail(
         self,
     ) -> None:
-        """Test --check-all flag."""
+        """Test `analyse fsm-specs` command failure."""
         self._corrupt_spec_file()
         return_code, stdout, stderr = self.run_cli_subprocess(())
 
         assert return_code == 1
         assert "Specifications check for following packages failed" in stderr
-
-    def teardown(
-        self,
-    ) -> None:
-        """Tear down the test."""
-        super().teardown()
 
 
 class TestDFA:
