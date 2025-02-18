@@ -634,7 +634,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         )
         assert result.exit_code == 1, result.output
         assert (
-            "Please provide path to packages directory for development mode"
+            "Please provide a valid path to the `packages` directory for development mode."
             in result.output
         )
 

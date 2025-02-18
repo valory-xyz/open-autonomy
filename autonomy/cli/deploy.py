@@ -21,6 +21,7 @@
 
 import os
 import shutil
+from itertools import chain
 from pathlib import Path
 from typing import List, Optional, cast
 
@@ -33,7 +34,8 @@ from aea.cli.utils.click_utils import (
     reraise_as_click_exception,
 )
 from aea.cli.utils.context import Context
-from aea.configurations.constants import DEFAULT_ENV_DOTFILE
+from aea.configurations.constants import DEFAULT_ENV_DOTFILE, PACKAGES
+from aea.package_manager.base import PACKAGES_FILE
 
 from autonomy.chain.config import ChainType
 from autonomy.cli.helpers.deployment import (
@@ -65,14 +67,13 @@ from autonomy.deploy.generators.localhost.base import HostDeploymentGenerator
 
 
 def _validate_packages_path(path: Optional[Path] = None) -> Path:
-    """Find packages dir for development mode."""
-    path = Path(path or Path.cwd()).resolve()
-    while path != Path(path.root):
-        if path.name == "packages" and (path / "packages.json").exists():
-            return path
-        path = path.parent
+    """Find the 'packages' directory for development mode by traversing up the path."""
+    path = (path or Path.cwd()).resolve()
+    for current_path in chain({path}, path.parents):
+        if current_path.name == PACKAGES and (current_path / PACKAGES_FILE).is_file():
+            return current_path
     raise click.ClickException(
-        "Please provide path to packages directory for development mode"
+        "Please provide a valid path to the `packages` directory for development mode."
     )
 
 
