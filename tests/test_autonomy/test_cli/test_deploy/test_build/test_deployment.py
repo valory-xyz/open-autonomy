@@ -532,7 +532,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                     str(build_dir),
                     "--dev",
                     "--packages-dir",
-                    str(PACKAGES_DIR),
+                    PACKAGES_DIR,
                     "--open-aea-dir",
                     str(ROOT_DIR.parent / "open-aea"),
                 )
@@ -836,7 +836,7 @@ class TestKubernetesBuild(BaseDeployBuildTest):
                     "--kubernetes",
                     "--dev",
                     "--packages-dir",
-                    str(PACKAGES_DIR),
+                    PACKAGES_DIR,
                     "--open-aea-dir",
                     str(ROOT_DIR.parent / "open-aea"),
                 )
