@@ -15,7 +15,9 @@ def build_image(agent: Optional[PublicId],
                 version: Optional[str] = None,
                 image_author: Optional[str] = None,
                 extra_dependencies: Optional[Tuple[Dependency, ...]] = None,
-                dockerfile: Optional[Path] = None) -> None
+                dockerfile: Optional[Path] = None,
+                platform: Optional[str] = None,
+                push: bool = False) -> None
 ```
 
 Build agent/service image.

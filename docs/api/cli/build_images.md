@@ -47,6 +47,15 @@ Build images.
     ),
     help="Specify custom dockerfile for building the agent",
 )
+@click.option(
+    "--platform",
+    type=str,
+    help="Specify the target architecture platform for the image.",
+)
+@click.option("--push",
+              is_flag=True,
+              help="Push image to docker hub.",
+              default=False)
 @image_author_option
 def build_image(agent: Optional[PublicId],
                 service_dir: Optional[Path],
@@ -55,7 +64,9 @@ def build_image(agent: Optional[PublicId],
                 pull: bool = False,
                 dev: bool = False,
                 version: Optional[str] = None,
-                image_author: Optional[str] = None) -> None
+                image_author: Optional[str] = None,
+                platform: Optional[str] = None,
+                push: bool = False) -> None
 ```
 
 Build runtime images for autonomous agents.
