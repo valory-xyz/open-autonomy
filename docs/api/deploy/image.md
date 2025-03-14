@@ -34,7 +34,9 @@ def build_image(agent: PublicId,
                 version: Optional[str] = None,
                 image_author: Optional[str] = None,
                 extra_dependencies: Optional[Tuple[Dependency, ...]] = None,
-                dockerfile: Optional[Path] = None) -> None
+                dockerfile: Optional[Path] = None,
+                platform: Optional[str] = None,
+                push: bool = False) -> None
 ```
 
 Command to build images from for skaffold deployment.

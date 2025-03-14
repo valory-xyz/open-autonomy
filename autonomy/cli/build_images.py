@@ -67,6 +67,12 @@ from autonomy.deploy.image import ImageBuildFailed
     ),
     help="Specify custom dockerfile for building the agent",
 )
+@click.option(
+    "--platform",
+    type=str,
+    help="Specify the target architecture platform for the image.",
+)
+@click.option("--push", is_flag=True, help="Push image to docker hub.", default=False)
 @image_author_option
 def build_image(  # pylint: disable=too-many-arguments
     agent: Optional[PublicId],
@@ -77,6 +83,8 @@ def build_image(  # pylint: disable=too-many-arguments
     dev: bool = False,
     version: Optional[str] = None,
     image_author: Optional[str] = None,
+    platform: Optional[str] = None,
+    push: bool = False,
 ) -> None:
     """Build runtime images for autonomous agents."""
     if dev:
@@ -93,4 +101,6 @@ def build_image(  # pylint: disable=too-many-arguments
             version=version,
             image_author=image_author,
             dockerfile=dockerfile,
+            platform=platform,
+            push=push,
         )
