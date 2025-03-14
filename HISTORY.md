@@ -1,5 +1,9 @@
 # Release History - `open-autonomy`
 
+# 0.19.5 (2025-03-14)
+
+Chores:
+- Bumps `open-aea@1.65.0` #2315
 
 # 0.19.4 (2025-02-18)
 
