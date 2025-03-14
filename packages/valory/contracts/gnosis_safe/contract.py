@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -182,7 +182,7 @@ class GnosisSafeContract(Contract):
             ledger_api.api.from_wei(account_balance, "ether"), 6
         )
         _logger.info(
-            "Network %s - Sender %s - Balance: %s ETH",
+            "Network %s - Sender %s - Balance: %sΞ",
             ledger_api.api.net.version,
             account_address,
             ether_account_balance,
@@ -456,12 +456,7 @@ class GnosisSafeContract(Contract):
             and max_fee_per_gas is None
             and max_priority_fee_per_gas is None
         ):
-            gas_pricing = ledger_api.try_get_gas_pricing(old_price=old_price)
-            if gas_pricing is None:
-                _logger.warning(f"Could not get gas price with {old_price=}")
-            else:
-                tx_parameters.update(gas_pricing)
-
+            tx_parameters.update(ledger_api.try_get_gas_pricing(old_price=old_price))
         # note, the next line makes an eth_estimateGas call if gas is not set!
         transaction_dict = w3_tx.build_transaction(tx_parameters)
         if configured_gas != MIN_GAS:
