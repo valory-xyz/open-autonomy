@@ -82,7 +82,7 @@ def build_image(  # pylint: disable=too-many-arguments,too-many-locals
         version=image_version,
     )
 
-    subprocess.run(  # nosec # pylint: disable=subprocess-run-check
+    build_process = subprocess.run(  # nosec # pylint: disable=subprocess-run-check
         [
             "docker",
             "build",
@@ -109,6 +109,8 @@ def build_image(  # pylint: disable=too-many-arguments,too-many-locals
             path,
         ]
     )
+
+    build_process.check_returncode()
 
 
 class ImageBuildFailed(Exception):
