@@ -20,9 +20,9 @@
 """Image building."""
 
 
-import json
+import subprocess  # nosec
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Optional, Tuple
 
 from aea.cli.utils.config import get_default_author_from_cli_config
 from aea.configurations.data_types import Dependency, PublicId
@@ -35,7 +35,6 @@ from autonomy.constants import (
 )
 from autonomy.data import DATA_DIR
 from autonomy.deploy.constants import DOCKERFILES
-from autonomy.deploy.generators.docker_compose.base import get_docker_client
 
 
 def generate_dependency_flag_var(dependencies: Tuple[Dependency, ...]) -> str:
@@ -64,20 +63,13 @@ def build_image(  # pylint: disable=too-many-arguments,too-many-locals
     image_author: Optional[str] = None,
     extra_dependencies: Optional[Tuple[Dependency, ...]] = None,
     dockerfile: Optional[Path] = None,
+    platform: Optional[str] = None,
+    push: bool = False,
 ) -> None:
     """Command to build images from for skaffold deployment."""
 
     tag: str
     path: str
-    buildargs: Dict[str, str]
-    docker_client = get_docker_client()
-    buildargs = {
-        "AUTONOMY_IMAGE_NAME": AUTONOMY_IMAGE_NAME,
-        "AUTONOMY_IMAGE_VERSION": AUTONOMY_IMAGE_VERSION,
-        "AEA_AGENT": str(agent),
-        "AUTHOR": get_default_author_from_cli_config(),
-        "EXTRA_DEPENDENCIES": generate_dependency_flag_var(extra_dependencies or ()),
-    }
 
     image_version = version or agent.hash
     path = str(DATA_DIR / DOCKERFILES / "agent")
@@ -90,30 +82,35 @@ def build_image(  # pylint: disable=too-many-arguments,too-many-locals
         version=image_version,
     )
 
-    stream = docker_client.api.build(
-        path=path,
-        tag=tag,
-        buildargs=buildargs,
-        pull=pull,
+    build_process = subprocess.run(  # nosec # pylint: disable=subprocess-run-check
+        [
+            "docker",
+            "build",
+            "--build-arg",
+            f"AUTONOMY_IMAGE_NAME={AUTONOMY_IMAGE_NAME}",
+            "--build-arg",
+            f"AUTONOMY_IMAGE_VERSION={AUTONOMY_IMAGE_VERSION}",
+            "--build-arg",
+            f"AUTHOR={get_default_author_from_cli_config()}",
+            "--build-arg",
+            f"AEA_AGENT={str(agent)}",
+            "--build-arg",
+            f"EXTRA_DEPENDENCIES={generate_dependency_flag_var(extra_dependencies or ())}",
+            "--tag",
+            tag,
+            "--no-cache",
+        ]
+        + (["--platform", platform] if platform else [])
+        + []
+        + (["--push"] if push else [])
+        + []
+        + (["--pull"] if pull else [])
+        + [
+            path,
+        ]
     )
 
-    for stream_obj in stream:
-        for line in stream_obj.decode().split("\n"):
-            line = line.strip()
-            if not line:
-                continue
-            stream_data = json.loads(line)
-            if "stream" in stream_data:
-                print("[docker]" + stream_data["stream"], end="")
-            elif "errorDetail" in stream_data:
-                raise ImageBuildFailed(
-                    "Image build failed with error "
-                    + stream_data["errorDetail"]["message"]
-                )
-            elif "aux" in stream_data:
-                print("[docker]" + stream_data["aux"]["ID"], end="")
-            elif "status" in stream_data:  # pragma: no cover
-                print("[docker]" + stream_data["status"], end="")
+    build_process.check_returncode()
 
 
 class ImageBuildFailed(Exception):

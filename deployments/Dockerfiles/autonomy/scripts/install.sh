@@ -17,7 +17,7 @@ aea build || exit 1
 echo "Successfully built the host dependencies."
 
 echo "Installing the necessary python dependencies!"
-aea install --timeout 600 $EXTRA_DEPENDENCIES || exit 1
+aea install --timeout 1200 $EXTRA_DEPENDENCIES || exit 1
 echo "Successfully Installed the python dependencies."
 
 echo "Done."

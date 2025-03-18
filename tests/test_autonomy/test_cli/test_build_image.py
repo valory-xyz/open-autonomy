@@ -180,11 +180,11 @@ class TestBuildImageFailures(BaseCliTest):
     def test_image_build_fail(self) -> None:
         """Test prod build."""
 
-        result = self.run_cli(
+        exit_code, stdout, stderr = self.run_cli_subprocess(
             commands=(
                 "valory/agent:bafybeihyasfforsfualp6jnhh2jj7nreqmws2ygyfnh4p3idmfkm5yxu11",
             )
         )
 
-        assert result.exit_code == 1, result.output
-        assert "Error occured while downloading agent" in result.output
+        assert exit_code == 1, stdout
+        assert "Error occured while downloading agent" in stderr
