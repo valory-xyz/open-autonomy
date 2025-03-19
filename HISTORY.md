@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.19.6 (2025-03-19)
+
+Autonomy:
+- Adds support for building multi-arch docker images #2314
+
 # 0.19.5 (2025-03-14)
 
 Chores:
