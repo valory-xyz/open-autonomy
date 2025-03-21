@@ -65,6 +65,7 @@ def build_image(  # pylint: disable=too-many-arguments,too-many-locals
     dockerfile: Optional[Path] = None,
     platform: Optional[str] = None,
     push: bool = False,
+    builder: Optional[str] = None,
 ) -> None:
     """Command to build images from for skaffold deployment."""
 
@@ -105,6 +106,7 @@ def build_image(  # pylint: disable=too-many-arguments,too-many-locals
         + (["--push"] if push else [])
         + []
         + (["--pull"] if pull else [])
+        + (["--builder", builder] if builder else [])
         + [
             path,
         ]

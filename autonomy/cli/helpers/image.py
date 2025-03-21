@@ -39,6 +39,7 @@ def build_image(  # pylint: disable=too-many-arguments
     dockerfile: Optional[Path] = None,
     platform: Optional[str] = None,
     push: bool = False,
+    builder: Optional[str] = None,
 ) -> None:
     """Build agent/service image."""
     extra_dependencies = extra_dependencies or ()
@@ -58,4 +59,5 @@ def build_image(  # pylint: disable=too-many-arguments
         dockerfile=dockerfile,
         platform=platform,
         push=push,
+        builder=builder,
     )
