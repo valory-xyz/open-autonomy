@@ -157,8 +157,8 @@ jobs:
         run: |
           # export `TAG` variable
           source env.sh
-          docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy-user:$TAG deployments/Dockerfiles/autonomy-user --push
-          docker buildx build --platform linux/amd64,linux/arm64 -t valory/open-autonomy-user:latest deployments/Dockerfiles/autonomy-user --push
+          docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t valory/open-autonomy-user:$TAG deployments/Dockerfiles/autonomy-user --push
+          docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t valory/open-autonomy-user:latest deployments/Dockerfiles/autonomy-user --push
 
   publish-helper-images:
     name: Publish Helper Images
