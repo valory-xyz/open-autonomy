@@ -78,7 +78,12 @@ from autonomy.deploy.image import ImageBuildFailed
     help='Override the configured docker builder instance (default "default").',
 )
 @click.option("--push", is_flag=True, help="Push image to docker hub.", default=False)
-@click.option("--pre-install-command", type=str, help="Run the command before installing dependencies.", default=None)
+@click.option(
+    "--pre-install-command",
+    type=str,
+    help="Run the command before installing dependencies.",
+    default=None,
+)
 @image_author_option
 def build_image(  # pylint: disable=too-many-arguments
     agent: Optional[PublicId],

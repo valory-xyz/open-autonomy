@@ -100,8 +100,19 @@ def build_image(  # pylint: disable=too-many-arguments,too-many-locals
             tag,
             "--no-cache",
         ]
-        + (["--build-arg", f"EXTRA_DEPENDENCIES={generate_dependency_flag_var(extra_dependencies)}"] if extra_dependencies else [])
-        + (["--build-arg", f"PRE_INSTALL_COMMAND={pre_install_command}"] if pre_install_command else [])
+        + (
+            [
+                "--build-arg",
+                f"EXTRA_DEPENDENCIES={generate_dependency_flag_var(extra_dependencies)}",
+            ]
+            if extra_dependencies
+            else []
+        )
+        + (
+            ["--build-arg", f"PRE_INSTALL_COMMAND={pre_install_command}"]
+            if pre_install_command
+            else []
+        )
         + (["--platform", platform] if platform else [])
         + (["--push"] if push else [])
         + (["--pull"] if pull else [])

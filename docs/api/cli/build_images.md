@@ -61,6 +61,12 @@ Build images.
               is_flag=True,
               help="Push image to docker hub.",
               default=False)
+@click.option(
+    "--pre-install-command",
+    type=str,
+    help="Run the command before installing dependencies.",
+    default=None,
+)
 @image_author_option
 def build_image(agent: Optional[PublicId],
                 service_dir: Optional[Path],
@@ -72,7 +78,8 @@ def build_image(agent: Optional[PublicId],
                 image_author: Optional[str] = None,
                 platform: Optional[str] = None,
                 push: bool = False,
-                builder: Optional[str] = None) -> None
+                builder: Optional[str] = None,
+                pre_install_command: Optional[str] = None) -> None
 ```
 
 Build runtime images for autonomous agents.
