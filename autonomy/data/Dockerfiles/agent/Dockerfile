@@ -6,6 +6,9 @@ ARG AEA_AGENT
 ARG AUTHOR
 ARG EXTRA_DEPENDENCIES
 
+ARG PRE_INSTALL_COMMAND=""
+RUN /bin/sh -c "${PRE_INSTALL_COMMAND}"
+
 RUN aea init --reset --remote --ipfs --author ${AUTHOR}
 
 WORKDIR /root

@@ -13,6 +13,7 @@ aea fetch $AEA_AGENT --alias agent || exit 1
 cd agent
 
 echo "Building the deployments host dependencies."
+pip install --upgrade pip
 aea build || exit 1
 echo "Successfully built the host dependencies."
 

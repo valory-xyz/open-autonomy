@@ -52,10 +52,21 @@ Build images.
     type=str,
     help="Specify the target architecture platform for the image.",
 )
+@click.option(
+    "--builder",
+    type=str,
+    help='Override the configured docker builder instance (default "default").',
+)
 @click.option("--push",
               is_flag=True,
               help="Push image to docker hub.",
               default=False)
+@click.option(
+    "--pre-install-command",
+    type=str,
+    help="Run the command before installing dependencies.",
+    default=None,
+)
 @image_author_option
 def build_image(agent: Optional[PublicId],
                 service_dir: Optional[Path],
@@ -66,7 +77,9 @@ def build_image(agent: Optional[PublicId],
                 version: Optional[str] = None,
                 image_author: Optional[str] = None,
                 platform: Optional[str] = None,
-                push: bool = False) -> None
+                push: bool = False,
+                builder: Optional[str] = None,
+                pre_install_command: Optional[str] = None) -> None
 ```
 
 Build runtime images for autonomous agents.

@@ -65,6 +65,8 @@ def build_image(  # pylint: disable=too-many-arguments,too-many-locals
     dockerfile: Optional[Path] = None,
     platform: Optional[str] = None,
     push: bool = False,
+    builder: Optional[str] = None,
+    pre_install_command: Optional[str] = None,
 ) -> None:
     """Command to build images from for skaffold deployment."""
 
@@ -94,20 +96,28 @@ def build_image(  # pylint: disable=too-many-arguments,too-many-locals
             f"AUTHOR={get_default_author_from_cli_config()}",
             "--build-arg",
             f"AEA_AGENT={str(agent)}",
-            "--build-arg",
-            f"EXTRA_DEPENDENCIES={generate_dependency_flag_var(extra_dependencies or ())}",
             "--tag",
             tag,
             "--no-cache",
         ]
+        + (
+            [
+                "--build-arg",
+                f"EXTRA_DEPENDENCIES={generate_dependency_flag_var(extra_dependencies)}",
+            ]
+            if extra_dependencies
+            else []
+        )
+        + (
+            ["--build-arg", f"PRE_INSTALL_COMMAND={pre_install_command}"]
+            if pre_install_command
+            else []
+        )
         + (["--platform", platform] if platform else [])
-        + []
         + (["--push"] if push else [])
-        + []
         + (["--pull"] if pull else [])
-        + [
-            path,
-        ]
+        + (["--builder", builder] if builder else [])
+        + [path]
     )
 
     build_process.check_returncode()
