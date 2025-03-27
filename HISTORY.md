@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.19.7 (2025-03-27)
+
+Autonomy:
+- Fixes `build-image` command in `open-autonomy-user` docker image and improves it to take `--pre-install-command` and `---builder` flags #2318
+
 # 0.19.6 (2025-03-19)
 
 Autonomy:
