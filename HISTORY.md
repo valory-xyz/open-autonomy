@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.19.8 (2025-04-14)
+
+Autonomy:
+- Increases the timeout for installing agent's dependencies while building its docker image #2320
+
 # 0.19.7 (2025-03-27)
 
 Autonomy:
