@@ -11,4 +11,6 @@ RUN curl -sSL https://get.docker.com/ | sh
 
 COPY scripts /root/scripts
 
+RUN chmod -R a+x /root
+
 ENTRYPOINT ["/bin/bash", "-c"]
