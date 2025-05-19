@@ -15,6 +15,9 @@ WORKDIR /root
 
 RUN AEA_AGENT=${AEA_AGENT} EXTRA_DEPENDENCIES=${EXTRA_DEPENDENCIES} bash /root/scripts/install.sh
 
+RUN chmod -R a+x /root
+RUN chmod -R 777 /home
+
 CMD ["/root/scripts/start.sh"]
 
 HEALTHCHECK --interval=3s --timeout=600s --retries=600 CMD netstat -ltn | grep -c 26658 > /dev/null; if [ 0 != $? ]; then exit 1; fi;

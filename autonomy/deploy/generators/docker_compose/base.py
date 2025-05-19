@@ -168,6 +168,7 @@ def build_agent_config(  # pylint: disable=too-many-arguments,too-many-locals
         network_address=network_address,
         runtime_image=runtime_image,
         env_file=f"agent_{node_id}.env",
+        user=f"{os.getuid()}:{os.getgid()}",
         network_name=network_name,
         agent_memory_request=resources["agent"]["requested"]["memory"],
         agent_cpu_limit=resources["agent"]["limit"]["cpu"],
@@ -183,7 +184,7 @@ def build_agent_config(  # pylint: disable=too-many-arguments,too-many-locals
     if extra_volumes is not None:
         for host_dir, container_dir in extra_volumes.items():
             config += f"      - {host_dir}:{container_dir}:Z\n"
-            Path(host_dir).resolve().mkdir(exist_ok=True, parents=True)
+            (build_dir / host_dir).resolve().mkdir(exist_ok=True, parents=True)
 
     if agent_ports is not None:
         port_mappings = map(

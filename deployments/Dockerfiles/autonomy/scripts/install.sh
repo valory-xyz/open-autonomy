@@ -9,6 +9,7 @@ fi
 echo Running the aea with $(aea --version)
 
 echo "Loading $AEA_AGENT"
+cd /home
 aea fetch $AEA_AGENT --alias agent || exit 1
 cd agent
 

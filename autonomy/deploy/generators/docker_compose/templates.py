@@ -105,6 +105,7 @@ ABCI_NODE_TEMPLATE: str = """
     container_name: {container_name}
     image: {runtime_image}
     env_file: {env_file}
+    user: "{user}"
     networks:
       {network_name}:
         ipv4_address: {network_address}

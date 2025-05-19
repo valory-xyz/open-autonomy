@@ -99,5 +99,5 @@ function main() {
     runAgent
 }
 
-cd agent
+cd /home/agent
 main
