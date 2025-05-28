@@ -1,5 +1,14 @@
 # Release History - `open-autonomy`
 
+# 0.19.9 (2025-05-28)
+
+Autonomy:
+- Handles the rebuilding of the transaction when getting "nonce too low" from the RPC #2324
+- Runs the docker deployment with the current user #2322
+
+Packages:
+- Removes `eth_newFilter` #2323
+
 # 0.19.8 (2025-04-14)
 
 Autonomy:
