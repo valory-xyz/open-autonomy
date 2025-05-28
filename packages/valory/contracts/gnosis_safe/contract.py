@@ -22,7 +22,7 @@ import binascii
 import logging
 import secrets
 from enum import Enum
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
