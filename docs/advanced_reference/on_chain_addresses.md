@@ -12,11 +12,11 @@
 ## Polygon Mumbai (80001)
 | Name | Environment Variable | Address |
 | ---- | -------------------- | ------- |
-| `Service Registry L 2` | `CUSTOM_SERVICE_REGISTRY_ADDRESS` | [`0xf805DfF246CC208CD2F08ffaD242b7C32bc93623`](https://mumbai.polygonscan.com/address/0xf805DfF246CC208CD2F08ffaD242b7C32bc93623) |
-| `Service Manager` | `CUSTOM_SERVICE_MANAGER_ADDRESS` | [`0x43d28764bB39936185c84906983fB57A8A905a4F`](https://mumbai.polygonscan.com/address/0x43d28764bB39936185c84906983fB57A8A905a4F) |
-| `Gnosis Safe Multisig` | `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS` | [`0x9dEc6B62c197268242A768dc3b153AE7a2701396`](https://mumbai.polygonscan.com/address/0x9dEc6B62c197268242A768dc3b153AE7a2701396) |
-| `Gnosis Safe Same Address Multisig` | `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` | [`0xd6AA4Ec948d84f6Db8EEf25104CeE0Ecd280C74e`](https://mumbai.polygonscan.com/address/0xd6AA4Ec948d84f6Db8EEf25104CeE0Ecd280C74e) |
-| `Multisend` | `CUSTOM_MULTISEND_ADDRESS` | [`0x40A2aCCbd92BCA938b02010E17A5b8929b49130D`](https://mumbai.polygonscan.com/address/0x40A2aCCbd92BCA938b02010E17A5b8929b49130D) |
+| `Service Registry L 2` | `CUSTOM_SERVICE_REGISTRY_ADDRESS` | [`0xf805DfF246CC208CD2F08ffaD242b7C32bc93623`](https://polygonscan.com/address/0xf805DfF246CC208CD2F08ffaD242b7C32bc93623) |
+| `Service Manager` | `CUSTOM_SERVICE_MANAGER_ADDRESS` | [`0x43d28764bB39936185c84906983fB57A8A905a4F`](https://polygonscan.com/address/0x43d28764bB39936185c84906983fB57A8A905a4F) |
+| `Gnosis Safe Multisig` | `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS` | [`0x9dEc6B62c197268242A768dc3b153AE7a2701396`](https://polygonscan.com/address/0x9dEc6B62c197268242A768dc3b153AE7a2701396) |
+| `Gnosis Safe Same Address Multisig` | `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` | [`0xd6AA4Ec948d84f6Db8EEf25104CeE0Ecd280C74e`](https://polygonscan.com/address/0xd6AA4Ec948d84f6Db8EEf25104CeE0Ecd280C74e) |
+| `Multisend` | `CUSTOM_MULTISEND_ADDRESS` | [`0x40A2aCCbd92BCA938b02010E17A5b8929b49130D`](https://polygonscan.com/address/0x40A2aCCbd92BCA938b02010E17A5b8929b49130D) |
 
 ## Gnosis (100)
 | Name | Environment Variable | Address |

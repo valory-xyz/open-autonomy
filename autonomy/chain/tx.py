@@ -44,7 +44,7 @@ DEFAULT_ON_CHAIN_INTERACT_SLEEP = 3.0
 ERRORS_TO_RETRY = (
     "FeeTooLow",
     "wrong transaction nonce",
-    "INTERNAL_ERROR: nonce too low",
+    "nonce too low",
     "Got empty transaction",
     "AlreadyKnown",
     "ALREADY_EXISTS",
@@ -56,7 +56,7 @@ ERRORS_TO_RETRY = (
 
 def should_rebuild(error: str) -> bool:
     """Check if we should rebuild the transaction."""
-    for _error in ("wrong transaction nonce", "OldNonce"):
+    for _error in ("wrong transaction nonce", "OldNonce", "nonce too low"):
         if _error in error:
             return True
     return False

@@ -108,7 +108,7 @@ autonomy fetch 123 --use-gnosis
 
 ### Viewing Remote Registry Files
 
-Before fetching a service, you can inspect its contents in on IPFS through `https://gateway.autonolas.tech/ipfs/<hash>/`
+Before fetching a service, you can inspect its contents in on IPFS through `https://gateway.autonolas.tech/ipfs/<hash>`
 
 ## Common Issues and Solutions
 
