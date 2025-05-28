@@ -220,7 +220,10 @@ def test_already_known(capsys: Any) -> None:
         _mock.assert_called_with("AlreadyKnown")
 
 
-def test_should_rebuild_with_oldnonce(capsys: Any) -> None:
+@pytest.mark.parametrize(
+    "error", ("wrong transaction nonce", "OldNonce", "nonce too low")
+)
+def test_should_rebuild_with_oldnonce(capsys: Any, error: str) -> None:
     """Test OldNonce exception."""
 
     class _method:
@@ -236,7 +239,7 @@ def test_should_rebuild_with_oldnonce(capsys: Any) -> None:
         def __call__(self, *args: Any, **kwargs: Any) -> Any:
             if self._should_raise:
                 self._should_raise = False
-                raise Exception("OldNonce")
+                raise Exception(error)
             return {}
 
     builder = _method()
