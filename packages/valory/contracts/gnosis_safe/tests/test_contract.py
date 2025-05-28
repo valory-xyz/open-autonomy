@@ -385,7 +385,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             self.contract.get_ingoing_transfers(
                 ledger_api=self.ledger_api,
                 contract_address=cast(str, self.contract_address),
-                from_block=hex(from_block),
+                from_block=from_block,
             ),
         )
         data = cast(List[JSONLike], res["data"])
@@ -415,7 +415,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
         res = self.contract.get_ingoing_transfers(
             ledger_api=self.ledger_api,
             contract_address=cast(str, self.contract_address),
-            from_block=hex(from_block),
+            from_block=from_block,
         )
         data = cast(List[JSONLike], res["data"])
 

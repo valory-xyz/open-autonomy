@@ -14,6 +14,16 @@ def checksum_address(agent_address: str) -> ChecksumAddress
 
 Get the checksum address.
 
+<a id="packages.valory.contracts.gnosis_safe.contract.pad_address_for_topic"></a>
+
+#### pad`_`address`_`for`_`topic
+
+```python
+def pad_address_for_topic(address: str) -> HexBytes
+```
+
+Left-pad an Ethereum address to 32 bytes for use in a topic.
+
 <a id="packages.valory.contracts.gnosis_safe.contract.SafeOperation"></a>
 
 ## SafeOperation Objects
@@ -338,8 +348,8 @@ the safe nonce
 def get_ingoing_transfers(cls,
                           ledger_api: EthereumApi,
                           contract_address: str,
-                          from_block: Optional[str] = None,
-                          to_block: Optional[str] = "latest") -> JSONLike
+                          from_block: Optional[BlockIdentifier] = None,
+                          to_block: BlockIdentifier = "latest") -> JSONLike
 ```
 
 A list of transfers into the contract.
@@ -348,7 +358,7 @@ A list of transfers into the contract.
 
 - `ledger_api`: the ledger API object
 - `contract_address`: the contract address,
-- `from_block`: from which block to start tje search
+- `from_block`: from which block to start the search
 - `to_block`: at which block to end the search
 
 **Returns**:
@@ -472,7 +482,10 @@ Get all zero transfer events from a given sender to the safe address.
 - `sender_address`: the owner of the service, ie the address that triggers termination
 - `from_block`: from which block to search for events
 - `to_block`: to which block to search for events
-:return: the zero transfer events
+
+**Returns**:
+
+the zero transfer events
 
 <a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_remove_owner_data"></a>
 
