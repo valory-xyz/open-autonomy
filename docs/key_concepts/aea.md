@@ -44,7 +44,7 @@ precisely, FSM replication with $N = 3f + 1$ agents can tolerate up to
 $f$ simultaneous failures, and hence consensus over the new state is reached
 when $\geq\lceil(2N + 1) / 3\rceil$ of the agents agree on a particular state. Systems
 that possess this fault tolerance level are referred to as being
-[Byzantine fault-tolerant](https://pmg.csail.mit.edu/papers/osdi99.pdf).
+[Byzantine fault-tolerant](http://pmg.csail.mit.edu/papers/osdi99.pdf).
 The result is what is called a _trust-minimized system_, which refers to a system in
 which the amount of trust required from any single agent is minimized.
 That is, "by not trusting any single authority, this system creates trust by default."

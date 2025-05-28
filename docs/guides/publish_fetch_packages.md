@@ -103,7 +103,7 @@ Here, `<component_type>` is one of `connections`, `contracts`, `protocols` or `s
     	Package hash: <hash>
     ```
 
-If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech/tcp/443/https`), you can check that the service has been successfully pushed by accessing the gateway https://gateway.autonolas.tech/ipfs/`<hash>`, by substituting the appropriate `<hash>` value.
+If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech/tcp/443/https`), you can check that the service has been successfully pushed by accessing the gateway https://gateway.autonolas.tech/ipfs/`<hash>` by substituting the appropriate `<hash>` value.
 
 ### Add a component from a registry
 
@@ -140,7 +140,7 @@ This section assumes that you have a newly created agent in a workspace folder. 
 !!!! warning
     In case the agent contains components not yet pushed, it might be required that you run the command `autonomy publish --push-missing`, which automatically will push any missing component package.
 
-If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech/tcp/443/https`), you can check that the agent has been successfully published by accessing the gateway https://gateway.autonolas.tech/ipfs/`<hash>`, by substituting the appropriate `<hash>` value.
+If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech/tcp/443/https`), you can check that the agent has been successfully published by accessing the gateway https://gateway.autonolas.tech/ipfs/`<hash>` by substituting the appropriate `<hash>` value.
 
 ### Fetch an agent from a registry
 
@@ -183,7 +183,7 @@ This section assumes that you have a newly created service in a workspace folder
     	Package hash: <hash>
     ```
 
-If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech/tcp/443/https`), you can check that the service has been successfully published by accessing the gateway https://gateway.autonolas.tech/ipfs/`<hash>`, by substituting the appropriate `<hash>` value.
+If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech/tcp/443/https`), you can check that the service has been successfully published by accessing the gateway https://gateway.autonolas.tech/ipfs/`<hash>` by substituting the appropriate `<hash>` value.
 
 ### Fetch a service from a registry
 

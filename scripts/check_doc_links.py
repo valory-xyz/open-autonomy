@@ -49,12 +49,13 @@ DEFAULT_REQUEST_TIMEOUT = 5  # seconds
 HTTP_SKIPS = [
     "http://www.fipa.org/repository/ips.php3",
     "http://host.docker.internal:8545",  # internal (ERR_NAME_NOT_RESOLVED)
+    "http://pmg.csail.mit.edu/papers/osdi99.pdf",  # refused to connect (ERR_CONNECTION_REFUSED)
 ]
 
 # Special links that are allowed to respond with an error status
 # Remove non-url-allowed characters like ` before adding them here
 URL_SKIPS = [
-    "https://gateway.autonolas.tech/ipfs/<hash>,",  # non link (400)
+    "https://gateway.autonolas.tech/ipfs/<hash>",  # non link (400)
     "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure",  # svn link (404)
     "http://host.docker.internal:8545",  # internal (ERR_NAME_NOT_RESOLVED)
     "https://github.com/valory-xyz/open-operator",  # Until public
