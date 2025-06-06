@@ -31,7 +31,6 @@ from docker.models.containers import Container
 
 DEFAULT_HARDHAT_ADDR = "http://127.0.0.1"
 DEFAULT_HARDHAT_PORT = 8545
-GNOSIS_SAFE_CONTRACTS_DIR = "safe-contracts"
 CONFIG_FILE = "hardhat.config.ts"
 
 _SLEEP_TIME = 1

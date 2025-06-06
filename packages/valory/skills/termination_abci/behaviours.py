@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -140,7 +140,7 @@ class BackgroundBehaviour(BaseBehaviour):
         This method checks for the termination signal.
 
         We check for the signal by looking at the "SafeReceived" events on the safe contract.
-        https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/common/EtherPaymentFallback.sol#L10
+        https://github.com/safe-global/safe-smart-account/tree/v1.3.0/contracts/common/EtherPaymentFallback.sol#L10
         In order for an SafeReceived event to qualify as a termination signal it has to fulfill the following:
             1. It MUST be sent by the service owner (self._service_owner).
             2. It MUST be 0 value tx.

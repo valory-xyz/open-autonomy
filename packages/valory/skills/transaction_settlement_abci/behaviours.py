@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -94,7 +94,7 @@ drand_check = VerifyDrand()
 REVERT_CODE_RE = r"\s(GS\d{3})[^\d]"
 
 # This mapping was copied from:
-# https://github.com/safe-global/safe-contracts/blob/ce5cbd256bf7a8a34538c7e5f1f2366a9d685f34/docs/error_codes.md
+# https://github.com/safe-global/safe-smart-account/blob/ce5cbd256bf7a8a34538c7e5f1f2366a9d685f34/docs/error_codes.md
 REVERT_CODES_TO_REASONS: Dict[str, str] = {
     "GS000": "Could not finish initialization",
     "GS001": "Threshold needs to be defined",
