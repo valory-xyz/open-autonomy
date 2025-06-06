@@ -1,11 +1,11 @@
 from node:16.7.0
 WORKDIR /home/ubuntu/build
-run git clone https://github.com/valory-xyz/safe-contracts
-WORKDIR /home/ubuntu/build/safe-contracts
-run git checkout feat/london-hardfork
+RUN git clone https://github.com/safe-global/safe-smart-account
+WORKDIR /home/ubuntu/build/safe-smart-account
+RUN git checkout v1.3.0
 WORKDIR /home/ubuntu/build
-RUN cp -r /home/ubuntu/build/safe-contracts/* /home/ubuntu/build
-run rm -r safe-contracts
+RUN cp -r /home/ubuntu/build/safe-smart-account/* /home/ubuntu/build
+RUN rm -rf safe-smart-account
 run yarn install
 ENTRYPOINT ["/usr/local/bin/yarn"]
 CMD ["run", "hardhat", "node", "--port", "8545"]

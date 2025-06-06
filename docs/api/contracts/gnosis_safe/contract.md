@@ -500,7 +500,7 @@ def get_remove_owner_data(cls, ledger_api: EthereumApi, contract_address: str,
 Get a removeOwner() encoded tx.
 
 This method acts as a wrapper for `removeOwner()`
-https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L70
+https://github.com/safe-global/safe-smart-account/tree/v1.3.0/contracts/base/OwnerManager.sol#L70
 
 **Arguments**:
 
@@ -526,7 +526,7 @@ def get_swap_owner_data(cls, ledger_api: EthereumApi, contract_address: str,
 Get a swapOwner() encoded tx.
 
 This method acts as a wrapper for `swapOwner()`
-https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L94
+https://github.com/safe-global/safe-smart-account/tree/v1.3.0/contracts/base/OwnerManager.sol#L94
 
 **Arguments**:
 

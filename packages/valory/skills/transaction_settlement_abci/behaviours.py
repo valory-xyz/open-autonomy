@@ -94,7 +94,7 @@ drand_check = VerifyDrand()
 REVERT_CODE_RE = r"\s(GS\d{3})[^\d]"
 
 # This mapping was copied from:
-# https://github.com/safe-global/safe-contracts/blob/ce5cbd256bf7a8a34538c7e5f1f2366a9d685f34/docs/error_codes.md
+# https://github.com/safe-global/safe-smart-account/blob/ce5cbd256bf7a8a34538c7e5f1f2366a9d685f34/docs/error_codes.md
 REVERT_CODES_TO_REASONS: Dict[str, str] = {
     "GS000": "Could not finish initialization",
     "GS001": "Threshold needs to be defined",

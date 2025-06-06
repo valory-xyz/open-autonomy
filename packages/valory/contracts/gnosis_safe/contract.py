@@ -923,7 +923,7 @@ class GnosisSafeContract(Contract):
         Get a removeOwner() encoded tx.
 
         This method acts as a wrapper for `removeOwner()`
-        https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L70
+        https://github.com/safe-global/safe-smart-account/tree/v1.3.0/contracts/base/OwnerManager.sol#L70
 
         :param ledger_api: the ledger API object
         :param contract_address: the contract address
@@ -934,7 +934,7 @@ class GnosisSafeContract(Contract):
         ledger_api = cast(EthereumApi, ledger_api)
         safe_contract = cls.get_instance(ledger_api, contract_address)
         # Note that owners in the safe are stored as a linked list, we need to know the parent (prev_owner) of an owner
-        # when removing. https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L15
+        # when removing. https://github.com/safe-global/safe-smart-account/tree/v1.3.0/contracts/base/OwnerManager.sol#L15
         owners = [
             ledger_api.api.to_checksum_address(owner)
             for owner in safe_contract.functions.getOwners().call()
@@ -965,7 +965,7 @@ class GnosisSafeContract(Contract):
         Get a swapOwner() encoded tx.
 
         This method acts as a wrapper for `swapOwner()`
-        https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L94
+        https://github.com/safe-global/safe-smart-account/tree/v1.3.0/contracts/base/OwnerManager.sol#L94
 
         :param ledger_api: the ledger API object
         :param contract_address: the contract address
@@ -976,7 +976,7 @@ class GnosisSafeContract(Contract):
         ledger_api = cast(EthereumApi, ledger_api)
         safe_contract = cls.get_instance(ledger_api, contract_address)
         # Note that owners in the safe are stored as a linked list, we need to know the parent (prev_owner) of an owner
-        # when swapping. https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L15
+        # when swapping. https://github.com/safe-global/safe-smart-account/tree/v1.3.0/contracts/base/OwnerManager.sol#L15
         owners = [
             ledger_api.api.to_checksum_address(owner)
             for owner in safe_contract.functions.getOwners().call()
