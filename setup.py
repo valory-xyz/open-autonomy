@@ -66,7 +66,7 @@ base_deps = [
     "requests<2.31.2,>=2.28.1",
     "requests-toolbelt==1.0.0",  # Required for graphql client
     "aiohttp<4.0.0,>=3.8.5",
-    "typing_extensions>=3.10.0.2",
+    "typing_extensions<=4.13.2,>=3.10.0.2",
 ]
 base_deps.extend(all_extras["cli"])
 

@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.19.10 (2025-06-06)
+
+Packages:
+- Limits `typing_extensions` up to `4.13.2` as the next version introduces a breaking change #2326
+
 # 0.19.9 (2025-05-28)
 
 Autonomy:
