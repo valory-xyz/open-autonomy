@@ -7,7 +7,7 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidztixckwwbn4ujl6kkvghgsk23xecbgnbiw3e4t3owxldhyjo3au
-  behaviours.py: bafybeihd7m2w5bzqj24rlpnyyxa4xt72ebcgmnvonwjexygvs4xyaqxdeu
+  behaviours.py: bafybeighv6h37srkrqyj6udjv726yfr46gwhldluxp2y4brixo74p64uvm
   dialogues.py: bafybeif7uhfjkcz3ryhti6gafqxhvciw4ec5bdshxvq3355tun5ydkzrna
   handlers.py: bafybeibh5b3p4bdvbnwiqwormduqjvuievylb3s2wgj4ald4led7gx2kji
   models.py: bafybeihak6dcfqpjxbryeixksdn5lbdifq5ondzlh4wiweoptzzn42wco4
@@ -23,14 +23,14 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeievuya4nwmstt7xl4s56xvbzqvrdrikfcskcg3st24o2j64obsmty
+- valory/gnosis_safe:0.1.0:bafybeieozjenjsgign4vhk5an5fxebaleripq5dsbqrtwpooe4v5lxpu2e
 - valory/multisend:0.1.0:bafybeig5byt5urg2d2bsecufxe5ql7f4mezg3mekfleeh32nmuusx66p4y
 - valory/service_registry:0.1.0:bafybeic7owks3mjtfct2m3aiv2b63g2xvmkh6hqilsat6ekqdot5kimxla
 protocols:
 - valory/contract_api:1.0.0:bafybeid247uig2ekykdumh7ewhp2cdq7rchaeqjj6e7urx35zfpdl5zrn4
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeihop4ccap3rlh2v47jxpdqnnlll66wwjqf5li72gazxityk66oliq
-- valory/transaction_settlement_abci:0.1.0:bafybeiamj2drh6mo32bbmewpiuyctx7lajk6wm43tlriyefr7vhqcloeei
+- valory/transaction_settlement_abci:0.1.0:bafybeidodjnri52bwnq6i7cf6sqnwfyizv4n2gixj7azihg2vmqucqr2na
 behaviours:
   main:
     args: {}

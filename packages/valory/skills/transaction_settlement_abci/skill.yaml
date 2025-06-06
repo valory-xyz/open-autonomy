@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeihvqvbj2tiiyimz3e27gqhb7ku5rut7hycfahi4qle732kvj5fs7q
   __init__.py: bafybeicyrp6x2efg43gfdekxuofrlidc3w6aubzmyioqwnryropp6u7sby
-  behaviours.py: bafybeibv5y34bwaloj455bjws3a2aeh2bgi4dclq2f5d35apm2mloen5xa
+  behaviours.py: bafybeihxsrsn7nshfqz2e26ajz6k3sd4255dnysc2362fdrxerqgubb4fu
   dialogues.py: bafybeigabhaykiyzbluu4mk6bbrmqhzld2kyp32pg24bvjmzrrb74einwm
   fsm_specification.yaml: bafybeiapzjwj34sisjcgzznqh3vqkcv3kfqw3jiucjvnw632yyo3v6dudy
   handlers.py: bafybeie42qa3csgy6oompuqs2qnkat5mnslepbbwmgoxv6ljme4jofa5pe
@@ -31,7 +31,7 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeievuya4nwmstt7xl4s56xvbzqvrdrikfcskcg3st24o2j64obsmty
+- valory/gnosis_safe:0.1.0:bafybeieozjenjsgign4vhk5an5fxebaleripq5dsbqrtwpooe4v5lxpu2e
 protocols:
 - open_aea/signing:1.0.0:bafybeig2d36zxy65vd7fwhs7scotuktydcarm74aprmrb5nioiymr3yixm
 - valory/abci:0.1.0:bafybeiatodhboj6a3p35x4f4b342lzk6ckxpud23awnqbxwjeon3k5y36u
