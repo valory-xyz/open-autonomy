@@ -46,7 +46,7 @@ from unittest.mock import MagicMock
 import typing_extensions
 from eth_typing.bls import BLSPubkey, BLSSignature
 from py_ecc.bls import G2Basic as bls
-from typing_extensions import Literal, TypeGuard, TypedDict
+from typing_extensions import Literal, TypeGuard
 
 
 MAX_UINT64 = 2**64 - 1
@@ -440,7 +440,7 @@ def is_error(ret: Result) -> TypeGuard[AutonomyTypeError]:
     return ret is not None
 
 
-def is_typeddict(ty: Type[Any]) -> TypeGuard[Type[TypedDict]]:  # type: ignore
+def is_typeddict(ty: Type[Any]) -> TypeGuard:  # type: ignore
     """Check typeddict."""
     # TODO: Should use `typing.is_typeddict` in future
     #       or, use publich API
