@@ -57,7 +57,7 @@ fingerprint:
   tests/test_tools/test_integration.py: bafybeidxkvb2kizi7djrpuw446dqxo2v5s7j2dbdrdpfmnd2ggezaxbnkm
   tests/test_tools/test_rounds.py: bafybeibaoj4miysneipgukz7xufs47vpv5rds3ptgmu3yxlcl7gjss6ccm
   tests/test_utils.py: bafybeift6igxoan2bnuexps7rrdl25jmlniqujw3odnir3cgjy4oukjjfq
-  utils.py: bafybeidbha3c3tcxo4lhucyx2x6yra4z2p2fp6sucqqzhxanbvgrraykbi
+  utils.py: bafybeiezr5hkbvq3a5y4b4p2t4clnp6kgfyq7wnntybudutmypdbanfjim
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeifp5azjh7c6yrgnzixxgipubuw3e5z2fkiep5kxmd7m66mrdhfb5e
