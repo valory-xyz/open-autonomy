@@ -31,11 +31,11 @@ protocols:
 - valory/tendermint:0.1.0:bafybeigydrbfrlmr4f7shbtqx44kvmbg22im27mxdap2e3m5tkti6t445y
 skills:
 - valory/abstract_abci:0.1.0:bafybeicdqp3abgpbmfo6ht5zxwp6gnac37mdiswjg3qjpf3ydb3ywkaisu
-- valory/abstract_round_abci:0.1.0:bafybeihop4ccap3rlh2v47jxpdqnnlll66wwjqf5li72gazxityk66oliq
-- valory/registration_abci:0.1.0:bafybeigzmknl2lsyzfb7re5ysrtbiy22feflxf5gyk4j27goh3hqkusfli
-- valory/reset_pause_abci:0.1.0:bafybeievp6q3wyxk2i5gxz5htgf7htojtyxwixt6xqf64jazzwrosfph5i
-- valory/squads_transaction_settlement_abci:0.1.0:bafybeibnsq3kcas5dkpeqpugo652w5htxwhbsxzd3jesfxmfus3qdbxc6q
-- valory/test_solana_tx_abci:0.1.0:bafybeienjqo4es5t4qlliyvxwzi4ayvfjcdbcnz4dmt5gqylhjcrplwmjq
+- valory/abstract_round_abci:0.1.0:bafybeiamu3ncoyjgfp4pagzkeysleavqayhx6fhvvexu6mfgxbyrfyezri
+- valory/registration_abci:0.1.0:bafybeihoqfhvenwz2zo6sj4nffnk6id4mfqzfszo54qzy55652t4gpkzzu
+- valory/reset_pause_abci:0.1.0:bafybeig2rmqhn3dljwcyhr7u4zlxmq255qviie5ejvi5ph73f3av7cfgzm
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeieq7ls3hjpe5x4b3hkupm7a6scwmx77hafsnlmsunj2n476wuc2ja
+- valory/test_solana_tx_abci:0.1.0:bafybeicmeq52mkvnrhymdlej3qrxrywprkzyw4f6jvacghltqvoglpfn7m
 default_ledger: solana
 required_ledgers:
 - solana

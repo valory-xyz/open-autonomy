@@ -306,7 +306,7 @@ Check error.
 #### is`_`typeddict
 
 ```python
-def is_typeddict(ty: Type[Any]) -> TypeGuard[Type[TypedDict]]
+def is_typeddict(ty: Type[Any]) -> TypeGuard
 ```
 
 Check typeddict.
