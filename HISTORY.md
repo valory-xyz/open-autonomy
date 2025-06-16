@@ -1,8 +1,9 @@
 # Release History - `open-autonomy`
 
-# 0.19.10 (2025-06-06)
+# 0.19.10 (2025-06-16)
 
 Packages:
+- Fixes incorrect use of `TypedDict` #2331
 - Replaces deleted fork repo #2329
 - Limits `typing_extensions` up to `4.13.2` as the next version introduces a breaking change #2326
 
