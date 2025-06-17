@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import sys
 from asyncio import AbstractEventLoop, AbstractServer, CancelledError, Task
 from io import BytesIO
 from logging import Logger
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from threading import Event, Thread
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
@@ -102,6 +103,7 @@ DEFAULT_RPC_LISTEN_ADDRESS = f"{_TCP}{LOCALHOST}:{DEFAULT_RPC_PORT}"
 MAX_READ_IN_BYTES = 2**20  # Max we'll consume on a read stream (1 MiB)
 MAX_VARINT_BYTES = 10  # Max size of varint we support
 DEFAULT_TENDERMINT_LOG_FILE = "tendermint.log"
+DEFAULT_LOG_FILE_MAX_BYTES = 50 * 1024 * 1024  # 50MB
 
 
 class DecodeVarintError(Exception):
@@ -1160,6 +1162,16 @@ class TendermintNode:
         self.log_file = os.environ.get("LOG_FILE", DEFAULT_TENDERMINT_LOG_FILE)
         self.write_to_log = write_to_log
 
+        if self.write_to_log:
+            max_bytes = int(
+                os.environ.get("LOG_FILE_MAX_BYTES", DEFAULT_LOG_FILE_MAX_BYTES)
+            )
+            handler = RotatingFileHandler(
+                self.log_file, maxBytes=max_bytes, backupCount=1
+            )
+            handler.setFormatter(logging.Formatter("%(message)s"))
+            self.logger.addHandler(handler)
+
     def _build_init_command(self) -> List[str]:
         """Build the 'init' command."""
         cmd = [
@@ -1291,16 +1303,11 @@ class TendermintNode:
         sys.stdout.write(str(line))
         sys.stdout.flush()
 
-    def _write_to_file(self, line: str) -> None:
-        """Write line to console."""
-        with open(self.log_file, "a", encoding=ENCODING) as file:
-            file.write(line)
-
     def log(self, line: str) -> None:
         """Open and write a line to the log file."""
         self._write_to_console(line=line)
         if self.write_to_log:
-            self._write_to_file(line=line)
+            self.logger.info(line.strip())
 
     def prune_blocks(self) -> int:
         """Prune blocks from the Tendermint state"""

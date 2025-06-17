@@ -104,10 +104,12 @@ If you have [populated the local registry](./overview_of_the_development_process
               format: '[%(asctime)s] [%(levelname)s] %(message)s'
           handlers:
             logfile:
-              class: logging.FileHandler
+              class: logging.handlers.RotatingFileHandler
               formatter: standard
               filename: ${LOG_FILE:str:log.txt}
-              level: INFO
+              level: ${LOG_LEVEL:str:INFO}
+              maxBytes: ${LOG_MAX_BYTES:int:52428800}
+              backupCount: ${LOG_BACKUP_COUNT:int:1}
             console:
               class: logging.StreamHandler
               formatter: standard
