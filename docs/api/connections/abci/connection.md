@@ -22,6 +22,12 @@ Max we'll consume on a read stream (1 MiB)
 
 Max size of varint we support
 
+<a id="packages.valory.connections.abci.connection.DEFAULT_LOG_FILE_MAX_BYTES"></a>
+
+#### DEFAULT`_`LOG`_`FILE`_`MAX`_`BYTES
+
+50MB
+
 <a id="packages.valory.connections.abci.connection.DecodeVarintError"></a>
 
 ## DecodeVarintError Objects
