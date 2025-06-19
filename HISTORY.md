@@ -1,5 +1,13 @@
 # Release History - `open-autonomy`
 
+# 0.19.11 (2025-06-19)
+
+Autonomy && Packages && Docs:
+- Rotates logs of tendermint #2333
+
+Chores:
+- Reverts temporary skip of test #2332
+
 # 0.19.10 (2025-06-16)
 
 Packages:
