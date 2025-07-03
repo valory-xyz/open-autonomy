@@ -374,8 +374,8 @@ autonomy analyse service [OPTIONS]
 `--use-base`                      
 :   To use `base` chain profile to interact with the contracts
 
-`--use-optimistic`                
-:   To use `optimistic` chain profile to interact with the contracts
+`--use-optimism`                
+:   To use `optimism` chain profile to interact with the contracts
 
 `--use-arbitrum-one`              
 :   To use `arbitrum-one` chain profile to interact with the contracts

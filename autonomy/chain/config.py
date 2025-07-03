@@ -50,7 +50,7 @@ class ChainType(Enum):
     POLYGON = "polygon"
     GNOSIS = "gnosis"
     ARBITRUM_ONE = "arbitrum_one"
-    OPTIMISTIC = "optimistic"
+    OPTIMISM = "optimism"
     BASE = "base"
     CELO = "celo"
     MODE = "mode"
