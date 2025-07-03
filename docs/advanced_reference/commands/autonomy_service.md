@@ -17,8 +17,8 @@ This command group consists of a number of functionalities to manage [the life c
 `--use-base`
 : Use the Base chain profile to interact with the Autonolas Protocol registry contracts.
 
-`--use-optimistic`
-: Use the Optimistic chain profile to interact with the Autonolas Protocol registry contracts.
+`--use-optimism`
+: Use the Optimism chain profile to interact with the Autonolas Protocol registry contracts.
 
 `--use-arbitrum-one`
 : Use the Arbitrum One chain profile to interact with the Autonolas Protocol registry contracts.

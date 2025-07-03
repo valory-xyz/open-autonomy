@@ -97,7 +97,7 @@ CHAIN_PROFILES = {
         "staking_verifier": "0x7Fd1F4b764fA41d19fe3f63C85d12bf64d2bbf68",
         "staking_factory": "0xEB5638eefE289691EcE01943f768EDBF96258a80",
     },
-    "optimistic": {
+    "optimism": {
         "service_registry": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
         "service_registry_token_utility": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",
         "service_manager_token": "0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB",
@@ -179,7 +179,7 @@ CHAIN_NAME_TO_CHAIN_ID = {
     "polygon": 137,
     "gnosis": 100,
     "arbitrum_one": 42161,
-    "optimistic": 10,
+    "optimism": 10,
     "base": 8453,
     "celo": 42220,
     "mode": 34443,

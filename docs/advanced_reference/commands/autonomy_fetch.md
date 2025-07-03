@@ -32,8 +32,8 @@ autonomy fetch [OPTIONS] PUBLIC_ID_OR_HASH_OR_TOKEN_ID
 `--use-base`                      
 :   Use the `Base` chain profile to find the token with the given token ID.
 
-`--use-optimistic`                
-:   Use the `Optimistic` chain profile to find the token with the given token ID.
+`--use-optimism`                
+:   Use the `Optimism` chain profile to find the token with the given token ID.
 
 `--use-arbitrum-one`              
 :   Use the `Arbitrum One` chain profile to find the token with the given token ID.
