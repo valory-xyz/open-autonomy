@@ -54,6 +54,9 @@ class TestAddresses:
 
         if chain == ChainType.ETHEREUM:
             contracts = self.contracts["mainnet"]
+        # TODO: remove this after autonolas-registries also uses "optimism"
+        elif chain == ChainType.OPTIMISM:
+            contracts = self.contracts["optimistic"]
         else:
             contracts = self.contracts[chain.value]
 
