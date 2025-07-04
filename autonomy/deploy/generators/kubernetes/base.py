@@ -108,7 +108,9 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             "agent", {}
         ).get("volumes", {})
         for host_dir, mount_path in extra_volumes.items():
-            host_path = Path(host_dir).resolve()
+            host_path = Path(self.build_dir / host_dir)
+            host_path.mkdir(exist_ok=True, parents=True)
+            host_path = host_path.resolve()
             name = host_path.name.replace("_", "-")
             volume_claims += VOLUME_CLAIM_TEMPLATE.format(name=name)
             volume_mounts += VOLUME_MOUNT_TEMPLATE.format(
