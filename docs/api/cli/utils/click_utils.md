@@ -130,7 +130,7 @@ A click parameter that can be a public id, an IPFS hash or a token id.
 #### get`_`metavar
 
 ```python
-def get_metavar(param: Any) -> str
+def get_metavar(param: Any, ctx: click.Context) -> str
 ```
 
 Return the metavar default for this param if it provides one.

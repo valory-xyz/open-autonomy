@@ -5,16 +5,16 @@ protocol_specification_id: valory/abci:0.1.0
 type: protocol
 description: A protocol for ABCI requests and responses.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeia5y34dgznojhabsw7js2auxzmwxoubs2yacvscvoqkmt323d3npq
+  README.md: bafybeiamfbhk3aez5w7j6kyzkoka3irptmag4i2qwgyyvius6x3b4lntw4
   __init__.py: bafybeicitj573a2sv6dezytno65dxpmhhirwm2jo2vysqj6uui4un7qiti
   abci.proto: bafybeid2kv4fy6xx453apqxashnqfjymhbrvtxj3uq2vdtqr45lvlfjzm4
   abci_pb2.py: bafybeiamdsjnddab32gu3xxa2tj4hkuaor2aboqem5dpt4ug25hhejp2li
   custom_types.py: bafybeihpkluue4c7cunrcaxze3pqexhmwxkybrv4c3bzmkkakze7n6v44a
   dialogues.py: bafybeic4f4vkk7oyaohabshumvca54bqoockfgx3z7cstjk3ubviosk5mm
   message.py: bafybeiegfbh4cslzrqitmqjd437m7wzegez7i5ysmka5ym3icbl4zvgn5y
-  serialization.py: bafybeigfsa443dvev6sgcf447ppmqlpkjsd3shwho6mqusvs6bfkt3chsy
+  serialization.py: bafybeiao7wyzycjlofvz7fbdbnud2lyjaqubnu5p4cmimtnipeibpzvlim
   tests/__init__.py: bafybeie4cd5xo7o4teyfjclaju3zoguuahjvkpsbshda3x23jcph53fdpi
   tests/conftest.py: bafybeidomydt6bdji22rndrdb5w773vvdja55o5m5n4pbfslx7ey5euot4
   tests/test_abci.py: bafybeig4gex7e62uxca7riaetmr2pu5xekxg3d7xjvck72zjd3uxny4v64

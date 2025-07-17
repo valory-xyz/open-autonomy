@@ -4,7 +4,7 @@ version: 0.1.0
 type: connection
 description: connection to wrap communication with an ABCI server.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   Makefile: bafybeibdgarch56r46dfy7x7fouj52nbjpjs4fgtrd3prgtwelowyjan5i
   __init__.py: bafybeic2m6f6j42cbfxz3jcwhju2dcbbdcw6xyc7mslq7uk2hwe6ctcugi
@@ -55,7 +55,7 @@ fingerprint_ignore_patterns: []
 build_entrypoint: check_dependencies.py
 connections: []
 protocols:
-- valory/abci:0.1.0:bafybeiatodhboj6a3p35x4f4b342lzk6ckxpud23awnqbxwjeon3k5y36u
+- valory/abci:0.1.0:bafybeidzvivstbqwcvumumkmmx3o53jqh2mura75maih446e7c6s36kdfm
 class_name: ABCIServerConnection
 config:
   host: 127.0.0.1

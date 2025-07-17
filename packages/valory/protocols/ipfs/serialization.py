@@ -117,7 +117,7 @@ class IpfsSerializer(Serializer):
         ipfs_pb.ParseFromString(message_pb.dialogue_message.content)
         performative = ipfs_pb.WhichOneof("performative")
         performative_id = IpfsMessage.Performative(str(performative))
-        performative_content = dict()  # type: Dict[str, Any]
+        performative_content: Dict[str, Any] = dict()
         if performative_id == IpfsMessage.Performative.STORE_FILES:
             files = ipfs_pb.store_files.files
             files_dict = dict(files)

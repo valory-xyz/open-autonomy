@@ -48,7 +48,7 @@ SERVICE_CONFIG = {
     "author": "valory",
     "version": "0.1.0",
     "description": "A dummy service config file.",
-    "aea_version": ">=1.0.0, <2.0.0",
+    "aea_version": ">=2.0.0, <3.0.0",
     "license": "Apache-2.0",
     "fingerprint": {
         "README.md": "bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm",

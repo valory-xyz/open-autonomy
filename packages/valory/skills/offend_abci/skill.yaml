@@ -4,7 +4,7 @@ version: 0.1.0
 type: skill
 description: Offend ABCI application.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeic6ufinrstjvfoccnehekx3kmpgs6vpffmp7d5xqu7ghpxsfyxl7m
   __init__.py: bafybeier4l5m6ib3awn3aaam6ykqybo33qoljq63lsfdsmhxqkzxfsk3ka
@@ -27,7 +27,7 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifsuf7sh5vlugnqinbqe2f7vnssuqyxcrzqgotohhwqewyjeibneu
+- valory/abstract_round_abci:0.1.0:bafybeierse3gcbniokm7q27f3ulcneb27aygrrptpwvkftbgudttvj6ypm
 behaviours:
   main:
     args: {}

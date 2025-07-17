@@ -3,7 +3,7 @@ author: dummy_author
 version: 0.1.0
 description: Dummy agent
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeic7ag2ttt7nluqedgdn3krez7olzgp7x5yilrst7qjtoahwzrshna
   readme.md: bafybeiacryxttipf4w4frfczygcyxyxhpobbywnybkpbtuuzzsffl2tczy

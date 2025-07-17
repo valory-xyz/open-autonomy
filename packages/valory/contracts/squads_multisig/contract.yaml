@@ -4,7 +4,7 @@ version: 0.1.0
 type: contract
 description: The scaffold contract scaffolds a contract to be implemented by the developer.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeie2g3yfcwtch366pmuowhe6d4glkc7vgqspebifjvhhkxerd7imru
   __init__.py: bafybeieeus2bbbexmthy4pnsdtgen4flxzk3ao5ekjbocvmrkhhszffbgu
@@ -16,7 +16,7 @@ contract_interface_paths:
   solana: build/SquadsMultisig.json
 dependencies:
   open-aea-ledger-solana:
-    version: ==1.65.0
+    version: ==2.0.0
   solders:
     version: '>=0.14.0'
 contracts: []

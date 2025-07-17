@@ -4,7 +4,7 @@ version: 0.1.0
 type: skill
 description: SOLANA e2e testing application.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeigk5acokdkncbzao7oa6stvuj4pwio5bog7f3priz42ahqe2huysu
   __init__.py: bafybeifhe4k3inquya6lhpwk5ywdba3opc2jixuanzsd2bwvhbtsac4l2q
@@ -19,14 +19,14 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/squads_multisig:0.1.0:bafybeicdlk5lraf4w7bj7lmfxxqtyundnlvaezmtszzixlo3dskzi7t4te
+- valory/squads_multisig:0.1.0:bafybeiadyjilhjfayeiqrjb6nmxxwiuma5dhex6tq4i3547zbbngisfq7e
 protocols:
-- valory/contract_api:1.0.0:bafybeid247uig2ekykdumh7ewhp2cdq7rchaeqjj6e7urx35zfpdl5zrn4
+- valory/contract_api:1.0.0:bafybeigv273fllpdsmzip4qfmhyvltdcss4yhoicss32c2yc7am6kue4cy
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifsuf7sh5vlugnqinbqe2f7vnssuqyxcrzqgotohhwqewyjeibneu
-- valory/registration_abci:0.1.0:bafybeie6rd7zlws4rxzkwka5mzhk56mn6clj3ocxbkbgeaiawv2c6b6jtm
-- valory/reset_pause_abci:0.1.0:bafybeian7gymp6x6rn55uaf4u3dgirbzr43xvnsj2ev27stkadikjqz4du
-- valory/squads_transaction_settlement_abci:0.1.0:bafybeihdel235ar2jyb3cvugl57rbgbsd6wser4g5b44scb5eya67ebyse
+- valory/abstract_round_abci:0.1.0:bafybeierse3gcbniokm7q27f3ulcneb27aygrrptpwvkftbgudttvj6ypm
+- valory/registration_abci:0.1.0:bafybeic24k5pljuqokdbtoahzpyojkur4w7vy6utqdnd6bpw4celvu7ify
+- valory/reset_pause_abci:0.1.0:bafybeif7t36ljoflclcl6njill5byc7z633lvdia54q4ikkcvqzq4gtqc4
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeidbdnkyenw4pydodldloebi3icmp7etxlvwz7kvdzerprfex4zdm4
 behaviours:
   main:
     args: {}

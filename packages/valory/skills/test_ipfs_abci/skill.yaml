@@ -4,7 +4,7 @@ version: 0.1.0
 type: skill
 description: IPFS e2e testing application.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeidwzlddf2imw56detc62pyyoaz3sshsb36xaq44jusn2obs4ywnz4
   __init__.py: bafybeigeaq5dcvmldbdcfvgvapzkb4atm3dgku7fmwkab5xyn7jh33t2mm
@@ -27,7 +27,7 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifsuf7sh5vlugnqinbqe2f7vnssuqyxcrzqgotohhwqewyjeibneu
+- valory/abstract_round_abci:0.1.0:bafybeierse3gcbniokm7q27f3ulcneb27aygrrptpwvkftbgudttvj6ypm
 behaviours:
   main:
     args: {}

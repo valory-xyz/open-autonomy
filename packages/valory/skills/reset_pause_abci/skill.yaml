@@ -4,7 +4,7 @@ version: 0.1.0
 type: skill
 description: ABCI application for resetting and pausing app executions.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeigyx3zutnbq2sqlgeo2hi2vjgpmnlspnkyh4wemjfrqkrpel27bwi
   __init__.py: bafybeicx55fcmu5t2lrrs4wqi6bdvsmoq2csfqebyzwy6oh4olmhnvmelu
@@ -26,7 +26,7 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifsuf7sh5vlugnqinbqe2f7vnssuqyxcrzqgotohhwqewyjeibneu
+- valory/abstract_round_abci:0.1.0:bafybeierse3gcbniokm7q27f3ulcneb27aygrrptpwvkftbgudttvj6ypm
 behaviours:
   main:
     args: {}

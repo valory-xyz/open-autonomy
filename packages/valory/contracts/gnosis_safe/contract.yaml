@@ -4,7 +4,7 @@ version: 0.1.0
 type: contract
 description: Gnosis Safe (GnosisSafeL2) contract
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeig26vrs7tcobu4cgk3fpqhvlzjwmb4nqsc7u66n4yhd2dh2rt7ff4
   __init__.py: bafybeib4nfvueif2tkc7migc73qopyjvrbzedyehrexjx4y5vav3clmf34
@@ -15,7 +15,7 @@ fingerprint:
   tests/test_contract.py: bafybeib3x6yebzl72mziyj5u56abrod4366rwqrgpmmk5ridhnn7bhwl6a
 fingerprint_ignore_patterns: []
 contracts:
-- valory/gnosis_safe_proxy_factory:0.1.0:bafybeiegj5zx4wrahc6gpunxvxgjkzdg4nvdojbqkk5xggv2mt56oecpoa
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeigcxxwdbdt7isf2pmhnkdunamdlwk4avjhfijvwtoguevzwxg2goy
 class_name: GnosisSafeContract
 contract_interface_paths:
   ethereum: build/GnosisSafe_V1_3_0.json
@@ -29,7 +29,7 @@ dependencies:
   eth_typing: {}
   hexbytes: {}
   open-aea-ledger-ethereum:
-    version: ==1.65.0
+    version: ==2.0.0
   open-aea-test-autonomy:
     version: ==0.19.11
   packaging: {}

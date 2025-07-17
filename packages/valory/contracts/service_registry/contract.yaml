@@ -4,7 +4,7 @@ version: 0.1.0
 type: contract
 description: Service Registry contract
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeidey4syohls5hxmso6qsp5p4uhtzle5txv2mlbym6ktjzknich6oa
   build/ServiceRegistry.json: bafybeia4qi2vstrutejzrxfpbb6eift7va5cjs7bparaal2fafiiczuiyy
@@ -19,7 +19,7 @@ contract_interface_paths:
   ethereum: build/ServiceRegistry.json
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.65.0
+    version: ==2.0.0
   open-aea-test-autonomy:
     version: ==0.19.11
   web3:

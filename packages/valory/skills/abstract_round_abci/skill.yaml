@@ -4,7 +4,7 @@ version: 0.1.0
 type: skill
 description: abstract round-based ABCI application
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeihxbinbrvhj2edqthpzc2mywfzxzkf7l4v5uj6ubwnffrwgzelmre
@@ -57,26 +57,26 @@ fingerprint:
   tests/test_tools/test_integration.py: bafybeidxkvb2kizi7djrpuw446dqxo2v5s7j2dbdrdpfmnd2ggezaxbnkm
   tests/test_tools/test_rounds.py: bafybeibaoj4miysneipgukz7xufs47vpv5rds3ptgmu3yxlcl7gjss6ccm
   tests/test_utils.py: bafybeift6igxoan2bnuexps7rrdl25jmlniqujw3odnir3cgjy4oukjjfq
-  utils.py: bafybeiezr5hkbvq3a5y4b4p2t4clnp6kgfyq7wnntybudutmypdbanfjim
+  utils.py: bafybeibpiiylqixy4hqzyyws55oebozl4jftp2pxqpk6bwiri627sjvjkm
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeidutel5jdlqyt2tygyvfxrqwgljpxq23bu3eyfndbcwm2t4y7jbee
-- valory/http_client:0.23.0:bafybeid5ffvg76ejjoese7brj5ji3lx66cu7p2ixfwflpo6rgofkypfd7y
-- valory/ipfs:0.1.0:bafybeiamz23olgtow4wqf7zpsfnfzf7pxiognrxl2mhn5kvqutlwhgukxa
-- valory/ledger:0.19.0:bafybeibdsjmy4w2eyilbqc7yzutopl65qpeyspxwz7mjvirr52twhjlf5y
-- valory/p2p_libp2p_client:0.1.0:bafybeic6ayusdwy4dks75njwk32ac7ur7salgllwf4fdc34ue5z2k5iz4q
+- valory/abci:0.1.0:bafybeigfvaekteswvwozfwe4m75q22ll6cdix3fcbqm5zgiluutkwi2qxu
+- valory/http_client:0.23.0:bafybeidmlazrjbnn5mw4wxrrj7lfnci7amt5alke2ahb3yirac6qudxuwm
+- valory/ipfs:0.1.0:bafybeigoqebr5ap52iok4mzgttib7xlmozkaet3y4bxyo47oxctq45mtla
+- valory/ledger:0.19.0:bafybeicoc67atvjzld5e7qzbdkc7c2fj5jrtuj77nx6igxcdxqqqwxiduy
+- valory/p2p_libp2p_client:0.1.0:bafybeihiulggi4jz3i7qdjicztbvlrkesyb7paiovfcmw22xvovpweeq7y
 contracts:
-- valory/service_registry:0.1.0:bafybeidiyohupppaunqtwhxzt3kbp4k4hcryp4xgda36t3sy43brxs3vci
+- valory/service_registry:0.1.0:bafybeigdgtis7coyv67jpwr27pgou6ajptz2eclfopreipp7noqdudixoy
 protocols:
-- open_aea/signing:1.0.0:bafybeig2d36zxy65vd7fwhs7scotuktydcarm74aprmrb5nioiymr3yixm
-- valory/abci:0.1.0:bafybeiatodhboj6a3p35x4f4b342lzk6ckxpud23awnqbxwjeon3k5y36u
-- valory/contract_api:1.0.0:bafybeid247uig2ekykdumh7ewhp2cdq7rchaeqjj6e7urx35zfpdl5zrn4
-- valory/http:1.0.0:bafybeih4azmfwtamdbkhztkm4xitep3gx6tfdnoz6tvllmaqnhu3klejfa
-- valory/ipfs:0.1.0:bafybeifi2nri7sprmkez4rqzwb4lnu6peoy3bax5k6asf6k5ms7kmjpmkq
-- valory/ledger_api:1.0.0:bafybeihmqzcbj6t7vxz2aehd5726ofnzsfjs5cwlf42ro4tn6i34cbfrc4
-- valory/tendermint:0.1.0:bafybeigydrbfrlmr4f7shbtqx44kvmbg22im27mxdap2e3m5tkti6t445y
+- open_aea/signing:1.0.0:bafybeierdeo55vv7nxdag3s2kk6gh4essmeeqpa7vperbw3wn3ypzmtcdm
+- valory/abci:0.1.0:bafybeidzvivstbqwcvumumkmmx3o53jqh2mura75maih446e7c6s36kdfm
+- valory/contract_api:1.0.0:bafybeigv273fllpdsmzip4qfmhyvltdcss4yhoicss32c2yc7am6kue4cy
+- valory/http:1.0.0:bafybeia43es3r7haqhdcx4f3uwfcreeytyk4zadczsafwyc5dzwr7lu2jq
+- valory/ipfs:0.1.0:bafybeib7jhgyocjwdq3r5wzq3z4qeubj3dwi3aqjn2uxzuwnjp5fhvafcu
+- valory/ledger_api:1.0.0:bafybeifvbahdmabpswhu45q6xb2jppbvqlfztya6jx2ttu4eb6pjltyxam
+- valory/tendermint:0.1.0:bafybeig556rdmiy2y347pconna6qqn63uwiugndl2b6txxd7i24djwgfem
 skills:
-- valory/abstract_abci:0.1.0:bafybeieteucm3rudnnbesnu53wbv3ojnhrwqbvfrsqwvhg6ksgriqyl67i
+- valory/abstract_abci:0.1.0:bafybeib452q7ew5nq7n2kg5a36fbyxee3ltcupradjq2bdux6fycb5cjqm
 behaviours:
   main:
     args: {}
@@ -145,7 +145,7 @@ dependencies:
   ipfshttpclient:
     version: ==0.8.0a2
   open-aea-cli-ipfs:
-    version: ==1.65.0
+    version: ==2.0.0
   open-aea-test-autonomy:
     version: ==0.19.11
   protobuf:

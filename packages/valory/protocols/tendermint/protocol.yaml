@@ -6,14 +6,14 @@ type: protocol
 description: A protocol for communication between two AEAs to share tendermint configuration
   details.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeib23wtp5el2lu4vpq3uap7jiyhm5fmoofvv4sz54cvvqq6vsksra4
+  README.md: bafybeibfdzt2rq6yjod6hs67agejcbdevpgqysprdzzlsxgkhiy2ou2jmu
   __init__.py: bafybeicn3p7nygnx3n5guitfbhh64e67mvgt45wclnyiqdmu6wvobuozty
   custom_types.py: bafybeidbqm4h4fv24o3w6ueu4o3lyn5yaleyukahq7suvk6m2b6ydw4w3a
   dialogues.py: bafybeiaoqlyiquw46cfukmgryr7acepsykn6qoe34esx2ge7a5rkn3xxxe
   message.py: bafybeihslz62ljnelcjjpi7eyqctcv2dgomvlyzas7u62zngklgrl4y4ye
-  serialization.py: bafybeih22jicak2mbqurbwilfdlbuwxs6fhrjhit2ivqeeotwslegdhfu4
+  serialization.py: bafybeiayvbf3ehxrgqcx47gm5hs4wert5ss3kuzl23hxhfl3ppubowu5pq
   tendermint.proto: bafybeiaqoltnijwje7iog7s3r4nbtly6rbfp6zwb2btnrw7xuenoxtobui
   tendermint_pb2.py: bafybeiay3q3pcvlitnhifh63vqkzvdyu4ywbbwj6vnoe5omqxmxg6gu25a
   tests/__init__.py: bafybeiguds53xs5tmygjd26a7xxilzdrgi2x262relfagdlvdzymacumie

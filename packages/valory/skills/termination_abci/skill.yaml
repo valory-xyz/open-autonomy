@@ -4,7 +4,7 @@ version: 0.1.0
 type: skill
 description: Termination skill.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeidztixckwwbn4ujl6kkvghgsk23xecbgnbiw3e4t3owxldhyjo3au
   behaviours.py: bafybeighv6h37srkrqyj6udjv726yfr46gwhldluxp2y4brixo74p64uvm
@@ -23,14 +23,14 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeihqefvhxbdocjphrcz33txmbgembl35qtcc7nusdvymrh4o3sp5um
-- valory/multisend:0.1.0:bafybeig5byt5urg2d2bsecufxe5ql7f4mezg3mekfleeh32nmuusx66p4y
-- valory/service_registry:0.1.0:bafybeidiyohupppaunqtwhxzt3kbp4k4hcryp4xgda36t3sy43brxs3vci
+- valory/gnosis_safe:0.1.0:bafybeihhalgnl7hwde26xucfp6zsmwdxkfof5fvmh54bk6ltejbzjsffra
+- valory/multisend:0.1.0:bafybeifi43azzcnrfrjvnmy3upjse2krajaldud2pvoxiwr3e2gmgqfcm4
+- valory/service_registry:0.1.0:bafybeigdgtis7coyv67jpwr27pgou6ajptz2eclfopreipp7noqdudixoy
 protocols:
-- valory/contract_api:1.0.0:bafybeid247uig2ekykdumh7ewhp2cdq7rchaeqjj6e7urx35zfpdl5zrn4
+- valory/contract_api:1.0.0:bafybeigv273fllpdsmzip4qfmhyvltdcss4yhoicss32c2yc7am6kue4cy
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifsuf7sh5vlugnqinbqe2f7vnssuqyxcrzqgotohhwqewyjeibneu
-- valory/transaction_settlement_abci:0.1.0:bafybeiem4qoc2pdpxoingjqp3qnrdjwho67pd6amy7o3xjr5mpdrepctve
+- valory/abstract_round_abci:0.1.0:bafybeierse3gcbniokm7q27f3ulcneb27aygrrptpwvkftbgudttvj6ypm
+- valory/transaction_settlement_abci:0.1.0:bafybeidwbzm34m7du4p5mcwqxkwzq6vrh6rtvcxeck5pakscva6egnlrqy
 behaviours:
   main:
     args: {}

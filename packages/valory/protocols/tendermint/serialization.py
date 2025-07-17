@@ -120,7 +120,7 @@ class TendermintSerializer(Serializer):
         tendermint_pb.ParseFromString(message_pb.dialogue_message.content)
         performative = tendermint_pb.WhichOneof("performative")
         performative_id = TendermintMessage.Performative(str(performative))
-        performative_content = dict()  # type: Dict[str, Any]
+        performative_content: Dict[str, Any] = dict()
         if performative_id == TendermintMessage.Performative.GET_GENESIS_INFO:
             if tendermint_pb.get_genesis_info.query_is_set:
                 query = tendermint_pb.get_genesis_info.query

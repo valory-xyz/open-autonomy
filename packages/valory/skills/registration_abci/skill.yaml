@@ -4,7 +4,7 @@ version: 0.1.0
 type: skill
 description: ABCI application for common apps.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeieztbubb6yn5umyt5ulknvb2xxppz5ecxaosxqsaejnrcrrwfu2ji
   __init__.py: bafybeigqj2uodavhrygpqn6iah3ljp53z54c5fxyh5ykgkxuhh5lof6pda
@@ -24,15 +24,15 @@ fingerprint:
   tests/test_rounds.py: bafybeidk4d3w5csj6ka7mcq3ikjmv2yccbpwxhp27ujvd7huag3zl5vu2m
 fingerprint_ignore_patterns: []
 connections:
-- valory/p2p_libp2p_client:0.1.0:bafybeic6ayusdwy4dks75njwk32ac7ur7salgllwf4fdc34ue5z2k5iz4q
+- valory/p2p_libp2p_client:0.1.0:bafybeihiulggi4jz3i7qdjicztbvlrkesyb7paiovfcmw22xvovpweeq7y
 contracts:
-- valory/service_registry:0.1.0:bafybeidiyohupppaunqtwhxzt3kbp4k4hcryp4xgda36t3sy43brxs3vci
+- valory/service_registry:0.1.0:bafybeigdgtis7coyv67jpwr27pgou6ajptz2eclfopreipp7noqdudixoy
 protocols:
-- valory/contract_api:1.0.0:bafybeid247uig2ekykdumh7ewhp2cdq7rchaeqjj6e7urx35zfpdl5zrn4
-- valory/http:1.0.0:bafybeih4azmfwtamdbkhztkm4xitep3gx6tfdnoz6tvllmaqnhu3klejfa
-- valory/tendermint:0.1.0:bafybeigydrbfrlmr4f7shbtqx44kvmbg22im27mxdap2e3m5tkti6t445y
+- valory/contract_api:1.0.0:bafybeigv273fllpdsmzip4qfmhyvltdcss4yhoicss32c2yc7am6kue4cy
+- valory/http:1.0.0:bafybeia43es3r7haqhdcx4f3uwfcreeytyk4zadczsafwyc5dzwr7lu2jq
+- valory/tendermint:0.1.0:bafybeig556rdmiy2y347pconna6qqn63uwiugndl2b6txxd7i24djwgfem
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifsuf7sh5vlugnqinbqe2f7vnssuqyxcrzqgotohhwqewyjeibneu
+- valory/abstract_round_abci:0.1.0:bafybeierse3gcbniokm7q27f3ulcneb27aygrrptpwvkftbgudttvj6ypm
 behaviours:
   main:
     args: {}

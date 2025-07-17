@@ -3,7 +3,7 @@ author: valory
 version: 0.1.0
 description: The abstract ABCI AEA - for testing purposes only.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeialqqea4ivqoc22bdfjgt6qnungfz26457q4cumujbuwinrg3ogky
   __init__.py: bafybeif3jvuzkmlibl6ufntm7b7pzy7dlw4fop5bqymmpcgcbwfna7ca44
@@ -11,14 +11,14 @@ fingerprint:
   tests/test_abstract_abci.py: bafybeic4hileugdjd6bwy4n5beqrjo5auwalz5twt3lyx6m62kb65nc6ca
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeidutel5jdlqyt2tygyvfxrqwgljpxq23bu3eyfndbcwm2t4y7jbee
-- valory/p2p_libp2p_client:0.1.0:bafybeic6ayusdwy4dks75njwk32ac7ur7salgllwf4fdc34ue5z2k5iz4q
+- valory/abci:0.1.0:bafybeigfvaekteswvwozfwe4m75q22ll6cdix3fcbqm5zgiluutkwi2qxu
+- valory/p2p_libp2p_client:0.1.0:bafybeihiulggi4jz3i7qdjicztbvlrkesyb7paiovfcmw22xvovpweeq7y
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:bafybeig2d36zxy65vd7fwhs7scotuktydcarm74aprmrb5nioiymr3yixm
-- valory/abci:0.1.0:bafybeiatodhboj6a3p35x4f4b342lzk6ckxpud23awnqbxwjeon3k5y36u
+- open_aea/signing:1.0.0:bafybeierdeo55vv7nxdag3s2kk6gh4essmeeqpa7vperbw3wn3ypzmtcdm
+- valory/abci:0.1.0:bafybeidzvivstbqwcvumumkmmx3o53jqh2mura75maih446e7c6s36kdfm
 skills:
-- valory/abstract_abci:0.1.0:bafybeieteucm3rudnnbesnu53wbv3ojnhrwqbvfrsqwvhg6ksgriqyl67i
+- valory/abstract_abci:0.1.0:bafybeib452q7ew5nq7n2kg5a36fbyxee3ltcupradjq2bdux6fycb5cjqm
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -49,7 +49,7 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.65.0
+    version: ==2.0.0
   open-aea-test-autonomy:
     version: ==0.19.11
 default_connection: valory/abci:0.1.0

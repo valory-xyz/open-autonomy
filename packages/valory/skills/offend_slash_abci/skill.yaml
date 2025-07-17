@@ -4,7 +4,7 @@ version: 0.1.0
 type: skill
 description: ABCI application used in order to test the slashing abci
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeiff3e5cjvl74rtybyvodggnsxubw7agw37epoagwrpz6g2szufmxa
   __init__.py: bafybeiaopodjnkdcukf3vw4racq552bzt22uh5oioebcaklwpnvjyihpfy
@@ -23,11 +23,11 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifsuf7sh5vlugnqinbqe2f7vnssuqyxcrzqgotohhwqewyjeibneu
-- valory/offend_abci:0.1.0:bafybeicshdjm3lwtruxqrafwz6v4ehpn7lrmruc7afbsqzoa46ymk3sjki
-- valory/registration_abci:0.1.0:bafybeie6rd7zlws4rxzkwka5mzhk56mn6clj3ocxbkbgeaiawv2c6b6jtm
-- valory/reset_pause_abci:0.1.0:bafybeian7gymp6x6rn55uaf4u3dgirbzr43xvnsj2ev27stkadikjqz4du
-- valory/slashing_abci:0.1.0:bafybeib4n33qztlfyiw3kbg42nydcforzw3pdhr6lwmzqw756zqwnpdskq
+- valory/abstract_round_abci:0.1.0:bafybeierse3gcbniokm7q27f3ulcneb27aygrrptpwvkftbgudttvj6ypm
+- valory/offend_abci:0.1.0:bafybeichiq674huhr4hisljbtkfkx3ep6jhoo5pllv7rel6dbe6enpqtea
+- valory/registration_abci:0.1.0:bafybeic24k5pljuqokdbtoahzpyojkur4w7vy6utqdnd6bpw4celvu7ify
+- valory/reset_pause_abci:0.1.0:bafybeif7t36ljoflclcl6njill5byc7z633lvdia54q4ikkcvqzq4gtqc4
+- valory/slashing_abci:0.1.0:bafybeicsqpiouo4csuixapcsvwamsxlvbcwswzdykzfxvxxvxppe65w4pu
 behaviours:
   main:
     args: {}

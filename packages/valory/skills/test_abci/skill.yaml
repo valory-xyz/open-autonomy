@@ -4,7 +4,7 @@ version: 0.1.0
 type: skill
 description: ABCI application for testing the ABCI connection.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeihrn52tx65lerztcuqmuyncrctfvpu2do7wwjycxxj56orejx2cu4
   __init__.py: bafybeie63javimotebwcrwaydwe2gc7a7h7cjhol6l6e5ushlgreorm7hi
@@ -26,8 +26,8 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_abci:0.1.0:bafybeieteucm3rudnnbesnu53wbv3ojnhrwqbvfrsqwvhg6ksgriqyl67i
-- valory/abstract_round_abci:0.1.0:bafybeifsuf7sh5vlugnqinbqe2f7vnssuqyxcrzqgotohhwqewyjeibneu
+- valory/abstract_abci:0.1.0:bafybeib452q7ew5nq7n2kg5a36fbyxee3ltcupradjq2bdux6fycb5cjqm
+- valory/abstract_round_abci:0.1.0:bafybeierse3gcbniokm7q27f3ulcneb27aygrrptpwvkftbgudttvj6ypm
 behaviours:
   main:
     args: {}

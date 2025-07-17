@@ -82,49 +82,6 @@ def parse_tendermint_p2p_url(url: str) -> Tuple[str, int]
 
 Parse tendermint P2P url.
 
-<a id="packages.valory.skills.abstract_round_abci.utils.get_origin"></a>
-
-#### get`_`origin
-
-```python
-def get_origin(tp)
-```
-
-Get the unsubscripted version of a type.
-
-This supports generic types, Callable, Tuple, Union, Literal, Final and
-ClassVar. Returns None for unsupported types.
-
-**Examples**:
-
-  get_origin(Literal[42]) is Literal
-  get_origin(int) is None
-  get_origin(ClassVar[int]) is ClassVar
-  get_origin(Generic) is Generic
-  get_origin(Generic[T]) is Generic
-  get_origin(Union[T, int]) is Union
-  get_origin(List[Tuple[T, T]][int]) == list
-
-<a id="packages.valory.skills.abstract_round_abci.utils.get_args"></a>
-
-#### get`_`args
-
-```python
-def get_args(tp)
-```
-
-Get type arguments with all substitutions performed.
-
-For unions, basic simplifications used by Union constructor are performed.
-
-**Examples**:
-
-  get_args(Dict[str, int]) == (str, int)
-  get_args(int) == ()
-  get_args(Union[int, Union[T, int], str][int]) == (int, str)
-  get_args(Union[int, Tuple[T, int]][str]) == (int, Tuple[str, int])
-  get_args(Callable[[], T][int]) == ([], int)
-
 <a id="packages.valory.skills.abstract_round_abci.utils.is_pep604_union"></a>
 
 #### is`_`pep604`_`union

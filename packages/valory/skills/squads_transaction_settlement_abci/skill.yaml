@@ -4,7 +4,7 @@ version: 0.1.0
 type: skill
 description: ABCI application for transaction settlement.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeiheflefb4runl5mmsq7bzc7wtjwnqgkwiqzydd5zsofmmu3teyik4
   __init__.py: bafybeihbozjyhozzst5slc3zf36zvxf4v6zlcbrmturaxkw3uuwwq7kd4u
@@ -17,11 +17,11 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/squads_multisig:0.1.0:bafybeicdlk5lraf4w7bj7lmfxxqtyundnlvaezmtszzixlo3dskzi7t4te
+- valory/squads_multisig:0.1.0:bafybeiadyjilhjfayeiqrjb6nmxxwiuma5dhex6tq4i3547zbbngisfq7e
 protocols:
-- valory/contract_api:1.0.0:bafybeid247uig2ekykdumh7ewhp2cdq7rchaeqjj6e7urx35zfpdl5zrn4
+- valory/contract_api:1.0.0:bafybeigv273fllpdsmzip4qfmhyvltdcss4yhoicss32c2yc7am6kue4cy
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifsuf7sh5vlugnqinbqe2f7vnssuqyxcrzqgotohhwqewyjeibneu
+- valory/abstract_round_abci:0.1.0:bafybeierse3gcbniokm7q27f3ulcneb27aygrrptpwvkftbgudttvj6ypm
 behaviours:
   main:
     args: {}

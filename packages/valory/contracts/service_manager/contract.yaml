@@ -4,7 +4,7 @@ version: 0.1.0
 type: contract
 description: Service Manager contract
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeiao4aiyvkvg75zfi2nf34hidx2uzcbqibc2bukyutisg5zhxskhlq
   build/ServiceManager.json: bafybeiefm53534jhy5tfjgcmx4rbjrcn6tzbghw4ptggh5or6vuohdgau4

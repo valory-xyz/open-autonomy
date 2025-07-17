@@ -4,7 +4,7 @@ version: 0.1.0
 type: skill
 description: A client for the ABCI counter application.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeib6zaiamsyuuppq5kflgsxk774mq44ttumidbixtaflt2fmfjcqtu
   __init__.py: bafybeifeclzvhjxlghtaxvhlgfetavrz4rclfxsjmcte4xa2esbjfwukma
@@ -18,10 +18,10 @@ fingerprint:
   utils.py: bafybeihrzltjkh2pfkctsuanhtx234bwcqh6vdabkxzmp7qoyva3om5x7m
 fingerprint_ignore_patterns: []
 connections:
-- valory/http_client:0.23.0:bafybeid5ffvg76ejjoese7brj5ji3lx66cu7p2ixfwflpo6rgofkypfd7y
+- valory/http_client:0.23.0:bafybeidmlazrjbnn5mw4wxrrj7lfnci7amt5alke2ahb3yirac6qudxuwm
 contracts: []
 protocols:
-- valory/http:1.0.0:bafybeih4azmfwtamdbkhztkm4xitep3gx6tfdnoz6tvllmaqnhu3klejfa
+- valory/http:1.0.0:bafybeia43es3r7haqhdcx4f3uwfcreeytyk4zadczsafwyc5dzwr7lu2jq
 skills: []
 behaviours:
   incrementer:

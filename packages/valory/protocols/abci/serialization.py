@@ -370,7 +370,7 @@ class AbciSerializer(Serializer):
         abci_pb.ParseFromString(message_pb.dialogue_message.content)
         performative = abci_pb.WhichOneof("performative")
         performative_id = AbciMessage.Performative(str(performative))
-        performative_content = dict()  # type: Dict[str, Any]
+        performative_content: Dict[str, Any] = dict()
         if performative_id == AbciMessage.Performative.REQUEST_ECHO:
             message = abci_pb.request_echo.message
             performative_content["message"] = message
