@@ -302,7 +302,7 @@ class UseGanache:
             [
                 (
                     key
-                    if type(key) == tuple  # pylint: disable=unidiomatic-typecheck
+                    if type(key) is tuple  # pylint: disable=unidiomatic-typecheck
                     else (
                         Account.from_key(  # pylint: disable=no-value-for-parameter
                             key
@@ -345,7 +345,7 @@ class GanacheBaseTest(DockerBaseTest):
             [
                 (
                     key
-                    if type(key) == tuple  # pylint: disable=unidiomatic-typecheck
+                    if type(key) is tuple  # pylint: disable=unidiomatic-typecheck
                     else (
                         Account.from_key(  # pylint: disable=no-value-for-parameter
                             key

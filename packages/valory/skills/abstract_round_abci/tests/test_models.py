@@ -344,7 +344,7 @@ class TestApiSpecsModel:
         assert actual == expected_res
         response_type = api_specs_config.get("response_type", None)
         if response_type is not None:
-            assert type(actual) == getattr(builtins, response_type)
+            assert type(actual) is getattr(builtins, response_type)
         assert api_specs.response_info.error_data == expected_error
 
     def test_attribute_manipulation(self) -> None:

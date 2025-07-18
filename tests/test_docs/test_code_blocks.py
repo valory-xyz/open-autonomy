@@ -114,13 +114,13 @@ class BaseTestDocCode:
             doc_process_fn = None
             if self.doc_process_fn is not None:
 
-                def doc_process_fn(s):  # type: ignore
+                def doc_process_fn(s):  # type: ignore  # noqa: F811
                     return self.doc_process_fn(s)
 
             code_process_fn = None
             if self.code_process_fn is not None:
 
-                def code_process_fn(s):  # type: ignore
+                def code_process_fn(s):  # type: ignore  # noqa: F811
                     return self.code_process_fn(s)
 
             check_code_blocks_exist(

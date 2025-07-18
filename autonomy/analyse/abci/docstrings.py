@@ -97,5 +97,5 @@ def compare_docstring_content(
     markers = group if group is not None else ""
 
     updated_class = f"class {abci_app_name}(AbciApp[Event]):{markers}{docstring}"
-    updated_content = re.sub(regex, updated_class, file_content, re.MULTILINE)
+    updated_content = re.sub(regex, updated_class, file_content, flags=re.MULTILINE)
     return True, updated_content

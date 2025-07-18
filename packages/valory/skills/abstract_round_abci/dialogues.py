@@ -187,7 +187,7 @@ class LedgerApiDialogue(  # pylint: disable=too-few-public-methods
             role=role,
             message_class=message_class,
         )
-        self._terms = None  # type: Optional[Terms]
+        self._terms: Optional[Terms] = None
 
     @property
     def terms(self) -> Terms:
@@ -262,7 +262,7 @@ class ContractApiDialogue(  # pylint: disable=too-few-public-methods
             role=role,
             message_class=message_class,
         )
-        self._terms = None  # type: Optional[Terms]
+        self._terms: Optional[Terms] = None
 
     @property
     def terms(self) -> Terms:

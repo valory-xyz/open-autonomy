@@ -3177,7 +3177,7 @@ class OffenseStatusDecoder(json.JSONDecoder):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the custom JSON decoder."""
-        super().__init__(object_hook=self.hook, *args, **kwargs)
+        super().__init__(*args, object_hook=self.hook, **kwargs)
 
     @staticmethod
     def hook(

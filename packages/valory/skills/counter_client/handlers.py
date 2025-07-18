@@ -35,7 +35,7 @@ from packages.valory.skills.counter_client.utils import curdatetime, decode_valu
 class HttpHandler(Handler):
     """The HTTP response handler."""
 
-    SUPPORTED_PROTOCOL = HttpMessage.protocol_id  # type: Optional[PublicId]
+    SUPPORTED_PROTOCOL: Optional[PublicId] = HttpMessage.protocol_id
 
     def setup(self) -> None:
         """Set up the handler."""

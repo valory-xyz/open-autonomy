@@ -175,7 +175,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase, ABC):
         self.behaviour.act_wrapper()
         incoming_message = None
 
-        if type(handler) == SigningHandler:
+        if type(handler) is SigningHandler:
             self.assert_quantity_in_decision_making_queue(1)
             message = self.get_message_from_decision_maker_inbox()
             assert message is not None, "No message in outbox."  # nosec

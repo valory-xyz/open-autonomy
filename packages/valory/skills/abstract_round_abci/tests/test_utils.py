@@ -197,7 +197,7 @@ def test_get_value_with_type(type_name: str, type_: Type, value: Any) -> None:
         return
 
     actual = get_value_with_type(value, type_name)
-    assert type(actual) == type_
+    assert type(actual) is type_
     assert actual == value
 
 
