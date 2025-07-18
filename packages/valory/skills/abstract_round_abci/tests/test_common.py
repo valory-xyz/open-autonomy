@@ -191,8 +191,8 @@ class TestRandomnessBehaviour(BaseDummyBehaviour):
     ) -> None:
         """Test `get_randomness_from_api`."""
         # create a dummy `process_response` for `MagicMock`ed `randomness_api`
-        self.behaviour.context.randomness_api.process_response = (
-            lambda res: res + "_processed" if res is not None else None
+        self.behaviour.context.randomness_api.process_response = lambda res: (
+            res + "_processed" if res is not None else None
         )
         gen = self.behaviour.get_randomness_from_api()
 

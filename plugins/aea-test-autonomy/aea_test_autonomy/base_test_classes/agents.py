@@ -279,7 +279,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
 
     @staticmethod
     def __generate_full_strings_from_rounds(
-        happy_path: Tuple[RoundChecks, ...]
+        happy_path: Tuple[RoundChecks, ...],
     ) -> Dict[str, int]:
         """Generate the full strings from the given round strings"""
         full_strings = {}

@@ -569,9 +569,9 @@ class AbciSerializer(Serializer):
                 consensus_param_updates = ConsensusParams.decode(
                     pb2_consensus_param_updates
                 )
-                performative_content[
-                    "consensus_param_updates"
-                ] = consensus_param_updates
+                performative_content["consensus_param_updates"] = (
+                    consensus_param_updates
+                )
             pb2_events = abci_pb.response_end_block.events
             events = Events.decode(pb2_events)
             performative_content["events"] = events

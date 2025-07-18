@@ -300,13 +300,15 @@ class UseGanache:
         cls.key_pairs = cast(
             List[Tuple[str, str]],
             [
-                key
-                if type(key) == tuple  # pylint: disable=unidiomatic-typecheck
-                else (
-                    Account.from_key(  # pylint: disable=no-value-for-parameter
-                        key
-                    ).address,
-                    key,
+                (
+                    key
+                    if type(key) == tuple  # pylint: disable=unidiomatic-typecheck
+                    else (
+                        Account.from_key(  # pylint: disable=no-value-for-parameter
+                            key
+                        ).address,
+                        key,
+                    )
                 )
                 for key, _ in ganache_configuration.get("accounts_balances", [])
             ],
@@ -341,13 +343,15 @@ class GanacheBaseTest(DockerBaseTest):
         key_pairs_ = cast(
             List[Tuple[str, str]],
             [
-                key
-                if type(key) == tuple  # pylint: disable=unidiomatic-typecheck
-                else (
-                    Account.from_key(  # pylint: disable=no-value-for-parameter
-                        key
-                    ).address,
-                    key,
+                (
+                    key
+                    if type(key) == tuple  # pylint: disable=unidiomatic-typecheck
+                    else (
+                        Account.from_key(  # pylint: disable=no-value-for-parameter
+                            key
+                        ).address,
+                        key,
+                    )
                 )
                 for key, _ in cls.configuration.get("accounts_balances", [])
             ],

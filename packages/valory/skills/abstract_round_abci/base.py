@@ -3181,7 +3181,7 @@ class OffenseStatusDecoder(json.JSONDecoder):
 
     @staticmethod
     def hook(
-        data: Dict[str, Any]
+        data: Dict[str, Any],
     ) -> Union[AvailabilityWindow, OffenceStatus, Dict[str, OffenceStatus]]:
         """Perform the custom decoding."""
         # if this is an `AvailabilityWindow`

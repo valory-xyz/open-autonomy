@@ -108,13 +108,13 @@ if _descriptor._USE_C_DESCRIPTORS == False:
     _globals["_ABCIMESSAGE_REQUEST_END_BLOCK_PERFORMATIVE"]._serialized_end = 7665
     _globals["_ABCIMESSAGE_REQUEST_COMMIT_PERFORMATIVE"]._serialized_start = 7667
     _globals["_ABCIMESSAGE_REQUEST_COMMIT_PERFORMATIVE"]._serialized_end = 7696
-    _globals[
-        "_ABCIMESSAGE_REQUEST_LIST_SNAPSHOTS_PERFORMATIVE"
-    ]._serialized_start = 7698
+    _globals["_ABCIMESSAGE_REQUEST_LIST_SNAPSHOTS_PERFORMATIVE"]._serialized_start = (
+        7698
+    )
     _globals["_ABCIMESSAGE_REQUEST_LIST_SNAPSHOTS_PERFORMATIVE"]._serialized_end = 7735
-    _globals[
-        "_ABCIMESSAGE_REQUEST_OFFER_SNAPSHOT_PERFORMATIVE"
-    ]._serialized_start = 7737
+    _globals["_ABCIMESSAGE_REQUEST_OFFER_SNAPSHOT_PERFORMATIVE"]._serialized_start = (
+        7737
+    )
     _globals["_ABCIMESSAGE_REQUEST_OFFER_SNAPSHOT_PERFORMATIVE"]._serialized_end = 7856
     _globals[
         "_ABCIMESSAGE_REQUEST_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE"
@@ -152,13 +152,13 @@ if _descriptor._USE_C_DESCRIPTORS == False:
     _globals["_ABCIMESSAGE_RESPONSE_END_BLOCK_PERFORMATIVE"]._serialized_end = 9672
     _globals["_ABCIMESSAGE_RESPONSE_COMMIT_PERFORMATIVE"]._serialized_start = 9674
     _globals["_ABCIMESSAGE_RESPONSE_COMMIT_PERFORMATIVE"]._serialized_end = 9741
-    _globals[
-        "_ABCIMESSAGE_RESPONSE_LIST_SNAPSHOTS_PERFORMATIVE"
-    ]._serialized_start = 9743
+    _globals["_ABCIMESSAGE_RESPONSE_LIST_SNAPSHOTS_PERFORMATIVE"]._serialized_start = (
+        9743
+    )
     _globals["_ABCIMESSAGE_RESPONSE_LIST_SNAPSHOTS_PERFORMATIVE"]._serialized_end = 9847
-    _globals[
-        "_ABCIMESSAGE_RESPONSE_OFFER_SNAPSHOT_PERFORMATIVE"
-    ]._serialized_start = 9849
+    _globals["_ABCIMESSAGE_RESPONSE_OFFER_SNAPSHOT_PERFORMATIVE"]._serialized_start = (
+        9849
+    )
     _globals["_ABCIMESSAGE_RESPONSE_OFFER_SNAPSHOT_PERFORMATIVE"]._serialized_end = 9947
     _globals[
         "_ABCIMESSAGE_RESPONSE_LOAD_SNAPSHOT_CHUNK_PERFORMATIVE"

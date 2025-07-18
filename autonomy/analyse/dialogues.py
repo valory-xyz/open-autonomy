@@ -47,7 +47,7 @@ def load_dialogues_module_from_skill_path(skill_path: Path) -> types.ModuleType:
 
 
 def validate_and_get_dialogues(
-    models_configuration: Dict[str, Dict[str, str]]
+    models_configuration: Dict[str, Dict[str, str]],
 ) -> Dict[str, str]:
     """Returns dialogue names to class name mappings"""
     mapping = {}

@@ -164,9 +164,9 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
                 paths.append([element] + path)
         return paths if paths else default
 
-    all_paths: List[
-        List[Tuple[AppState, Type[AbciApp], Optional[AppState]]]
-    ] = get_paths(abci_apps[0].initial_round_cls, abci_apps[0])
+    all_paths: List[List[Tuple[AppState, Type[AbciApp], Optional[AppState]]]] = (
+        get_paths(abci_apps[0].initial_round_cls, abci_apps[0])
+    )
     new_db_post_conditions: Dict[AppState, Set[str]] = {}
     for path in all_paths:
         current_initial_state, current_app, current_final_state = path[0]

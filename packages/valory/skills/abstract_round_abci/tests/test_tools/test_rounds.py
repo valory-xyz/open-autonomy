@@ -354,9 +354,9 @@ class TestBaseCollectSameUntilAllRoundTest(BaseTestBase):
     """Test `BaseCollectSameUntilAllRoundTest`."""
 
     base_round_test: BaseCollectSameUntilAllRoundTest
-    base_round_test_cls: Type[
+    base_round_test_cls: Type[BaseCollectSameUntilAllRoundTest] = (
         BaseCollectSameUntilAllRoundTest
-    ] = BaseCollectSameUntilAllRoundTest
+    )
 
     @given(
         st.sampled_from(DummyEvent),
@@ -426,9 +426,9 @@ class TestBaseCollectSameUntilThresholdRoundTest(BaseTestBase):
     """Test `BaseCollectSameUntilThresholdRoundTest`."""
 
     base_round_test: BaseCollectSameUntilThresholdRoundTest
-    base_round_test_cls: Type[
+    base_round_test_cls: Type[BaseCollectSameUntilThresholdRoundTest] = (
         BaseCollectSameUntilThresholdRoundTest
-    ] = BaseCollectSameUntilThresholdRoundTest
+    )
 
     @given(
         st.sampled_from(DummyEvent),
@@ -490,9 +490,9 @@ class TestBaseOnlyKeeperSendsRoundTest(BaseTestBase):
     """Test `BaseOnlyKeeperSendsRoundTest`."""
 
     base_round_test: BaseOnlyKeeperSendsRoundTest
-    base_round_test_cls: Type[
+    base_round_test_cls: Type[BaseOnlyKeeperSendsRoundTest] = (
         BaseOnlyKeeperSendsRoundTest
-    ] = BaseOnlyKeeperSendsRoundTest
+    )
     most_voted_keeper_address: str = "agent_0"
 
     def setup(self) -> None:
@@ -626,9 +626,9 @@ class TestBaseCollectDifferentUntilThresholdRoundTest(BaseTestBase):
     """Test `BaseCollectDifferentUntilThresholdRoundTest`."""
 
     base_round_test: BaseCollectDifferentUntilThresholdRoundTest
-    base_round_test_cls: Type[
+    base_round_test_cls: Type[BaseCollectDifferentUntilThresholdRoundTest] = (
         BaseCollectDifferentUntilThresholdRoundTest
-    ] = BaseCollectDifferentUntilThresholdRoundTest
+    )
 
     @given(st.sampled_from(DummyEvent))
     def test_test_round(self, exit_event: DummyEvent) -> None:

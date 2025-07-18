@@ -85,9 +85,9 @@ class BaseTerminationTest(FSMBehaviourBaseCase):
 
     behaviour: TerminationAbciBehaviours
     behaviour_class: Type[BaseBehaviour]
-    next_behaviour_class: Type[
-        BaseBehaviour
-    ] = TransactionSettlementRoundBehaviour.initial_behaviour_cls
+    next_behaviour_class: Type[BaseBehaviour] = (
+        TransactionSettlementRoundBehaviour.initial_behaviour_cls
+    )
     synchronized_data: SynchronizedData
     done_event = Event.TERMINATE
 

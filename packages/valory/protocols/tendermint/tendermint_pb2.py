@@ -35,9 +35,9 @@ if _descriptor._USE_C_DESCRIPTORS == False:
     _globals[
         "_TENDERMINTMESSAGE_GET_RECOVERY_PARAMS_PERFORMATIVE"
     ]._serialized_start = 796
-    _globals[
-        "_TENDERMINTMESSAGE_GET_RECOVERY_PARAMS_PERFORMATIVE"
-    ]._serialized_end = 867
+    _globals["_TENDERMINTMESSAGE_GET_RECOVERY_PARAMS_PERFORMATIVE"]._serialized_end = (
+        867
+    )
     _globals["_TENDERMINTMESSAGE_GENESIS_INFO_PERFORMATIVE"]._serialized_start = 869
     _globals["_TENDERMINTMESSAGE_GENESIS_INFO_PERFORMATIVE"]._serialized_end = 910
     _globals["_TENDERMINTMESSAGE_RECOVERY_PARAMS_PERFORMATIVE"]._serialized_start = 912
@@ -47,7 +47,7 @@ if _descriptor._USE_C_DESCRIPTORS == False:
     _globals[
         "_TENDERMINTMESSAGE_ERROR_PERFORMATIVE_ERRORDATAENTRY"
     ]._serialized_start = 1184
-    _globals[
-        "_TENDERMINTMESSAGE_ERROR_PERFORMATIVE_ERRORDATAENTRY"
-    ]._serialized_end = 1232
+    _globals["_TENDERMINTMESSAGE_ERROR_PERFORMATIVE_ERRORDATAENTRY"]._serialized_end = (
+        1232
+    )
 # @@protoc_insertion_point(module_scope)

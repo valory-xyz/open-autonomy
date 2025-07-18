@@ -44,9 +44,9 @@ class SharedState(BaseSharedState):
     def setup(self) -> None:
         """Set up."""
         super().setup()
-        OffendAbciApp.event_to_timeout[
-            Event.ROUND_TIMEOUT
-        ] = self.context.params.round_timeout_seconds
+        OffendAbciApp.event_to_timeout[Event.ROUND_TIMEOUT] = (
+            self.context.params.round_timeout_seconds
+        )
 
 
 class OffendParams(BaseParams):

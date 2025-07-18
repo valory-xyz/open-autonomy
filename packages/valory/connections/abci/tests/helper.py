@@ -207,7 +207,7 @@ def _create_aea_type_tree(field: str) -> Any:
 
 
 def create_aea_abci_type_tree(
-    speech_acts: Dict[str, Dict[str, str]]
+    speech_acts: Dict[str, Dict[str, str]],
 ) -> Dict[str, Node]:
     """Create AEA-native ABCI type tree from the defined speech acts"""
 

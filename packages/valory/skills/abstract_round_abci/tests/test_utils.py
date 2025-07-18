@@ -52,7 +52,9 @@ settings.load_profile(profile_name)
 # pylint: skip-file
 
 
-DRAND_PUBLIC_KEY: str = "868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31"
+DRAND_PUBLIC_KEY: str = (
+    "868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31"
+)
 
 DRAND_VALUE = {
     "round": 1416669,

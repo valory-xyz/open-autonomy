@@ -97,7 +97,7 @@ class BaseServiceManagerTest(BaseChainInteractionTest):
         """Register agent instance."""
         self.service_manager.register_instance(
             service_id=service_id,
-            instances=[(agent_instance or make_crypto("ethereum").address)],
+            instances=[agent_instance or make_crypto("ethereum").address],
             agent_ids=[AGENT_ID],
         )
 

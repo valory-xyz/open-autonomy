@@ -71,9 +71,9 @@ class BaseSlashingTest(FSMBehaviourBaseCase):
     path_to_skill = Path(__file__).parents[1]
     behaviour: SlashingAbciBehaviours
     behaviour_class: Type[BaseBehaviour] = SlashingCheckBehaviour
-    next_behaviour_class: Type[
-        BaseBehaviour
-    ] = TransactionSettlementRoundBehaviour.initial_behaviour_cls
+    next_behaviour_class: Type[BaseBehaviour] = (
+        TransactionSettlementRoundBehaviour.initial_behaviour_cls
+    )
     synchronized_data: SynchronizedData
     done_event = Event.SLASH_START
 
