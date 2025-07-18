@@ -71,10 +71,10 @@ def test_local_types_file_matches_github(request_attempts: int = 3) -> None:
     different = []
     for file in PROTO_FILES:
         url = URL_PREFIX + "/".join(file.parts[-2:])
-        response, i = requests.get(url), 0
+        response, i = requests.get(url, timeout=30), 0
         while response.status_code != 200 and i < request_attempts:
             time.sleep(0.1)
-            response, i = requests.get(url), i + 1
+            response, i = requests.get(url, timeout=30), i + 1
         if response.status_code != 200:
             log_msg = "Failed to retrieve Tendermint proto types from Github"
             status_code, reason = response.status_code, response.reason

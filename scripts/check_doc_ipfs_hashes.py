@@ -78,7 +78,7 @@ def get_packages_from_repository(repo_url: str) -> Dict[str, str]:
     """Retrieve packages.json from the latest release from a repository."""
     repo_url = repo_url.strip("/").replace("https://github.com/", "")
     repo_api_url = f"https://api.github.com/repos/{repo_url}/releases/latest"
-    response = requests.get(repo_api_url)
+    response = requests.get(repo_api_url, timeout=30)
 
     if response.status_code == 200:
         repo_info = response.json()
@@ -89,7 +89,7 @@ def get_packages_from_repository(repo_url: str) -> Dict[str, str]:
             f"Failed to fetch repository information from GitHub API for: {repo_url}"
         )
 
-    response = requests.get(url)
+    response = requests.get(url, timeout=30)
     if response.status_code == 200:
         data = response.json()
         if "dev" in data:

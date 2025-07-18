@@ -40,7 +40,7 @@ class TestAddresses:
     @classmethod
     def setup_class(cls) -> None:
         """Setup test class."""
-        chain_configs = requests.get(url=ADDRESS_FILE_URL).json()
+        chain_configs = requests.get(url=ADDRESS_FILE_URL, timeout=30).json()
         cls.contracts = {
             _camel_case_to_snake_case(config["name"]): config["contracts"]
             for config in chain_configs

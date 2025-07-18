@@ -69,7 +69,7 @@ def resolve_component_id(
         ) from e
 
     try:
-        return r_get(url=metadata_uri).json()
+        return r_get(url=metadata_uri, timeout=30).json()
     except RequestConnectionError as e:
         raise FailedToRetrieveComponentMetadata(
             "Error connecting to the IPFS gateway"

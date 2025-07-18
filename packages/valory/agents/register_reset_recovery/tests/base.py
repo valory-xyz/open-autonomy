@@ -62,7 +62,7 @@ class BaseTestRegisterResetRecoveryEnd2End(
         # able to catch up with the rest of the network.
         # The agent should send a hard reset req to recover it.
         bad_params = {"initial_height": "10"}
-        requests.get(endpoint, params=bad_params)
+        requests.get(endpoint, params=bad_params, timeout=30)
 
     def test_run(self, nb_nodes: int) -> None:
         """Run the test."""

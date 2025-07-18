@@ -96,7 +96,9 @@ class GanacheDockerImage(DockerImage):
         request = dict(jsonrpc=2.0, method="web3_clientVersion", params=[], id=1)
         for i in range(max_attempts):
             try:
-                response = requests.post(f"{self._addr}:{self._port}", json=request)
+                response = requests.post(
+                    f"{self._addr}:{self._port}", json=request, timeout=30
+                )
                 enforce(response.status_code == 200, "")
                 return True
             except Exception:  # pylint: disable=broad-except

@@ -84,7 +84,7 @@ def wait_for_node(
         logging.debug(f"waiting for node... t={i}")
         i += 1
         time.sleep(sleep_amount)
-    response = requests.get(f"{http_}{loopback}:{rpc_port}/status")
+    response = requests.get(f"{http_}{loopback}:{rpc_port}/status", timeout=30)
     success = response.status_code == 200
     assert success, "Tendermint node not running"
     yield

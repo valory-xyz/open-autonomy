@@ -431,7 +431,7 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
         """Do a health-check."""
         end_point = self.tendermint_url() + "/health"
         try:
-            result = requests.get(end_point).status_code == 200
+            result = requests.get(end_point, timeout=30).status_code == 200
         except requests.exceptions.ConnectionError:
             result = False
         logging.debug(f"Health-check result {end_point}: {result}")
@@ -491,7 +491,7 @@ class TestQuery(BaseABCITest, BaseTestABCITendermintIntegration):
         a query request to the ABCI connection.
         """
         logging.debug("Send request")
-        response = requests.get(self.tendermint_url() + "/abci_query")
+        response = requests.get(self.tendermint_url() + "/abci_query", timeout=30)
         assert response.status_code == 200
 
 
@@ -508,7 +508,9 @@ class TestTransaction(BaseABCITest, BaseTestABCITendermintIntegration):
         """
         logging.debug("Send request")
         response = requests.get(
-            self.tendermint_url() + "/broadcast_tx_commit", params=dict(tx="0x01")
+            self.tendermint_url() + "/broadcast_tx_commit",
+            params=dict(tx="0x01"),
+            timeout=30,
         )
         assert response.status_code == 200
 

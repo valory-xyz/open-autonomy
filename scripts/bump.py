@@ -100,8 +100,10 @@ def make_git_request(url: str) -> requests.Response:
     """Make git request"""
     auth = os.environ.get("GITHUB_AUTH")
     if auth is None:
-        return requests.get(url=url)
-    return requests.get(url=url, headers={"Authorization": f"Bearer {auth}"})
+        return requests.get(url=url, timeout=30)
+    return requests.get(
+        url=url, headers={"Authorization": f"Bearer {auth}"}, timeout=30
+    )
 
 
 def get_latest_tag(repo: str) -> str:

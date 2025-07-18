@@ -236,7 +236,7 @@ class TestTendermintServerApp(BaseTendermintServerTest):
     @wait_for_node_to_run
     def test_get_request_status(self, http_: str, loopback: str, rpc_port: int) -> None:
         """Check local node is running"""
-        response = requests.get(f"{http_}{loopback}:{rpc_port}/status")
+        response = requests.get(f"{http_}{loopback}:{rpc_port}/status", timeout=30)
         data = response.json()
         assert data["result"]["node_info"]["version"] == VERSION
 

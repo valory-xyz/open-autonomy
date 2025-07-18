@@ -80,7 +80,7 @@ class TestRunServiceLocally(BaseCliTest):
 
         for _ in range(max_retries):
             try:
-                res = requests.get(self.expected_network_address)
+                res = requests.get(self.expected_network_address, timeout=30)
                 assert res.status_code == 200, "bad response from the network"
                 # we return in this case
                 self._stop_cli_process()
