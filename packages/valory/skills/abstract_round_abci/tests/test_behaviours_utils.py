@@ -263,11 +263,11 @@ def test_async_behaviour_wait_for_message_raises_timeout_exception() -> None:
         behaviour = AsyncBehaviourTest()
         gen = behaviour.wait_for_message(lambda _: False, timeout=0.01)
         # trigger function
-        try_send(gen)
+        try_send(cast(Generator[Any, None, None], gen))
         # sleep so to run out the timeout
         time.sleep(0.02)
         # trigger function and make the exception to raise
-        try_send(gen)
+        try_send(cast(Generator[Any, None, None], gen))
 
 
 def test_async_behaviour_wait_for_condition() -> None:
@@ -584,7 +584,7 @@ class TestBaseBehaviour:
             BaseBehaviour, "_do_ipfs_request", side_effect=dummy_do_ipfs_req
         ) as do_req:
             generator = self.behaviour.send_to_ipfs("dummy_filename", {})
-            try_send(generator)
+            try_send(cast(Generator[Any, None, None], generator))
             build_req.assert_called()
             do_req.assert_called()
             assert expected_log in caplog.text
@@ -598,7 +598,7 @@ class TestBaseBehaviour:
             side_effect=IPFSInteractionError,
         ), caplog.at_level(logging.ERROR):
             generator = self.behaviour.send_to_ipfs("dummy_filename", {})
-            try_send(generator)
+            try_send(cast(Generator[Any, None, None], generator))
             assert expected_logs in caplog.text
 
     def test_do_ipfs_request(self) -> None:
@@ -623,7 +623,7 @@ class TestBaseBehaviour:
                 dialogue,
                 message,
             )
-            try_send(gen)
+            try_send(gen)  # type: ignore[arg-type]
 
     @pytest.mark.parametrize(
         "ipfs_response, expected_log",
@@ -670,7 +670,7 @@ class TestBaseBehaviour:
             BaseBehaviour, "_do_ipfs_request", side_effect=dummy_do_ipfs_req
         ) as do_req:
             generator = self.behaviour.get_from_ipfs("dummy_ipfs_hash")
-            try_send(generator)
+            try_send(cast(Generator[Any, None, None], generator))
             build_req.assert_called()
             do_req.assert_called()
             assert expected_log in caplog.text
@@ -682,7 +682,7 @@ class TestBaseBehaviour:
             IPFSBehaviour, "_build_ipfs_get_file_req", side_effect=IPFSInteractionError
         ), caplog.at_level(logging.ERROR):
             generator = self.behaviour.get_from_ipfs("dummy_ipfs_hash")
-            try_send(generator)
+            try_send(cast(Generator[Any, None, None], generator))
             assert expected_logs in caplog.text
 
     def test_params_property(self) -> None:
@@ -1394,17 +1394,17 @@ class TestBaseBehaviour:
         """Test '_wait_until_transaction_delivered' method."""
         gen = self.behaviour._wait_until_transaction_delivered(MagicMock())
         # trigger generator function
-        try_send(gen, obj=None)
+        try_send(gen, obj=None)  # type: ignore[arg-type]
 
         # first check attempt fails
         failure_response = MagicMock(status_code=500)
-        try_send(gen, failure_response)
+        try_send(gen, failure_response)  # type: ignore[arg-type]
 
         # second check attempt succeeds
         success_response = MagicMock(
             status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
         )
-        try_send(gen, success_response)
+        try_send(gen, success_response)  # type: ignore[arg-type]
 
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
     @mock.patch.object(
@@ -1421,18 +1421,18 @@ class TestBaseBehaviour:
             MagicMock(), max_attempts=0
         )
         # trigger generator function
-        try_send(gen, obj=None)
+        try_send(gen, obj=None)  # type: ignore[arg-type]
 
         # first check attempt fails
         failure_response = MagicMock(status_code=500)
-        try_send(gen, failure_response)
+        try_send(gen, failure_response)  # type: ignore[arg-type]
 
         # second check attempt succeeds
         success_response = MagicMock(
             status_code=200, body='{"result": {"tx_result": {"code": -1}}}'
         )
-        try_send(gen, success_response)
-
+        try_send(gen, success_response)  # type: ignore[arg-type]
+        
     @pytest.mark.skipif(
         platform.system() == "Windows",
         reason="https://github.com/valory-xyz/open-autonomy/issues/1477",
@@ -1442,7 +1442,7 @@ class TestBaseBehaviour:
         gen = self.behaviour._wait_until_transaction_delivered(MagicMock(), timeout=0.0)
         with pytest.raises(TimeoutException):
             # trigger generator function
-            try_send(gen, obj=None)
+            try_send(gen, obj=None)  # type: ignore[arg-type]
 
     @mock.patch.object(behaviour_utils, "Terms")
     def test_get_default_terms(self, *_: Any) -> None:
@@ -1678,8 +1678,8 @@ class TestBaseBehaviour:
             ),
         ):
             gen = self.behaviour.get_transaction_receipt("tx_digest")
-            try_send(gen)
-            try_send(gen)
+            try_send(gen)  # type: ignore[arg-type]
+            try_send(gen)  # type: ignore[arg-type]
             assert "Error when requesting transaction receipt" in caplog.text
 
     @pytest.mark.parametrize("contract_address", [None, "contract_address"])
@@ -1698,9 +1698,9 @@ class TestBaseBehaviour:
                 MagicMock(), contract_address, "contract_id", "contract_callable"
             )
             # first trigger
-            try_send(gen, obj=None)
+            try_send(gen, obj=None)  # type: ignore[arg-type]
             # wait for message
-            try_send(gen, obj=MagicMock())
+            try_send(gen, obj=MagicMock())  # type: ignore[arg-type]
 
     @mock.patch.object(
         BaseBehaviour, "_build_http_request_message", return_value=(None, None)

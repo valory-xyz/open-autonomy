@@ -416,26 +416,26 @@ class TestAbciAppChaining:
             for r in abci_app_cls.get_all_rounds():
                 r.synchronized_data_class = sync_data_cls
 
-        abci_app_cls = chain(
+        abci_app_cls_type: Type[AbciApp] = chain(
             (self.app1_class, self.app2_class), abci_app_transition_mapping
         )
         synchronized_data = sync_data_cls_app2(db=AbciAppDB(setup_data={}))
-        abci_app = abci_app_cls(synchronized_data, logging.getLogger(), MagicMock())
+        chained_abci_app = abci_app_cls_type(synchronized_data, logging.getLogger(), MagicMock())
 
-        assert abci_app.initial_round_cls == self.round_1a
-        assert isinstance(abci_app.synchronized_data, sync_data_cls_app1)
-        assert abci_app.synchronized_data.dummy_attr == sentinel_app1
+        assert chained_abci_app.initial_round_cls == self.round_1a
+        assert isinstance(chained_abci_app.synchronized_data, sync_data_cls_app1)
+        assert chained_abci_app.synchronized_data.dummy_attr == sentinel_app1
 
         app2_classes = self.app2_class.get_all_rounds()
-        for round_ in sorted(abci_app.get_all_rounds(), key=str):
-            abci_app._round_results.append(abci_app.synchronized_data)
-            abci_app.schedule_round(make_concrete(round_))
+        for round_ in sorted(chained_abci_app.get_all_rounds(), key=str):
+            chained_abci_app._round_results.append(chained_abci_app.synchronized_data)
+            chained_abci_app.schedule_round(make_concrete(round_))
             expected_cls = (sync_data_cls_app1, sync_data_cls_app2)[
                 round_ in app2_classes
             ]
-            assert isinstance(abci_app.synchronized_data, expected_cls)
+            assert isinstance(chained_abci_app.synchronized_data, expected_cls)
             expected_sentinel = (sentinel_app1, sentinel_app2)[round_ in app2_classes]
-            assert abci_app.synchronized_data.dummy_attr == expected_sentinel
+            assert chained_abci_app.synchronized_data.dummy_attr == expected_sentinel
 
     def test_precondition_for_next_app_missing_raises(
         self, caplog: LogCaptureFixture

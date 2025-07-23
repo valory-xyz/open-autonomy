@@ -201,20 +201,26 @@ class BaseTxPayload(metaclass=_MetaPayload):
     def data(self) -> Dict[str, Any]:
         """Data"""
         excluded = ["sender", "round_count", "id_"]
-        return {k: v for k, v in asdict(self).items() if k not in excluded}
+        if is_dataclass(self) and not isinstance(self, type):
+            return {k: v for k, v in asdict(cast(Any, self)).items() if k not in excluded}
+        raise ValueError("data can only be accessed for dataclasses")
 
     @property
     def values(self) -> Tuple[Any, ...]:
         """Data"""
         excluded = 3  # refers to ["sender", "round_count", "id_"]
-        return astuple(self)[excluded:]
+        if is_dataclass(self) and not isinstance(self, type):
+            return astuple(self)[excluded:]
+        raise ValueError("values can only be accessed for dataclasses")
 
     @property
     def json(self) -> Dict[str, Any]:
         """Json"""
-        data, cls = asdict(self), self.__class__
-        data["_metaclass_registry_key"] = f"{cls.__module__}.{cls.__name__}"
-        return data
+        if is_dataclass(self) and not isinstance(self, type):
+            data, cls = asdict(self), self.__class__
+            data["_metaclass_registry_key"] = f"{cls.__module__}.{cls.__name__}"
+            return data
+        raise ValueError("json can only be accessed for dataclasses")
 
     @classmethod
     def from_json(cls, obj: Dict) -> "BaseTxPayload":
@@ -3165,7 +3171,7 @@ class OffenseStatusEncoder(json.JSONEncoder):
 
     def default(self, o: Any) -> Any:
         """The default JSON encoder."""
-        if is_dataclass(o):
+        if is_dataclass(o) and not isinstance(o, type):
             return asdict(o)
         if isinstance(o, AvailabilityWindow):
             return o.to_dict()

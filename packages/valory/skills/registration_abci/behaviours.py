@@ -221,7 +221,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         self.context.logger.info(f"{log_message}: {contract_api_response}")
         return cast(dict, contract_api_response.state.body)
 
-    def get_addresses(self) -> Generator:  # pylint: disable=too-many-return-statements
+    def get_addresses(self) -> Generator[None, None, bool]:  # pylint: disable=too-many-return-statements
         """Get addresses of agents registered for the service"""
 
         service_registry_address = self.params.service_registry_address

@@ -153,8 +153,8 @@ def check_code_blocks_exist(
     code_process_fn: Optional[Callable] = None,
 ) -> None:
     """Check code blocks from the documentation"""
-    code_files: List = code_info.get("code_files", None)
-    skip_blocks: List = code_info.get("skip_blocks", None)
+    code_files: List = code_info.get("code_files", [])
+    skip_blocks: List = code_info.get("skip_blocks", [])
 
     # Load the code blocks from the doc file
     doc_path = os.path.join(ROOT_DIR, md_file)
