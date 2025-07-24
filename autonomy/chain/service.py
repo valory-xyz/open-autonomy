@@ -178,7 +178,7 @@ def is_service_token_secured(
     return response["is_token_secured_service"]
 
 
-def approve_erc20_usage(  # pylint: disable=too-many-arguments, too-many-locals
+def approve_erc20_usage(  # pylint: disable=too-many-locals
     ledger_api: LedgerApi,
     crypto: Crypto,
     chain_type: ChainType,
@@ -239,7 +239,7 @@ def approve_erc20_usage(  # pylint: disable=too-many-arguments, too-many-locals
 class ServiceManager:
     """Service manager."""
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         ledger_api: LedgerApi,
         crypto: Crypto,
@@ -258,7 +258,7 @@ class ServiceManager:
         self.sleep = sleep
         self.dry_run = dry_run
 
-    def _transact(  # pylint: disable=too-many-arguments
+    def _transact(
         self,
         method: Callable,
         kwargs: Dict,

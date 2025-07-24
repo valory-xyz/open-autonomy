@@ -252,7 +252,7 @@ def docstrings(ctx: Context, update: bool) -> None:
     type=str,
     help="Regex pattern to exclude from the result.",
 )
-def _parse_logs(  # pylint: disable=too-many-arguments
+def _parse_logs(
     logs_dir: Optional[Path],
     agents: List[str],
     start_time: Optional[datetime],

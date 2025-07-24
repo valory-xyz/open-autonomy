@@ -851,7 +851,7 @@ class BlockID:
 class Header:  # pylint: disable=too-many-instance-attributes
     """This class represents an instance of Header."""
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         version: ConsensusVersion,
         chain_id: str,

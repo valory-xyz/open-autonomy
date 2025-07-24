@@ -85,7 +85,7 @@ def get_packages_from_repository(repo_url: str) -> Dict[str, str]:
         latest_release_tag = repo_info["tag_name"]
         url = f"https://raw.githubusercontent.com/{repo_url}/{latest_release_tag}/packages/packages.json"
     else:
-        raise Exception(
+        raise requests.RequestException(
             f"Failed to fetch repository information from GitHub API for: {repo_url}"
         )
 
@@ -96,7 +96,7 @@ def get_packages_from_repository(repo_url: str) -> Dict[str, str]:
             return {**data["dev"], **data["third_party"]}
         return data
 
-    raise Exception(f"Failed to fetch data from URL: {url}")
+    raise requests.RequestException(f"Failed to fetch data from URL: {url}")
 
 
 class Package:  # pylint: disable=too-few-public-methods

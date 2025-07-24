@@ -32,7 +32,7 @@ PACKAGE_DIR = Path(__file__).parent.parent
 
 
 @skip_docker_tests
-class TestAgentRegistry(BaseRegistriesContractsTest):
+class TestAgentRegistry(BaseRegistriesContractsTest):  # pylint: disable=too-few-public-methods
     """Test agent registry."""
 
     contract: AgentRegistryContract

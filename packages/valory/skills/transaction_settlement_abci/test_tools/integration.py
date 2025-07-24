@@ -65,7 +65,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 
-# pylint: disable=protected-access,too-many-ancestors,unbalanced-tuple-unpacking,too-many-locals,consider-using-with,unspecified-encoding,too-many-arguments,unidiomatic-typecheck
+# pylint: disable=protected-access,too-many-ancestors,unbalanced-tuple-unpacking,too-many-locals,consider-using-with,unspecified-encoding,unidiomatic-typecheck
 
 
 DUMMY_MAX_FEE_PER_GAS = 4000000000

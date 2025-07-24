@@ -69,7 +69,7 @@ class RegistriesManagerContract(Contract):
         raise NotImplementedError  # pragma: nocover
 
     @classmethod
-    def get_create_transaction(  # pylint: disable=too-many-arguments
+    def get_create_transaction(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
@@ -101,7 +101,7 @@ class RegistriesManagerContract(Contract):
         return tx_params
 
     @classmethod
-    def get_update_hash_transaction(  # pylint: disable=too-many-arguments
+    def get_update_hash_transaction(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,

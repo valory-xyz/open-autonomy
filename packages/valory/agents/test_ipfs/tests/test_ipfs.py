@@ -46,7 +46,7 @@ TIME_TO_FINISH = 60  # 1 minute
 @pytest.mark.e2e
 @pytest.mark.integration
 @pytest.mark.parametrize("nb_nodes", (1,))
-class TestIpfs(
+class TestIpfs(  # pylint: disable=too-few-public-methods
     BaseTestEnd2EndExecution,
 ):
     """Test whether uploading and receiving from IPFS works.."""

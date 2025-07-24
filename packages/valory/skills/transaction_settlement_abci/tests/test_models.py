@@ -46,7 +46,7 @@ class TestTransactionParams:  # pylint: disable=too-few-public-methods
             skill = yaml.safe_load(skill_file)
         self.default_config = skill["models"]["params"]["args"]
 
-    def test_ensure_validate_timeout(  # pylint: disable=no-self-use
+    def test_ensure_validate_timeout(
         self,
     ) -> None:
         """Test that `_ensure_validate_timeout` raises when `validate_timeout` is lower than the allowed minimum."""

@@ -125,3 +125,7 @@ class GanacheForkDockerImage(GanacheDockerImage):
         ]
 
         return cmd
+
+    def create_many(self, nb_containers: int) -> List[Container]:
+        """Instantiate the image in many containers, parametrized."""
+        raise NotImplementedError()

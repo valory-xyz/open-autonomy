@@ -96,7 +96,7 @@ class PeriodDumper:
         self.dump_dir = dump_dir or Path("/tm_state")
 
         if self.dump_dir.is_dir():
-            shutil.rmtree(str(self.dump_dir), onerror=self.readonly_handler)
+            shutil.rmtree(str(self.dump_dir), onerror=self.readonly_handler)  # pylint: disable=deprecated-argument
         self.dump_dir.mkdir(exist_ok=True)
 
     @staticmethod
@@ -108,7 +108,7 @@ class PeriodDumper:
             os.chmod(path, stat.S_IWRITE)
             func(path)
         except (FileNotFoundError, OSError):
-            return
+            pass
 
     def dump_period(self) -> None:
         """Dump tendermint run data for replay"""

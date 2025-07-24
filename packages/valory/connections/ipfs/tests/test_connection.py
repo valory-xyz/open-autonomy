@@ -273,7 +273,7 @@ class TestIpfsConnection:
             message = self.connection._handle_get_files(message, dialogue)
             assert message is not None
 
-    def test_ipfs_dialogue(self) -> None:  # pylint: disable=no-self-use
+    def test_ipfs_dialogue(self) -> None:
         """Test 'IpfsDialogues' creation."""
         dialogues = IpfsDialogues(connection_id=str(PUBLIC_ID))
         dialogues.create(

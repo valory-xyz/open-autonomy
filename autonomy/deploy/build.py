@@ -34,7 +34,7 @@ DEPLOYMENT_OPTIONS: Dict[str, Type[BaseDeploymentGenerator]] = {
 }
 
 
-def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
+def generate_deployment(  # pylint: disable=too-many-locals
     service_hash_id: str,
     service_offset: int,
     type_of_deployment: str,

@@ -235,7 +235,7 @@ def deploy_group(
 @password_option(confirmation_prompt=True)
 @image_author_option
 @click.pass_context
-def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-locals
+def build_deployment_command(  # pylint: disable=too-many-locals
     click_context: click.Context,
     keys_file: Optional[Path],
     deployment_type: str,
@@ -463,7 +463,7 @@ def stop(build_dir: Path) -> None:
 @chain_selection_flag(help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 @password_option(confirmation_prompt=True)
-def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-locals
+def run_deployment_from_token(  # pylint: disable=too-many-locals
     click_context: click.Context,
     token_id: int,
     keys_file: Path,

@@ -74,7 +74,7 @@ SLASHING_STRICT_CHECKS = (
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
-class SlashingE2E(UseRegistries, UseACNNode, BaseTestEnd2End):
+class SlashingE2E(UseRegistries, UseACNNode, BaseTestEnd2End):  # pylint: disable=too-few-public-methods
     """Test that slashing works right."""
 
     package_registry_src_rel = Path(__file__).parents[4]
@@ -97,7 +97,7 @@ class SlashingE2E(UseRegistries, UseACNNode, BaseTestEnd2End):
 
 
 @pytest.mark.e2e
-class TestSlashingThresholdUnmet(SlashingE2E, BaseTestEnd2EndExecution):
+class TestSlashingThresholdUnmet(SlashingE2E, BaseTestEnd2EndExecution):  # pylint: disable=too-few-public-methods
     """Test that slashing works right."""
 
     happy_path = NO_SLASHING_HAPPY_PATH
@@ -110,7 +110,7 @@ class TestSlashingThresholdUnmet(SlashingE2E, BaseTestEnd2EndExecution):
 
 
 @pytest.mark.e2e
-class TestSlashing(SlashingE2E, BaseTestEnd2EndExecution):
+class TestSlashing(SlashingE2E, BaseTestEnd2EndExecution):  # pylint: disable=too-few-public-methods
     """Test that slashing works right."""
 
     happy_path = SLASHING_HAPPY_PATH

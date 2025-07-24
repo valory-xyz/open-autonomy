@@ -66,7 +66,7 @@ TERMINATION_STRINGS = (
 @pytest.mark.e2e
 @pytest.mark.integration
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestTermination(
+class TestTermination(  # pylint: disable=too-few-public-methods
     BaseTestTerminationEnd2End,
     UseRegistries,
 ):

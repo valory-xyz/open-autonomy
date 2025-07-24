@@ -415,7 +415,7 @@ class SquadsMultisig(Contract):
         }
 
     @classmethod
-    def create_transaction_ix(  # pylint: disable=too-many-arguments
+    def create_transaction_ix(
         cls,
         ledger_api: LedgerApi,
         contract_address: Pubkey,
@@ -468,7 +468,7 @@ class SquadsMultisig(Contract):
         return {"recent_blockhash": ledger_api.latest_hash, "ixs": [ix]}
 
     @classmethod
-    def add_instruction_ix(  # pylint: disable=too-many-arguments
+    def add_instruction_ix(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
@@ -545,7 +545,7 @@ class SquadsMultisig(Contract):
         return {"recent_blockhash": ledger_api.latest_hash, "ixs": [ix]}
 
     @classmethod
-    def create_new_transaction_ix(  # pylint: disable=too-many-arguments
+    def create_new_transaction_ix(
         cls,
         ledger_api: LedgerApi,
         contract_address: Pubkey,
@@ -627,7 +627,7 @@ class SquadsMultisig(Contract):
         return {"recent_blockhash": ledger_api.latest_hash, "ixs": [ix]}
 
     @classmethod
-    def execute_transaction_ix(  # pylint: disable=too-many-arguments, too-many-locals
+    def execute_transaction_ix(  # pylint: disable=too-many-locals
         cls,
         ledger_api: LedgerApi,
         contract_address: str,

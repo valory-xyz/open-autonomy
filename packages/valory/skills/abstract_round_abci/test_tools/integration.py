@@ -48,7 +48,7 @@ from packages.valory.skills.abstract_round_abci.test_tools.base import (
 )
 
 
-# pylint: disable=protected-access,too-many-ancestors,unbalanced-tuple-unpacking,too-many-locals,consider-using-with,unspecified-encoding,too-many-arguments,unidiomatic-typecheck
+# pylint: disable=protected-access,too-many-ancestors,unbalanced-tuple-unpacking,too-many-locals,consider-using-with,unspecified-encoding,unidiomatic-typecheck
 
 HandlersType = List[Optional[Handler]]
 ExpectedContentType = List[

@@ -23,7 +23,7 @@
 from aea_test_autonomy.docker.tendermint import FlaskTendermintDockerImage
 
 
-class SlowFlaskTendermintDockerImage(FlaskTendermintDockerImage):
+class SlowFlaskTendermintDockerImage(FlaskTendermintDockerImage):  # pylint: disable=too-few-public-methods
     """A tendermint server that is slow to respond."""
 
     @property

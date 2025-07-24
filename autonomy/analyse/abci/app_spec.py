@@ -179,7 +179,7 @@ class DFA:
         final_states: Set[str],
         alphabet_in: Set[str],
         transition_func: Dict[Tuple[str, str], str],
-    ):  # pylint: disable=too-many-arguments
+    ):
         """Initialize DFA object."""
         transition_func_in_states, transition_func_alphabet_in = map(
             set, zip(*transition_func.keys())

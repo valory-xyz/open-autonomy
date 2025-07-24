@@ -28,7 +28,7 @@ from packages.valory.skills.termination_abci.models import SharedState
 class TestSharedState:  # pylint: disable=too-few-public-methods
     """Test SharedState(Model) class."""
 
-    def test_initialization(  # pylint: disable=no-self-use
+    def test_initialization(
         self,
     ) -> None:
         """Test initialization."""

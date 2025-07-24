@@ -274,7 +274,7 @@ class IpfsConnection(Connection):
             )
             return response_message
 
-    def _handle_error(  # pylint: disable=no-self-use
+    def _handle_error(
         self, reason: str, dialogue: BaseDialogue
     ) -> IpfsMessage:
         """Handler for error messages."""

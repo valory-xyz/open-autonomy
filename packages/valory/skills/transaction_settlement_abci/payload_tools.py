@@ -89,7 +89,7 @@ def tx_hist_hex_to_payload(payload: str) -> Tuple[VerificationStatus, Optional[s
     return verification_status, "0x" + payload[64:]
 
 
-def hash_payload_to_hex(  # pylint: disable=too-many-arguments, too-many-locals
+def hash_payload_to_hex(  # pylint: disable=too-many-locals
     safe_tx_hash: str,
     ether_value: int,
     safe_tx_gas: int,

@@ -105,7 +105,7 @@ class _MetaRoundBehaviour(ABCMeta):
             _ = behaviour_cls.behaviours
             _ = behaviour_cls.initial_behaviour_cls
         except AttributeError as e:
-            raise ABCIAppInternalError(*e.args) from None
+            raise ABCIAppInternalError(str(e), *e.args) from None
 
     @classmethod
     def _check_behaviour_id_uniqueness(

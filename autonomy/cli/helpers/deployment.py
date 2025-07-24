@@ -245,7 +245,7 @@ def stop_deployment(build_dir: Path) -> None:
         raise click.ClickException(e.explanation)
 
 
-def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
+def build_deployment(  # pylint: disable=too-many-locals
     keys_file: Path,
     build_dir: Path,
     deployment_type: str,
@@ -352,7 +352,7 @@ def _resolve_on_chain_token_id(
     return metadata, agent_instances, multisig_address, consensus_threshold
 
 
-def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many-locals
+def build_and_deploy_from_token(  # pylint: disable=too-many-locals
     token_id: int,
     keys_file: Path,
     chain_type: ChainType,

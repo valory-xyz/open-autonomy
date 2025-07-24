@@ -615,12 +615,12 @@ class TendermintHandler(Handler):
         message = cast(TendermintMessage, message)
         handler_name = f"_{message.performative.value}"
         handler = getattr(self, handler_name, None)
-        if handler is None:
+        if handler is None or not callable(handler):
             log_message = self.LogMessages.performative_not_recognized.value
             self.context.logger.error(f"{log_message}: {message}")
             return
 
-        handler(message, dialogue)
+        handler(message, dialogue)  # pylint:disable=not-callable  # callability is checked above
 
     def _reply_with_tendermint_error(
         self,

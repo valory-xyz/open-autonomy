@@ -70,7 +70,7 @@ class IPFSInteract:
         except Exception as e:  # pylint: disable=broad-except
             raise IPFSInteractionError(str(e)) from e
 
-    def load(  # pylint: disable=too-many-arguments
+    def load(
         self,
         serialized_objects: Dict[str, str],
         filetype: Optional[SupportedFiletype] = None,

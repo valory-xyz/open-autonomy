@@ -133,7 +133,7 @@ def mint(
 @owner_flag
 @update_flag
 @pass_ctx
-def protocol(  # pylint: disable=too-many-arguments
+def protocol(
     ctx: Context,
     package_path: Path,
     key: Path,
@@ -179,7 +179,7 @@ def protocol(  # pylint: disable=too-many-arguments
 @owner_flag
 @update_flag
 @pass_ctx
-def contract(  # pylint: disable=too-many-arguments
+def contract(
     ctx: Context,
     package_path: Path,
     key: Path,
@@ -225,7 +225,7 @@ def contract(  # pylint: disable=too-many-arguments
 @owner_flag
 @update_flag
 @pass_ctx
-def connection(  # pylint: disable=too-many-arguments
+def connection(
     ctx: Context,
     package_path: Path,
     key: Path,
@@ -271,7 +271,7 @@ def connection(  # pylint: disable=too-many-arguments
 @owner_flag
 @update_flag
 @pass_ctx
-def skill(  # pylint: disable=too-many-arguments
+def skill(
     ctx: Context,
     package_path: Path,
     key: Path,
@@ -317,7 +317,7 @@ def skill(  # pylint: disable=too-many-arguments
 @owner_flag
 @update_flag
 @pass_ctx
-def agent(  # pylint: disable=too-many-arguments
+def agent(
     ctx: Context,
     package_path: Path,
     key: Path,
@@ -389,7 +389,7 @@ def agent(  # pylint: disable=too-many-arguments
     type=int,
     help="Threshold for the minimum numbers required to run the service",
 )
-def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-arguments
+def service(
     ctx: Context,
     package_path: Path,
     key: Path,

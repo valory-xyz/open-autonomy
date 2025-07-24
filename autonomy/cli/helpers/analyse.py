@@ -161,7 +161,7 @@ class ParseLogs:
 
         return self
 
-    def select(  # pylint: disable=too-many-arguments
+    def select(
         self,
         agents: List[str],
         start_time: Optional[datetime],

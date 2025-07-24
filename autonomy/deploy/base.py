@@ -158,7 +158,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
     deplopyment_type: str = DOCKER_COMPOSE_DEPLOYMENT
     log_level: str = INFO
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         service: Service,
         keys: Optional[List[Union[List[Dict[str, str]], Dict[str, str]]]] = None,
@@ -262,7 +262,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         return self._keys
 
     @classmethod
-    def from_dir(  # pylint: disable=too-many-arguments
+    def from_dir(
         cls,
         path: Path,
         keys_file: Optional[Path] = None,
@@ -767,7 +767,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
     open_aea_dir: Optional[Path]
     resources: Resources
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         service_builder: ServiceBuilder,
         build_dir: Path,

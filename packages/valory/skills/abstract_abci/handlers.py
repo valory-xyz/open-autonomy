@@ -101,7 +101,7 @@ class ABCIHandler(Handler):
             f"An exception occurred: {error_message} for message: {message}"
         )
 
-    def echo(  # pylint: disable=no-self-use
+    def echo(
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """
@@ -118,7 +118,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def info(  # pylint: disable=no-self-use
+    def info(
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """
@@ -144,7 +144,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def flush(  # pylint: disable=no-self-use
+    def flush(
         self,
         message: AbciMessage,
         dialogue: AbciDialogue,
@@ -162,7 +162,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def set_option(  # pylint: disable=no-self-use
+    def set_option(
         self,
         message: AbciMessage,
         dialogue: AbciDialogue,
@@ -183,7 +183,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def init_chain(  # pylint: disable=no-self-use
+    def init_chain(
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """
@@ -203,7 +203,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def query(  # pylint: disable=no-self-use
+    def query(
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """
@@ -228,7 +228,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def check_tx(  # pylint: disable=no-self-use
+    def check_tx(
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """
@@ -252,7 +252,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def deliver_tx(  # pylint: disable=no-self-use
+    def deliver_tx(
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """
@@ -276,7 +276,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def begin_block(  # pylint: disable=no-self-use
+    def begin_block(
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """
@@ -293,7 +293,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def end_block(  # pylint: disable=no-self-use
+    def end_block(
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """
@@ -311,7 +311,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def commit(  # pylint: disable=no-self-use
+    def commit(
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """
@@ -329,7 +329,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def list_snapshots(  # pylint: disable=no-self-use
+    def list_snapshots(
         self,
         message: AbciMessage,
         dialogue: AbciDialogue,
@@ -348,7 +348,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def offer_snapshot(  # pylint: disable=no-self-use
+    def offer_snapshot(
         self,
         message: AbciMessage,
         dialogue: AbciDialogue,
@@ -367,7 +367,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def load_snapshot_chunk(  # pylint: disable=no-self-use
+    def load_snapshot_chunk(
         self,
         message: AbciMessage,
         dialogue: AbciDialogue,
@@ -386,7 +386,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def apply_snapshot_chunk(  # pylint: disable=no-self-use
+    def apply_snapshot_chunk(
         self,
         message: AbciMessage,
         dialogue: AbciDialogue,

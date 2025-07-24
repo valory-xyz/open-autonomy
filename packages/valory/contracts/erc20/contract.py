@@ -84,7 +84,7 @@ class ERC20TokenContract(Contract):
         raise NotImplementedError
 
     @classmethod
-    def get_approve_tx(  # pylint: disable=too-many-arguments
+    def get_approve_tx(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,

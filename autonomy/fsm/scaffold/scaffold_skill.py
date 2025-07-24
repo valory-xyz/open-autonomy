@@ -116,7 +116,7 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         main_config = SkillComponentConfiguration(round_behaviour_cls_name)
         config.behaviours.create("main", main_config)
 
-    def _update_handlers(  # pylint: disable=no-self-use
+    def _update_handlers(
         self, config: SkillConfig
     ) -> None:
         """Update the handlers section of the skill configuration."""
@@ -135,7 +135,7 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         )
         config.handlers.create("ipfs", SkillComponentConfiguration("IpfsHandler"))
 
-    def _update_models(  # pylint: disable=no-self-use
+    def _update_models(
         self, config: SkillConfig
     ) -> None:
         """Update the models section of the skill configuration."""

@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-# pylint: disable=unused-argument,no-self-use
+# pylint: disable=unused-argument
 
 """Tests for valory/test_ipfs_abci skill's behaviours."""
 

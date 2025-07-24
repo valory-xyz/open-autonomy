@@ -404,7 +404,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         )
         return message, dialogue
 
-    def _build_ipfs_store_file_req(  # pylint: disable=too-many-arguments
+    def _build_ipfs_store_file_req(
         self,
         filename: str,
         obj: SupportedObjectType,
@@ -453,7 +453,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         )
         return message, dialogue
 
-    def _deserialize_ipfs_objects(  # pylint: disable=too-many-arguments
+    def _deserialize_ipfs_objects(
         self,
         serialized_objects: Dict[str, str],
         filetype: Optional[SupportedFiletype] = None,
@@ -787,7 +787,7 @@ class BaseBehaviour(
         """Get the request nonce for the request, from the protocol's dialogue."""
         return dialogue.dialogue_label.dialogue_reference[0]
 
-    def _send_transaction(  # pylint: disable=too-many-arguments,too-many-locals,too-many-statements
+    def _send_transaction(  # pylint: disable=too-many-locals,too-many-statements
         self,
         payload: BaseTxPayload,
         resetting: bool = False,
@@ -2027,7 +2027,7 @@ class BaseBehaviour(
         self._is_healthy = False
         return True
 
-    def send_to_ipfs(  # pylint: disable=too-many-arguments
+    def send_to_ipfs(
         self,
         filename: str,
         obj: SupportedObjectType,
@@ -2075,7 +2075,7 @@ class BaseBehaviour(
             )
             return None
 
-    def get_from_ipfs(  # pylint: disable=too-many-arguments
+    def get_from_ipfs(
         self,
         ipfs_hash: str,
         filetype: Optional[SupportedFiletype] = None,

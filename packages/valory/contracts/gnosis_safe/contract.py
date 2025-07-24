@@ -138,7 +138,7 @@ class GnosisSafeContract(Contract):
         return result
 
     @classmethod
-    def _get_deploy_transaction(  # pylint: disable=too-many-locals,too-many-arguments
+    def _get_deploy_transaction(  # pylint: disable=too-many-locals
         cls,
         ledger_api: EthereumApi,
         deployer_address: str,
@@ -253,7 +253,7 @@ class GnosisSafeContract(Contract):
         return tx_params, contract_address
 
     @classmethod
-    def get_raw_safe_transaction_hash(  # pylint: disable=too-many-arguments,too-many-locals
+    def get_raw_safe_transaction_hash(  # pylint: disable=too-many-locals
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
@@ -373,7 +373,7 @@ class GnosisSafeContract(Contract):
         return signatures
 
     @classmethod
-    def get_raw_safe_transaction(  # pylint: disable=too-many-arguments,too-many-locals
+    def get_raw_safe_transaction(  # pylint: disable=too-many-locals
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
@@ -507,7 +507,7 @@ class GnosisSafeContract(Contract):
         return dict(verified=verified)
 
     @classmethod
-    def verify_tx(  # pylint: disable=too-many-arguments,too-many-locals
+    def verify_tx(  # pylint: disable=too-many-locals
         cls,
         ledger_api: EthereumApi,
         contract_address: str,

@@ -56,7 +56,7 @@ class StoppableThread(Thread):
 class TendermintParams:  # pylint: disable=too-few-public-methods
     """Tendermint node parameters."""
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         proxy_app: str,
         rpc_laddr: str = DEFAULT_RPC_LISTEN_ADDRESS,

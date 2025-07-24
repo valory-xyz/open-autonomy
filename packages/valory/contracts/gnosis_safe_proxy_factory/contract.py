@@ -83,7 +83,7 @@ class GnosisSafeProxyFactoryContract(Contract):
         return super().get_deploy_transaction(ledger_api, deployer_address, **kwargs)
 
     @classmethod
-    def build_tx_deploy_proxy_contract_with_nonce(  # pylint: disable=too-many-arguments,too-many-locals
+    def build_tx_deploy_proxy_contract_with_nonce(  # pylint: disable=too-many-locals
         cls,
         ledger_api: EthereumApi,
         proxy_factory_address: str,

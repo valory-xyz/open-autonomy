@@ -120,7 +120,7 @@ class TestOffendBehaviour(FSMBehaviourBaseCase):
             (True, True, True, True, 5, 2, 1, 20),
         ),
     )
-    def test_updated_status(  # pylint: disable=too-many-arguments
+    def test_updated_status(
         self,
         suspected: bool,
         validator_downtime: bool,

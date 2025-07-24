@@ -79,7 +79,7 @@ class AgentLogsDB:
             detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
         )
 
-    def select(  # pylint: disable=too-many-arguments
+    def select(
         self,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,

@@ -95,7 +95,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         "_overrides",
     )
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         name: SimpleIdOrStr,
         author: SimpleIdOrStr,

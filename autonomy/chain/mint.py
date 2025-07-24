@@ -108,7 +108,7 @@ def get_min_threshold(n: int) -> int:
 class MintManager:
     """Mint helper."""
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         ledger_api: LedgerApi,
         crypto: Crypto,
@@ -243,7 +243,7 @@ class MintManager:
                 return event["args"]["unitId"]
         return None
 
-    def mint_service(  # pylint: disable=too-many-arguments
+    def mint_service(
         self,
         metadata_hash: str,
         agent_ids: List[int],
@@ -324,7 +324,7 @@ class MintManager:
                 return event["args"]["serviceId"]
         return None
 
-    def update_service(  # pylint: disable=too-many-arguments
+    def update_service(
         self,
         metadata_hash: str,
         service_id: int,
