@@ -128,6 +128,16 @@ def get_tm_container_name(index: int) -> str
 
 Format tendermint container name.
 
+<a id="autonomy.deploy.base.ServiceBuilder.get_network_name"></a>
+
+#### get`_`network`_`name
+
+```python
+def get_network_name() -> str
+```
+
+Get the network name.
+
 <a id="autonomy.deploy.base.ServiceBuilder.try_get_all_participants"></a>
 
 #### try`_`get`_`all`_`participants
