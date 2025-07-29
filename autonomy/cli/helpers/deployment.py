@@ -111,10 +111,12 @@ def _kill_containers(compose_app: docker_compose.TopLevelCommand) -> None:
         container.kill()
 
 
-def _load_compose_project(build_dir: Path) -> Project:
+def _load_compose_project(
+    build_dir: Path, options: Optional[Dict[str, str]] = None
+) -> Project:
     """Load docker compose project."""
     try:
-        return docker_compose.project_from_options(build_dir, {})
+        return docker_compose.project_from_options(build_dir, options or {})
     except ConfigurationError as e:  # pragma: no cover
         if "Invalid interpolation format" in e.msg:
             raise click.ClickException(
@@ -129,10 +131,12 @@ def run_deployment(
     no_recreate: bool = False,
     remove_orphans: bool = False,
     detach: bool = False,
+    project_name: Optional[str] = None,
 ) -> None:
     """Run deployment."""
     try:
-        project = _load_compose_project(build_dir=build_dir)
+        options = {"--project-name": project_name} if project_name else {}
+        project = _load_compose_project(build_dir=build_dir, options=options)
         commands = docker_compose.TopLevelCommand(project=project)
         commands.up(
             {
@@ -233,10 +237,11 @@ def run_host_deployment(build_dir: Path, detach: bool = False) -> None:
             tm_process.terminate()
 
 
-def stop_deployment(build_dir: Path) -> None:
+def stop_deployment(build_dir: Path, project_name: Optional[str] = None) -> None:
     """Stop running deployment."""
     try:
-        project = _load_compose_project(build_dir=build_dir)
+        options = {"--project-name": project_name} if project_name else {}
+        project = _load_compose_project(build_dir=build_dir, options=options)
         commands = docker_compose.TopLevelCommand(project=project)
         click.echo("\nDon't cancel while stopping services...")
         commands.down({"--volumes": False, "--remove-orphans": True, "--rmi": None})

@@ -12,7 +12,8 @@ Deployment helpers.
 def run_deployment(build_dir: Path,
                    no_recreate: bool = False,
                    remove_orphans: bool = False,
-                   detach: bool = False) -> None
+                   detach: bool = False,
+                   project_name: Optional[str] = None) -> None
 ```
 
 Run deployment.
@@ -32,7 +33,8 @@ Run host deployment.
 #### stop`_`deployment
 
 ```python
-def stop_deployment(build_dir: Path) -> None
+def stop_deployment(build_dir: Path,
+                    project_name: Optional[str] = None) -> None
 ```
 
 Stop running deployment.
