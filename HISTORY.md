@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.20.1 (2025-07-30)
+
+Autonomy:
+- Pins the `open-aea-user` docker image to `1.65.0` to keep it compatible with major releases of `open-aea`. #2342
+
 # 0.20.0 (2025-07-29)
 
 Autonomy:
