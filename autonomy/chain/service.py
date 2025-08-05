@@ -34,6 +34,8 @@ from autonomy.chain.constants import (
     GNOSIS_SAFE_PROXY_FACTORY_CONTRACT,
     GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT,
     MULTISEND_CONTRACT,
+    RECOVERY_MODULE_CONTRACT,
+    SAFE_MULTISIG_WITH_RECOVERY_MODULE_CONTRACT,
     SERVICE_MANAGER_CONTRACT,
     SERVICE_REGISTRY_CONTRACT,
     SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT,
@@ -422,6 +424,7 @@ class ServiceManager:
         service_id: int,
         fallback_handler: Optional[str] = None,
         reuse_multisig: bool = False,
+        use_recovery_module: bool = False,
     ) -> None:
         """
         Deploy service.
@@ -458,16 +461,28 @@ class ServiceManager:
             if _deployment_payload is None:
                 raise ServiceDeployFailed(error)
             deployment_payload = _deployment_payload
-            gnosis_safe_multisig = ContractConfigs.get(
-                GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT.name
-            ).contracts[self.chain_type]
+
+            if not use_recovery_module:
+                gnosis_safe_multisig = ContractConfigs.get(
+                    GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT.name
+                ).contracts[self.chain_type]
+            else:
+                gnosis_safe_multisig = ContractConfigs.get(
+                    RECOVERY_MODULE_CONTRACT.name
+                ).contracts[self.chain_type]                
         else:
             deployment_payload = get_delployment_payload(
                 fallback_handler=fallback_handler
             )
-            gnosis_safe_multisig = ContractConfigs.get(
-                GNOSIS_SAFE_PROXY_FACTORY_CONTRACT.name
-            ).contracts[self.chain_type]
+
+            if not use_recovery_module:
+                gnosis_safe_multisig = ContractConfigs.get(
+                    GNOSIS_SAFE_PROXY_FACTORY_CONTRACT.name
+                ).contracts[self.chain_type]
+            else:
+                gnosis_safe_multisig = ContractConfigs.get(
+                    SAFE_MULTISIG_WITH_RECOVERY_MODULE_CONTRACT.name
+                ).contracts[self.chain_type]
 
         self._transact(
             method=registry_contracts.service_manager.get_service_deploy_transaction,

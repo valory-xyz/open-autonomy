@@ -811,24 +811,37 @@ class ServiceHelper(OnChainHelper):
         self,
         reuse_multisig: bool = False,
         fallback_handler: Optional[str] = None,
+        use_recovery_module: bool = False,
     ) -> None:
         """Deploy a service with registration activated"""
 
-        self.check_required_enviroment_variables(
-            configs=(
-                ContractConfigs.service_manager,
-                ContractConfigs.service_registry,
-                ContractConfigs.gnosis_safe_proxy_factory,
-                ContractConfigs.gnosis_safe_same_address_multisig,
-                ContractConfigs.multisend,
+        if not use_recovery_module:
+            self.check_required_enviroment_variables(
+                configs=(
+                    ContractConfigs.service_manager,
+                    ContractConfigs.service_registry,
+                    ContractConfigs.gnosis_safe_proxy_factory,
+                    ContractConfigs.gnosis_safe_same_address_multisig,
+                    ContractConfigs.multisend,
+                )
             )
-        )
+        else:
+            self.check_required_enviroment_variables(
+                configs=(
+                    ContractConfigs.service_manager,
+                    ContractConfigs.service_registry,
+                    ContractConfigs.safe_multisig_with_recovery_module,
+                    ContractConfigs.recovery_module,
+                    ContractConfigs.multisend,
+                )
+            )
 
         try:
             self.manager.deploy(
                 service_id=self.service_id,
                 reuse_multisig=reuse_multisig,
                 fallback_handler=fallback_handler,
+                use_recovery_module=use_recovery_module,
             )
         except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(

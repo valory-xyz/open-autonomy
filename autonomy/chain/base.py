@@ -127,7 +127,7 @@ class RegistryContracts:  # pylint: disable=too-many-instance-attributes
     def service_manager(
         self,
     ) -> Contract:
-        """Returns an instance of the registries manager contract."""
+        """Returns an instance of the service manager contract."""
         if self._service_manager is None:
             self._service_manager = self.get_contract(
                 public_id=SERVICE_MANAGER_CONTRACT
@@ -139,7 +139,7 @@ class RegistryContracts:  # pylint: disable=too-many-instance-attributes
     def component_registry(
         self,
     ) -> Contract:
-        """Returns an instance of the registries manager contract."""
+        """Returns an instance of the component registry contract."""
         if self._component_registry is None:
             self._component_registry = self.get_contract(
                 public_id=COMPONENT_REGISTRY_CONTRACT
@@ -151,7 +151,7 @@ class RegistryContracts:  # pylint: disable=too-many-instance-attributes
     def agent_registry(
         self,
     ) -> Contract:
-        """Returns an instance of the registries manager contract."""
+        """Returns an instance of the agent registry contract."""
         if self._agent_registry is None:
             self._agent_registry = self.get_contract(
                 public_id=AGENT_REGISTRY_CONTRACT,
@@ -163,7 +163,7 @@ class RegistryContracts:  # pylint: disable=too-many-instance-attributes
     def service_registry(
         self,
     ) -> Contract:
-        """Returns an instance of the registries manager contract."""
+        """Returns an instance of the service registry contract."""
         if self._service_registry is None:
             self._service_registry = self.get_contract(
                 public_id=SERVICE_REGISTRY_CONTRACT,
@@ -187,7 +187,7 @@ class RegistryContracts:  # pylint: disable=too-many-instance-attributes
     def erc20(
         self,
     ) -> Contract:
-        """Returns an instance of the service registry token utility contract."""
+        """Returns an instance of the erc20 contract."""
         if self._erc20 is None:
             self._erc20 = self.get_contract(
                 public_id=ERC20_CONTRACT,
@@ -199,7 +199,7 @@ class RegistryContracts:  # pylint: disable=too-many-instance-attributes
     def gnosis_safe(
         self,
     ) -> Contract:
-        """Returns an instance of the service registry token utility contract."""
+        """Returns an instance of the gnosis safe contract."""
         if self._gnosis_safe is None:
             _ = self.gnosis_safe_proxy_factory
             self._gnosis_safe = self.get_contract(
@@ -212,7 +212,7 @@ class RegistryContracts:  # pylint: disable=too-many-instance-attributes
     def gnosis_safe_proxy_factory(
         self,
     ) -> Contract:
-        """Returns an instance of the service registry token utility contract."""
+        """Returns an instance of the gnosis safe proxy vactory contract."""
         if self._gnosis_safe_proxy_factory is None:
             self._gnosis_safe_proxy_factory = self.get_contract(
                 public_id=GNOSIS_SAFE_PROXY_FACTORY_CONTRACT,
@@ -224,7 +224,7 @@ class RegistryContracts:  # pylint: disable=too-many-instance-attributes
     def multisend(
         self,
     ) -> Contract:
-        """Returns an instance of the service registry token utility contract."""
+        """Returns an instance of the multisend contract."""
         if self._multisend is None:
             self._multisend = self.get_contract(
                 public_id=MULTISEND_CONTRACT,
