@@ -200,9 +200,7 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
     recovery_module = ContractConfig(
         name="recovery_module",
         contracts={
-            ChainType(chain_name): cast(
-                str, container.get("recovery_module")
-            )
+            ChainType(chain_name): cast(str, container.get("recovery_module"))
             for chain_name, container in CHAIN_PROFILES.items()
         },
     )

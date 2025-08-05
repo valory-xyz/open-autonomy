@@ -452,34 +452,38 @@ class ServiceManager:
             )
 
         if reuse_multisig:
-            _deployment_payload, error = get_reuse_multisig_payload(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                chain_type=self.chain_type,
-                service_id=service_id,
-            )
-            if _deployment_payload is None:
-                raise ServiceDeployFailed(error)
-            deployment_payload = _deployment_payload
-
             if not use_multisig_with_recovery_module:
+                _deployment_payload, error = get_reuse_multisig_payload(
+                    ledger_api=self.ledger_api,
+                    crypto=self.crypto,
+                    chain_type=self.chain_type,
+                    service_id=service_id,
+                )
+                if _deployment_payload is None:
+                    raise ServiceDeployFailed(error)
+
+                deployment_payload = _deployment_payload
+
                 gnosis_safe_multisig = ContractConfigs.get(
                     GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT.name
                 ).contracts[self.chain_type]
             else:
+                # compute deployment payload
+
                 gnosis_safe_multisig = ContractConfigs.get(
                     RECOVERY_MODULE_CONTRACT.name
-                ).contracts[self.chain_type]                
+                ).contracts[self.chain_type]
         else:
-            deployment_payload = get_delployment_payload(
-                fallback_handler=fallback_handler
-            )
-
             if not use_multisig_with_recovery_module:
+                deployment_payload = get_delployment_payload(
+                    fallback_handler=fallback_handler
+                )
+
                 gnosis_safe_multisig = ContractConfigs.get(
                     GNOSIS_SAFE_PROXY_FACTORY_CONTRACT.name
                 ).contracts[self.chain_type]
             else:
+                # compute deployment payload
                 gnosis_safe_multisig = ContractConfigs.get(
                     SAFE_MULTISIG_WITH_RECOVERY_MODULE_CONTRACT.name
                 ).contracts[self.chain_type]
