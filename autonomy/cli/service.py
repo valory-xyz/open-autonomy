@@ -159,6 +159,11 @@ def _register(  # pylint: disable=too-many-arguments
     is_flag=True,
     help="Reuse mutlisig from previous deployment.",
 )
+@click.option(
+    "--use_multisig_with_recovery_module",
+    is_flag=True,
+    help="Use mutlisig with recovery module.",
+)
 @pass_ctx
 @service_id_flag
 @key_path_decorator
@@ -176,6 +181,7 @@ def _deploy(  # pylint: disable=too-many-arguments
     key: Path,
     hwi: bool,
     reuse_multisig: bool,
+    use_multisig_with_recovery_module: bool,
     password: Optional[str],
     fallback_handler: Optional[str],
 ) -> None:
@@ -192,6 +198,7 @@ def _deploy(  # pylint: disable=too-many-arguments
         sleep=ctx.config.get("sleep"),
     ).deploy_service(
         reuse_multisig=reuse_multisig,
+        use_multisig_with_recovery_module=use_multisig_with_recovery_module,
         fallback_handler=fallback_handler,
     )
 

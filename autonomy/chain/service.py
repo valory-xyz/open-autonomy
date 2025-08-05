@@ -424,7 +424,7 @@ class ServiceManager:
         service_id: int,
         fallback_handler: Optional[str] = None,
         reuse_multisig: bool = False,
-        use_recovery_module: bool = False,
+        use_multisig_with_recovery_module: bool = False,
     ) -> None:
         """
         Deploy service.
@@ -462,7 +462,7 @@ class ServiceManager:
                 raise ServiceDeployFailed(error)
             deployment_payload = _deployment_payload
 
-            if not use_recovery_module:
+            if not use_multisig_with_recovery_module:
                 gnosis_safe_multisig = ContractConfigs.get(
                     GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT.name
                 ).contracts[self.chain_type]
@@ -475,7 +475,7 @@ class ServiceManager:
                 fallback_handler=fallback_handler
             )
 
-            if not use_recovery_module:
+            if not use_multisig_with_recovery_module:
                 gnosis_safe_multisig = ContractConfigs.get(
                     GNOSIS_SAFE_PROXY_FACTORY_CONTRACT.name
                 ).contracts[self.chain_type]

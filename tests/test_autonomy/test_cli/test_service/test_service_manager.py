@@ -105,11 +105,13 @@ class BaseServiceManagerTest(BaseChainInteractionTest):
         self,
         service_id: int,
         reuse_multisig: bool = False,
+        use_multisig_with_recovery_module: bool = False,
     ) -> None:
         """Deploy service."""
         self.service_manager.deploy(
             service_id=service_id,
             reuse_multisig=reuse_multisig,
+            use_multisig_with_recovery_module=use_multisig_with_recovery_module,
         )
 
     def terminate_service(self, service_id: int) -> None:
