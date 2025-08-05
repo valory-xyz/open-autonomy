@@ -160,7 +160,7 @@ def _register(  # pylint: disable=too-many-arguments
     help="Reuse mutlisig from previous deployment.",
 )
 @click.option(
-    "--use_multisig_with_recovery_module",
+    "--use-multisig-with-recovery-module",
     is_flag=True,
     help="Use mutlisig with recovery module.",
 )
