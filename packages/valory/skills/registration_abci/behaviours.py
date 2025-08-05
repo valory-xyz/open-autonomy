@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -221,7 +221,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         self.context.logger.info(f"{log_message}: {contract_api_response}")
         return cast(dict, contract_api_response.state.body)
 
-    def get_addresses(self) -> Generator[None, None, bool]:  # pylint: disable=too-many-return-statements
+    def get_addresses(  # pylint: disable=too-many-return-statements
+        self,
+    ) -> Generator[None, None, bool]:  # pylint: disable=too-many-return-statements
         """Get addresses of agents registered for the service"""
 
         service_registry_address = self.params.service_registry_address

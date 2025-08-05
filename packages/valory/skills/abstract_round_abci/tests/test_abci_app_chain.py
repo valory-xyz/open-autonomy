@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -412,7 +412,7 @@ class TestAbciAppChaining:
             (self.app2_class, sync_data_cls_app2),
         ):
             synchronized_data = sync_data_cls(db=AbciAppDB(setup_data={}))
-            abci_app = abci_app_cls(synchronized_data, logging.getLogger(), MagicMock())
+            abci_app_cls(synchronized_data, logging.getLogger(), MagicMock())
             for r in abci_app_cls.get_all_rounds():
                 r.synchronized_data_class = sync_data_cls
 
@@ -420,7 +420,9 @@ class TestAbciAppChaining:
             (self.app1_class, self.app2_class), abci_app_transition_mapping
         )
         synchronized_data = sync_data_cls_app2(db=AbciAppDB(setup_data={}))
-        chained_abci_app = abci_app_cls_type(synchronized_data, logging.getLogger(), MagicMock())
+        chained_abci_app = abci_app_cls_type(
+            synchronized_data, logging.getLogger(), MagicMock()
+        )
 
         assert chained_abci_app.initial_round_cls == self.round_1a
         assert isinstance(chained_abci_app.synchronized_data, sync_data_cls_app1)

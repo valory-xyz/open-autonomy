@@ -7,10 +7,10 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeiercvjoct4tygo4oif5y4chnst2y7b6mhdgdj3zvoeakstbn4m7g4
-  connection.py: bafybeig3j7s6ujuvosv5pv2xyetvrzj5pjljhjyskbdrttchgviqb53csq
+  connection.py: bafybeidshqttrtiz754vfp7g6uztt64cemdlalwismpb7746i3otyxo4uu
   readme.md: bafybeihdrtloo2stz7frhfhtl5m7ewwigdeehnujf6julwj6c5pzr7iefu
   tests/__init__.py: bafybeicqjmce5v5ympy2rcryfh644rxrtujvbcuzk7ylmfmzynoh6wujx4
-  tests/test_connection.py: bafybeiedbdf5aumheq6cvtyeneoewmm5zslesvtqqx2ix3w2qqmfo3x26q
+  tests/test_connection.py: bafybeiaa5dv4ns4ly2gwcehjtbxiabb7ou6y7gbxtqumxx4lrhgtinyrt4
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
@@ -24,8 +24,8 @@ dependencies:
   ipfshttpclient:
     version: ==0.8.0a2
   open-aea-cli-ipfs:
-    version: ==2.0.0
+    version: ==2.0.2
   requests:
-    version: <2.31.2,>=2.28.1
+    version: <2.32.5,>=2.28.1
 is_abstract: false
 cert_requests: []

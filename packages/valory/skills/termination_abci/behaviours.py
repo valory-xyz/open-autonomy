@@ -555,7 +555,6 @@ class TerminationBehaviour(BaseBehaviour):
         sys.exit()
 
 
-
 class TerminationAbciBehaviours(AbstractRoundBehaviour):
     """This class defines the behaviours required in terminating a service."""
 

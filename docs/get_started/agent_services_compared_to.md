@@ -30,7 +30,7 @@ on the security of the underlying blockchain. However, due to their nature, they
 
 This is where **autonomous services** (implemented as agent services with the {{open_autonomy}} framework) comes into play in the broader ecosystem of crypto software. Agent services are composable, crypto-native services that can execute complex processing, take action on their own and run continuously.
 
-For a more detailed discussion, take a look at the [Autonolas Education](https://www.autonolas.network/education-articles) article series.
+For a more detailed discussion, take a look at the [Autonolas Education](https://www.olas.network/education-articles) article series.
 
 
 ## Agent services vs. single-agent applications

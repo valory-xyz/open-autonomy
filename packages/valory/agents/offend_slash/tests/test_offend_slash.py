@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -74,7 +74,9 @@ SLASHING_STRICT_CHECKS = (
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
-class SlashingE2E(UseRegistries, UseACNNode, BaseTestEnd2End):  # pylint: disable=too-few-public-methods
+class SlashingE2E(
+    UseRegistries, UseACNNode, BaseTestEnd2End
+):  # pylint: disable=too-few-public-methods
     """Test that slashing works right."""
 
     package_registry_src_rel = Path(__file__).parents[4]
@@ -97,7 +99,9 @@ class SlashingE2E(UseRegistries, UseACNNode, BaseTestEnd2End):  # pylint: disabl
 
 
 @pytest.mark.e2e
-class TestSlashingThresholdUnmet(SlashingE2E, BaseTestEnd2EndExecution):  # pylint: disable=too-few-public-methods
+class TestSlashingThresholdUnmet(
+    SlashingE2E, BaseTestEnd2EndExecution
+):  # pylint: disable=too-few-public-methods
     """Test that slashing works right."""
 
     happy_path = NO_SLASHING_HAPPY_PATH
@@ -110,7 +114,9 @@ class TestSlashingThresholdUnmet(SlashingE2E, BaseTestEnd2EndExecution):  # pyli
 
 
 @pytest.mark.e2e
-class TestSlashing(SlashingE2E, BaseTestEnd2EndExecution):  # pylint: disable=too-few-public-methods
+class TestSlashing(
+    SlashingE2E, BaseTestEnd2EndExecution
+):  # pylint: disable=too-few-public-methods
     """Test that slashing works right."""
 
     happy_path = SLASHING_HAPPY_PATH

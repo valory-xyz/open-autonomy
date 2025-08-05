@@ -6,9 +6,9 @@ description: The scaffold contract scaffolds a contract to be implemented by the
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  __init__.py: bafybeieeus2bbbexmthy4pnsdtgen4flxzk3ao5ekjbocvmrkhhszffbgu
+  __init__.py: bafybeicllj3k2o6qnozoi6wgwgznrlyepzfizetc53msvxpmuyetdr7s4y
   build/ServiceRegistryTokenUtility.json: bafybeifdugnfcq45yqu3b555ivsaxmuu6u7vwjbxavxgo3drsmo6572gju
-  contract.py: bafybeib4tg5lfiamw7ejgj472eobdkkouaddqkkcgbuj4f2edydnhbbvgi
+  contract.py: bafybeid5stubstk2sbpcwunk4pqrc27primuatkqdbxbqqgq2ho5kytqju
 fingerprint_ignore_patterns: []
 class_name: ServiceRegistryTokenUtilityContract
 contract_interface_paths:

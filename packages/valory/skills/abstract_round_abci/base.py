@@ -202,7 +202,9 @@ class BaseTxPayload(metaclass=_MetaPayload):
         """Data"""
         excluded = ["sender", "round_count", "id_"]
         if is_dataclass(self) and not isinstance(self, type):
-            return {k: v for k, v in asdict(cast(Any, self)).items() if k not in excluded}
+            return {
+                k: v for k, v in asdict(cast(Any, self)).items() if k not in excluded
+            }
         raise ValueError("data can only be accessed for dataclasses")
 
     @property

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -101,9 +101,7 @@ class ABCIHandler(Handler):
             f"An exception occurred: {error_message} for message: {message}"
         )
 
-    def echo(
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def echo(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """
         Handle a message of REQUEST_ECHO performative.
 
@@ -118,9 +116,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def info(
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def info(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """
         Handle a message of REQUEST_INFO performative.
 
@@ -183,9 +179,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def init_chain(
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def init_chain(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """
         Handle a message of REQUEST_INIT_CHAIN performative.
 
@@ -203,9 +197,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def query(
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def query(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """
         Handle a message of REQUEST_QUERY performative.
 
@@ -228,9 +220,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def check_tx(
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def check_tx(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """
         Handle a message of REQUEST_CHECK_TX performative.
 
@@ -252,9 +242,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def deliver_tx(
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def deliver_tx(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """
         Handle a message of REQUEST_DELIVER_TX performative.
 
@@ -276,9 +264,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def begin_block(
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def begin_block(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """
         Handle a message of REQUEST_BEGIN_BLOCK performative.
 
@@ -293,9 +279,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def end_block(
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def end_block(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """
         Handle a message of REQUEST_END_BLOCK performative.
 
@@ -311,9 +295,7 @@ class ABCIHandler(Handler):
         )
         return cast(AbciMessage, reply)
 
-    def commit(
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def commit(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """
         Handle a message of REQUEST_COMMIT performative.
 

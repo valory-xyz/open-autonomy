@@ -34,4 +34,4 @@ If you have questions or need assistance:
 
 - Check our [Questions and Answers](../questions-and-answers.md) section
 - Join our community on [Discord](https://discord.com/invite/z2PT65jKqQ)
-- Visit the [Autonolas website](https://www.autonolas.network/) for more resources
+- Visit the [Autonolas website](https://www.olas.network/) for more resources

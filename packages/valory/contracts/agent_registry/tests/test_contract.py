@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,7 +32,9 @@ PACKAGE_DIR = Path(__file__).parent.parent
 
 
 @skip_docker_tests
-class TestAgentRegistry(BaseRegistriesContractsTest):  # pylint: disable=too-few-public-methods
+class TestAgentRegistry(
+    BaseRegistriesContractsTest
+):  # pylint: disable=too-few-public-methods
     """Test agent registry."""
 
     contract: AgentRegistryContract

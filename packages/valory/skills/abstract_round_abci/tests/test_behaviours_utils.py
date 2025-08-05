@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -1432,7 +1432,7 @@ class TestBaseBehaviour:
             status_code=200, body='{"result": {"tx_result": {"code": -1}}}'
         )
         try_send(gen, success_response)  # type: ignore[arg-type]
-        
+
     @pytest.mark.skipif(
         platform.system() == "Windows",
         reason="https://github.com/valory-xyz/open-autonomy/issues/1477",

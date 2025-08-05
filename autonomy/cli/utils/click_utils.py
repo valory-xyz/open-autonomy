@@ -123,7 +123,10 @@ class NFTArgument(click.ParamType):
     METAVAR = "IPFS_HASH_OR_IMAGE_PATH"
 
     def get_metavar(
-        self, param: click.Parameter, *args: Any, **kwargs: Any  # pylint: disable=unused-argument
+        self,  # pylint: disable=unused-argument
+        param: click.Parameter,
+        *args: Any,
+        **kwargs: Any,
     ) -> str:  # pragma: nocover
         """Get metavar"""
         return self.METAVAR

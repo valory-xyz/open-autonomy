@@ -17,11 +17,11 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/squads_multisig:0.1.0:bafybeiadyjilhjfayeiqrjb6nmxxwiuma5dhex6tq4i3547zbbngisfq7e
+- valory/squads_multisig:0.1.0:bafybeieian6x3ueccu4g476uuuaej45hrlx3aff6s5goczbnwn2e7c7iq4
 protocols:
 - valory/contract_api:1.0.0:bafybeigv273fllpdsmzip4qfmhyvltdcss4yhoicss32c2yc7am6kue4cy
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeia7lzwbmcmf3u7mn3673345klkyyp7ln62gqx6hcqlbjracxmrqlm
+- valory/abstract_round_abci:0.1.0:bafybeidb7egn3dvfp4deijonyx7gklc2z32t7toc36vk6rtjgldvo4r2zq
 behaviours:
   main:
     args: {}
@@ -148,6 +148,6 @@ dependencies:
   open-aea-test-autonomy:
     version: ==0.20.1
   web3:
-    version: <7,>=6.0.0
+    version: <8,>=7.0.0
 is_abstract: true
 customs: []

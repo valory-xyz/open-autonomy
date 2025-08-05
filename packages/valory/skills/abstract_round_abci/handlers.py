@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -620,7 +620,9 @@ class TendermintHandler(Handler):
             self.context.logger.error(f"{log_message}: {message}")
             return
 
-        handler(message, dialogue)  # pylint:disable=not-callable  # callability is checked above
+        handler(  # pylint:disable=not-callable  # callability is checked above
+            message, dialogue
+        )
 
     def _reply_with_tendermint_error(
         self,
