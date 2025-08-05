@@ -20,7 +20,10 @@
 """Docker-compose Deployment Generator."""
 
 import ipaddress
+import logging
 import os
+import socket
+from copy import deepcopy
 from pathlib import Path
 from string import Template
 from typing import Dict, List, Optional, Set, cast
@@ -51,6 +54,7 @@ from autonomy.constants import (
 from autonomy.deploy.base import (
     BaseDeploymentGenerator,
     DEFAULT_RESOURCE_VALUES,
+    LOOPBACK,
     Resources,
     tm_write_to_log,
 )
@@ -254,6 +258,34 @@ class Network:
         return str(self.subnet.network_address + self._address_offeset)
 
 
+class Port:
+    """Class to find host port for a service."""
+
+    def __init__(self) -> None:
+        """Initialize."""
+        self._used_ports: Set[int] = set()
+
+    @staticmethod
+    def is_port_available(port: int) -> bool:
+        """Check if the port is available."""
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind((LOOPBACK, port))
+                return True  # Port is occupied, binding failed
+            except socket.error:
+                return False  # Port is free, binding successful
+
+    def get_next_port(self, from_port: int) -> int:
+        """Get the next available port from the given from_port."""
+        port = from_port
+        while not self.is_port_available(port):
+            self._used_ports.add(port)
+            port += 1
+
+        self._used_ports.add(port)
+        return port
+
+
 class DockerComposeGenerator(BaseDeploymentGenerator):
     """Class to automate the generation of Deployments."""
 
@@ -332,19 +364,20 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             image=image,
             volumes={f"{self.build_dir}/nodes": {"bind": "/tendermint", "mode": "z"}},
             entrypoint=self.tendermint_job_config,
+            remove=True,
         )
         print(run_log.decode())
 
         return self
 
-    def generate(
+    def generate(  # pylint: disable=too-many-locals
         self,
         image_version: Optional[str] = None,
         use_hardhat: bool = False,
         use_acn: bool = False,
     ) -> "DockerComposeGenerator":
         """Generate the new configuration."""
-        network_name = f"service_{self.service_builder.service.name}_localnet"
+        network_name = self.service_builder.get_network_name()
         used_networks = self._find_occupied_networks(network_name)
         network = Network(name=network_name, used_subnets=used_networks)
         image_version = image_version or self.service_builder.service.agent.hash
@@ -356,6 +389,25 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 agent=self.service_builder.service.agent.name,
                 version=image_version,
             )
+
+        agent_ports = self.service_builder.service.deployment_config.get(
+            "agent", {}
+        ).get("ports", {})
+        if not agent_ports:
+            agent_ports = {}
+
+        port = Port()
+        updated_ports = deepcopy(agent_ports)
+        for i, configured_ports in agent_ports.items():
+            for configured_host_port, configured_agent_port in configured_ports.items():
+                if not port.is_port_available(configured_host_port):
+                    next_available_port = port.get_next_port(configured_host_port)
+                    logging.warning(
+                        f"Port {configured_host_port} is already in use. "
+                        f"Using the {next_available_port=} instead."
+                    )
+                    updated_ports[i][next_available_port] = configured_agent_port
+                    del updated_ports[i][configured_host_port]
 
         agent_vars = self.service_builder.generate_agents()
         agents = "".join(
@@ -371,11 +423,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     dev_mode=self.dev_mode,
                     package_dir=self.packages_dir,
                     open_aea_dir=self.open_aea_dir,
-                    agent_ports=(
-                        self.service_builder.service.deployment_config.get("agent", {})
-                        .get("ports", {})
-                        .get(i)
-                    ),
+                    agent_ports=updated_ports.get(i),
                     network_name=network_name,
                     network_address=network.next_address,
                     resources=self.resources,
