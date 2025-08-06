@@ -446,7 +446,7 @@ class ServiceManager:
         :param service_id: Service ID retrieved after minting a service
         :param fallback_handler: Fallback handler address for gnosis safe multisig
         :param reuse_multisig: Use multisig from the previous deployment
-        :param use_recovery: Use multisig with recovery module
+        :param use_recovery_module: Use multisig with recovery module
         """
 
         (

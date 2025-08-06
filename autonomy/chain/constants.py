@@ -214,21 +214,15 @@ REGISTRIES_MANAGER_CONTRACT = PublicId.from_str("valory/registries_manager")
 SERVICE_MANAGER_CONTRACT = PublicId.from_str("valory/service_manager")
 SERVICE_REGISTRY_CONTRACT = PublicId.from_str("valory/service_registry")
 GNOSIS_SAFE_CONTRACT = PublicId.from_str("valory/gnosis_safe")
-GNOSIS_SAFE_PROXY_FACTORY_CONTRACT = (
-    PublicId.from_str(  # Multisig WITHOUT recovery module
-        "valory/gnosis_safe_proxy_factory"
-    )
-)
-GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT = (
-    PublicId.from_str(  # Same address multisig WITHOUT recovery module
-        "valory/gnosis_safe_same_address_multisig"
-    )
-)
-SAFE_MULTISIG_WITH_RECOVERY_MODULE_CONTRACT = (
-    PublicId.from_str(  # Multisig WITH recovery module
-        "valory/safe_multisig_with_recovery_module"
-    )
-)
+GNOSIS_SAFE_PROXY_FACTORY_CONTRACT = PublicId.from_str(
+    "valory/gnosis_safe_proxy_factory"
+)  # Multisig WITHOUT recovery module
+GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT = PublicId.from_str(
+    "valory/gnosis_safe_same_address_multisig"
+)  # Same address multisig WITHOUT recovery module
+SAFE_MULTISIG_WITH_RECOVERY_MODULE_CONTRACT = PublicId.from_str(
+    "valory/safe_multisig_with_recovery_module"
+)  # Multisig WITH recovery module
 RECOVERY_MODULE_CONTRACT = PublicId.from_str(
     "valory/recovery_module"
 )  # Same address multisig WITH recovery module
