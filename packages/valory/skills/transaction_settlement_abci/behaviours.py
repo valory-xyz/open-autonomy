@@ -783,7 +783,7 @@ class SignatureBehaviour(TransactionSettlementBaseBehaviour):
         tx_params = skill_input_hex_to_payload(
             self.synchronized_data.most_voted_tx_hash
         )
-        # is_deprecated_mode=True because we want to call Account.signHash,
+        # is_deprecated_mode=True because we want to call Account.unsafe_sign_hash,
         # which is the same used by gnosis-py
         safe_tx_hash_bytes = binascii.unhexlify(tx_params["safe_tx_hash"])
         signature_hex = yield from self.get_signature(

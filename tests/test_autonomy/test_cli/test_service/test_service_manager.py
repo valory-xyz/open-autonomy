@@ -426,7 +426,7 @@ class TestERC20AsBond(BaseServiceManagerTest):
             }
         )
         stx = self.crypto.entity.sign_transaction(tx)
-        tx_digext = self.ledger_api.api.eth.send_raw_transaction(stx.rawTransaction)
+        tx_digext = self.ledger_api.api.eth.send_raw_transaction(stx.raw_transaction)
         while True:
             try:
                 return self.ledger_api.api.eth.get_transaction_receipt(tx_digext)
@@ -593,7 +593,7 @@ class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
             "nonce": self.ledger_api.api.eth.get_transaction_count(self.crypto.address),
         }
         signed_tx = self.crypto.entity.sign_transaction(raw_tx)
-        self.ledger_api.api.eth.send_raw_transaction(signed_tx.rawTransaction)
+        self.ledger_api.api.eth.send_raw_transaction(signed_tx.raw_transaction)
 
     def generate_and_fund_keys(self, n: int = 4) -> List[Crypto]:
         """Generate and fund keys."""

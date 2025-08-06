@@ -104,7 +104,7 @@ class BaseTestTerminationEnd2End(
         signed_tx = instance.eth.account.sign_transaction(
             raw_tx, private_key=self.SERVICE_OWNER_PK
         )
-        instance.eth.send_raw_transaction(signed_tx.rawTransaction)
+        instance.eth.send_raw_transaction(signed_tx.raw_transaction)
 
     def test_run(self, nb_nodes: int) -> None:
         """Run the test."""
