@@ -24,12 +24,12 @@ def get_deployment_payload(fallback_handler: Optional[str] = None) -> str
 
 Calculates deployment payload.
 
-<a id="autonomy.chain.service.get_deployment_payload_with_recovery"></a>
+<a id="autonomy.chain.service.get_deployment_with_recovery_payload"></a>
 
-#### get`_`deployment`_`payload`_`with`_`recovery
+#### get`_`deployment`_`with`_`recovery`_`payload
 
 ```python
-def get_deployment_payload_with_recovery(
+def get_deployment_with_recovery_payload(
         fallback_handler: Optional[str] = None) -> str
 ```
 
@@ -244,7 +244,7 @@ the service and registered the required agent instances.
 - `service_id`: Service ID retrieved after minting a service
 - `fallback_handler`: Fallback handler address for gnosis safe multisig
 - `reuse_multisig`: Use multisig from the previous deployment
-- `use_recovery`: Use multisig with recovery module
+- `use_recovery_module`: Use multisig with recovery module
 
 <a id="autonomy.chain.service.ServiceManager.terminate"></a>
 
@@ -292,12 +292,12 @@ def get_reuse_multisig_payload(
 
 Reuse multisig.
 
-<a id="autonomy.chain.service.get_reuse_multisig_payload_with_recovery"></a>
+<a id="autonomy.chain.service.get_reuse_multisig_with_recovery_payload"></a>
 
-#### get`_`reuse`_`multisig`_`payload`_`with`_`recovery
+#### get`_`reuse`_`multisig`_`with`_`recovery`_`payload
 
 ```python
-def get_reuse_multisig_payload_with_recovery(
+def get_reuse_multisig_with_recovery_payload(
         ledger_api: LedgerApi, crypto: Crypto, chain_type: ChainType,
         service_id: int) -> Tuple[Optional[str], Optional[str]]
 ```
