@@ -331,7 +331,7 @@ class ServiceRegistryContract(Contract):
             serviceId=service_id,
         )
 
-        data = contract_instance.encodeABI(fn_name="slash", kwargs=slash_kwargs)
+        data = contract_instance.encode_abi(abi_element_identifier="slash", kwargs=slash_kwargs)
         return {"data": bytes.fromhex(data[2:])}
 
     @classmethod

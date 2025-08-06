@@ -701,8 +701,8 @@ class GnosisSafeContract(Contract):
         event_topic = event_abi_to_log_topic(event_abi)
 
         filter_params: FilterParams = {
-            "fromBlock": from_block,
-            "toBlock": to_block,
+            "from_block": from_block,
+            "to_block": to_block,
             "address": safe_contract.address,
             "topics": [event_topic],
         }
@@ -784,8 +784,8 @@ class GnosisSafeContract(Contract):
         event_topic = event_abi_to_log_topic(event_abi)
 
         filter_params: FilterParams = {
-            "fromBlock": from_block,
-            "toBlock": to_block,
+            "from_block": from_block,
+            "to_block": to_block,
             "address": factory_contract.address,
             "topics": [event_topic],
         }
@@ -831,8 +831,8 @@ class GnosisSafeContract(Contract):
         event_topic = event_abi_to_log_topic(event_abi)
 
         filter_params: FilterParams = {
-            "fromBlock": from_block,
-            "toBlock": to_block,
+            "from_block": from_block,
+            "to_block": to_block,
             "address": safe_contract.address,
             "topics": [event_topic],
         }
@@ -888,8 +888,8 @@ class GnosisSafeContract(Contract):
         padded_sender = pad_address_for_topic(sender_address)
 
         filter_params: FilterParams = {
-            "fromBlock": from_block,
-            "toBlock": to_block,
+            "from_block": from_block,
+            "to_block": to_block,
             "address": safe_contract.address,
             # cannot filter for 0 value transfers using topics as the value is not indexed
             "topics": [event_topic, padded_sender],
@@ -941,8 +941,8 @@ class GnosisSafeContract(Contract):
         ]
         owner = ledger_api.api.to_checksum_address(owner)
         prev_owner = cls._get_prev_owner(owners, owner)
-        data = safe_contract.encodeABI(
-            fn_name="removeOwner",
+        data = safe_contract.encode_abi(
+            abi_element_identifier="removeOwner",
             args=[
                 ledger_api.api.to_checksum_address(prev_owner),
                 owner,
@@ -983,8 +983,8 @@ class GnosisSafeContract(Contract):
         ]
         old_owner = ledger_api.api.to_checksum_address(old_owner)
         prev_owner = cls._get_prev_owner(owners, old_owner)
-        data = safe_contract.encodeABI(
-            fn_name="swapOwner",
+        data = safe_contract.encode_abi(
+            abi_element_identifier="swapOwner",
             args=[
                 ledger_api.api.to_checksum_address(prev_owner),
                 old_owner,

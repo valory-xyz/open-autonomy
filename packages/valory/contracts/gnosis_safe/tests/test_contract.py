@@ -584,7 +584,7 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
         return_value=AttributeDict(
             {
                 "accessList": [],
-                "blockHash": HexBytes(
+                "block_hash": HexBytes(
                     "0x8543592f08d1d9e6d722ba9d600270d7e7789ecc9b66f27ca81b104df9c5dd4a"
                 ),
                 "blockNumber": 31190129,
@@ -634,7 +634,7 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
         EthereumApi,
         "get_transaction_receipt",
         return_value={
-            "blockHash": "0x8543592f08d1d9e6d722ba9d600270d7e7789ecc9b66f27ca81b104df9c5dd4a",
+            "block_hash": "0x8543592f08d1d9e6d722ba9d600270d7e7789ecc9b66f27ca81b104df9c5dd4a",
             "blockNumber": 31190129,
             "contractAddress": None,
             "cumulativeGasUsed": 5167853,
@@ -644,7 +644,7 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             "logs": [
                 {
                     "address": "0x0000000000000000000000000000000000001010",
-                    "blockHash": "0x8543592f08d1d9e6d722ba9d600270d7e7789ecc9b66f27ca81b104df9c5dd4a",
+                    "block_hash": "0x8543592f08d1d9e6d722ba9d600270d7e7789ecc9b66f27ca81b104df9c5dd4a",
                     "blockNumber": 31190129,
                     "data": "0x00000000000000000000000000000000000000000000000000064b5dcc9920c1000000000000000000000000"
                     "00000000000000000000000032116d529b00f7490000000000000000000000000000000000000000000004353d"

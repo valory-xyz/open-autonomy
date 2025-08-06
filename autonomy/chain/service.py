@@ -604,8 +604,8 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
                 "to": multisig_address,
                 "data": HexBytes(
                     bytes.fromhex(
-                        multisig_instance.encodeABI(
-                            fn_name="addOwnerWithThreshold",
+                        multisig_instance.encode_abi(
+                            abi_element_identifier="addOwnerWithThreshold",
                             args=[_owner, 1],
                         )[2:]
                     )
@@ -620,8 +620,8 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
             "to": multisig_address,
             "data": HexBytes(
                 bytes.fromhex(
-                    multisig_instance.encodeABI(
-                        fn_name="removeOwner",
+                    multisig_instance.encode_abi(
+                        abi_element_identifier="removeOwner",
                         args=[new_owners[0], service_owner, 1],
                     )[2:]
                 )
@@ -636,8 +636,8 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
             "to": multisig_address,
             "data": HexBytes(
                 bytes.fromhex(
-                    multisig_instance.encodeABI(
-                        fn_name="changeThreshold",
+                    multisig_instance.encode_abi(
+                        abi_element_identifier="changeThreshold",
                         args=[threshold],
                     )[2:]
                 )
@@ -682,8 +682,8 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
     signature_bytes = registry_contracts.gnosis_safe.get_packed_signatures(
         owners=tuple(old_owners), signatures_by_owner=owner_to_signature
     )
-    safe_exec_data = multisig_instance.encodeABI(
-        fn_name="execTransaction",
+    safe_exec_data = multisig_instance.encode_abi(
+        abi_element_identifier="execTransaction",
         args=[
             multisend_address,  # to address
             multisend_tx["value"],  # value
