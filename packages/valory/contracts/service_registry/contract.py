@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -139,7 +139,7 @@ class ServiceRegistryContract(Contract):
                 f"For chain_id {chain_id} expected {expected_address} and got {contract_address}."
             )
             return dict(verified=verified)
-        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
+        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).to_0x_hex()
         sha512_hash = hashlib.sha512(deployed_bytecode.encode("utf-8")).hexdigest()
         verified = DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID[chain_id] == sha512_hash
         if not verified:  # pragma: nocover
@@ -331,7 +331,9 @@ class ServiceRegistryContract(Contract):
             serviceId=service_id,
         )
 
-        data = contract_instance.encode_abi(abi_element_identifier="slash", kwargs=slash_kwargs)
+        data = contract_instance.encode_abi(
+            abi_element_identifier="slash", kwargs=slash_kwargs
+        )
         return {"data": bytes.fromhex(data[2:])}
 
     @classmethod

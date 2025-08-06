@@ -8,9 +8,9 @@ aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeiblecacbcjfghnmqw3ttmgm3kiyhpdhmwfi77jowsab5y7gy2cqn4
   build/multicall2.json: bafybeiccd7a7mwq4z62voom765tijsdc4qjnl6u23qg5upqepa5lo2262q
-  contract.py: bafybeigaeyg5ovhzlxxkd2hezppfyusji6e6a7ckxineuwxvahbn64ptpy
+  contract.py: bafybeifu4p5ft5pdwrvf5l6kg3agwufbosmxt6ltofmsqxrsgcoi6qwfve
   tests/__init__.py: bafybeidpkdejmolv6wufw2ik36fdtymdscfrjvmg6ekjk7u4ikifmsnega
-  tests/test_contract.py: bafybeib35vqqxal4pemnjjbna3hq7opxgsi7f264jdgllrzybud6rktsrq
+  tests/test_contract.py: bafybeiemaysr5x3egdiwibpqq3xbyheuetjmzese7dpv7c7gbc4gs3vspy
 fingerprint_ignore_patterns: []
 class_name: Multicall2Contract
 contract_interface_paths:

@@ -666,7 +666,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
             contract_api_msg.performative != ContractApiMessage.Performative.STATE
         ):  # pragma: nocover
             self.context.logger.error(
-                f"An unexpected error occurred while checking {tx['hash'].hex()}: {contract_api_msg}"
+                f"An unexpected error occurred while checking {tx['hash'].to_0x_hex()}: {contract_api_msg}"
             )
             return None
 

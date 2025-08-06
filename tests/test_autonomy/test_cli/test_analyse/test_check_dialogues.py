@@ -96,7 +96,7 @@ class TestAnalyseDialogues(BaseAnalyseDialoguesTest):
         assert result.exit_code == exit_code, result.stdout
 
         for check in stdout_checks:
-            assert check in result.stdout
+            assert check in result.stderr
 
     def test_analyse_default(self) -> None:
         """Test analyse."""

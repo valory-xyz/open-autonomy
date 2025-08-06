@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -109,7 +109,9 @@ class Multicall2Contract(Contract):
         :param args: the function arguments.
         :return: the target address, the data, and the output decoder function.
         """
-        data = contract_instance.encode_abi(abi_element_identifier=abi_element_identifier, args=args)
+        data = contract_instance.encode_abi(
+            abi_element_identifier=abi_element_identifier, args=args
+        )
         for elem in contract_instance.abi:
             if elem.get("name", "") == abi_element_identifier:
                 output_types = elem["outputs"]

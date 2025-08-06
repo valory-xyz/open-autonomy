@@ -304,7 +304,7 @@ class GnosisSafeContract(Contract):
         if chain_id is None:
             chain_id = ledger_api.api.eth.chain_id
 
-        data_ = HexBytes(data).hex()
+        data_ = HexBytes(data).to_0x_hex()
 
         # Safes >= 1.0.0 Renamed `baseGas` to `dataGas`
         safe_version_ = Version(safe_version)
@@ -354,7 +354,7 @@ class GnosisSafeContract(Contract):
             )
             structured_data["domain"]["chainId"] = chain_id  # type: ignore
 
-        return dict(tx_hash=HexBytes(encode_typed_data(structured_data)).hex())
+        return dict(tx_hash=HexBytes(encode_typed_data(structured_data)).to_0x_hex())
 
     @classmethod
     def get_packed_signatures(
@@ -499,7 +499,7 @@ class GnosisSafeContract(Contract):
         :return: the verified status
         """
         ledger_api = cast(EthereumApi, ledger_api)
-        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
+        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).to_0x_hex()
         # we cannot use cls.contract_interface["ethereum"]["deployedBytecode"] because the
         # contract is created via a proxy
         local_bytecode = SAFE_DEPLOYED_BYTECODE
@@ -798,7 +798,7 @@ class GnosisSafeContract(Contract):
             txs=list(
                 map(
                     lambda entry: dict(
-                        tx_hash=entry["transactionHash"].hex(),
+                        tx_hash=entry["transactionHash"].to_0x_hex(),
                         block_number=entry["blockNumber"],
                     ),
                     entries,
@@ -849,7 +849,7 @@ class GnosisSafeContract(Contract):
 
         removed_owner_events = [
             {
-                "tx_hash": entry["transactionHash"].hex(),
+                "tx_hash": entry["transactionHash"].to_0x_hex(),
                 "block_number": entry["blockNumber"],
                 "owner": entry["args"]["owner"],
             }
@@ -900,7 +900,7 @@ class GnosisSafeContract(Contract):
         entries = [get_event_data(w3.codec, event_abi, log) for log in logs]
         zero_transfer_events = list(
             dict(
-                tx_hash=entry["transactionHash"].hex(),
+                tx_hash=entry["transactionHash"].to_0x_hex(),
                 block_number=entry["blockNumber"],
                 sender=ledger_api.api.to_checksum_address(entry["args"]["sender"]),
             )

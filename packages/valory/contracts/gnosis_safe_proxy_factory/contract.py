@@ -172,7 +172,7 @@ class GnosisSafeProxyFactoryContract(Contract):
         :return: the verified status
         """
         ledger_api = cast(EthereumApi, ledger_api)
-        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
+        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).to_0x_hex()
         local_bytecode = cls.contract_interface["ethereum"]["deployedBytecode"]
         verified = deployed_bytecode == local_bytecode
         return dict(verified=verified)
