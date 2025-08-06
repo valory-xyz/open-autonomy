@@ -135,7 +135,6 @@ class BaseChainInteractionTest(BaseCliTest):
     def setup(self) -> None:
         """Setup test."""
         super().setup()
-        self.cli_runner.mix_stderr = False
 
     @classmethod
     def setup_class(cls) -> None:

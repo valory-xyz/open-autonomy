@@ -357,7 +357,6 @@ class TestMintComponents(BaseChainInteractionTest):
                     "0xowner",
                 ),
             )
-        self.cli_runner.mix_stderr = True
         assert result.exit_code == 1, result.output
         assert "Invalid owner address 0xowner" in result.stderr
 
@@ -421,7 +420,6 @@ class TestConnectionError(BaseCliTest):
 
     def test_connection_error(self) -> None:
         """Test connection error."""
-        self.cli_runner.mix_stderr = False
         result = self.run_cli(
             commands=(
                 "protocol",

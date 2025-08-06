@@ -294,8 +294,6 @@ class BaseAnalyseServiceTest(BaseCliTest):
         """Setup class."""
         super().setup_class()
 
-        cls.cli_runner.mix_stderr = False
-
     @staticmethod
     def patch_check_agent_dependencies_published(**kwargs: Any) -> mock._patch:
         """Patch `ServiceAnalyser.check_agent_dependencies_published` method"""
