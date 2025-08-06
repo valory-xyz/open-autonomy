@@ -810,12 +810,12 @@ class ServiceHelper(OnChainHelper):
     def deploy_service(
         self,
         reuse_multisig: bool = False,
-        use_multisig_with_recovery_module: bool = False,
+        use_recovery_module: bool = False,
         fallback_handler: Optional[str] = None,
     ) -> None:
         """Deploy a service with registration activated"""
 
-        if not use_multisig_with_recovery_module:
+        if not use_recovery_module:
             self.check_required_enviroment_variables(
                 configs=(
                     ContractConfigs.service_manager,
@@ -841,7 +841,7 @@ class ServiceHelper(OnChainHelper):
                 service_id=self.service_id,
                 reuse_multisig=reuse_multisig,
                 fallback_handler=fallback_handler,
-                use_multisig_with_recovery_module=use_multisig_with_recovery_module,
+                use_recovery_module=use_recovery_module,
             )
         except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(

@@ -313,7 +313,7 @@ Register agents instances on an activated service
 
 ```python
 def deploy_service(reuse_multisig: bool = False,
-                   use_multisig_with_recovery_module: bool = False,
+                   use_recovery_module: bool = False,
                    fallback_handler: Optional[str] = None) -> None
 ```
 

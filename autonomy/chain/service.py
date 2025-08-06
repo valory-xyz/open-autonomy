@@ -55,6 +55,7 @@ from autonomy.chain.tx import TxSettler
 NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
 DEFAULT_FALLBACK_HANDLER = "0xf48f2b2d2a534e402487b3ee7c18c33aec0fe5e4"
 DEFAULT_DEPLOY_PAYLOAD = "0x0000000000000000000000000000000000000000{fallback_handler}000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+DEFAULT_DEPLOY_PAYLOAD_WITH_RECOVERY = "0x000000000000000000000000{fallback_handler}"
 
 ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
 
@@ -66,10 +67,20 @@ class MultiSendOperation(Enum):
     DELEGATE_CALL = 1
 
 
-def get_delployment_payload(fallback_handler: Optional[str] = None) -> str:
+def get_deployment_payload(fallback_handler: Optional[str] = None) -> str:
     """Calculates deployment payload."""
     return (
         DEFAULT_DEPLOY_PAYLOAD.format(
+            fallback_handler=(fallback_handler or DEFAULT_FALLBACK_HANDLER)[2:]
+        )
+        + int(time.time()).to_bytes(32, "big").hex()
+    )
+
+
+def get_deployment_payload_with_recovery(fallback_handler: Optional[str] = None) -> str:
+    """Calculates deployment payload."""
+    return (
+        DEFAULT_DEPLOY_PAYLOAD_WITH_RECOVERY.format(
             fallback_handler=(fallback_handler or DEFAULT_FALLBACK_HANDLER)[2:]
         )
         + int(time.time()).to_bytes(32, "big").hex()
@@ -424,7 +435,7 @@ class ServiceManager:
         service_id: int,
         fallback_handler: Optional[str] = None,
         reuse_multisig: bool = False,
-        use_multisig_with_recovery_module: bool = False,
+        use_recovery_module: bool = False,
     ) -> None:
         """
         Deploy service.
@@ -435,7 +446,7 @@ class ServiceManager:
         :param service_id: Service ID retrieved after minting a service
         :param fallback_handler: Fallback handler address for gnosis safe multisig
         :param reuse_multisig: Use multisig from the previous deployment
-        :param use_multisig_with_recovery_module: Use multisig with recovery module
+        :param use_recovery: Use multisig with recovery module
         """
 
         (
@@ -453,7 +464,7 @@ class ServiceManager:
             )
 
         if reuse_multisig:
-            if not use_multisig_with_recovery_module:
+            if not use_recovery_module:
                 _deployment_payload, error = get_reuse_multisig_payload(
                     ledger_api=self.ledger_api,
                     crypto=self.crypto,
@@ -469,14 +480,23 @@ class ServiceManager:
                     GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT.name
                 ).contracts[self.chain_type]
             else:
-                # compute deployment payload
+                _deployment_payload, error = get_reuse_multisig_payload_with_recovery(
+                    ledger_api=self.ledger_api,
+                    crypto=self.crypto,
+                    chain_type=self.chain_type,
+                    service_id=service_id,
+                )
+                if _deployment_payload is None:
+                    raise ServiceDeployFailed(error)
+
+                deployment_payload = _deployment_payload
 
                 gnosis_safe_multisig = ContractConfigs.get(
                     RECOVERY_MODULE_CONTRACT.name
                 ).contracts[self.chain_type]
-        else:
-            if not use_multisig_with_recovery_module:
-                deployment_payload = get_delployment_payload(
+        else:  # Deploy a new multisig
+            if not use_recovery_module:
+                deployment_payload = get_deployment_payload(
                     fallback_handler=fallback_handler
                 )
 
@@ -484,7 +504,9 @@ class ServiceManager:
                     GNOSIS_SAFE_PROXY_FACTORY_CONTRACT.name
                 ).contracts[self.chain_type]
             else:
-                # compute deployment payload
+                deployment_payload = get_deployment_payload_with_recovery(
+                    fallback_handler=fallback_handler
+                )
                 gnosis_safe_multisig = ContractConfigs.get(
                     SAFE_MULTISIG_WITH_RECOVERY_MODULE_CONTRACT.name
                 ).contracts[self.chain_type]
@@ -718,4 +740,38 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
         ],
     )
     payload = multisig_address + safe_exec_data[2:]
+    return payload, None
+
+
+def get_reuse_multisig_payload_with_recovery(  # pylint: disable=too-many-locals
+    ledger_api: LedgerApi,
+    crypto: Crypto,
+    chain_type: ChainType,
+    service_id: int,
+) -> Tuple[Optional[str], Optional[str]]:
+    """Reuse multisig."""
+    _, multisig_address, _, _, *_ = get_service_info(
+        ledger_api=ledger_api,
+        chain_type=chain_type,
+        token_id=service_id,
+    )
+    if multisig_address == NULL_ADDRESS:
+        return None, "Cannot reuse multisig, No previous deployment exist!"
+
+    service_owner = crypto.address
+
+    multisig_instance = registry_contracts.gnosis_safe.get_instance(
+        ledger_api=ledger_api,
+        contract_address=multisig_address,
+    )
+
+    # Verify if the service was terminated properly or not
+    old_owners = multisig_instance.functions.getOwners().call()
+    if len(old_owners) != 1 or service_owner not in old_owners:
+        return (
+            None,
+            "Service was not terminated properly, the service owner should be the only owner of the safe",
+        )
+
+    payload = int(service_id).to_bytes(32, "big").hex()
     return payload, None

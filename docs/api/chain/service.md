@@ -14,12 +14,23 @@ class MultiSendOperation(Enum)
 
 Operation types.
 
-<a id="autonomy.chain.service.get_delployment_payload"></a>
+<a id="autonomy.chain.service.get_deployment_payload"></a>
 
-#### get`_`delployment`_`payload
+#### get`_`deployment`_`payload
 
 ```python
-def get_delployment_payload(fallback_handler: Optional[str] = None) -> str
+def get_deployment_payload(fallback_handler: Optional[str] = None) -> str
+```
+
+Calculates deployment payload.
+
+<a id="autonomy.chain.service.get_deployment_payload_with_recovery"></a>
+
+#### get`_`deployment`_`payload`_`with`_`recovery
+
+```python
+def get_deployment_payload_with_recovery(
+        fallback_handler: Optional[str] = None) -> str
 ```
 
 Calculates deployment payload.
@@ -220,7 +231,7 @@ of when deployed
 def deploy(service_id: int,
            fallback_handler: Optional[str] = None,
            reuse_multisig: bool = False,
-           use_multisig_with_recovery_module: bool = False) -> None
+           use_recovery_module: bool = False) -> None
 ```
 
 Deploy service.
@@ -233,7 +244,7 @@ the service and registered the required agent instances.
 - `service_id`: Service ID retrieved after minting a service
 - `fallback_handler`: Fallback handler address for gnosis safe multisig
 - `reuse_multisig`: Use multisig from the previous deployment
-- `use_multisig_with_recovery_module`: Use multisig with recovery module
+- `use_recovery`: Use multisig with recovery module
 
 <a id="autonomy.chain.service.ServiceManager.terminate"></a>
 
@@ -275,6 +286,18 @@ the service.
 
 ```python
 def get_reuse_multisig_payload(
+        ledger_api: LedgerApi, crypto: Crypto, chain_type: ChainType,
+        service_id: int) -> Tuple[Optional[str], Optional[str]]
+```
+
+Reuse multisig.
+
+<a id="autonomy.chain.service.get_reuse_multisig_payload_with_recovery"></a>
+
+#### get`_`reuse`_`multisig`_`payload`_`with`_`recovery
+
+```python
+def get_reuse_multisig_payload_with_recovery(
         ledger_api: LedgerApi, crypto: Crypto, chain_type: ChainType,
         service_id: int) -> Tuple[Optional[str], Optional[str]]
 ```

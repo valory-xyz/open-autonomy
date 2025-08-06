@@ -16,3 +16,9 @@ use from an editable/local installation
 
 nosec
 
+<a id="autonomy.chain.constants.RECOVERY_MODULE_CONTRACT"></a>
+
+#### RECOVERY`_`MODULE`_`CONTRACT
+
+Same address multisig WITH recovery module
+

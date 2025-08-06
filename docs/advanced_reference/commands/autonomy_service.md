@@ -39,23 +39,30 @@ To use these chain profiles, you have to export an environment variable that def
 
     - `CUSTOM_CHAIN_RPC` : RPC endpoint for the custom chain.
     - `CUSTOM_CHAIN_ID` : chain ID.
-    - `CUSTOM_COMPONENT_REGISTRY_ADDRESS` : Custom Component Registry contract address.
-    - `CUSTOM_AGENT_REGISTRY_ADDRESS` : Custom Agent Registry contract address.
-    - `CUSTOM_REGISTRIES_MANAGER_ADDRESS` : Custom Registries Manager contract address.
-    - `CUSTOM_SERVICE_MANAGER_ADDRESS` : Custom Service Manager contract address.
-    - `CUSTOM_SERVICE_REGISTRY_ADDRESS` : Custom Service Registry contract address.
-    - `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS` : Custom Gnosis Safe multisig contract address.
-    - `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` : Custom Gnosis Safe Same Address Multisig address.
-    - `CUSTOM_SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS` : Custom Service Registry Token Utility address.
-    - `CUSTOM_MULTISEND_ADDRESS` : Custom Multisend address.
+    - `CUSTOM_COMPONENT_REGISTRY_ADDRESS`
+    - `CUSTOM_AGENT_REGISTRY_ADDRESS`
+    - `CUSTOM_REGISTRIES_MANAGER_ADDRESS`
+    - `CUSTOM_SERVICE_MANAGER_ADDRESS`
+    - `CUSTOM_SERVICE_REGISTRY_ADDRESS`
+    - `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS` <sup>*</sup>
+    - `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` <sup>*</sup>
+    - `CUSTOM_SAFE_MULTISIG_WITH_RECOVERY_MODULE_ADDRESS` <sup>**</sup>
+    - `RECOVERY_MODULE_CONTRACT` <sup>**</sup>
+    - `CUSTOM_SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS`
+    - `CUSTOM_MULTISEND_ADDRESS`
 
-!!! note
-    For L2 chains you are only required to set
-    - `CUSTOM_SERVICE_MANAGER_ADDRESS`,
-    - `CUSTOM_SERVICE_REGISTRY_ADDRESS`,
-    - `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS`,
-    - `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` and
-    - `CUSTOM_MULTISEND_ADDRESS`.
+    !!! note
+        For L2 chains you are only required to set
+        - `CUSTOM_SERVICE_MANAGER_ADDRESS`
+        - `CUSTOM_SERVICE_REGISTRY_ADDRESS`
+        - `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS` <sup>*</sup>
+        - `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` <sup>*</sup>
+        - `CUSTOM_SAFE_MULTISIG_WITH_RECOVERY_MODULE_ADDRESS` <sup>**</sup>
+        - `RECOVERY_MODULE_CONTRACT` <sup>**</sup>
+        - `CUSTOM_MULTISEND_ADDRESS`
+
+    <sup>*</sup> Required only if `--use-recovery` is not specified.
+    <sup>**</sup> Required only if `--use-recovery` is specified.
 
 `--use-local`
 : Use the local chain profile to interact with the Autonolas Protocol registry contracts. This option requires that you have a local Hardhat node with the required contracts deployed.
@@ -63,6 +70,9 @@ To use these chain profiles, you have to export an environment variable that def
 !!! note
 
     The chain profile flags (`--use-ethereum`, etc.) are mutually exclusive.
+
+`--use-recovery`
+: Use a multisig with a recovery module when deploying or redeploying the service. This module allows ownership of the service multisig to be transferred to the service owner if the agents have not done so. This functionality is only available during the [*Pre-Registration*](https://docs.olas.network/protocol/life_cycle_of_a_service/#pre-registration) phase and is executed automatically when [activating](#autonomy-service-activate) the service. See notes <sup>*</sup> and <sup>**</sup> to use this option in custom chains.
 
 `-t, --timeout FLOAT`
 : Timeout for on-chain interactions
