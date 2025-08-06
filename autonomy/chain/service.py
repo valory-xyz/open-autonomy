@@ -77,7 +77,7 @@ def get_deployment_payload(fallback_handler: Optional[str] = None) -> str:
     )
 
 
-def get_deployment_payload_with_recovery(fallback_handler: Optional[str] = None) -> str:
+def get_deployment_with_recovery_payload(fallback_handler: Optional[str] = None) -> str:
     """Calculates deployment payload."""
     return (
         DEFAULT_DEPLOY_PAYLOAD_WITH_RECOVERY.format(
@@ -480,7 +480,7 @@ class ServiceManager:
                     GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT.name
                 ).contracts[self.chain_type]
             else:
-                _deployment_payload, error = get_reuse_multisig_payload_with_recovery(
+                _deployment_payload, error = get_reuse_multisig_with_recovery_payload(
                     ledger_api=self.ledger_api,
                     crypto=self.crypto,
                     chain_type=self.chain_type,
@@ -504,7 +504,7 @@ class ServiceManager:
                     GNOSIS_SAFE_PROXY_FACTORY_CONTRACT.name
                 ).contracts[self.chain_type]
             else:
-                deployment_payload = get_deployment_payload_with_recovery(
+                deployment_payload = get_deployment_with_recovery_payload(
                     fallback_handler=fallback_handler
                 )
                 gnosis_safe_multisig = ContractConfigs.get(
@@ -743,7 +743,7 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
     return payload, None
 
 
-def get_reuse_multisig_payload_with_recovery(  # pylint: disable=too-many-locals
+def get_reuse_multisig_with_recovery_payload(  # pylint: disable=too-many-locals
     ledger_api: LedgerApi,
     crypto: Crypto,
     chain_type: ChainType,
@@ -773,5 +773,5 @@ def get_reuse_multisig_payload_with_recovery(  # pylint: disable=too-many-locals
             "Service was not terminated properly, the service owner should be the only owner of the safe",
         )
 
-    payload = int(service_id).to_bytes(32, "big").hex()
+    payload = "0x" + int(service_id).to_bytes(32, "big").hex()
     return payload, None
