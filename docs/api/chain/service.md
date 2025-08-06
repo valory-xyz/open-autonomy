@@ -219,7 +219,8 @@ of when deployed
 ```python
 def deploy(service_id: int,
            fallback_handler: Optional[str] = None,
-           reuse_multisig: bool = False) -> None
+           reuse_multisig: bool = False,
+           use_multisig_with_recovery_module: bool = False) -> None
 ```
 
 Deploy service.
@@ -232,6 +233,7 @@ the service and registered the required agent instances.
 - `service_id`: Service ID retrieved after minting a service
 - `fallback_handler`: Fallback handler address for gnosis safe multisig
 - `reuse_multisig`: Use multisig from the previous deployment
+- `use_multisig_with_recovery_module`: Use multisig with recovery module
 
 <a id="autonomy.chain.service.ServiceManager.terminate"></a>
 
