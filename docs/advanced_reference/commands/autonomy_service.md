@@ -44,26 +44,27 @@ To use these chain profiles, you have to export an environment variable that def
     - `CUSTOM_REGISTRIES_MANAGER_ADDRESS`
     - `CUSTOM_SERVICE_MANAGER_ADDRESS`
     - `CUSTOM_SERVICE_REGISTRY_ADDRESS`
-    - `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS` <sup>&#42;</sup>
-    - `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` <sup>&#42;</sup>
-    - `CUSTOM_SAFE_MULTISIG_WITH_RECOVERY_MODULE_ADDRESS` <sup>&#42;&#42;</sup>
-    - `RECOVERY_MODULE_CONTRACT` <sup>&#42;&#42;</sup>
+    - `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS`<sup>&#8224;</sup>
+    - `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS`<sup>&#8224;</sup>
+    - `CUSTOM_SAFE_MULTISIG_WITH_RECOVERY_MODULE_ADDRESS`<sup>&#8225;</sup>
+    - `RECOVERY_MODULE_CONTRACT`<sup>&#8225;</sup>
     - `CUSTOM_SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS`
     - `CUSTOM_MULTISEND_ADDRESS`
 
     !!! note
         For L2 chains you are only required to set
+
         - `CUSTOM_SERVICE_MANAGER_ADDRESS`
         - `CUSTOM_SERVICE_REGISTRY_ADDRESS`
-        - `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS` <sup>&#42;</sup>
-        - `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` <sup>&#42;</sup>
-        - `CUSTOM_SAFE_MULTISIG_WITH_RECOVERY_MODULE_ADDRESS` <sup>&#42;&#42;</sup>
-        - `RECOVERY_MODULE_CONTRACT` <sup>&#42;&#42;</sup>
+        - `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS`<sup>&#8224;</sup>
+        - `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS`<sup>&#8224;</sup>
+        - `CUSTOM_SAFE_MULTISIG_WITH_RECOVERY_MODULE_ADDRESS`<sup>&#8225;</sup>
+        - `RECOVERY_MODULE_CONTRACT`<sup>&#8225;</sup>
         - `CUSTOM_MULTISEND_ADDRESS`
 
-    <sup>&#42;</sup> Required only if `--use-recovery` is not specified.
+    <sup>&#8224;</sup> Required only if `--use-recovery` is not specified.
 
-    <sup>&#42;&#42;</sup> Required only if `--use-recovery` is specified.
+    <sup>&#8225;</sup> Required only if `--use-recovery` is specified.
 
 `--use-local`
 : Use the local chain profile to interact with the Autonolas Protocol registry contracts. This option requires that you have a local Hardhat node with the required contracts deployed.
@@ -73,7 +74,7 @@ To use these chain profiles, you have to export an environment variable that def
     The chain profile flags (`--use-ethereum`, etc.) are mutually exclusive.
 
 `--use-recovery`
-: Use a multisig with a recovery module when deploying or redeploying the service. This module allows ownership of the service multisig to be transferred to the service owner if the agents have not done so. This functionality is only available during the [*Pre-Registration*](https://docs.olas.network/protocol/life_cycle_of_a_service/#pre-registration) phase and is executed automatically when [activating](#autonomy-service-activate) the service. See notes <sup>&#42;</sup> and <sup>&#42;&#42;</sup> above.
+: Use a multisig with a recovery module when deploying or redeploying the service. This module allows ownership of the service multisig to be transferred to the service owner if the agents have not done so. This functionality is only available during the [*Pre-Registration*](https://docs.olas.network/protocol/life_cycle_of_a_service/#pre-registration) phase and is executed automatically when [activating](#autonomy-service-activate) the service. See notes <sup>&#8224;</sup> and <sup>&#8225;</sup> above.
 
 `-t, --timeout FLOAT`
 : Timeout for on-chain interactions
