@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 aiohttp = "<4.0.0,>=3.8.5"
-docker = "==6.1.2"
+docker = "==7.1.0"
 Flask = "==2.0.2"
 open-aea = {version = "==2.0.2", extras = ["all"]}
 open-aea-ledger-ethereum = "==2.0.2"
