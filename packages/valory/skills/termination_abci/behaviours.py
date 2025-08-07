@@ -553,6 +553,7 @@ class TerminationBehaviour(BaseBehaviour):
         """Logs termination and terminates."""
         self.context.logger.info("Terminating the agent.")
         sys.exit()
+        yield  # pylint: disable=unreachable
 
 
 class TerminationAbciBehaviours(AbstractRoundBehaviour):
