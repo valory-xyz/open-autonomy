@@ -46,6 +46,8 @@ CHAIN_PROFILES = {
         "service_manager": "0x4c5859f0F772848b2D91F1D83E2Fe57935348029",
         "gnosis_safe_proxy_factory": "0x0E801D84Fa97b50751Dbf25036d067dCf18858bF",  # Multisig WITHOUT recovery module
         "gnosis_safe_same_address_multisig": "0x8f86403A4DE0BB5791fa46B8e795C547942fE4Cf",  # Same address multisig WITHOUT recovery module
+        "safe_multisig_with_recovery_module": "0x0000000000000000000000000000000000000000",  # TODO Multisig WITH recovery module
+        "recovery_module": "0x0000000000000000000000000000000000000000",  # TODO Same address multisig WITH recovery module
         "service_registry_token_utility": "0x36C02dA8a0983159322a80FFE9F24b1acfF8B570",
         "multisend": "0x9d4454B023096f34B160D6B654540c56A1F81688",
     },
