@@ -201,21 +201,28 @@ class TestServiceManager(BaseServiceManagerTest):
         assert result.exit_code == 1, result.stdout
         assert "AgentInstanceRegistered" in result.stderr
 
+    @pytest.mark.parametrize(
+        argnames="use_recovery_module",
+        argvalues=(True, False),
+    )
     def test_deploy(
         self,
+        use_recovery_module: bool,
     ) -> None:
         """Test register instance on a service"""
 
         def _run_command(service_id: str) -> Result:
             """Run command and return result"""
-            return self.run_cli(
-                commands=(
-                    "deploy",
-                    service_id,
-                    "--key",
-                    str(self.key_file),
-                )
-            )
+            commands = [
+                "deploy",
+                service_id,
+                "--key",
+                str(self.key_file),
+            ]
+            if use_recovery_module:
+                commands.append("--use-recovery-module")
+
+            return self.run_cli(commands=tuple(commands))
 
         service_id = self.mint_service()
         self.activate_service(
