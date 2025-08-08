@@ -1046,3 +1046,25 @@ class GnosisSafeContract(Contract):
                 "sender_address": sender,
             },
         )
+
+    @classmethod
+    def is_module_enabled(
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        module_address: str,
+    ) -> JSONLike:
+        """
+        Check if a module is enabled in the Safe.
+
+        :param ledger_api: the ledger API object
+        :param module_address: the module address
+        :param contract_address: the contract address
+        :return: the safe owners
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        safe_contract = cls.get_instance(ledger_api, contract_address)
+        is_module_enabled = safe_contract.functions.isModuleEnabled(
+            module_address
+        ).call()
+        return dict(enabled=is_module_enabled)

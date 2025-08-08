@@ -34,6 +34,7 @@ from autonomy.chain.constants import (
     GNOSIS_SAFE_CONTRACT,
     GNOSIS_SAFE_PROXY_FACTORY_CONTRACT,
     MULTISEND_CONTRACT,
+    RECOVERY_MODULE_CONTRACT,
     REGISTRIES_MANAGER_CONTRACT,
     SERVICE_MANAGER_CONTRACT,
     SERVICE_REGISTRY_CONTRACT,
@@ -82,6 +83,7 @@ class RegistryContracts:  # pylint: disable=too-many-instance-attributes
     _service_registry_token_utility: Optional[Contract] = None
     _gnosis_safe: Optional[Contract] = None
     _gnosis_safe_proxy_factory: Optional[Contract] = None
+    _recovery_module: Optional[Contract] = None
     _multisend: Optional[Contract] = None
 
     @staticmethod
@@ -219,6 +221,18 @@ class RegistryContracts:  # pylint: disable=too-many-instance-attributes
             )
 
         return self._gnosis_safe_proxy_factory
+
+    @property
+    def recovery_module(
+        self,
+    ) -> Contract:
+        """Returns an instance of the recovery module contract."""
+        if self._recovery_module is None:
+            self._recovery_module = self.get_contract(
+                public_id=RECOVERY_MODULE_CONTRACT,
+            )
+
+        return self._recovery_module
 
     @property
     def multisend(
