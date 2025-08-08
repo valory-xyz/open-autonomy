@@ -5,6 +5,14 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.20.0` to `v0.20.1`
+
+No backwards incompatible changes.
+
+## `v0.19.11` to `v0.20.0`
+
+- The `Chain` and `ChainType` now have the `OPTIMISM` enum value. And the `OPTIMISTIC` enum value has been removed.
+
 ## `v0.19.10` to `v0.19.11`
 
 No backwards incompatible changes.

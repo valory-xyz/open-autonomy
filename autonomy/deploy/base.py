@@ -158,7 +158,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
     deplopyment_type: str = DOCKER_COMPOSE_DEPLOYMENT
     log_level: str = INFO
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         service: Service,
         keys: Optional[List[Union[List[Dict[str, str]], Dict[str, str]]]] = None,
@@ -182,7 +182,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         )
         self.service_offset = service_offset
 
-        self._service_name_clean = (
+        self.service_name_clean = (
             self.service.name.replace("_", "") + self.service_hash_id
         )
         self._keys = keys or []
@@ -192,11 +192,15 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
 
     def get_abci_container_name(self, index: int) -> str:
         """Format ABCI container name."""
-        return f"{self._service_name_clean}_abci_{index}"
+        return f"{self.service_name_clean}_abci_{index}"
 
     def get_tm_container_name(self, index: int) -> str:
         """Format tendermint container name."""
-        return f"{self._service_name_clean}_tm_{index}"
+        return f"{self.service_name_clean}_tm_{index}"
+
+    def get_network_name(self) -> str:
+        """Get the network name."""
+        return f"service_{self.service_name_clean}_localnet"
 
     def try_get_all_participants(self) -> Optional[List[str]]:
         """Try get all participants from the ABCI overrides"""
@@ -262,7 +266,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         return self._keys
 
     @classmethod
-    def from_dir(  # pylint: disable=too-many-arguments
+    def from_dir(
         cls,
         path: Path,
         keys_file: Optional[Path] = None,
@@ -767,7 +771,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
     open_aea_dir: Optional[Path]
     resources: Resources
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         service_builder: ServiceBuilder,
         build_dir: Path,

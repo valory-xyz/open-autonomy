@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -178,7 +178,7 @@ def is_service_token_secured(
     return response["is_token_secured_service"]
 
 
-def approve_erc20_usage(  # pylint: disable=too-many-arguments, too-many-locals
+def approve_erc20_usage(  # pylint: disable=too-many-locals
     ledger_api: LedgerApi,
     crypto: Crypto,
     chain_type: ChainType,
@@ -239,7 +239,7 @@ def approve_erc20_usage(  # pylint: disable=too-many-arguments, too-many-locals
 class ServiceManager:
     """Service manager."""
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         ledger_api: LedgerApi,
         crypto: Crypto,
@@ -258,7 +258,7 @@ class ServiceManager:
         self.sleep = sleep
         self.dry_run = dry_run
 
-    def _transact(  # pylint: disable=too-many-arguments
+    def _transact(
         self,
         method: Callable,
         kwargs: Dict,
@@ -604,8 +604,8 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
                 "to": multisig_address,
                 "data": HexBytes(
                     bytes.fromhex(
-                        multisig_instance.encodeABI(
-                            fn_name="addOwnerWithThreshold",
+                        multisig_instance.encode_abi(
+                            abi_element_identifier="addOwnerWithThreshold",
                             args=[_owner, 1],
                         )[2:]
                     )
@@ -620,8 +620,8 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
             "to": multisig_address,
             "data": HexBytes(
                 bytes.fromhex(
-                    multisig_instance.encodeABI(
-                        fn_name="removeOwner",
+                    multisig_instance.encode_abi(
+                        abi_element_identifier="removeOwner",
                         args=[new_owners[0], service_owner, 1],
                     )[2:]
                 )
@@ -636,8 +636,8 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
             "to": multisig_address,
             "data": HexBytes(
                 bytes.fromhex(
-                    multisig_instance.encodeABI(
-                        fn_name="changeThreshold",
+                    multisig_instance.encode_abi(
+                        abi_element_identifier="changeThreshold",
                         args=[threshold],
                     )[2:]
                 )
@@ -682,8 +682,8 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
     signature_bytes = registry_contracts.gnosis_safe.get_packed_signatures(
         owners=tuple(old_owners), signatures_by_owner=owner_to_signature
     )
-    safe_exec_data = multisig_instance.encodeABI(
-        fn_name="execTransaction",
+    safe_exec_data = multisig_instance.encode_abi(
+        abi_element_identifier="execTransaction",
         args=[
             multisend_address,  # to address
             multisend_tx["value"],  # value

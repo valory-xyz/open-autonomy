@@ -85,7 +85,7 @@ from autonomy.deploy.image import ImageBuildFailed
     default=None,
 )
 @image_author_option
-def build_image(  # pylint: disable=too-many-arguments
+def build_image(
     agent: Optional[PublicId],
     service_dir: Optional[Path],
     dockerfile: Optional[Path],

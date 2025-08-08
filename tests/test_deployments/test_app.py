@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -236,7 +236,7 @@ class TestTendermintServerApp(BaseTendermintServerTest):
     @wait_for_node_to_run
     def test_get_request_status(self, http_: str, loopback: str, rpc_port: int) -> None:
         """Check local node is running"""
-        response = requests.get(f"{http_}{loopback}:{rpc_port}/status")
+        response = requests.get(f"{http_}{loopback}:{rpc_port}/status", timeout=30)
         data = response.json()
         assert data["result"]["node_info"]["version"] == VERSION
 

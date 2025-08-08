@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -85,9 +85,9 @@ class BaseTerminationTest(FSMBehaviourBaseCase):
 
     behaviour: TerminationAbciBehaviours
     behaviour_class: Type[BaseBehaviour]
-    next_behaviour_class: Type[
-        BaseBehaviour
-    ] = TransactionSettlementRoundBehaviour.initial_behaviour_cls
+    next_behaviour_class: Type[BaseBehaviour] = (
+        TransactionSettlementRoundBehaviour.initial_behaviour_cls
+    )
     synchronized_data: SynchronizedData
     done_event = Event.TERMINATE
 

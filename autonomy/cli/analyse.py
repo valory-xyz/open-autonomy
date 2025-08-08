@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -252,7 +252,7 @@ def docstrings(ctx: Context, update: bool) -> None:
     type=str,
     help="Regex pattern to exclude from the result.",
 )
-def _parse_logs(  # pylint: disable=too-many-arguments
+def _parse_logs(
     logs_dir: Optional[Path],
     agents: List[str],
     start_time: Optional[datetime],

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -359,14 +359,16 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = MagicMock(
-                    get_all_round_classes=lambda _, include_background_rounds: rounds
-                    if include_background_rounds
-                    else [],
-                    final_states={
-                        rounds[0],
-                    }
-                    if behaviour_cls
-                    else {},
+                    get_all_round_classes=lambda _, include_background_rounds: (
+                        rounds if include_background_rounds else []
+                    ),
+                    final_states=(
+                        {
+                            rounds[0],
+                        }
+                        if behaviour_cls
+                        else {}
+                    ),
                 )
                 behaviours = mock_behaviours  # type: ignore
                 initial_behaviour_cls = MagicMock()

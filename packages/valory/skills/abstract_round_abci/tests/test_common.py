@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -191,8 +191,8 @@ class TestRandomnessBehaviour(BaseDummyBehaviour):
     ) -> None:
         """Test `get_randomness_from_api`."""
         # create a dummy `process_response` for `MagicMock`ed `randomness_api`
-        self.behaviour.context.randomness_api.process_response = (
-            lambda res: res + "_processed" if res is not None else None
+        self.behaviour.context.randomness_api.process_response = lambda res: (
+            res + "_processed" if res is not None else None
         )
         gen = self.behaviour.get_randomness_from_api()
 

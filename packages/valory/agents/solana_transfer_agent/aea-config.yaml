@@ -8,34 +8,34 @@ fingerprint:
   README.md: bafybeiamp5k2dtww2rxaxu4kqsi3yon6mhofezlgcyzrialt2rnigkk43y
   __init__.py: bafybeigixtbve7in5q3mkbasn2lcu47pqzc23vhxugli2akg6ucw6roo3u
   tests/__init__.py: bafybeiduyc727gdkavmsrslb22ixlehadyzjnfimikqeasuf6orkew32fa
-  tests/base.py: bafybeihrqoid3dyqf6ce6vvyg3atungbxj5i64rh6jaseumiyiqi6zevvm
-  tests/test_register_reset.py: bafybeibkkl43yfexlyizdyeabw2rjtzc55tdm27syk6wixdrcdsxeno53a
+  tests/base.py: bafybeihr6d63pvjyc4tlveutgnex63ses454jshv2j445k44dly52rkwlm
+  tests/test_register_reset.py: bafybeiahzyksbrxwqxurek7rd4hfolgbuhd6ercaqlhggwwzdoqbpuxmdy
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeigfvaekteswvwozfwe4m75q22ll6cdix3fcbqm5zgiluutkwi2qxu
+- valory/abci:0.1.0:bafybeihgh32uincme4vfnufuk52q4ssfnodvtcgvuxtsgr47jpgaghadl4
 - valory/http_client:0.23.0:bafybeidmlazrjbnn5mw4wxrrj7lfnci7amt5alke2ahb3yirac6qudxuwm
-- valory/ipfs:0.1.0:bafybeigoqebr5ap52iok4mzgttib7xlmozkaet3y4bxyo47oxctq45mtla
+- valory/ipfs:0.1.0:bafybeihbedhxr7dajircftrcbb7uzl4wmaidogwjx42iyfzwk7f3irua3m
 - valory/ledger:0.19.0:bafybeicoc67atvjzld5e7qzbdkc7c2fj5jrtuj77nx6igxcdxqqqwxiduy
 - valory/p2p_libp2p_client:0.1.0:bafybeihiulggi4jz3i7qdjicztbvlrkesyb7paiovfcmw22xvovpweeq7y
 contracts:
-- valory/service_registry:0.1.0:bafybeigdgtis7coyv67jpwr27pgou6ajptz2eclfopreipp7noqdudixoy
-- valory/squads_multisig:0.1.0:bafybeiadyjilhjfayeiqrjb6nmxxwiuma5dhex6tq4i3547zbbngisfq7e
+- valory/service_registry:0.1.0:bafybeidm44mmyslmnnfntqfkklla7utq56w7m2py5vhzs75kwrg564i4s4
+- valory/squads_multisig:0.1.0:bafybeifj7j7377fmhoaxmnqyqez3biu36evto2qqjek5fkuywzdskysdzm
 protocols:
 - open_aea/signing:1.0.0:bafybeierdeo55vv7nxdag3s2kk6gh4essmeeqpa7vperbw3wn3ypzmtcdm
-- valory/abci:0.1.0:bafybeidzvivstbqwcvumumkmmx3o53jqh2mura75maih446e7c6s36kdfm
+- valory/abci:0.1.0:bafybeigdi6wsbdn2nv7clzhnuhki3taywgiiajwawdaat57o5ntlgqj2qe
 - valory/acn:1.1.0:bafybeihouwpsgkbafgsfdcwiwhz3smrjuw24b74j4v3n3hxirmxeskldwq
 - valory/contract_api:1.0.0:bafybeigv273fllpdsmzip4qfmhyvltdcss4yhoicss32c2yc7am6kue4cy
 - valory/http:1.0.0:bafybeia43es3r7haqhdcx4f3uwfcreeytyk4zadczsafwyc5dzwr7lu2jq
 - valory/ipfs:0.1.0:bafybeib7jhgyocjwdq3r5wzq3z4qeubj3dwi3aqjn2uxzuwnjp5fhvafcu
 - valory/ledger_api:1.0.0:bafybeifvbahdmabpswhu45q6xb2jppbvqlfztya6jx2ttu4eb6pjltyxam
-- valory/tendermint:0.1.0:bafybeig556rdmiy2y347pconna6qqn63uwiugndl2b6txxd7i24djwgfem
+- valory/tendermint:0.1.0:bafybeif5wq5i2ugr66alniej2bk4vws5sikal7otx674y5kz52e3ulo2qm
 skills:
-- valory/abstract_abci:0.1.0:bafybeib452q7ew5nq7n2kg5a36fbyxee3ltcupradjq2bdux6fycb5cjqm
-- valory/abstract_round_abci:0.1.0:bafybeierse3gcbniokm7q27f3ulcneb27aygrrptpwvkftbgudttvj6ypm
-- valory/registration_abci:0.1.0:bafybeic24k5pljuqokdbtoahzpyojkur4w7vy6utqdnd6bpw4celvu7ify
-- valory/reset_pause_abci:0.1.0:bafybeif7t36ljoflclcl6njill5byc7z633lvdia54q4ikkcvqzq4gtqc4
-- valory/squads_transaction_settlement_abci:0.1.0:bafybeidbdnkyenw4pydodldloebi3icmp7etxlvwz7kvdzerprfex4zdm4
-- valory/test_solana_tx_abci:0.1.0:bafybeibodzzcbnqaqiuzjr2zq7kg2eg5hqz6dzodqf4rx2elxho7aqwime
+- valory/abstract_abci:0.1.0:bafybeidhxjclpvsazvv4xy6q7mb54rgbbhrngv6h5adje7pqgfzsbhd4xy
+- valory/abstract_round_abci:0.1.0:bafybeihapi6kdqfhbw6lgtffo66dhpcbnd7ok2nrdmcdbx5rwwgtt7piiu
+- valory/registration_abci:0.1.0:bafybeieptzu7yzpxwatm52744p3wgafi4gzgucs6iq4g3scc46jtmnnxku
+- valory/reset_pause_abci:0.1.0:bafybeif6z72mk72rdqpqe3o3hlncgpjdxyy7igvo24kjmjwt55gazfpynm
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeidfmmkj6xwakn4bglrjoqdxqlkcvwv7ypsimxwyy3bjh3pdfmseie
+- valory/test_solana_tx_abci:0.1.0:bafybeigkd7bdanrf6vzn62vdyq2w5d6dhoyje552fvyjzuu6mgvu4i52w4
 default_ledger: solana
 required_ledgers:
 - solana
@@ -66,11 +66,11 @@ logging_config:
       propagate: false
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.0.0
+    version: ==2.0.3
   open-aea-ledger-solana:
-    version: ==2.0.0
+    version: ==2.0.3
   open-aea-test-autonomy:
-    version: ==0.19.11
+    version: ==0.20.1
 customs: []
 default_connection: null
 ---

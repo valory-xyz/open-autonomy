@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ class BaseTestRegisterResetRecoveryEnd2End(
         # able to catch up with the rest of the network.
         # The agent should send a hard reset req to recover it.
         bad_params = {"initial_height": "10"}
-        requests.get(endpoint, params=bad_params)
+        requests.get(endpoint, params=bad_params, timeout=30)
 
     def test_run(self, nb_nodes: int) -> None:
         """Run the test."""

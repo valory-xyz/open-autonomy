@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -124,7 +124,7 @@ def _activate(
     multiple=True,
     help="Agent ID",
 )
-def _register(  # pylint: disable=too-many-arguments
+def _register(
     ctx: Context,
     service_id: int,
     instances: List[str],
@@ -170,7 +170,7 @@ def _register(  # pylint: disable=too-many-arguments
     type=str,
     help="Fallback handler address for the gnosis safe multisig",
 )
-def _deploy(  # pylint: disable=too-many-arguments
+def _deploy(
     ctx: Context,
     service_id: int,
     key: Path,

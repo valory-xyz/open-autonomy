@@ -155,7 +155,7 @@ class TestGenerateSpecs(BaseCliTest):
 
         assert result.exit_code == 1, result.output
         assert (
-            "Cannot find the rounds module or the composition module" in result.stdout
+            "Cannot find the rounds module or the composition module" in result.stderr
         ), result.output
 
         result = self.run_cli(
@@ -169,13 +169,13 @@ class TestGenerateSpecs(BaseCliTest):
         )
 
         assert result.exit_code == 1, result.output
-        assert 'Class "SomeAppName" is not in' in result.stdout, result.output
+        assert 'Class "SomeAppName" is not in' in result.stderr, result.output
 
         self.skill_path = self.skill_path.rename(self.skill_path.parent / "offend")
         result = self.run_cli(("--package", str(self.skill_path)))
         assert result.exit_code == 1, result.output
         assert (
-            "The name of the skill 'offend' must end with `_abci`." in result.stdout
+            "The name of the skill 'offend' must end with `_abci`." in result.stderr
         ), result.output
 
 

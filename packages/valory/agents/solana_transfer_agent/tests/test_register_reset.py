@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ TERMINATION_STRINGS = (
 @pytest.mark.e2e
 @pytest.mark.integration
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestTermination(
+class TestTermination(  # pylint: disable=too-few-public-methods
     BaseTestTerminationEnd2End,
     UseRegistries,
 ):

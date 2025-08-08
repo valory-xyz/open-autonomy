@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -52,7 +52,9 @@ settings.load_profile(profile_name)
 # pylint: skip-file
 
 
-DRAND_PUBLIC_KEY: str = "868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31"
+DRAND_PUBLIC_KEY: str = (
+    "868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31"
+)
 
 DRAND_VALUE = {
     "round": 1416669,
@@ -195,7 +197,7 @@ def test_get_value_with_type(type_name: str, type_: Type, value: Any) -> None:
         return
 
     actual = get_value_with_type(value, type_name)
-    assert type(actual) == type_
+    assert type(actual) is type_
     assert actual == value
 
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ def to_title(string: str) -> str:
 def main() -> None:
     """Generate contract addresses list."""
     data = "# List of contract addresses\n"
-    chains = requests.get(ADDRESS_FILE_URL).json()
+    chains = requests.get(ADDRESS_FILE_URL, timeout=30).json()
     for chain in chains:
         chain_name = chain["name"]
         chain_id = chain["chainId"]

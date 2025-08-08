@@ -62,7 +62,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
 
     build: List[str]
 
-    def build_agent_deployment(  # pylint: disable=too-many-locals,too-many-arguments
+    def build_agent_deployment(  # pylint: disable=too-many-locals
         self,
         runtime_image: str,
         agent_ix: int,

@@ -1004,9 +1004,9 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
             if result is not None:
                 request, dialogue = result
                 # associate request to peer, so we remember who to reply to
-                self._request_id_to_socket[
-                    dialogue.incomplete_dialogue_label
-                ] = peer_name
+                self._request_id_to_socket[dialogue.incomplete_dialogue_label] = (
+                    peer_name
+                )
                 envelope = Envelope(
                     to=request.to, sender=request.sender, message=request
                 )
@@ -1060,7 +1060,7 @@ class StoppableThread(
 class TendermintParams:  # pylint: disable=too-few-public-methods
     """Tendermint node parameters."""
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         proxy_app: str,
         rpc_laddr: str = DEFAULT_RPC_LISTEN_ADDRESS,

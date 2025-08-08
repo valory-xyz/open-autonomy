@@ -46,39 +46,39 @@ if _descriptor._USE_C_DESCRIPTORS == False:
     _BLOCKIDFLAG._options = None
     _BLOCKIDFLAG._serialized_options = b"\210\243\036\000\250\244\036\001"
     _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_UNKNOWN"]._options = None
-    _BLOCKIDFLAG.values_by_name[
-        "BLOCK_ID_FLAG_UNKNOWN"
-    ]._serialized_options = b"\212\235 \022BlockIDFlagUnknown"
+    _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_UNKNOWN"]._serialized_options = (
+        b"\212\235 \022BlockIDFlagUnknown"
+    )
     _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_ABSENT"]._options = None
-    _BLOCKIDFLAG.values_by_name[
-        "BLOCK_ID_FLAG_ABSENT"
-    ]._serialized_options = b"\212\235 \021BlockIDFlagAbsent"
+    _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_ABSENT"]._serialized_options = (
+        b"\212\235 \021BlockIDFlagAbsent"
+    )
     _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_COMMIT"]._options = None
-    _BLOCKIDFLAG.values_by_name[
-        "BLOCK_ID_FLAG_COMMIT"
-    ]._serialized_options = b"\212\235 \021BlockIDFlagCommit"
+    _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_COMMIT"]._serialized_options = (
+        b"\212\235 \021BlockIDFlagCommit"
+    )
     _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_NIL"]._options = None
-    _BLOCKIDFLAG.values_by_name[
-        "BLOCK_ID_FLAG_NIL"
-    ]._serialized_options = b"\212\235 \016BlockIDFlagNil"
+    _BLOCKIDFLAG.values_by_name["BLOCK_ID_FLAG_NIL"]._serialized_options = (
+        b"\212\235 \016BlockIDFlagNil"
+    )
     _SIGNEDMSGTYPE._options = None
     _SIGNEDMSGTYPE._serialized_options = b"\210\243\036\000\250\244\036\001"
     _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_UNKNOWN"]._options = None
-    _SIGNEDMSGTYPE.values_by_name[
-        "SIGNED_MSG_TYPE_UNKNOWN"
-    ]._serialized_options = b"\212\235 \013UnknownType"
+    _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_UNKNOWN"]._serialized_options = (
+        b"\212\235 \013UnknownType"
+    )
     _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_PREVOTE"]._options = None
-    _SIGNEDMSGTYPE.values_by_name[
-        "SIGNED_MSG_TYPE_PREVOTE"
-    ]._serialized_options = b"\212\235 \013PrevoteType"
+    _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_PREVOTE"]._serialized_options = (
+        b"\212\235 \013PrevoteType"
+    )
     _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_PRECOMMIT"]._options = None
-    _SIGNEDMSGTYPE.values_by_name[
-        "SIGNED_MSG_TYPE_PRECOMMIT"
-    ]._serialized_options = b"\212\235 \rPrecommitType"
+    _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_PRECOMMIT"]._serialized_options = (
+        b"\212\235 \rPrecommitType"
+    )
     _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_PROPOSAL"]._options = None
-    _SIGNEDMSGTYPE.values_by_name[
-        "SIGNED_MSG_TYPE_PROPOSAL"
-    ]._serialized_options = b"\212\235 \014ProposalType"
+    _SIGNEDMSGTYPE.values_by_name["SIGNED_MSG_TYPE_PROPOSAL"]._serialized_options = (
+        b"\212\235 \014ProposalType"
+    )
     _PART.fields_by_name["proof"]._options = None
     _PART.fields_by_name["proof"]._serialized_options = b"\310\336\037\000"
     _BLOCKID.fields_by_name["part_set_header"]._options = None
@@ -88,41 +88,41 @@ if _descriptor._USE_C_DESCRIPTORS == False:
     _HEADER.fields_by_name["chain_id"]._options = None
     _HEADER.fields_by_name["chain_id"]._serialized_options = b"\342\336\037\007ChainID"
     _HEADER.fields_by_name["time"]._options = None
-    _HEADER.fields_by_name[
-        "time"
-    ]._serialized_options = b"\310\336\037\000\220\337\037\001"
+    _HEADER.fields_by_name["time"]._serialized_options = (
+        b"\310\336\037\000\220\337\037\001"
+    )
     _HEADER.fields_by_name["last_block_id"]._options = None
     _HEADER.fields_by_name["last_block_id"]._serialized_options = b"\310\336\037\000"
     _VOTE.fields_by_name["block_id"]._options = None
-    _VOTE.fields_by_name[
-        "block_id"
-    ]._serialized_options = b"\310\336\037\000\342\336\037\007BlockID"
+    _VOTE.fields_by_name["block_id"]._serialized_options = (
+        b"\310\336\037\000\342\336\037\007BlockID"
+    )
     _VOTE.fields_by_name["timestamp"]._options = None
-    _VOTE.fields_by_name[
-        "timestamp"
-    ]._serialized_options = b"\310\336\037\000\220\337\037\001"
+    _VOTE.fields_by_name["timestamp"]._serialized_options = (
+        b"\310\336\037\000\220\337\037\001"
+    )
     _COMMIT.fields_by_name["block_id"]._options = None
-    _COMMIT.fields_by_name[
-        "block_id"
-    ]._serialized_options = b"\310\336\037\000\342\336\037\007BlockID"
+    _COMMIT.fields_by_name["block_id"]._serialized_options = (
+        b"\310\336\037\000\342\336\037\007BlockID"
+    )
     _COMMIT.fields_by_name["signatures"]._options = None
     _COMMIT.fields_by_name["signatures"]._serialized_options = b"\310\336\037\000"
     _COMMITSIG.fields_by_name["timestamp"]._options = None
-    _COMMITSIG.fields_by_name[
-        "timestamp"
-    ]._serialized_options = b"\310\336\037\000\220\337\037\001"
+    _COMMITSIG.fields_by_name["timestamp"]._serialized_options = (
+        b"\310\336\037\000\220\337\037\001"
+    )
     _PROPOSAL.fields_by_name["block_id"]._options = None
-    _PROPOSAL.fields_by_name[
-        "block_id"
-    ]._serialized_options = b"\310\336\037\000\342\336\037\007BlockID"
+    _PROPOSAL.fields_by_name["block_id"]._serialized_options = (
+        b"\310\336\037\000\342\336\037\007BlockID"
+    )
     _PROPOSAL.fields_by_name["timestamp"]._options = None
-    _PROPOSAL.fields_by_name[
-        "timestamp"
-    ]._serialized_options = b"\310\336\037\000\220\337\037\001"
+    _PROPOSAL.fields_by_name["timestamp"]._serialized_options = (
+        b"\310\336\037\000\220\337\037\001"
+    )
     _BLOCKMETA.fields_by_name["block_id"]._options = None
-    _BLOCKMETA.fields_by_name[
-        "block_id"
-    ]._serialized_options = b"\310\336\037\000\342\336\037\007BlockID"
+    _BLOCKMETA.fields_by_name["block_id"]._serialized_options = (
+        b"\310\336\037\000\342\336\037\007BlockID"
+    )
     _BLOCKMETA.fields_by_name["header"]._options = None
     _BLOCKMETA.fields_by_name["header"]._serialized_options = b"\310\336\037\000"
     _globals["_BLOCKIDFLAG"]._serialized_start = 2207

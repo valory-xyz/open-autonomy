@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ except ImportError:  # pragma: nocover
 class OnChainHelper:  # pylint: disable=too-few-public-methods
     """On-chain interaction helper."""
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         chain_type: ChainType,
         key: Optional[Path] = None,
@@ -242,7 +242,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
     metadata_string: str
     token_id: Optional[int]
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         chain_type: ChainType,
         key: Optional[Path] = None,
@@ -650,7 +650,7 @@ class ServiceHelper(OnChainHelper):
     token: Optional[str]
     token_secured: bool
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         service_id: int,
         chain_type: ChainType,

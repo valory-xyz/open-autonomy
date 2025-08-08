@@ -87,3 +87,13 @@ class GanacheForkDockerImage(GanacheDockerImage)
 
 Extends GanacheDockerImage to enable forking
 
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.ganache.GanacheForkDockerImage.create_many"></a>
+
+#### create`_`many
+
+```python
+def create_many(nb_containers: int) -> List[Container]
+```
+
+Instantiate the image in many containers, parametrized.
+

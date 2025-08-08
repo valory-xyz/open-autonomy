@@ -91,7 +91,7 @@ class TestFetchAgentCommand(FetchTest):
         with mock.patch("autonomy.cli.fetch.do_fetch", side_effect=NotAnAgentPackage):
             result = self.run_cli(("--remote", "valory/counter"))
             assert result.exit_code == 1
-            assert expected in result.stdout
+            assert expected in result.stderr
 
 
 class TestFetchServiceCommand(FetchTest):
@@ -120,7 +120,7 @@ class TestFetchServiceCommand(FetchTest):
 
     def test_publish_and_fetch_service_ipfs(self) -> None:
         """Test fetch service."""
-        expected_hash = "bafybeicojucnpgeud7lmomfkppwbnxpnbtfwvqritalkzessfjbcze27re"
+        expected_hash = "bafybeiarzxv5yvg2ob6qtksqcig7xn46krq4np3v56la2a5rdxx2evy6ba"
 
         service_dir = self.t / "dummy_service"
         service_file = service_dir / DEFAULT_SERVICE_CONFIG_FILE
@@ -145,7 +145,7 @@ class TestFetchServiceCommand(FetchTest):
             result = self.cli_runner.invoke(cli, ["publish", "--remote"])
 
             assert result.exit_code == 0, result.output
-            assert expected_hash in result.output
+            assert expected_hash in result.stdout
 
         with mock.patch(
             "autonomy.cli.helpers.registry.get_default_remote_registry",

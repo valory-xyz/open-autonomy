@@ -645,7 +645,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         result = self.run_cli((keys_file,))
         expected = f"No such file or directory: {Path.cwd() / keys_file}. Please provide valid path for keys file."
         assert result.exit_code == 1
-        assert expected in result.stdout
+        assert expected in result.stderr
 
     def test_remove_build_dir_on_exception(self) -> None:
         """Test non-existent keys file"""
@@ -657,7 +657,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                 result = self.run_cli((str(self.keys_file),))
                 m.assert_called_once()
                 rmtree_mock.assert_called_once()
-                assert str(side_effect) in result.stdout
+                assert str(side_effect) in result.stderr
 
     def test_docker_compose_build_image_author_flag_default(
         self,

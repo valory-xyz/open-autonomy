@@ -89,7 +89,7 @@ NFT parameter for minting tools.
 #### get`_`metavar
 
 ```python
-def get_metavar(param: click.Parameter, **kwargs: Any) -> str
+def get_metavar(param: click.Parameter, *args: Any, **kwargs: Any) -> str
 ```
 
 Get metavar

@@ -78,14 +78,14 @@ class TestBaseTestEnd2End(BaseTest):
         assert self.test_cls.cli_log_options == ["-v", "DEBUG"]
 
         # default values likely to change
-        assert self.test_cls.happy_path == ()
-        assert self.test_cls.strict_check_strings == ()
+        assert not self.test_cls.happy_path
+        assert not self.test_cls.strict_check_strings
 
     def test_defaults_test_instance(self) -> None:
         """Test defaults, after setup_class"""
 
         assert self.test_cls.agents == set()
-        assert self.test_cls.subprocesses == []
+        assert not self.test_cls.subprocesses
 
         # no setup -> no tests needed for setup
         assert not hasattr(self.test_cls, "setup")

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -116,9 +116,7 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         main_config = SkillComponentConfiguration(round_behaviour_cls_name)
         config.behaviours.create("main", main_config)
 
-    def _update_handlers(  # pylint: disable=no-self-use
-        self, config: SkillConfig
-    ) -> None:
+    def _update_handlers(self, config: SkillConfig) -> None:
         """Update the handlers section of the skill configuration."""
         config.handlers = CRUDCollection[SkillComponentConfiguration]()
         config.handlers.create("abci", SkillComponentConfiguration("ABCIHandler"))
@@ -135,9 +133,7 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         )
         config.handlers.create("ipfs", SkillComponentConfiguration("IpfsHandler"))
 
-    def _update_models(  # pylint: disable=no-self-use
-        self, config: SkillConfig
-    ) -> None:
+    def _update_models(self, config: SkillConfig) -> None:
         """Update the models section of the skill configuration."""
         config.models = CRUDCollection[SkillComponentConfiguration]()
         config.models.create("state", SkillComponentConfiguration("SharedState"))

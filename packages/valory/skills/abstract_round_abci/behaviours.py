@@ -105,7 +105,7 @@ class _MetaRoundBehaviour(ABCMeta):
             _ = behaviour_cls.behaviours
             _ = behaviour_cls.initial_behaviour_cls
         except AttributeError as e:
-            raise ABCIAppInternalError(*e.args) from None
+            raise ABCIAppInternalError(str(e), *e.args) from None
 
     @classmethod
     def _check_behaviour_id_uniqueness(
@@ -254,12 +254,12 @@ class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the behaviour."""
         super().__init__(**kwargs)
-        self._behaviour_id_to_behaviours: Dict[
-            str, BehaviourType
-        ] = self._get_behaviour_id_to_behaviour_mapping(self.behaviours)
-        self._round_to_behaviour: Dict[
-            Type[AbstractRound], BehaviourType
-        ] = self._get_round_to_behaviour_mapping(self.behaviours)
+        self._behaviour_id_to_behaviours: Dict[str, BehaviourType] = (
+            self._get_behaviour_id_to_behaviour_mapping(self.behaviours)
+        )
+        self._round_to_behaviour: Dict[Type[AbstractRound], BehaviourType] = (
+            self._get_round_to_behaviour_mapping(self.behaviours)
+        )
 
         self.current_behaviour: Optional[BaseBehaviour] = None
         self.background_behaviours: Set[BaseBehaviour] = set()

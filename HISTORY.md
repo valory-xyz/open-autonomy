@@ -1,5 +1,17 @@
 # Release History - `open-autonomy`
 
+# 0.20.1 (2025-07-30)
+
+Autonomy:
+- Pins the `open-aea-user` docker image to `1.65.0` to keep it compatible with major releases of `open-aea`. #2342
+
+# 0.20.0 (2025-07-29)
+
+Autonomy:
+- Updates the `Chain` and `ChainType` to include `OPTIMISM` enum value, and removes the `OPTIMISTIC` enum value #2336
+- Fixes the `autonomy deploy build` command to make the mounting directories #2338
+- Avoids host and docker resources conflicts when generating multiple docker deployments #2341
+
 # 0.19.11 (2025-06-19)
 
 Autonomy && Packages && Docs:

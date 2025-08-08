@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2024 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -293,8 +293,6 @@ class BaseAnalyseServiceTest(BaseCliTest):
     def setup_class(cls) -> None:
         """Setup class."""
         super().setup_class()
-
-        cls.cli_runner.mix_stderr = False
 
     @staticmethod
     def patch_check_agent_dependencies_published(**kwargs: Any) -> mock._patch:

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -114,13 +114,13 @@ class BaseTestDocCode:
             doc_process_fn = None
             if self.doc_process_fn is not None:
 
-                def doc_process_fn(s):  # type: ignore
+                def doc_process_fn(s):  # type: ignore  # noqa: F811
                     return self.doc_process_fn(s)
 
             code_process_fn = None
             if self.code_process_fn is not None:
 
-                def code_process_fn(s):  # type: ignore
+                def code_process_fn(s):  # type: ignore  # noqa: F811
                     return self.code_process_fn(s)
 
             check_code_blocks_exist(

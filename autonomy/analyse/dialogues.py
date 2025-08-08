@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ def load_dialogues_module_from_skill_path(skill_path: Path) -> types.ModuleType:
 
 
 def validate_and_get_dialogues(
-    models_configuration: Dict[str, Dict[str, str]]
+    models_configuration: Dict[str, Dict[str, str]],
 ) -> Dict[str, str]:
     """Returns dialogue names to class name mappings"""
     mapping = {}

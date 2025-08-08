@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ STRICT_CHECK_STRINGS = ("Current round count is 25.",)
 @pytest.mark.e2e
 @pytest.mark.integration
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestRegisterResetRecoverStartup(
+class TestRegisterResetRecoverStartup(  # pylint: disable=too-few-public-methods
     UseRegistries, UseACNNode, BaseTestRegisterResetRecoveryEnd2End
 ):
     """Test the ABCI register-reset skill with 4 agents starting up."""

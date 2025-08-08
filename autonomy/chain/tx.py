@@ -82,7 +82,7 @@ class TxSettler:
 
     tx: Optional[Dict]
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         ledger_api: LedgerApi,
         crypto: Crypto,

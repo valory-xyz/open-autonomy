@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 """Database schemas and helpers"""
 
+import re
 import sqlite3
 from datetime import datetime
 from pathlib import Path
@@ -35,15 +36,31 @@ ROUND = "round_name"
 BEHAVIOUR = "behaviour_name"
 EXIT_EVENT = "exit_event"
 
+# regex pattern for safe table/column names (alphanumeric + underscore + hyphen)
+SAFE_IDENTIFIER_PATTERN = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_-]*$")
+
 QUERY_CREATE_LOG_TABLE = (
-    "CREATE TABLE {agent} "
+    'CREATE TABLE "{agent}" '
     + f"({TIMESTAMP} TIMESTAMP, {LOG_LEVEL} TEXT, {MESSAGE} TEXT, {PERIOD} INTEGER, {ROUND} TEXT, {BEHAVIOUR} TEXT);"
 )
 QUERY_CHECK_TABLE_EXISTS = (
     "SELECT name FROM sqlite_master WHERE type='table' AND name=?;"
 )
-QUERY_DROP_TABLE = "DROP TABLE {agent};"
-QUERY_INSERT_LOG = "INSERT INTO {agent} VALUES (?, ?, ?, ?, ?, ?);"
+QUERY_DROP_TABLE = 'DROP TABLE "{agent}";'
+QUERY_INSERT_LOG = 'INSERT INTO "{agent}" VALUES (?, ?, ?, ?, ?, ?);'
+
+
+def validate_sql_identifier(identifier: str) -> str:
+    """
+    Validate that an identifier is safe for use in SQL queries.
+
+    :param identifier: The identifier to validate
+    :return: The validated identifier
+    :raises ValueError: If the identifier is not safe
+    """
+    if not identifier or not SAFE_IDENTIFIER_PATTERN.match(identifier):
+        raise ValueError(f"Invalid SQL identifier: {identifier}")
+    return identifier
 
 
 class AgentLogsDB:
@@ -54,14 +71,15 @@ class AgentLogsDB:
     def __init__(self, agent: str, file: Path) -> None:
         """Initialize object."""
 
-        self.agent = agent
+        # Validate agent name to prevent SQL injection
+        self.agent = validate_sql_identifier(agent)
         self._db_path = file
         self._db = sqlite3.connect(
             database=self._db_path,
             detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
         )
 
-    def select(  # pylint: disable=too-many-arguments
+    def select(
         self,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
@@ -72,7 +90,9 @@ class AgentLogsDB:
     ) -> List[LogRow]:
         """Build select query."""
 
-        query = f"SELECT * from {self.agent}"  # nosec
+        query = (
+            f"SELECT * from {self.agent}"  # nosec, Safe after validation in constructor
+        )
         paramaters: List[Any] = []
 
         def _append_condition(_query: str, condition: str) -> str:
@@ -111,7 +131,7 @@ class AgentLogsDB:
     def execution_path(self) -> List[Tuple[int, str, str]]:
         """Extraction FSM execution path"""
         return self.cursor.execute(
-            f"SELECT {PERIOD}, {ROUND}, MAX({EXIT_EVENT}) from {self.agent} GROUP BY {ROUND};"
+            f"SELECT {PERIOD}, {ROUND}, MAX({EXIT_EVENT}) from {self.agent} GROUP BY {ROUND};"  # nosec, Safe after validation in constructor
         ).fetchall()
 
     @property

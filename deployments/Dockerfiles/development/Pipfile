@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-click = {version = "==7.1"}
+click = {version = ">=8.1.0,<9"}
 watchdog = {version = "==2.1.6"}
 requests = {version = "==2.27.1"}
 

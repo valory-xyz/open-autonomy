@@ -89,7 +89,7 @@ class GnosisSafeNetDockerImage(DockerImage):
         """
         for i in range(max_attempts):
             try:
-                response = requests.get(f"{self.addr}:{self.port}")
+                response = requests.get(f"{self.addr}:{self.port}", timeout=30)
                 enforce(response.status_code == 200, "")
                 return True
             except Exception as e:  # pylint: disable=broad-except

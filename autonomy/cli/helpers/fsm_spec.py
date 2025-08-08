@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -126,7 +126,7 @@ def check_one(
 
     module = import_and_validate_app_class(package_path, app_class)
     if not hasattr(module, app_class):  # pragma: no cover
-        raise Exception(f'Class "{app_class}" is not in "{module}".')
+        raise ValueError(f'Class "{app_class}" is not in "{module}".')
 
     abci_app_class = getattr(module, app_class)
     dfa_from_object = DFA.abci_to_dfa(abci_app_class, app_class)

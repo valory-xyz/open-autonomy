@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ def read_file_from_repository(url: str) -> str:
     owner, repo, _, file_path = match.groups()
 
     repo_api_url = f"https://api.github.com/repos/{owner}/{repo}/releases/latest"
-    response = requests.get(repo_api_url)
+    response = requests.get(repo_api_url, timeout=30)
 
     if response.status_code == 200:
         release_info = response.json()
@@ -111,7 +111,7 @@ def read_file_from_repository(url: str) -> str:
 
 def read_file_from_url(url: str) -> str:
     """Loads a file into a string"""
-    response = requests.get(url)
+    response = requests.get(url, timeout=30)
     if response.status_code == 200:
         return response.text
     else:
@@ -153,8 +153,8 @@ def check_code_blocks_exist(
     code_process_fn: Optional[Callable] = None,
 ) -> None:
     """Check code blocks from the documentation"""
-    code_files: List = code_info.get("code_files", None)
-    skip_blocks: List = code_info.get("skip_blocks", None)
+    code_files: List = code_info.get("code_files", [])
+    skip_blocks: List = code_info.get("skip_blocks", [])
 
     # Load the code blocks from the doc file
     doc_path = os.path.join(ROOT_DIR, md_file)

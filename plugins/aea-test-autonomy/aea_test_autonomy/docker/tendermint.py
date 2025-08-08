@@ -56,7 +56,7 @@ class TendermintDockerImage(DockerImage):
 
     use_grpc: bool = False
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         client: docker.DockerClient,
         abci_host: str = DEFAULT_ABCI_HOST,
@@ -108,7 +108,9 @@ class TendermintDockerImage(DockerImage):
         """Instantiate the image in many containers, parametrized."""
         raise NotImplementedError()
 
-    def wait(self, max_attempts: int = 15, sleep_rate: float = 1.0) -> bool:
+    def wait(
+        self, max_attempts: int = 15, sleep_rate: float = 1.0
+    ) -> bool:  # pylint: disable=unused-argument
         """
         Wait until the image is running.
 
@@ -125,7 +127,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
 
     _extra_hosts: Dict[str, str]
 
-    def __init__(  # pylint: disable=too-many-arguments,useless-super-delegation
+    def __init__(  # pylint: disable=useless-super-delegation
         self,
         client: docker.DockerClient,
         abci_host: str = DEFAULT_ABCI_HOST,

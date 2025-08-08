@@ -1255,6 +1255,7 @@ class DummyConcreteRound(AbstractRound):
     payload_class: Optional[Type[BaseTxPayload]] = None
     synchronized_data_class = MagicMock()
     payload_attribute = MagicMock()
+    round_id = "dummy_concrete_round"
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
         """A dummy `end_block` implementation."""
@@ -1264,6 +1265,20 @@ class DummyConcreteRound(AbstractRound):
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """A dummy `process_payload` implementation."""
+
+    def check_majority_possible_with_new_vote(
+        self,
+        votes_by_participant: Dict[str, BaseTxPayload],
+        new_voter: str,
+        new_vote: BaseTxPayload,
+        nb_participants: int,
+        exception_cls: Type[ABCIAppException] = ABCIAppException,
+    ) -> None:
+        """A dummy implementation for testing."""
+        # Call the parent implementation
+        super().check_majority_possible_with_new_voter(
+            votes_by_participant, new_voter, new_vote, nb_participants, exception_cls
+        )
 
 
 class TestAbstractRound:
@@ -1482,7 +1497,7 @@ class TestAbstractRound:
             DummyConcreteRound(
                 self.base_synchronized_data,
                 MagicMock(),
-            ).check_majority_possible_with_new_voter(
+            ).check_majority_possible_with_new_vote(
                 {"alice": DummyPayload("alice", False)},
                 "alice",
                 DummyPayload("alice", True),
@@ -1500,7 +1515,7 @@ class TestAbstractRound:
             DummyConcreteRound(
                 self.base_synchronized_data,
                 MagicMock(),
-            ).check_majority_possible_with_new_voter(
+            ).check_majority_possible_with_new_vote(
                 {"alice": DummyPayload("alice", True)},
                 "bob",
                 DummyPayload("bob", True),
@@ -1520,7 +1535,7 @@ class TestAbstractRound:
         DummyConcreteRound(
             self.base_synchronized_data,
             MagicMock(),
-        ).check_majority_possible_with_new_voter(
+        ).check_majority_possible_with_new_vote(
             {"alice": DummyPayload("alice", True)}, "bob", DummyPayload("bob", True), 2
         )
 
@@ -3244,13 +3259,22 @@ def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:
 def test_meta_abci_app_when_final_round_not_subclass_of_degenerate_round() -> None:
     """Test instantiation of meta-class when a final round is not a subclass of DegenerateRound."""
 
-    class FinalRound(AbstractRound, ABC):
+    class FinalRound(AbstractRound):
         """A round class for testing."""
 
         payload_class = MagicMock()
         synchronized_data_class = MagicMock()
         payload_attribute = MagicMock()
         round_id = "final_round"
+
+        def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
+            """A dummy `end_block` implementation."""
+
+        def check_payload(self, payload: BaseTxPayload) -> None:
+            """A dummy `check_payload` implementation."""
+
+        def process_payload(self, payload: BaseTxPayload) -> None:
+            """A dummy `process_payload` implementation."""
 
     with pytest.raises(
         AEAEnforceError,

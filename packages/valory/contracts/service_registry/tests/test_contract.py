@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -69,7 +69,9 @@ def event_filter_patch(event: str, return_value: Any) -> mock._patch:
     )
 
 
-class BaseServiceRegistryContractTest(BaseRegistriesContractsTest):
+class BaseServiceRegistryContractTest(
+    BaseRegistriesContractsTest
+):  # pylint: disable=too-few-public-methods
     """Base class for Service Registry contract tests"""
 
     contract: ServiceRegistryContract
