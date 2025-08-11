@@ -42,6 +42,7 @@ from autonomy.chain.exceptions import (
 DEFAULT_ON_CHAIN_INTERACT_TIMEOUT = 60.0
 DEFAULT_ON_CHAIN_INTERACT_RETRIES = 5.0
 DEFAULT_ON_CHAIN_INTERACT_SLEEP = 3.0
+DEFAULT_RECEIPT_EXCEPTION = Exception("Could not verify transaction. Event not found.")
 
 ERRORS_TO_RETRY = (
     "FeeTooLow",
@@ -326,7 +327,7 @@ class TxSettler:
                 time.sleep(self.sleep)
         raise ChainTimeoutError("Timed out when waiting for transaction to go through")
 
-    def transact_and_verify(  # pylint: disable=too-many-arguments
+    def transact_and_verify(  # pylint: disable=too-many-arguments,too-many-locals
         self,
         build_tx_contract: Contract,
         build_tx_contract_address: str,
@@ -337,9 +338,7 @@ class TxSettler:
         receipt_event: Optional[str] = None,
         receipt_event_param_name: Optional[str] = None,
         receipt_event_param_value: Optional[Any] = None,
-        receipt_exception: Exception = Exception(
-            "Could not verify transaction. Event not found."
-        ),
+        receipt_exception: Exception = DEFAULT_RECEIPT_EXCEPTION,
         dry_run: bool = False,
     ) -> None:
         """Execute and (optionally) verify a transaction."""
