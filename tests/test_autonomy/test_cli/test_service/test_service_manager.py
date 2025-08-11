@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2024 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -398,7 +398,6 @@ class TestServiceManager(BaseServiceManagerTest):
 
         self.unbond_service(service_id=service_id)
 
-        print(f"{service_id=}-------------------------------------------------------------------------------------------")
         result = _run_command(str(service_id))
 
         assert result.exit_code == 0, result.stderr
