@@ -17,11 +17,11 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/squads_multisig:0.1.0:bafybeifj7j7377fmhoaxmnqyqez3biu36evto2qqjek5fkuywzdskysdzm
+- valory/squads_multisig:0.1.0:bafybeiespq7o4zlojmhilfvsnwrsettwjq27wjmxfyhm2ih3tac7dqb23y
 protocols:
 - valory/contract_api:1.0.0:bafybeigv273fllpdsmzip4qfmhyvltdcss4yhoicss32c2yc7am6kue4cy
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihapi6kdqfhbw6lgtffo66dhpcbnd7ok2nrdmcdbx5rwwgtt7piiu
+- valory/abstract_round_abci:0.1.0:bafybeicj2olxvtjcojufovpopn4ageyzreaikezli653vofgm5qkezb7di
 behaviours:
   main:
     args: {}

@@ -116,9 +116,9 @@ See also the [service level overrides](../configure_service/service_configuratio
     type: connection
     config:
       nodes:
-     - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9005}
+     - uri: ${P2P_URI:str:acn.autonolas.tech:9005}
        public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
-     - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9006}
+     - uri: ${P2P_URI:str:acn.autonolas.tech:9006}
        public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
     cert_requests:
     - identifier: acn

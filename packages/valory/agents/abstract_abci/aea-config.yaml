@@ -49,7 +49,7 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.0.3
+    version: ==2.0.4
   open-aea-test-autonomy:
     version: ==0.20.1
 default_connection: valory/abci:0.1.0
@@ -69,9 +69,9 @@ public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
 config:
   nodes:
-  - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9005}
+  - uri: ${P2P_URI:str:acn.autonolas.tech:9005}
     public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
-  - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9006}
+  - uri: ${P2P_URI:str:acn.autonolas.tech:9006}
     public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
 cert_requests:
 - identifier: acn
