@@ -66,6 +66,7 @@ CHAIN_PROFILES = {
         "staking_token": "0x0Dc23eEf3bC64CF3cbd8f9329B57AE4C4f28d5d2",
         "staking_verifier": "0x4503b79d468e81Ad2d4bd6Db991810da269bA777",
         "staking_factory": "0xEBdde456EA288b49f7D5975E7659bA1Ccf607efc",
+        "complementary_service_metadata": "0x0561cE39A1ab785B02DE0D9903125702559993A1",
     },
     "polygon": {
         "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
@@ -93,6 +94,7 @@ CHAIN_PROFILES = {
         "staking_token": "0xEa00be6690a871827fAfD705440D20dd75e67AB1",
         "staking_verifier": "0x1D59DadE4FAeA7771eC7221420012d413175404C",
         "staking_factory": "0xb0228CA253A88Bc8eb4ca70BCAC8f87b381f4700",
+        "complementary_service_metadata": "0x0598081D48FB80B0A7E52FAD2905AE9beCd6fC69",
     },
     "arbitrum_one": {
         "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
@@ -132,6 +134,7 @@ CHAIN_PROFILES = {
         "staking_token": "0xEB5638eefE289691EcE01943f768EDBF96258a80",
         "staking_verifier": "0x10c5525F77F13b28f42c5626240c001c2D57CAd4",
         "staking_factory": "0x1cEe30D08943EB58EFF84DD1AB44a6ee6FEff63a",
+        "complementary_service_metadata": "0x28C1edC7CEd549F7f80B732fDC19f0370160707d",
     },
     "celo": {
         "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
