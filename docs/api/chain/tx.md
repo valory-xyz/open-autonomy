@@ -102,12 +102,12 @@ def transact_and_verify(
         build_tx_contract_address: str,
         build_tx_contract_method: Callable,
         build_tx_contract_kwargs: Dict,
-        receipt_contract: Optional[Contract] = None,
-        receipt_contract_address: Optional[str] = None,
-        receipt_event: Optional[str] = None,
-        receipt_event_param_name: Optional[str] = None,
-        receipt_event_param_value: Optional[Any] = None,
-        receipt_exception: Exception = DEFAULT_RECEIPT_EXCEPTION,
+        event_contract: Optional[Contract] = None,
+        event_contract_address: Optional[str] = None,
+        expected_event: Optional[str] = None,
+        expected_event_param_name: Optional[str] = None,
+        expected_event_param_value: Optional[Any] = None,
+        missing_event_exception: Exception = DEFAULT_MISSING_EVENT_EXCEPTION,
         dry_run: bool = False) -> None
 ```
 

@@ -277,14 +277,13 @@ class ServiceManager:
         self,
         method: Callable,
         kwargs: Dict,
-        build_tx_ctr: str,
+        build_tx_ctr_public_id: PublicId,
         event: str,
         service_id: int,
         exception: Exception,
+        event_ctr_public_id: PublicId = SERVICE_REGISTRY_CONTRACT,
     ) -> None:
         """Auxiliary method to execute and verify transactions."""
-        build_tx_ctr_public_id = PublicId.from_str(f"valory/{build_tx_ctr}")
-        receipt_ctr_public_id = SERVICE_REGISTRY_CONTRACT
         TxSettler(
             ledger_api=self.ledger_api,
             crypto=self.crypto,
@@ -299,9 +298,9 @@ class ServiceManager:
             ).contracts[self.chain_type],
             build_tx_contract_method=method,
             build_tx_contract_kwargs=kwargs,
-            event_contract=registry_contracts.get_contract(receipt_ctr_public_id),
+            event_contract=registry_contracts.get_contract(event_ctr_public_id),
             event_contract_address=ContractConfigs.get(
-                receipt_ctr_public_id.name
+                event_ctr_public_id.name
             ).contracts[self.chain_type],
             expected_event=event,
             expected_event_param_name="serviceId",
@@ -351,7 +350,7 @@ class ServiceManager:
 
         self._transact(
             method=registry_contracts.service_manager.get_activate_registration_transaction,
-            build_tx_ctr=SERVICE_MANAGER_CONTRACT.name,
+            build_tx_ctr_public_id=SERVICE_MANAGER_CONTRACT,
             kwargs=dict(
                 owner=self.crypto.address,
                 service_id=service_id,
@@ -406,7 +405,7 @@ class ServiceManager:
         security_deposit = cost_of_bond * len(agent_ids)
         self._transact(
             method=registry_contracts.service_manager.get_register_instance_transaction,
-            build_tx_ctr=SERVICE_MANAGER_CONTRACT.name,
+            build_tx_ctr_public_id=SERVICE_MANAGER_CONTRACT,
             kwargs=dict(
                 owner=self.crypto.address,
                 service_id=service_id,
@@ -508,7 +507,7 @@ class ServiceManager:
                 gnosis_safe_multisig=gnosis_safe_multisig,
                 deployment_payload=deployment_payload,
             ),
-            build_tx_ctr=SERVICE_MANAGER_CONTRACT.name,
+            build_tx_ctr_public_id=SERVICE_MANAGER_CONTRACT,
             event="DeployService",
             service_id=service_id,
             exception=ServiceDeployFailed("Could not verify the deploy event."),
@@ -545,7 +544,7 @@ class ServiceManager:
                 owner=self.crypto.address,
                 service_id=service_id,
             ),
-            build_tx_ctr=SERVICE_MANAGER_CONTRACT.name,
+            build_tx_ctr_public_id=SERVICE_MANAGER_CONTRACT,
             event="TerminateService",
             service_id=service_id,
             exception=TerminateServiceFailed("Could not verify the terminate event."),
@@ -579,7 +578,7 @@ class ServiceManager:
                 owner=self.crypto.address,
                 service_id=service_id,
             ),
-            build_tx_ctr=SERVICE_MANAGER_CONTRACT.name,
+            build_tx_ctr_public_id=SERVICE_MANAGER_CONTRACT,
             event="OperatorUnbond",
             service_id=service_id,
             exception=UnbondServiceFailed("Could not verify the unbond event."),
@@ -647,34 +646,19 @@ class ServiceManager:
                 "Cannot recover multisig: Recovery module is not enabled."
             )
 
-        TxSettler(
-            ledger_api=self.ledger_api,
-            crypto=self.crypto,
-            chain_type=self.chain_type,
-            timeout=self.timeout,
-            retries=self.retries,
-            sleep=self.sleep,
-        ).transact_and_verify(
-            build_tx_contract=registry_contracts.recovery_module,
-            build_tx_contract_address=ContractConfigs.get(
-                name=RECOVERY_MODULE_CONTRACT.name
-            ).contracts[self.chain_type],
-            build_tx_contract_method=registry_contracts.recovery_module.get_recover_access_transaction,
-            build_tx_contract_kwargs=dict(
+        self._transact(
+            method=registry_contracts.recovery_module.get_recover_access_transaction,
+            kwargs=dict(
                 owner=self.crypto.address,
                 service_id=service_id,
             ),
-            event_contract=registry_contracts.get_contract(RECOVERY_MODULE_CONTRACT),
-            event_contract_address=ContractConfigs.get(
-                RECOVERY_MODULE_CONTRACT.name
-            ).contracts[self.chain_type],
-            expected_event="AccessRecovered",
-            expected_event_param_name="serviceId",
-            expected_event_param_value=service_id,
-            missing_event_exception=RecoverServiceMultisigFailed(
+            build_tx_ctr_public_id=RECOVERY_MODULE_CONTRACT,
+            event="AccessRecovered",
+            service_id=service_id,
+            exception=RecoverServiceMultisigFailed(
                 "Could not verify the recover access event."
             ),
-            dry_run=self.dry_run,
+            event_ctr_public_id=RECOVERY_MODULE_CONTRACT,
         )
 
 
