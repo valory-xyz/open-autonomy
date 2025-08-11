@@ -24,6 +24,7 @@ import time
 from enum import Enum
 from typing import Callable, Dict, List, Optional, Tuple, cast
 
+from aea.configurations.data_types import PublicId
 from aea.crypto.base import Crypto, LedgerApi
 from hexbytes import HexBytes
 
@@ -282,6 +283,8 @@ class ServiceManager:
         exception: Exception,
     ) -> None:
         """Auxiliary method to execute and verify transactions."""
+        build_tx_ctr_public_id = PublicId.from_str(f"valory/{build_tx_ctr}")
+        receipt_ctr_public_id = SERVICE_REGISTRY_CONTRACT
         TxSettler(
             ledger_api=self.ledger_api,
             crypto=self.crypto,
@@ -290,20 +293,20 @@ class ServiceManager:
             retries=self.retries,
             sleep=self.sleep,
         ).transact_and_verify(
-            build_tx_contract=method.__self__,
-            build_tx_contract_address=ContractConfigs.get(name=build_tx_ctr).contracts[
-                self.chain_type
-            ],
+            build_tx_contract=registry_contracts.get_contract(build_tx_ctr_public_id),
+            build_tx_contract_address=ContractConfigs.get(
+                build_tx_ctr_public_id.name
+            ).contracts[self.chain_type],
             build_tx_contract_method=method,
             build_tx_contract_kwargs=kwargs,
-            receipt_contract=registry_contracts.get_contract(SERVICE_REGISTRY_CONTRACT),
-            receipt_contract_address=ContractConfigs.get(
-                SERVICE_REGISTRY_CONTRACT.name
+            event_contract=registry_contracts.get_contract(receipt_ctr_public_id),
+            event_contract_address=ContractConfigs.get(
+                receipt_ctr_public_id.name
             ).contracts[self.chain_type],
-            receipt_event=event,
-            receipt_event_param_name="serviceId",
-            receipt_event_param_value=service_id,
-            receipt_exception=exception,
+            expected_event=event,
+            expected_event_param_name="serviceId",
+            expected_event_param_value=service_id,
+            missing_event_exception=exception,
             dry_run=self.dry_run,
         )
 
@@ -661,14 +664,14 @@ class ServiceManager:
                 owner=self.crypto.address,
                 service_id=service_id,
             ),
-            receipt_contract=registry_contracts.get_contract(RECOVERY_MODULE_CONTRACT),
-            receipt_contract_address=ContractConfigs.get(
+            event_contract=registry_contracts.get_contract(RECOVERY_MODULE_CONTRACT),
+            event_contract_address=ContractConfigs.get(
                 RECOVERY_MODULE_CONTRACT.name
             ).contracts[self.chain_type],
-            receipt_event="AccessRecovered",
-            receipt_event_param_name="serviceId",
-            receipt_event_param_value=service_id,
-            receipt_exception=RecoverServiceMultisigFailed(
+            expected_event="AccessRecovered",
+            expected_event_param_name="serviceId",
+            expected_event_param_value=service_id,
+            missing_event_exception=RecoverServiceMultisigFailed(
                 "Could not verify the recover access event."
             ),
             dry_run=self.dry_run,

@@ -42,7 +42,9 @@ from autonomy.chain.exceptions import (
 DEFAULT_ON_CHAIN_INTERACT_TIMEOUT = 60.0
 DEFAULT_ON_CHAIN_INTERACT_RETRIES = 5.0
 DEFAULT_ON_CHAIN_INTERACT_SLEEP = 3.0
-DEFAULT_RECEIPT_EXCEPTION = Exception("Could not verify transaction. Event not found.")
+DEFAULT_MISSING_EVENT_EXCEPTION = Exception(
+    "Could not verify transaction. Event not found."
+)
 
 ERRORS_TO_RETRY = (
     "FeeTooLow",
@@ -333,12 +335,12 @@ class TxSettler:
         build_tx_contract_address: str,
         build_tx_contract_method: Callable,
         build_tx_contract_kwargs: Dict,
-        receipt_contract: Optional[Contract] = None,
-        receipt_contract_address: Optional[str] = None,
-        receipt_event: Optional[str] = None,
-        receipt_event_param_name: Optional[str] = None,
-        receipt_event_param_value: Optional[Any] = None,
-        receipt_exception: Exception = DEFAULT_RECEIPT_EXCEPTION,
+        event_contract: Optional[Contract] = None,
+        event_contract_address: Optional[str] = None,
+        expected_event: Optional[str] = None,
+        expected_event_param_name: Optional[str] = None,
+        expected_event_param_value: Optional[Any] = None,
+        missing_event_exception: Exception = DEFAULT_MISSING_EVENT_EXCEPTION,
         dry_run: bool = False,
     ) -> None:
         """Execute and (optionally) verify a transaction."""
@@ -361,25 +363,25 @@ class TxSettler:
                 print(f"    {key}: {val}")
             return
 
-        if None in (
-            receipt_contract,
-            receipt_contract_address,
-            receipt_event,
-            receipt_event_param_name,
-            receipt_event_param_value,
+        if (
+            event_contract is None
+            or event_contract_address is None
+            or expected_event is None
+            or expected_event_param_name is None
+            or expected_event_param_value is None
         ):
             return
 
         events = []
-        contract_interface = receipt_contract.get_instance(
+        contract_interface = event_contract.get_instance(
             ledger_api=self.ledger_api,
-            contract_address=receipt_contract_address,
+            contract_address=event_contract_address,
         )
-        Event = getattr(contract_interface.events, receipt_event, None)
+        Event = getattr(contract_interface.events, expected_event, None)
         if Event is not None:
             events = cast(List[Dict], Event().process_receipt(receipt))
 
         for _event in events:
-            if _event["args"][receipt_event_param_name] == receipt_event_param_value:
+            if _event["args"][expected_event_param_name] == expected_event_param_value:
                 return
-        raise receipt_exception
+        raise missing_event_exception
