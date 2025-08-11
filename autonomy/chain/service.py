@@ -838,14 +838,11 @@ def get_reuse_multisig_with_recovery_payload(  # pylint: disable=too-many-locals
 
     service_owner = crypto.address
 
-    multisig_instance = registry_contracts.gnosis_safe.get_instance(
+    multisig_owners = registry_contracts.gnosis_safe.get_owners(
         ledger_api=ledger_api,
         contract_address=multisig_address,
-    )
-
-    # Verify if the service was terminated properly or not
-    old_owners = multisig_instance.functions.getOwners().call()
-    if len(old_owners) != 1 or service_owner not in old_owners:
+    ).get("owners")
+    if len(multisig_owners) != 1 or service_owner not in multisig_owners:
         return (
             None,
             "Service was not terminated properly, the service owner should be the only owner of the safe",
