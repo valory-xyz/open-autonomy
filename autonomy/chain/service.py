@@ -626,7 +626,9 @@ class ServiceManager:
         ).get("owners")
 
         if multisig_owners == [self.crypto.address]:
-            raise RecoverServiceMultisigFailed(f"The address {self.crypto.address} is already the only owner of the multisig.")
+            raise RecoverServiceMultisigFailed(
+                f"The address {self.crypto.address} is already the only owner of the multisig."
+            )
 
         recovery_module_address = ContractConfigs.get(
             RECOVERY_MODULE_CONTRACT.name
@@ -671,6 +673,7 @@ class ServiceManager:
             ),
             dry_run=self.dry_run,
         )
+
 
 def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
     ledger_api: LedgerApi,
