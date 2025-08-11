@@ -146,7 +146,18 @@ Returns an instance of the gnosis safe contract.
 def gnosis_safe_proxy_factory() -> Contract
 ```
 
-Returns an instance of the gnosis safe proxy vactory contract.
+Returns an instance of the gnosis safe proxy factory contract.
+
+<a id="autonomy.chain.base.RegistryContracts.recovery_module"></a>
+
+#### recovery`_`module
+
+```python
+@property
+def recovery_module() -> Contract
+```
+
+Returns an instance of the recovery module contract.
 
 <a id="autonomy.chain.base.RegistryContracts.multisend"></a>
 

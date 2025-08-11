@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeicjlkmxs5ikpgdtgndifstpmmpaixwcbgouvmt6gowuhf5dy3dpgu
   build/RecoveryModule.json: bafybeifsyjdbprcp4kxpijlpqfovxcf7cv2ujapt3d5zn34wby26ldv4ky
-  contract.py: bafybeigm7wkeyr4phingziu7eioij7pge6blp6tvmnlivypsntn4xtl5se
+  contract.py: bafybeie3hfm4g7dt7urwdk2se7lsorncjq4d2f26mkt23242d5g5hz6go4
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: RecoveryModule

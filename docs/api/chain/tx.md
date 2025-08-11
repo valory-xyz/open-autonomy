@@ -92,3 +92,24 @@ def process(event: str, receipt: Dict, contract: PublicId) -> Dict
 
 Process tx receipt.
 
+<a id="autonomy.chain.tx.TxSettler.transact_and_verify"></a>
+
+#### transact`_`and`_`verify
+
+```python
+def transact_and_verify(build_tx_contract: Contract,
+                        build_tx_contract_address: str,
+                        build_tx_contract_method: Callable,
+                        build_tx_contract_kwargs: Dict,
+                        receipt_contract: Optional[Contract] = None,
+                        receipt_contract_address: Optional[str] = None,
+                        receipt_event: Optional[str] = None,
+                        receipt_event_param_name: Optional[str] = None,
+                        receipt_event_param_value: Optional[Any] = None,
+                        receipt_exception: Exception = Exception(
+                            "Could not verify transaction. Event not found."),
+                        dry_run: bool = False) -> None
+```
+
+Execute and (optionally) verify a transaction.
+

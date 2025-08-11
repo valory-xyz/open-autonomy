@@ -68,5 +68,9 @@ class TerminateServiceFailed(ChainInteractionError):
     """Raise when service termination fails."""
 
 
+class RecoverServiceMultisigFailed(ChainInteractionError):
+    """Raise when service multisig recovery fails."""
+
+
 class UnbondServiceFailed(ChainInteractionError):
     """Raise when service unbond call fails."""

@@ -20,7 +20,8 @@
 """This module contains the class to connect to the `RecoveryModule` contract."""
 
 
-from aea.common import JSONLike
+from typing import Any, Dict
+
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
@@ -34,3 +35,27 @@ class RecoveryModule(Contract):
 
     contract_id = PUBLIC_ID
 
+    @classmethod
+    def get_recover_access_transaction(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        owner: str,
+        service_id: int,
+        raise_on_try: bool = False,
+    ) -> Dict[str, Any]:
+        """Get the recover access transaction."""
+
+        tx_params = ledger_api.build_transaction(
+            contract_instance=cls.get_instance(
+                ledger_api=ledger_api, contract_address=contract_address
+            ),
+            method_name="recoverAccess",
+            method_args={
+                "serviceId": service_id,
+            },
+            tx_args={"sender_address": owner},
+            raise_on_try=raise_on_try,
+        )
+
+        return tx_params

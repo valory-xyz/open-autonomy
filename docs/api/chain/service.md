@@ -280,6 +280,28 @@ the service.
 
 - `service_id`: Service ID retrieved after minting a service
 
+<a id="autonomy.chain.service.ServiceManager.recover_multisig"></a>
+
+#### recover`_`multisig
+
+```python
+def recover_multisig(service_id: int) -> None
+```
+
+Recover the service multisig.
+
+This method allows the service owner to reclaim the multisig wallet from the
+previous deployment if it was not properly transferred by the agents after
+service termination.
+
+Service multisig recovery is only possible if:
+    - The original deployment was performed with the `--use-recovery-module` flag.
+    - The service is currently in the `PRE_REGISTRATION` state (i.e., all operators have unbonded).
+
+**Arguments**:
+
+- `service_id`: Service ID retrieved after minting a service
+
 <a id="autonomy.chain.service.get_reuse_multisig_payload"></a>
 
 #### get`_`reuse`_`multisig`_`payload

@@ -214,7 +214,7 @@ class RegistryContracts:  # pylint: disable=too-many-instance-attributes
     def gnosis_safe_proxy_factory(
         self,
     ) -> Contract:
-        """Returns an instance of the gnosis safe proxy vactory contract."""
+        """Returns an instance of the gnosis safe proxy factory contract."""
         if self._gnosis_safe_proxy_factory is None:
             self._gnosis_safe_proxy_factory = self.get_contract(
                 public_id=GNOSIS_SAFE_PROXY_FACTORY_CONTRACT,
