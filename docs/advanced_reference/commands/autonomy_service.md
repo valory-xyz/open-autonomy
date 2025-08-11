@@ -47,7 +47,7 @@ To use these chain profiles, you have to export an environment variable that def
     - `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS`<sup>&#8224;</sup>
     - `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS`<sup>&#8224;</sup>
     - `CUSTOM_SAFE_MULTISIG_WITH_RECOVERY_MODULE_ADDRESS`<sup>&#8225;</sup>
-    - `RECOVERY_MODULE_CONTRACT`<sup>&#8225;</sup>
+    - `CUSTOM_RECOVERY_MODULE_ADDRESS`<sup>&#8225;</sup>
     - `CUSTOM_SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS`
     - `CUSTOM_MULTISEND_ADDRESS`
 
@@ -59,7 +59,7 @@ To use these chain profiles, you have to export an environment variable that def
         - `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS`<sup>&#8224;</sup>
         - `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS`<sup>&#8224;</sup>
         - `CUSTOM_SAFE_MULTISIG_WITH_RECOVERY_MODULE_ADDRESS`<sup>&#8225;</sup>
-        - `RECOVERY_MODULE_CONTRACT`<sup>&#8225;</sup>
+        - `CUSTOM_RECOVERY_MODULE_ADDRESS`<sup>&#8225;</sup>
         - `CUSTOM_MULTISEND_ADDRESS`
 
     <sup>&#8224;</sup> Required only if `--use-recovery` is not specified.
@@ -336,4 +336,46 @@ Same as above, but using a hardware wallet:
 
 ```bash
 autonomy service unbond 42 --hwi
+```
+
+## `autonomy service recover-multisig`
+
+Recover the service multisig.
+
+This command allows the service owner to reclaim the multisig wallet from the
+previous deployment if it was not properly transferred by the agents after
+service termination.
+
+Service multisig recovery is only possible if:
+    - The original deployment was performed with the `--use-recovery-module` flag.
+    - The service is currently in the `PRE_REGISTRATION` state (i.e., all operators have unbonded).
+
+### Usage
+
+```bash
+autonomy service recover-multisig [OPTIONS] SERVICE_ID
+```
+### Options
+
+`--key FILE`
+: Use a private key from a file to sign the transactions.
+
+`--hwi`
+: Use a hardware wallet to sign the transactions.
+
+`--password PASSWORD`
+: Password for the key file.
+
+### Examples
+
+To recover the multisig of service with ID 42 in the Autonolas Protocol:
+
+```bash
+autonomy service recover-multisig 42 --key my_key.txt
+```
+
+Same as above, but using a hardware wallet:
+
+```bash
+autonomy service recover-multisig 42 --hwi
 ```
