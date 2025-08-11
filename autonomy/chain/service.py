@@ -43,6 +43,7 @@ from autonomy.chain.constants import (
 from autonomy.chain.exceptions import (
     ChainInteractionError,
     InstanceRegistrationFailed,
+    RecoverServiceMultisigFailed,
     ServiceDeployFailed,
     ServiceRegistrationFailed,
     TerminateServiceFailed,
@@ -280,46 +281,31 @@ class ServiceManager:
         service_id: int,
         exception: Exception,
     ) -> None:
-        """Auxiliary method for managing services on-chain."""
-        tx_settler = TxSettler(
+        """Auxiliary method to execute and verify transactions."""
+        TxSettler(
             ledger_api=self.ledger_api,
             crypto=self.crypto,
             chain_type=self.chain_type,
             timeout=self.timeout,
             retries=self.retries,
             sleep=self.sleep,
-        )
-        receipt = tx_settler.transact(
-            method=method,
-            contract=build_tx_ctr,
-            kwargs=kwargs,
+        ).transact_and_verify(
+            build_tx_contract=method.__self__,
+            build_tx_contract_address=ContractConfigs.get(name=build_tx_ctr).contracts[
+                self.chain_type
+            ],
+            build_tx_contract_method=method,
+            build_tx_contract_kwargs=kwargs,
+            receipt_contract=registry_contracts.get_contract(SERVICE_REGISTRY_CONTRACT),
+            receipt_contract_address=ContractConfigs.get(
+                SERVICE_REGISTRY_CONTRACT.name
+            ).contracts[self.chain_type],
+            receipt_event=event,
+            receipt_event_param_name="serviceId",
+            receipt_event_param_value=service_id,
+            receipt_exception=exception,
             dry_run=self.dry_run,
         )
-        if self.dry_run:
-            print("=== Dry run output ===")
-            print("Method: " + str(method).split(" ")[2])
-            print(
-                f"Contract: {ContractConfigs.get(name=build_tx_ctr).contracts[self.chain_type]}"
-            )
-            print("Kwargs: ")
-            for key, val in kwargs.items():
-                print(f"    {key}: {val}")
-            print("Transaction: ")
-            for key, val in receipt.items():
-                print(f"    {key}: {val}")
-            return
-        events = cast(
-            List[Dict],
-            tx_settler.process(
-                event=event,
-                receipt=receipt,
-                contract=SERVICE_REGISTRY_CONTRACT,
-            ).get("events"),
-        )
-        for _event in events:
-            if _event["args"]["serviceId"] == service_id:
-                return
-        raise exception
 
     def get_service_info(self, token_id: int) -> ServiceInfo:
         """
@@ -596,6 +582,95 @@ class ServiceManager:
             exception=UnbondServiceFailed("Could not verify the unbond event."),
         )
 
+    def recover_multisig(self, service_id: int) -> None:
+        """
+        Recover the service multisig.
+
+        This method allows the service owner to reclaim the multisig wallet from the
+        previous deployment if it was not properly transferred by the agents after
+        service termination.
+
+        Service multisig recovery is only possible if:
+            - The original deployment was performed with the `--use-recovery-module` flag.
+            - The service is currently in the `PRE_REGISTRATION` state (i.e., all operators have unbonded).
+
+
+        :param service_id: Service ID retrieved after minting a service
+        """
+
+        (
+            _,
+            multisig_address,
+            _,
+            _,
+            _,
+            _,
+            service_state,
+            _,
+        ) = self.get_service_info(token_id=service_id)
+
+        if service_state == ServiceState.NON_EXISTENT.value:
+            raise RecoverServiceMultisigFailed("Service does not exist")
+
+        if service_state != ServiceState.PRE_REGISTRATION.value:
+            raise RecoverServiceMultisigFailed("Service not in PRE_REGISTRATION state")
+
+        if multisig_address == NULL_ADDRESS:
+            raise RecoverServiceMultisigFailed(
+                "Cannot recover multisig: No previous deployment exist."
+            )
+
+        multisig_owners = registry_contracts.gnosis_safe.get_owners(
+            ledger_api=self.ledger_api,
+            contract_address=multisig_address,
+        ).get("owners")
+
+        if multisig_owners == [self.crypto.address]:
+            raise RecoverServiceMultisigFailed(f"The address {self.crypto.address} is already the only owner of the multisig.")
+
+        recovery_module_address = ContractConfigs.get(
+            RECOVERY_MODULE_CONTRACT.name
+        ).contracts[self.chain_type]
+        is_recovery_module_enabled = registry_contracts.gnosis_safe.is_module_enabled(
+            ledger_api=self.ledger_api,
+            contract_address=multisig_address,
+            module_address=recovery_module_address,
+        ).get("enabled")
+
+        if not is_recovery_module_enabled:
+            raise RecoverServiceMultisigFailed(
+                "Cannot recover multisig: Recovery module is not enabled."
+            )
+
+        TxSettler(
+            ledger_api=self.ledger_api,
+            crypto=self.crypto,
+            chain_type=self.chain_type,
+            timeout=self.timeout,
+            retries=self.retries,
+            sleep=self.sleep,
+        ).transact_and_verify(
+            build_tx_contract=registry_contracts.recovery_module,
+            build_tx_contract_address=ContractConfigs.get(
+                name=RECOVERY_MODULE_CONTRACT.name
+            ).contracts[self.chain_type],
+            build_tx_contract_method=registry_contracts.recovery_module.get_recover_access_transaction,
+            build_tx_contract_kwargs=dict(
+                owner=self.crypto.address,
+                service_id=service_id,
+            ),
+            receipt_contract=registry_contracts.get_contract(RECOVERY_MODULE_CONTRACT),
+            receipt_contract_address=ContractConfigs.get(
+                RECOVERY_MODULE_CONTRACT.name
+            ).contracts[self.chain_type],
+            receipt_event="AccessRecovered",
+            receipt_event_param_name="serviceId",
+            receipt_event_param_value=service_id,
+            receipt_exception=RecoverServiceMultisigFailed(
+                "Could not verify the recover access event."
+            ),
+            dry_run=self.dry_run,
+        )
 
 def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
     ledger_api: LedgerApi,
