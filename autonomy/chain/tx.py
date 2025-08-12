@@ -272,7 +272,7 @@ class TxSettler:
             retries += 1
             try:
                 if not already_known:
-                    tx_dict = build_tx_contract_method(  # type: ignore
+                    tx_dict = tx_dict or build_tx_contract_method(
                         ledger_api=self.ledger_api,
                         contract_address=build_tx_contract_address,
                         raise_on_try=True,

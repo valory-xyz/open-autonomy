@@ -401,7 +401,7 @@ class TestServiceManager(BaseServiceManagerTest):
         result = _run_command(str(service_id))
 
         assert result.exit_code == 0, result.stderr
-        assert "Multisig recovered successfully" in result.output
+        assert "Service multisig recovered successfully" in result.output
 
         result = _run_command(str(service_id))
 
