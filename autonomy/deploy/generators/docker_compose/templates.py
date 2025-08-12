@@ -40,6 +40,10 @@ ACN_NODE_TEMPLATE: str = """  acn:
     container_name: acn
     image: "{acn_image_name}:{acn_image_version}"
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
     environment:
       - AEA_P2P_ID=d9e43d3f0266d14b3af8627a626fa734450b1c0fcdec6f88f79bcf5543b4668c
       - AEA_P2P_URI_PUBLIC=0.0.0.0:5000
@@ -63,6 +67,10 @@ HARDHAT_NODE_TEMPLATE: str = """  hardhat:
     networks:
       {network_name}:
         ipv4_address: {network_address}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
 """
 
 TENDERMINT_NODE_TEMPLATE: str = """
@@ -75,6 +83,10 @@ TENDERMINT_NODE_TEMPLATE: str = """
     hostname: {container_name}
     image: "{tendermint_image_name}:{tendermint_image_version}"
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
     environment:
       - ID={node_id}
       - PROXY_APP=tcp://{abci_node}:26658
@@ -106,6 +118,10 @@ ABCI_NODE_TEMPLATE: str = """
     image: {runtime_image}
     env_file: {env_file}
     user: "{user}"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
     networks:
       {network_name}:
         ipv4_address: {network_address}
