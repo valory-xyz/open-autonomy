@@ -92,3 +92,24 @@ def process(event: str, receipt: Dict, contract: PublicId) -> Dict
 
 Process tx receipt.
 
+<a id="autonomy.chain.tx.TxSettler.transact_and_verify"></a>
+
+#### transact`_`and`_`verify
+
+```python
+def transact_and_verify(
+        build_tx_contract: Contract,
+        build_tx_contract_address: str,
+        build_tx_contract_method: Callable,
+        build_tx_contract_kwargs: Dict,
+        event_contract: Optional[Contract] = None,
+        event_contract_address: Optional[str] = None,
+        expected_event: Optional[str] = None,
+        expected_event_param_name: Optional[str] = None,
+        expected_event_param_value: Optional[Any] = None,
+        missing_event_exception: Exception = DEFAULT_MISSING_EVENT_EXCEPTION,
+        dry_run: bool = False) -> None
+```
+
+Execute and (optionally) verify a transaction.
+

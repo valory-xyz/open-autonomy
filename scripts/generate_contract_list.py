@@ -38,11 +38,18 @@ CONTRACT_TO_SLUG = {
     "ServiceManager": "SERVICE_MANAGER",
     "GnosisSafeMultisig": "GNOSIS_SAFE_PROXY_FACTORY",
     "GnosisSafeSameAddressMultisig": "GNOSIS_SAFE_SAME_ADDRESS_MULTISIG",
+    "SafeMultisigWithRecoveryModule": "SAFE_MULTISIG_WITH_RECOVERY_MODULE",
+    "RecoveryModule": "RECOVERY_MODULE",
 }
 BLOCKSCAN_URLS = {
+    "arbitrumOne": "https://arbiscan.io/address/",
+    "base": "https://basescan.org/address/",
+    "celo": "https://celoscan.io/address/",
+    "gnosis": "https://gnosisscan.io/address/",
+    "mode": "https://modescan.io/address/",
+    "optimism": "https://optimistic.etherscan.io/address/",
     "polygon": "https://polygonscan.com/address/",
     "polygonMumbai": "https://mumbai.polygonscan.com/address/",
-    "gnosis": "https://gnosisscan.io/address/",
 }
 
 

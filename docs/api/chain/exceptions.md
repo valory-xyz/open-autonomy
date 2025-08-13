@@ -124,6 +124,16 @@ class TerminateServiceFailed(ChainInteractionError)
 
 Raise when service termination fails.
 
+<a id="autonomy.chain.exceptions.RecoverServiceMultisigFailed"></a>
+
+## RecoverServiceMultisigFailed Objects
+
+```python
+class RecoverServiceMultisigFailed(ChainInteractionError)
+```
+
+Raise when service multisig recovery fails.
+
 <a id="autonomy.chain.exceptions.UnbondServiceFailed"></a>
 
 ## UnbondServiceFailed Objects

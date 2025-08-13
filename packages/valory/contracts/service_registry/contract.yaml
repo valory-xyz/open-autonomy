@@ -9,9 +9,9 @@ fingerprint:
   __init__.py: bafybeidey4syohls5hxmso6qsp5p4uhtzle5txv2mlbym6ktjzknich6oa
   build/ServiceRegistry.json: bafybeia4qi2vstrutejzrxfpbb6eift7va5cjs7bparaal2fafiiczuiyy
   build/ServiceRegistryL2.json: bafybeic2jylwfod4nmdtbs4izyxyi246pd3f35aoqyahnmyrvzn7j3sv4e
-  contract.py: bafybeiebwnybpmp543f66bzinpzuby4vypo45cyqlivq6fj7lcqbngbvoq
+  contract.py: bafybeidtsc4swhwrgn64rd42ocp6zz3gm62cx74csq4jil6psran5ftbuu
   tests/__init__.py: bafybeicl2oklx774jomlt6wwwegfdzrxh6iazjxwcyc7h4gepjljkpl4ji
-  tests/test_contract.py: bafybeia5aqn4z2samjgikcacn7raovci6ai7qqroylfyocnqx4wnwo7mty
+  tests/test_contract.py: bafybeif5cilkfxhx2dvmfulwvy5aam7t2blah2zszhqki47adv5ssu7cum
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: ServiceRegistryContract
@@ -21,6 +21,6 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==2.0.4
   open-aea-test-autonomy:
-    version: ==0.20.1
+    version: ==0.20.2
   web3:
     version: <8,>=7.0.0

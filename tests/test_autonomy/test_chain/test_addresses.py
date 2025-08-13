@@ -29,7 +29,7 @@ from autonomy.chain.config import ChainType
 from autonomy.chain.constants import CHAIN_PROFILES
 
 
-ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/refs/tags/v1.2.4/docs/configuration.json"
+ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/refs/tags/v1.2.7/docs/configuration.json"
 
 
 class TestAddresses:
@@ -54,9 +54,6 @@ class TestAddresses:
 
         if chain == ChainType.ETHEREUM:
             contracts = self.contracts["mainnet"]
-        # TODO: remove this after autonolas-registries also uses "optimism"
-        elif chain == ChainType.OPTIMISM:
-            contracts = self.contracts["optimistic"]
         else:
             contracts = self.contracts[chain.value]
 

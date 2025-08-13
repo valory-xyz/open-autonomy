@@ -39,23 +39,32 @@ To use these chain profiles, you have to export an environment variable that def
 
     - `CUSTOM_CHAIN_RPC` : RPC endpoint for the custom chain.
     - `CUSTOM_CHAIN_ID` : chain ID.
-    - `CUSTOM_COMPONENT_REGISTRY_ADDRESS` : Custom Component Registry contract address.
-    - `CUSTOM_AGENT_REGISTRY_ADDRESS` : Custom Agent Registry contract address.
-    - `CUSTOM_REGISTRIES_MANAGER_ADDRESS` : Custom Registries Manager contract address.
-    - `CUSTOM_SERVICE_MANAGER_ADDRESS` : Custom Service Manager contract address.
-    - `CUSTOM_SERVICE_REGISTRY_ADDRESS` : Custom Service Registry contract address.
-    - `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS` : Custom Gnosis Safe multisig contract address.
-    - `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` : Custom Gnosis Safe Same Address Multisig address.
-    - `CUSTOM_SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS` : Custom Service Registry Token Utility address.
-    - `CUSTOM_MULTISEND_ADDRESS` : Custom Multisend address.
+    - `CUSTOM_COMPONENT_REGISTRY_ADDRESS`
+    - `CUSTOM_AGENT_REGISTRY_ADDRESS`
+    - `CUSTOM_REGISTRIES_MANAGER_ADDRESS`
+    - `CUSTOM_SERVICE_MANAGER_ADDRESS`
+    - `CUSTOM_SERVICE_REGISTRY_ADDRESS`
+    - `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS`<sup>&#8224;</sup>
+    - `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS`<sup>&#8224;</sup>
+    - `CUSTOM_SAFE_MULTISIG_WITH_RECOVERY_MODULE_ADDRESS`<sup>&#8225;</sup>
+    - `CUSTOM_RECOVERY_MODULE_ADDRESS`<sup>&#8225;</sup>
+    - `CUSTOM_SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS`
+    - `CUSTOM_MULTISEND_ADDRESS`
 
-!!! note
-    For L2 chains you are only required to set
-    - `CUSTOM_SERVICE_MANAGER_ADDRESS`,
-    - `CUSTOM_SERVICE_REGISTRY_ADDRESS`,
-    - `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS`,
-    - `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` and
-    - `CUSTOM_MULTISEND_ADDRESS`.
+    !!! note
+        For L2 chains you are only required to set
+
+        - `CUSTOM_SERVICE_MANAGER_ADDRESS`
+        - `CUSTOM_SERVICE_REGISTRY_ADDRESS`
+        - `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS`<sup>&#8224;</sup>
+        - `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS`<sup>&#8224;</sup>
+        - `CUSTOM_SAFE_MULTISIG_WITH_RECOVERY_MODULE_ADDRESS`<sup>&#8225;</sup>
+        - `CUSTOM_RECOVERY_MODULE_ADDRESS`<sup>&#8225;</sup>
+        - `CUSTOM_MULTISEND_ADDRESS`
+
+    <sup>&#8224;</sup> Required only if `--use-recovery` is not specified.
+
+    <sup>&#8225;</sup> Required only if `--use-recovery` is specified.
 
 `--use-local`
 : Use the local chain profile to interact with the Autonolas Protocol registry contracts. This option requires that you have a local Hardhat node with the required contracts deployed.
@@ -63,6 +72,9 @@ To use these chain profiles, you have to export an environment variable that def
 !!! note
 
     The chain profile flags (`--use-ethereum`, etc.) are mutually exclusive.
+
+`--use-recovery`
+: Use a multisig with a recovery module when deploying or redeploying the service. This module allows ownership of the service multisig to be transferred to the service owner if the agents have not done so. This functionality is only available during the [*Pre-Registration*](https://docs.olas.network/protocol/life_cycle_of_a_service/#pre-registration) phase and is executed automatically when [activating](#autonomy-service-activate) the service. See notes <sup>&#8224;</sup> and <sup>&#8225;</sup> above.
 
 `-t, --timeout FLOAT`
 : Timeout for on-chain interactions
@@ -324,4 +336,46 @@ Same as above, but using a hardware wallet:
 
 ```bash
 autonomy service unbond 42 --hwi
+```
+
+## `autonomy service recover-multisig`
+
+Recover the service multisig.
+
+This command allows the service owner to reclaim the multisig wallet from the
+previous deployment if it was not properly transferred by the agents after
+service termination.
+
+Service multisig recovery is only possible if:
+    - The original deployment was performed with the `--use-recovery-module` flag.
+    - The service is currently in the `PRE_REGISTRATION` state (i.e., all operators have unbonded).
+
+### Usage
+
+```bash
+autonomy service recover-multisig [OPTIONS] SERVICE_ID
+```
+### Options
+
+`--key FILE`
+: Use a private key from a file to sign the transactions.
+
+`--hwi`
+: Use a hardware wallet to sign the transactions.
+
+`--password PASSWORD`
+: Password for the key file.
+
+### Examples
+
+To recover the multisig of service with ID 42 in the Autonolas Protocol:
+
+```bash
+autonomy service recover-multisig 42 --key my_key.txt
+```
+
+Same as above, but using a hardware wallet:
+
+```bash
+autonomy service recover-multisig 42 --hwi
 ```

@@ -32,11 +32,11 @@ To follow the next sections, you need to populate the local registry with a numb
     "third_party": {
         "service/valory/hello_world/0.1.0": "bafybeihl6j7ihkytk4t4ca2ffhctpzydwi6r4a354ubjasttuv2pw4oaci",
         "agent/valory/hello_world/0.1.0": "bafybeihtmp45mbfs5tyzrgxfoimh552on6dif42ifqidifait3ej2m5zvq",
-        "connection/valory/abci/0.1.0": "bafybeihgh32uincme4vfnufuk52q4ssfnodvtcgvuxtsgr47jpgaghadl4",
+        "connection/valory/abci/0.1.0": "bafybeiff5f54kcucrkszmulngryxwbfgoes3735pcikiut7oa5luaq63ty",
         "connection/valory/http_client/0.23.0": "bafybeidmlazrjbnn5mw4wxrrj7lfnci7amt5alke2ahb3yirac6qudxuwm",
         "connection/valory/ipfs/0.1.0": "bafybeiceqtxb7qc54ibiwkpv6sv6rp4tz7wmnygovku7d2uh5noy276ldq",
         "connection/valory/ledger/0.19.0": "bafybeicoc67atvjzld5e7qzbdkc7c2fj5jrtuj77nx6igxcdxqqqwxiduy",
-        "contract/valory/service_registry/0.1.0": "bafybeibscum55tqlgyav6b5nvdkat5425jarkafirxnu663vuy5uagft6m",
+        "contract/valory/service_registry/0.1.0": "bafybeiguwhomk6c7z4dpwjuoc7bqiioeokdk3iniz5uiuhlnbspvs4ji4y",
         "protocol/open_aea/signing/1.0.0": "bafybeierdeo55vv7nxdag3s2kk6gh4essmeeqpa7vperbw3wn3ypzmtcdm",
         "protocol/valory/abci/0.1.0": "bafybeigdi6wsbdn2nv7clzhnuhki3taywgiiajwawdaat57o5ntlgqj2qe",
         "protocol/valory/acn/1.1.0": "bafybeihouwpsgkbafgsfdcwiwhz3smrjuw24b74j4v3n3hxirmxeskldwq",
@@ -45,8 +45,8 @@ To follow the next sections, you need to populate the local registry with a numb
         "protocol/valory/ipfs/0.1.0": "bafybeib7jhgyocjwdq3r5wzq3z4qeubj3dwi3aqjn2uxzuwnjp5fhvafcu",
         "protocol/valory/ledger_api/1.0.0": "bafybeifvbahdmabpswhu45q6xb2jppbvqlfztya6jx2ttu4eb6pjltyxam",
         "protocol/valory/tendermint/0.1.0": "bafybeif5wq5i2ugr66alniej2bk4vws5sikal7otx674y5kz52e3ulo2qm",
-        "skill/valory/abstract_abci/0.1.0": "bafybeidhxjclpvsazvv4xy6q7mb54rgbbhrngv6h5adje7pqgfzsbhd4xy",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeicj2olxvtjcojufovpopn4ageyzreaikezli653vofgm5qkezb7di",
+        "skill/valory/abstract_abci/0.1.0": "bafybeiahfmoxrf5oblb4x6j3e5geck5jxoqulsm5vy2pg4dxmfegbjvmym",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeifjjshwmvd3ml3kkgvrcv4p45jn4bolmghljbujhjdhkixvqgjf4a",
         "skill/valory/hello_world_abci/0.1.0": "bafybeiebittgfcz4idj633fkrvu6qle2ajekdjxpp7slggyur7vv7s7hrq",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihiulggi4jz3i7qdjicztbvlrkesyb7paiovfcmw22xvovpweeq7y"
     }

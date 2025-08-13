@@ -363,17 +363,15 @@ This means, in particular, that there is no need to define the `ALL_PARTICIPANTS
 
     Fetch the service with the desired token ID on Mode network.
 
-
 4. **Build the agents' image.** Build the Docker image of the agents of the service.
 
     ```bash
-    autonomy build-image --service-dir your_service/ # (2)!
+    autonomy build-image --service-dir your_service/ # (1)!
     ```
 
-    2. Check out the [`autonomy build-image`](../advanced_reference/commands/autonomy_build-image.md) command documentation to learn more about its parameters and options.
+    1. Check out the [`autonomy build-image`](../advanced_reference/commands/autonomy_build-image.md) command documentation to learn more about its parameters and options.
 
     This command builds the Docker runtime images for the agent defined in a service configuration file service.yaml.
-
 
 5. **Build the deployment.** Build the service deployment.
 
@@ -386,24 +384,26 @@ This means, in particular, that there is no need to define the `ALL_PARTICIPANTS
     === "Docker Compose"
 
         ```bash
-        autonomy deploy build path/to/keys.json -ltm # (3)!
+        autonomy deploy build path/to/keys.json -ltm # (1)!
         ```
+
+        1. Check out the [`autonomy deploy build`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-build) command documentation to learn more about its parameters and options.
 
     === "Kubernetes"
 
         ```bash
-        autonomy deploy build path/to/keys.json --kubernetes # (3)!
+        autonomy deploy build path/to/keys.json --kubernetes # (1)!
         ```
 
-    3. Check out the [`autonomy deploy build`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-build) command documentation to learn more about its parameters and options.
+        1. Check out the [`autonomy deploy build`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-build) command documentation to learn more about its parameters and options.
 
 6. **Start the service.** Run the service:
 
     ```bash
-    autonomy deploy run # (4)!
+    autonomy deploy run # (1)!
     ```
 
-    4. Check out the [`autonomy deploy run`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-run) command documentation to learn more about its parameters and options.
+    1. Check out the [`autonomy deploy run`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-run) command documentation to learn more about its parameters and options.
 
     Run a service deployment locally stored.
 

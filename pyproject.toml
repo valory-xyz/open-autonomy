@@ -7,11 +7,52 @@ license = "Apache-2.0 license"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-tomte = {extras = ["tox","docs"], version = "==0.2.15"}
+aiohttp = ">=3.8.5,<4.0.0"
+docker = "==6.1.2"
+Flask = "==2.0.2"
+open-aea = { version = "==1.65.0", extras = ["all"] }
+open-aea-ledger-ethereum = "==1.65.0"
+open-aea-ledger-ethereum-hwi = "==1.65.0"
+open-aea-cli-ipfs = "==1.65.0"
+ipfshttpclient = "==0.8.0a2"
+Werkzeug = "==2.0.3"
+watchdog = ">=2.1.6"
+pytest = "==7.2.1"
+click = ">=8.1.0,<8.2.0"
+valory-docker-compose = "==1.29.3"
+tomte = { extras = ["tox", "docs"], version = "==0.2.17" }
 mkdocs-monorepo-plugin = "^1.0.5"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+aiohttp = ">=3.8.5,<4.0.0"
+asn1crypto = ">=1.4.0,<1.5.0"
+ecdsa = ">=0.15"
+web3 = ">=6.0.0,<7"
+certifi = "*"
+multidict = "*"
+eth_typing = "*"
+eth-account = ">=0.8.0,<0.9.0"
+typing_extensions = ">=3.10.0.2,<=4.13.2"
+hexbytes = "*"
+packaging = "*"
+pytest-asyncio = "*"
+open-aea-ledger-cosmos = "==1.65.0"
+open-aea-cosmpy = "==0.6.7"
+grpcio = "==1.53.0"
+hypothesis = "==6.21.6"
+protobuf = ">=4.21.6,<4.25.0"
+pytz = "==2022.2.1"
+py-ecc = "==6.0.0"
+python-dotenv = ">=0.14.5,<0.22.0"
+requests = ">=2.28.1,<2.31.2"
+texttable = "==1.6.7"
+toml = "==0.10.2"
+eth-utils = "==2.2.0"
+eth-abi = "==4.0.0"
+pycryptodome = "==3.18.0"
+jsonschema = ">=4.3.0,<4.4.0"
+gql = ">=3.5.0"
 
 [build-system]
-requires = ["setuptools", "wheel","poetry-core>=1.0.0"]
-build_backend = "setuptools.build_meta"
+requires = ["setuptools", "wheel", "poetry-core>=1.0.0"]
+build-backend = "setuptools.build_meta"
