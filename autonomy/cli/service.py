@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -157,7 +157,12 @@ def _register(  # pylint: disable=too-many-arguments
 @click.option(
     "--reuse-multisig",
     is_flag=True,
-    help="Reuse mutlisig from previous deployment.",
+    help="Reuse multisig from previous deployment.",
+)
+@click.option(
+    "--use-recovery-module",
+    is_flag=True,
+    help="Use multisig with recovery module.",
 )
 @pass_ctx
 @service_id_flag
@@ -176,6 +181,7 @@ def _deploy(  # pylint: disable=too-many-arguments
     key: Path,
     hwi: bool,
     reuse_multisig: bool,
+    use_recovery_module: bool,
     password: Optional[str],
     fallback_handler: Optional[str],
 ) -> None:
@@ -192,6 +198,7 @@ def _deploy(  # pylint: disable=too-many-arguments
         sleep=ctx.config.get("sleep"),
     ).deploy_service(
         reuse_multisig=reuse_multisig,
+        use_recovery_module=use_recovery_module,
         fallback_handler=fallback_handler,
     )
 
@@ -262,3 +269,30 @@ def _info(
         service_id=service_id,
         chain_type=ctx.config["chain_type"],
     )
+
+
+@service.command(name="recover-multisig")
+@pass_ctx
+@service_id_flag
+@key_path_decorator
+@hwi_flag
+@password_decorator
+def _recover_multisig(
+    ctx: Context,
+    service_id: int,
+    key: Path,
+    hwi: bool,
+    password: Optional[str],
+) -> None:
+    """Recover the service multisig."""
+    ServiceHelper(
+        service_id=service_id,
+        chain_type=ctx.config["chain_type"],
+        key=key,
+        password=password,
+        hwi=hwi,
+        dry_run=ctx.config.get("dry_run"),
+        timeout=ctx.config.get("timeout"),
+        retries=ctx.config.get("retries"),
+        sleep=ctx.config.get("sleep"),
+    ).recover_multisig()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import time
 from enum import Enum
 from typing import Callable, Dict, List, Optional, Tuple, cast
 
+from aea.configurations.data_types import PublicId
 from aea.crypto.base import Crypto, LedgerApi
 from hexbytes import HexBytes
 
@@ -34,6 +35,8 @@ from autonomy.chain.constants import (
     GNOSIS_SAFE_PROXY_FACTORY_CONTRACT,
     GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT,
     MULTISEND_CONTRACT,
+    RECOVERY_MODULE_CONTRACT,
+    SAFE_MULTISIG_WITH_RECOVERY_MODULE_CONTRACT,
     SERVICE_MANAGER_CONTRACT,
     SERVICE_REGISTRY_CONTRACT,
     SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT,
@@ -41,6 +44,7 @@ from autonomy.chain.constants import (
 from autonomy.chain.exceptions import (
     ChainInteractionError,
     InstanceRegistrationFailed,
+    RecoverServiceMultisigFailed,
     ServiceDeployFailed,
     ServiceRegistrationFailed,
     TerminateServiceFailed,
@@ -53,6 +57,7 @@ from autonomy.chain.tx import TxSettler
 NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
 DEFAULT_FALLBACK_HANDLER = "0xf48f2b2d2a534e402487b3ee7c18c33aec0fe5e4"
 DEFAULT_DEPLOY_PAYLOAD = "0x0000000000000000000000000000000000000000{fallback_handler}000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+DEFAULT_DEPLOY_PAYLOAD_WITH_RECOVERY = "0x000000000000000000000000{fallback_handler}"
 
 ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
 
@@ -64,10 +69,20 @@ class MultiSendOperation(Enum):
     DELEGATE_CALL = 1
 
 
-def get_delployment_payload(fallback_handler: Optional[str] = None) -> str:
+def get_deployment_payload(fallback_handler: Optional[str] = None) -> str:
     """Calculates deployment payload."""
     return (
         DEFAULT_DEPLOY_PAYLOAD.format(
+            fallback_handler=(fallback_handler or DEFAULT_FALLBACK_HANDLER)[2:]
+        )
+        + int(time.time()).to_bytes(32, "big").hex()
+    )
+
+
+def get_deployment_with_recovery_payload(fallback_handler: Optional[str] = None) -> str:
+    """Calculates deployment payload."""
+    return (
+        DEFAULT_DEPLOY_PAYLOAD_WITH_RECOVERY.format(
             fallback_handler=(fallback_handler or DEFAULT_FALLBACK_HANDLER)[2:]
         )
         + int(time.time()).to_bytes(32, "big").hex()
@@ -262,51 +277,37 @@ class ServiceManager:
         self,
         method: Callable,
         kwargs: Dict,
-        build_tx_ctr: str,
+        build_tx_ctr_public_id: PublicId,
         event: str,
         service_id: int,
         exception: Exception,
+        event_ctr_public_id: PublicId = SERVICE_REGISTRY_CONTRACT,
     ) -> None:
-        """Auxiliary method for managing services on-chain."""
-        tx_settler = TxSettler(
+        """Auxiliary method to execute and verify transactions."""
+        TxSettler(
             ledger_api=self.ledger_api,
             crypto=self.crypto,
             chain_type=self.chain_type,
             timeout=self.timeout,
             retries=self.retries,
             sleep=self.sleep,
-        )
-        receipt = tx_settler.transact(
-            method=method,
-            contract=build_tx_ctr,
-            kwargs=kwargs,
+        ).transact_and_verify(
+            build_tx_contract=registry_contracts.get_contract(build_tx_ctr_public_id),
+            build_tx_contract_address=ContractConfigs.get(
+                build_tx_ctr_public_id.name
+            ).contracts[self.chain_type],
+            build_tx_contract_method=method,
+            build_tx_contract_kwargs=kwargs,
+            event_contract=registry_contracts.get_contract(event_ctr_public_id),
+            event_contract_address=ContractConfigs.get(
+                event_ctr_public_id.name
+            ).contracts[self.chain_type],
+            expected_event=event,
+            expected_event_param_name="serviceId",
+            expected_event_param_value=service_id,
+            missing_event_exception=exception,
             dry_run=self.dry_run,
         )
-        if self.dry_run:
-            print("=== Dry run output ===")
-            print("Method: " + str(method).split(" ")[2])
-            print(
-                f"Contract: {ContractConfigs.get(name=build_tx_ctr).contracts[self.chain_type]}"
-            )
-            print("Kwargs: ")
-            for key, val in kwargs.items():
-                print(f"    {key}: {val}")
-            print("Transaction: ")
-            for key, val in receipt.items():
-                print(f"    {key}: {val}")
-            return
-        events = cast(
-            List[Dict],
-            tx_settler.process(
-                event=event,
-                receipt=receipt,
-                contract=SERVICE_REGISTRY_CONTRACT,
-            ).get("events"),
-        )
-        for _event in events:
-            if _event["args"]["serviceId"] == service_id:
-                return
-        raise exception
 
     def get_service_info(self, token_id: int) -> ServiceInfo:
         """
@@ -349,7 +350,7 @@ class ServiceManager:
 
         self._transact(
             method=registry_contracts.service_manager.get_activate_registration_transaction,
-            build_tx_ctr=SERVICE_MANAGER_CONTRACT.name,
+            build_tx_ctr_public_id=SERVICE_MANAGER_CONTRACT,
             kwargs=dict(
                 owner=self.crypto.address,
                 service_id=service_id,
@@ -404,7 +405,7 @@ class ServiceManager:
         security_deposit = cost_of_bond * len(agent_ids)
         self._transact(
             method=registry_contracts.service_manager.get_register_instance_transaction,
-            build_tx_ctr=SERVICE_MANAGER_CONTRACT.name,
+            build_tx_ctr_public_id=SERVICE_MANAGER_CONTRACT,
             kwargs=dict(
                 owner=self.crypto.address,
                 service_id=service_id,
@@ -422,6 +423,7 @@ class ServiceManager:
         service_id: int,
         fallback_handler: Optional[str] = None,
         reuse_multisig: bool = False,
+        use_recovery_module: bool = False,
     ) -> None:
         """
         Deploy service.
@@ -432,6 +434,7 @@ class ServiceManager:
         :param service_id: Service ID retrieved after minting a service
         :param fallback_handler: Fallback handler address for gnosis safe multisig
         :param reuse_multisig: Use multisig from the previous deployment
+        :param use_recovery_module: Use multisig with recovery module
         """
 
         (
@@ -449,25 +452,52 @@ class ServiceManager:
             )
 
         if reuse_multisig:
-            _deployment_payload, error = get_reuse_multisig_payload(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
-                chain_type=self.chain_type,
-                service_id=service_id,
-            )
-            if _deployment_payload is None:
-                raise ServiceDeployFailed(error)
-            deployment_payload = _deployment_payload
-            gnosis_safe_multisig = ContractConfigs.get(
-                GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT.name
-            ).contracts[self.chain_type]
-        else:
-            deployment_payload = get_delployment_payload(
-                fallback_handler=fallback_handler
-            )
-            gnosis_safe_multisig = ContractConfigs.get(
-                GNOSIS_SAFE_PROXY_FACTORY_CONTRACT.name
-            ).contracts[self.chain_type]
+            if not use_recovery_module:
+                _deployment_payload, error = get_reuse_multisig_payload(
+                    ledger_api=self.ledger_api,
+                    crypto=self.crypto,
+                    chain_type=self.chain_type,
+                    service_id=service_id,
+                )
+                if _deployment_payload is None:
+                    raise ServiceDeployFailed(error)
+
+                deployment_payload = _deployment_payload
+
+                gnosis_safe_multisig = ContractConfigs.get(
+                    GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT.name
+                ).contracts[self.chain_type]
+            else:
+                _deployment_payload, error = get_reuse_multisig_with_recovery_payload(
+                    ledger_api=self.ledger_api,
+                    crypto=self.crypto,
+                    chain_type=self.chain_type,
+                    service_id=service_id,
+                )
+                if _deployment_payload is None:
+                    raise ServiceDeployFailed(error)
+
+                deployment_payload = _deployment_payload
+
+                gnosis_safe_multisig = ContractConfigs.get(
+                    RECOVERY_MODULE_CONTRACT.name
+                ).contracts[self.chain_type]
+        else:  # Deploy a new multisig
+            if not use_recovery_module:
+                deployment_payload = get_deployment_payload(
+                    fallback_handler=fallback_handler
+                )
+
+                gnosis_safe_multisig = ContractConfigs.get(
+                    GNOSIS_SAFE_PROXY_FACTORY_CONTRACT.name
+                ).contracts[self.chain_type]
+            else:
+                deployment_payload = get_deployment_with_recovery_payload(
+                    fallback_handler=fallback_handler
+                )
+                gnosis_safe_multisig = ContractConfigs.get(
+                    SAFE_MULTISIG_WITH_RECOVERY_MODULE_CONTRACT.name
+                ).contracts[self.chain_type]
 
         self._transact(
             method=registry_contracts.service_manager.get_service_deploy_transaction,
@@ -477,7 +507,7 @@ class ServiceManager:
                 gnosis_safe_multisig=gnosis_safe_multisig,
                 deployment_payload=deployment_payload,
             ),
-            build_tx_ctr=SERVICE_MANAGER_CONTRACT.name,
+            build_tx_ctr_public_id=SERVICE_MANAGER_CONTRACT,
             event="DeployService",
             service_id=service_id,
             exception=ServiceDeployFailed("Could not verify the deploy event."),
@@ -514,7 +544,7 @@ class ServiceManager:
                 owner=self.crypto.address,
                 service_id=service_id,
             ),
-            build_tx_ctr=SERVICE_MANAGER_CONTRACT.name,
+            build_tx_ctr_public_id=SERVICE_MANAGER_CONTRACT,
             event="TerminateService",
             service_id=service_id,
             exception=TerminateServiceFailed("Could not verify the terminate event."),
@@ -548,10 +578,87 @@ class ServiceManager:
                 owner=self.crypto.address,
                 service_id=service_id,
             ),
-            build_tx_ctr=SERVICE_MANAGER_CONTRACT.name,
+            build_tx_ctr_public_id=SERVICE_MANAGER_CONTRACT,
             event="OperatorUnbond",
             service_id=service_id,
             exception=UnbondServiceFailed("Could not verify the unbond event."),
+        )
+
+    def recover_multisig(self, service_id: int) -> None:
+        """
+        Recover the service multisig.
+
+        This method allows the service owner to reclaim the multisig wallet from the
+        previous deployment if it was not properly transferred by the agents after
+        service termination.
+
+        Service multisig recovery is only possible if:
+            - The original deployment was performed with the `--use-recovery-module` flag.
+            - The service is currently in the `PRE_REGISTRATION` state (i.e., all operators have unbonded).
+
+
+        :param service_id: Service ID retrieved after minting a service
+        """
+
+        (
+            _,
+            multisig_address,
+            _,
+            _,
+            _,
+            _,
+            service_state,
+            _,
+        ) = self.get_service_info(token_id=service_id)
+
+        if service_state == ServiceState.NON_EXISTENT.value:
+            raise RecoverServiceMultisigFailed("Service does not exist")
+
+        if service_state != ServiceState.PRE_REGISTRATION.value:
+            raise RecoverServiceMultisigFailed("Service not in PRE_REGISTRATION state")
+
+        if multisig_address == NULL_ADDRESS:
+            raise RecoverServiceMultisigFailed(
+                "Cannot recover multisig: No previous deployment exist."
+            )
+
+        multisig_owners = registry_contracts.gnosis_safe.get_owners(
+            ledger_api=self.ledger_api,
+            contract_address=multisig_address,
+        ).get("owners")
+
+        if multisig_owners == [self.crypto.address]:
+            raise RecoverServiceMultisigFailed(
+                f"The address {self.crypto.address} is already the only owner of the multisig."
+            )
+
+        recovery_module_address = ContractConfigs.get(
+            RECOVERY_MODULE_CONTRACT.name
+        ).contracts[self.chain_type]
+        is_recovery_module_enabled = registry_contracts.gnosis_safe.is_module_enabled(
+            ledger_api=self.ledger_api,
+            contract_address=multisig_address,
+            module_address=recovery_module_address,
+        ).get("enabled")
+
+        if not is_recovery_module_enabled:
+            raise RecoverServiceMultisigFailed(
+                "Cannot recover multisig: Recovery module is not enabled."
+            )
+
+        self._transact(
+            method=registry_contracts.recovery_module.get_recover_access_transaction,
+            kwargs=dict(
+                owner=self.crypto.address,
+                service_id=service_id,
+            ),
+            build_tx_ctr_public_id=RECOVERY_MODULE_CONTRACT,
+            event="AccessRecovered",
+            service_id=service_id,
+            exception=RecoverServiceMultisigFailed(
+                "Could not verify the recover access event."
+            ),
+            event_ctr_public_id=RECOVERY_MODULE_CONTRACT,
         )
 
 
@@ -698,4 +805,35 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
         ],
     )
     payload = multisig_address + safe_exec_data[2:]
+    return payload, None
+
+
+def get_reuse_multisig_with_recovery_payload(  # pylint: disable=too-many-locals
+    ledger_api: LedgerApi,
+    crypto: Crypto,
+    chain_type: ChainType,
+    service_id: int,
+) -> Tuple[Optional[str], Optional[str]]:
+    """Reuse multisig."""
+    _, multisig_address, _, _, *_ = get_service_info(
+        ledger_api=ledger_api,
+        chain_type=chain_type,
+        token_id=service_id,
+    )
+    if multisig_address == NULL_ADDRESS:
+        return None, "Cannot reuse multisig, No previous deployment exist!"
+
+    service_owner = crypto.address
+
+    multisig_owners = registry_contracts.gnosis_safe.get_owners(
+        ledger_api=ledger_api,
+        contract_address=multisig_address,
+    ).get("owners")
+    if len(multisig_owners) != 1 or service_owner not in multisig_owners:
+        return (
+            None,
+            "Service was not terminated properly, the service owner should be the only owner of the safe",
+        )
+
+    payload = "0x" + int(service_id).to_bytes(32, "big").hex()
     return payload, None

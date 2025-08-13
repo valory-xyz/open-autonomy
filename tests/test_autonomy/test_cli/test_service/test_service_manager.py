@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2024 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -105,11 +105,13 @@ class BaseServiceManagerTest(BaseChainInteractionTest):
         self,
         service_id: int,
         reuse_multisig: bool = False,
+        use_recovery_module: bool = False,
     ) -> None:
         """Deploy service."""
         self.service_manager.deploy(
             service_id=service_id,
             reuse_multisig=reuse_multisig,
+            use_recovery_module=use_recovery_module,
         )
 
     def terminate_service(self, service_id: int) -> None:
@@ -146,9 +148,9 @@ class TestServiceManager(BaseServiceManagerTest):
         service_id = self.mint_service()
 
         result = _run_command(str(service_id))
-        # first attempt should be succesfull
+        # first attempt should be successful
         assert result.exit_code == 0, result.output
-        assert "Service activated succesfully" in result.output
+        assert "Service activated successfully" in result.output
 
         result = _run_command(str(service_id))
         # first attempt should fail since the service already active
@@ -192,28 +194,35 @@ class TestServiceManager(BaseServiceManagerTest):
 
         result = _run_command(str(service_id))
         assert result.exit_code == 0, result.stderr
-        assert "Agent instance registered succesfully" in result.output
+        assert "Agent instance registered successfully" in result.output
 
         result = _run_command(str(service_id))
         # Will fail becaue the agent instance is already registered
         assert result.exit_code == 1, result.stdout
         assert "AgentInstanceRegistered" in result.stderr
 
+    @pytest.mark.parametrize(
+        argnames="use_recovery_module",
+        argvalues=(True, False),
+    )
     def test_deploy(
         self,
+        use_recovery_module: bool,
     ) -> None:
         """Test register instance on a service"""
 
         def _run_command(service_id: str) -> Result:
             """Run command and return result"""
-            return self.run_cli(
-                commands=(
-                    "deploy",
-                    service_id,
-                    "--key",
-                    str(self.key_file),
-                )
-            )
+            commands = [
+                "deploy",
+                service_id,
+                "--key",
+                str(self.key_file),
+            ]
+            if use_recovery_module:
+                commands.append("--use-recovery-module")
+
+            return self.run_cli(commands=tuple(commands))
 
         service_id = self.mint_service()
         self.activate_service(
@@ -232,7 +241,7 @@ class TestServiceManager(BaseServiceManagerTest):
         result = _run_command(str(service_id))
 
         assert result.exit_code == 0, result.stderr
-        assert "Service deployed succesfully" in result.output
+        assert "Service deployed successfully" in result.output
 
         result = self.run_cli(
             commands=(
@@ -285,7 +294,7 @@ class TestServiceManager(BaseServiceManagerTest):
         result = _run_command(str(service_id))
 
         assert result.exit_code == 0, result.stderr
-        assert "Service terminated succesfully" in result.output
+        assert "Service terminated successfully" in result.output
 
         result = _run_command(str(service_id))
 
@@ -333,13 +342,75 @@ class TestServiceManager(BaseServiceManagerTest):
         result = _run_command(str(service_id))
 
         assert result.exit_code == 0, result.stderr
-        assert "Service unbonded succesfully" in result.output
+        assert "Service unbonded successfully" in result.output
 
         result = _run_command(str(service_id))
 
         # Will fail becaue the service is already deployed
         assert result.exit_code == 1, result.stdout
         assert "Service needs to be in terminated-bonded state" in result.stderr
+
+    def test_recover_multisig(
+        self,
+    ) -> None:
+        """Test recover service multisig."""
+
+        def _run_command(service_id: str) -> Result:
+            """Run command and return result"""
+            return self.run_cli(
+                commands=(
+                    "recover-multisig",
+                    service_id,
+                    "--key",
+                    str(self.key_file),
+                )
+            )
+
+        result = _run_command("100")
+        assert result.exit_code == 1, result.output
+        assert "Service does not exist" in result.stderr
+
+        service_id = self.mint_service()
+
+        result = _run_command(str(service_id))
+        assert result.exit_code == 1, result.output
+        assert "Cannot recover multisig: No previous deployment exist." in result.stderr
+
+        self.activate_service(
+            service_id=service_id,
+        )
+        for _ in range(NUMBER_OF_SLOTS_PER_AGENT):
+            self.register_instances(
+                service_id=service_id,
+            )
+
+        self.deploy_service(service_id=service_id, use_recovery_module=True)
+
+        result = _run_command(str(service_id))
+        assert result.exit_code == 1, result.output
+        assert "Service not in PRE_REGISTRATION state" in result.stderr
+
+        self.terminate_service(service_id=service_id)
+
+        result = _run_command(str(service_id))
+        assert result.exit_code == 1, result.output
+        assert "Service not in PRE_REGISTRATION state" in result.stderr
+
+        self.unbond_service(service_id=service_id)
+
+        result = _run_command(str(service_id))
+
+        assert result.exit_code == 0, result.stderr
+        assert "Service multisig recovered successfully" in result.output
+
+        result = _run_command(str(service_id))
+
+        # Will fail becaue the multisig is already recovered
+        assert result.exit_code == 1, result.stdout
+        assert (
+            f"The address {self.crypto.address} is already the only owner of the multisig."
+            in result.stderr
+        )
 
     def test_info(
         self,
@@ -494,7 +565,7 @@ class TestERC20AsBond(BaseServiceManagerTest):
 
         assert result.exit_code == 1, result.stderr
         assert (
-            "Service is token secured, please provice token address using `--token` flag"
+            "Service is token secured, please provide token address using `--token` flag"
             in result.stderr
         )
 
@@ -560,7 +631,7 @@ class TestERC20AsBond(BaseServiceManagerTest):
         )
         assert result.exit_code == 1, result.output
         assert (
-            "Service is token secured, please provice token address using `--token` flag"
+            "Service is token secured, please provide token address using `--token` flag"
             in result.stderr
         )
 

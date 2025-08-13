@@ -572,3 +572,25 @@ def get_approve_hash_tx(cls, ledger_api: EthereumApi, contract_address: str,
 
 Get approve has tx.
 
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.is_module_enabled"></a>
+
+#### is`_`module`_`enabled
+
+```python
+@classmethod
+def is_module_enabled(cls, ledger_api: EthereumApi, contract_address: str,
+                      module_address: str) -> JSONLike
+```
+
+Check if a module is enabled in the Safe.
+
+**Arguments**:
+
+- `ledger_api`: the ledger API object
+- `module_address`: the module address
+- `contract_address`: the contract address
+
+**Returns**:
+
+the safe owners
+

@@ -187,6 +187,24 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
         },
     )
 
+    safe_multisig_with_recovery_module = ContractConfig(
+        name="safe_multisig_with_recovery_module",
+        contracts={
+            ChainType(chain_name): cast(
+                str, container.get("safe_multisig_with_recovery_module")
+            )
+            for chain_name, container in CHAIN_PROFILES.items()
+        },
+    )
+
+    recovery_module = ContractConfig(
+        name="recovery_module",
+        contracts={
+            ChainType(chain_name): cast(str, container.get("recovery_module"))
+            for chain_name, container in CHAIN_PROFILES.items()
+        },
+    )
+
     service_registry_token_utility = ContractConfig(
         name="service_registry_token_utility",
         contracts={

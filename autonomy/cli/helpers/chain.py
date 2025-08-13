@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -208,7 +208,7 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
 
         return ledger_api, crypto
 
-    def check_required_enviroment_variables(
+    def check_required_environment_variables(
         self, configs: Tuple[ContractConfig, ...]
     ) -> None:
         """Check for required enviroment variables when working with the custom chain."""
@@ -309,7 +309,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             contract_address = ContractConfigs.get(
                 SERVICE_REGISTRY_CONTRACT.name
             ).contracts[self.chain_type]
-            self.check_required_enviroment_variables(
+            self.check_required_environment_variables(
                 configs=(ContractConfigs.service_registry,)
             )
         elif self.package_type == PackageType.AGENT:
@@ -318,7 +318,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             contract_address = ContractConfigs.get(
                 AGENT_REGISTRY_CONTRACT.name
             ).contracts[self.chain_type]
-            self.check_required_enviroment_variables(
+            self.check_required_environment_variables(
                 configs=(ContractConfigs.agent_registry,)
             )
         else:
@@ -327,7 +327,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             contract_address = ContractConfigs.get(
                 COMPONENT_REGISTRY_CONTRACT.name
             ).contracts[self.chain_type]
-            self.check_required_enviroment_variables(
+            self.check_required_environment_variables(
                 configs=(ContractConfigs.component_registry,)
             )
 
@@ -433,7 +433,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
     ) -> None:
         """Mint component."""
 
-        self.check_required_enviroment_variables(
+        self.check_required_environment_variables(
             configs=(
                 ContractConfigs.registries_manager,
                 (
@@ -498,7 +498,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 "Cannot use custom token for bonding on L2 chains"
             )
 
-        self.check_required_enviroment_variables(
+        self.check_required_environment_variables(
             configs=(
                 ContractConfigs.service_manager,
                 ContractConfigs.service_registry,
@@ -542,7 +542,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
 
     def update_component(self, component_type: UnitType = UnitType.COMPONENT) -> None:
         """Update component."""
-        self.check_required_enviroment_variables(
+        self.check_required_environment_variables(
             configs=(
                 ContractConfigs.registries_manager,
                 (
@@ -590,7 +590,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
     ) -> None:
         """Update service"""
 
-        self.check_required_enviroment_variables(
+        self.check_required_environment_variables(
             configs=(
                 ContractConfigs.service_manager,
                 ContractConfigs.service_registry,
@@ -695,7 +695,7 @@ class ServiceHelper(OnChainHelper):
             return self
 
         if self.chain_type == ChainType.CUSTOM:  # pragma: nocover
-            self.check_required_enviroment_variables(
+            self.check_required_environment_variables(
                 configs=(ContractConfigs.service_registry_token_utility,)
             )
 
@@ -707,7 +707,7 @@ class ServiceHelper(OnChainHelper):
         )
         if self.token_secured and self.token is None:
             raise click.ClickException(
-                "Service is token secured, please provice token address using `--token` flag"
+                "Service is token secured, please provide token address using `--token` flag"
             )
         ContractConfigs.erc20.contracts[self.chain_type] = cast(str, self.token)
         return self
@@ -749,7 +749,7 @@ class ServiceHelper(OnChainHelper):
                 spender=spender,
             )
 
-        self.check_required_enviroment_variables(
+        self.check_required_environment_variables(
             configs=(
                 ContractConfigs.service_manager,
                 ContractConfigs.service_registry,
@@ -765,7 +765,7 @@ class ServiceHelper(OnChainHelper):
 
         if self.dry_run:  # pragma: nocover
             return
-        click.echo("Service activated succesfully")
+        click.echo("Service activated successfully")
 
     def register_instance(self, instances: List[str], agent_ids: List[int]) -> None:
         """Register agents instances on an activated service"""
@@ -785,7 +785,7 @@ class ServiceHelper(OnChainHelper):
                 spender=spender,
             )
 
-        self.check_required_enviroment_variables(
+        self.check_required_environment_variables(
             configs=(
                 ContractConfigs.service_manager,
                 ContractConfigs.service_registry,
@@ -805,30 +805,43 @@ class ServiceHelper(OnChainHelper):
 
         if self.dry_run:  # pragma: nocover
             return
-        click.echo("Agent instance registered succesfully")
+        click.echo("Agent instance registered successfully")
 
     def deploy_service(
         self,
         reuse_multisig: bool = False,
+        use_recovery_module: bool = False,
         fallback_handler: Optional[str] = None,
     ) -> None:
         """Deploy a service with registration activated"""
 
-        self.check_required_enviroment_variables(
-            configs=(
-                ContractConfigs.service_manager,
-                ContractConfigs.service_registry,
-                ContractConfigs.gnosis_safe_proxy_factory,
-                ContractConfigs.gnosis_safe_same_address_multisig,
-                ContractConfigs.multisend,
+        if not use_recovery_module:
+            self.check_required_environment_variables(
+                configs=(
+                    ContractConfigs.service_manager,
+                    ContractConfigs.service_registry,
+                    ContractConfigs.gnosis_safe_proxy_factory,
+                    ContractConfigs.gnosis_safe_same_address_multisig,
+                    ContractConfigs.multisend,
+                )
             )
-        )
+        else:
+            self.check_required_environment_variables(
+                configs=(
+                    ContractConfigs.service_manager,
+                    ContractConfigs.service_registry,
+                    ContractConfigs.safe_multisig_with_recovery_module,
+                    ContractConfigs.recovery_module,
+                    ContractConfigs.multisend,
+                )
+            )
 
         try:
             self.manager.deploy(
                 service_id=self.service_id,
                 reuse_multisig=reuse_multisig,
                 fallback_handler=fallback_handler,
+                use_recovery_module=use_recovery_module,
             )
         except ChainInteractionError as e:  # pragma: nocover
             raise click.ClickException(
@@ -837,12 +850,12 @@ class ServiceHelper(OnChainHelper):
 
         if self.dry_run:  # pragma: nocover
             return
-        click.echo("Service deployed succesfully")
+        click.echo("Service deployed successfully")
 
     def terminate_service(self) -> None:
         """Terminate a service"""
 
-        self.check_required_enviroment_variables(
+        self.check_required_environment_variables(
             configs=(
                 ContractConfigs.service_manager,
                 ContractConfigs.service_registry,
@@ -855,12 +868,12 @@ class ServiceHelper(OnChainHelper):
             raise click.ClickException(
                 f"Service terminatation failed with following error; {e.__class__.__name__}({e})"
             ) from e
-        click.echo("Service terminated succesfully")
+        click.echo("Service terminated successfully")
 
     def unbond_service(self) -> None:
         """Unbond a service"""
 
-        self.check_required_enviroment_variables(
+        self.check_required_environment_variables(
             configs=(
                 ContractConfigs.service_manager,
                 ContractConfigs.service_registry,
@@ -873,7 +886,27 @@ class ServiceHelper(OnChainHelper):
             raise click.ClickException(
                 f"Service unbonding failed with following error; {e.__class__.__name__}({e})"
             ) from e
-        click.echo("Service unbonded succesfully")
+        click.echo("Service unbonded successfully")
+
+    def recover_multisig(self) -> None:
+        """Recover the service multisig"""
+
+        self.check_required_environment_variables(
+            configs=(
+                ContractConfigs.service_manager,
+                ContractConfigs.service_registry,
+                ContractConfigs.safe_multisig_with_recovery_module,
+                ContractConfigs.recovery_module,
+            )
+        )
+
+        try:
+            self.manager.recover_multisig(service_id=self.service_id)
+        except ChainInteractionError as e:  # pragma: nocover
+            raise click.ClickException(
+                f"Service multisig recovery failed with following error; {e.__class__.__name__}({e})"
+            ) from e
+        click.echo("Service multisig recovered successfully")
 
 
 def print_service_info(service_id: int, chain_type: ChainType) -> None:

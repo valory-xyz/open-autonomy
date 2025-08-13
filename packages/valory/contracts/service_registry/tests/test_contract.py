@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -180,7 +180,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         )
 
         assert security_deposit == 10000000000000000
-        assert multisig_address == "0x77b783e911F4398D75908Cc60C7138Bd1eFe35Fd"
+        assert multisig_address == "0x42B4Ef74f1E1E13b3132687bCa9308A89B3D81b2"
         assert ipfs_hash_for_config == b"UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
         assert threshold == 3
         assert max_number_of_agent_instances == 4

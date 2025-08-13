@@ -69,7 +69,7 @@ Returns an instance of the registries manager contract.
 def service_manager() -> Contract
 ```
 
-Returns an instance of the registries manager contract.
+Returns an instance of the service manager contract.
 
 <a id="autonomy.chain.base.RegistryContracts.component_registry"></a>
 
@@ -80,7 +80,7 @@ Returns an instance of the registries manager contract.
 def component_registry() -> Contract
 ```
 
-Returns an instance of the registries manager contract.
+Returns an instance of the component registry contract.
 
 <a id="autonomy.chain.base.RegistryContracts.agent_registry"></a>
 
@@ -91,7 +91,7 @@ Returns an instance of the registries manager contract.
 def agent_registry() -> Contract
 ```
 
-Returns an instance of the registries manager contract.
+Returns an instance of the agent registry contract.
 
 <a id="autonomy.chain.base.RegistryContracts.service_registry"></a>
 
@@ -102,7 +102,7 @@ Returns an instance of the registries manager contract.
 def service_registry() -> Contract
 ```
 
-Returns an instance of the registries manager contract.
+Returns an instance of the service registry contract.
 
 <a id="autonomy.chain.base.RegistryContracts.service_registry_token_utility"></a>
 
@@ -124,7 +124,7 @@ Returns an instance of the service registry token utility contract.
 def erc20() -> Contract
 ```
 
-Returns an instance of the service registry token utility contract.
+Returns an instance of the erc20 contract.
 
 <a id="autonomy.chain.base.RegistryContracts.gnosis_safe"></a>
 
@@ -135,7 +135,7 @@ Returns an instance of the service registry token utility contract.
 def gnosis_safe() -> Contract
 ```
 
-Returns an instance of the service registry token utility contract.
+Returns an instance of the gnosis safe contract.
 
 <a id="autonomy.chain.base.RegistryContracts.gnosis_safe_proxy_factory"></a>
 
@@ -146,7 +146,18 @@ Returns an instance of the service registry token utility contract.
 def gnosis_safe_proxy_factory() -> Contract
 ```
 
-Returns an instance of the service registry token utility contract.
+Returns an instance of the gnosis safe proxy factory contract.
+
+<a id="autonomy.chain.base.RegistryContracts.recovery_module"></a>
+
+#### recovery`_`module
+
+```python
+@property
+def recovery_module() -> Contract
+```
+
+Returns an instance of the recovery module contract.
 
 <a id="autonomy.chain.base.RegistryContracts.multisend"></a>
 
@@ -157,5 +168,5 @@ Returns an instance of the service registry token utility contract.
 def multisend() -> Contract
 ```
 
-Returns an instance of the service registry token utility contract.
+Returns an instance of the multisend contract.
 

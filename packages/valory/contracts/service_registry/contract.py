@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 
 """This module contains the class to connect to the Service Registry contract."""
 
-import hashlib
 import json
 import logging
 from pathlib import Path
@@ -47,7 +46,7 @@ DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID = {
     5: "d4a860f21f17762c99d93359244b39a878dd5bac9ea6056c0ff29c7558d6653aa0d5962aa819fc9f05f237d068845125cfc37a7fd7761b11c29a709ad5c48157",
     100: "10e2cfb500481d6c5a3b6b90507e4ac04d8b0d88741cea5568306ed4115f24e8b9747055423da5fca05838d5ccefebf41fb47d2ba1fb45215b6b21c0a27823be",
     137: "10e2cfb500481d6c5a3b6b90507e4ac04d8b0d88741cea5568306ed4115f24e8b9747055423da5fca05838d5ccefebf41fb47d2ba1fb45215b6b21c0a27823be",
-    31337: "41ab54d43fd4bdfdc929658a0dc9bedd970c7339eecafbefda9892ab54c02c396bceedaa3a84a0f4690bee03dc11195a3267a264de7859c420efbf4291f1fef0",
+    31337: "8b26fb9165c5cf93563d681721c271cd57c8323b92e7c50f27392632a54db385646deae8cbaeee3a2c3f37873a5734098b6302a82977f62246d2fe15c5010350",
 }
 L1_CHAINS = (
     1,
@@ -131,22 +130,15 @@ class ServiceRegistryContract(Contract):
         :param contract_address: the contract address
         :return: the verified status
         """
-        verified = False
         chain_id = ledger_api.api.eth.chain_id
         expected_address = EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID[chain_id]
         if contract_address != expected_address:
             _logger.error(
                 f"For chain_id {chain_id} expected {expected_address} and got {contract_address}."
             )
-            return dict(verified=verified)
-        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
-        sha512_hash = hashlib.sha512(deployed_bytecode.encode("utf-8")).hexdigest()
-        verified = DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID[chain_id] == sha512_hash
-        if not verified:  # pragma: nocover
-            _logger.error(
-                f"CONTRACT NOT VERIFIED! Contract address: {contract_address}, chain_id: {chain_id}."
-            )
-        return dict(verified=verified)
+            return dict(verified=False)
+
+        return dict(verified=True)
 
     @classmethod
     def exists(

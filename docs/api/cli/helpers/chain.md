@@ -69,12 +69,12 @@ def get_ledger_and_crypto_objects(
 
 Create ledger_api and crypto objects
 
-<a id="autonomy.cli.helpers.chain.OnChainHelper.check_required_enviroment_variables"></a>
+<a id="autonomy.cli.helpers.chain.OnChainHelper.check_required_environment_variables"></a>
 
-#### check`_`required`_`enviroment`_`variables
+#### check`_`required`_`environment`_`variables
 
 ```python
-def check_required_enviroment_variables(
+def check_required_environment_variables(
         configs: Tuple[ContractConfig, ...]) -> None
 ```
 
@@ -313,6 +313,7 @@ Register agents instances on an activated service
 
 ```python
 def deploy_service(reuse_multisig: bool = False,
+                   use_recovery_module: bool = False,
                    fallback_handler: Optional[str] = None) -> None
 ```
 
@@ -337,6 +338,16 @@ def unbond_service() -> None
 ```
 
 Unbond a service
+
+<a id="autonomy.cli.helpers.chain.ServiceHelper.recover_multisig"></a>
+
+#### recover`_`multisig
+
+```python
+def recover_multisig() -> None
+```
+
+Recover the service multisig
 
 <a id="autonomy.cli.helpers.chain.print_service_info"></a>
 

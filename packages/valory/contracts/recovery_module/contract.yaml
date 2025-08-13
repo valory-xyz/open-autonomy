@@ -1,0 +1,23 @@
+name: recovery_module
+author: valory
+version: 0.1.0
+type: contract
+description: Recovery module
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: bafybeicjlkmxs5ikpgdtgndifstpmmpaixwcbgouvmt6gowuhf5dy3dpgu
+  build/RecoveryModule.json: bafybeifsyjdbprcp4kxpijlpqfovxcf7cv2ujapt3d5zn34wby26ldv4ky
+  contract.py: bafybeifihpwb3etbrnn2hqdizsp5zolis3ur23slt3q5zctcykm5nlvv7q
+fingerprint_ignore_patterns: []
+contracts: []
+class_name: RecoveryModule
+contract_interface_paths:
+  ethereum: build/RecoveryModule.json
+dependencies:
+  open-aea-ledger-ethereum:
+    version: ==1.60.0
+  open-aea-test-autonomy:
+    version: ==0.18.3
+  web3:
+    version: <7,>=6.0.0
