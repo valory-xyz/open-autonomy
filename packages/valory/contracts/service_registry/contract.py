@@ -19,7 +19,6 @@
 
 """This module contains the class to connect to the Service Registry contract."""
 
-import hashlib
 import json
 import logging
 from pathlib import Path
