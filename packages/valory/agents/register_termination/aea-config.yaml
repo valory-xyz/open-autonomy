@@ -21,7 +21,7 @@ contracts:
 - valory/gnosis_safe:0.1.0:bafybeibhjbakgwap6shul3cejohcfyctlpjfjxetbhzekhyumftx6xstl4
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeihmjoncn5gkgp64cpkzabwh4pxr4iarddsfdhpxevsdpvcwjtcvsq
 - valory/multisend:0.1.0:bafybeig5byt5urg2d2bsecufxe5ql7f4mezg3mekfleeh32nmuusx66p4y
-- valory/service_registry:0.1.0:bafybeiezv7au6chio4brx25bh6ikat53njbqtswwudujvqlwbqacv7hxlm
+- valory/service_registry:0.1.0:bafybeif4p7qw7os3pyrj2vsnmubrjdpcy2lcl6qivlsa6j2lhxz3shjaeq
 protocols:
 - open_aea/signing:1.0.0:bafybeig2d36zxy65vd7fwhs7scotuktydcarm74aprmrb5nioiymr3yixm
 - valory/abci:0.1.0:bafybeiatodhboj6a3p35x4f4b342lzk6ckxpud23awnqbxwjeon3k5y36u
@@ -33,12 +33,12 @@ protocols:
 - valory/tendermint:0.1.0:bafybeigydrbfrlmr4f7shbtqx44kvmbg22im27mxdap2e3m5tkti6t445y
 skills:
 - valory/abstract_abci:0.1.0:bafybeic6kmfomxsx3x6lpx2viw74yyypcqqqdz3x66ljqboskg7opwd63u
-- valory/abstract_round_abci:0.1.0:bafybeibp7flj4yaofxmv3yohkd55wfqgqayei5k3h66yjci52ktvy3kvt4
-- valory/register_termination_abci:0.1.0:bafybeihnfbkkoqer6gga3nnrxpieulbhk2d6hcscpm76mmwu5dca4oia54
-- valory/registration_abci:0.1.0:bafybeics66lgrubf6ezqzr7gjqsj3ub7u2ybetctd3piowxrlfgc6a4qa4
-- valory/reset_pause_abci:0.1.0:bafybeiauzz2tw3gmtd63y746asqxjgnzacedc3zwo3mp5d73pj6ilvop74
-- valory/termination_abci:0.1.0:bafybeiftcm6al27fkedas7n6wlcz4df6znwhyp7hkiar5thull7dvqb4lq
-- valory/transaction_settlement_abci:0.1.0:bafybeifl6daxs74h3rg4mc2xrmmvgiousexkjlpzxg745tn6lhymh5bxdm
+- valory/abstract_round_abci:0.1.0:bafybeifwjt2wwla22kxksvnmq3m6skfynpgtaegog2xjhnl5bbfq3xybkm
+- valory/register_termination_abci:0.1.0:bafybeiasi6v4crowlc6oodacmt67fb63da4pdhrxbiben2cmzhzkdu4f5q
+- valory/registration_abci:0.1.0:bafybeidioqk5uktuq7sbyzn7dxh7e5j32h447je6qdtrkovjemouutv3w4
+- valory/reset_pause_abci:0.1.0:bafybeigzamqu5r3tvi6x6jnk43twgrhku7yft233phajym6z3ecyu43doa
+- valory/termination_abci:0.1.0:bafybeife3yomaaceowodz3d7haisvdyhx73ovifel2zwfonaghodtlzsvy
+- valory/transaction_settlement_abci:0.1.0:bafybeibvyraqhawkz5uz66kyuy4dvfrwuvvtoqkpphgadnvk4svo6bdmcm
 default_ledger: ethereum
 required_ledgers:
 - ethereum
