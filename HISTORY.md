@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+# 0.20.2 (2025-08-13)
+
+Autonomy:
+- Configures the generated `docker-compose.yaml` files to rotate the docker logs #2345
+- Adds support for service deployment with recovery module (by default) #2343
+
 # 0.20.1 (2025-07-30)
 
 Autonomy:
