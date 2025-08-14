@@ -1,5 +1,28 @@
 # Release History - `open-autonomy`
 
+# 0.21.0 (2025-08-14)
+
+Autonomy && Packages && Docs:
+- End of support for Python 3.8 and 3.9 #2340
+- Dependency updates #2340
+  - Bumps `open-aea[all]` from `1.65.0` to `2.0.4`
+  - Bumps `open-aea-ledger-ethereum` from `1.65.0` to `2.0.4`
+  - Bumps `open-aea-ledger-ethereum-hwi` from `1.65.0` to `2.0.4`
+  - Bumps `open-aea-ledger-cosmos` from `1.65.0` to `2.0.4`
+  - Bumps `open-aea-cli-ipfs` from `1.65.0` to `2.0.4`
+  - Bumps `pytest` from `7.2.1` to `7.4.4`
+  - Bumps `py-ecc` from `6.0.0` to `8.0.0`
+  - Bumps `docker` from `6.1.2` to `7.1.0`
+  - Bumps `tomte` from `0.2.17` to `0.4.0`
+  - Bumps `eth-utils` from `2.2.0` to `5.3.0`
+  - Bumps `eth-abi` from `4.0.0` to `5.2.0`
+  - Bumps `web3` from `<7,>=6.0.0` to `<8,>=7.0.0`
+  - Bumps `eth-account` from `>=0.8.0,<0.9.0` to `>=0.13.0,<0.14.0`
+  - Loosens the `click` version constraint from `>=8.1.0,<8.2.0` to `>=8.1.0,<9`
+  - Loosens the `requests` version constraint from `<2.31.2,>=2.28.1` to `<2.32.5,>=2.28.1`
+  - Loosens the `pytest` version constraint from `>=7.0.0,<7.3.0` to `>=7.0.0,<7.5.0`
+- Updates the default URI `acn.staging.autonolas.tech` to `acn.autonolas.tech` #2346
+
 # 0.20.2 (2025-08-13)
 
 Autonomy:

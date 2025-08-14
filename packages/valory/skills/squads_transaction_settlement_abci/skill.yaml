@@ -21,7 +21,7 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeigv273fllpdsmzip4qfmhyvltdcss4yhoicss32c2yc7am6kue4cy
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifjjshwmvd3ml3kkgvrcv4p45jn4bolmghljbujhjdhkixvqgjf4a
+- valory/abstract_round_abci:0.1.0:bafybeihsb42bzpbnspjhkbju6rf4rqoqctp5fnlf6sw3tl46naen3lxo4y
 behaviours:
   main:
     args: {}
@@ -146,7 +146,7 @@ models:
     class_name: TendermintDialogues
 dependencies:
   open-aea-test-autonomy:
-    version: ==0.20.2
+    version: ==0.21.0
   web3:
     version: <8,>=7.0.0
 is_abstract: true
