@@ -49,55 +49,55 @@ if _descriptor._USE_C_DESCRIPTORS == False:
     _CHECKTXTYPE.values_by_name["RECHECK"]._options = None
     _CHECKTXTYPE.values_by_name["RECHECK"]._serialized_options = b"\212\235 \007Recheck"
     _REQUESTINITCHAIN.fields_by_name["time"]._options = None
-    _REQUESTINITCHAIN.fields_by_name[
-        "time"
-    ]._serialized_options = b"\310\336\037\000\220\337\037\001"
+    _REQUESTINITCHAIN.fields_by_name["time"]._serialized_options = (
+        b"\310\336\037\000\220\337\037\001"
+    )
     _REQUESTINITCHAIN.fields_by_name["validators"]._options = None
-    _REQUESTINITCHAIN.fields_by_name[
-        "validators"
-    ]._serialized_options = b"\310\336\037\000"
+    _REQUESTINITCHAIN.fields_by_name["validators"]._serialized_options = (
+        b"\310\336\037\000"
+    )
     _REQUESTBEGINBLOCK.fields_by_name["header"]._options = None
-    _REQUESTBEGINBLOCK.fields_by_name[
-        "header"
-    ]._serialized_options = b"\310\336\037\000"
+    _REQUESTBEGINBLOCK.fields_by_name["header"]._serialized_options = (
+        b"\310\336\037\000"
+    )
     _REQUESTBEGINBLOCK.fields_by_name["last_commit_info"]._options = None
-    _REQUESTBEGINBLOCK.fields_by_name[
-        "last_commit_info"
-    ]._serialized_options = b"\310\336\037\000"
+    _REQUESTBEGINBLOCK.fields_by_name["last_commit_info"]._serialized_options = (
+        b"\310\336\037\000"
+    )
     _REQUESTBEGINBLOCK.fields_by_name["byzantine_validators"]._options = None
-    _REQUESTBEGINBLOCK.fields_by_name[
-        "byzantine_validators"
-    ]._serialized_options = b"\310\336\037\000"
+    _REQUESTBEGINBLOCK.fields_by_name["byzantine_validators"]._serialized_options = (
+        b"\310\336\037\000"
+    )
     _RESPONSEINITCHAIN.fields_by_name["validators"]._options = None
-    _RESPONSEINITCHAIN.fields_by_name[
-        "validators"
-    ]._serialized_options = b"\310\336\037\000"
+    _RESPONSEINITCHAIN.fields_by_name["validators"]._serialized_options = (
+        b"\310\336\037\000"
+    )
     _RESPONSEBEGINBLOCK.fields_by_name["events"]._options = None
-    _RESPONSEBEGINBLOCK.fields_by_name[
-        "events"
-    ]._serialized_options = b"\310\336\037\000\352\336\037\020events,omitempty"
+    _RESPONSEBEGINBLOCK.fields_by_name["events"]._serialized_options = (
+        b"\310\336\037\000\352\336\037\020events,omitempty"
+    )
     _RESPONSECHECKTX.fields_by_name["events"]._options = None
-    _RESPONSECHECKTX.fields_by_name[
-        "events"
-    ]._serialized_options = b"\310\336\037\000\352\336\037\020events,omitempty"
+    _RESPONSECHECKTX.fields_by_name["events"]._serialized_options = (
+        b"\310\336\037\000\352\336\037\020events,omitempty"
+    )
     _RESPONSEDELIVERTX.fields_by_name["events"]._options = None
-    _RESPONSEDELIVERTX.fields_by_name[
-        "events"
-    ]._serialized_options = b"\310\336\037\000\352\336\037\020events,omitempty"
+    _RESPONSEDELIVERTX.fields_by_name["events"]._serialized_options = (
+        b"\310\336\037\000\352\336\037\020events,omitempty"
+    )
     _RESPONSEENDBLOCK.fields_by_name["validator_updates"]._options = None
-    _RESPONSEENDBLOCK.fields_by_name[
-        "validator_updates"
-    ]._serialized_options = b"\310\336\037\000"
+    _RESPONSEENDBLOCK.fields_by_name["validator_updates"]._serialized_options = (
+        b"\310\336\037\000"
+    )
     _RESPONSEENDBLOCK.fields_by_name["events"]._options = None
-    _RESPONSEENDBLOCK.fields_by_name[
-        "events"
-    ]._serialized_options = b"\310\336\037\000\352\336\037\020events,omitempty"
+    _RESPONSEENDBLOCK.fields_by_name["events"]._serialized_options = (
+        b"\310\336\037\000\352\336\037\020events,omitempty"
+    )
     _LASTCOMMITINFO.fields_by_name["votes"]._options = None
     _LASTCOMMITINFO.fields_by_name["votes"]._serialized_options = b"\310\336\037\000"
     _EVENT.fields_by_name["attributes"]._options = None
-    _EVENT.fields_by_name[
-        "attributes"
-    ]._serialized_options = b"\310\336\037\000\352\336\037\024attributes,omitempty"
+    _EVENT.fields_by_name["attributes"]._serialized_options = (
+        b"\310\336\037\000\352\336\037\024attributes,omitempty"
+    )
     _TXRESULT.fields_by_name["result"]._options = None
     _TXRESULT.fields_by_name["result"]._serialized_options = b"\310\336\037\000"
     _VALIDATORUPDATE.fields_by_name["pub_key"]._options = None
@@ -107,9 +107,9 @@ if _descriptor._USE_C_DESCRIPTORS == False:
     _EVIDENCE.fields_by_name["validator"]._options = None
     _EVIDENCE.fields_by_name["validator"]._serialized_options = b"\310\336\037\000"
     _EVIDENCE.fields_by_name["time"]._options = None
-    _EVIDENCE.fields_by_name[
-        "time"
-    ]._serialized_options = b"\310\336\037\000\220\337\037\001"
+    _EVIDENCE.fields_by_name["time"]._serialized_options = (
+        b"\310\336\037\000\220\337\037\001"
+    )
     _globals["_CHECKTXTYPE"]._serialized_start = 6314
     _globals["_CHECKTXTYPE"]._serialized_end = 6371
     _globals["_EVIDENCETYPE"]._serialized_start = 6373

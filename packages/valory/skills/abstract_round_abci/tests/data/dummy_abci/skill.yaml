@@ -4,7 +4,7 @@ version: 0.1.0
 type: skill
 description: The scaffold skill is a scaffold for your own skill implementation.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeielxta5wbywv6cb2p65phk73zeodroif7imk33qc7sxgxrcelr62y
   behaviours.py: bafybeicwwlex4z5ro6hrw5cdwxyp5742klcqsjwcn423wgg3jk6xclzwvi

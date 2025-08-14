@@ -77,7 +77,7 @@ class AEARunner:
         """Restart respective tendermint node."""
         write("Restarting Tendermint.")
         try:
-            response = requests.get(TENDERMINT_COM_URL + "/hard_reset")
+            response = requests.get(TENDERMINT_COM_URL + "/hard_reset", timeout=30)
             if response.status_code != 200:
                 write("Tendermint node not yet available.")
         except requests.exceptions.ConnectionError:

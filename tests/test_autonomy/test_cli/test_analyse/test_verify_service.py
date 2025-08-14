@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2024 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ def get_dummy_service_config() -> Dict:
         "author": "valory",
         "version": "0.1.0",
         "description": "A dummy service config file with sigular overrides.",
-        "aea_version": ">=1.0.0, <2.0.0",
+        "aea_version": ">=2.0.0, <3.0.0",
         "license": "Apache-2.0",
         "fingerprint": {
             "README.md": "bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm"
@@ -187,7 +187,7 @@ def get_dummy_agent_config() -> Dict:
         "version": "0.1.0",
         "license": "Apache-2.0",
         "description": "agent",
-        "aea_version": ">=1.0.0, <2.0.0",
+        "aea_version": ">=2.0.0, <3.0.0",
         "fingerprint": {},
         "fingerprint_ignore_patterns": [],
         "connections": [
@@ -222,7 +222,7 @@ def get_dummy_skill_config() -> Dict:
         "type": "skill",
         "description": "Hello World ABCI application.",
         "license": "Apache-2.0",
-        "aea_version": ">=1.0.0, <2.0.0",
+        "aea_version": ">=2.0.0, <3.0.0",
         "fingerprint": {},
         "fingerprint_ignore_patterns": [],
         "connections": [],
@@ -293,8 +293,6 @@ class BaseAnalyseServiceTest(BaseCliTest):
     def setup_class(cls) -> None:
         """Setup class."""
         super().setup_class()
-
-        cls.cli_runner.mix_stderr = False
 
     @staticmethod
     def patch_check_agent_dependencies_published(**kwargs: Any) -> mock._patch:

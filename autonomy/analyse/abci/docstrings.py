@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -97,5 +97,5 @@ def compare_docstring_content(
     markers = group if group is not None else ""
 
     updated_class = f"class {abci_app_name}(AbciApp[Event]):{markers}{docstring}"
-    updated_content = re.sub(regex, updated_class, file_content, re.MULTILINE)
+    updated_content = re.sub(regex, updated_class, file_content, flags=re.MULTILINE)
     return True, updated_content

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -96,7 +96,9 @@ class PeriodDumper:
         self.dump_dir = dump_dir or Path("/tm_state")
 
         if self.dump_dir.is_dir():
-            shutil.rmtree(str(self.dump_dir), onerror=self.readonly_handler)
+            shutil.rmtree(
+                str(self.dump_dir), onerror=self.readonly_handler
+            )  # pylint: disable=deprecated-argument
         self.dump_dir.mkdir(exist_ok=True)
 
     @staticmethod
@@ -108,7 +110,7 @@ class PeriodDumper:
             os.chmod(path, stat.S_IWRITE)
             func(path)
         except (FileNotFoundError, OSError):
-            return
+            pass
 
     def dump_period(self) -> None:
         """Dump tendermint run data for replay"""

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -78,25 +78,25 @@ def get_packages_from_repository(repo_url: str) -> Dict[str, str]:
     """Retrieve packages.json from the latest release from a repository."""
     repo_url = repo_url.strip("/").replace("https://github.com/", "")
     repo_api_url = f"https://api.github.com/repos/{repo_url}/releases/latest"
-    response = requests.get(repo_api_url)
+    response = requests.get(repo_api_url, timeout=30)
 
     if response.status_code == 200:
         repo_info = response.json()
         latest_release_tag = repo_info["tag_name"]
         url = f"https://raw.githubusercontent.com/{repo_url}/{latest_release_tag}/packages/packages.json"
     else:
-        raise Exception(
+        raise requests.RequestException(
             f"Failed to fetch repository information from GitHub API for: {repo_url}"
         )
 
-    response = requests.get(url)
+    response = requests.get(url, timeout=30)
     if response.status_code == 200:
         data = response.json()
         if "dev" in data:
             return {**data["dev"], **data["third_party"]}
         return data
 
-    raise Exception(f"Failed to fetch data from URL: {url}")
+    raise requests.RequestException(f"Failed to fetch data from URL: {url}")
 
 
 class Package:  # pylint: disable=too-few-public-methods

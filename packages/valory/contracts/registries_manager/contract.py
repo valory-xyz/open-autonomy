@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ class RegistriesManagerContract(Contract):
         raise NotImplementedError  # pragma: nocover
 
     @classmethod
-    def get_create_transaction(  # pylint: disable=too-many-arguments
+    def get_create_transaction(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
@@ -101,7 +101,7 @@ class RegistriesManagerContract(Contract):
         return tx_params
 
     @classmethod
-    def get_update_hash_transaction(  # pylint: disable=too-many-arguments
+    def get_update_hash_transaction(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,

@@ -4,7 +4,7 @@ version: 0.1.0
 type: skill
 description: Slashing skill.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeiaa4imr3kx3j7yi6z5hm2u5jtx5ozlqkmkjktzy4jctyooqakdjca
   behaviours.py: bafybeicelytoixymlcysy4xuvixyjwyupcmasmybjm44ydq6rlkveoscuy
@@ -15,7 +15,7 @@ fingerprint:
   payloads.py: bafybeif6hfnib6yrurrju4dtxnccwsnoi2keqp7sr4qas6xegseunygydu
   rounds.py: bafybeigoxlc2hgspqjwmen3tj45x2djxsxkr4qeg42b6x2wlau3dctorye
   tests/__init__.py: bafybeiesff34nldcxucqzb7fz5bg6awtqxgcafvasecdsh5eutmtahwaeu
-  tests/test_behaviours.py: bafybeihhzhfmd7jvybvmsuvryajafuqzkjjd7lifxlva6xyl2vo7jeb5yu
+  tests/test_behaviours.py: bafybeidhczrq32jzeu645dajio34nni7rrkjiefp2b6xqpo7s7voo6tb6m
   tests/test_dialogues.py: bafybeiaipkfzciwtc6emjsi2vatof3tjptxww5cwqymefs57co7f2hb6pe
   tests/test_handlers.py: bafybeicbxl2n4ch6p347ksb6dgm2orebrbj26oplfhvkk25l5crspzbvs4
   tests/test_models.py: bafybeifnjo33d2q2hsqcf4bwdk7wcp45amt7idogup24botupdo7u4cuju
@@ -24,13 +24,13 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeiao2ikfwg2hkkazajhd4ntvfeljezn52rjhpwikjgp6bu2dc6nfwi
-- valory/service_registry:0.1.0:bafybeiflkhzdcjdjdgkwkz76al3rkgd3ugmjue7ukg54loaxm2ldh7laqm
+- valory/gnosis_safe:0.1.0:bafybeia2sdixodrzkbayi5c7ivtuwy7kktbl2buqkywk5ahjgmm3ef5nga
+- valory/service_registry:0.1.0:bafybeiguwhomk6c7z4dpwjuoc7bqiioeokdk3iniz5uiuhlnbspvs4ji4y
 protocols:
-- valory/contract_api:1.0.0:bafybeid247uig2ekykdumh7ewhp2cdq7rchaeqjj6e7urx35zfpdl5zrn4
+- valory/contract_api:1.0.0:bafybeigv273fllpdsmzip4qfmhyvltdcss4yhoicss32c2yc7am6kue4cy
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiafen5kchaqlrzy57yh5bm5t6cwyrlvucueh6mkmttffzxp6catti
-- valory/transaction_settlement_abci:0.1.0:bafybeif4xkvxusdjnwxiatqzp7sqpeddwrvw3qf274utf3shanit3tn5ju
+- valory/abstract_round_abci:0.1.0:bafybeifjjshwmvd3ml3kkgvrcv4p45jn4bolmghljbujhjdhkixvqgjf4a
+- valory/transaction_settlement_abci:0.1.0:bafybeih77nsb2zybc5kcwxwqzsz5oyfoo7i4l2f3q3xqnugyqeog2sm7vm
 behaviours:
   main:
     args: {}

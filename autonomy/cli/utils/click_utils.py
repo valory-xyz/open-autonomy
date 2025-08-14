@@ -123,7 +123,10 @@ class NFTArgument(click.ParamType):
     METAVAR = "IPFS_HASH_OR_IMAGE_PATH"
 
     def get_metavar(
-        self, param: click.Parameter, **kwargs: Any  # pylint: disable=unused-argument
+        self,  # pylint: disable=unused-argument
+        param: click.Parameter,
+        *args: Any,
+        **kwargs: Any,
     ) -> str:  # pragma: nocover
         """Get metavar"""
         return self.METAVAR
@@ -167,7 +170,7 @@ def image_author_option(fn: Callable) -> Callable:
 class PublicIdOrHashOrTokenId(PublicIdParameter):
     """A click parameter that can be a public id, an IPFS hash or a token id."""
 
-    def get_metavar(self, param: Any) -> str:
+    def get_metavar(self, param: Any, ctx: click.Context) -> str:
         """Return the metavar default for this param if it provides one."""
         return "PUBLIC_ID_OR_HASH_OR_TOKEN_ID"
 

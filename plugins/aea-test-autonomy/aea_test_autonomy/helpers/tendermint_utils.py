@@ -107,7 +107,7 @@ class TendermintLocalNetworkBuilder:
             ]
         )
 
-    def _get_node_id(self, i: int) -> str:  # pylint: disable=no-self-use
+    def _get_node_id(self, i: int) -> str:
         """Get the node id."""
         assert 0 <= i < self.nb_nodes, "invalid node id"  # nosec
         node_name = f"node{i}"

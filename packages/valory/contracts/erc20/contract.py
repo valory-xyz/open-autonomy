@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 valory
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ class ERC20TokenContract(Contract):
         raise NotImplementedError
 
     @classmethod
-    def get_approve_tx(  # pylint: disable=too-many-arguments
+    def get_approve_tx(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,

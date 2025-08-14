@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -44,9 +44,9 @@ class SharedState(BaseSharedState):
     def setup(self) -> None:
         """Set up."""
         super().setup()
-        ResetPauseAbciApp.event_to_timeout[
-            Event.ROUND_TIMEOUT
-        ] = self.context.params.round_timeout_seconds
+        ResetPauseAbciApp.event_to_timeout[Event.ROUND_TIMEOUT] = (
+            self.context.params.round_timeout_seconds
+        )
         ResetPauseAbciApp.event_to_timeout[Event.RESET_AND_PAUSE_TIMEOUT] = (
             self.context.params.reset_pause_duration + MARGIN
         )

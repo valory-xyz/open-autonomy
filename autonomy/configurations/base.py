@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -95,7 +95,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         "_overrides",
     )
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         name: SimpleIdOrStr,
         author: SimpleIdOrStr,

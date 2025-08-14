@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ def wait_for_node(
         logging.debug(f"waiting for node... t={i}")
         i += 1
         time.sleep(sleep_amount)
-    response = requests.get(f"{http_}{loopback}:{rpc_port}/status")
+    response = requests.get(f"{http_}{loopback}:{rpc_port}/status", timeout=30)
     success = response.status_code == 200
     assert success, "Tendermint node not running"
     yield

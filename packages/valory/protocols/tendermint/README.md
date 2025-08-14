@@ -14,7 +14,7 @@ version: 0.1.0
 protocol_specification_id: valory/tendermint:0.1.0
 description: A protocol for communication between two AEAs to share tendermint configuration details.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 speech_acts:
   get_genesis_info:
     query: pt:optional[pt:str]

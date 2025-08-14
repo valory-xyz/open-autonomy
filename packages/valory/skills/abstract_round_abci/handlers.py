@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -615,12 +615,14 @@ class TendermintHandler(Handler):
         message = cast(TendermintMessage, message)
         handler_name = f"_{message.performative.value}"
         handler = getattr(self, handler_name, None)
-        if handler is None:
+        if handler is None or not callable(handler):
             log_message = self.LogMessages.performative_not_recognized.value
             self.context.logger.error(f"{log_message}: {message}")
             return
 
-        handler(message, dialogue)
+        handler(  # pylint:disable=not-callable  # callability is checked above
+            message, dialogue
+        )
 
     def _reply_with_tendermint_error(
         self,
@@ -743,9 +745,9 @@ class TendermintHandler(Handler):
         try:
             recovery_params = json.loads(message.params)
             shared_state = cast(SharedState, self.context.state)
-            shared_state.address_to_acn_deliverable[
-                message.sender
-            ] = TendermintRecoveryParams(**recovery_params)
+            shared_state.address_to_acn_deliverable[message.sender] = (
+                TendermintRecoveryParams(**recovery_params)
+            )
         except (json.JSONDecodeError, TypeError) as exc:
             log_message = self.LogMessages.failed_to_parse_params.value
             self.context.logger.error(f"{log_message}: {exc} {message}")

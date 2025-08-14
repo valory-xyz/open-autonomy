@@ -60,7 +60,7 @@ class TestTokenSettingsFactory(BaseGanacheContractTest):
         call = self.contract.encode_function_call(
             self.ledger_api,
             multicall_instance,
-            fn_name="getEthBalance",
+            abi_element_identifier="getEthBalance",
             args=[address],
         )
         # make the same call 3 times

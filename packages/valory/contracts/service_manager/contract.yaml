@@ -4,12 +4,12 @@ version: 0.1.0
 type: contract
 description: Service Manager contract
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeiao4aiyvkvg75zfi2nf34hidx2uzcbqibc2bukyutisg5zhxskhlq
   build/ServiceManager.json: bafybeiefm53534jhy5tfjgcmx4rbjrcn6tzbghw4ptggh5or6vuohdgau4
   build/ServiceManagerToken.json: bafybeidjyr2wqsiorb3u5pnfiqkzff5rgewbr5kgawev2zlah4i4f6fcom
-  contract.py: bafybeig4oqvm7w2oz7rdapsirjgzagwji5p5johd6klr3t6pcobmmduaza
+  contract.py: bafybeih4i2znge2oslhxl2l56jl46wjkyzj5oe7m5k22gajftwd36rqadq
   tests/__init__.py: bafybeifehip3omosjvpq3uqvxomtgrmqjoqdttyzhvu2qysybjf6btwkpi
   tests/test_contract.py: bafybeicqdkxo3aygm6ljjpvk6fdstelbuotxayvxwgeirqiiooclab5m34
 fingerprint_ignore_patterns: []

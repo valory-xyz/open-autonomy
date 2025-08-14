@@ -29,7 +29,7 @@ from autonomy.configurations.loader import load_service_config
 from autonomy.deploy.image import build_image as _build_image
 
 
-def build_image(  # pylint: disable=too-many-arguments
+def build_image(
     agent: Optional[PublicId],
     service_dir: Optional[Path],
     pull: bool = False,

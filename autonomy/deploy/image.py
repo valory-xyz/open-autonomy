@@ -56,7 +56,7 @@ class ImageProfiles:  # pylint: disable=too-few-public-methods
     ALL = (CLUSTER, DEVELOPMENT, PRODUCTION)
 
 
-def build_image(  # pylint: disable=too-many-arguments,too-many-locals
+def build_image(  # pylint: disable=too-many-locals
     agent: PublicId,
     pull: bool = False,
     version: Optional[str] = None,

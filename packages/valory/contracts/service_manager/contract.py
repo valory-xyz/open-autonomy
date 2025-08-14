@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -119,7 +119,7 @@ class ServiceManagerContract(Contract):
         return {"events": Event().process_receipt(receipt)}
 
     @classmethod
-    def get_create_transaction(  # pylint: disable=too-many-arguments
+    def get_create_transaction(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
@@ -158,7 +158,7 @@ class ServiceManagerContract(Contract):
         )
 
     @classmethod
-    def get_update_transaction(  # pylint: disable=too-many-arguments
+    def get_update_transaction(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
@@ -197,7 +197,7 @@ class ServiceManagerContract(Contract):
         )
 
     @classmethod
-    def get_activate_registration_transaction(  # pylint: disable=too-many-arguments
+    def get_activate_registration_transaction(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
@@ -223,7 +223,7 @@ class ServiceManagerContract(Contract):
         return tx_params
 
     @classmethod
-    def get_register_instance_transaction(  # pylint: disable=too-many-arguments
+    def get_register_instance_transaction(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
@@ -253,7 +253,7 @@ class ServiceManagerContract(Contract):
         return tx_params
 
     @classmethod
-    def get_service_deploy_transaction(  # pylint: disable=too-many-arguments
+    def get_service_deploy_transaction(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,

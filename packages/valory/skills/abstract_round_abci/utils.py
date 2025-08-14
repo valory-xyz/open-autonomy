@@ -20,7 +20,6 @@
 """This module contains utility functions for the 'abstract_round_abci' skill."""
 
 import builtins
-import collections
 import dataclasses
 import sys
 import types
@@ -40,6 +39,8 @@ from typing import (
     TypeVar,
     Union,
     cast,
+    get_args,
+    get_origin,
 )
 from unittest.mock import MagicMock
 
@@ -158,68 +159,6 @@ def parse_tendermint_p2p_url(url: str) -> Tuple[str, int]:
         port = DEFAULT_TENDERMINT_P2P_PORT
 
     return hostname, port
-
-
-##
-# Typing utils - to be extracted to open-aea
-##
-
-
-try:
-    # Python >=3.8 should have these functions already
-    from typing import get_args as _get_args  # pylint: disable=ungrouped-imports
-    from typing import get_origin as _get_origin  # pylint: disable=ungrouped-imports
-except ImportError:  # pragma: nocover
-    # Python 3.7
-    def _get_origin(tp):  # type: ignore
-        """Copied from the Python 3.8 typing module"""
-        if isinstance(tp, typing._GenericAlias):  # pylint: disable=protected-access
-            return tp.__origin__
-        if tp is typing.Generic:
-            return typing.Generic
-        return None
-
-    def _get_args(tp):  # type: ignore
-        """Copied from the Python 3.8 typing module"""
-        if isinstance(tp, typing._GenericAlias):  # pylint: disable=protected-access
-            res = tp.__args__
-            if get_origin(tp) is collections.abc.Callable and res[0] is not Ellipsis:
-                res = (list(res[:-1]), res[-1])
-            return res
-        return ()
-
-
-def get_origin(tp):  # type: ignore
-    """
-    Get the unsubscripted version of a type.
-
-    This supports generic types, Callable, Tuple, Union, Literal, Final and
-    ClassVar. Returns None for unsupported types.
-    Examples:
-        get_origin(Literal[42]) is Literal
-        get_origin(int) is None
-        get_origin(ClassVar[int]) is ClassVar
-        get_origin(Generic) is Generic
-        get_origin(Generic[T]) is Generic
-        get_origin(Union[T, int]) is Union
-        get_origin(List[Tuple[T, T]][int]) == list
-    """
-    return _get_origin(tp)
-
-
-def get_args(tp):  # type: ignore
-    """
-    Get type arguments with all substitutions performed.
-
-    For unions, basic simplifications used by Union constructor are performed.
-    Examples:
-        get_args(Dict[str, int]) == (str, int)
-        get_args(int) == ()
-        get_args(Union[int, Union[T, int], str][int]) == (int, str)
-        get_args(Union[int, Tuple[T, int]][str]) == (int, Tuple[str, int])
-        get_args(Callable[[], T][int]) == ([], int)
-    """
-    return _get_args(tp)
 
 
 ##

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -344,7 +344,7 @@ class TestApiSpecsModel:
         assert actual == expected_res
         response_type = api_specs_config.get("response_type", None)
         if response_type is not None:
-            assert type(actual) == getattr(builtins, response_type)
+            assert type(actual) is getattr(builtins, response_type)
         assert api_specs.response_info.error_data == expected_error
 
     def test_attribute_manipulation(self) -> None:

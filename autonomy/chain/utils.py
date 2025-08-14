@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2024 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ def resolve_component_id(
         ) from e
 
     try:
-        return r_get(url=metadata_uri).json()
+        return r_get(url=metadata_uri, timeout=30).json()
     except RequestConnectionError as e:
         raise FailedToRetrieveComponentMetadata(
             "Error connecting to the IPFS gateway"

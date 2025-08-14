@@ -71,7 +71,7 @@ If you have [populated the local registry](./overview_of_the_development_process
         version: 0.1.0
         license: Apache-2.0
         description: Example of an agent.
-        aea_version: '>=1.0.0, <2.0.0'
+        aea_version: '>=2.0.0, <3.0.0'
         fingerprint: {}
         fingerprint_ignore_patterns: []
         connections:
@@ -122,7 +122,7 @@ If you have [populated the local registry](./overview_of_the_development_process
               propagate: true
         dependencies:
           open-aea-ledger-ethereum:
-            version: ==1.65.0
+            version: ==2.0.4
           open-aea-test-autonomy:
             version: ==0.12.1.post1
         default_connection: null
@@ -168,9 +168,9 @@ If you have [populated the local registry](./overview_of_the_development_process
         type: connection
         config:
           nodes:
-          - uri: ${str:acn.staging.autonolas.tech:9005}
+          - uri: ${str:acn.autonolas.tech:9005}
             public_key: ${str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
-          - uri: ${str:acn.staging.autonolas.tech:9006}
+          - uri: ${str:acn.autonolas.tech:9006}
             public_key: ${str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
         cert_requests:
         - identifier: acn

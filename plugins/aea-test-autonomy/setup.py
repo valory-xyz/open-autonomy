@@ -24,10 +24,10 @@ from setuptools import setup  # type: ignore
 
 
 base_deps = [
-    "open-aea[all]>=1.65.0,<2.0.0",
-    "pytest==7.2.1",
-    "open-aea-ledger-ethereum>=1.65.0,<2.0.0",
-    "docker==6.1.2",
+    "open-aea[all]>=2.0.4,<3.0.0",
+    "pytest==7.4.4",
+    "open-aea-ledger-ethereum>=2.0.4,<3.0.0",
+    "docker==7.1.0",
 ]
 
 setup(
@@ -59,8 +59,6 @@ setup(
         "Operating System :: MacOS",
         "Operating System :: Microsoft",
         "Operating System :: Unix",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Topic :: Communications",

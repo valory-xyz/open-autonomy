@@ -2,13 +2,13 @@ name: counter
 author: valory
 version: 0.1.0
 description: A set of agents incrementing a counter
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 license: Apache-2.0
 fingerprint:
   README.md: bafybeidoybzzjch4djhhafqm4e4jcrpaqmlthntcnonlsjtowwpykbc5xi
 fingerprint_ignore_patterns: []
 number_of_agents: 1
-agent: valory/counter:0.1.0:bafybeib2wczr5uehlm65qj43oacg4cklzrfnfqdfduvzjrc6kuyfcw4wfe
+agent: valory/counter:0.1.0:bafybeieeud6xaw5g4yeflcnby6ngru3t3vdnx7btylglzj545sxglven2u
 deployment: {}
 dependencies: {}
 ---

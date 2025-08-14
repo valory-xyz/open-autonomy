@@ -69,7 +69,9 @@ def event_filter_patch(event: str, return_value: Any) -> mock._patch:
     )
 
 
-class BaseServiceRegistryContractTest(BaseRegistriesContractsTest):
+class BaseServiceRegistryContractTest(
+    BaseRegistriesContractsTest
+):  # pylint: disable=too-few-public-methods
     """Base class for Service Registry contract tests"""
 
     contract: ServiceRegistryContract

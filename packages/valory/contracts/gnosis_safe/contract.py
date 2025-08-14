@@ -138,7 +138,7 @@ class GnosisSafeContract(Contract):
         return result
 
     @classmethod
-    def _get_deploy_transaction(  # pylint: disable=too-many-locals,too-many-arguments
+    def _get_deploy_transaction(  # pylint: disable=too-many-locals
         cls,
         ledger_api: EthereumApi,
         deployer_address: str,
@@ -253,7 +253,7 @@ class GnosisSafeContract(Contract):
         return tx_params, contract_address
 
     @classmethod
-    def get_raw_safe_transaction_hash(  # pylint: disable=too-many-arguments,too-many-locals
+    def get_raw_safe_transaction_hash(  # pylint: disable=too-many-locals
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
@@ -304,7 +304,7 @@ class GnosisSafeContract(Contract):
         if chain_id is None:
             chain_id = ledger_api.api.eth.chain_id
 
-        data_ = HexBytes(data).hex()
+        data_ = HexBytes(data).to_0x_hex()
 
         # Safes >= 1.0.0 Renamed `baseGas` to `dataGas`
         safe_version_ = Version(safe_version)
@@ -354,7 +354,7 @@ class GnosisSafeContract(Contract):
             )
             structured_data["domain"]["chainId"] = chain_id  # type: ignore
 
-        return dict(tx_hash=HexBytes(encode_typed_data(structured_data)).hex())
+        return dict(tx_hash=HexBytes(encode_typed_data(structured_data)).to_0x_hex())
 
     @classmethod
     def get_packed_signatures(
@@ -373,7 +373,7 @@ class GnosisSafeContract(Contract):
         return signatures
 
     @classmethod
-    def get_raw_safe_transaction(  # pylint: disable=too-many-arguments,too-many-locals
+    def get_raw_safe_transaction(  # pylint: disable=too-many-locals
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
@@ -499,7 +499,7 @@ class GnosisSafeContract(Contract):
         :return: the verified status
         """
         ledger_api = cast(EthereumApi, ledger_api)
-        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
+        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).to_0x_hex()
         # we cannot use cls.contract_interface["ethereum"]["deployedBytecode"] because the
         # contract is created via a proxy
         local_bytecode = SAFE_DEPLOYED_BYTECODE
@@ -507,7 +507,7 @@ class GnosisSafeContract(Contract):
         return dict(verified=verified)
 
     @classmethod
-    def verify_tx(  # pylint: disable=too-many-arguments,too-many-locals
+    def verify_tx(  # pylint: disable=too-many-locals
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
@@ -701,8 +701,8 @@ class GnosisSafeContract(Contract):
         event_topic = event_abi_to_log_topic(event_abi)
 
         filter_params: FilterParams = {
-            "fromBlock": from_block,
-            "toBlock": to_block,
+            "from_block": from_block,
+            "to_block": to_block,
             "address": safe_contract.address,
             "topics": [event_topic],
         }
@@ -784,8 +784,8 @@ class GnosisSafeContract(Contract):
         event_topic = event_abi_to_log_topic(event_abi)
 
         filter_params: FilterParams = {
-            "fromBlock": from_block,
-            "toBlock": to_block,
+            "from_block": from_block,
+            "to_block": to_block,
             "address": factory_contract.address,
             "topics": [event_topic],
         }
@@ -798,7 +798,7 @@ class GnosisSafeContract(Contract):
             txs=list(
                 map(
                     lambda entry: dict(
-                        tx_hash=entry["transactionHash"].hex(),
+                        tx_hash=entry["transactionHash"].to_0x_hex(),
                         block_number=entry["blockNumber"],
                     ),
                     entries,
@@ -831,8 +831,8 @@ class GnosisSafeContract(Contract):
         event_topic = event_abi_to_log_topic(event_abi)
 
         filter_params: FilterParams = {
-            "fromBlock": from_block,
-            "toBlock": to_block,
+            "from_block": from_block,
+            "to_block": to_block,
             "address": safe_contract.address,
             "topics": [event_topic],
         }
@@ -849,7 +849,7 @@ class GnosisSafeContract(Contract):
 
         removed_owner_events = [
             {
-                "tx_hash": entry["transactionHash"].hex(),
+                "tx_hash": entry["transactionHash"].to_0x_hex(),
                 "block_number": entry["blockNumber"],
                 "owner": entry["args"]["owner"],
             }
@@ -888,8 +888,8 @@ class GnosisSafeContract(Contract):
         padded_sender = pad_address_for_topic(sender_address)
 
         filter_params: FilterParams = {
-            "fromBlock": from_block,
-            "toBlock": to_block,
+            "from_block": from_block,
+            "to_block": to_block,
             "address": safe_contract.address,
             # cannot filter for 0 value transfers using topics as the value is not indexed
             "topics": [event_topic, padded_sender],
@@ -900,7 +900,7 @@ class GnosisSafeContract(Contract):
         entries = [get_event_data(w3.codec, event_abi, log) for log in logs]
         zero_transfer_events = list(
             dict(
-                tx_hash=entry["transactionHash"].hex(),
+                tx_hash=entry["transactionHash"].to_0x_hex(),
                 block_number=entry["blockNumber"],
                 sender=ledger_api.api.to_checksum_address(entry["args"]["sender"]),
             )
@@ -941,8 +941,8 @@ class GnosisSafeContract(Contract):
         ]
         owner = ledger_api.api.to_checksum_address(owner)
         prev_owner = cls._get_prev_owner(owners, owner)
-        data = safe_contract.encodeABI(
-            fn_name="removeOwner",
+        data = safe_contract.encode_abi(
+            abi_element_identifier="removeOwner",
             args=[
                 ledger_api.api.to_checksum_address(prev_owner),
                 owner,
@@ -983,8 +983,8 @@ class GnosisSafeContract(Contract):
         ]
         old_owner = ledger_api.api.to_checksum_address(old_owner)
         prev_owner = cls._get_prev_owner(owners, old_owner)
-        data = safe_contract.encodeABI(
-            fn_name="swapOwner",
+        data = safe_contract.encode_abi(
+            abi_element_identifier="swapOwner",
             args=[
                 ledger_api.api.to_checksum_address(prev_owner),
                 old_owner,

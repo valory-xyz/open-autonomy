@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -289,7 +289,7 @@ class BaseCollectSameUntilAllRoundTest(
 ):  # pylint: disable=too-few-public-methods
     """Tests for rounds derived from CollectSameUntilAllRound."""
 
-    def _test_round(  # pylint: disable=too-many-arguments,too-many-locals
+    def _test_round(  # pylint: disable=too-many-locals
         self,
         test_round: CollectSameUntilAllRound,
         round_payloads: Mapping[str, BaseTxPayload],
@@ -345,7 +345,7 @@ class BaseCollectSameUntilThresholdRoundTest(  # pylint: disable=too-few-public-
 ):
     """Tests for rounds derived from CollectSameUntilThresholdRound."""
 
-    def _test_round(  # pylint: disable=too-many-arguments,too-many-locals
+    def _test_round(  # pylint: disable=too-many-locals
         self,
         test_round: CollectSameUntilThresholdRound,
         round_payloads: Mapping[str, BaseTxPayload],
@@ -434,7 +434,7 @@ class BaseOnlyKeeperSendsRoundTest(  # pylint: disable=too-few-public-methods
 class BaseVotingRoundTest(BaseRoundTestClass):  # pylint: disable=too-few-public-methods
     """Tests for rounds derived from VotingRound."""
 
-    def _test_round(  # pylint: disable=too-many-arguments,too-many-locals
+    def _test_round(  # pylint: disable=too-many-locals
         self,
         test_round: VotingRound,
         round_payloads: Mapping[str, BaseTxPayload],

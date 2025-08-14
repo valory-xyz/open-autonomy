@@ -124,7 +124,7 @@ def _activate(
     multiple=True,
     help="Agent ID",
 )
-def _register(  # pylint: disable=too-many-arguments
+def _register(
     ctx: Context,
     service_id: int,
     instances: List[str],
@@ -175,7 +175,7 @@ def _register(  # pylint: disable=too-many-arguments
     type=str,
     help="Fallback handler address for the gnosis safe multisig",
 )
-def _deploy(  # pylint: disable=too-many-arguments
+def _deploy(
     ctx: Context,
     service_id: int,
     key: Path,

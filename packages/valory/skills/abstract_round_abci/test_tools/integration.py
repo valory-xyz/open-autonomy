@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ from packages.valory.skills.abstract_round_abci.test_tools.base import (
 )
 
 
-# pylint: disable=protected-access,too-many-ancestors,unbalanced-tuple-unpacking,too-many-locals,consider-using-with,unspecified-encoding,too-many-arguments,unidiomatic-typecheck
+# pylint: disable=protected-access,too-many-ancestors,unbalanced-tuple-unpacking,too-many-locals,consider-using-with,unspecified-encoding,unidiomatic-typecheck
 
 HandlersType = List[Optional[Handler]]
 ExpectedContentType = List[
@@ -175,7 +175,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase, ABC):
         self.behaviour.act_wrapper()
         incoming_message = None
 
-        if type(handler) == SigningHandler:
+        if type(handler) is SigningHandler:
             self.assert_quantity_in_decision_making_queue(1)
             message = self.get_message_from_decision_maker_inbox()
             assert message is not None, "No message in outbox."  # nosec

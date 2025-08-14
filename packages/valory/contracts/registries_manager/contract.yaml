@@ -4,11 +4,11 @@ version: 0.1.0
 type: contract
 description: Registries Manager contract
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeihqlwkxffyqkqzzoqbm3t5caqxl75po6yk5cfjg5jp56dy47qqmv4
   build/RegistriesManager.json: bafybeigu6whhxx6zd7kqhmpjpak4ufj4az2jk4k4rwi4tshr25qzcb3e6q
-  contract.py: bafybeiftz62v7nvxx37gdkbr4f6n33c3u33dkym3frkieaxmeypgmjcg4q
+  contract.py: bafybeiguzuyh2m54zvodk5dvwb24xrh474bzwlalbyvgir4rqjf52qiwsa
   tests/__init__.py: bafybeib4z5zjwvlk5x5shenb2hzkgh7qb6w236g6ygcbvezvo5dfxao4va
   tests/test_contract.py: bafybeidio2tvmghemwy3gmwcsjrjrln6rgpe6dtzdxbz6miblnk7yfogmy
 fingerprint_ignore_patterns: []

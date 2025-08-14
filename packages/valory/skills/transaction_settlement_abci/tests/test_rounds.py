@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -374,9 +374,11 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
                     )
                 ),
                 synchronized_data_attr_checks=[
-                    lambda _synchronized_data: _synchronized_data.participant_to_selection.keys()
-                    if exit_event is None
-                    else None
+                    lambda _synchronized_data: (
+                        _synchronized_data.participant_to_selection.keys()
+                        if exit_event is None
+                        else None
+                    )
                 ],
                 most_voted_payload=most_voted_payload,
                 exit_event=self._event_class.DONE if exit_event is None else exit_event,
@@ -805,20 +807,22 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                     keepers=keepers,
                     final_tx_hash="0xb0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                 ),
-                synchronized_data_attr_checks=[
-                    lambda _synchronized_data: _synchronized_data.final_verification_status,
-                    lambda _synchronized_data: _synchronized_data.final_tx_hash,
-                    lambda _synchronized_data: _synchronized_data.keepers,
-                ]
-                if expected_event
-                not in {
-                    TransactionSettlementEvent.NEGATIVE,
-                    TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
-                }
-                else [
-                    lambda _synchronized_data: _synchronized_data.final_verification_status,
-                    lambda _synchronized_data: _synchronized_data.keepers,
-                ],
+                synchronized_data_attr_checks=(
+                    [
+                        lambda _synchronized_data: _synchronized_data.final_verification_status,
+                        lambda _synchronized_data: _synchronized_data.final_tx_hash,
+                        lambda _synchronized_data: _synchronized_data.keepers,
+                    ]
+                    if expected_event
+                    not in {
+                        TransactionSettlementEvent.NEGATIVE,
+                        TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
+                    }
+                    else [
+                        lambda _synchronized_data: _synchronized_data.final_verification_status,
+                        lambda _synchronized_data: _synchronized_data.keepers,
+                    ]
+                ),
                 most_voted_payload=expected_status + expected_tx_hash,
                 exit_event=expected_event,
             )
@@ -863,9 +867,11 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
                 ),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     late_arriving_tx_hashes=late_arriving_tx_hashes,
-                    suspects=tuple()
-                    if expected_event == TransactionSettlementEvent.DONE
-                    else tuple(sorted(late_arriving_tx_hashes.keys())),
+                    suspects=(
+                        tuple()
+                        if expected_event == TransactionSettlementEvent.DONE
+                        else tuple(sorted(late_arriving_tx_hashes.keys()))
+                    ),
                 ),
                 synchronized_data_attr_checks=[
                     lambda _synchronized_data: _synchronized_data.late_arriving_tx_hashes,

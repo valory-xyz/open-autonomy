@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ class TestRunServiceLocally(BaseCliTest):
 
         for _ in range(max_retries):
             try:
-                res = requests.get(self.expected_network_address)
+                res = requests.get(self.expected_network_address, timeout=30)
                 assert res.status_code == 200, "bad response from the network"
                 # we return in this case
                 self._stop_cli_process()

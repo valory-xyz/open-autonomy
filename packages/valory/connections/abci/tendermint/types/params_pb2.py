@@ -37,19 +37,19 @@ if _descriptor._USE_C_DESCRIPTORS == False:
     _CONSENSUSPARAMS.fields_by_name["block"]._options = None
     _CONSENSUSPARAMS.fields_by_name["block"]._serialized_options = b"\310\336\037\000"
     _CONSENSUSPARAMS.fields_by_name["evidence"]._options = None
-    _CONSENSUSPARAMS.fields_by_name[
-        "evidence"
-    ]._serialized_options = b"\310\336\037\000"
+    _CONSENSUSPARAMS.fields_by_name["evidence"]._serialized_options = (
+        b"\310\336\037\000"
+    )
     _CONSENSUSPARAMS.fields_by_name["validator"]._options = None
-    _CONSENSUSPARAMS.fields_by_name[
-        "validator"
-    ]._serialized_options = b"\310\336\037\000"
+    _CONSENSUSPARAMS.fields_by_name["validator"]._serialized_options = (
+        b"\310\336\037\000"
+    )
     _CONSENSUSPARAMS.fields_by_name["version"]._options = None
     _CONSENSUSPARAMS.fields_by_name["version"]._serialized_options = b"\310\336\037\000"
     _EVIDENCEPARAMS.fields_by_name["max_age_duration"]._options = None
-    _EVIDENCEPARAMS.fields_by_name[
-        "max_age_duration"
-    ]._serialized_options = b"\310\336\037\000\230\337\037\001"
+    _EVIDENCEPARAMS.fields_by_name["max_age_duration"]._serialized_options = (
+        b"\310\336\037\000\230\337\037\001"
+    )
     _VALIDATORPARAMS._options = None
     _VALIDATORPARAMS._serialized_options = b"\270\240\037\001\350\240\037\001"
     _VERSIONPARAMS._options = None

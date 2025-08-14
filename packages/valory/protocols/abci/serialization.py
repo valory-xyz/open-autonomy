@@ -370,7 +370,7 @@ class AbciSerializer(Serializer):
         abci_pb.ParseFromString(message_pb.dialogue_message.content)
         performative = abci_pb.WhichOneof("performative")
         performative_id = AbciMessage.Performative(str(performative))
-        performative_content = dict()  # type: Dict[str, Any]
+        performative_content: Dict[str, Any] = dict()
         if performative_id == AbciMessage.Performative.REQUEST_ECHO:
             message = abci_pb.request_echo.message
             performative_content["message"] = message
@@ -569,9 +569,9 @@ class AbciSerializer(Serializer):
                 consensus_param_updates = ConsensusParams.decode(
                     pb2_consensus_param_updates
                 )
-                performative_content[
-                    "consensus_param_updates"
-                ] = consensus_param_updates
+                performative_content["consensus_param_updates"] = (
+                    consensus_param_updates
+                )
             pb2_events = abci_pb.response_end_block.events
             events = Events.decode(pb2_events)
             performative_content["events"] = events

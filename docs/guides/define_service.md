@@ -49,7 +49,7 @@ If you have [populated the local registry](./overview_of_the_development_process
         author: your_name
         version: 0.1.0
         description: A demonstration of a simple service
-        aea_version: '>=1.0.0, <2.0.0'
+        aea_version: '>=2.0.0, <3.0.0'
         license: Apache-2.0
         fingerprint: {}
         fingerprint_ignore_patterns: []

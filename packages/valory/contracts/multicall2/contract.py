@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -95,7 +95,7 @@ class Multicall2Contract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_instance: Any,
-        fn_name: str,
+        abi_element_identifier: str,
         args: List[Any],
     ) -> Tuple[Dict[str, Any], Callable]:
         """
@@ -105,13 +105,15 @@ class Multicall2Contract(Contract):
 
         :param ledger_api: the ledger api.
         :param contract_instance: an insntace of the contract whose call is getting encoded.
-        :param fn_name: the function name.
+        :param abi_element_identifier: the function name.
         :param args: the function arguments.
         :return: the target address, the data, and the output decoder function.
         """
-        data = contract_instance.encodeABI(fn_name=fn_name, args=args)
+        data = contract_instance.encode_abi(
+            abi_element_identifier=abi_element_identifier, args=args
+        )
         for elem in contract_instance.abi:
-            if elem.get("name", "") == fn_name:
+            if elem.get("name", "") == abi_element_identifier:
                 output_types = elem["outputs"]
                 normalized_output_types = [t["type"] for t in output_types]
                 break

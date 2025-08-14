@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ SERVICE_CONFIG = {
     "author": "valory",
     "version": "0.1.0",
     "description": "A dummy service config file.",
-    "aea_version": ">=1.0.0, <2.0.0",
+    "aea_version": ">=2.0.0, <3.0.0",
     "license": "Apache-2.0",
     "fingerprint": {
         "README.md": "bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm",
@@ -68,9 +68,9 @@ class TestPackageManagerServicePatch(BaseAEATestCase):
         pm = PackageManagerV1(path=self.packages_dir_path)
 
         updated_config = SERVICE_CONFIG.copy()
-        updated_config[
-            "agent"
-        ] = "valory/hello_world:0.1.0:bafybei0000000000000000000000000000000000000000000000000001"
+        updated_config["agent"] = (
+            "valory/hello_world:0.1.0:bafybei0000000000000000000000000000000000000000000000000001"
+        )
 
         with mock.patch(
             "autonomy.cli.packages.load_yaml",
@@ -124,9 +124,9 @@ class TestPackageManagerServicePatch(BaseAEATestCase):
             ((_, error),) = errors
             assert error == DepedencyMismatchErrors.HASH_NOT_FOUND
 
-        service_config[
-            "agent"
-        ] = "valory/hello_world:0.1.0:bafybei0000000000000000000000000000000000000000000000000001"
+        service_config["agent"] = (
+            "valory/hello_world:0.1.0:bafybei0000000000000000000000000000000000000000000000000001"
+        )
 
         with mock.patch.object(pm, "get_package_hash", return_value=DUMMY_HASH):
             errors = pm.check_dependencies(

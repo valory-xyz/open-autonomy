@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -95,7 +95,7 @@ def fetch_service_remote(
     if get_default_remote_registry() == REMOTE_IPFS:
         return fetch_service_ipfs(public_id, alias=alias)
 
-    raise Exception("HTTP registry not supported.")  # pragma: nocover
+    raise ValueError("HTTP registry not supported.")  # pragma: nocover
 
 
 def fetch_service_ipfs(
@@ -168,7 +168,7 @@ def publish_service_package(click_context: click.Context, registry: str) -> None
         if get_default_remote_registry() == REMOTE_IPFS:
             publish_service_ipfs(service_config.public_id, Path(click_context.obj.cwd))
         else:
-            raise Exception("HTTP registry not supported.")  # pragma: no cover
+            raise ValueError("HTTP registry not supported.")  # pragma: no cover
 
     else:
         publish_service_local(

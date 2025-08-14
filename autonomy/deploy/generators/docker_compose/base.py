@@ -97,7 +97,7 @@ def get_docker_client() -> DockerClient:
         )
 
 
-def build_tendermint_node_config(  # pylint: disable=too-many-arguments
+def build_tendermint_node_config(
     node_id: int,
     container_name: str,
     abci_node: str,
@@ -148,7 +148,7 @@ def to_env_file(agent_vars: Dict, node_id: int, build_dir: Path) -> None:
             env_file.write(f"{key}={value}\n")
 
 
-def build_agent_config(  # pylint: disable=too-many-arguments,too-many-locals
+def build_agent_config(  # pylint: disable=too-many-locals
     node_id: int,
     build_dir: Path,
     container_name: str,
