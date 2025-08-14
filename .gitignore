@@ -391,6 +391,7 @@ Pipfile.lock
 !packages/valory/contracts/service_manager/build
 !packages/valory/contracts/erc20/build
 !packages/valory/contracts/service_registry_token_utility/build
+!packages/valory/contracts/recovery_module/build
 
 packages/open_aea
 
@@ -413,6 +414,7 @@ autonomy/data/contracts/registries_manager
 autonomy/data/contracts/service_manager
 autonomy/data/contracts/service_registry
 autonomy/data/contracts/service_registry_token_utility
+autonomy/data/contracts/recovery_module
 
 .vscode/
 
