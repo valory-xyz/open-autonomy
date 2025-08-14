@@ -31,14 +31,14 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeia2sdixodrzkbayi5c7ivtuwy7kktbl2buqkywk5ahjgmm3ef5nga
+- valory/gnosis_safe:0.1.0:bafybeih4nusozfmtq4n2py3vcc56bkpp5suri6b3z4h7rhwq7vlg2bgtbm
 protocols:
 - open_aea/signing:1.0.0:bafybeierdeo55vv7nxdag3s2kk6gh4essmeeqpa7vperbw3wn3ypzmtcdm
 - valory/abci:0.1.0:bafybeigdi6wsbdn2nv7clzhnuhki3taywgiiajwawdaat57o5ntlgqj2qe
 - valory/contract_api:1.0.0:bafybeigv273fllpdsmzip4qfmhyvltdcss4yhoicss32c2yc7am6kue4cy
 - valory/ledger_api:1.0.0:bafybeifvbahdmabpswhu45q6xb2jppbvqlfztya6jx2ttu4eb6pjltyxam
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifjjshwmvd3ml3kkgvrcv4p45jn4bolmghljbujhjdhkixvqgjf4a
+- valory/abstract_round_abci:0.1.0:bafybeihsb42bzpbnspjhkbju6rf4rqoqctp5fnlf6sw3tl46naen3lxo4y
 behaviours:
   main:
     args: {}
@@ -167,7 +167,7 @@ models:
     class_name: TendermintDialogues
 dependencies:
   open-aea-test-autonomy:
-    version: ==0.20.2
+    version: ==0.21.0
   web3:
     version: <8,>=7.0.0
 is_abstract: true

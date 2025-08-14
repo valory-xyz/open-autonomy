@@ -5,6 +5,30 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.20.1` to `v0.21.0`
+
+Breaking changes (open-autonomy)
+- `autonomy analyse logs` will now throw `ValueError` if the agent's name is not valid for a SQL query.
+  - Action required: Agent's name must comply with the regex `^[a-zA-Z_][a-zA-Z0-9_-]*$`.
+- Web requests made by open-autonomy will now timeout in 30 seconds if no response is received.
+  - Action required: Handle the `Timeout` error if not already.
+- `get_origin` and `get_args` are now removed.
+  - Action required: Import them directly from `typing`.
+
+Notable dependency upgrades
+- `open-aea` v1.65.0→v2.0.0
+  - Link: https://github.com/valory-xyz/open-aea/blob/main/docs/upgrading.md#v1650-to-v200
+  - Important changes: (Coming from `click`)
+    - `get_metavar` now requires a new parameter, `ctx: Context`.
+    - `aea`, `autonomy`, and their subcommands that expect some arguments (for example `aea`, `aea ipfs`, etc.), when used without any arguments will now finish with exit code 2 instead of 0, and print their usage help in stderr.
+- `web3` v6→v7
+  - Link: https://web3py.readthedocs.io/en/stable/migration.html#migrating-from-v6-to-v7
+  - Important changes:
+    - Contract instances will now have `encode_abi` function instead of `encodeABI`.
+    - `fn_name` parameter of `encode_abi` is changed to `abi_element_identifier`.
+    - Transaction related instances will now have attributes in snake_case instead of camelCase. For example, `raw_transaction` instead of `rawTransaction`. (Coming from `eth-account` also)
+    - `HexBytes` instances' `.hex()` method will not return a string with `0x` prefix. Use `.to_0x_hex()` instead. (Coming from `hexbytes`)
+
 ## `v0.20.1` to `v0.20.2`
 
 No backwards incompatible changes.
