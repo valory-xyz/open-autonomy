@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.21.1 (2025-08-25)
+
+Autonomy && Packages && Docs:
+- Bumps `open-aea` from `2.0.4` to `2.0.5` #2354
+
 # 0.21.0 (2025-08-14)
 
 Autonomy && Packages && Docs:

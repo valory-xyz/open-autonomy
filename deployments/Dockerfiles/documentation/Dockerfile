@@ -1,5 +1,5 @@
 FROM ubuntu:22.04 as base
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y                                                       \
@@ -9,8 +9,8 @@ RUN apt-get install -y                                                       \
        git
 
 # needed by Pipenv
-ENV LC_ALL C.UTF-8
-ENV LANG C.UTF-8
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
 
 RUN mkdir /build
 WORKDIR /build
