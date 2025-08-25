@@ -60,7 +60,7 @@ class TestBuildImage(BaseCliTest):
         )
 
         # TODO: Revert after release
-        package_hash = "bafybeibkme7qks4k5k5otgei3mcxyhzlh3ehy2j7oeerokiecmuhlt7tze"
+        package_hash = "bafybeibrtivwdgciwoa4yzdcetafjhxzddy6npulbtugfx2gexepnu5khy"
         self.package_id = self.package_id.with_hash(package_hash=package_hash)
 
         os.chdir(self.t)

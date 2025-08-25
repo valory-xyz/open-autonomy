@@ -46,7 +46,7 @@ DATA_DIR = ROOT_DIR / "tests" / "data"
 PACKAGES_DIR = ROOT_DIR / "packages"
 
 skip_docker_tests = pytest.mark.skipif(
-    platform.system() != "Linux",
+    platform.system() != "Linux" and os.environ.get("CI") == "true",
     reason="Docker daemon is not available in Windows and macOS CI containers.",
 )
 
