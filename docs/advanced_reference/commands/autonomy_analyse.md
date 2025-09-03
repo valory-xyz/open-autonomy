@@ -12,7 +12,7 @@ This command verifies that the [`AbciApp` class](../../key_concepts/abci_app_cla
 
 ??? example
 
-    The docstring corresponding to the [Hello World agent service](https://docs.autonolas.network/demos/hello-world/) is
+    The docstring corresponding to the [Hello World agent service](https://stack.olas.network/demos/hello-world/) is
 
 
     ```python

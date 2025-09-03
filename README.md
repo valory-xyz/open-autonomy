@@ -50,7 +50,7 @@ smart contracts provide, making it possible to execute **arbitrarily complex ope
 
 ## Get started developing agent services
 
-Read the [Open Autonomy documentation](https://docs.autonolas.network/open-autonomy/) to learn more about agent services. Follow the [set up](https://docs.autonolas.network/open-autonomy/guides/set_up/) and [quick start](https://docs.autonolas.network/open-autonomy/guides/quick_start/) guides to start building your own services.
+Read the [Open Autonomy documentation](https://stack.olas.network/open-autonomy/) to learn more about agent services. Follow the [set up](https://stack.olas.network/open-autonomy/guides/set_up/) and [quick start](https://stack.olas.network/open-autonomy/guides/quick_start/) guides to start building your own services.
 
 
 ## For developers contributing to the framework: install from source

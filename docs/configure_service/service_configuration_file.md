@@ -7,7 +7,7 @@ The service configuration file `service.yaml` is typically composed of service-s
 
 ???+ example
 
-    Here is an example of the service configuration file of the [Hello World service](https://docs.autonolas.network/demos/hello-world/):
+    Here is an example of the service configuration file of the [Hello World service](https://stack.olas.network/demos/hello-world/):
 
     ```yaml title="service.yaml"
     name: hello_world
@@ -98,7 +98,7 @@ The {{open_aea}} framework already has the notion of [component overrides](https
 Similarly, the {{open_autonomy}} framework has the notion of service-level overrides. You can define them in the service configuration file `service.yaml`, which will be used to generate the deployment environment for the agents.
 
 Service-level overrides follow the mandatory service-specific attributes, separated by `---`.
-You can, for example, override the default `HELLO_WORLD!` string that each agent prints on their console in the [Hello World service](https://docs.autonolas.network/demos/hello-world/), which is originally defined in the `hello_world_abci` skill.
+You can, for example, override the default `HELLO_WORLD!` string that each agent prints on their console in the [Hello World service](https://stack.olas.network/demos/hello-world/), which is originally defined in the `hello_world_abci` skill.
 
 ```yaml title="service.yaml"
 name: hello_world
@@ -165,7 +165,7 @@ type: skill
 
 ???+ example
 
-    If you wish that each agent outputs a different message in the [Hello World service](https://docs.autonolas.network/demos/hello-world/) with four agents, you can define the following multiple override in the `service.yaml` file:
+    If you wish that each agent outputs a different message in the [Hello World service](https://stack.olas.network/demos/hello-world/) with four agents, you can define the following multiple override in the `service.yaml` file:
 
     ```yaml title="service.yaml"
     # (...)

@@ -36,7 +36,7 @@ You must ensure that your machine satisfies the [framework requirements](./set_u
       * `rounds.py`,
       * `payloads.py`.
 
-    You should also define a number of test classes. You can review how the [demo services](https://docs.autonolas.network/demos/) are implemented, or read about the [internals of {{fsm_app}}s](../key_concepts/fsm_app_introduction.md) to learn how to populate the template classes.
+    You should also define a number of test classes. You can review how the [demo services](https://stack.olas.network/demos/) are implemented, or read about the [internals of {{fsm_app}}s](../key_concepts/fsm_app_introduction.md) to learn how to populate the template classes.
     
     !!! tip
     	
