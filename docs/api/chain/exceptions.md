@@ -34,6 +34,26 @@ class TxBuildError(ChainInteractionError)
 
 Tx build error.
 
+<a id="autonomy.chain.exceptions.TxSettleError"></a>
+
+## TxSettleError Objects
+
+```python
+class TxSettleError(ChainInteractionError)
+```
+
+Tx settle error.
+
+<a id="autonomy.chain.exceptions.TxVerifyError"></a>
+
+## TxVerifyError Objects
+
+```python
+class TxVerifyError(ChainInteractionError)
+```
+
+Tx settle error.
+
 <a id="autonomy.chain.exceptions.ChainTimeoutError"></a>
 
 ## ChainTimeoutError Objects

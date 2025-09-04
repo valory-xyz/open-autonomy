@@ -30,7 +30,6 @@ from aea.configurations.data_types import PackageId, PackageType, PublicId
 from aea.crypto.base import Crypto, LedgerApi
 from aea.helpers.base import IPFSHash
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
-from aea_test_autonomy.docker.base import skip_docker_tests
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 
 from autonomy.chain.base import registry_contracts
@@ -43,7 +42,7 @@ from autonomy.chain.utils import parse_public_id_from_metadata, resolve_componen
 from autonomy.cli.helpers.chain import MintHelper, OnChainHelper
 from autonomy.cli.packages import get_package_manager
 
-from tests.conftest import DATA_DIR
+from tests.conftest import DATA_DIR, skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
