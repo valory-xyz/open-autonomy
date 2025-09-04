@@ -30,8 +30,8 @@ To follow the next sections, you need to populate the local registry with a numb
     "dev": {
     },
     "third_party": {
-        "service/valory/hello_world/0.1.0": "bafybeihl6j7ihkytk4t4ca2ffhctpzydwi6r4a354ubjasttuv2pw4oaci",
-        "agent/valory/hello_world/0.1.0": "bafybeihtmp45mbfs5tyzrgxfoimh552on6dif42ifqidifait3ej2m5zvq",
+        "service/valory/hello_world/0.1.0": "bafybeicj73kflta5sfxq7gnnk7smcdp2gwcfvfvm2plxc5ojhulwa3xnoq",
+        "agent/valory/hello_world/0.1.0": "bafybeig2mv6afojsype4v2fwkpzkvdohbeg6ilvp2tokn7i6ub2csd6wxi",
         "connection/valory/abci/0.1.0": "bafybeiajrsgli7r5ouxydfzk42monl44c4av3jnys3oezgmg7ye4xk5sla",
         "connection/valory/http_client/0.23.0": "bafybeidmlazrjbnn5mw4wxrrj7lfnci7amt5alke2ahb3yirac6qudxuwm",
         "connection/valory/ipfs/0.1.0": "bafybeie3uryd4ccavzjd5ujsndjaqxz4gu3ka2scwvvqadcesciuohnuue",
@@ -47,7 +47,7 @@ To follow the next sections, you need to populate the local registry with a numb
         "protocol/valory/tendermint/0.1.0": "bafybeif5wq5i2ugr66alniej2bk4vws5sikal7otx674y5kz52e3ulo2qm",
         "skill/valory/abstract_abci/0.1.0": "bafybeihgbihz5wlimwnslwwp35w4bjkg3bdhnhbfwwpfoojssibluvl3b4",
         "skill/valory/abstract_round_abci/0.1.0": "bafybeifirqx2aavth5ub5wkz66l3773pzmksbftojzmha34rch4oypf5xa",
-        "skill/valory/hello_world_abci/0.1.0": "bafybeiebittgfcz4idj633fkrvu6qle2ajekdjxpp7slggyur7vv7s7hrq",
+        "skill/valory/hello_world_abci/0.1.0": "bafybeihmpphbsrr5niduaf3r2jzqjjoip5ep5aynphxfoqqqdzmkwobwyi",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihiulggi4jz3i7qdjicztbvlrkesyb7paiovfcmw22xvovpweeq7y"
     }
 }

@@ -35,7 +35,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
 
     === "Remote registry"
         ```bash
-        autonomy fetch valory/hello_world:0.1.0:bafybeihl6j7ihkytk4t4ca2ffhctpzydwi6r4a354ubjasttuv2pw4oaci --service
+        autonomy fetch valory/hello_world:0.1.0:bafybeicj73kflta5sfxq7gnnk7smcdp2gwcfvfvm2plxc5ojhulwa3xnoq --service
         ```
 
 2. **Build the agents' image.** Navigate to the service runtime folder that you have just created and build the Docker image of the agents of the service:
@@ -324,7 +324,7 @@ models:
 
 This means, in particular, that there is no need to define the `ALL_PARTICIPANTS` environment variable.
 
-1. **Find the service ID.** Explore the [services section]({{ autonolas_protocol_registry_dapp_link }}/services) in the {{ autonolas_protocol_registry_dapp }}, and note the token ID of the service that you want to deploy. The service must be in [Deployed state](https://docs.autonolas.network/protocol/life_cycle_of_a_service/#deployed).
+1. **Find the service ID.** Explore the [services section]({{ autonolas_protocol_registry_dapp_link }}/services) in the {{ autonolas_protocol_registry_dapp }}, and note the token ID of the service that you want to deploy. The service must be in [Deployed state](https://stack.olas.network/protocol/life_cycle_of_a_service/#deployed).
 
 2. **Prepare the keys file.** Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that you wish to deploy in the local machine.
 

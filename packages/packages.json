@@ -35,7 +35,7 @@
         "skill/valory/offend_abci/0.1.0": "bafybeibdi52wbzvhatbr2wjdgmiu4twbkvtlqbjxjgtm2sj26s6jgqygce",
         "skill/valory/offend_slash_abci/0.1.0": "bafybeid6bcgskihupyvwp5qsdvkje222yuagtylfclzt5ajma34hatwj2a",
         "skill/valory/squads_transaction_settlement_abci/0.1.0": "bafybeibzjntaubar4vedh6hjqyxga3ksnzb7alnfutohjltu7gefgo4j7i",
-        "skill/valory/test_solana_tx_abci/0.1.0": "bafybeibcfkixbcm777r5gpeb6kli6pq3eb6t6eegtuxzsjchn2vcnflcyu",
+        "skill/valory/test_solana_tx_abci/0.1.0": "bafybeigasnk5xyntozfrvuwgihy6zhzqdj4srqcwp4lasiv4qkwxuep3ra",
         "agent/valory/test_ipfs/0.1.0": "bafybeihy5d5dbqqtvusz4uaj4cef5ege3qtnixqbizcv7rxrwauzninogy",
         "agent/valory/abstract_abci/0.1.0": "bafybeihnqd6xnuyqeg22gwhsksj25nz5dkw3f4swwet5zbscbeos6yqvbu",
         "agent/valory/counter/0.1.0": "bafybeiaqpb24u46mmri4stkcw52xizgpi6lkocbdudbaenxhac6ndvjx6y",
@@ -46,7 +46,7 @@
         "agent/valory/test_abci/0.1.0": "bafybeih3hijolivtv2udf3t4au5nvyaasf7n46tntr7itb7f76mswgli4m",
         "agent/valory/register_reset_recovery/0.1.0": "bafybeicg745zjhybhqmagk2h7y4gquww27cjsrcisvpvxxf4alawehkl6a",
         "agent/valory/offend_slash/0.1.0": "bafybeia6pwejxold2rd6zlhwkm3mhx3lr5gvut2cvpha6lgrgefwflh7ru",
-        "agent/valory/solana_transfer_agent/0.1.0": "bafybeiff3stnlcik2qg7tsfhshrdbzigtjaqpzdgkq7ht73jana6eaqlt4",
+        "agent/valory/solana_transfer_agent/0.1.0": "bafybeicv6asfaciunc5yrd7my67i6htcmzka24voraocqslpnwe2dtvvha",
         "service/valory/counter/0.1.0": "bafybeielwb4td4oc5atfhws45g7zwowopctsm3zwon4qkdtpsk4p7lfpau",
         "service/valory/register_reset/0.1.0": "bafybeihfebjehju26zzx3642knrsv7uiyvaorepflakxt6xbyxnqxj6i7a"
     },

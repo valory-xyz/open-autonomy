@@ -67,7 +67,7 @@ To mint a software package, all the packages it depends on must be minted first.
 
 The {{ autonolas_protocol_registry_dapp }} is a front-end that provides an intuitive GUI to mint components, agents and services, and manage the life cycle of services in the Autonolas Protocol.
 
-We refer to the [Autonolas Protocol docs](https://docs.autonolas.network/protocol/), where you can find instructions on how to mint [components](https://docs.autonolas.network/protocol/mint_packages_nfts/#mint-a-component) (including the {{fsm_app}} skill), [agents](https://docs.autonolas.network/protocol/mint_packages_nfts/#mint-an-agent), and [services](https://docs.autonolas.network/protocol/mint_packages_nfts/#mint-a-service).
+We refer to the [Autonolas Protocol docs](https://stack.olas.network/protocol/), where you can find instructions on how to mint [components](https://stack.olas.network/protocol/mint_packages_nfts/#mint-a-component) (including the {{fsm_app}} skill), [agents](https://stack.olas.network/protocol/mint_packages_nfts/#mint-an-agent), and [services](https://stack.olas.network/protocol/mint_packages_nfts/#mint-a-service).
 
 ### Using the Open Autonomy CLI
 

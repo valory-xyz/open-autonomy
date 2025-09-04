@@ -1,6 +1,6 @@
 Tools to manage services minted in the {{ autonolas_protocol }}.
 
-This command group consists of a number of functionalities to manage [the life cycle of services](https://docs.autonolas.network/protocol/life_cycle_of_a_service/) that have been minted in the {{ autonolas_protocol }}.
+This command group consists of a number of functionalities to manage [the life cycle of services](https://stack.olas.network/protocol/life_cycle_of_a_service/) that have been minted in the {{ autonolas_protocol }}.
 
 !!! info
 
