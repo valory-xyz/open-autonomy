@@ -25,6 +25,7 @@ import re
 import shutil
 import stat
 import traceback
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, cast
 
@@ -38,6 +39,7 @@ try:
 except ImportError:
     from tendermint import TendermintNode, TendermintParams  # type: ignore
 
+DEFAULT_LOG_FILE_MAX_BYTES = 50 * 1024 * 1024  # 50MB
 ENCODING = "utf-8"
 DEFAULT_LOG_FILE = "log.log"
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
@@ -50,7 +52,6 @@ DOCKER_INTERNAL_HOST = "host.docker.internal"
 TM_STATUS_ENDPOINT = "http://localhost:26657/status"
 
 logging.basicConfig(
-    filename=os.environ.get("LOG_FILE", DEFAULT_LOG_FILE),
     level=logging.DEBUG,
     format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s",  # noqa : W1309
 )
@@ -189,12 +190,14 @@ class PeriodDumper:
         self.resets += 1
 
 
-def create_app(  # pylint: disable=too-many-statements
+def create_app(  # pylint: disable=too-many-statements,too-many-locals
     dump_dir: Optional[Path] = None,
     debug: bool = False,
 ) -> Tuple[Flask, TendermintNode]:
     """Create the Tendermint server app"""
     write_to_log = os.environ.get("WRITE_TO_LOG", "false").lower() == "true"
+    log_file = os.environ.get("LOG_FILE", DEFAULT_LOG_FILE)
+
     tendermint_params = TendermintParams(
         proxy_app=os.environ["PROXY_APP"],
         consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
@@ -203,11 +206,22 @@ def create_app(  # pylint: disable=too-many-statements
     )
 
     app = Flask(__name__)
+    app_logger = cast(logging.Logger, app.logger)
+
+    max_bytes = int(os.environ.get("LOG_FILE_MAX_BYTES", DEFAULT_LOG_FILE_MAX_BYTES))
+    handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=1)
+    app_logger.addHandler(handler)
+
+    # if needed, tendermint logger can have a different configuration of handlers
+    tendermint_logger = app_logger.getChild("tendermint")
+
+    if not write_to_log:
+        tendermint_logger.removeHandler(handler)
+
     period_dumper = PeriodDumper(logger=app.logger, dump_dir=dump_dir)
     tendermint_node = TendermintNode(
         tendermint_params,
-        logger=app.logger,
-        write_to_log=write_to_log,
+        logger=tendermint_logger,
     )
     tendermint_node.init()
     override_config_toml()
@@ -238,18 +252,14 @@ def create_app(  # pylint: disable=too-many-statements
 
         try:
             data: Dict = json.loads(request.get_data().decode(ENCODING))
-            cast(logging.Logger, app.logger).debug(  # pylint: disable=no-member
+            app_logger.debug(  # pylint: disable=no-member
                 f"Data update requested with data={data}"
             )
 
-            cast(logging.Logger, app.logger).info(  # pylint: disable=no-member
-                "Updating genesis config."
-            )
+            app_logger.info("Updating genesis config.")  # pylint: disable=no-member
             update_genesis_config(data=data)
 
-            cast(logging.Logger, app.logger).info(  # pylint: disable=no-member
-                "Updating peristent peers."
-            )
+            app_logger.info("Updating peristent peers.")  # pylint: disable=no-member
             config_path = Path(os.environ["TMHOME"]) / "config" / "config.toml"
             update_peers(
                 validators=data["validators"],
@@ -318,13 +328,13 @@ def create_app(  # pylint: disable=too-many-statements
     @app.errorhandler(404)  # type: ignore
     def handle_notfound(e: NotFound) -> Response:
         """Handle server error."""
-        cast(logging.Logger, app.logger).info(e)  # pylint: disable=E
+        app_logger.info(e)  # pylint: disable=E
         return Response("Not Found", status=404, mimetype="application/json")
 
     @app.errorhandler(500)  # type: ignore
     def handle_server_error(e: InternalServerError) -> Response:
         """Handle server error."""
-        cast(logging.Logger, app.logger).info(e)  # pylint: disable=E
+        app_logger.info(e)  # pylint: disable=E
         return Response("Error Closing Node", status=500, mimetype="application/json")
 
     return app, tendermint_node
