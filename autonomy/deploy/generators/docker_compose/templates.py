@@ -118,6 +118,7 @@ ABCI_NODE_TEMPLATE: str = """
     image: {runtime_image}
     env_file: {env_file}
     user: "{user}"
+    restart: always
     logging:
       driver: "json-file"
       options:
