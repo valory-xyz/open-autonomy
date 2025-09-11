@@ -20,6 +20,11 @@
 """Deployment Templates."""
 
 
+import textwrap
+
+import yaml
+
+
 TENDERMINT_CONFIG_TEMPLATE: str = (
     """bash /app/build.sh "{validators}" "{hosts}" "{user}" """
 )
@@ -118,6 +123,7 @@ ABCI_NODE_TEMPLATE: str = """
     image: {runtime_image}
     env_file: {env_file}
     user: "{user}"
+    restart: always
     logging:
       driver: "json-file"
       options:
@@ -130,8 +136,15 @@ ABCI_NODE_TEMPLATE: str = """
     volumes:
       - ./persistent_data/logs:/logs:Z
       - ./agent_keys/agent_{node_id}:/agent_key:Z
+{custom_props}
 """
 
 PORTS = "    ports:"
 
 PORT_MAPPING_CONFIG = "      - {host_port}:{container_port}"
+
+
+def indent_yaml(data: dict, level: int = 2) -> str:
+    """Convert dict to YAML and indent it properly."""
+    yaml_str = yaml.dump(data, default_flow_style=False).rstrip()
+    return textwrap.indent(yaml_str, " " * level)

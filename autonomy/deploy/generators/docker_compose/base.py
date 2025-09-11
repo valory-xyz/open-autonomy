@@ -73,6 +73,7 @@ from autonomy.deploy.generators.docker_compose.templates import (
     PORT_MAPPING_CONFIG,
     TENDERMINT_CONFIG_TEMPLATE,
     TENDERMINT_NODE_TEMPLATE,
+    indent_yaml,
 )
 
 
@@ -162,6 +163,7 @@ def build_agent_config(  # pylint: disable=too-many-locals
     agent_ports: Optional[Dict[int, int]] = None,
     extra_volumes: Optional[Dict[str, str]] = None,
     resources: Optional[Resources] = None,
+    custom_props: Optional[Dict] = None,
 ) -> str:
     """Build agent config."""
     resources = resources if resources is not None else DEFAULT_RESOURCE_VALUES
@@ -177,6 +179,7 @@ def build_agent_config(  # pylint: disable=too-many-locals
         agent_memory_request=resources["agent"]["requested"]["memory"],
         agent_cpu_limit=resources["agent"]["limit"]["cpu"],
         agent_memory_limit=resources["agent"]["limit"]["memory"],
+        custom_props=indent_yaml(custom_props or {}),
     )
 
     if dev_mode:
@@ -430,6 +433,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     extra_volumes=self.service_builder.service.deployment_config.get(
                         "agent", {}
                     ).get("volumes"),
+                    custom_props=self.custom_props,
                 )
                 for i in range(self.service_builder.service.number_of_agents)
             ]
