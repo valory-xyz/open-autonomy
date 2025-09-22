@@ -318,7 +318,8 @@ def __init__(service_builder: ServiceBuilder,
              packages_dir: Optional[Path] = None,
              open_aea_dir: Optional[Path] = None,
              image_author: Optional[str] = None,
-             resources: Optional[Resources] = None)
+             resources: Optional[Resources] = None,
+             custom_props: Optional[Dict] = None)
 ```
 
 Initialise with only kwargs.

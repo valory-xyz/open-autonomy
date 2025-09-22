@@ -84,6 +84,7 @@ SUBNET_OVERFLOW = 256
 DEFAULT_PACKAGES_PATH = Path.cwd().absolute() / "packages"
 DEFAULT_OPEN_AEA_DIR: Path = Path.home().absolute() / "open-aea"
 AGENT_ENV_TEMPLATE = Template("agent_${node_id}.env")
+DEFAULT_CUSTOM_PROPS: Dict[str, str] = {"restart": "unless-stopped"}
 
 
 def get_docker_client() -> DockerClient:
@@ -163,11 +164,12 @@ def build_agent_config(  # pylint: disable=too-many-locals
     agent_ports: Optional[Dict[int, int]] = None,
     extra_volumes: Optional[Dict[str, str]] = None,
     resources: Optional[Resources] = None,
-    custom_props: Optional[Dict] = None,
+    custom_props: Optional[Dict[str, str]] = None,
 ) -> str:
     """Build agent config."""
     resources = resources if resources is not None else DEFAULT_RESOURCE_VALUES
     to_env_file(agent_vars, node_id, build_dir)
+    custom_props_to_apply = {**DEFAULT_CUSTOM_PROPS, **(custom_props or {})}
     config = ABCI_NODE_TEMPLATE.format(
         node_id=node_id,
         container_name=container_name,
@@ -179,7 +181,7 @@ def build_agent_config(  # pylint: disable=too-many-locals
         agent_memory_request=resources["agent"]["requested"]["memory"],
         agent_cpu_limit=resources["agent"]["limit"]["cpu"],
         agent_memory_limit=resources["agent"]["limit"]["memory"],
-        custom_props=indent_yaml(custom_props or {}),
+        custom_props=indent_yaml(custom_props_to_apply),
     )
 
     if dev_mode:

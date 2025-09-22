@@ -21,6 +21,7 @@
 
 
 import textwrap
+from typing import Dict
 
 import yaml
 
@@ -123,7 +124,7 @@ ABCI_NODE_TEMPLATE: str = """
     image: {runtime_image}
     env_file: {env_file}
     user: "{user}"
-    restart: always
+{custom_props}
     logging:
       driver: "json-file"
       options:
@@ -136,7 +137,6 @@ ABCI_NODE_TEMPLATE: str = """
     volumes:
       - ./persistent_data/logs:/logs:Z
       - ./agent_keys/agent_{node_id}:/agent_key:Z
-{custom_props}
 """
 
 PORTS = "    ports:"
@@ -144,7 +144,7 @@ PORTS = "    ports:"
 PORT_MAPPING_CONFIG = "      - {host_port}:{container_port}"
 
 
-def indent_yaml(data: dict, level: int = 2) -> str:
+def indent_yaml(data: Dict[str, str], level: int = 4) -> str:
     """Convert dict to YAML and indent it properly."""
     yaml_str = yaml.dump(data, default_flow_style=False).rstrip()
     return textwrap.indent(yaml_str, " " * level)
