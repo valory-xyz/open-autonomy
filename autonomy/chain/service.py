@@ -250,7 +250,6 @@ def approve_erc20_usage(  # pylint: disable=too-many-locals
         event_name="Approval",
         expected_event_arg_name="spender",
         expected_event_arg_value=spender,
-        missing_event_exception=ChainInteractionError("Funds approval request failed"),
     )
 
 
@@ -317,18 +316,22 @@ class ServiceManager:
                 print(f"    {key}: {val}")
             return
 
-        tx_settler.settle().verify_events(
-            contract=registry_contracts.get_contract(event_ctr_public_id).get_instance(
-                ledger_api=self.ledger_api,
-                contract_address=ContractConfigs.get(
-                    event_ctr_public_id.name
-                ).contracts[self.chain_type],
-            ),
-            event_name=event,
-            expected_event_arg_name="serviceId",
-            expected_event_arg_value=service_id,
-            missing_event_exception=exception,
-        )
+        try:
+            tx_settler.settle().verify_events(
+                contract=registry_contracts.get_contract(
+                    event_ctr_public_id
+                ).get_instance(
+                    ledger_api=self.ledger_api,
+                    contract_address=ContractConfigs.get(
+                        event_ctr_public_id.name
+                    ).contracts[self.chain_type],
+                ),
+                event_name=event,
+                expected_event_arg_name="serviceId",
+                expected_event_arg_value=service_id,
+            )
+        except ChainInteractionError as e:
+            raise exception from e
 
     def get_service_info(self, token_id: int) -> ServiceInfo:
         """

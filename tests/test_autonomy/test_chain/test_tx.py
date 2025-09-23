@@ -308,14 +308,12 @@ def test_programming_errors() -> None:
         event_name="SomeEvent",
     )
 
-    missing_event_exception = Exception("SomeEvent not found")
-    with pytest.raises(Exception, match="SomeEvent not found"):
+    with pytest.raises(TxVerifyError, match="Could not find event"):
         settler.verify_events(
             contract=mock_contract,
             event_name="SomeEvent",
             expected_event_arg_name="someName",
             expected_event_arg_value="someValue",
-            missing_event_exception=missing_event_exception,
         )
 
     mock_contract.events.SomeEvent.return_value.process_receipt.return_value = (
@@ -326,7 +324,6 @@ def test_programming_errors() -> None:
         event_name="SomeEvent",
         expected_event_arg_name="someName",
         expected_event_arg_value="someValue",
-        missing_event_exception=missing_event_exception,
     )
 
 
@@ -378,6 +375,11 @@ class TestTxSetterOnChain(BaseChainInteractionTest):
         )
 
         settler.transact()
+
+        # try settling twice
+        settler.settle()
+        settler.settle()
+
         with pytest.raises(
             ChainTimeoutError,
             match=f"Failed to send transaction after {settler.retries} retries",

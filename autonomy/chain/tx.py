@@ -77,7 +77,11 @@ def should_retry(error: str) -> bool:
 def should_reprice(error: str) -> bool:
     """Check an error message to check if we should reprice the transaction"""
     error = error.lower()
-    return "feetoolow" in error or "is too low for the next block" in error
+    return (
+        "feetoolow" in error
+        or "is too low for the next block" in error
+        or "replacementnotallowed" in error
+    )
 
 
 def already_known(error: str) -> bool:
@@ -171,7 +175,7 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
 
                 if already_known(error):
                     logger.warning(
-                        "Transaction already known, returning the tx hash..."
+                        "Transaction already known, returning with its tx_hash set."
                     )
                     return self
 
@@ -226,7 +230,6 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
         event_name: str,
         expected_event_arg_name: str,
         expected_event_arg_value: Any,
-        missing_event_exception: Exception = DEFAULT_MISSING_EVENT_EXCEPTION,
     ) -> "TxSettler":
         """Verify that an event is in the tx receipt."""
         events = self.get_events(contract, event_name)
@@ -238,4 +241,7 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
             ):
                 return self
 
-        raise missing_event_exception
+        raise TxVerifyError(
+            f"Could not find event '{event_name}' with argument '{expected_event_arg_name}: "
+            f"{expected_event_arg_value}' in the tx with hash {self.tx_hash}"
+        )

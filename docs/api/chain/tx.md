@@ -96,13 +96,9 @@ Get events from the tx receipt.
 #### verify`_`events
 
 ```python
-def verify_events(
-    contract: "Contract",
-    event_name: str,
-    expected_event_arg_name: str,
-    expected_event_arg_value: Any,
-    missing_event_exception: Exception = DEFAULT_MISSING_EVENT_EXCEPTION
-) -> "TxSettler"
+def verify_events(contract: "Contract", event_name: str,
+                  expected_event_arg_name: str,
+                  expected_event_arg_value: Any) -> "TxSettler"
 ```
 
 Verify that an event is in the tx receipt.
