@@ -786,7 +786,9 @@ A class to manage a Tendermint node.
 #### `__`init`__`
 
 ```python
-def __init__(params: TendermintParams, logger: Optional[Logger] = None)
+def __init__(params: TendermintParams,
+             logger: Optional[Logger] = None,
+             write_to_log: bool = False)
 ```
 
 Initialize a Tendermint node.
@@ -795,6 +797,7 @@ Initialize a Tendermint node.
 
 - `params`: the parameters.
 - `logger`: the logger.
+- `write_to_log`: Write to log file.
 
 <a id="packages.valory.connections.abci.connection.TendermintNode.init"></a>
 

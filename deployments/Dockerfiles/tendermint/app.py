@@ -50,10 +50,10 @@ CONFIG_OVERRIDE = [
 ]
 DOCKER_INTERNAL_HOST = "host.docker.internal"
 TM_STATUS_ENDPOINT = "http://localhost:26657/status"
-
+LOGGING_FORMAT = "%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s"
 logging.basicConfig(
     level=logging.DEBUG,
-    format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s",  # noqa : W1309
+    format=LOGGING_FORMAT,  # noqa : W1309
 )
 
 
@@ -206,17 +206,16 @@ def create_app(  # pylint: disable=too-many-statements,too-many-locals
     )
 
     app = Flask(__name__)
-    app_logger = cast(logging.Logger, app.logger)
 
     max_bytes = int(os.environ.get("LOG_FILE_MAX_BYTES", DEFAULT_LOG_FILE_MAX_BYTES))
-    handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=1)
-    app_logger.addHandler(handler)
+    file_handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=1)
+    file_handler.setFormatter(logging.Formatter(LOGGING_FORMAT))
+    tendermint_logger = cast(logging.Logger, app.logger).getChild("tendermint")
+    cast(logging.Logger, app.logger).addHandler(file_handler)
 
-    # if needed, tendermint logger can have a different configuration of handlers
-    tendermint_logger = app_logger.getChild("tendermint")
-
-    if not write_to_log:
-        tendermint_logger.removeHandler(handler)
+    if write_to_log:
+        # if needed, tendermint logger can have a different configuration of handlers
+        tendermint_logger.addHandler(file_handler)
 
     period_dumper = PeriodDumper(logger=app.logger, dump_dir=dump_dir)
     tendermint_node = TendermintNode(
@@ -252,14 +251,18 @@ def create_app(  # pylint: disable=too-many-statements,too-many-locals
 
         try:
             data: Dict = json.loads(request.get_data().decode(ENCODING))
-            app_logger.debug(  # pylint: disable=no-member
+            cast(logging.Logger, app.logger).debug(  # pylint: disable=no-member
                 f"Data update requested with data={data}"
             )
 
-            app_logger.info("Updating genesis config.")  # pylint: disable=no-member
+            cast(logging.Logger, app.logger).info(
+                "Updating genesis config."
+            )  # pylint: disable=no-member
             update_genesis_config(data=data)
 
-            app_logger.info("Updating peristent peers.")  # pylint: disable=no-member
+            cast(logging.Logger, app.logger).info(
+                "Updating peristent peers."
+            )  # pylint: disable=no-member
             config_path = Path(os.environ["TMHOME"]) / "config" / "config.toml"
             update_peers(
                 validators=data["validators"],
@@ -328,13 +331,13 @@ def create_app(  # pylint: disable=too-many-statements,too-many-locals
     @app.errorhandler(404)  # type: ignore
     def handle_notfound(e: NotFound) -> Response:
         """Handle server error."""
-        app_logger.info(e)  # pylint: disable=E
+        cast(logging.Logger, app.logger).info(e)  # pylint: disable=E
         return Response("Not Found", status=404, mimetype="application/json")
 
     @app.errorhandler(500)  # type: ignore
     def handle_server_error(e: InternalServerError) -> Response:
         """Handle server error."""
-        app_logger.info(e)  # pylint: disable=E
+        cast(logging.Logger, app.logger).info(e)  # pylint: disable=E
         return Response("Error Closing Node", status=500, mimetype="application/json")
 
     return app, tendermint_node

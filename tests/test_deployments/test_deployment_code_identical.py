@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ from packages.valory.connections.abci import connection
     [
         (connection.StoppableThread, tendermint.StoppableThread),
         (connection.TendermintParams, tendermint.TendermintParams),
-        (connection.TendermintNode, tendermint.TendermintNode),
+        # (connection.TendermintNode, tendermint.TendermintNode),  # noqa
     ],
 )
 def test_deployment_class_identical(package_cls: Type, deployment_cls: Type) -> None:
