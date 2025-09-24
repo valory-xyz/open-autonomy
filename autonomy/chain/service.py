@@ -206,49 +206,51 @@ def approve_erc20_usage(  # pylint: disable=too-many-locals
     sleep: Optional[float] = None,
 ) -> None:
     """Approve ERC20 token usage."""
-    tx_settler = TxSettler(
-        chain_type=chain_type,
-        ledger_api=ledger_api,
-        crypto=crypto,
-        timeout=timeout,
-        retries=retries,
-        sleep=sleep,
-    )
-    method = registry_contracts.erc20.get_approve_tx
-    contract = ERC20_CONTRACT.name
+    contract_address = ContractConfigs.get(name=ERC20_CONTRACT.name).contracts[
+        chain_type
+    ]
+
     kwargs = dict(
         spender=spender,
         amount=amount,
         sender=sender,
     )
-    receipt = tx_settler.transact(
-        method=method,
-        contract=contract,
-        kwargs=kwargs,
+    tx_settler = TxSettler(
+        chain_type=chain_type,
+        ledger_api=ledger_api,
+        crypto=crypto,
+        tx_builder=lambda: registry_contracts.erc20.get_approve_tx(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+            raise_on_try=True,
+            **kwargs,
+        ),
+        timeout=timeout,
+        retries=retries,
+        sleep=sleep,
     )
+    tx_settler.transact(dry_run=dry_run)
     if dry_run:  # pragma: nocover
         print("=== Dry run output ===")
-        print("Method: " + str(method).split(" ")[2])
-        print(f"Contract: {ContractConfigs.get(name=contract).contracts[chain_type]}")
+        print("Method: " + str(registry_contracts.erc20.get_approve_tx).split(" ")[2])
+        print(f"Contract: {contract_address}")
         print("Kwargs: ")
         for key, val in kwargs.items():
             print(f"    {key}: {val}")
         print("Transaction: ")
-        for key, val in receipt.items():
+        for key, val in (tx_settler.tx_dict or {}).items():
             print(f"    {key}: {val}")
         return
-    events = cast(
-        List[Dict],
-        tx_settler.process(
-            event="Approval",
-            receipt=receipt,
-            contract=ERC20_CONTRACT,
-        ).get("events"),
+
+    tx_settler.settle().verify_events(
+        contract=registry_contracts.get_contract(ERC20_CONTRACT).get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        ),
+        event_name="Approval",
+        expected_event_arg_name="spender",
+        expected_event_arg_value=spender,
     )
-    for event in events:
-        if event["args"]["spender"] == spender:
-            return
-    raise ChainInteractionError("Funds approval request failed")
 
 
 class ServiceManager:
@@ -284,30 +286,52 @@ class ServiceManager:
         event_ctr_public_id: PublicId = SERVICE_REGISTRY_CONTRACT,
     ) -> None:
         """Auxiliary method to execute and verify transactions."""
-        TxSettler(
+        contract_address = ContractConfigs.get(build_tx_ctr_public_id.name).contracts[
+            self.chain_type
+        ]
+        tx_settler = TxSettler(
             ledger_api=self.ledger_api,
             crypto=self.crypto,
             chain_type=self.chain_type,
+            tx_builder=lambda: method(
+                ledger_api=self.ledger_api,
+                contract_address=contract_address,
+                raise_on_try=True,
+                **kwargs,
+            ),
             timeout=self.timeout,
             retries=self.retries,
             sleep=self.sleep,
-        ).transact_and_verify(
-            build_tx_contract=registry_contracts.get_contract(build_tx_ctr_public_id),
-            build_tx_contract_address=ContractConfigs.get(
-                build_tx_ctr_public_id.name
-            ).contracts[self.chain_type],
-            build_tx_contract_method=method,
-            build_tx_contract_kwargs=kwargs,
-            event_contract=registry_contracts.get_contract(event_ctr_public_id),
-            event_contract_address=ContractConfigs.get(
-                event_ctr_public_id.name
-            ).contracts[self.chain_type],
-            expected_event=event,
-            expected_event_param_name="serviceId",
-            expected_event_param_value=service_id,
-            missing_event_exception=exception,
-            dry_run=self.dry_run,
-        )
+        ).transact(dry_run=self.dry_run)
+
+        if self.dry_run:
+            print("=== Dry run output ===")
+            print("Method: " + str(method).split(" ")[2])
+            print(f"Contract: {contract_address}")
+            print("Kwargs: ")
+            for key, val in kwargs.items():
+                print(f"    {key}: {val}")
+            print("Transaction: ")
+            for key, val in (tx_settler.tx_dict or {}).items():
+                print(f"    {key}: {val}")
+            return
+
+        try:
+            tx_settler.settle().verify_events(
+                contract=registry_contracts.get_contract(
+                    event_ctr_public_id
+                ).get_instance(
+                    ledger_api=self.ledger_api,
+                    contract_address=ContractConfigs.get(
+                        event_ctr_public_id.name
+                    ).contracts[self.chain_type],
+                ),
+                event_name=event,
+                expected_event_arg_name="serviceId",
+                expected_event_arg_value=service_id,
+            )
+        except ChainInteractionError as e:
+            raise exception from e
 
     def get_service_info(self, token_id: int) -> ServiceInfo:
         """

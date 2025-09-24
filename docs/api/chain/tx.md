@@ -4,16 +4,6 @@
 
 Tx settlement helper.
 
-<a id="autonomy.chain.tx.should_rebuild"></a>
-
-#### should`_`rebuild
-
-```python
-def should_rebuild(error: str) -> bool
-```
-
-Check if we should rebuild the transaction.
-
 <a id="autonomy.chain.tx.should_retry"></a>
 
 #### should`_`retry
@@ -34,6 +24,16 @@ def should_reprice(error: str) -> bool
 
 Check an error message to check if we should reprice the transaction
 
+<a id="autonomy.chain.tx.already_known"></a>
+
+#### already`_`known
+
+```python
+def already_known(error: str) -> bool
+```
+
+Check if the transaction is already sent
+
 <a id="autonomy.chain.tx.TxSettler"></a>
 
 ## TxSettler Objects
@@ -52,6 +52,7 @@ Tx settlement helper
 def __init__(ledger_api: LedgerApi,
              crypto: Crypto,
              chain_type: ChainType,
+             tx_builder: Callable[[], Dict],
              timeout: Optional[float] = None,
              retries: Optional[int] = None,
              sleep: Optional[float] = None) -> None
@@ -59,57 +60,46 @@ def __init__(ledger_api: LedgerApi,
 
 Initialize object.
 
-<a id="autonomy.chain.tx.TxSettler.build"></a>
-
-#### build
-
-```python
-def build(method: Callable[[], Dict], contract: str, kwargs: Dict) -> Dict
-```
-
-Build transaction.
-
 <a id="autonomy.chain.tx.TxSettler.transact"></a>
 
 #### transact
 
 ```python
-def transact(method: Callable[[], Dict],
-             contract: str,
-             kwargs: Dict,
-             dry_run: bool = False) -> Dict
+def transact(dry_run: bool = False) -> "TxSettler"
 ```
 
 Make a transaction and return a receipt
 
-<a id="autonomy.chain.tx.TxSettler.process"></a>
+<a id="autonomy.chain.tx.TxSettler.settle"></a>
 
-#### process
-
-```python
-def process(event: str, receipt: Dict, contract: PublicId) -> Dict
-```
-
-Process tx receipt.
-
-<a id="autonomy.chain.tx.TxSettler.transact_and_verify"></a>
-
-#### transact`_`and`_`verify
+#### settle
 
 ```python
-def transact_and_verify(
-        build_tx_contract: Contract,
-        build_tx_contract_address: str,
-        build_tx_contract_method: Callable,
-        build_tx_contract_kwargs: Dict,
-        event_contract: Optional[Contract] = None,
-        event_contract_address: Optional[str] = None,
-        expected_event: Optional[str] = None,
-        expected_event_param_name: Optional[str] = None,
-        expected_event_param_value: Optional[Any] = None,
-        missing_event_exception: Exception = DEFAULT_MISSING_EVENT_EXCEPTION,
-        dry_run: bool = False) -> None
+def settle() -> "TxSettler"
 ```
 
-Execute and (optionally) verify a transaction.
+Wait for the tx to be mined.
+
+<a id="autonomy.chain.tx.TxSettler.get_events"></a>
+
+#### get`_`events
+
+```python
+def get_events(contract: "Contract",
+               event_name: str) -> tuple["EventData", ...]
+```
+
+Get events from the tx receipt.
+
+<a id="autonomy.chain.tx.TxSettler.verify_events"></a>
+
+#### verify`_`events
+
+```python
+def verify_events(contract: "Contract", event_name: str,
+                  expected_event_arg_name: str,
+                  expected_event_arg_value: Any) -> "TxSettler"
+```
+
+Verify that an event is in the tx receipt.
 

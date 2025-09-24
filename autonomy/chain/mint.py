@@ -22,7 +22,7 @@
 import time
 from datetime import datetime
 from math import ceil
-from typing import Callable, Dict, List, Optional, Tuple, cast
+from typing import Callable, Dict, List, Optional, TYPE_CHECKING, Tuple
 
 from aea.configurations.data_types import PublicId
 from aea.crypto.base import Crypto, LedgerApi
@@ -44,6 +44,9 @@ try:
     from web3.exceptions import Web3Exception
 except (ModuleNotFoundError, ImportError):
     Web3Exception = Exception
+
+if TYPE_CHECKING:
+    from web3.types import EventData
 
 
 DEFAULT_NFT_IMAGE_HASH = "bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm"
@@ -134,41 +137,45 @@ class MintManager:
         build_tx_ctr: str,
         event: str,
         process_receipt_ctr: PublicId,
-    ) -> List[Dict]:
+    ) -> Tuple["EventData", ...]:
         """Auxiliary method for minting components."""
+        contract_address = ContractConfigs.get(name=build_tx_ctr).contracts[
+            self.chain_type
+        ]
         tx_settler = TxSettler(
             ledger_api=self.ledger_api,
             crypto=self.crypto,
             chain_type=self.chain_type,
+            tx_builder=lambda: method(
+                ledger_api=self.ledger_api,
+                contract_address=contract_address,
+                raise_on_try=True,
+                **kwargs,
+            ),
             timeout=self.timeout,
             retries=self.retries,
             sleep=self.sleep,
         )
-        receipt = tx_settler.transact(
-            method=method,
-            contract=build_tx_ctr,
-            kwargs=kwargs,
-            dry_run=self.dry_run,
-        )
+        tx_dict = tx_settler.transact(dry_run=self.dry_run).tx_dict
         if self.dry_run:
             print("=== Dry run output ===")
             print("Method: " + str(method).split(" ")[2])
-            print(
-                f"Contract: {ContractConfigs.get(name=build_tx_ctr).contracts[self.chain_type]}"
-            )
+            print(f"Contract: {contract_address}")
             print("Kwargs: ")
             for key, val in kwargs.items():
                 print(f"    {key}: {val}")
             print("Transaction: ")
-            for key, val in receipt.items():
+            for key, val in (tx_dict or {}).items():
                 print(f"    {key}: {val}")
-            return []
-        events = tx_settler.process(
-            event=event,
-            receipt=receipt,
-            contract=process_receipt_ctr,
-        ).get("events")
-        return cast(List[Dict], events)
+            return ()
+
+        return tx_settler.settle().get_events(
+            contract=registry_contracts.get_contract(process_receipt_ctr).get_instance(
+                ledger_api=self.ledger_api,
+                contract_address=contract_address,
+            ),
+            event_name=event,
+        )
 
     def validate_address(self, address: str) -> str:
         """Validate address string."""

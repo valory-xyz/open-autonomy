@@ -32,6 +32,14 @@ class TxBuildError(ChainInteractionError):
     """Tx build error."""
 
 
+class TxSettleError(ChainInteractionError):
+    """Tx settle error."""
+
+
+class TxVerifyError(ChainInteractionError):
+    """Tx settle error."""
+
+
 class ChainTimeoutError(ChainInteractionError):
     """Timeout error for interecting with chain."""
 
