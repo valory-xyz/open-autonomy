@@ -35,7 +35,7 @@ from packages.valory.connections.abci import connection
     [
         (connection.StoppableThread, tendermint.StoppableThread),
         (connection.TendermintParams, tendermint.TendermintParams),
-        # (connection.TendermintNode, tendermint.TendermintNode),  # noqa
+        (connection.TendermintNode, tendermint.TendermintNode),
     ],
 )
 def test_deployment_class_identical(package_cls: Type, deployment_cls: Type) -> None:
