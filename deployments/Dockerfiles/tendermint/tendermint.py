@@ -24,6 +24,7 @@ import os
 import platform
 import signal
 import subprocess  # nosec:
+import sys
 from logging import Logger
 from pathlib import Path
 from threading import Event, Thread
@@ -282,8 +283,15 @@ class TendermintNode:
         self._stop_tm_process()
         self._stop_monitoring_thread()
 
+    @staticmethod
+    def _write_to_console(line: str) -> None:
+        """Write line to console."""
+        sys.stdout.write(str(line))
+        sys.stdout.flush()
+
     def log(self, line: str) -> None:
         """Open and write a line to the log file."""
+        self._write_to_console(line=line)
         self.logger.info(line.strip())
 
     def prune_blocks(self) -> int:
