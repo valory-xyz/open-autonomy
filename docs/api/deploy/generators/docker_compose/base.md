@@ -59,7 +59,8 @@ def build_agent_config(node_id: int,
                        open_aea_dir: Optional[Path] = None,
                        agent_ports: Optional[Dict[int, int]] = None,
                        extra_volumes: Optional[Dict[str, str]] = None,
-                       resources: Optional[Resources] = None) -> str
+                       resources: Optional[Resources] = None,
+                       custom_props: Optional[Dict[str, str]] = None) -> str
 ```
 
 Build agent config.

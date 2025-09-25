@@ -770,6 +770,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
     packages_dir: Optional[Path]
     open_aea_dir: Optional[Path]
     resources: Resources
+    custom_props: Optional[Dict]
 
     def __init__(
         self,
@@ -781,6 +782,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
         open_aea_dir: Optional[Path] = None,
         image_author: Optional[str] = None,
         resources: Optional[Resources] = None,
+        custom_props: Optional[Dict] = None,
     ):
         """Initialise with only kwargs."""
 
@@ -794,6 +796,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
         self.tendermint_job_config: Optional[str] = None
         self.image_author = image_author or DEFAULT_DOCKER_IMAGE_AUTHOR
         self.resources = resources if resources is not None else DEFAULT_RESOURCE_VALUES
+        self.custom_props = custom_props or {}
 
     @abc.abstractmethod
     def generate(
