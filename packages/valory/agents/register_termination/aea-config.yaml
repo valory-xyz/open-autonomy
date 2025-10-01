@@ -13,32 +13,32 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeiajrsgli7r5ouxydfzk42monl44c4av3jnys3oezgmg7ye4xk5sla
-- valory/http_client:0.23.0:bafybeidmlazrjbnn5mw4wxrrj7lfnci7amt5alke2ahb3yirac6qudxuwm
-- valory/ipfs:0.1.0:bafybeie3uryd4ccavzjd5ujsndjaqxz4gu3ka2scwvvqadcesciuohnuue
-- valory/ledger:0.19.0:bafybeicoc67atvjzld5e7qzbdkc7c2fj5jrtuj77nx6igxcdxqqqwxiduy
-- valory/p2p_libp2p_client:0.1.0:bafybeihiulggi4jz3i7qdjicztbvlrkesyb7paiovfcmw22xvovpweeq7y
+- valory/http_client:0.23.0:bafybeib34a2ukancj5524tz64smczju2q2njscgufmtml6dcjb3bjyaocy
+- valory/ipfs:0.1.0:bafybeif7exoq2viwhfgfcjplxq73hnxvgpsx7pwshhntx6aekza25mdwli
+- valory/ledger:0.19.0:bafybeifdsep5suryfufmto4j5fyvjhmlgypyg6zvvwqsm4edlwfbfsav5y
+- valory/p2p_libp2p_client:0.1.0:bafybeihezztwiiismlbblbv67i4zibp7w6xzpqadt67mcdjaoauibjqii4
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeifhfvsuizkoxveehiwk3cbf2du6yjisyxofc4az6ihauzg5a3vntu
-- valory/gnosis_safe_proxy_factory:0.1.0:bafybeift4tahoclcyo2otiwjxat24g3axpy235dkp3rulccndvtssooyx4
+- valory/gnosis_safe:0.1.0:bafybeibkwbupoz3sab4pxmhhtrdrsgy6di3xptk7sj3f72c3em7fzl35re
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeiaocq4aaqhdtbmw3lsakqp2isamany3ui6kw43w6osbjndtoj6wey
 - valory/multisend:0.1.0:bafybeidjdgi2kyexajirj3cnpzgse4y5u664b2blztt4flv6i7knlecyr4
-- valory/service_registry:0.1.0:bafybeici5pqtcuiyytasf3yma6kbmol3p25wmylrxrm2orsr3deyoeuodu
+- valory/service_registry:0.1.0:bafybeiew3fcu2rl27ew5htqjofndwlhx63jfg6vrddkmx2rgyo3jfqsueu
 protocols:
-- open_aea/signing:1.0.0:bafybeierdeo55vv7nxdag3s2kk6gh4essmeeqpa7vperbw3wn3ypzmtcdm
+- open_aea/signing:1.0.0:bafybeib7p5as3obcdzseiwg5umj2piiqaodkxkto7qh7b552l5emwsmdzm
 - valory/abci:0.1.0:bafybeigdi6wsbdn2nv7clzhnuhki3taywgiiajwawdaat57o5ntlgqj2qe
-- valory/acn:1.1.0:bafybeihouwpsgkbafgsfdcwiwhz3smrjuw24b74j4v3n3hxirmxeskldwq
-- valory/contract_api:1.0.0:bafybeigv273fllpdsmzip4qfmhyvltdcss4yhoicss32c2yc7am6kue4cy
-- valory/http:1.0.0:bafybeia43es3r7haqhdcx4f3uwfcreeytyk4zadczsafwyc5dzwr7lu2jq
+- valory/acn:1.1.0:bafybeicztpzulro64brsms6qmlav3dz635eykpb7ihtchu2eke2hr52efa
+- valory/contract_api:1.0.0:bafybeicmo2ufeoqyyczkom6xp3nwmhosd75kpe4xfwn7gaz6vegj732b4m
+- valory/http:1.0.0:bafybeibxab2yfpchusrzw4rgrasjomtpphazanpivhhtznmuao5ny2lsmi
 - valory/ipfs:0.1.0:bafybeib7jhgyocjwdq3r5wzq3z4qeubj3dwi3aqjn2uxzuwnjp5fhvafcu
-- valory/ledger_api:1.0.0:bafybeifvbahdmabpswhu45q6xb2jppbvqlfztya6jx2ttu4eb6pjltyxam
+- valory/ledger_api:1.0.0:bafybeiga6gdd3ccdt5jgrov474koz524f3pfbhprwxfjj7wextkl7wozsa
 - valory/tendermint:0.1.0:bafybeif5wq5i2ugr66alniej2bk4vws5sikal7otx674y5kz52e3ulo2qm
 skills:
 - valory/abstract_abci:0.1.0:bafybeihgbihz5wlimwnslwwp35w4bjkg3bdhnhbfwwpfoojssibluvl3b4
-- valory/abstract_round_abci:0.1.0:bafybeifirqx2aavth5ub5wkz66l3773pzmksbftojzmha34rch4oypf5xa
-- valory/register_termination_abci:0.1.0:bafybeidh7c3kcdyheb5qhszu6xqiavehpp7fxcemlcpqqhf2yp3aakh7uy
-- valory/registration_abci:0.1.0:bafybeih2pb5rv46me5v7yslh7d2mhouo4d5utb76nku5ndk6tdoa22nz5q
-- valory/reset_pause_abci:0.1.0:bafybeihtnks7yoot4cjtcwam23uhsgmdtvujch4a3koe3p6eyetb4ncuvy
-- valory/termination_abci:0.1.0:bafybeiemc4ydder3ey4ihvydy2ewjev6q62gdu5ctsks3o532stcdxouou
-- valory/transaction_settlement_abci:0.1.0:bafybeidrwy5tk2jbooqzyzyssg7vo4osk7uxrou545kqrh33ksohus2elq
+- valory/abstract_round_abci:0.1.0:bafybeiaypthz4rxgw7wgv2tjvtbbvxbw4r6cuyhtgmc6yjnvuxahjtnliy
+- valory/register_termination_abci:0.1.0:bafybeibeakhtfs74j6zdyaz5n6w2ur33plfa2b2arlo4mg4wjjvxainhgq
+- valory/registration_abci:0.1.0:bafybeiavm4gergj7d56ym4e6kb5axwybyiea4c6m2zapt5tlaje5uotpsy
+- valory/reset_pause_abci:0.1.0:bafybeihzvhhkfqh4ith4sbsuxanrekixm4fkx3zcl6zj7m3lxara5og67i
+- valory/termination_abci:0.1.0:bafybeibxbwflxukgvic7scxhaxxeoighiz56jwqwd25dhnaff33ohii2sq
+- valory/transaction_settlement_abci:0.1.0:bafybeigjh2vk6tczt5takriy62mye4c5pxpqp7sej7dhnjupc7ybog35sm
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -69,7 +69,7 @@ logging_config:
       propagate: false
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.0.5
+    version: ==2.0.6
   open-aea-test-autonomy:
     version: ==0.21.1
 customs: []
