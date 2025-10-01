@@ -1,5 +1,17 @@
 # Release History - `open-autonomy`
 
+# 0.21.2 (2025-10-01)
+
+Docs:
+- Change old docs domain to `stack.olas.network` #2355
+
+Packages:
+- Update `open-aea` to `2.0.6` #2359
+
+Autonomy:
+- Add support for setting custom props in `docker-compose.yaml` deployment #2358
+- Redesign the `TxSettler` for cleaner code #2356
+
 # 0.21.1 (2025-08-25)
 
 Autonomy && Packages && Docs:

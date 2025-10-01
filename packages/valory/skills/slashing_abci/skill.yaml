@@ -24,13 +24,13 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeibkwbupoz3sab4pxmhhtrdrsgy6di3xptk7sj3f72c3em7fzl35re
-- valory/service_registry:0.1.0:bafybeiew3fcu2rl27ew5htqjofndwlhx63jfg6vrddkmx2rgyo3jfqsueu
+- valory/gnosis_safe:0.1.0:bafybeidxtpqztd33y2k47tmwy5kfxjp6cfzc3cvkpyxpbqc3s6vp6kmt4q
+- valory/service_registry:0.1.0:bafybeigi3efqi5nofhe6d24tnznr5xisacyav24zc37f77xetm4t7azovy
 protocols:
 - valory/contract_api:1.0.0:bafybeicmo2ufeoqyyczkom6xp3nwmhosd75kpe4xfwn7gaz6vegj732b4m
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiaypthz4rxgw7wgv2tjvtbbvxbw4r6cuyhtgmc6yjnvuxahjtnliy
-- valory/transaction_settlement_abci:0.1.0:bafybeigjh2vk6tczt5takriy62mye4c5pxpqp7sej7dhnjupc7ybog35sm
+- valory/abstract_round_abci:0.1.0:bafybeiemzg3e2hc5hjnpqj4kulxq4mjz65ktelqdgb6wvxekiwudjp63uu
+- valory/transaction_settlement_abci:0.1.0:bafybeihuygeicnvdcbhm747bzqbxmw2lbuwhaeqdis3d54vhm4sykjyyly
 behaviours:
   main:
     args: {}
