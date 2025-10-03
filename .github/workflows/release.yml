@@ -81,31 +81,6 @@ jobs:
           autonomy init --reset --author valory --ipfs --remote
           autonomy push-all
 
-  publish-docs-images:
-    name: Publish Docs Images
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.10"]
-    needs:
-      - publish-autonomy-packages
-    steps:
-    - uses: actions/checkout@v2
-    - name: Docker login
-      env:
-        DOCKER_USER: ${{secrets.DOCKER_USER}}
-        DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
-      run: |
-        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-    - name: Set up tag
-      run: echo export TAG=$(python3 -c "from setup import about; print(about[\"__version__\"])") > env.sh
-    - name: Build version tagged images
-      run: |
-        source env.sh
-        docker build -t valory/open-autonomy-docs:$TAG -f deployments/Dockerfiles/documentation/Dockerfile . --push
-        docker build -t valory/open-autonomy-docs:latest -f deployments/Dockerfiles/documentation/Dockerfile . --push
-
   publish-deploy-images:
     name: Publish Deploy Images
     runs-on: ubuntu-latest
