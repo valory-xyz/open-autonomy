@@ -1,6 +1,6 @@
-Tools for replay agent execution.
+Tools for replay agent instance execution.
 
-This command group consists of a number of functionalities for re-running agents using data dumps from previous runs. See the appropriate subcommands for more information. Note that **replay functionalities only work for deployments which were ran in dev mode.**
+This command group consists of a number of functionalities for re-running agent instances using data dumps from previous runs. See the appropriate subcommands for more information. Note that **replay functionalities only work for deployments which were ran in dev mode.**
 
 
 ## `autonomy replay agent`
@@ -12,7 +12,7 @@ autonomy replay agent [OPTIONS] AGENT
 
 ### Description
 
-Re-run agent execution.
+Re-run agent instance execution.
 
 ### Options
 `--build PATH`

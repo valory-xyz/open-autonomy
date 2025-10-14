@@ -1,4 +1,4 @@
-When building the agent images, you might run into a situation where an agent dependency requires a third party developer library which can lead to the image build failing. In such cases you can use a custom `Dockerfile` with a layer which installs this third party library. Use following template to define the `Dockerfile`
+When building the agent blueprint images, you might run into a situation where an agent blueprint dependency requires a third party developer library which can lead to the image build failing. In such cases you can use a custom `Dockerfile` with a layer which installs this third party library. Use following template to define the `Dockerfile`
 
 ```dockerfile
 ARG AUTONOMY_IMAGE_VERSION="latest"

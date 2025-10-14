@@ -1,4 +1,4 @@
-To bump a repository containing a service to an updated version of {{open_autonomy}}, follow these steps:
+To bump a repository containing an AI agent to an updated version of {{open_autonomy}}, follow these steps:
 
 1. Bump the PyPI package `open-autonomy` and any relevant dependency to the desired version in the files
    - `tox.ini`,

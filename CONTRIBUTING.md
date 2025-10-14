@@ -60,6 +60,6 @@ def some_method(some_arg: Type) -> ReturnType:
 - Always use guard clauses where possible. This leads to more efficient code that has less nesting and is much easier to read.
 
 
-### Agent development
+### Agent blueprint development
 
 You can find several general recommendations in the **Considerations to Develop FSM Apps** section in our documentation [here](https://stack.olas.network/open-autonomy/key_concepts/fsm_app_introduction/).

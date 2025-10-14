@@ -1,12 +1,12 @@
-Builds the agent image for a service.
+Builds the agent blueprint image for an AI agent.
 
-This command builds the Docker runtime images for the agent defined in a service configuration file `service.yaml`. By default, the command tags the generated images as
+This command builds the Docker runtime images for the agent blueprint defined in an AI agent configuration file `service.yaml`. By default, the command tags the generated images as
 
 ```
 <author>/oar-<agent_package>:<package_hash>
 ```
 
-where `<author>` is the author name from the local CLI config (specified with `autonomy init`), `oar` stands for "Open Autonomy Runtime", and `<agent_package>:<package_hash>` is the `PUBLIC_ID` of the agent. These default tags can be modified using certain options described below.
+where `<author>` is the author name from the local CLI config (specified with `autonomy init`), `oar` stands for "Open Autonomy Runtime", and `<agent_package>:<package_hash>` is the `PUBLIC_ID` of the agent blueprint. These default tags can be modified using certain options described below.
 
 !!! warning "Important"
 
@@ -21,7 +21,7 @@ autonomy build-image [OPTIONS] [AGENT_PUBLIC_ID]
 ## Options
 
 `--service-dir PATH`
-:   Path to the service directory.
+:   Path to the AI agent directory.
 
 `-e, --extra-dependency DEPENDENCY`
 
@@ -37,35 +37,35 @@ autonomy build-image [OPTIONS] [AGENT_PUBLIC_ID]
 :   Pull the latest dependencies when building the image.
 
 `-f, --dockerfile FILE`
-:   Specify custom `Dockerfile` for building the agent
+:   Specify custom `Dockerfile` for building the agent blueprint
 
 `--help`
 :   Show the help message and exit.
 
 ## Examples
 
-* Build the runtime image for a service located in the folder `your_service`:
+* Build the runtime image for an AI agent located in the folder `your_ai_agent`:
 
     ```bash
-    autonomy build-image --service-dir /your_service
+    autonomy build-image --service-dir /your_ai_agent
     ```
 
     Or, alternatively:
 
     ```bash
-    cd /your_service
+    cd /your_ai_agent
     autonomy build-image
     ```
 
-* Build the agent image for a specific service without fetching the service package:
+* Build the agent blueprint image for a specific AI agent without fetching the AI agent package:
 
     ```bash
     autonomy build-image <author>/<agent_package>:<package_hash>
     ```
 
-    where `<author>/<package_name>:<package_hash>` is the `PUBLIC_ID` of the agent.
+    where `<author>/<package_name>:<package_hash>` is the `PUBLIC_ID` of the agent blueprint.
 
-* Build an agent image with a custom version tag:
+* Build an agent blueprint image with a custom version tag:
 
     ```bash
     autonomy build-image <author>/<agent_package>:<package_hash> --version <version>
@@ -73,7 +73,7 @@ autonomy build-image [OPTIONS] [AGENT_PUBLIC_ID]
 
     This will tag the image as `<author>/oar-<agent_package>:<version>`.
 
-* Build an agent image with a custom author name:
+* Build an agent blueprint image with a custom author name:
 
     ```bash
     autonomy build-image <author>/<agent_package>:<package_hash> --image-author <custom_author>

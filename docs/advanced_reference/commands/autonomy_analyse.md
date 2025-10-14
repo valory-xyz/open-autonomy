@@ -1,6 +1,6 @@
-Tools for analysing and verifying agent services.
+Tools for analysing and verifying AI agents.
 
-This command group consists of a number of functionalities to analyse and verify agent services, including {{fsm_app}} skill consistency checks. See the appropriate subcommands for more information.
+This command group consists of a number of functionalities to analyse and verify AI agents, including {{fsm_app}} skill consistency checks. See the appropriate subcommands for more information.
 
 
 
@@ -12,7 +12,7 @@ This command verifies that the [`AbciApp` class](../../key_concepts/abci_app_cla
 
 ??? example
 
-    The docstring corresponding to the [Hello World agent service](https://stack.olas.network/demos/hello-world/) is
+    The docstring corresponding to the [Hello World AI agent](https://stack.olas.network/demos/hello-world/) is
 
 
     ```python
@@ -212,7 +212,7 @@ autonomy analyse dialogues -d abci -d http -i excluded_skill_1 -i excluded_skill
 Since the command will automatically append the `_dialogues` postfix if not provided by the user.
 
 ## `autonomy analyse logs`
-Parse logs of an agent service.
+Parse logs of an AI agent.
 
 ### Usage
 ```bash
@@ -297,13 +297,13 @@ Use regex patterns to filter logs, include lines with `consensus` and exclude li
 autonomy analyse logs --from-dir ./abci_build_hAsH/persistent_data/logs -a 'aea_0' -ir ".*consensus.*" -er ".*debug.*"
 ```
 
-These examples demonstrate various ways to filter and analyze agent service logs. You can combine multiple options to narrow down the log output to exactly what you need for debugging or analysis.
+These examples demonstrate various ways to filter and analyze AI agent logs. You can combine multiple options to narrow down the log output to exactly what you need for debugging or analysis.
 
 ## `autonomy analyse benchmarks`
 
-Aggregate benchmark results from agent service deployments.
+Aggregate benchmark results from AI agent deployments.
 
-This tool requires the benchmark data generated from service agent's runtime.
+This tool requires the benchmark data generated from agent blueprint's runtime.
 By default the tool will aggregate the output for all the periods and code block types but you can restrict the aggregation to a specific period and/or a specific block type.
 
 Read the [guide on how to use the benchmarking tool](../developer_tooling/benchmarking.md) for more information.
@@ -349,9 +349,9 @@ To aggregate stats for `consensus` block type in the second period, execute:
 
 ## `autonomy analyse service`
 
-Analyse if the service is ready to be deployed or not.
+Analyse if the AI agent is ready to be deployed or not.
 
-This tool can be used to analyse a service definition and see if there are any potential issues with configuration which can cause issues when running the deployment.
+This tool can be used to analyse an AI agent definition and see if there are any potential issues with configuration which can cause issues when running the deployment.
 
 Read the [guide on deployment readiness](../../configure_service/on-chain_deployment_checklist.md) for more information.
 
@@ -363,10 +363,10 @@ autonomy analyse service [OPTIONS]
 ### Options
 
 `--token-id INTEGER`
-:  Token ID of the service
+:  Token ID of the AI agent
 
 `--public-id PUBLIC_ID_OR_HASH`
-:   Public ID of the service
+:   Public ID of the AI agent
 
 `--use-celo`                      
 :   To use `celo` chain profile to interact with the contracts
@@ -401,13 +401,13 @@ autonomy analyse service [OPTIONS]
 
 ### Examples
 
-Analyse the service `valory/hello_world` using
+Analyse the AI agent `valory/hello_world` using
 
 ```bash
 autonomy analyse service --public-id valory/hello_world
 ```
 
-Analyse an on-chain service with token ID `1` using
+Analyse an on-chain AI agent with token ID `1` using
 
 ```bash
 autonomy analyse service --token-id 1

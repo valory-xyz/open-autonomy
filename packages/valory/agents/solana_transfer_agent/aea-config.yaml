@@ -5,7 +5,7 @@ license: Apache-2.0
 description: Register terminate to test the termination feature.
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeiamp5k2dtww2rxaxu4kqsi3yon6mhofezlgcyzrialt2rnigkk43y
+  README.md: bafybeigogzuikulxmaitsy45aa2e7hcl456jyhuayj7sxs3g3st5xnxsdm
   __init__.py: bafybeigixtbve7in5q3mkbasn2lcu47pqzc23vhxugli2akg6ucw6roo3u
   tests/__init__.py: bafybeiduyc727gdkavmsrslb22ixlehadyzjnfimikqeasuf6orkew32fa
   tests/base.py: bafybeihr6d63pvjyc4tlveutgnex63ses454jshv2j445k44dly52rkwlm
@@ -35,7 +35,7 @@ skills:
 - valory/registration_abci:0.1.0:bafybeig3fa2uj5qymqhka2qyzmqwvk3opiiyfzhu4ybkr2yk33s5q7grka
 - valory/reset_pause_abci:0.1.0:bafybeibec77db27lzx7uzheoajzhc24itvbuaph4rnxtqynebw3ykm7w5u
 - valory/squads_transaction_settlement_abci:0.1.0:bafybeic6gpja6opbn3hzgjc62jpinhosd4vayvqdgjatvs2ul77kmmpdui
-- valory/test_solana_tx_abci:0.1.0:bafybeicxrgepa3lzx2y7wnhd62yjstswmzpy64hyqsm7ivdybfglimoegi
+- valory/test_solana_tx_abci:0.1.0:bafybeieat4pu332idi6reavd654ncnuvas2leguev5cduy2io4urdq75zu
 default_ledger: solana
 required_ledgers:
 - solana

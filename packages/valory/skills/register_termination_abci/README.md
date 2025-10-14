@@ -2,4 +2,4 @@
 
 ## Description
 
-This module contains an agent used to showcase the termination abci. 
+This module contains an agent blueprint used to showcase the termination abci. 

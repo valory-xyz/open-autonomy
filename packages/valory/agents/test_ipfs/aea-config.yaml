@@ -5,7 +5,7 @@ license: Apache-2.0
 description: Agent for testing the ABCI connection.
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeigvcqzjhlgvyhd6h6boxnil6clg4cfkfoke5fsnao73balsf3vv3y
+  README.md: bafybeifvfyq4rhmd5plxtefqdojovaclsyfce6q4nzaz6t6sowrrtqfghu
   __init__.py: bafybeif4a7hw42rhaivspwz3pnq2hvioxoxhobicgrcjibxjntmw23kmmm
   tests/__init__.py: bafybeifiwgoilbwdy4ipme6gtzrds3qm33cbbpsl62lueltng7m6ltm44i
   tests/test_ipfs.py: bafybeigsny752vgi7p7y4hyh6ojl3lsj7hxv3l4xatrlufwfbarorj4y5i

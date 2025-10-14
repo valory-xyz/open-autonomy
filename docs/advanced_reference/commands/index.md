@@ -5,27 +5,27 @@ This page provides a quick reference to commonly used CLI commands in the Open A
 ## Core Commands
 
 ### autonomy analyse
-Analyse an agent service, including ABCI app specifications, docstrings, logs, and more.
+Analyse an AI agent, including ABCI app specifications, docstrings, logs, and more.
 
 [Detailed analyse documentation](./autonomy_analyse.md)
 
 ### autonomy deploy
-Deploy an agent service using various deployment backends (Docker, Kubernetes, or localhost).
+Deploy an AI agent using various deployment backends (Docker, Kubernetes, or localhost).
 
 [Detailed deploy documentation](./autonomy_deploy.md)
 
 ### autonomy develop
-Development tools for agent services.
+Development tools for AI agents.
 
 [Detailed develop documentation](./autonomy_develop.md)
 
 ### autonomy fetch
-Fetch an agent or service from a registry.
+Fetch an agent blueprint or AI agent from a registry.
 
 [Detailed fetch documentation](./autonomy_fetch.md)
 
 ### autonomy mint
-Mint components and services on-chain.
+Mint components and AI agents on-chain.
 
 [Detailed mint documentation](./autonomy_mint.md)
 
@@ -35,14 +35,14 @@ Push all available packages to a registry.
 [Detailed push-all documentation](./autonomy_push_all.md)
 
 ### autonomy replay
-Replay tools for agent services.
+Replay tools for AI agents.
 
 [Detailed replay documentation](./autonomy_replay.md)
 
 ### autonomy service
-Manage on-chain services.
+Manage on-chain AI agents.
 
-[Detailed service documentation](./autonomy_service.md)
+[Detailed AI agent documentation](./autonomy_service.md)
 
 ## Additional Information
 

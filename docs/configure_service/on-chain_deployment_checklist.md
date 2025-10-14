@@ -1,4 +1,4 @@
-This section details a requirement checklist that need to be satisfied so that your agent service can be properly deployed on-chain.
+This section details a requirement checklist that need to be satisfied so that your AI agent can be properly deployed on-chain.
 
 ## Required {{fsm_app}} skill models
 
@@ -45,17 +45,17 @@ You can define custom arguments for the skill, if required.
 
 ## Required arguments and overrides
 
-Ensure that your {{fsm_app}} skill, agent and service configuration files (`skill.yaml`, `aea-config.yaml`, and `service.yaml`, respectively) define the appropriate arguments and overrides:
+Ensure that your {{fsm_app}} skill, agent blueprint and AI agent configuration files (`skill.yaml`, `aea-config.yaml`, and `service.yaml`, respectively) define the appropriate arguments and overrides:
 
 `skill.yaml`
 :   Must define default/placeholder values for the arguments associated to the `YourSkillParams` class.
 
 `aea-config.yaml`
-:   Must define overrides for `valory/abci` connection, `valory/ledger` connection, `valory/p2p_libp2p_client` connection, and your {{fsm_app}} skill. Environment variables used for agent-level overrides can use the simplified syntax `${<type>:<default_value>}`.
+:   Must define overrides for `valory/abci` connection, `valory/ledger` connection, `valory/p2p_libp2p_client` connection, and your {{fsm_app}} skill. Environment variables used for agent-blueprint-level overrides can use the simplified syntax `${<type>:<default_value>}`.
 
 `service.yaml`
-:   Must define overrides for `valory/ledger` connection and your {{fsm_app}} skill (optionally, also for `valory/p2p_libp2p_client` connection). Environment variables used for service-level overrides use the syntax `${<env_var_name>:<type>:<default_value>}`. They will be [exported](../configure_service/service_configuration_file.md#export-to-environment-variables) as their upper case JSON path in the agent Docker container.
-See also the [service level overrides](../configure_service/service_configuration_file.md#service-level-overrides) and [multiple overrides](../configure_service/service_configuration_file.md#multiple-overrides) sections for more information.
+:   Must define overrides for `valory/ledger` connection and your {{fsm_app}} skill (optionally, also for `valory/p2p_libp2p_client` connection). Environment variables used for ai-agent-level overrides use the syntax `${<env_var_name>:<type>:<default_value>}`. They will be [exported](../configure_service/service_configuration_file.md#export-to-environment-variables) as their upper case JSON path in the agent blueprint Docker container.
+See also the [AI agent level overrides](../configure_service/service_configuration_file.md#ai-agent-level-overrides) and [multiple overrides](../configure_service/service_configuration_file.md#multiple-overrides) sections for more information.
 
 === "skill.yaml"
 
@@ -188,7 +188,7 @@ See also the [service level overrides](../configure_service/service_configuratio
           # (...)
     ```
 !!! warning "Important"
-    Recall that when [deploying an on-chain service](../guides/deploy_service.md#on-chain-deployment) using `autonomy deploy from-token`, a number of arguments (under `setup`) are overridden with the values registered in the Autonolas Protocol:
+    Recall that when [deploying an on-chain AI agent](../guides/deploy_service.md) using `autonomy deploy from-token`, a number of arguments (under `setup`) are overridden with the values registered in the Autonolas Protocol:
     ```yaml title="service.yaml"
     # (...)
     models:
@@ -209,22 +209,22 @@ See also the [service level overrides](../configure_service/service_configuratio
 
 ## Publish and mint packages
 
-Ensure that your components, agent and service packages are published to the IPFS registry:
+Ensure that your components, agent blueprints and AI agents packages are published to the IPFS registry:
 
 * [Push your components](../guides/publish_fetch_packages.md#push-a-component-on-a-registry) using the `autonomy push` command.
-* [Publish your agents](../guides/publish_fetch_packages.md#publish-an-agent-on-a-registry) using the `autonomy publish` command.
-* [Publish your services](../guides/publish_fetch_packages.md#publish-a-service-on-a-registry) using the `autonomy publish` command.
+* [Publish your agent blueprints](../guides/publish_fetch_packages.md#publish-an-agent-blueprint-on-a-registry) using the `autonomy publish` command.
+* [Publish your AI agents](../guides/publish_fetch_packages.md#publish-an-ai-agent-on-a-registry) using the `autonomy publish` command.
 
-Ensure that your components, agents and service packages are [minted on-chain in the Autonolas Protocol](../guides/publish_mint_packages.md).
+Ensure that your components, agent blueprints and AI agents packages are [minted on-chain in the Autonolas Protocol](../guides/publish_mint_packages.md).
 
 
-## Check the deployment readiness of the service using
+## Check the deployment readiness of the AI agent using
 
 ```
 $ autonomy analyse service --public-id PUBLIC_ID
 ```
 
-or if you want to check deployment readiness of an on-chain service
+or if you want to check deployment readiness of an on-chain AI agent
 
 ```
 $ autonomy analyse service --token-id TOKEN_ID
@@ -232,13 +232,12 @@ $ autonomy analyse service --token-id TOKEN_ID
 
 ## Publish Docker images (optional)
 
-You can build the Docker images for the service using the `autonomy build-image` command. Alternatively, the images are built automatically when the service is deployed using `autonomy deploy from-token` command
+You can build the Docker images for the AI agent using the `autonomy build-image` command. Alternatively, the images are built automatically when the AI agent is deployed using `autonomy deploy from-token` command
 
 If you want to use an image with a stable hash or a stable version of a runtime image, you can provide the hash/version using `--image-version` on the `autonomy deploy build` command.
 
 Ensure that the image exists before running the deployment:
 
 ```bash
-docker pull <author>/oar_runtime_<service_name>:<ipfs_hash_service_agent>
+docker pull <author>/oar_runtime_<ai_agent_name>:<ipfs_hash_ai_agent>
 ```
-

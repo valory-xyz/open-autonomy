@@ -1,1 +1,1 @@
-## Dummy service
+## Dummy AI agent

@@ -1,5 +1,5 @@
-Fetch an agent or agent service from a registry using its public ID, hash, or token ID.
-The `autonomy fetch` command allows you to download service files from either a local or remote registry.
+Fetch an agent blueprint or AI agent from a registry using its public ID, hash, or token ID.
+The `autonomy fetch` command allows you to download AI agent files from either a local or remote registry.
 
 ## Usage
 ```bash
@@ -15,13 +15,13 @@ autonomy fetch [OPTIONS] PUBLIC_ID_OR_HASH_OR_TOKEN_ID
 :   To use a local registry.
 
 `--alias` TEXT
-:   Provide a local alias for the agent or service.
+:   Provide a local alias for the agent blueprint or AI agent.
 
 `--agent`
-:   Specify the package type as agent (default).
+:   Specify the package type as agent blueprint (default).
 
 `--service`
-:   Specify the package type as service.
+:   Specify the package type as AI agent.
 
 `--help`
 :   Show the help message and exit.
@@ -81,45 +81,45 @@ To use these chain profile, you will have to export an environment variable for 
 
 
 ## Examples
-Fetch the agent `hello_world` from the local registry and assign the alias `my_hello_world_agent`:
+Fetch the agent blueprint `hello_world` from the local registry and assign the alias `my_hello_world_agent`:
 ```bash
 autonomy fetch --local --alias my_hello_world_agent valory/hello_world:0.1.0
 ```
 
-Fetch the agent `hello_world` from the default registry (initialized with `autonomy init`):
+Fetch the agent blueprint `hello_world` from the default registry (initialized with `autonomy init`):
 ```bash
 autonomy fetch valory/hello_world:0.1.0
 ```
 
-Fetch the agent service `hello_world` from a local registry with an explicit path:
+Fetch the AI agent `hello_world` from a local registry with an explicit path:
 ```bash
 autonomy --registry-path=./packages fetch valory/hello_world:0.1.0 --service --local
 ```
 
-Fetch the agent service `hello_world` from a remote registry using [IPFS](https://ipfs.io) hash:
+Fetch the AI agent `hello_world` from a remote registry using [IPFS](https://ipfs.io) hash:
 ```bash
 autonomy fetch valory/hello_world:0.1.0:bafybeicj73kflta5sfxq7gnnk7smcdp2gwcfvfvm2plxc5ojhulwa3xnoq --service --remote
 ```
 
-Fetch the agent service with the token ID `123` on Gnosis chain:
+Fetch the AI agent with the token ID `123` on Gnosis chain:
 ```bash
 autonomy fetch 123 --use-gnosis
 ```
 
 ### Viewing Remote Registry Files
 
-Before fetching a service, you can inspect its contents in on IPFS through `https://gateway.autonolas.tech/ipfs/<hash>`
+Before fetching an AI agent, you can inspect its contents in on IPFS through `https://gateway.autonolas.tech/ipfs/<hash>`
 
 ## Common Issues and Solutions
 
-### Service Not Found
-- Verify the service ID is correct
+### AI agent Not Found
+- Verify the AI agent ID is correct
 - Check registry connection
 - Ensure you're using the correct registry flag (--local or --remote)
 
 ### Missing Dependencies
 - Run `autonomy packages sync` to update local packages
-- Check service requirements in `service.yaml`
+- Check AI agent requirements in `service.yaml`
 
 ### Permission Issues
 - Verify write permissions in packages directory

@@ -1,6 +1,6 @@
 Tools for minting software packages in the {{ autonolas_protocol }}.
 
-This command group consists of a number of functionalities to mint components, agents and services in the {{ autonolas_protocol }}. These commands are the CLI alternative to mint packages using the {{ autonolas_protocol_registry_dapp }}. See the appropriate subcommands for more information.
+This command group consists of a number of functionalities to mint components, agent blueprints and AI agents in the {{ autonolas_protocol }}. These commands are the CLI alternative to mint packages using the {{ autonolas_protocol_registry_dapp }}. See the appropriate subcommands for more information.
 
 !!! info
 
@@ -156,7 +156,7 @@ Transaction:
 
 ## `autonomy mint agent`
 
-Mint an agent in the Autonolas Protocol.
+Mint an agent blueprint in the Autonolas Protocol.
 ### Usage
 
 ```bash
@@ -181,11 +181,11 @@ autonomy mint agent [OPTIONS] PACKAGE_PATH
 : Owner address of the package.
 
 `--update TOKEN_ID`
-: Update the already minted agent with on-chain `TOKEN_ID` with the current package hash.
+: Update the already minted agent blueprint with on-chain `TOKEN_ID` with the current package hash.
 
 ### Examples
 
-Mint the `hello_world` agent in the Ethereum main chain:
+Mint the `hello_world` agent blueprint in the Ethereum main chain:
 
 ```bash
 autonomy mint --use-ethereum agent --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/agents/hello_world
@@ -199,7 +199,7 @@ autonomy mint --use-ethereum agent --hwi --nft <nft_ipfs_hash_or_image_path> --o
 
 ## `autonomy mint service`
 
-Mint a service in the Autonolas Protocol.
+Mint an AI agent in the Autonolas Protocol.
 ### Usage
 
 ```bash
@@ -224,26 +224,26 @@ autonomy mint service [OPTIONS] PACKAGE_PATH
 : Owner address of the package.
 
 `-a, --agent-id AGENT_ID`
-: Canonical agent ID.
+: Agent blueprint ID.
 
 `-n, --number-of-slots NUM_SLOTS`
-: Number of agent instances for the canonical agent.
+: Number of instances for the agent blueprint.
 
 `-c, --cost-of-bond COST_BOND_WEI`
-: Cost of bond for the agent (Wei).
+: Cost of bond for the agent instance (Wei).
 
 `--threshold`
-: Threshold for the minimum number of agents required to run the service. The threshold has to be at least $\lceil(2N + 1) / 3\rceil$, where $N$ is total number of the agents in the service.
+: Threshold for the minimum number of agent instances required to run the AI agent. The threshold has to be at least $\lceil(2N + 1) / 3\rceil$, where $N$ is total number of the agent instances in the AI agent.
 
 `--token ERC20_TOKEN_ADDRESS`
-: ERC20 token for securing the service.
+: ERC20 token for securing the AI agent.
 
 `--update TOKEN_ID`
-: Update the already minted service with on-chain `TOKEN_ID` with the current package hash.
+: Update the already minted AI agent with on-chain `TOKEN_ID` with the current package hash.
 
 ### Examples
 
-Mint the `hello_world` service with 4 instances of canonical agent ID 3, cost of bond 10000000000000000 Wei per agent and a threshold of 3 agents, in the Ethereum main chain:
+Mint the `hello_world` AI agent with 4 instances of agent blueprint ID 3, cost of bond 10000000000000000 Wei per agent instance and a threshold of 3 instances, in the Ethereum main chain:
 
 ```bash
 autonomy mint --use-ethereum service --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> --agent-id 3 --number-of-slots 4 --cost-of-bond 10000000000000000 --threshold 3 ./packages/valory/services/hello_world
@@ -257,10 +257,10 @@ autonomy mint --use-ethereum service --hwi --nft <nft_ipfs_hash_or_image_path> -
 
 !!! note
 
-    You can specify more than one type of canonical agent in a service by appropriately defining the triplets `--agent-id`, `--number-of-slots` and `--cost-of-bond` for each canonical agent ID.
+    You can specify more than one type of agent blueprints in an AI agent by appropriately defining the triplets `--agent-id`, `--number-of-slots` and `--cost-of-bond` for each agent blueprint ID.
 
 
-You can also use a custom ERC20 token as token to secure the service. Use the `--token` flag to provide the address of the token of your choice:
+You can also use a custom ERC20 token as token to secure the AI agent. Use the `--token` flag to provide the address of the token of your choice:
 
 ```bash
 autonomy mint --use-ethereum service --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> --agent-id 3 --number-of-slots 4 --cost-of-bond 10000000000000000 --threshold 3 ./packages/valory/services/hello_world --token <erc20_token_address>
@@ -268,4 +268,4 @@ autonomy mint --use-ethereum service --key my_key.txt --nft <nft_ipfs_hash_or_im
 
 !!! warning "Important"
 
-    If you have minted a service using a custom ERC20 token, then you have to use the same token activate the service and to register the agent instances.
+    If you have minted an AI agent using a custom ERC20 token, then you have to use the same token to activate the AI agent and to register the agent instances.

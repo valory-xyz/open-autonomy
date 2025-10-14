@@ -1,4 +1,4 @@
-The figure below presents the development process with {{open_autonomy}}: from the idea of an off-chain service to its deployment in production. If you have completed the [quick start guide](./quick_start.md) you have already navigated through a significant part of this process.
+The figure below presents the development process with {{open_autonomy}}: from the idea of an off-chain AI agent to its deployment in production. If you have completed the [quick start guide](./quick_start.md) you have already navigated through a significant part of this process.
 
 <figure markdown>
 ![](../images/development_process.svg)
@@ -7,19 +7,19 @@ The figure below presents the development process with {{open_autonomy}}: from t
 
 This is a summary of each step:
 
-1. [Draft the service idea.](./draft_service_idea_and_define_fsm_specification.md#draft-the-service-idea) Any service that needs to execute its functionality in an autonomous, transparent and decentralized way is a good candidate. You can take a look at some [use cases](../get_started/use_cases.md) to get an idea of what you can build with {{open_autonomy}}.
+1. [Draft the AI agent idea.](./draft_service_idea_and_define_fsm_specification.md#draft-the-ai-agent-idea) Any AI agent that needs to execute its functionality in an autonomous, transparent and decentralized way is a good candidate. You can take a look at some [use cases](../get_started/use_cases.md) to get an idea of what you can build with {{open_autonomy}}.
 
-2. [Define the FSM specification.](./draft_service_idea_and_define_fsm_specification.md#define-the-fsm-specification) Describe the service business logic as a [finite-state machine (FSM)](../key_concepts/fsm.md) in a language understood by the framework. This specification defines what are the states of the service, and how to transit from one to another.
+2. [Define the FSM specification.](./draft_service_idea_and_define_fsm_specification.md#define-the-fsm-specification) Describe the AI agent business logic as a [finite-state machine (FSM)](../key_concepts/fsm.md) in a language understood by the framework. This specification defines what are the states of the AI agent, and how to transit from one to another.
 
-3. [Code the {{fsm_app}} skill.](./code_fsm_app_skill.md) The actual business logic is encoded in the {{fsm_app}} that lives inside each agent. Coding the {{fsm_app}} involves scaffolding the "skeleton" of the classes, and complete the actual details of the actions executed in each state.
+3. [Code the {{fsm_app}} skill.](./code_fsm_app_skill.md) The actual business logic is encoded in the {{fsm_app}} that lives inside each agent instance. Coding the {{fsm_app}} involves scaffolding the "skeleton" of the classes, and complete the actual details of the actions executed in each state.
 
-4. [Define the agent.](./define_agent.md) Define the components of the agent required to execute your service, including the newly created {{fsm_app}}. You can reuse already existing components publicly available on a remote registry.
+4. [Define the agent blueprint.](./define_agent.md) Define the components of the agent blueprint required to execute your AI agent, including the newly created {{fsm_app}}. You can reuse already existing components publicly available on a remote registry.
 
-5. [Define the service.](./define_service.md) This consists in defining the service configuration and declaring what agents constitute the service, together with a number of configuration parameters required.
+5. [Define the AI agent.](./define_service.md) This consists in defining the AI agent configuration and declaring what agent blueprint constitute the AI agent, together with a number of configuration parameters required.
 
-6. [Publish and mint packages.](./publish_mint_packages.md) Those are required steps to make the service publicly available in the remote registry and secure it in the {{ autonolas_protocol }}.
+6. [Publish and mint packages.](./publish_mint_packages.md) Those are required steps to make the AI agent publicly available in the remote registry and secure it in the {{ autonolas_protocol }}.
 
-7. [Deploy the service.](./deploy_service.md) You can deploy directly your service locally for testing purposes. To deploy a production service secured in the {{ autonolas_protocol }} you first need to bring the service to the _Deployed_ state in the protocol.
+7. [Deploy the AI agent.](./deploy_service.md) You can deploy directly your AI agent locally for testing purposes. To deploy a production AI agent secured in the {{ autonolas_protocol }} you first need to bring the AI agent to the _Deployed_ state in the protocol.
 
 ## Populate the local registry for the guides
 
@@ -61,8 +61,8 @@ autonomy packages sync
 
 The framework will fetch components from the remote registry into the local registry.
 
-!!! tip "Do you already have an existing agent or service?"
+!!! tip "Do you already have an existing agent blueprint or AI agent?"
 
-    If you already have an existing agent (or if you want to create a service with the default `hello_world` agent), you can skip to [Step 5](./define_service.md).
+    If you already have an existing agent blueprint (or if you want to create an AI agent with the default `hello_world` agent blueprint), you can skip to [Step 5](./define_service.md).
 
-    If you already have an existing service (or if you want to test the default `hello_world` service), you can skip to [Step 6](./publish_mint_packages.md) or [Step 7](./deploy_service.md).
+    If you already have an existing AI agent (or if you want to test the default `hello_world` AI agent), you can skip to [Step 6](./publish_mint_packages.md) or [Step 7](./deploy_service.md).

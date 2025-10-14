@@ -3,125 +3,125 @@ This diagram shows the communication flow between the AEAs and their environment
 
 <div class="mermaid">
     sequenceDiagram
-        activate KeeperAgent
+        activate KeeperAgentInstance
         activate ConsensusEngine
-        activate OtherAgents
+        activate OtherAgentInstances
         activate Blockchain
         activate PriceAPI
         activate RandomnessSource
 
-        Note left of KeeperAgent: HealthCheck
+        Note left of KeeperAgentInstance: HealthCheck
 
-        KeeperAgent->>ConsensusEngine: get_status
-        ConsensusEngine-->>KeeperAgent: ok_response
-        OtherAgents->>ConsensusEngine: get_status
-        ConsensusEngine-->>OtherAgents: ok_response
+        KeeperAgentInstance->>ConsensusEngine: get_status
+        ConsensusEngine-->>KeeperAgentInstance: ok_response
+        OtherAgentInstances->>ConsensusEngine: get_status
+        ConsensusEngine-->>OtherAgentInstances: ok_response
 
-        Note left of KeeperAgent: Initialization
+        Note left of KeeperAgentInstance: Initialization
 
-        ConsensusEngine-->>KeeperAgent: ready_signal
-        ConsensusEngine-->>OtherAgents: ready_signal
+        ConsensusEngine-->>KeeperAgentInstance: ready_signal
+        ConsensusEngine-->>OtherAgentInstances: ready_signal
 
-        Note left of KeeperAgent: Registration
+        Note left of KeeperAgentInstance: Registration
 
-        KeeperAgent->>ConsensusEngine: register_service
-        KeeperAgent->>ConsensusEngine: search_agents
-        OtherAgents->>ConsensusEngine: register_service
-        OtherAgents->>ConsensusEngine: search_agents
-        ConsensusEngine-->>KeeperAgent: list_of_agents
-        ConsensusEngine-->>OtherAgents: list_of_agents
+        KeeperAgentInstance->>ConsensusEngine: register_service
+        KeeperAgentInstance->>ConsensusEngine: search_agents
+        OtherAgentInstances->>ConsensusEngine: register_service
+        OtherAgentInstances->>ConsensusEngine: search_agents
+        ConsensusEngine-->>KeeperAgentInstance: list_of_agents
+        ConsensusEngine-->>OtherAgentInstances: list_of_agents
 
-        Note left of KeeperAgent: Randomness
+        Note left of KeeperAgentInstance: Randomness
 
-        KeeperAgent->>RandomnessSource: get_randomness
-        RandomnessSource-->>KeeperAgent: randomness
-        OtherAgents->>RandomnessSource: get_randomness
-        RandomnessSource-->>OtherAgents: randomness
+        KeeperAgentInstance->>RandomnessSource: get_randomness
+        RandomnessSource-->>KeeperAgentInstance: randomness
+        OtherAgentInstances->>RandomnessSource: get_randomness
+        RandomnessSource-->>OtherAgentInstances: randomness
 
-        Note left of KeeperAgent: KeeperSelection
+        Note left of KeeperAgentInstance: KeeperSelection
 
-        KeeperAgent->>ConsensusEngine: vote_keeper
-        OtherAgents->>ConsensusEngine: vote_keeper
-        ConsensusEngine-->>KeeperAgent: keeper
-        ConsensusEngine-->>OtherAgents: keeper
+        KeeperAgentInstance->>ConsensusEngine: vote_keeper
+        OtherAgentInstances->>ConsensusEngine: vote_keeper
+        ConsensusEngine-->>KeeperAgentInstance: keeper
+        ConsensusEngine-->>OtherAgentInstances: keeper
 
-        Note left of KeeperAgent: DeploySafe
+        Note left of KeeperAgentInstance: DeploySafe
 
-        KeeperAgent->>Blockchain: deploy_safe_contract
-        Blockchain-->>KeeperAgent: contract_adress
-        KeeperAgent->>ConsensusEngine: contract_adress
+        KeeperAgentInstance->>Blockchain: deploy_safe_contract
+        Blockchain-->>KeeperAgentInstance: contract_adress
+        KeeperAgentInstance->>ConsensusEngine: contract_adress
 
-        Note left of KeeperAgent: ValidateSafe
+        Note left of KeeperAgentInstance: ValidateSafe
 
-        KeeperAgent->>ConsensusEngine: validate
-        OtherAgents->>ConsensusEngine: validate
-        ConsensusEngine-->>KeeperAgent: validated
-        ConsensusEngine-->>OtherAgents: validated
+        KeeperAgentInstance->>ConsensusEngine: validate
+        OtherAgentInstances->>ConsensusEngine: validate
+        ConsensusEngine-->>KeeperAgentInstance: validated
+        ConsensusEngine-->>OtherAgentInstances: validated
 
-        Note left of KeeperAgent: DeployOracle
+        Note left of KeeperAgentInstance: DeployOracle
 
-        KeeperAgent->>Blockchain: deploy_oracle_contract
-        Blockchain-->>KeeperAgent: contract_adress
-        KeeperAgent->>ConsensusEngine: contract_adress
+        KeeperAgentInstance->>Blockchain: deploy_oracle_contract
+        Blockchain-->>KeeperAgentInstance: contract_adress
+        KeeperAgentInstance->>ConsensusEngine: contract_adress
 
-        Note left of KeeperAgent: ValidateOracle
+        Note left of KeeperAgentInstance: ValidateOracle
 
-        KeeperAgent->>ConsensusEngine: validate
-        OtherAgents->>ConsensusEngine: validate
-        ConsensusEngine-->>KeeperAgent: validated
-        ConsensusEngine-->>OtherAgents: validated
+        KeeperAgentInstance->>ConsensusEngine: validate
+        OtherAgentInstances->>ConsensusEngine: validate
+        ConsensusEngine-->>KeeperAgentInstance: validated
+        ConsensusEngine-->>OtherAgentInstances: validated
 
-        Note left of KeeperAgent: Observation
+        Note left of KeeperAgentInstance: Observation
 
-        KeeperAgent->>PriceAPI: observe_price
-        PriceAPI-->>KeeperAgent:price_observation
-        OtherAgents->>PriceAPI: observe_price
-        PriceAPI-->>OtherAgents: price_observation
+        KeeperAgentInstance->>PriceAPI: observe_price
+        PriceAPI-->>KeeperAgentInstance:price_observation
+        OtherAgentInstances->>PriceAPI: observe_price
+        PriceAPI-->>OtherAgentInstances: price_observation
 
-        KeeperAgent->>ConsensusEngine: collect_observations
-        ConsensusEngine-->>KeeperAgent: observations
-        OtherAgents->>ConsensusEngine: collect_observations
-        ConsensusEngine-->>OtherAgents: observations
+        KeeperAgentInstance->>ConsensusEngine: collect_observations
+        ConsensusEngine-->>KeeperAgentInstance: observations
+        OtherAgentInstances->>ConsensusEngine: collect_observations
+        ConsensusEngine-->>OtherAgentInstances: observations
 
-        Note left of KeeperAgent: Estimation
+        Note left of KeeperAgentInstance: Estimation
 
-        KeeperAgent->>KeeperAgent: estimate_price
-        OtherAgents->>OtherAgents: estimate_price
+        KeeperAgentInstance->>KeeperAgentInstance: estimate_price
+        OtherAgentInstances->>OtherAgentInstances: estimate_price
 
-        Note left of KeeperAgent: TransactionHash
+        Note left of KeeperAgentInstance: TransactionHash
 
-        KeeperAgent->>ConsensusEngine: transaction_hash
+        KeeperAgentInstance->>ConsensusEngine: transaction_hash
 
-        Note left of KeeperAgent: Signature
+        Note left of KeeperAgentInstance: Signature
 
-        ConsensusEngine-->>OtherAgents: collect_tx
-        KeeperAgent->>ConsensusEngine: tx_signature
-        OtherAgents->>ConsensusEngine: tx_signature
-        ConsensusEngine-->>KeeperAgent: collect_signatures
-        ConsensusEngine-->>OtherAgents: collect_signatures
+        ConsensusEngine-->>OtherAgentInstances: collect_tx
+        KeeperAgentInstance->>ConsensusEngine: tx_signature
+        OtherAgentInstances->>ConsensusEngine: tx_signature
+        ConsensusEngine-->>KeeperAgentInstance: collect_signatures
+        ConsensusEngine-->>OtherAgentInstances: collect_signatures
 
-        Note left of KeeperAgent: Finalization
+        Note left of KeeperAgentInstance: Finalization
 
-        KeeperAgent->>Blockchain: final_tx
-        Blockchain-->>KeeperAgent: final_tx_hash
-        KeeperAgent->>ConsensusEngine: final_tx_hash
-        ConsensusEngine-->>OtherAgents: final_tx_hash
+        KeeperAgentInstance->>Blockchain: final_tx
+        Blockchain-->>KeeperAgentInstance: final_tx_hash
+        KeeperAgentInstance->>ConsensusEngine: final_tx_hash
+        ConsensusEngine-->>OtherAgentInstances: final_tx_hash
 
-        Note left of KeeperAgent: ValidateTx
+        Note left of KeeperAgentInstance: ValidateTx
 
-        KeeperAgent->>ConsensusEngine: validate
-        OtherAgents->>ConsensusEngine: validate
-        ConsensusEngine-->>KeeperAgent: validated
-        ConsensusEngine-->>OtherAgents: validated
+        KeeperAgentInstance->>ConsensusEngine: validate
+        OtherAgentInstances->>ConsensusEngine: validate
+        ConsensusEngine-->>KeeperAgentInstance: validated
+        ConsensusEngine-->>OtherAgentInstances: validated
 
-        Note left of KeeperAgent: End
+        Note left of KeeperAgentInstance: End
 
-        KeeperAgent->>KeeperAgent: end
-        OtherAgents->>OtherAgents: end
+        KeeperAgentInstance->>KeeperAgentInstance: end
+        OtherAgentInstances->>OtherAgentInstances: end
 
-        deactivate KeeperAgent
+        deactivate KeeperAgentInstance
         deactivate ConsensusEngine
-        deactivate OtherAgents
+        deactivate OtherAgentInstances
         deactivate Blockchain
         deactivate PriceAPI
         deactivate RandomnessSource

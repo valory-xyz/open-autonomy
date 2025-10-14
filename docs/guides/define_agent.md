@@ -1,5 +1,5 @@
-The next step consists in defining the service agent. All agents in the service share the same code base.
-However, each operator can configure their agent instance. For example, in an oracle service,
+The next step consists in defining the AI agent. All agent instances in the AI agent share the same code base (blueprint).
+However, each operator can configure their agent instance. For example, in an oracle AI agent,
 each operator can define a different data provider.
 
 <figure markdown>
@@ -9,31 +9,31 @@ each operator can define a different data provider.
 
 ## What you will learn
 
-This guide covers step 3 of the [development process](./overview_of_the_development_process.md). You will learn how to define the service agent, how to add the {{fsm_app}}, and how to add other existing components required by your agent.
+This guide covers step 3 of the [development process](./overview_of_the_development_process.md). You will learn how to define the AI agent, how to add the {{fsm_app}}, and how to add other existing components required by your agent blueprint.
 
 You must ensure that your machine satisfies the [framework requirements](./set_up.md#requirements), you have [set up the framework](./set_up.md#set-up-the-framework), and you have a local registry [populated with some default components](./overview_of_the_development_process.md#populate-the-local-registry-for-the-guides). As a result you should have a Pipenv workspace folder with an initialized local registry (`./packages`) in it.
 
 ## Step-by-step instructions
 
-In order to deploy and run a service you need an agent with a working {{fsm_app}}. We base this guide on a default {{fsm_app}} available in the remote registry, namely, the `hello_world_abci` {{fsm_app}}. As a result, we will define an agent implementing a functionality equivalent to the [Hello World service](https://stack.olas.network/demos/hello-world/). You can, of course, use your own {{fsm_app}} to define your agent.
+In order to deploy and run an AI agent you need an agent blueprint with a working {{fsm_app}}. We base this guide on a default {{fsm_app}} available in the remote registry, namely, the `hello_world_abci` {{fsm_app}}. As a result, we will define an agent blueprint implementing a functionality equivalent to the [Hello World AI agent](https://stack.olas.network/demos/hello-world/). You can, of course, use your own {{fsm_app}} to define your agent blueprint.
 
 !!! warning "Important"
 
-    If you have just [scaffolded an {{fsm_app}} in the previous step](./code_fsm_app_skill.md) but you didn't complete coding the business logic, then an agent that uses that {{fsm_app}} will fail to run. For this reason, we recommend that you use the `hello_world_abci` {{fsm_app}} in a first read of this guide.
+    If you have just [scaffolded an {{fsm_app}} in the previous step](./code_fsm_app_skill.md) but you didn't complete coding the business logic, then an agent blueprint that uses that {{fsm_app}} will fail to run. For this reason, we recommend that you use the `hello_world_abci` {{fsm_app}} in a first read of this guide.
 
-1. **Ensure that the components required by your agent are in the local registry.** All the required components by your agent and their dependencies must be downloaded to the local registry. You can read [how to add missing components to the local registry](#).
+1. **Ensure that the components required by your agent blueprint are in the local registry.** All the required components by your agent blueprint and their dependencies must be downloaded to the local registry. You can read [how to add missing components to the local registry](#).
 If you have [populated the local registry](./overview_of_the_development_process.md#populate-the-local-registry-for-the-guides) with the required components to follow these guides, you do not need to take any further action.
 
-2. **Create the agent configuration file.** Create a folder for your agent in the local registry (`./packages`). Pay attention to the correct format of the folder:
+2. **Create the agent blueprint configuration file.** Create a folder for your agent blueprint in the local registry (`./packages`). Pay attention to the correct format of the folder:
 
     ```bash
-    mkdir -p ./packages/your_name/agents/your_agent/
+    mkdir -p ./packages/your_name/agents/your_agent_blueprint/
     ```
 
-    Within the agent folder, create the agent configuration file `aea-config.yaml`:
+    Within the agent folder, create the agent blueprint configuration file `aea-config.yaml`:
 
     ```bash
-    touch ./packages/your_name/agents/your_agent/aea-config.yaml
+    touch ./packages/your_name/agents/your_agent_blueprint/aea-config.yaml
     ```
 
     This file must contain:
@@ -45,32 +45,32 @@ If you have [populated the local registry](./overview_of_the_development_process
             Ensure that `author` and `agent_name` match the path within the local registry.
 
       * A reference to the {{fsm_app}} skill.
-      * References to other components required by the agent (or dependencies of the {{fsm_app}} skill), under the relevant sections.
+      * References to other components required by the agent blueprint (or dependencies of the {{fsm_app}} skill), under the relevant sections.
 
         !!! warning "Important"
 
-            There are a number of components which are mandatory for agents that are part of a service:
+            There are a number of components which are mandatory for agent blueprints that are part of an AI agent:
 
             * Connections: `valory/abci`.
             * Protocols: `open_aea/signing`, `valory/abci`, `valory/acn`(*).
             * Skills: `valory/abstract_abci`, `valory/abstract_round_abci`, `valory/termination_abci`(*).
 
-            (*) Components required only if the service is minted in the {{ autonolas_protocol }}.
+            (*) Components required only if the AI agent is minted in the {{ autonolas_protocol }}.
 
       * Configuration overrides that specify values for component parameters. These overrides are separated by YAML document separators `---` and will be discussed in a further section.
 
     ???+ example "Example of an `aea-config.yaml` file"
 
-        This is a complete example of an agent configuration file that uses the `hello_world_abci` {{fsm_app}} and overrides some required component parameters. 
+        This is a complete example of an agent blueprint configuration file that uses the `hello_world_abci` {{fsm_app}} and overrides some required component parameters. 
 
         You will notice that there are a lot of parameters to be configured for the required components. For an initial read of this guide, you can ignore these parameters, but it is important that you identify how the references to the particular component parameter being overridden.
 
         ```yaml title="aea-config.yaml"
-        agent_name: your_agent
+        agent_name: your_agent_blueprint
         author: your_name
         version: 0.1.0
         license: Apache-2.0
-        description: Example of an agent.
+        description: Example of an agent blueprint.
         aea_version: '>=2.0.0, <3.0.0'
         fingerprint: {}
         fingerprint_ignore_patterns: []
@@ -190,19 +190,19 @@ If you have [populated the local registry](./overview_of_the_development_process
         is_abstract: true
         ```
 
-    You should also create a `README.md` file with the description of your agent in plain text or Markdown format:
+    You should also create a `README.md` file with the description of your agent blueprint in plain text or Markdown format:
 
     ```bash
-    echo "Your agent description." > ./packages/your_name/agents/your_agent/README.md
+    echo "Your agent blueprint description." > ./packages/your_name/agents/your_agent_blueprint/README.md
     ```
 
-3. **Create an entry for your agent in the local registry.** Add the corresponding entry to the local registry index file (`./packages/packages.json`). You must add the entry to the `dev` section, because it is a component being developed by you. You can use a placeholder for its hash value, as it will be corrected afterwards:
+3. **Create an entry for your agent blueprint in the local registry.** Add the corresponding entry to the local registry index file (`./packages/packages.json`). You must add the entry to the `dev` section, because it is a component being developed by you. You can use a placeholder for its hash value, as it will be corrected afterwards:
 
     <!-- Use js instead of json lexer to support mkdocs-material comment features -->
     ```js
     {
       "dev": {
-        "agent/your_name/your_agent/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
+        "agent/your_name/your_agent_blueprint/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
         /* (1)! */
       },
       "third_party": {
@@ -220,15 +220,15 @@ If you have [populated the local registry](./overview_of_the_development_process
     autonomy packages lock
     ```
 
-4. **(Optional) Run and test the agent locally.** We will show you how to run a service deployment with multiple agents in the next guide. However, you can also run a standalone version (that is, without being part of a service) of the agent you have created. This can be useful to test and debug certain features quickly. Below we will be using the `valory/hello_world` agent, but you can replace it by `your_name/your_agent` accordingly.
+4. **(Optional) Run and test the agent instance locally.** We will show you how to run an AI agent deployment with multiple agent instances in the next guide. However, you can also run a standalone version (that is, without being part of an AI agent) of the agent blueprint you have created. This can be useful to test and debug certain features quickly. Below we will be using the `valory/hello_world` agent blueprint, but you can replace it by `your_name/your_agent_blueprint` accordingly.
 
-      1. In the workspace folder, fetch the agent from the local registry:
+      1. In the workspace folder, fetch the agent blueprint from the local registry:
 
          ```bash
          autonomy fetch valory/hello_world:0.1.0 --local
          ```
 
-      2. Provision your agent with an Ethereum private key:
+      2. Provision your agent instance with an Ethereum private key:
 
          ```bash
          cd hello_world
@@ -236,7 +236,7 @@ If you have [populated the local registry](./overview_of_the_development_process
          autonomy add-key ethereum your_agent_key.txt
          ```
 
-         If your agent is using an {{fsm_app}}, you also need to override the variable `all_participants` in the `aea-config.yaml` file with the wallet address of this private key as follows:
+         If your agent blueprint is using an {{fsm_app}}, you also need to override the variable `all_participants` in the `aea-config.yaml` file with the wallet address of this private key as follows:
 
          ```yaml title="aea-config.yaml"
          # (...)
@@ -245,21 +245,21 @@ If you have [populated the local registry](./overview_of_the_development_process
 
          <span style="color:red">**WARNING: Use this key for testing purposes only. Never use keys or addresses provided in this example in a production environment or for personal use.**</span>
 
-      3. Run your agent:
+      3. Run your agent instance:
 
          ```bash
          autonomy -s run #(1)!
          ```
 
-         1. The `-s` flag will skip consistency checks of agent during command execution. This is required because the `aea-config.yaml` file was modified.
+         1. The `-s` flag will skip consistency checks of agent blueprint during command execution. This is required because the `aea-config.yaml` file was modified.
 
-         At this point, you may notice that your agent requires specific Python packages to be installed. For the `valory/hello_world` agent, you can do so by executing:
+         At this point, you may notice that your agent blueprint requires specific Python packages to be installed. For the `valory/hello_world` agent blueprint, you can do so by executing:
 
          ```bash
          pip install hypothesis grpcio typing-extensions py-ecc asn1crypto
          ```
 
-         You can retry running your agent afterwards.
+         You can retry running your agent instance afterwards.
 
       4. On a separate terminal, open a Tendermint node:
 
@@ -271,7 +271,4 @@ If you have [populated the local registry](./overview_of_the_development_process
 
          1. This will prevent errors caused by dirty files from earlier executions of Tendermint. Ensure that you don't want to keep these files.
 
-    At this point, you should see how your agent runs and exchanges messages with the Tendermint node. Note that, while running an isolated agent might be useful to quickly test and debug certain functionalities, you need to build and test a whole service deployment to ensure that it works as intended.
-
-
-
+    At this point, you should see how your agent instance runs and exchanges messages with the Tendermint node. Note that, while running an isolated agent instance might be useful to quickly test and debug certain functionalities, you need to build and test a whole AI agent deployment to ensure that it works as intended.

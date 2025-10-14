@@ -6,7 +6,7 @@ description: ABCI application for transaction settlement.
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeihvqvbj2tiiyimz3e27gqhb7ku5rut7hycfahi4qle732kvj5fs7q
+  README.md: bafybeifncfigylkkbu5hytmxebc7nbk5dqwr53ekxaxcd5knqjbx6ual4u
   __init__.py: bafybeicyrp6x2efg43gfdekxuofrlidc3w6aubzmyioqwnryropp6u7sby
   behaviours.py: bafybeiaxwhflifdxbhkwofdrn6blapewieaflgrucfp2jfmqzt3al7min4
   dialogues.py: bafybeigabhaykiyzbluu4mk6bbrmqhzld2kyp32pg24bvjmzrrb74einwm

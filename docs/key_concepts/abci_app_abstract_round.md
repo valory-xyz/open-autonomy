@@ -9,13 +9,13 @@ The `AbstractRound` class is the parent class of all the `Round` subclasses of a
 
 For convenience, the {{open_autonomy}} framework provides a collection of helper classes that derive from the `AbstractRound` class that represent common situations when defining custom rounds. This way the developer is freed from having to implement the `check_payload()` and `process_payload()` methods above. These classes are:
 
-  - `CollectDifferentUntilAllRound`: This class represents logic for rounds where a round needs to collect different payloads from each agent.
-  - `CollectSameUntilAllRound`:     This class represents logic for when a round needs to collect the same payload from all the agents.
-  - `CollectSameUntilThresholdRound`:     This class represents logic for rounds where a round needs to collect same payload from $k$ of $n$ agents.
-  - `OnlyKeeperSendsRound`: This class represents logic for rounds where only one agent sends a payload.
-  - `VotingRound`: This class represents logic for rounds where a round needs votes from agents, pass if $k$ same votes of $n$ agents.
-  - `CollectDifferentUntilThresholdRound`: This class represents logic for rounds where a round needs to collect different payloads from $k$ of $n$ agents
-  - `CollectNonEmptyUntilThresholdRound`:     This class represents logic for rounds where we need to collect payloads from each agent which will contain optional, different data and only keep the non-empty. This round may be used for cases that we want to collect all the agent's data, such as late-arriving messages.
+  - `CollectDifferentUntilAllRound`: This class represents logic for rounds where a round needs to collect different payloads from each agent instance.
+  - `CollectSameUntilAllRound`:     This class represents logic for when a round needs to collect the same payload from all the agent instances.
+  - `CollectSameUntilThresholdRound`:     This class represents logic for rounds where a round needs to collect same payload from $k$ of $n$ agent instances.
+  - `OnlyKeeperSendsRound`: This class represents logic for rounds where only one agent instance sends a payload.
+  - `VotingRound`: This class represents logic for rounds where a round needs votes from agent instances, pass if $k$ same votes of $n$ agent instances.
+  - `CollectDifferentUntilThresholdRound`: This class represents logic for rounds where a round needs to collect different payloads from $k$ of $n$ agent instances
+  - `CollectNonEmptyUntilThresholdRound`:     This class represents logic for rounds where we need to collect payloads from each agent instance which will contain optional, different data and only keep the non-empty. This round may be used for cases that we want to collect all the agent's data, such as late-arriving messages.
 
 
 Thus, an example on how these classes are used is as follows:

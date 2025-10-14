@@ -5,7 +5,7 @@ description: The abstract ABCI AEA - for testing purposes only.
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeialqqea4ivqoc22bdfjgt6qnungfz26457q4cumujbuwinrg3ogky
+  README.md: bafybeidou2hm6dxqiuc4y3nbblq3loorcoo5aiuwshfgk2pizybx3bsubq
   __init__.py: bafybeif3jvuzkmlibl6ufntm7b7pzy7dlw4fop5bqymmpcgcbwfna7ca44
   tests/__init__.py: bafybeiacoxpgjdkxogh4wbglh4n66jigwbuh2vnuzdfqjwlmvtj2eghf3m
   tests/test_abstract_abci.py: bafybeic4hileugdjd6bwy4n5beqrjo5auwalz5twt3lyx6m62kb65nc6ca
