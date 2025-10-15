@@ -49,7 +49,7 @@ class TestAddresses:
     @pytest.mark.parametrize(argnames="chain", argvalues=list(ChainType))
     def test_addresses_match(self, chain: ChainType) -> None:
         """Test addresses match with the remote file."""
-        if chain in (ChainType.LOCAL, ChainType.CUSTOM):
+        if chain in (ChainType.LOCAL, ChainType.CUSTOM, ChainType.SOLANA):
             return
 
         if chain == ChainType.ETHEREUM:

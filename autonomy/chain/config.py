@@ -24,7 +24,11 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Optional, cast
 
-from autonomy.chain.constants import CHAIN_NAME_TO_CHAIN_ID, CHAIN_PROFILES
+from autonomy.chain.constants import (
+    CHAIN_ID_TO_CHAIN_NAME,
+    CHAIN_NAME_TO_CHAIN_ID,
+    CHAIN_PROFILES,
+)
 
 
 DEFAULT_LOCAL_RPC = "http://127.0.0.1:8545"
@@ -41,6 +45,28 @@ def _get_chain_id_for_custom_chain() -> Optional[int]:
     return int(chain_id)
 
 
+class LedgerType(str, Enum):
+    """Ledger type enum."""
+
+    ETHEREUM = "ethereum"
+    SOLANA = "solana"
+
+    @property
+    def config_file(self) -> str:
+        """Config filename."""
+        return f"{self.name.lower()}.json"
+
+    @property
+    def key_file(self) -> str:
+        """Key filename."""
+        return f"{self.name.lower()}.txt"
+
+    @classmethod
+    def from_id(cls, chain_id: int) -> "LedgerType":
+        """Load from chain ID."""
+        return Chain.from_id(chain_id).ledger_type
+
+
 class ChainType(Enum):
     """Chain types."""
 
@@ -54,13 +80,17 @@ class ChainType(Enum):
     BASE = "base"
     CELO = "celo"
     MODE = "mode"
+    SOLANA = "solana"
 
     @property
     def id(self) -> Optional[int]:
         """Chain ID"""
         if self == ChainType.CUSTOM:
             return _get_chain_id_for_custom_chain()
-        return CHAIN_NAME_TO_CHAIN_ID[self.value]
+        try:
+            return CHAIN_NAME_TO_CHAIN_ID[self.value]
+        except KeyError as e:
+            raise ValueError(f"{self.name} does not support a chain ID") from e
 
     @property
     def rpc(self) -> Optional[str]:
@@ -75,6 +105,26 @@ class ChainType(Enum):
         if self == ChainType.CUSTOM:
             return f"{self.value}_rpc".upper()
         return f"{self.value}_chain_rpc".upper()
+
+    @property
+    def ledger_type(self) -> LedgerType:
+        """Ledger type."""
+        if self in (Chain.SOLANA,):
+            return LedgerType.SOLANA
+        return LedgerType.ETHEREUM
+
+    @classmethod
+    def from_string(cls, chain: str) -> "Chain":
+        """Load from string."""
+        return Chain(chain.lower())
+
+    @classmethod
+    def from_id(cls, chain_id: int) -> "Chain":
+        """Load from chain ID."""
+        try:
+            return Chain(CHAIN_ID_TO_CHAIN_NAME[chain_id])
+        except KeyError as e:
+            raise ValueError(f"Chain ID not found: {chain_id}") from e
 
 
 Chain = ChainType
