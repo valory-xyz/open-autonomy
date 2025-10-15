@@ -25,6 +25,7 @@ from typing import Any, Callable
 from unittest import mock
 
 import pytest
+from aea_ledger_ethereum import GAS_STATION
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 from requests.exceptions import ConnectionError as RequestsConnectionError
 
@@ -86,7 +87,14 @@ def test_retriable_exception(logger: Logger) -> None:
             return {}
 
     settler = TxSettler(
-        ledger_api=mock.Mock(),
+        ledger_api=mock.Mock(
+            send_signed_transaction=mock.Mock(return_value="0x123"),
+            try_get_gas_pricing=lambda **kwargs: {
+                "maxFeePerGas": 100,
+                "maxPriorityFeePerGas": 100,
+            },
+            update_with_gas_estimate=lambda tx: tx,
+        ),
         crypto=mock.Mock(),
         chain_type=ChainType.LOCAL,
         tx_builder=_retriable_method(),
@@ -134,15 +142,21 @@ def test_repricing(
     def _raise_fee_too_low(tx_signed: Any, **kwargs: Any) -> None:
         if tx_signed["maxFeePerGas"] == 110:
             return
-        raise Exception("FeeTooLow")
+        raise ValueError("gas too low: gas 1, minimum needed 21644")
 
-    def _reprice(old_price: Any, **kwargs: Any) -> Any:
+    state = {"first_reprice_call": True}
+
+    def _reprice(**kwargs: Any) -> Any:
+        if state["first_reprice_call"]:
+            state["first_reprice_call"] = False
+            return {"maxFeePerGas": 1, "maxPriorityFeePerGas": 1}
         return {"maxFeePerGas": 110, "maxPriorityFeePerGas": 110}
 
     settler = TxSettler(
         ledger_api=mock.Mock(
             send_signed_transaction=_raise_fee_too_low,
             try_get_gas_pricing=_reprice,
+            update_with_gas_estimate=lambda tx: tx,
         ),
         crypto=mock.Mock(
             sign_transaction=lambda transaction: transaction,
@@ -152,7 +166,7 @@ def test_repricing(
     )
     settler.transact()
     logger.warning.assert_called_with(  # type: ignore[attr-defined]
-        "Low gas error: FeeTooLow; Repricing the transaction..."
+        "Low gas error: gas too low: gas 1, minimum needed 21644; Repricing the transaction..."
     )
 
 
@@ -176,6 +190,11 @@ def test_already_known(mock_already_known: Callable[[], bool]) -> None:
     settler = TxSettler(
         ledger_api=mock.Mock(
             send_signed_transaction=_raise(),
+            try_get_gas_pricing=lambda **kwargs: {
+                "maxFeePerGas": 100,
+                "maxPriorityFeePerGas": 100,
+            },
+            update_with_gas_estimate=lambda tx: tx,
         ),
         crypto=mock.Mock(
             sign_transaction=lambda transaction: transaction,
@@ -213,6 +232,11 @@ def test_should_rebuild_with_oldnonce(capsys: Any, error: str) -> None:
     settler = TxSettler(
         ledger_api=mock.Mock(
             send_signed_transaction=_raise(),
+            try_get_gas_pricing=lambda **kwargs: {
+                "maxFeePerGas": 100,
+                "maxPriorityFeePerGas": 100,
+            },
+            update_with_gas_estimate=lambda tx: tx,
         ),
         crypto=mock.Mock(
             sign_transaction=lambda transaction: transaction,
@@ -255,7 +279,13 @@ def test_programming_errors() -> None:
     """Test programming errors."""
 
     settler = TxSettler(
-        ledger_api=mock.Mock(),
+        ledger_api=mock.Mock(
+            try_get_gas_pricing=lambda **kwargs: {
+                "maxFeePerGas": 100,
+                "maxPriorityFeePerGas": 100,
+            },
+            update_with_gas_estimate=lambda tx: tx,
+        ),
         crypto=mock.Mock(),
         chain_type=ChainType.LOCAL,
         tx_builder=lambda: {"from": "0x123", "to": "0x456", "value": 100},
@@ -390,26 +420,22 @@ class TestTxSetterOnChain(BaseChainInteractionTest):
     def test_different_tx_sent_twice(self, mock_logger: mock.Mock) -> None:
         """Test different tx sent twice."""
 
-        first_nonce = None
-        second_nonce = None
+        state = {"first_nonce": None, "second_nonce": None}
 
         def _build_tx() -> dict:
-            nonlocal first_nonce, second_nonce
-            if first_nonce is None:
-                first_nonce = self.ledger_api.api.eth.get_transaction_count(
+            if state["first_nonce"] is None:
+                state["first_nonce"] = self.ledger_api.api.eth.get_transaction_count(
                     self.crypto.address
                 )
             else:
-                second_nonce = self.ledger_api.api.eth.get_transaction_count(
+                state["second_nonce"] = self.ledger_api.api.eth.get_transaction_count(
                     self.crypto.address
                 )
             return {
-                "nonce": second_nonce or first_nonce,
+                "nonce": state["second_nonce"] or state["first_nonce"],
                 "from": self.crypto.address,
                 "to": self.crypto.address,
                 "value": 10**18,
-                "gas": 21000,
-                "gasPrice": self.ledger_api.api.eth.gas_price,
             }
 
         settler = TxSettler(
@@ -422,23 +448,37 @@ class TestTxSetterOnChain(BaseChainInteractionTest):
         settler.transact()
         settler.transact()  # should not raise
         mock_logger.warning.assert_not_called()
-        assert second_nonce == first_nonce + 1  # type: ignore[operator]
+        assert state["second_nonce"] == state["first_nonce"] + 1  # type: ignore[operator]
 
     @mock.patch("autonomy.chain.tx.logger")
     def test_underpriced_tx_to_get_repriced(self, mock_logger: mock.Mock) -> None:
         """Test underpriced tx to get repriced."""
-        # Wrap try_get_gas_pricing to count calls while preserving original logic
         original_try_get_gas_pricing = self.ledger_api.try_get_gas_pricing
-        call_count = 0
-        call_args = None
+        original_update_with_gas_estimate = self.ledger_api.update_with_gas_estimate
+        state = {
+            "try_get_gas_pricing_call_count": 0,
+            "try_update_with_gas_estimate_call_count": 0,
+            "first_call": True,
+        }
 
-        def wrapped_try_get_gas_pricing(*args: Any, **kwargs: Any) -> Any:
-            nonlocal call_count, call_args
-            call_count += 1
-            call_args = (args, kwargs)
-            return original_try_get_gas_pricing(*args, **kwargs)
+        def _get_try_get_gas_pricing_mock() -> Callable:
+            def _mock_try_get_gas_pricing(**kwargs: Any) -> dict:
+                state["try_get_gas_pricing_call_count"] += 1
+                kwargs["gas_price_strategy"] = GAS_STATION
+                gas_pricing = original_try_get_gas_pricing(**kwargs)
+                if state["first_call"]:
+                    gas_pricing["gasPrice"] = (
+                        1  # very low gas price to trigger repricing
+                    )
+                    state["first_call"] = False
 
-        self.ledger_api.try_get_gas_pricing = wrapped_try_get_gas_pricing
+                return gas_pricing
+
+            return _mock_try_get_gas_pricing
+
+        def _update_with_gas_estimate_mock(tx: dict) -> dict:
+            state["try_update_with_gas_estimate_call_count"] += 1
+            return original_update_with_gas_estimate(tx)
 
         settler = TxSettler(
             ledger_api=self.ledger_api,
@@ -451,10 +491,10 @@ class TestTxSetterOnChain(BaseChainInteractionTest):
                 "from": self.crypto.address,
                 "to": self.crypto.address,
                 "value": 10**18,
-                "gas": 21000,
-                "gasPrice": 1,  # very low
             },
         )
+        settler.ledger_api.try_get_gas_pricing = _get_try_get_gas_pricing_mock()
+        settler.ledger_api.update_with_gas_estimate = _update_with_gas_estimate_mock
 
         settler.transact()
 
@@ -463,9 +503,9 @@ class TestTxSetterOnChain(BaseChainInteractionTest):
             "Transaction gasPrice (1) is too low for the next block"
             in mock_logger.warning.call_args[0][0]
         )
-        assert call_count == 1
-        assert call_args == (
-            (),
-            {"old_price": {"gasPrice": 1}, "gas_price_strategy": "gas_station"},
-        )
+        assert state["try_update_with_gas_estimate_call_count"] == 2
+        assert state["try_get_gas_pricing_call_count"] == 3
         assert settler.tx_hash is not None
+
+        settler.settle()
+        assert settler.tx_receipt is not None

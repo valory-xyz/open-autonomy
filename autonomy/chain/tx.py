@@ -51,18 +51,22 @@ DEFAULT_MISSING_EVENT_EXCEPTION = Exception(
     "Could not verify transaction. Event not found."
 )
 
-ERRORS_TO_RETRY = (
+ERRORS_TO_REPRICE = {
     "feetoolow",
     "is too low for the next block",
+    "replacementnotallowed",
+    "gas too low",
+}
+
+ERRORS_TO_RETRY = ERRORS_TO_REPRICE | {
     "wrong transaction nonce",
     "nonce too low",
     "got empty transaction",
     "alreadyknown",
     "already_exists",
     "already known",
-    "replacementnotallowed",
     "oldnonce",
-)
+}
 
 
 def should_retry(error: str) -> bool:
@@ -77,11 +81,10 @@ def should_retry(error: str) -> bool:
 def should_reprice(error: str) -> bool:
     """Check an error message to check if we should reprice the transaction"""
     error = error.lower()
-    return (
-        "feetoolow" in error
-        or "is too low for the next block" in error
-        or "replacementnotallowed" in error
-    )
+    for _error in ERRORS_TO_REPRICE:
+        if _error in error:
+            return True
+    return False
 
 
 def already_known(error: str) -> bool:
@@ -115,23 +118,26 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
         self.retries = retries or DEFAULT_ON_CHAIN_INTERACT_RETRIES
         self.sleep = sleep or DEFAULT_ON_CHAIN_INTERACT_SLEEP
 
+    def _get_preferred_gas_price_strategy(self, tx_dict: dict) -> str | None:
+        """Get the preferred gas price strategy based on tx_dict fields."""
+        if "maxFeePerGas" in tx_dict and "maxPriorityFeePerGas" in tx_dict:
+            return "eip1559"
+
+        if "gasPrice" in tx_dict:
+            return "gas_station"
+
+        return None
+
     def _reprice(self, tx_dict: Dict) -> Optional[Dict]:
         """Reprice transaction."""
-        if "maxFeePerGas" in tx_dict and "maxPriorityFeePerGas" in tx_dict:
-            gas_price_strategy = "eip1559"
+        gas_price_strategy = self._get_preferred_gas_price_strategy(tx_dict)
+        if gas_price_strategy == "eip1559":
             old_price = {
-                "maxFeePerGas": tx_dict[  # pylint: disable=unsubscriptable-object
-                    "maxFeePerGas"
-                ],
-                "maxPriorityFeePerGas": tx_dict[  # pylint: disable=unsubscriptable-object
-                    "maxPriorityFeePerGas"
-                ],
+                "maxFeePerGas": tx_dict["maxFeePerGas"],
+                "maxPriorityFeePerGas": tx_dict["maxPriorityFeePerGas"],
             }
-        elif "gasPrice" in tx_dict:
-            gas_price_strategy = "gas_station"
-            old_price = {
-                "gasPrice": tx_dict["gasPrice"]
-            }  # pylint: disable=unsubscriptable-object
+        elif gas_price_strategy == "gas_station":
+            old_price = {"gasPrice": tx_dict["gasPrice"]}
         else:
             # This means something went wrong when building the transaction
             # returning a None value to the main loop will tell the main loop
@@ -160,6 +166,19 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
                 if dry_run:  # Return with only the transaction dict on dry-run
                     return self
 
+                self.tx_dict.update(
+                    self.ledger_api.try_get_gas_pricing(
+                        gas_price_strategy=self._get_preferred_gas_price_strategy(
+                            self.tx_dict
+                        ),
+                    )
+                )
+                self.tx_dict = self.ledger_api.update_with_gas_estimate(
+                    {
+                        **self.tx_dict,
+                        "gas": self.tx_dict.get("gas", 0),
+                    }
+                )
                 tx_signed = self.crypto.sign_transaction(transaction=self.tx_dict)
                 self.tx_hash = self.ledger_api.send_signed_transaction(
                     tx_signed=tx_signed,
