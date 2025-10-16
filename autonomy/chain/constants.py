@@ -211,7 +211,9 @@ CHAIN_NAME_TO_CHAIN_ID = {
     "celo": 42220,
     "mode": 34443,
 }
-
+CHAIN_ID_TO_CHAIN_NAME = {
+    chain_id: chain_name for chain_name, chain_id in CHAIN_NAME_TO_CHAIN_ID.items()
+}
 # Contract PublicIds
 COMPONENT_REGISTRY_CONTRACT = PublicId.from_str("valory/component_registry")
 AGENT_REGISTRY_CONTRACT = PublicId.from_str("valory/agent_registry")
