@@ -1,7 +1,7 @@
 The first task when designing an AI agent is to describe its business logic into a [finite-state machine (FSM)](../key_concepts/fsm.md). You must be able to identify the different states of the AI agent, and what are the events that trigger a change from one state to another.
 
 <figure markdown>
-![](../images/development_process_draft_service_idea_and_define_fsm_specification.svg.svg)
+![](../images/development_process_draft_service_idea_and_define_fsm_specification.svg)
 <figcaption>Part of the development process covered in this guide</figcaption>
 </figure>
 
