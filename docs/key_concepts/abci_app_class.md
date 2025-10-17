@@ -74,8 +74,8 @@ Some of its methods relate to concepts discussed in the [FSM section](./fsm.md):
   block. This is the only form of time synchronization that exists in this
   system of asynchronously operating AEAs, an understanding of which is
   indispensable to a developer that needs to implement any sort of
-  [time-based](https://open-aea.docs.autonolas.tech/agent-oriented-development/#time)
-  logic as part of their agents' behaviour.
+  [time-based](https://stack.olas.network/open-aea/agent-oriented-development/#time)
+  logic as part of their agent blueprints' behaviour.
 
 
 A concrete implementation of a subclass of `AbciApp` looks as follows:

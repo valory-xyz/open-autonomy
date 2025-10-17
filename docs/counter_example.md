@@ -1,7 +1,7 @@
-# Counter Agent Service Demo
+# Counter AI Agent Demo
 
-This demo shows how to run an agent service implementing a counter.
-It is a simple example that illustrates how state-machine replication is achieved across different agents through the consensus gadget, which is Tendermint, in this case. Note that, unlike the remaining demos, due to its simplicity, the business logic of this service is not encoded as an {{fsm_app}}. Rather, it is implemented as a simple skill (`counter`) containing an `ABCIHandler`. The skill does not contain proactive behaviours, which means that no client calls are made to the consensus gadget.
+This demo shows how to run an AI agent implementing a counter.
+It is a simple example that illustrates how state-machine replication is achieved across different agent instances through the consensus gadget, which is Tendermint, in this case. Note that, unlike the remaining demos, due to its simplicity, the business logic of this AI agent is not encoded as an {{fsm_app}}. Rather, it is implemented as a simple skill (`counter`) containing an `ABCIHandler`. The skill does not contain proactive behaviours, which means that no client calls are made to the consensus gadget.
 
 ## Architecture of the Demo
 
@@ -18,18 +18,18 @@ node.
 
 
 ## Running the Demo
-The steps below will guide you to download the counter agent service configuration from the Service Registry, build and run a deployment that will run locally.
+The steps below will guide you to download the counter AI agent configuration from the Service Registry, build and run a deployment that will run locally.
 
-1. Ensure that your machine satisfies the [framework requirements](guides/quick_start.md#requirements) and that
-you have followed the [setup instructions](guides/quick_start.md#setup). As a result you should have a Pipenv workspace folder.
+1. Ensure that your machine satisfies the [framework requirements](guides/set_up.md#requirements) and that
+you have followed the [setup instructions](guides/set_up.md#set-up-the-framework). As a result you should have a Pipenv workspace folder.
 
-2. Use the CLI to download the `valory/counter` service.
+2. Use the CLI to download the `valory/counter` AI agent.
     ```bash
-    autonomy fetch valory/counter:0.1.0:bafybeiesagnrylgatqiozvnea25f2z6sxsa7v2qqhzpzwpx3rdsbar7zvi --remote --service
+    autonomy fetch valory/counter:0.1.0:bafybeifep42udnc6sxyxogwkybdypsvvlr4x4k7rp72vvncwn2eyrtavha --remote --service
     cd counter
     ```
 
-3. Inside the workspace folder, create a JSON file `keys.json` containing the addresses and keys of the four agents that are
+3. Inside the workspace folder, create a JSON file `keys.json` containing the addresses and keys of the four agent instances that are
    part of this demo. Below you have a sample `keys.json` file that you can use for testing.
 
     !!! warning "Important"
@@ -60,16 +60,16 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
     ```bash
     autonomy build-image
     ```
-    The command above generates the required images to run the agent service.
+    The command above generates the required images to run the AI agent.
 
-5. Build a deployment setup for the demo service:
+5. Build a deployment setup for the demo AI agent:
     ```bash
     autonomy deploy build keys.json -ltm
     ```
 
-    This will build the deployment setup required to run the service locally.
+    This will build the deployment setup required to run the AI agent locally.
     !!!note
-        It is also possible to generate a deployment using a local service configuration. See the Commands section for the complete details.
+        It is also possible to generate a deployment using a local AI agent configuration. See the Commands section for the complete details.
 
 6. The build configuration will be located in `./abci_build_*`. Run the deployment using
     ```bash
@@ -77,32 +77,32 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
     autonomy deploy run
     ```
 
-    This will deploy a local counter service with four agents connected to four Tendermint nodes.
+    This will deploy a local counter AI agent with four agent instances connected to four Tendermint nodes.
 
-7. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
+7. The logs of a single agent instance or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
     ```bash
     docker logs <container_id> --follow
     ```
-    where `<container_id>` refers to the Docker container ID for either an agent
+    where `<container_id>` refers to the Docker container ID for either an agent instance
     (`abci0`, `abci1`, `abci2` and `abci3`) or a Tendermint node (`node0`, `node1`, `node2` and `node3`).
 
 
 
 ## Interacting with the Demo
 
-Recall that each agent has the skill `counter`, and the consensus gadget (Tendermint) manages the consensus protocol for incoming transactions. The `counter` skill implements the `ABCICounterHandler` which receives (and responds to) callbacks from the Tendermint network when certain events happen, in particular, when a client sends a transaction to the local blockchain managed by Tendermint.
+Recall that each agent instance has the skill `counter`, and the consensus gadget (Tendermint) manages the consensus protocol for incoming transactions. The `counter` skill implements the `ABCICounterHandler` which receives (and responds to) callbacks from the Tendermint network when certain events happen, in particular, when a client sends a transaction to the local blockchain managed by Tendermint.
 
-Once the agent service is up, you can interact with it.
+Once the AI agent is up, you can interact with it.
 The four Tendermint nodes, `node0`, `node1`, `node2`, and `node3`, are listening at ports `26657`, `26667`, `26677`, and `26687`, respectively.
-To query the state of the service from Tendermint `node0`, execute the following HTTP request:
+To query the state of the AI agent from Tendermint `node0`, execute the following HTTP request:
 
 ```
 curl http://localhost:26657/abci_query
 ```
 
 What will happen behind the scenes is that the Tendermint node `node0`
-will send a `request_query` ABCI request to the agent `abci0` which will be handled by the `ABCICounterHandler`. The handler will reply
-with a `response_query` ABCI response, containing the current state of the service.
+will send a `request_query` ABCI request to the agent instance `abci0` which will be handled by the `ABCICounterHandler`. The handler will reply
+with a `response_query` ABCI response, containing the current state of the AI agent.
 
 The response to this HTTP request above is:
 ```
@@ -284,10 +284,10 @@ First, open a terminal to the root of this repository,
 and fetch the `counter_client` agent:
 
 ```bash
-autonomy fetch valory/counter_client:0.1.0:bafybeiee3ecoled6fbrhlrubr646zfcd7ilr3fixe6q6h6shskohkmavaq --remote
+autonomy fetch valory/counter_client:0.1.0:bafybeidc2gwgyhjagflbxg3d6omp3a3ocda7nkm6rir73zrkj2cug6xgya --remote
 ```
 
-This will copy the agent project in the `counter_client` directory.
+This will copy the agent blueprint project in the `counter_client` directory.
 
 Then, enter into the project, and generate a private key:
 ```bash
@@ -304,12 +304,12 @@ autonomy config get vendor.valory.skills.counter_client.models.params.args.tende
 
 It will print `localhost:26657`, i.e. `node0`.
 
-Finally, run the agent:
+Finally, run the agent instance:
 ```bash
 autonomy run
 ```
 
-The agent periodically checks the current value of the counter;
+The agent instance periodically checks the current value of the counter;
 this behaviour is implemented in the `MonitorBehaviour` of the
 `counter_client` skill.
 Moreover, it periodically sends a transaction to increment the

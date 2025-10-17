@@ -40,17 +40,17 @@
   </a>
 </p>
 
-**Open Autonomy** is a framework for the creation of **agent services**: off-chain
-autonomous services which run as a multi-agent-system (MAS) and offer enhanced functionalities
-on-chain. Agent services expand the range of operations that traditional
+**Open Autonomy** is a framework for the creation of **AI agents**: off-chain
+autonomous AI agents which run as a multi-agent-system (MAS) and offer enhanced functionalities
+on-chain. AI agents expand the range of operations that traditional
 smart contracts provide, making it possible to execute **arbitrarily complex operations**
-(such as machine-learning algorithms). Most importantly, agent services are
+(such as machine-learning algorithms). Most importantly, AI agents are
 **decentralized**, **trust-minimized**, **transparent**, and **robust**.
 
 
-## Get started developing agent services
+## Get started developing AI agents
 
-Read the [Open Autonomy documentation](https://stack.olas.network/open-autonomy/) to learn more about agent services. Follow the [set up](https://stack.olas.network/open-autonomy/guides/set_up/) and [quick start](https://stack.olas.network/open-autonomy/guides/quick_start/) guides to start building your own services.
+Read the [Open Autonomy documentation](https://stack.olas.network/open-autonomy/) to learn more about AI agents. Follow the [set up](https://stack.olas.network/open-autonomy/guides/set_up/) and [quick start](https://stack.olas.network/open-autonomy/guides/quick_start/) guides to start building your own AI agents.
 
 
 ## For developers contributing to the framework: install from source

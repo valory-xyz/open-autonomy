@@ -10,7 +10,7 @@ Ensure that your machine satisfies the following requirements:
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
-Additionally, if you wish to deploy your service in a Kubernetes cluster:
+Additionally, if you wish to deploy your AI agent in a Kubernetes cluster:
 
 - [Kubernetes CLI](https://kubernetes.io/docs/tasks/tools/)
 - [minikube](https://minikube.sigs.k8s.io/docs/)
@@ -58,7 +58,7 @@ Additionally, if you wish to deploy your service in a Kubernetes cluster:
     autonomy packages init
     ```
 
-    This will create an empty local registry in the `./packages` folder. If you plan to execute the tutorial guides, you need to [populate the local registry](#populate-the-local-registry-for-the-guides) with a number of default components.
+    This will create an empty local registry in the `./packages` folder. If you plan to execute the tutorial guides, you need to [populate the local registry](./overview_of_the_development_process.md#populate-the-local-registry-for-the-guides) with a number of default components.
 
 ## The registries and runtime folders
 
@@ -67,7 +67,7 @@ As seen above, the framework works with two registries:
 * The **remote registry**, where developers publish finalized software packages, similarly as Docker Hub images.
 * The **local registry**, which stores packages being developed (`dev`), or fetched from the remote registry (`third_party`) to be used locally.
 
-Additionally, when running agents or service deployments locally, we recommend that you fetch them outside the local registry. This is because the framework will download any required component (or create auxiliary files and folders) within the **runtime folders** of agents and services. Therefore, we recommend that you keep the copies on the local registry clean to avoid publishing unintended files (e.g., private keys) on the remote registry.
+Additionally, when running agent instances or AI agent deployments locally, we recommend that you fetch them outside the local registry. This is because the framework will download any required component (or create auxiliary files and folders) within the **runtime folders** of agent instances and AI agents. Therefore, we recommend that you keep the copies on the local registry clean to avoid publishing unintended files (e.g., private keys) on the remote registry.
 
 This is roughly how your workspace should look like:
 
@@ -77,7 +77,7 @@ This is roughly how your workspace should look like:
 
 !!! tip
 
-    You can override the default registry in use (set up with `autonomy init`) for a particular command through the flags `--registry-path` and `--local`. For example, if the framework was initialized with the remote registry, the following command will fetch a runtime folder for the `hello_world` agent from the remote registry:
+    You can override the default registry in use (set up with `autonomy init`) for a particular command through the flags `--registry-path` and `--local`. For example, if the framework was initialized with the remote registry, the following command will fetch a runtime folder for the `hello_world` agent blueprint from the remote registry:
 
     ```bash
     autonomy fetch valory/hello_world:0.1.0:bafybeig2mv6afojsype4v2fwkpzkvdohbeg6ilvp2tokn7i6ub2csd6wxi

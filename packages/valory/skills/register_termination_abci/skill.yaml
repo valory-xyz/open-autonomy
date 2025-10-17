@@ -6,7 +6,7 @@ description: ABCI application for dummy skill that registers and resets
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeieyro2eupexnqdu2mjqbyhp7jphn5rij4hvdgty5plij52tsffhs4
+  README.md: bafybeiaq6b5s6hl4imzdlk3wdmdtiqyxncikimrk6zmnuuvqhphkikenke
   __init__.py: bafybeicc7zwcm4vljmtobhmgkqinpjgoztznwhfzkndvnnsrolr6eivmsm
   behaviours.py: bafybeidjhvk6aexwr4oat6bkmxbvh3d6kpqpgpo3blrdiasqahc5xlyt5m
   composition.py: bafybeic7kp2wqjyhqgvvcy5y2fgiquikuxfksvnibkorvkafomjcchvqli
@@ -26,7 +26,7 @@ skills:
 - valory/abstract_round_abci:0.1.0:bafybeiemzg3e2hc5hjnpqj4kulxq4mjz65ktelqdgb6wvxekiwudjp63uu
 - valory/registration_abci:0.1.0:bafybeig3fa2uj5qymqhka2qyzmqwvk3opiiyfzhu4ybkr2yk33s5q7grka
 - valory/reset_pause_abci:0.1.0:bafybeibec77db27lzx7uzheoajzhc24itvbuaph4rnxtqynebw3ykm7w5u
-- valory/termination_abci:0.1.0:bafybeihxrqmaqhpwjl7q7kogpdrclw4o24taba6z4wmbljipsnebptvr7y
+- valory/termination_abci:0.1.0:bafybeidorzfm5y6mwm2lxitjtybltpb42qtpthag45oqob2koqshtfw4my
 behaviours:
   main:
     args: {}

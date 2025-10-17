@@ -1,4 +1,4 @@
-Once you have finished developing and testing your service locally, you can publish your software packages to the remote registry and mint them in the {{ autonolas_protocol }}. Minting software packages will produce a representation of them on-chain, in the form of NFTs.
+Once you have finished developing and testing your AI agent locally, you can publish your software packages to the remote registry and mint them in the {{ autonolas_protocol }}. Minting software packages will produce a representation of them on-chain, in the form of NFTs.
 
 <figure markdown>
 ![](../images/development_process_publish_mint_packages.svg)
@@ -9,7 +9,7 @@ You can mint packages using the {{ autonolas_protocol_registry_dapp }} or using 
 
 ## What will you learn
 
-This guide covers step 6 of the [development process](./overview_of_the_development_process.md). You will learn how to publish the software packages developed in the local registry (components, agents and services) to the remote registry, and how to mint them in the {{ autonolas_protocol }}.
+This guide covers step 6 of the [development process](./overview_of_the_development_process.md). You will learn how to publish the software packages developed in the local registry (components, agent blueprints and AI agents) to the remote registry, and how to mint them in the {{ autonolas_protocol }}.
 
 You must ensure that your machine satisfies the [framework requirements](./set_up.md#requirements), you have [set up the framework](./set_up.md#set-up-the-framework), and you have a local registry [populated with some default components](./overview_of_the_development_process.md#populate-the-local-registry-for-the-guides). As a result you should have a Pipenv workspace folder with an initialized local registry (`./packages`) in it.
 
@@ -21,8 +21,8 @@ The components developed in the local registry have to be referenced in the inde
 ```js title="packages.json"
 {
     "dev": {
-        "service/your_name/your_service/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
-        "agent/your_name/your_agent/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
+        "service/your_name/your_ai_agent/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
+        "agent/your_name/your_agent_blueprint/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
         "skill/your_name/your_fsm_app_abci/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000"
         /* (1)! */
     },
@@ -47,7 +47,8 @@ autonomy push-all #(2)!
 
 ## Mint packages in the Autonolas Protocol
 
-To mint a software package, all the packages it depends on must be minted first. For example, you need that an agent be minted before minting the corresponding service, and you need that the agent components are minted before minting the agent. You will need:
+Components and Agent Blueprints are minted on ETH mainnet only, and then used as "foreign" IDs in AI Agents on any chosen network, since off-chain agent instances read from any chain and unpack configs and codes following IPFS hashes.
+To mint a software package, all the packages it depends on must be minted first. For example, you need that an agent blueprint be minted before minting the corresponding AI agent, and you need that the agent components are minted before minting the agent blueprint. You will need:
 
 * An **address** associated to either
     * a crypto wallet (e.g., [Metamask](https://metamask.io/) or a cold wallet), or
@@ -65,9 +66,9 @@ To mint a software package, all the packages it depends on must be minted first.
 
 ### Using the Autonolas Protocol web app
 
-The {{ autonolas_protocol_registry_dapp }} is a front-end that provides an intuitive GUI to mint components, agents and services, and manage the life cycle of services in the Autonolas Protocol.
+The {{ autonolas_protocol_registry_dapp }} is a front-end that provides an intuitive GUI to mint components, agent blueprints and AI agent, and manage the life cycle of AI agents in the Autonolas Protocol.
 
-We refer to the [Autonolas Protocol docs](https://stack.olas.network/protocol/), where you can find instructions on how to mint [components](https://stack.olas.network/protocol/mint_packages_nfts/#mint-a-component) (including the {{fsm_app}} skill), [agents](https://stack.olas.network/protocol/mint_packages_nfts/#mint-an-agent), and [services](https://stack.olas.network/protocol/mint_packages_nfts/#mint-a-service).
+We refer to the [Autonolas Protocol docs](https://stack.olas.network/protocol/), where you can find instructions on how to mint [components](https://stack.olas.network/protocol/mint_packages_nfts/#mint-a-component) (including the {{fsm_app}} skill), [agent blueprints](https://stack.olas.network/protocol/mint_packages_nfts/#mint-an-agent), and [AI agents](https://stack.olas.network/protocol/mint_packages_nfts/#mint-a-service).
 
 ### Using the Open Autonomy CLI
 
@@ -81,7 +82,7 @@ You can also mint packages using the [`autonomy mint` command](../advanced_refer
 
     This account will pay the transaction fees for the minted NFTs.
 
-2. **Mint the packages.** Mint the components, agent and service NFTs, indicating the owner address of each one. You can declare any address you want as owner for each component. Recall that all the dependencies of a given component must be minted beforehand.
+2. **Mint the packages.** Mint the components, agent blueprint and AI agent NFTs, indicating the owner address of each one. You can declare any address you want as owner for each component. Recall that all the dependencies of a given component must be minted beforehand.
 
     1. Mint components:
 
@@ -92,17 +93,23 @@ You can also mint packages using the [`autonomy mint` command](../advanced_refer
         autonomy mint --use-ethereum skill --key minting_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> <component_path>        
         ```
 
-    2. Mint the agent:
+        Here the `<component_path>` is the path to the component folder, e.g., `./packages/valory/skills/fsm_app_abci/`.
+
+    2. Mint the agent blueprint:
 
         ```bash
-        autonomy mint --use-ethereum agent --key minting_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> <agent_path>   
+        autonomy mint --use-ethereum agent --key minting_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> <agent_blueprint_path>   
         ```
 
-    3. Mint the service:
+        Here the `<agent_blueprint_path>` is the path to the agent blueprint folder, e.g., `./packages/valory/agents/your_agent_blueprint/`.
+
+    3. Mint the AI agent:
 
         ```bash
-        autonomy mint --use-ethereum service --key minting_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> --agent-id <agent_id> --number-of-slots <number_of_slots> --cost-of-bond <cost_of_bond_in_wei> --threshold 3 <service_path>
+        autonomy mint --use-ethereum service --key minting_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> --agent-id <agent_blueprint_id> --number-of-slots <number_of_slots> --cost-of-bond <cost_of_bond_in_wei> --threshold <threshold> <ai_agent_path>
         ```
+
+        Here the `<ai_agent_path>` is the path to the AI agent folder, e.g., `./packages/valory/services/your_ai_agent/`.
 
 Refer to the documentation on the [`autonomy mint` command](../advanced_reference/cli/../commands/autonomy_mint.md) to learn more about its parameters and options.
 
@@ -111,7 +118,7 @@ Refer to the documentation on the [`autonomy mint` command](../advanced_referenc
 If you are new to the framework, we provide a way to help you test the {{ autonolas_protocol }} without spending any token on a real chain.
 Namely, we provide a Docker image (`valory/autonolas-registries`) containing a local blockchain (a Hardhat node) with the Autonolas Protocol registry contracts deployed on it. The image also contains a few testing keys and addresses.
 
-Below we show the steps to register the `hello_world` service and all its required packages.
+Below we show the steps to register the `hello_world` AI agent and all its required packages.
 
 1. **Start the local blockchain.** On a separate terminal, run the `valory/autonolas-registries` Docker image:
 
@@ -141,7 +148,7 @@ Below we show the steps to register the `hello_world` service and all its requir
 
     This account will pay the transaction fees for the minted NFTs.
 
-4. **Mint the packages.** Mint the components, agent and service NFTs, indicating the owner address of each one.
+4. **Mint the packages.** Mint the components, agent blueprint and AI agent NFTs, indicating the owner address of each one.
     For simplicity, we are indicating the address `0x70997970C51812dc3A010C7d01b50e0d17dc79C8` as owner for all the components, which corresponds to the private key above. However, you can declare any address as owner for each component.
 
     Also, we are using [this sample image URL](https://gateway.autonolas.tech/ipfs/Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev) as the NFT image for all the components. You can use any URL pointing to an image, or a local image file.
@@ -156,8 +163,8 @@ Below we show the steps to register the `hello_world` service and all its requir
 
     <!-- These variables define the number of already minted components in the `valory/autonolas-registries` image. These variables are used to indicate the appropriate token ID in the commands below. -->
     {% set num_minted_components = 32 %}
-    {% set num_minted_agents = 2 %}
-    {% set num_minted_services = 2 %}
+    {% set num_minted_agent_blueprints = 2 %}
+    {% set num_minted_ai_agents = 2 %}
 
     ```bash
     # Mint components that don't have dependencies
@@ -181,11 +188,11 @@ Below we show the steps to register the `hello_world` service and all its requir
     autonomy mint --use-local skill --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 ./packages/valory/skills/abstract_round_abci/
     autonomy mint --use-local skill --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 ./packages/valory/skills/hello_world_abci/    
 
-    # Mint the agent 
+    # Mint the agent blueprint
     autonomy mint --use-local agent --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8             ./packages/valory/agents/hello_world/
 
-    # Mint the service
-    autonomy mint --use-local service --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --agent-id {{ num_minted_agents + 1 }} --number-of-slots 4 --cost-of-bond 10000000000000000 --threshold 3 ./packages/valory/services/hello_world/
+    # Mint the AI agent
+    autonomy mint --use-local service --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --agent-id {{ num_minted_agent_blueprints + 1 }} --number-of-slots 4 --cost-of-bond 10000000000000000 --threshold 3 ./packages/valory/services/hello_world/
     ```
 
 5. **Explore the protocol using the web app.** Use the {{ autonolas_protocol_registry_dapp }} to explore the packages that you have minted. Ensure that you are connected to the local  blockchain configured in Step 2 above through Metamask.

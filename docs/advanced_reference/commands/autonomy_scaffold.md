@@ -1,6 +1,6 @@
-Tools for scaffolding agent components.
+Tools for scaffolding agent blueprint components.
 
-This command group consists of a number of functionalities that generate boilerplate code that acts as a template to speed up the development of agent components. See the appropriate subcommands for more information.
+This command group consists of a number of functionalities that generate boilerplate code that acts as a template to speed up the development of agent blueprint components. See the appropriate subcommands for more information.
 
 
 !!! warning "Important"

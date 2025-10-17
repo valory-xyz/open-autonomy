@@ -28,11 +28,11 @@ This module contains the ABCI transaction settlement skill for an AEA.
 
 * `SelectKeeperTransactionSubmissionBehaviourA`
 
-   Select the keeper agent.
+   Select the keeper agent instance.
 
 * `SelectKeeperTransactionSubmissionBehaviourB`
 
-   Select the keeper agent.
+   Select the keeper agent instance.
 
 * `SignatureBehaviour`
 

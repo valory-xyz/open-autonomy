@@ -1,10 +1,10 @@
-The {{open_autonomy}} framework supports that agent services access different external chains
+The {{open_autonomy}} framework supports that AI agents access different external chains
 by defining certain configuration parameters appropriately.
 
-For example, if you are developing a service to be run in Ethereum, you might first want to use
-a development environment like [Hardhat](https://hardhat.org/) or [Ganache](https://trufflesuite.com/ganache/) as your testbed, then migrate to a public testnet like [Arbitrum Sepolia](https://sepolia.arbiscan.io/), and ultimately run your service in the Ethereum main chain.
+For example, if you are developing an AI agent to be run in Ethereum, you might first want to use
+a development environment like [Hardhat](https://hardhat.org/) or [Ganache](https://trufflesuite.com/ganache/) as your testbed, then migrate to a public testnet like [Arbitrum Sepolia](https://sepolia.arbiscan.io/), and ultimately run your AI agent in the Ethereum main chain.
 
-To use a service in a particular chain, you must ensure that the the relevant agent addresses are funded in that chain.
+To use an AI agent in a particular chain, you must ensure that the the relevant agent instances addresses are funded in that chain.
 
 
 
@@ -12,20 +12,20 @@ To use a service in a particular chain, you must ensure that the the relevant ag
 
 In this guide, you will learn how to:
 
-  * Configure an agent service to be run in a particular chain.
+  * Configure an AI agent to be run in a particular chain.
   * Configure the test classes appropriately.
 
 
 
-## Configuring the agent service
+## Configuring the AI agent
 
-To configure an agent service to work with a particular chain, you must configure the parameters `address` and `chain_id` accordingly in the connection `valory/ledger`. This configuration can be set up by overriding the `valory/ledger` configuration at agent level or at [service level](./service_configuration_file.md#service-level-overrides).
+To configure an AI agent to work with a particular chain, you must configure the parameters `address` and `chain_id` accordingly in the connection `valory/ledger`. This configuration can be set up by overriding the `valory/ledger` configuration at agent blueprint level or at [AI agent level](./service_configuration_file.md#ai-agent-level-overrides).
 
 
 
-### Agent-level override
+### Agent-blueprint-level override
 
-At agent level, the agent configuration file `aea-config.yaml` should contain an override for the parameters of the connection `valory/ledger`, either using hardcoded values or environment variables as follows:
+At agent blueprint level, the agent blueprint configuration file `aea-config.yaml` should contain an override for the parameters of the connection `valory/ledger`, either using hardcoded values or environment variables as follows:
 
 === "Using environment variables (recommended)"
 
@@ -57,13 +57,13 @@ At agent level, the agent configuration file `aea-config.yaml` should contain an
     ```
 
 
-Note that if you use agent-level hardcoded overrides, then service-level overrides will not work.
-On the other hand agent-level environment variable overrides must follow the [export variable format](./service_configuration_file.md#export-to-environment-variables).
+Note that if you use agent-blueprint-level hardcoded overrides, then AI-agent-level overrides will not work.
+On the other hand agent-blueprint-level environment variable overrides must follow the [export variable format](./service_configuration_file.md#export-to-environment-variables).
 
 
-### Service-level override
+### AI-agent-level override
 
-Similarly, service-level overrides for the `valory/ledger` connection are defined in the service configuration file `service.yaml` using either approach:
+Similarly, AI-agent-level overrides for the `valory/ledger` connection are defined in the AI agent configuration file `service.yaml` using either approach:
 
 === "Using environment variables"
     ```yaml title="service.yaml"
@@ -94,7 +94,7 @@ Similarly, service-level overrides for the `valory/ledger` connection are define
           <other_params>
     ```
 
-Observe that within the service configuration file there is no restriction for naming the environment variables.
+Observe that within the AI agent configuration file there is no restriction for naming the environment variables.
 
 
 
@@ -144,12 +144,12 @@ aea_test_autonomy.base_test_classes.agents.BaseTestEnd2End
 
 aea_test_autonomy.base_test_classes.agents.BaseTestEnd2EndExecution
 ```
-These classes define an `extra_configs` attribute that is used to set the agent-level overrides.
-Tests that have this attribute set will override the corresponding agent configuration parameters.
+These classes define an `extra_configs` attribute that is used to set the agent-blueprint-level overrides.
+Tests that have this attribute set will override the corresponding agent blueprint configuration parameters.
 
 !!! warning "Important"
 
-    This does not only apply to the `valory/ledger` connection, but to any agent configuration.
+    This does not only apply to the `valory/ledger` connection, but to any agent blueprint configuration.
 
 ???+ example
 

@@ -4,7 +4,7 @@
     This section is under review and will be updated soon.
 
 
-We have provided a number of ways to run agent services build with the {{open_autonomy}} framework across multiple different cloud providers.
+We have provided a number of ways to run AI agent build with the {{open_autonomy}} framework across multiple different cloud providers.
 
 The deployment has been implemented using a minimal distribution of Kubernetes to run as close to the bare metal as allowable.
 
@@ -19,7 +19,7 @@ We have 3 deployment options available for external operators.
 - Docker Compose: This approach is advised for beginners/less experienced users.
 - Kubernetes Cluster: We provide full deployments for Kubernetes:
     - Single Node - This deployment approach is recommended for individual applications.
-    - Multi Node - This deployment approach is recommended for more advanced users looking to running multiple agent nodes or applications.
+    - Multi Node - This deployment approach is recommended for more advanced users looking to running multiple agent instance nodes or applications.
 
 Infrastructure deployment is handled by [Terraform](https://www.terraform.io/) to ensure replicability across multiple providers whilst allowing external operators to configure the deployments to match their specific deployment requirements.
 

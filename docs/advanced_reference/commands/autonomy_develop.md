@@ -1,4 +1,4 @@
-Development tools for agent services.
+Development tools for AI agents.
 
 ## Usage
 ```bash

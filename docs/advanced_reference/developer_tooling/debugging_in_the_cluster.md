@@ -1,7 +1,7 @@
 !!! info
     This section is under review and will be updated soon.
 
-When debugging deployments, it can be useful to have the option to spin up a hardhat node to enable debugging and testing of the issue within the cluster. First, fetch the service:
+When debugging deployments, it can be useful to have the option to spin up a hardhat node to enable debugging and testing of the issue within the cluster. First, fetch the AI agent:
 
 ```bash
 autonomy fetch valory/oracle_hardhat --local --service
@@ -28,4 +28,4 @@ kubectl apply -f abci_build_*/
 kubectl apply -f abci_build_*/agent_keys
 ```
 
-This will deploy a private hardhat container to the cluster, along with the associated agent service, configured to use the hardhat container.
+This will deploy a private hardhat container to the cluster, along with the associated AI agents, configured to use the hardhat container.

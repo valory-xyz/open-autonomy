@@ -5,7 +5,7 @@ license: Apache-2.0
 description: Offend and slash to test the slashing feature.
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeibvdndrwbxlyljznpnv6rn7ks6e7sy4dfveb2vw7hqw3uuvrq64dm
+  README.md: bafybeiasjwf6kbarer3lyrgik3kravnh35cs743xeun2n5pqssdf5hjzda
   __init__.py: bafybeihpqeerwvdztwaovdaas3lecjxztp7yectgjsqbk4phmpdjnww6fi
   tests/__init__.py: bafybeic5zltt6wlvoegj2tfewe6qgr5f743lef4d6bkgvlqyfsnleiyb6y
   tests/test_offend_slash.py: bafybeigzhjoibhzukeswvm4fjkr5j43oigj43spzi6htiul5ssyoud66bu
@@ -33,11 +33,11 @@ skills:
 - valory/abstract_abci:0.1.0:bafybeidswz43c4c3ivxuqz6iqbo7snxc6snox3ztn6dzh76si3k7uiolou
 - valory/abstract_round_abci:0.1.0:bafybeiemzg3e2hc5hjnpqj4kulxq4mjz65ktelqdgb6wvxekiwudjp63uu
 - valory/offend_abci:0.1.0:bafybeifsldzdljscysq5aw62junvsajfc2e2sqs3fw6qoqlut26fczhvjm
-- valory/offend_slash_abci:0.1.0:bafybeie65uqneqccjeqsu2my4whowf2cwggfgomceacf3ttsdkecfeo67i
+- valory/offend_slash_abci:0.1.0:bafybeie4tou3zg5vkfr5w5ofiv325u5wsc7fl2qv6he3oeyozid4aehwcq
 - valory/registration_abci:0.1.0:bafybeig3fa2uj5qymqhka2qyzmqwvk3opiiyfzhu4ybkr2yk33s5q7grka
 - valory/reset_pause_abci:0.1.0:bafybeibec77db27lzx7uzheoajzhc24itvbuaph4rnxtqynebw3ykm7w5u
-- valory/slashing_abci:0.1.0:bafybeib6pqqh35nt4jczwawhtbenulu3gs6tqzydbxvrqqmvwx3dbv47qy
-- valory/transaction_settlement_abci:0.1.0:bafybeihuygeicnvdcbhm747bzqbxmw2lbuwhaeqdis3d54vhm4sykjyyly
+- valory/slashing_abci:0.1.0:bafybeifuan7dwf47uyuh3gbznf2zhj5qf3lya3qrj2ur3jnhl5e7it6l4a
+- valory/transaction_settlement_abci:0.1.0:bafybeiabokrdl6pmrq2muxaw6yohzq4b7qfuenkpgmzdhklscd5nw7e4le
 default_ledger: ethereum
 required_ledgers:
 - ethereum

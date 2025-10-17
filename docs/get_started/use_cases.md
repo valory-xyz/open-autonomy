@@ -1,8 +1,8 @@
-As we have discussed in earlier sections, [agent services](./what_is_an_agent_service.md) can execute arbitrary operations in a decentralized way.
-There is a great deal of applications where the properties of agent services make them better suited than existing solutions,
-especially in the context of DAOs and where complex operations are required to be executed in a decentralized and transparent way. Agent services remove the need of strong trust assumptions that traditional centralized off-chain services require.
+As we have discussed in earlier sections, [AI agents](./what_is_an_agent_service.md) can execute arbitrary operations in a decentralized way.
+There is a great deal of applications where the properties of AI agents make them better suited than existing solutions,
+especially in the context of DAOs and where complex operations are required to be executed in a decentralized and transparent way. AI agents remove the need of strong trust assumptions that traditional centralized off-chain services require.
 
-Below you will find some ideas of what you can do with agent services:
+Below you will find some ideas of what you can do with AI agents:
 
 ## Internal DAO operations
 * **Meta Yield Hunter**:

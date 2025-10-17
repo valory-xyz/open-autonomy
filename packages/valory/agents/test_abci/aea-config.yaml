@@ -5,7 +5,7 @@ license: Apache-2.0
 description: Agent for testing the ABCI connection.
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeib2s5p42rb4mbn7ag4jmjwutcm2mhvhb7q7vekxevr565crxkk6zy
+  README.md: bafybeigjajva62ldqv2q7d26gbs6z6vvk4jsbxml7bc5y5ztkgpglfzboi
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeig6hnll4fddbqlgt26z74mgo2scaxlhnwhzusxrz7tbd7at6boxdi

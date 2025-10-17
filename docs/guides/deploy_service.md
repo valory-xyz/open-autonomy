@@ -1,29 +1,29 @@
-# Deploy the service
+# Deploy the AI agent
 
-The final step in the development process is [deploying the service](./overview_of_the_development_process.md). There are multiple deployment options to consider, such as deploying on your local machine for testing, deploying on a cluster within your own infrastructure, or deploying on a cloud provider.
+The final step in the development process is [deploying the AI agent](./overview_of_the_development_process.md). There are multiple deployment options to consider, such as deploying on your local machine for testing, deploying on a cluster within your own infrastructure, or deploying on a cloud provider.
 
 <figure markdown>
 ![](../images/development_process_deploy_service.svg)
 <figcaption>Part of the development process covered in this guide</figcaption>
 </figure>
 
-The framework supports Docker Compose and Kubernetes cluster deployments. Additionally, the framework automates several steps in the deployment process for services registered in the {{ autonolas_protocol }}.
+The framework supports Docker Compose and Kubernetes cluster deployments. Additionally, the framework automates several steps in the deployment process for AI agents registered in the {{ autonolas_protocol }}.
 
 !!! tip
 
-    Local service deployments are commonly used for testing services during active development. These deployments allow you to test and validate your service before minting it in the {{ autonolas_protocol }}, ensuring its readiness for production use.
+    Local AI agent deployments are commonly used for testing AI agents during active development. These deployments allow you to test and validate your AI agent before minting it in the {{ autonolas_protocol }}, ensuring its readiness for production use.
 
 ## What you will learn
 
-This guide covers step 6 of the [development process](./overview_of_the_development_process.md). You will learn the different types of service deployments offered by the framework.
+This guide covers step 6 of the [development process](./overview_of_the_development_process.md). You will learn the different types of AI agent deployments offered by the framework.
 
 You must ensure that your machine satisfies the [framework requirements](./set_up.md#requirements), you have [set up the framework](./set_up.md#set-up-the-framework), and you have a local registry [populated with some default components](./overview_of_the_development_process.md#populate-the-local-registry-for-the-guides). As a result you should have a Pipenv workspace folder with an initialized local registry (`./packages`) in it.
 
 ## Local deployment - full workflow
 
-We illustrate the full local deployment workflow using the `hello_world` service as an example, both for Docker Compose and a simple Kubernetes cluster.
+We illustrate the full local deployment workflow using the `hello_world` AI agent as an example, both for Docker Compose and a simple Kubernetes cluster.
 
-1. **Fetch the service.** In the workspace folder, fetch the service from the corresponding registry:
+1. **Fetch the AI agent.** In the workspace folder, fetch the AI agent from the corresponding registry:
 
     === "Local registry"
         <!-- TODO FIXME: packages lock + push all should not be necessary here, but otherwise it cannot build the image. -->
@@ -38,7 +38,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
         autonomy fetch valory/hello_world:0.1.0:bafybeicj73kflta5sfxq7gnnk7smcdp2gwcfvfvm2plxc5ojhulwa3xnoq --service
         ```
 
-2. **Build the agents' image.** Navigate to the service runtime folder that you have just created and build the Docker image of the agents of the service:
+2. **Build the agent blueprint's image.** Navigate to the AI agent runtime folder that you have just created and build the Docker image of the agent blueprint of the AI agent:
 
     ```bash
     cd hello_world
@@ -50,12 +50,12 @@ We illustrate the full local deployment workflow using the `hello_world` service
     After the command finishes, you can check that the image has been created by executing:
 
     ```bash
-    docker image ls | grep <agent_name>
+    docker image ls | grep <agent_blueprint_name>
     ```
 
-    You can find the `agent_name` within the service configuration file `service.yaml`.
+    You can find the `agent_blueprint_name` within the AI agent configuration file `service.yaml`.
 
-3. **Prepare the keys file.** Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that you wish to deploy in the local machine.
+3. **Prepare the keys file.** Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agent instances that you wish to deploy in the local machine.
 
     ???+ example "Example of a `keys.json` file"
 
@@ -82,7 +82,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
         ]
         ```
 
-    You also need to export the environment variable `ALL_PARTICIPANTS` with the addresses of **all** the agents in the service. In other words, the addresses of the agents you are deploying (in the `keys.json` file) must be a subset of  the addresses in `ALL_PARTICIPANTS`, which might contain additional addresses:
+    You also need to export the environment variable `ALL_PARTICIPANTS` with the addresses of **all** the agent instances in the AI agent. In other words, the addresses of the agent instances you are deploying (in the `keys.json` file) must be a subset of  the addresses in `ALL_PARTICIPANTS`, which might contain additional addresses:
 
     ```bash
     export ALL_PARTICIPANTS='[
@@ -148,7 +148,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
     ]
     ```
 
-4. **Build the deployment.** Within the service runtime folder, execute the command below to build the service deployment:
+4. **Build the deployment.** Within the AI agent runtime folder, execute the command below to build the AI agent deployment:
 
     === "Docker Compose"
 
@@ -222,12 +222,12 @@ We illustrate the full local deployment workflow using the `hello_world` service
 
         This will spawn in the local machine:
 
-        * $N$ agents containers, each one running an instance of the corresponding {{fsm_app}}.
-        * a network of $N$ Tendermint nodes, one per agent.
+        * $N$ agent instances containers, each one running an instance of the corresponding {{fsm_app}}.
+        * a network of $N$ Tendermint nodes, one per agent instance.
 
     === "Kubernetes"
 
-        We show how to run the service deployment using a local [minikube](https://minikube.sigs.k8s.io/docs/start/) cluster. You might want to consider other local cluster options such as [kind](https://kind.sigs.k8s.io/).
+        We show how to run the AI agent deployment using a local [minikube](https://minikube.sigs.k8s.io/docs/start/) cluster. You might want to consider other local cluster options such as [kind](https://kind.sigs.k8s.io/).
 
         1. Create the minikube Kubernetes cluster.
             ```bash
@@ -244,7 +244,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
             ```
 
         2. Make sure your image is pushed to Docker Hub (`docker push`).
-            If this is not the case, you need to provision the cluster with the agent image so that it is available for the cluster pods.
+            If this is not the case, you need to provision the cluster with the agent blueprint image so that it is available for the cluster pods.
             This step might take a while, depending on the size of the image.
             ```bash
             minikube image load <repository>:<tag> # (1)!
@@ -275,27 +275,27 @@ We illustrate the full local deployment workflow using the `hello_world` service
 
         After executing these commands, the minikube cluster will start provisioning and starting $N$ pods in the cluster. Each pod contains:
 
-        * one agent container, running an instance of the corresponding {{fsm_app}}.
-        * one Tendermint node associated to the agent.
+        * one agent instance container, running an instance of the corresponding {{fsm_app}}.
+        * one Tendermint node associated to the agent instance.
 
 6. **Examine the deployment.**
 
     === "Docker Compose"
 
-        To inspect the logs of a single agent or Tendermint node you can execute `docker logs <container_id> --follow` in a separate terminal.
+        To inspect the logs of a single agent instance or Tendermint node you can execute `docker logs <container_id> --follow` in a separate terminal.
 
         You can cancel the local execution at any time by pressing ++ctrl+c++.   
 
     === "Kubernetes"
 
-        You can access the cluster dashboard by executing `minikube dashboard` in a separate terminal. To examine the logs of a single agent or Tendermint node you can execute:
+        You can access the cluster dashboard by executing `minikube dashboard` in a separate terminal. To examine the logs of a single agent instance or Tendermint node you can execute:
 
         1. Get the Kubernetes pod names.
             ```bash
             kubectl get pod
             ```
 
-        2. Access the logs of the agent in pod `<pod-name>`.
+        2. Access the logs of the agent instance in pod `<pod-name>`.
             ```bash 
             kubectl exec -it <pod-name> -c aea -- /bin/sh
             ```
@@ -307,9 +307,9 @@ We illustrate the full local deployment workflow using the `hello_world` service
 
         You can delete the local cluster by executing `minikube delete`.
 
-## Local deployment of minted services
+## Local deployment of minted AI agents
 
-The framework provides a convenient method to deploy agent services minted in the {{ autonolas_protocol }}. This has the benefit that some configuration parameters of the {{fsm_app}} skill will be overridden automatically with values obtained on-chain. Namely:
+The framework provides a convenient method to deploy AI agents minted in the {{ autonolas_protocol }}. This has the benefit that some configuration parameters of the {{fsm_app}} skill will be overridden automatically with values obtained on-chain. Namely:
 
 ```yaml title="skill.yaml"
 # (...)
@@ -324,9 +324,9 @@ models:
 
 This means, in particular, that there is no need to define the `ALL_PARTICIPANTS` environment variable.
 
-1. **Find the service ID.** Explore the [services section]({{ autonolas_protocol_registry_dapp_link }}/services) in the {{ autonolas_protocol_registry_dapp }}, and note the token ID of the service that you want to deploy. The service must be in [Deployed state](https://stack.olas.network/protocol/life_cycle_of_a_service/#deployed).
+1. **Find the AI agent ID.** Explore the [AI agents section]({{ autonolas_protocol_registry_dapp_link }}/ai-agents) in the {{ autonolas_protocol_registry_dapp }}, and note the token ID of the AI agent that you want to deploy. The AI agent must be in [Deployed state](https://stack.olas.network/protocol/life_cycle_of_a_service/#deployed).
 
-2. **Prepare the keys file.** Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that you wish to deploy in the local machine.
+2. **Prepare the keys file.** Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agent instances that you wish to deploy in the local machine.
 
     ???+ example "Example of a `keys.json` file"
 
@@ -353,33 +353,33 @@ This means, in particular, that there is no need to define the `ALL_PARTICIPANTS
         ]
         ```
 
-3. **Fetch the service.** Fetch the service from the remote registry using token ID.
+3. **Fetch the AI agent.** Fetch the AI agent from the remote registry using token ID.
 
     ```bash
     autonomy fetch <TOKEN_ID> --use-mode # (1)!
     ```
 
-    1. `--use-mode` indicates that the service is registered in the Mode network. Check out the [`autonomy fetch`](../advanced_reference/commands/autonomy_fetch.md) command documentation to learn more about its parameters and options.
+    1. `--use-mode` indicates that the AI agent is registered in the Mode network. Check out the [`autonomy fetch`](../advanced_reference/commands/autonomy_fetch.md) command documentation to learn more about its parameters and options.
 
-    Fetch the service with the desired token ID on Mode network.
+    Fetch the AI agent with the desired token ID on Mode network.
 
-4. **Build the agents' image.** Build the Docker image of the agents of the service.
+4. **Build the agent blueprint's image.** Build the Docker image of the agent blueprint of the AI agent.
 
     ```bash
-    autonomy build-image --service-dir your_service/ # (1)!
+    autonomy build-image --service-dir your_ai_agent/ # (1)!
     ```
 
     1. Check out the [`autonomy build-image`](../advanced_reference/commands/autonomy_build-image.md) command documentation to learn more about its parameters and options.
 
-    This command builds the Docker runtime images for the agent defined in a service configuration file service.yaml.
+    This command builds the Docker runtime images for the agent blueprint defined in an AI agent configuration file service.yaml.
 
-5. **Build the deployment.** Build the service deployment.
+5. **Build the deployment.** Build the AI agent deployment.
 
     ```bash
-    cd your_service/
+    cd your_ai_agent/
     ```
 
-    This command must be executed within a service folder. That is, a folder containing the service configuration file (`service.yaml`). The deployment will be created in the subfolder `./abci_build_*`.
+    This command must be executed within an AI agent folder. That is, a folder containing the AI agent configuration file (`service.yaml`). The deployment will be created in the subfolder `./abci_build_*`.
 
     === "Docker Compose"
 
@@ -397,7 +397,7 @@ This means, in particular, that there is no need to define the `ALL_PARTICIPANTS
 
         1. Check out the [`autonomy deploy build`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-build) command documentation to learn more about its parameters and options.
 
-6. **Start the service.** Run the service:
+6. **Start the AI agent.** Run the AI agent:
 
     ```bash
     autonomy deploy run # (1)!
@@ -405,8 +405,8 @@ This means, in particular, that there is no need to define the `ALL_PARTICIPANTS
 
     1. Check out the [`autonomy deploy run`](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-run) command documentation to learn more about its parameters and options.
 
-    Run a service deployment locally stored.
+    Run an AI agent deployment locally stored.
 
 ## Cloud deployment
 
-The sections above for local deployments provide a fundamental understanding of how to deploy agent services in general. The [Open Operator](https://github.com/valory-xyz/open-operator) repository provides the necessary resources and guidelines for seamless cloud deployments of agent services based on the Open Autonomy framework.
+The sections above for local deployments provide a fundamental understanding of how to deploy AI agents in general. The [Open Operator](https://github.com/valory-xyz/open-operator) repository provides the necessary resources and guidelines for seamless cloud deployments of AI agents based on the Open Autonomy framework.

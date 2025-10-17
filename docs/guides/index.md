@@ -2,13 +2,13 @@
 
 In this section you will find a number of useful guides which will help you
 to understand [the overall development process](./overview_of_the_development_process.md)
-of an agent service with the {{open_autonomy}} framework, including:
+of an AI agent with the {{open_autonomy}} framework, including:
 
-- creating the components of an agent that implement the service business logic (the {{fsm_app}}),
-- creating the agents that make up the service,
-- publishing the service in a remote or local repository,
-- registering the service in the on-chain protocol, and
-- deploying the service.
+- creating the components of an agent blueprint that implement the AI agent business logic (the {{fsm_app}}),
+- creating the agent blueprints that make up the AI agent,
+- publishing the AI agent in a remote or local repository,
+- registering the AI agent in the on-chain protocol, and
+- deploying the AI agent.
 
 If you are new to the framework, we suggest that you start with the [set up](./set_up.md) and [quick start](./quick_start.md)
 guides, and proceed with the remaining ones in the order presented.

@@ -5,7 +5,7 @@ license: Apache-2.0
 description: Register terminate to test the termination feature.
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeiamp5k2dtww2rxaxu4kqsi3yon6mhofezlgcyzrialt2rnigkk43y
+  README.md: bafybeigogzuikulxmaitsy45aa2e7hcl456jyhuayj7sxs3g3st5xnxsdm
   __init__.py: bafybeihgxrmmp63exxkdmvlu565kehvuucg4iivnejwutaehb2p7xzxu4q
   tests/__init__.py: bafybeiftvheymtbp6iilmx7dceh46hplfxa3lss4xghz623gdon7jhpidi
   tests/base.py: bafybeihr6d63pvjyc4tlveutgnex63ses454jshv2j445k44dly52rkwlm
@@ -34,11 +34,11 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeidswz43c4c3ivxuqz6iqbo7snxc6snox3ztn6dzh76si3k7uiolou
 - valory/abstract_round_abci:0.1.0:bafybeiemzg3e2hc5hjnpqj4kulxq4mjz65ktelqdgb6wvxekiwudjp63uu
-- valory/register_termination_abci:0.1.0:bafybeie56z4z4tm5pvy6wwagb6lrt3nnjoakpjcdctw7hnooepnttoby7y
+- valory/register_termination_abci:0.1.0:bafybeie46onkhyocwr7blopp4dyadoqyuqqtipxc66yzyd5lheoofo2eym
 - valory/registration_abci:0.1.0:bafybeig3fa2uj5qymqhka2qyzmqwvk3opiiyfzhu4ybkr2yk33s5q7grka
 - valory/reset_pause_abci:0.1.0:bafybeibec77db27lzx7uzheoajzhc24itvbuaph4rnxtqynebw3ykm7w5u
-- valory/termination_abci:0.1.0:bafybeihxrqmaqhpwjl7q7kogpdrclw4o24taba6z4wmbljipsnebptvr7y
-- valory/transaction_settlement_abci:0.1.0:bafybeihuygeicnvdcbhm747bzqbxmw2lbuwhaeqdis3d54vhm4sykjyyly
+- valory/termination_abci:0.1.0:bafybeidorzfm5y6mwm2lxitjtybltpb42qtpthag45oqob2koqshtfw4my
+- valory/transaction_settlement_abci:0.1.0:bafybeiabokrdl6pmrq2muxaw6yohzq4b7qfuenkpgmzdhklscd5nw7e4le
 default_ledger: ethereum
 required_ledgers:
 - ethereum

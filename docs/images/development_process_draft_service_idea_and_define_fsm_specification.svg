@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="825px"
-    height="287px" viewBox="-0.5 -0.5 825 287">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="824px"
+    height="285px" viewBox="-0.5 -0.5 824 285">
     <defs />
     <g>
         <path d="M 560 100 L 590 100 L 590 240 L 609.9 240" fill="none" stroke="#cccccc" stroke-width="3"
@@ -16,13 +16,13 @@
             transform="translate(2,3)" opacity="0.25" />
         <ellipse cx="780" cy="80" rx="40" ry="40" fill="rgb(255, 255, 255)" stroke="#cccccc" stroke-width="3"
             pointer-events="all" />
-        <path d="M 80 80 L 109.9 80" fill="none" stroke="#cccccc" stroke-width="3" stroke-miterlimit="10"
+        <path d="M 80 80 L 109.9 80" fill="none" stroke="#7200d6" stroke-width="3" stroke-miterlimit="10"
             pointer-events="stroke" />
-        <path d="M 116.65 80 L 107.65 84.5 L 109.9 80 L 107.65 75.5 Z" fill="#cccccc" stroke="#cccccc" stroke-width="3"
+        <path d="M 116.65 80 L 107.65 84.5 L 109.9 80 L 107.65 75.5 Z" fill="#7200d6" stroke="#7200d6" stroke-width="3"
             stroke-miterlimit="10" pointer-events="all" />
         <ellipse cx="40" cy="80" rx="40" ry="40" fill="#000000" stroke="none" pointer-events="all"
             transform="translate(2,3)" opacity="0.25" />
-        <ellipse cx="40" cy="80" rx="40" ry="40" fill="#cccccc" stroke="none" pointer-events="all" />
+        <ellipse cx="40" cy="80" rx="40" ry="40" fill="#7200d6" stroke="none" pointer-events="all" />
         <g transform="translate(-0.5 -0.5)">
             <switch>
                 <foreignObject pointer-events="none" width="100%" height="100%"
@@ -68,7 +68,7 @@
             stroke-miterlimit="10" pointer-events="all" />
         <ellipse cx="160" cy="80" rx="40" ry="40" fill="#000000" stroke="none" pointer-events="all"
             transform="translate(2,3)" opacity="0.25" />
-        <ellipse cx="160" cy="80" rx="40" ry="40" fill="#cccccc" stroke="none" pointer-events="all" />
+        <ellipse cx="160" cy="80" rx="40" ry="40" fill="#7200d6" stroke="none" pointer-events="all" />
         <g transform="translate(-0.5 -0.5)">
             <switch>
                 <foreignObject pointer-events="none" width="100%" height="100%"
@@ -87,9 +87,9 @@
                     text-anchor="middle" font-weight="bold">Define...</text>
             </switch>
         </g>
-        <path d="M 340 80 L 369.9 80" fill="none" stroke="#7200d6" stroke-width="3" stroke-miterlimit="10"
+        <path d="M 340 80 L 369.9 80" fill="none" stroke="#cccccc" stroke-width="3" stroke-miterlimit="10"
             pointer-events="stroke" />
-        <path d="M 376.65 80 L 367.65 84.5 L 369.9 80 L 367.65 75.5 Z" fill="#7200d6" stroke="#7200d6" stroke-width="3"
+        <path d="M 376.65 80 L 367.65 84.5 L 369.9 80 L 367.65 75.5 Z" fill="#cccccc" stroke="#cccccc" stroke-width="3"
             stroke-miterlimit="10" pointer-events="all" />
         <ellipse cx="300" cy="80" rx="40" ry="40" fill="#000000" stroke="none" pointer-events="all"
             transform="translate(2,3)" opacity="0.25" />
@@ -118,7 +118,7 @@
             stroke-miterlimit="10" pointer-events="all" />
         <ellipse cx="420" cy="80" rx="40" ry="40" fill="#000000" stroke="none" pointer-events="all"
             transform="translate(2,3)" opacity="0.25" />
-        <ellipse cx="420" cy="80" rx="40" ry="40" fill="#7200d6" stroke="none" pointer-events="all" />
+        <ellipse cx="420" cy="80" rx="40" ry="40" fill="#cccccc" stroke="none" pointer-events="all" />
         <g transform="translate(-0.5 -0.5)">
             <switch>
                 <foreignObject pointer-events="none" width="100%" height="100%"
@@ -145,14 +145,14 @@
                     style="overflow: visible; text-align: left;">
                     <div xmlns="http://www.w3.org/1999/xhtml"
                         style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 78px; height: 1px; padding-top: 155px; margin-left: 1px;">
-                        <div data-drawio-colors="color: #CCCCCC; "
+                        <div data-drawio-colors="color: #7200D6; "
                             style="box-sizing: border-box; font-size: 0px; text-align: center;">
                             <div
-                                style="display: inline-block; font-size: 36px; font-family: Helvetica; color: rgb(204, 204, 204); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">
+                                style="display: inline-block; font-size: 36px; font-family: Helvetica; color: rgb(114, 0, 214); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">
                                 1</div>
                         </div>
                     </div>
-                </foreignObject><text x="40" y="166" fill="#CCCCCC" font-family="Helvetica" font-size="36px"
+                </foreignObject><text x="40" y="166" fill="#7200D6" font-family="Helvetica" font-size="36px"
                     text-anchor="middle">1</text>
             </switch>
         </g>
@@ -164,14 +164,14 @@
                     style="overflow: visible; text-align: left;">
                     <div xmlns="http://www.w3.org/1999/xhtml"
                         style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 78px; height: 1px; padding-top: 155px; margin-left: 121px;">
-                        <div data-drawio-colors="color: #CCCCCC; "
+                        <div data-drawio-colors="color: #7200D6; "
                             style="box-sizing: border-box; font-size: 0px; text-align: center;">
                             <div
-                                style="display: inline-block; font-size: 36px; font-family: Helvetica; color: rgb(204, 204, 204); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">
+                                style="display: inline-block; font-size: 36px; font-family: Helvetica; color: rgb(114, 0, 214); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">
                                 2</div>
                         </div>
                     </div>
-                </foreignObject><text x="160" y="166" fill="#CCCCCC" font-family="Helvetica" font-size="36px"
+                </foreignObject><text x="160" y="166" fill="#7200D6" font-family="Helvetica" font-size="36px"
                     text-anchor="middle">2</text>
             </switch>
         </g>
@@ -202,14 +202,14 @@
                     style="overflow: visible; text-align: left;">
                     <div xmlns="http://www.w3.org/1999/xhtml"
                         style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 78px; height: 1px; padding-top: 155px; margin-left: 381px;">
-                        <div data-drawio-colors="color: #7200D6; "
+                        <div data-drawio-colors="color: #CCCCCC; "
                             style="box-sizing: border-box; font-size: 0px; text-align: center;">
                             <div
-                                style="display: inline-block; font-size: 36px; font-family: Helvetica; color: rgb(114, 0, 214); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">
+                                style="display: inline-block; font-size: 36px; font-family: Helvetica; color: rgb(204, 204, 204); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">
                                 4</div>
                         </div>
                     </div>
-                </foreignObject><text x="420" y="166" fill="#7200D6" font-family="Helvetica" font-size="36px"
+                </foreignObject><text x="420" y="166" fill="#CCCCCC" font-family="Helvetica" font-size="36px"
                     text-anchor="middle">4</text>
             </switch>
         </g>
@@ -254,7 +254,7 @@
                     text-anchor="middle">6</text>
             </switch>
         </g>
-        <path d="M 700 80 L 729.9 80" fill="none" stroke="#cccccc" stroke-width="3" stroke-miterlimit="10"
+        <path d="M 690 80 L 729.9 80" fill="none" stroke="#cccccc" stroke-width="3" stroke-miterlimit="10"
             pointer-events="stroke" />
         <path d="M 736.65 80 L 727.65 84.5 L 729.9 80 L 727.65 75.5 Z" fill="#cccccc" stroke="#cccccc" stroke-width="3"
             stroke-miterlimit="10" pointer-events="all" />

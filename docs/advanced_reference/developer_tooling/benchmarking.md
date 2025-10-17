@@ -1,7 +1,7 @@
-The {{open_autonomy}} framework provides a benchmark tool to assist with the process of measuring the performance of an agent service. The tool is designed to measure time spent within the execution of code blocks in the behaviours that compose an {{fsm_app}}. It differentiates between two kinds of code blocks:
+The {{open_autonomy}} framework provides a benchmark tool to assist with the process of measuring the performance of an AI agent. The tool is designed to measure time spent within the execution of code blocks in the behaviours that compose an {{fsm_app}}. It differentiates between two kinds of code blocks:
 
 * **Local code blocks**: used to measure the time taken in local computations, for example, preparation of payloads or computing a local function.
-* **Consensus code blocks**: used to measure the time taken by the logic in the execution of the consensus algorithm by the agents.
+* **Consensus code blocks**: used to measure the time taken by the logic in the execution of the consensus algorithm by the agent instances.
 
 ## Set up the benchmark tool
 
@@ -79,24 +79,24 @@ class MyBehaviour(BaseBehaviour, ABC):
 
 ## Save the benchmark data
 
-The benchmark data is saved upon calling the method `BenchmarkTool.save()`. This function call is executed at the end of every period by the `ResetAndPauseBehaviour` (within the `reset_pause_abci` {{fsm_app}} skill). Hence, the `reset_pause_abci` {{fsm_app}} must be chained appropriately in the composed FSM, marking the end of a period in the business logic of the service.
+The benchmark data is saved upon calling the method `BenchmarkTool.save()`. This function call is executed at the end of every period by the `ResetAndPauseBehaviour` (within the `reset_pause_abci` {{fsm_app}} skill). Hence, the `reset_pause_abci` {{fsm_app}} must be chained appropriately in the composed FSM, marking the end of a period in the business logic of the AI agent.
 
 As a summary, the sequence of events that should occur so that the benchmark information is saved correctly is as follows:
 
 1. The overall {{fsm_app}} is composed with the `reset_pause_abci` {{fsm_app}}.
 2. Any intermediate behaviour executes local and/or consensus blocks contexts within their `async_act()` method.
 3. The {{fsm_app}} reaches the `ResetAndPauseRound` (`reset_pause_abci` round and calls the `BenchmarkTool.save()` method.
-4. Wait for as many periods as you wish before stopping the service. Note that any measurement not saved at the end of a period will be lost.
+4. Wait for as many periods as you wish before stopping the AI agent. Note that any measurement not saved at the end of a period will be lost.
 
-The benchmark data will be stored in the folder `<service_folder>/abci_build_*/persistent_data/benchmarks`.
+The benchmark data will be stored in the folder `<ai_agent_folder>/abci_build_*/persistent_data/benchmarks`.
 
 ## Use the command line to aggregate benchmark information
 
-1. **Run the service.** Build and run the agent service in [dev mode](./dev_mode.md#build-and-run-an-agent-service-in-dev-mode). (The tool also works if you run the agent [normal mode](../../guides/deploy_service.md#local-deployment-full-workflow).)
+1. **Run the AI agent.** Build and run the AI agent in [dev mode](./dev_mode.md#build-and-run-an-ai-agent-in-dev-mode). (The tool also works if you run the AI agent [normal mode](../../guides/deploy_service.md#local-deployment-full-workflow).)
 
-2. **Wait for service execution.** Wait until the service has completed at least one period before cancelling the execution. That is, wait until the `ResetAndPauseRound` round has occurred at least once. As commented above, this is required because benchmark data is saved in this state. Once you have a data dump, you can stop the local execution by pressing `Ctrl-C`.
+2. **Wait for AI agent execution.** Wait until the AI agent has completed at least one period before cancelling the execution. That is, wait until the `ResetAndPauseRound` round has occurred at least once. As commented above, this is required because benchmark data is saved in this state. Once you have a data dump, you can stop the local execution by pressing `Ctrl-C`.
 
-3. **Aggregate the benchmark data.** The benchmark data will be stored in the folder `<service_folder>/abci_build_*/persistent_data/benchmarks`. Aggregate the data for all periods executing:
+3. **Aggregate the benchmark data.** The benchmark data will be stored in the folder `<ai_agent_folder>/abci_build_*/persistent_data/benchmarks`. Aggregate the data for all periods executing:
 
     ```bash
     autonomy analyse benchmarks abci_build_*/persistent_data/benchmarks

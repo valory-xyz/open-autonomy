@@ -1,4 +1,4 @@
-# Agent service deployment
+# AI Agent deployment
 
 !!! info
     This section is under review and will be updated soon.
@@ -6,7 +6,7 @@
 
 Tooling has been provided to allow for the automatic generation of deployments via deployment specifications.
 
-Agent service deployments can be built on the fly.
+AI agent deployments can be built on the fly.
 
 ## Generate deployment configuration
 
@@ -48,7 +48,7 @@ Usage: autonomy build-image [OPTIONS] [PUBLIC_ID_OR_HASH]
   Build image using skaffold.
 
 Options:
-  --service-dir PATH  Path to service dir.
+  --service-dir PATH  Path to AI agent dir.
   --dev               Build development image.
   --pull              Pull latest dependencies.
   --help              Show this message and exit.
@@ -85,14 +85,14 @@ The logs of a single AEA or node can then be inspected with `docker logs {contai
 ## Building & tagging local images
 
 ```bash
-export SERVICE_ID=author_name/service_name
+export AI_AGENT_ID=author_name/ai_agent_name
 export VERSION=0.1.0
-autonomy build-image ${SERVICE_ID}
+autonomy build-image ${AI_AGENT_ID}
 ```
 
 Conceptually, the image to be used within a deployment should contain all required dependencies and packages.
 
-Configuration of containers and agents is done via environment variables.
+Configuration of containers and agent instances is done via environment variables.
 
 ### Required dependencies
 

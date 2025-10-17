@@ -5,7 +5,7 @@ license: Apache-2.0
 description: Register reset to replicate Tendermint issue.
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeicocdojplie5z4kbs7cn7apunfydbxui2nigp6ci2osuvv3mybzfm
+  README.md: bafybeiba4g47xhi5l6555iixngld5pj4jrcubi2hfvz7ubdac7j6agz3wa
   __init__.py: bafybeihgxrmmp63exxkdmvlu565kehvuucg4iivnejwutaehb2p7xzxu4q
   tests/__init__.py: bafybeigkkq3hon4wuyrazwnt5tiu23idpelf6a7kzbmawty7zfrpqnmnhi
   tests/helpers/__init__.py: bafybeigwjcrcn35vqa57l6j7bhrraurvnls5rc6iuoncvp7an5rhhrnfoe

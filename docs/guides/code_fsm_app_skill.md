@@ -1,12 +1,12 @@
 
-Recall that the [{{fsm_app}} skill](../key_concepts/fsm_app_introduction.md) is the core part of the agent that encodes the business logic of the service. Developing the {{fsm_app}} is possibly most demanding step in the development process.
+Recall that the [{{fsm_app}} skill](../key_concepts/fsm_app_introduction.md) is the core part of the agent blueprint that encodes the business logic of the AI agent. Developing the {{fsm_app}} is possibly most demanding step in the development process.
 
 <figure markdown>
 ![](../images/development_process_code_fsm_app_skill.svg)
 <figcaption>Part of the development process covered in this guide</figcaption>
 </figure>
 
-In order to simplify and speed up the development, the {{open_autonomy}} framework provides an **{{fsm_app}} scaffold tool** that auto-generates functional, template classes with all the boilerplate code in place. Therefore, you can focus on completing the actual operations executed at each state of the service.
+In order to simplify and speed up the development, the {{open_autonomy}} framework provides an **{{fsm_app}} scaffold tool** that auto-generates functional, template classes with all the boilerplate code in place. Therefore, you can focus on completing the actual operations executed at each state of the AI agent.
 
 ## What you will learn
 
@@ -30,14 +30,14 @@ You must ensure that your machine satisfies the [framework requirements](./set_u
 
     You can explore this path and take a look at the generated classes.
 
-2. **Fill in the business logic code of your {{fsm_app}}.** By default, the generated classes don't execute any operation. It is your turn to define what actions are occurring at each state of the service, by filling up the code of the template classes generated above. You can identify the main places where you should populate code by browsing for `# TODO` comments. These are the main files that you should edit:
+2. **Fill in the business logic code of your {{fsm_app}}.** By default, the generated classes don't execute any operation. It is your turn to define what actions are occurring at each state of the AI agent, by filling up the code of the template classes generated above. You can identify the main places where you should populate code by browsing for `# TODO` comments. These are the main files that you should edit:
 
       * `behaviours.py`,
       * `rounds.py`,
       * `payloads.py`.
 
-    You should also define a number of test classes. You can review how the [demo services](https://stack.olas.network/demos/) are implemented, or read about the [internals of {{fsm_app}}s](../key_concepts/fsm_app_introduction.md) to learn how to populate the template classes.
+    You should also define a number of test classes. You can review how the [demo AI agents](https://stack.olas.network/demos/) are implemented, or read about the [internals of {{fsm_app}}s](../key_concepts/fsm_app_introduction.md) to learn how to populate the template classes.
     
     !!! tip
     	
-    	If you are a new user and want to skip coding the {{fsm_app}}, in the next guides we show you how you can use an existing {{fsm_app}} or an existing agent from the default [packages shipped with the framework](../package_list.md).
+    	If you are a new user and want to skip coding the {{fsm_app}}, in the next guides we show you how you can use an existing {{fsm_app}} or an existing agent blueprint from the default [packages shipped with the framework](../package_list.md).

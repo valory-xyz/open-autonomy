@@ -27,21 +27,21 @@ Currently, the {{open_autonomy}} framework supports two types of registries:
 
 There are three main types of packages that can be stored in these registries:
 
-  * services,
-  * agents, and
+  * AI agents,
+  * agent blueprints, and
   * components (which include connections, contracts, protocols and skills).
 
-Services use agent packages, and agents use component packages. Packages are developed locally and stored in a registry to be retrieved and reused in a later stage. Every package has a **public package ID** that follows the naming convention `<author_name>/<package_name>:<version>`.
+AI agents use agent blueprint packages, and agent blueprints use component packages. Packages are developed locally and stored in a registry to be retrieved and reused in a later stage. Every package has a **public package ID** that follows the naming convention `<author_name>/<package_name>:<version>`.
 
 You can browse the [list of default packages](../package_list.md) of the {{open_autonomy}} framework available on the default remote IPFS registry.
 
 Packages live in a different space when being used by the developer, and they are stored on and retrieved from a registry using different commands. The table below presents a summary.
 
 | **Package type** | **Command to store on a registry** | **Command to retrieve from a registry** |
-|--------------|----------------------------------|-------------------------------------|
-| Service      | `autonomy publish`               | `autonomy fetch`                    |
-| Agent        | `autonomy publish`               | `autonomy fetch`                    |
-| Component    | `autonomy push`                  | `autonomy add`                      |
+|------------------|------------------------------------|-----------------------------------------|
+| AI Agent         | `autonomy publish`                 | `autonomy fetch`                        |
+| Agent Blueprint  | `autonomy publish`                 | `autonomy fetch`                        |
+| Component        | `autonomy push`                    | `autonomy add`                          |
 
 
 ### Workspace folder vs local registry
@@ -55,12 +55,12 @@ The figure below shows a typical setup, where you might identify some common tra
 
 It is important not to confuse a **local registry** with a local **workspace folder**. The local registry is simply a repository to store finalized packages, mimicking the role of a remote registry on the local machine. A workspace folder is any folder where you can retrieve the contents of a registry (local or remote). The table below summarizes the main differences between these two locations.
 
-|                            | **Workspace folder**                                                              | **Local registry**                                                                                                                    |
-|----------------------------|-------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| Location                   | Any folder                                                                    | Parent or child `/packages` folder of active folder (default). Alternatively, specified through `--registry-path` top-level flag. |
-| Service package location   | `./<service_package>`                                                         | `./<author_name>/agents/<service_package>`                                                                                        |
-| Agent package location     | `./<agent_package>`                                                           | `./<author_name>/agents/<agent_package>`                                                                                          |
-| Component package location | `./<agent_package>/vendor/<author_name>/<component_type>/<component_package>` | `./<author_name>/<component_type>/<component_package>`                                                                            |
+|                                  | **Workspace folder**                                                          | **Local registry**                                                                                                                |
+|----------------------------------|-------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| Location                         | Any folder                                                                    | Parent or child `/packages` folder of active folder (default). Alternatively, specified through `--registry-path` top-level flag. |
+| AI agent package location        | `./<ai_agent_package>`                                                         | `./<author_name>/agents/<ai_agent_package>`                                                                                        |
+| Agent blueprint package location | `./<agent_blueprint_package>`                                                           | `./<author_name>/agents/<agent_blueprint_package>`                                                                                          |
+| Component package location       | `./<agent_blueprint_package>/vendor/<author_name>/<component_type>/<component_package>` | `./<author_name>/<component_type>/<component_package>`                                                                            |
 
 
 You can either:
@@ -82,9 +82,9 @@ autonomy --registry-path=../my_registry publish --local
 
 
 ## Push and add components
-This section assumes that you have a newly created component, e.g., an {{fsm_app}} skill, within an agent folder. It is out of the scope of this guide how to create agent components. You can review the [guide to create an {{fsm_app}}](./code_fsm_app_skill.md), or the {{open_aea_doc}}. Your component should be located within an agent folder (i.e., a folder containing the file `aea-config.yaml`) in
+This section assumes that you have a newly created component, e.g., an {{fsm_app}} skill, within an agent blueprint folder. It is out of the scope of this guide how to create agent blueprint components. You can review the [guide to create an {{fsm_app}}](./code_fsm_app_skill.md), or the {{open_aea_doc}}. Your component should be located within an agent blueprint folder (i.e., a folder containing the file `aea-config.yaml`) in
 ```
-<agent_folder>/vendor/<author_name>/<component_type>/<package_name>.
+<agent_blueprint_folder>/vendor/<author_name>/<component_type>/<package_name>.
 ```
 Here, `<component_type>` is one of `connections`, `contracts`, `protocols` or `skills`.
 
@@ -92,7 +92,7 @@ Here, `<component_type>` is one of `connections`, `contracts`, `protocols` or `s
 
 1. Ensure that the framework has been [initialized with the desired registry](#how-to-tell-the-framework-what-registry-to-use) (local or remote).
 
-2. Within the agent folder, run the command
+2. Within the agent blueprint folder, run the command
     ```bash
     autonomy push <component_type> ./vendor/<author_name>/<component_type>/<component_name>
     ```
@@ -103,13 +103,13 @@ Here, `<component_type>` is one of `connections`, `contracts`, `protocols` or `s
     	Package hash: <hash>
     ```
 
-If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech/tcp/443/https`), you can check that the service has been successfully pushed by accessing the gateway https://gateway.autonolas.tech/ipfs/`<hash>` by substituting the appropriate `<hash>` value.
+If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech/tcp/443/https`), you can check that the AI agent has been successfully pushed by accessing the gateway https://gateway.autonolas.tech/ipfs/`<hash>` by substituting the appropriate `<hash>` value.
 
 ### Add a component from a registry
 
 1. Ensure that the framework has been [initialized with the desired registry](#how-to-tell-the-framework-what-registry-to-use) (local or remote).
 
-2. Within the agent folder, run the command
+2. Within the agent blueprint folder, run the command
     ```bash
     autonomy add <component_type> <author_name>/<package_name>:<version>:<hash>
     ```
@@ -119,14 +119,14 @@ If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech
     Successfully added <component_type> '<author_name>/<package_name>:<version>'.
     ```
 
-## Publish and fetch agents
-This section assumes that you have a newly created agent in a workspace folder. It is out of the scope of this guide how to create agents. You can review the [guide to define an agent](./define_agent.md), or the {{open_aea_doc}}. Your agent should be located in an agent folder (i.e., a folder containing the file `aea-config.yaml`).
+## Publish and fetch agent blueprints
+This section assumes that you have a newly created agent blueprint in a workspace folder. It is out of the scope of this guide how to create agent blueprints. You can review the [guide to define an agent blueprint](./define_agent.md), or the {{open_aea_doc}}. Your agent blueprint should be located in an agent blueprint folder (i.e., a folder containing the file `aea-config.yaml`).
 
-### Publish an agent on a registry
+### Publish an agent blueprint on a registry
 
 1. Ensure that the framework has been [initialized with the desired registry](#how-to-tell-the-framework-what-registry-to-use) (local or remote).
 
-2. Within the agent folder, run the command
+2. Within the agent blueprint folder, run the command
     ```bash
     autonomy publish
     ```
@@ -138,11 +138,11 @@ This section assumes that you have a newly created agent in a workspace folder. 
     	Package hash: <hash>
     ```
 !!!! warning
-    In case the agent contains components not yet pushed, it might be required that you run the command `autonomy publish --push-missing`, which automatically will push any missing component package.
+    In case the agent blueprint contains components not yet pushed, it might be required that you run the command `autonomy publish --push-missing`, which automatically will push any missing component package.
 
-If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech/tcp/443/https`), you can check that the agent has been successfully published by accessing the gateway https://gateway.autonolas.tech/ipfs/`<hash>` by substituting the appropriate `<hash>` value.
+If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech/tcp/443/https`), you can check that the agent blueprint has been successfully published by accessing the gateway https://gateway.autonolas.tech/ipfs/`<hash>` by substituting the appropriate `<hash>` value.
 
-### Fetch an agent from a registry
+### Fetch an agent blueprint from a registry
 
 1. Ensure that the framework has been [initialized with the desired registry](#how-to-tell-the-framework-what-registry-to-use) (local or remote).
 
@@ -157,21 +157,21 @@ If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech
     Successfully added <component_type> '<author_name>/<package_name>:<version>'.
     (...)
     ```
-    for each agent component being added, and a final message
+    for each agent blueprint component being added, and a final message
     ```bash
     Agent <package_name> successfully fetched.
     ```
-    indicating that the agent has been successfully fetched.
+    indicating that the agent blueprint has been successfully fetched.
 
 
-## Publish and fetch services
-This section assumes that you have a newly created service in a workspace folder. It is out of the scope of this guide how to create services. You can review the [guide to create a service with an existing agent](./define_service.md), or the [guide to define a service](./define_service.md). Your service should be located in an service folder (i.e., a folder containing the file `service.yaml`).
+## Publish and fetch AI agents
+This section assumes that you have a newly created AI agent in a workspace folder. It is out of the scope of this guide how to create AI agents. You can review the [guide to create an AI agent with an existing agent blueprint](./define_service.md), or the [guide to define an AI agent](./define_service.md). Your AI agent should be located in an `services` folder (i.e., a folder containing the file `service.yaml`).
 
-### Publish a service on a registry
+### Publish an AI agent on a registry
 
 1. Ensure that the framework has been [initialized with the desired registry](#how-to-tell-the-framework-what-registry-to-use) (local or remote).
 
-2. Within the service folder, run the command
+2. Within the AI agent folder, run the command
     ```bash
     autonomy publish
     ```
@@ -183,9 +183,9 @@ This section assumes that you have a newly created service in a workspace folder
     	Package hash: <hash>
     ```
 
-If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech/tcp/443/https`), you can check that the service has been successfully published by accessing the gateway https://gateway.autonolas.tech/ipfs/`<hash>` by substituting the appropriate `<hash>` value.
+If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech/tcp/443/https`), you can check that the AI agent has been successfully published by accessing the gateway https://gateway.autonolas.tech/ipfs/`<hash>` by substituting the appropriate `<hash>` value.
 
-### Fetch a service from a registry
+### Fetch an AI agent from a registry
 
 1. Ensure that the framework has been [initialized with the desired registry](#how-to-tell-the-framework-what-registry-to-use) (local or remote).
 
