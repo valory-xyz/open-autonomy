@@ -35,7 +35,7 @@ We illustrate the full local deployment workflow using the `hello_world` AI agen
 
     === "Remote registry"
         ```bash
-        autonomy fetch valory/hello_world:0.1.0:bafybeicj73kflta5sfxq7gnnk7smcdp2gwcfvfvm2plxc5ojhulwa3xnoq --service
+        autonomy fetch valory/hello_world:0.1.0:bafybeib5a5qxpx7sq6kzqjuirp6tbrujwz5zvj25ot7nsu3tp3me3ikdhy --service
         ```
 
 2. **Build the agent blueprint's image.** Navigate to the AI agent runtime folder that you have just created and build the Docker image of the agent blueprint of the AI agent:
