@@ -28,7 +28,6 @@ import sys
 from asyncio import AbstractEventLoop, AbstractServer, CancelledError, Task
 from io import BytesIO
 from logging import Logger
-from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from threading import Event, Thread
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
@@ -1145,32 +1144,18 @@ class TendermintNode:
         self,
         params: TendermintParams,
         logger: Optional[Logger] = None,
-        write_to_log: bool = False,
     ):
         """
         Initialize a Tendermint node.
 
         :param params: the parameters.
         :param logger: the logger.
-        :param write_to_log: Write to log file.
         """
         self.params = params
         self._process: Optional[subprocess.Popen] = None
         self._monitoring: Optional[StoppableThread] = None
         self._stopping = False
         self.logger = logger or logging.getLogger()
-        self.log_file = os.environ.get("LOG_FILE", DEFAULT_TENDERMINT_LOG_FILE)
-        self.write_to_log = write_to_log
-
-        if self.write_to_log:
-            max_bytes = int(
-                os.environ.get("LOG_FILE_MAX_BYTES", DEFAULT_LOG_FILE_MAX_BYTES)
-            )
-            handler = RotatingFileHandler(
-                self.log_file, maxBytes=max_bytes, backupCount=1
-            )
-            handler.setFormatter(logging.Formatter("%(message)s"))
-            self.logger.addHandler(handler)
 
     def _build_init_command(self) -> List[str]:
         """Build the 'init' command."""
@@ -1306,8 +1291,7 @@ class TendermintNode:
     def log(self, line: str) -> None:
         """Open and write a line to the log file."""
         self._write_to_console(line=line)
-        if self.write_to_log:
-            self.logger.info(line.strip())
+        self.logger.info(line.strip())
 
     def prune_blocks(self) -> int:
         """Prune blocks from the Tendermint state"""
@@ -1428,7 +1412,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
             self.use_grpc,
         )
         self.logger.debug(f"Tendermint parameters: {self.params}")
-        self.node = TendermintNode(self.params, self.logger)
+        self.node = TendermintNode(self.params, None)
 
     def _ensure_connected(self) -> None:
         """Ensure that the connection and the channel are ready."""
