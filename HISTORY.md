@@ -1,5 +1,14 @@
 # Release History - `open-autonomy`
 
+# 0.21.3 (2025-10-20)
+
+Docs:
+- Updates the docs to use the new naming convention for Agent blueprints and AI agents #2364
+
+Autonomy:
+- Support repricing on `gas too low` RPC error in `TxSettler` #2365
+- Add helper methods in `ChainType` and `LedgerType` enums #2366
+
 # 0.21.2 (2025-10-01)
 
 Docs:
