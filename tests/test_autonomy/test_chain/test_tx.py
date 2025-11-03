@@ -37,7 +37,7 @@ from autonomy.chain.exceptions import (
     TxSettleError,
     TxVerifyError,
 )
-from autonomy.chain.tx import TxSettler
+from autonomy.chain.tx import ERRORS_TO_RETRY, TxSettler
 
 from tests.test_autonomy.test_chain.base import BaseChainInteractionTest
 
@@ -48,6 +48,12 @@ def _raise_connection_error(*args: Any, **kwargs: Any) -> Any:
 
 def _raise_value_error(*args: Any, **kwargs: Any) -> Any:
     raise ValueError("Some value error")
+
+
+def test_errors_are_lower_case() -> None:
+    """Test errors are lower case."""
+    for error in ERRORS_TO_RETRY:
+        assert error == error.lower()
 
 
 @pytest.mark.parametrize(
