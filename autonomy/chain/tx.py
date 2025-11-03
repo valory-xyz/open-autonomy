@@ -66,6 +66,8 @@ ERRORS_TO_RETRY = ERRORS_TO_REPRICE | {
     "already_exists",
     "already known",
     "oldnonce",
+    "replacement transaction underpriced",
+    "is contract deployed correctly and chain synced?",
 }
 
 
