@@ -27,9 +27,8 @@ from aea.configurations.data_types import PackageId
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 
-from autonomy.chain.config import ChainConfigs, ChainType
+from autonomy.chain.config import ChainConfigs, ChainType, OnChainHelper
 from autonomy.chain.service import get_service_info
-from autonomy.cli.helpers.chain import OnChainHelper
 
 from tests.test_autonomy.test_chain.base import (
     BaseChainInteractionTest,

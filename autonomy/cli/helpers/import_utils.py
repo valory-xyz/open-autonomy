@@ -20,7 +20,10 @@
 
 import importlib
 import sys
+from importlib.util import source_from_cache
 from pathlib import Path
+from types import ModuleType
+from typing import Optional
 
 
 def compute_sys_path_root(module_path: Path, module_name: str) -> Path:
@@ -47,3 +50,50 @@ def purge_module_cache(module_name: str) -> None:
         sys.modules.pop(key, None)
 
     importlib.invalidate_caches()
+
+
+def _get_module_file(module: ModuleType) -> Optional[Path]:
+    """Resolve module file path if available."""
+
+    file_path = getattr(module, "__file__", None)
+    if file_path is None:
+        return None
+
+    try:
+        resolved = Path(file_path).resolve()
+    except (FileNotFoundError, RuntimeError):
+        return None
+
+    if resolved.suffix == ".pyc":
+        try:
+            resolved = Path(source_from_cache(str(resolved))).resolve()
+        except (NotImplementedError, ValueError):
+            return None
+
+    return resolved
+
+
+def import_module_from_path(
+    module_name: str,
+    module_file: Path,
+    *,
+    strict_origin: bool = True,
+) -> ModuleType:
+    """Import a module ensuring it originates from the expected file path."""
+
+    module_file = module_file.resolve()
+    existing = sys.modules.get(module_name)
+    if existing is not None:
+        existing_path = _get_module_file(existing)
+        if existing_path == module_file:
+            return existing
+        purge_module_cache(module_name)
+
+    module = importlib.import_module(module_name)
+    module_path = _get_module_file(module)
+    if strict_origin and module_path != module_file:
+        raise ModuleNotFoundError(
+            f"Module '{module_name}' was loaded from an unexpected location. Expected {module_file}"
+        )
+
+    return module

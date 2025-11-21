@@ -33,13 +33,13 @@ from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 
 from autonomy.chain.base import registry_contracts
-from autonomy.chain.config import ChainType, ContractConfigs
+from autonomy.chain.config import ChainType, ContractConfigs, OnChainHelper
 from autonomy.chain.metadata import publish_metadata
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH, MintManager, UnitType
 from autonomy.chain.service import ServiceManager
 from autonomy.chain.subgraph.client import SubgraphClient
 from autonomy.chain.utils import parse_public_id_from_metadata, resolve_component_id
-from autonomy.cli.helpers.chain import MintHelper, OnChainHelper
+from autonomy.cli.helpers.chain import MintHelper
 from autonomy.cli.packages import get_package_manager
 
 from tests.conftest import DATA_DIR, skip_docker_tests

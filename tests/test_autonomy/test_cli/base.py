@@ -55,11 +55,19 @@ class BaseCliTest:
         cls.cli_runner = CliRunner()
         cls.cwd = Path.cwd().absolute()
 
+    def setup_method(self) -> None:  # type: ignore[override]
+        """Pytest entry point for per-test setup."""
+        self.setup()
+
     def setup(
         self,
     ) -> None:
         """Setup test."""
         self.t = Path(tempfile.mkdtemp())
+
+    def teardown_method(self) -> None:  # type: ignore[override]
+        """Pytest entry point for per-test teardown."""
+        self.teardown()
 
     def run_cli(
         self, commands: Optional[Tuple[Union[str, Path], ...]] = None
