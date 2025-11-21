@@ -22,9 +22,14 @@
 from typing import Iterable
 
 import pytest
+from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 
 from autonomy.chain import config as chain_config
-from autonomy.chain.constants import CHAIN_ID_TO_CHAIN_NAME, CHAIN_PROFILES
+from autonomy.chain.constants import (
+    CHAIN_ID_TO_CHAIN_NAME,
+    CHAIN_PROFILES,
+    SERVICE_MANAGER_CONTRACT,
+)
 
 
 def _all_profile_chain_types() -> Iterable[chain_config.ChainType]:
@@ -184,7 +189,6 @@ def test_contract_configs_keys_and_values_present() -> None:
         chain_config.ContractConfigs.component_registry,
         chain_config.ContractConfigs.agent_registry,
         chain_config.ContractConfigs.service_registry,
-        chain_config.ContractConfigs.service_manager,
         chain_config.ContractConfigs.registries_manager,
         chain_config.ContractConfigs.gnosis_safe_proxy_factory,
         chain_config.ContractConfigs.gnosis_safe_same_address_multisig,
@@ -198,23 +202,22 @@ def test_contract_configs_keys_and_values_present() -> None:
         assert expected.issubset(keys)
 
 
-def test_service_manager_fallbacks() -> None:
-    """service_manager picks service_manager or falls back to service_manager_token by chain."""
-
-    sm_contracts = chain_config.ContractConfigs.service_manager.contracts
-
-    # ethereum uses 'service_manager_token'
-    eth = sm_contracts[chain_config.ChainType.ETHEREUM]
-    assert eth == CHAIN_PROFILES["ethereum"]["service_manager_token"]
-
-    # polygon has a dedicated 'service_manager' key
-    poly = sm_contracts[chain_config.ChainType.POLYGON]
-    assert poly == CHAIN_PROFILES["polygon"]["service_manager"]
-
-
 def test_chain_id_round_trip_known_networks() -> None:
     """Round-trip mapping between ID and name for known networks works."""
 
     for cid, name in CHAIN_ID_TO_CHAIN_NAME.items():
         ct = chain_config.ChainType.from_id(cid)
         assert ct.value == name
+
+
+@pytest.mark.usefixtures("registries_scope_class")
+def test_dynamic_contract_addresses() -> None:
+    """Dynamic contract address resolution works as expected."""
+
+    service_manager_config = chain_config.ContractConfigs.get(
+        SERVICE_MANAGER_CONTRACT.name
+    )
+    assert (
+        service_manager_config.contracts[chain_config.ChainType.LOCAL]
+        == "0x4c5859f0F772848b2D91F1D83E2Fe57935348029"
+    )

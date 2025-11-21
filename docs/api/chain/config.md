@@ -123,6 +123,36 @@ def from_id(cls, chain_id: int) -> "Chain"
 
 Load from chain ID.
 
+<a id="autonomy.chain.config.DynamicContract"></a>
+
+## DynamicContract Objects
+
+```python
+class DynamicContract(Dict[ChainType, str])
+```
+
+Contract mapping for addresses from on-chain deployments.
+
+<a id="autonomy.chain.config.DynamicContract.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(source_contract_id: PublicId, getter_method: str) -> None
+```
+
+Initialize the dynamic contract.
+
+<a id="autonomy.chain.config.DynamicContract.__getitem__"></a>
+
+#### `__`getitem`__`
+
+```python
+def __getitem__(chain: ChainType) -> str
+```
+
+Get address for given chain.
+
 <a id="autonomy.chain.config.ContractConfig"></a>
 
 ## ContractConfig Objects

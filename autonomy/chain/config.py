@@ -20,15 +20,29 @@
 """On-chain tools configurations."""
 
 import os
+from contextlib import suppress
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Optional, cast
 
+import click
+from aea.configurations.data_types import PublicId
+from aea.crypto.registries import ledger_apis_registry
+
+from autonomy.chain.base import RegistryContracts
 from autonomy.chain.constants import (
     CHAIN_ID_TO_CHAIN_NAME,
     CHAIN_NAME_TO_CHAIN_ID,
     CHAIN_PROFILES,
+    SERVICE_REGISTRY_CONTRACT,
 )
+
+
+ETHEREUM_PLUGIN_INSTALLED = False
+with suppress(ImportError):
+    from aea_ledger_ethereum import EthereumApi
+
+    ETHEREUM_PLUGIN_INSTALLED = True
 
 
 DEFAULT_LOCAL_RPC = "http://127.0.0.1:8545"
@@ -130,6 +144,67 @@ class ChainType(Enum):
 Chain = ChainType
 
 
+class DynamicContract(Dict[ChainType, str]):
+    """Contract mapping for addresses from on-chain deployments."""
+
+    def __init__(self, source_contract_id: PublicId, getter_method: str) -> None:
+        """Initialize the dynamic contract."""
+        super().__init__()
+        self.source_contract_id = source_contract_id
+        self.getter_method = getter_method
+
+    def __getitem__(self, chain: ChainType) -> str:
+        """Get address for given chain."""
+        if chain not in self:
+            if "CUSTOM_SERVICE_MANAGER_ADDRESS" in os.environ:
+                return os.environ["CUSTOM_SERVICE_MANAGER_ADDRESS"]
+
+            source_contract_addresses = ContractConfigs.get(
+                name=self.source_contract_id.name,
+            )
+            source_address = source_contract_addresses.contracts.get(chain)
+            if source_address is None:
+                raise KeyError(f"Address for chain {chain} not found.")
+
+            chain_config = ChainConfigs.get(chain)
+            if chain_config.rpc is None:
+                raise ValueError(
+                    f"RPC URL cannot be `None`, "
+                    f"Please set the environment variable for {chain.value} chain "
+                    f"using `{ChainConfigs.get_rpc_env_var(chain)}` environment variable"
+                )
+
+            if ETHEREUM_PLUGIN_INSTALLED:
+                identifier = EthereumApi.identifier
+            else:
+                identifier = "ethereum"
+                click.echo(
+                    "Ethereum ledger plugin is not installed. "
+                    "Using default identifier 'ethereum' to fetch the ledger api."
+                )
+
+            ledger_api = ledger_apis_registry.make(
+                identifier,
+                **{
+                    "address": chain_config.rpc,
+                    "chain_id": chain_config.chain_id,
+                    "is_gas_estimation_enabled": True,
+                },
+            )
+            source_contract = RegistryContracts.get_contract(
+                public_id=self.source_contract_id,
+            )
+            source_instance = source_contract.get_instance(
+                ledger_api=ledger_api,
+                contract_address=source_address,
+            )
+            self[chain] = getattr(
+                source_instance.functions, self.getter_method
+            )().call()
+
+        return super().__getitem__(chain)
+
+
 @dataclass
 class ContractConfig:
     """Contract config class."""
@@ -200,15 +275,10 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
 
     service_manager = ContractConfig(
         name="service_manager",
-        contracts={
-            ChainType(chain_name): cast(
-                str,
-                container.get(
-                    "service_manager", container.get("service_manager_token")
-                ),
-            )
-            for chain_name, container in CHAIN_PROFILES.items()
-        },
+        contracts=DynamicContract(
+            source_contract_id=SERVICE_REGISTRY_CONTRACT,
+            getter_method="manager",
+        ),
     )
 
     registries_manager = ContractConfig(
