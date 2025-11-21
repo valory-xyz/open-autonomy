@@ -36,7 +36,7 @@ To follow the next sections, you need to populate the local registry with a numb
         "connection/valory/http_client/0.23.0": "bafybeib34a2ukancj5524tz64smczju2q2njscgufmtml6dcjb3bjyaocy",
         "connection/valory/ipfs/0.1.0": "bafybeif7exoq2viwhfgfcjplxq73hnxvgpsx7pwshhntx6aekza25mdwli",
         "connection/valory/ledger/0.19.0": "bafybeifdsep5suryfufmto4j5fyvjhmlgypyg6zvvwqsm4edlwfbfsav5y",
-        "contract/valory/service_registry/0.1.0": "bafybeieprxqowacuaqrhhzkv476i2zsnf4hs2ffusdgvlga3ruurrjdaqu",
+        "contract/valory/service_registry/0.1.0": "bafybeib4fb4egsorrw2jcp4y5ep4rkioth2ze5r623ukr6ook2f6weg2k4",
         "protocol/open_aea/signing/1.0.0": "bafybeib7p5as3obcdzseiwg5umj2piiqaodkxkto7qh7b552l5emwsmdzm",
         "protocol/valory/abci/0.1.0": "bafybeigdi6wsbdn2nv7clzhnuhki3taywgiiajwawdaat57o5ntlgqj2qe",
         "protocol/valory/acn/1.1.0": "bafybeicztpzulro64brsms6qmlav3dz635eykpb7ihtchu2eke2hr52efa",
@@ -46,7 +46,7 @@ To follow the next sections, you need to populate the local registry with a numb
         "protocol/valory/ledger_api/1.0.0": "bafybeiga6gdd3ccdt5jgrov474koz524f3pfbhprwxfjj7wextkl7wozsa",
         "protocol/valory/tendermint/0.1.0": "bafybeif5wq5i2ugr66alniej2bk4vws5sikal7otx674y5kz52e3ulo2qm",
         "skill/valory/abstract_abci/0.1.0": "bafybeihbstfafzdk4ecb4nkuo3vz3incrvgibljaqf5khtm3yxqswklj5i",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeib4xpcpuiryyfnkuyhypdvqi5ebbl7ugavv6ig6yp4nzk3fxosntm",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeicxv72ydapiudn6aj7qkeokxinsutj6opvcsen2v7ldcen55vhfai",
         "skill/valory/hello_world_abci/0.1.0": "bafybeibj7uripgimp6eklmkltpo2gwqyinq524wficoulod3b5ehzrivv4",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihezztwiiismlbblbv67i4zibp7w6xzpqadt67mcdjaoauibjqii4"
     }

@@ -54,10 +54,9 @@ from autonomy.analyse.logs.base import (
 from autonomy.analyse.logs.collection import FromDirectory, LogCollection
 from autonomy.analyse.logs.db import AgentLogsDB
 from autonomy.analyse.service import ServiceAnalyser, ServiceValidationFailed
-from autonomy.chain.config import ChainType, ContractConfigs
+from autonomy.chain.config import ChainType, ContractConfigs, OnChainHelper
 from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
 from autonomy.chain.utils import resolve_component_id
-from autonomy.cli.helpers.chain import OnChainHelper
 from autonomy.cli.utils.click_utils import sys_path_patch
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS, Service
 from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH

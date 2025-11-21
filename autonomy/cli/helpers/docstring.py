@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,10 +19,9 @@
 
 """Helper for docstring analyser."""
 
-import importlib
 from pathlib import Path
 from types import ModuleType
-from typing import Optional, cast
+from typing import Optional
 
 import click
 from aea.configurations.constants import PACKAGES
@@ -32,6 +31,8 @@ from autonomy.analyse.abci.docstrings import (
     compare_docstring_content,
     docstring_abci_app,
 )
+from autonomy.cli.helpers import import_utils
+from autonomy.cli.utils.click_utils import sys_path_patch
 
 
 def import_rounds_module(
@@ -39,10 +40,27 @@ def import_rounds_module(
     packages_dir: Optional[Path] = None,
 ) -> ModuleType:
     """Import module using importlib.import_module"""
-    packages_dir = (packages_dir or Path.cwd() / PACKAGES).parent
-    module_dir = module_path.parent.resolve().relative_to(packages_dir)
-    import_path = ".".join((*module_dir.parts, "rounds"))
-    return importlib.import_module(import_path)
+    module_path = module_path.resolve()
+    module_file = module_path.with_name("rounds.py")
+    if not module_file.exists():
+        raise ModuleNotFoundError("No module named 'packages.rounds'")
+
+    if packages_dir is None:
+        packages_dir_resolved = (Path.cwd() / PACKAGES).resolve()
+    else:
+        packages_dir_resolved = Path(packages_dir).resolve()
+
+    if packages_dir_resolved.name != PACKAGES:
+        raise ModuleNotFoundError("No module named 'skills'")
+
+    packages_dir = packages_dir_resolved
+    module_dir = module_file.parent.relative_to(packages_dir.parent)
+    module_name = ".".join((*module_dir.parts, module_file.stem))
+
+    with sys_path_patch(import_utils.compute_sys_path_root(module_file, module_name)):
+        return import_utils.import_module_from_path(
+            module_name, module_file, strict_origin=False
+        )
 
 
 def analyse_docstrings(
@@ -61,28 +79,29 @@ def analyse_docstrings(
     """
 
     module = import_rounds_module(module_path=module_path, packages_dir=packages_dir)
+    rounds_file = module_path.resolve()
+    if rounds_file.name != "rounds.py":
+        rounds_file = rounds_file.with_name("rounds.py")
     for obj in dir(module):
         if obj.endswith(ABCIAPP) and obj != ABCIAPP:
             App = getattr(module, obj)
             docstring = docstring_abci_app(App)
 
-            original_content = Path(cast(str, module.__file__)).read_text(
-                encoding="utf-8"
-            )
+            original_content = rounds_file.read_text(encoding="utf-8")
             has_docstring, expected_content = compare_docstring_content(
                 file_content=original_content, docstring=docstring, abci_app_name=obj
             )
 
             if not has_docstring and update:
                 click.echo(
-                    f"App definition in {module_path} does not contain well formatted docstring, please update it manually"
+                    f"App definition in {rounds_file} does not contain well formatted docstring, please update it manually"
                 )
                 return True
 
             update_needed = original_content != expected_content
 
             if update and update_needed:
-                module_path.write_text(expected_content, encoding="utf-8")
+                rounds_file.write_text(expected_content, encoding="utf-8")
                 return True
 
             return update_needed

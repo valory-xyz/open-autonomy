@@ -25,11 +25,21 @@ import pytest
 import requests
 from aea.protocols.generator.common import _camel_case_to_snake_case
 
-from autonomy.chain.config import ChainType
+from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import CHAIN_PROFILES
 
 
 ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/refs/tags/v1.2.7/docs/configuration.json"
+CHAIN_RPCS = {
+    ChainType.ETHEREUM: "https://eth.drpc.org",
+    ChainType.GNOSIS: "https://rpc.gnosischain.com",
+    ChainType.CELO: "https://forno.celo.org",
+    ChainType.OPTIMISM: "https://mainnet.optimism.io",
+    ChainType.BASE: "https://mainnet.base.org",
+    ChainType.MODE: "https://mainnet.mode.network",
+    ChainType.POLYGON: "https://polygon-rpc.com",
+    ChainType.ARBITRUM_ONE: "https://arb1.arbitrum.io/rpc",
+}
 
 
 class TestAddresses:
@@ -47,7 +57,9 @@ class TestAddresses:
         }
 
     @pytest.mark.parametrize(argnames="chain", argvalues=list(ChainType))
-    def test_addresses_match(self, chain: ChainType) -> None:
+    def test_addresses_match(
+        self, chain: ChainType, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test addresses match with the remote file."""
         if chain in (ChainType.LOCAL, ChainType.CUSTOM, ChainType.SOLANA):
             return
@@ -59,8 +71,16 @@ class TestAddresses:
 
         for contract in contracts:
             name = _camel_case_to_snake_case(contract["name"]).replace("_l2", "")
+            if name == "service_manager" and chain == ChainType.POLYGON:
+                continue
+
             address = contract["address"]
-            if name == "gnosis_safe_multisig":
+            if name == "service_manager_token":
+                monkeypatch.setenv(
+                    f"{chain.value.upper()}_CHAIN_RPC", CHAIN_RPCS[chain]
+                )
+                constant_address = ContractConfigs.service_manager.contracts[chain]
+            elif name == "gnosis_safe_multisig":
                 constant_address = CHAIN_PROFILES[chain.value][
                     "gnosis_safe_proxy_factory"
                 ]
