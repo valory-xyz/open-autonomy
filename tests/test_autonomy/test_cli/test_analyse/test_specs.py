@@ -21,7 +21,6 @@
 
 
 import copy
-import importlib
 import os
 import re
 import shutil
@@ -43,6 +42,7 @@ from autonomy.analyse.abci.app_spec import (
     FSMSpecificationLoader,
     check_unreferenced_events,
 )
+from autonomy.cli.helpers.fsm_spec import import_and_validate_app_class
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
@@ -64,8 +64,7 @@ class TestGenerateSpecs(BaseCliTest):
         self.app_name = "OffendAbciApp"
         self.skill_path = Path(PACKAGES, "valory", "skills", "offend_abci")
 
-        module_name = ".".join((*self.skill_path.parts, "rounds"))
-        module = importlib.import_module(module_name)
+        module = import_and_validate_app_class(self.skill_path, self.app_name)
         abci_app_cls = getattr(module, self.app_name)
 
         shutil.copytree(ROOT_DIR / PACKAGES, self.t / PACKAGES)

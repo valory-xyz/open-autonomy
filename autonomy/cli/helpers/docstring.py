@@ -32,6 +32,8 @@ from autonomy.analyse.abci.docstrings import (
     compare_docstring_content,
     docstring_abci_app,
 )
+from autonomy.cli.helpers import import_utils
+from autonomy.cli.utils.click_utils import sys_path_patch
 
 
 def import_rounds_module(
@@ -41,8 +43,11 @@ def import_rounds_module(
     """Import module using importlib.import_module"""
     packages_dir = (packages_dir or Path.cwd() / PACKAGES).parent
     module_dir = module_path.parent.resolve().relative_to(packages_dir)
-    import_path = ".".join((*module_dir.parts, "rounds"))
-    return importlib.import_module(import_path)
+    module_name = ".".join((*module_dir.parts, "rounds"))
+
+    with sys_path_patch(import_utils.compute_sys_path_root(module_path, module_name)):
+        import_utils.purge_module_cache(module_name)
+        return importlib.import_module(module_name)
 
 
 def analyse_docstrings(

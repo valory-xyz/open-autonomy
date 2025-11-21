@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -143,7 +143,6 @@ class TestRequiredEnvVars:
 
     _service_failure = (
         "Addresses for following contracts are None, please set them using their respective environment variables\n"
-        "- Set `service_manager` address using `CUSTOM_SERVICE_MANAGER_ADDRESS`\n"
         "- Set `service_registry` address using `CUSTOM_SERVICE_REGISTRY_ADDRESS`"
     )
 
@@ -227,7 +226,6 @@ class TestRequiredEnvVars:
             click.ClickException,
             match=(
                 "Addresses for following contracts are None, please set them using their respective environment variables\n"
-                "- Set `service_manager` address using `CUSTOM_SERVICE_MANAGER_ADDRESS`\n"
                 "- Set `service_registry` address using `CUSTOM_SERVICE_REGISTRY_ADDRESS`\n"
                 "- Set `gnosis_safe_proxy_factory` address using `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS`\n"
                 "- Set `gnosis_safe_same_address_multisig` address using `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS`"
