@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,8 +32,6 @@ from autonomy.analyse.abci.docstrings import (
     compare_docstring_content,
     docstring_abci_app,
 )
-from autonomy.cli.helpers import import_utils
-from autonomy.cli.utils.click_utils import sys_path_patch
 
 
 def import_rounds_module(
@@ -43,11 +41,8 @@ def import_rounds_module(
     """Import module using importlib.import_module"""
     packages_dir = (packages_dir or Path.cwd() / PACKAGES).parent
     module_dir = module_path.parent.resolve().relative_to(packages_dir)
-    module_name = ".".join((*module_dir.parts, "rounds"))
-
-    with sys_path_patch(import_utils.compute_sys_path_root(module_path, module_name)):
-        import_utils.purge_module_cache(module_name)
-        return importlib.import_module(module_name)
+    import_path = ".".join((*module_dir.parts, "rounds"))
+    return importlib.import_module(import_path)
 
 
 def analyse_docstrings(

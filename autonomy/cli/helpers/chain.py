@@ -19,27 +19,19 @@
 
 """On-chain interaction helpers."""
 
-import binascii
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Type, cast
+from typing import Any, Dict, List, Optional, cast
 
 import click
 from aea.configurations.base import PackageConfiguration
 from aea.configurations.data_types import PackageId, PackageType, PublicId
 from aea.configurations.loader import load_configuration_object
-from aea.crypto.base import Crypto, LedgerApi
-from aea.crypto.registries import crypto_registry, ledger_apis_registry
 from aea.helpers.base import IPFSHash
 from requests.exceptions import ConnectionError as RequestConnectionError
 from texttable import Texttable
 
 from autonomy.chain.base import ServiceState, UnitType
-from autonomy.chain.config import (
-    ChainConfigs,
-    ChainType,
-    ContractConfig,
-    ContractConfigs,
-)
+from autonomy.chain.config import ChainType, ContractConfigs, OnChainHelper
 from autonomy.chain.constants import (
     AGENT_REGISTRY_CONTRACT,
     COMPONENT_REGISTRY_CONTRACT,
@@ -64,168 +56,6 @@ from autonomy.chain.utils import (
     resolve_component_id,
 )
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS, Service
-
-
-try:
-    from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
-
-    ETHEREUM_PLUGIN_INSTALLED = True
-except ImportError:  # pragma: nocover
-    ETHEREUM_PLUGIN_INSTALLED = False
-
-
-class OnChainHelper:  # pylint: disable=too-few-public-methods
-    """On-chain interaction helper."""
-
-    def __init__(
-        self,
-        chain_type: ChainType,
-        key: Optional[Path] = None,
-        password: Optional[str] = None,
-        hwi: bool = False,
-        timeout: Optional[float] = None,
-        retries: Optional[int] = None,
-        sleep: Optional[float] = None,
-        dry_run: bool = False,
-    ) -> None:
-        """Initialize object."""
-        if key is None and not hwi:
-            raise click.ClickException(
-                "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
-            )
-
-        self.chain_type = chain_type
-        self.ledger_api, self.crypto = self.get_ledger_and_crypto_objects(
-            chain_type=chain_type,
-            key=key,
-            password=password,
-            hwi=hwi,
-        )
-        self.timeout = timeout
-        self.retries = retries
-        self.sleep = sleep
-        self.dry_run = dry_run
-
-    @staticmethod
-    def load_hwi_plugin() -> Type[LedgerApi]:  # pragma: nocover
-        """Load HWI Plugin."""
-        try:
-            from aea_ledger_ethereum_hwi.hwi import (  # pylint: disable=import-outside-toplevel
-                EthereumHWIApi,
-            )
-
-            return EthereumHWIApi
-        except ImportError as e:
-            raise click.ClickException(
-                "Hardware wallet plugin not installed, "
-                "Run `pip3 install open-aea-ledger-ethereum-hwi` to install the plugin"
-            ) from e
-        except TypeError as e:
-            raise click.ClickException(
-                'Protobuf compatibility error; Please export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION="python" '
-                "to use the hardware wallet without any issues"
-            ) from e
-
-    @staticmethod
-    def load_crypto(
-        file: Path,
-        password: Optional[str] = None,
-    ) -> Crypto:
-        """Load crypto object."""
-        try:
-            return EthereumCrypto(
-                private_key_path=file,
-                password=password,
-            )
-        except (binascii.Error, ValueError) as e:
-            raise click.ClickException(
-                "Cannot load private key for following possible reasons\n"
-                "- Wrong key format\n"
-                "- Wrong key length\n"
-                "- Trailing spaces or new line characters"
-            ) from e
-
-    @classmethod
-    def get_ledger_and_crypto_objects(
-        cls,
-        chain_type: ChainType,
-        key: Optional[Path] = None,
-        password: Optional[str] = None,
-        hwi: bool = False,
-    ) -> Tuple[LedgerApi, Crypto]:
-        """Create ledger_api and crypto objects"""
-        chain_config = ChainConfigs.get(chain_type=chain_type)
-        identifier = EthereumApi.identifier
-
-        if chain_config.rpc is None:
-            raise click.ClickException(
-                f"RPC URL cannot be `None`, "
-                f"Please set the environment variable for {chain_type.value} chain "
-                f"using `{ChainConfigs.get_rpc_env_var(chain_type)}` environment variable"
-            )
-
-        if hwi:
-            EthereumHWIApi = cls.load_hwi_plugin()
-            identifier = EthereumHWIApi.identifier
-
-        if not hwi and not ETHEREUM_PLUGIN_INSTALLED:  # pragma: nocover
-            raise click.ClickException(
-                "Ethereum ledger plugin not installed, "
-                "Run `pip3 install open-aea-ledger-ethereum` to install the plugin"
-            )
-
-        if key is None:
-            crypto = crypto_registry.make(identifier)
-        else:
-            crypto = cls.load_crypto(
-                file=key,
-                password=password,
-            )
-
-        ledger_api = ledger_apis_registry.make(
-            identifier,
-            **{
-                "address": chain_config.rpc,
-                "chain_id": chain_config.chain_id,
-                "is_gas_estimation_enabled": True,
-            },
-        )
-
-        if hwi:
-            # Setting the `LedgerApi.identifier` to `ethereum` for both ledger and
-            # hardware plugin to interact with the contract. If we use `ethereum_hwi`
-            # as the ledger identifier the contracts will need ABI configuration for
-            # the `ethereum_hwi` identifier which means we will have to define hardware
-            # wallet as the dependency for contract but the hardware wallet plugin
-            # is meant to be used for CLI tools only so we set the identifier to
-            # `ethereum` for both ledger and hardware wallet plugin
-            ledger_api.identifier = EthereumApi.identifier
-
-        try:
-            ledger_api.api.eth.default_account = crypto.address
-        except Exception as e:  # pragma: nocover
-            raise click.ClickException(str(e))
-
-        return ledger_api, crypto
-
-    def check_required_environment_variables(
-        self, configs: Tuple[ContractConfig, ...]
-    ) -> None:
-        """Check for required enviroment variables when working with the custom chain."""
-        if self.chain_type != ChainType.CUSTOM:
-            return
-        missing = []
-        for config in configs:
-            if config.contracts[self.chain_type] is None:
-                missing.append(config)
-
-        if len(missing) == 0:
-            return
-
-        error = "Addresses for following contracts are None, please set them using their respective environment variables\n"
-        for config in missing:
-            error += f"- Set `{config.name}` address using `CUSTOM_{config.name.upper()}_ADDRESS`\n"
-        raise click.ClickException(error[:-1])
 
 
 class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes

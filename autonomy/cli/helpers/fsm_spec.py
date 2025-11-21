@@ -32,8 +32,6 @@ from autonomy.analyse.abci.app_spec import (
     FSMSpecificationLoader,
     check_unreferenced_events,
 )
-from autonomy.cli.helpers import import_utils
-from autonomy.cli.utils.click_utils import sys_path_patch
 
 
 def import_and_validate_app_class(module_path: Path, app_class: str) -> ModuleType:
@@ -52,9 +50,7 @@ def import_and_validate_app_class(module_path: Path, app_class: str) -> ModuleTy
         module_path = module_path.relative_to(root_dir)
     module_name = ".".join((module_path / module_to_look_for).parts)
 
-    with sys_path_patch(import_utils.compute_sys_path_root(module_path, module_name)):
-        import_utils.purge_module_cache(module_name)
-        module = importlib.import_module(module_name)
+    module = importlib.import_module(module_name)
     if not hasattr(module, app_class):
         raise click.ClickException(f'Class "{app_class}" is not in "{module_name}".')
 

@@ -37,11 +37,10 @@ from compose.config.errors import ConfigurationError
 from compose.project import Project, ProjectError
 from docker.errors import NotFound
 
-from autonomy.chain.config import ChainType, ContractConfigs
+from autonomy.chain.config import ChainType, ContractConfigs, OnChainHelper
 from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
 from autonomy.chain.service import get_agent_instances, get_service_info
 from autonomy.chain.utils import resolve_component_id
-from autonomy.cli.helpers.chain import OnChainHelper
 from autonomy.cli.helpers.registry import fetch_service_ipfs
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
 from autonomy.configurations.loader import load_service_config

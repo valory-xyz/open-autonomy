@@ -359,7 +359,7 @@ jobs:
       - if: matrix.os == 'windows-latest'
         name: Framework unit tests windows-latest
         run: |
-          tox -e py${{ matrix.python-version }}-win -- -m 'not e2e'
+          tox -e py${{ matrix.python-version }}-win -- -m 'not e2e' -vv
 
       - if: matrix.os == 'windows-latest'
         name: Packages unit tests windows-latest

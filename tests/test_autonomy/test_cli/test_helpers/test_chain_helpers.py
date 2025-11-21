@@ -30,9 +30,9 @@ from aea.configurations.data_types import PackageType
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 
 from autonomy.chain.base import ServiceState
-from autonomy.chain.config import ChainConfigs, ChainType
+from autonomy.chain.config import ChainConfigs, ChainType, OnChainHelper
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH, registry_contracts
-from autonomy.cli.helpers.chain import MintHelper, OnChainHelper, ServiceHelper
+from autonomy.cli.helpers.chain import MintHelper, ServiceHelper
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_chain.base import patch_subgraph
@@ -120,7 +120,7 @@ class TestMintComponentMethod:
             match="Please provide hash for NFT image to mint component on `ethereum` chain",
         ):
             with mock.patch(
-                "autonomy.cli.helpers.chain.ChainConfigs.get",
+                "autonomy.chain.config.ChainConfigs.get",
                 return_value=ChainConfigs.local,
             ):
                 MintHelper(
@@ -261,7 +261,7 @@ class TestDependencyVerification:
         """Test NFT hash not provided failure."""
 
         with mock.patch(
-            "autonomy.cli.helpers.chain.ChainConfigs.get",
+            "autonomy.chain.config.ChainConfigs.get",
             return_value=ChainConfigs.local,
         ), patch_subgraph(
             response=[{"tokenId": "1", "publicId": "valory/ipfs"}],
@@ -291,7 +291,7 @@ class TestDependencyVerification:
         """Test NFT hash not provided failure."""
 
         with mock.patch(
-            "autonomy.cli.helpers.chain.ChainConfigs.get",
+            "autonomy.chain.config.ChainConfigs.get",
             return_value=ChainConfigs.local,
         ), patch_subgraph(
             response=[],
@@ -313,7 +313,7 @@ class TestDependencyVerification:
         """Test NFT hash not provided failure."""
 
         with mock.patch(
-            "autonomy.cli.helpers.chain.ChainConfigs.get",
+            "autonomy.chain.config.ChainConfigs.get",
             return_value=ChainConfigs.local,
         ), patch_subgraph(
             response=[],
@@ -342,7 +342,7 @@ class TestDependencyVerification:
         """Test NFT hash not provided failure."""
 
         with mock.patch(
-            "autonomy.cli.helpers.chain.ChainConfigs.get",
+            "autonomy.chain.config.ChainConfigs.get",
             return_value=ChainConfigs.local,
         ), patch_subgraph(
             response=[{"tokenId": "1", "publicId": "valory/ipfs"}],
@@ -374,7 +374,7 @@ class TestDependencyVerification:
         """Test NFT hash not provided failure."""
 
         with mock.patch(
-            "autonomy.cli.helpers.chain.ChainConfigs.get",
+            "autonomy.chain.config.ChainConfigs.get",
             return_value=ChainConfigs.local,
         ), patch_subgraph(
             response=[{"tokenId": "1", "publicId": "valory/register_reset"}],
@@ -472,7 +472,7 @@ def test_get_ledger_and_crypto_failure() -> None:
 
     with pytest.raises(
         click.ClickException,
-        match="Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet",
+        match="RPC URL cannot be `None`, Please set the environment variable for ethereum chain using `ETHEREUM_CHAIN_RPC` environment variable",
     ):
         MintHelper(
             chain_type=ChainType.ETHEREUM,

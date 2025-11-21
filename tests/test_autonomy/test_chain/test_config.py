@@ -31,6 +31,8 @@ from autonomy.chain.constants import (
     SERVICE_MANAGER_CONTRACT,
 )
 
+from tests.conftest import skip_docker_tests
+
 
 def _all_profile_chain_types() -> Iterable[chain_config.ChainType]:
     """Helper to yield ChainType for every CHAIN_PROFILES key."""
@@ -210,6 +212,7 @@ def test_chain_id_round_trip_known_networks() -> None:
         assert ct.value == name
 
 
+@skip_docker_tests
 @pytest.mark.usefixtures("registries_scope_class")
 def test_dynamic_contract_addresses() -> None:
     """Dynamic contract address resolution works as expected."""
