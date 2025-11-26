@@ -44,7 +44,6 @@ CHAIN_PROFILES = {
         "registries_manager": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
         "service_registry": "0x998abeb3E57409262aE5b751f60747921B33613E",
         "service_registry_token_utility": "0x36C02dA8a0983159322a80FFE9F24b1acfF8B570",
-        "service_manager": "0x4c5859f0F772848b2D91F1D83E2Fe57935348029",
         "gnosis_safe_proxy_factory": "0x0E801D84Fa97b50751Dbf25036d067dCf18858bF",  # Multisig WITHOUT recovery module
         "gnosis_safe_same_address_multisig": "0x8f86403A4DE0BB5791fa46B8e795C547942fE4Cf",  # Same address multisig WITHOUT recovery module
         "safe_multisig_with_recovery_module": "0xb7278A61aa25c888815aFC32Ad3cC52fF24fE575",  # Multisig WITH recovery module
@@ -57,7 +56,6 @@ CHAIN_PROFILES = {
         "registries_manager": "0x9eC9156dEF5C613B2a7D4c46C383F9B58DfcD6fE",
         "service_registry": "0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA",
         "service_registry_token_utility": "0x3Fb926116D454b95c669B6Bf2E7c3bad8d19affA",
-        "service_manager_token": "0x2EA682121f815FBcF86EA3F3CaFdd5d67F2dB143",
         "operator_whitelist": "0x42042799B0DE38AdD2a70dc996f69f98E1a85260",
         "gnosis_safe_proxy_factory": "0x46C0D07F55d4F9B5Eed2Fc9680B5953e5fd7b461",  # Multisig WITHOUT recovery module
         "gnosis_safe_same_address_multisig": "0xfa517d01DaA100cB1932FA4345F68874f7E7eF46",  # Same address multisig WITHOUT recovery module
@@ -70,9 +68,7 @@ CHAIN_PROFILES = {
     },
     "polygon": {
         "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
-        "service_manager": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
         "service_registry_token_utility": "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",
-        "service_manager_token": "0x04b0007b2aFb398015B76e5f22993a1fddF83644",
         "gnosis_safe_proxy_factory": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",  # Multisig WITHOUT recovery module
         "gnosis_safe_same_address_multisig": "0xd8BCC126ff31d2582018715d5291A508530587b0",  # Same address multisig WITHOUT recovery module
         "safe_multisig_with_recovery_module": "0x1a0bFCC27051BCcDDc444578f56A4F5920e0E083",  # Multisig WITH recovery module
@@ -85,7 +81,6 @@ CHAIN_PROFILES = {
     "gnosis": {
         "service_registry": "0x9338b5153AE39BB89f50468E608eD9d764B755fD",
         "service_registry_token_utility": "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",
-        "service_manager_token": "0x04b0007b2aFb398015B76e5f22993a1fddF83644",
         "operator_whitelist": "0x526E064cB694E8f5B7DB299158e17F33055B3943",
         "gnosis_safe_proxy_factory": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",  # Multisig WITHOUT recovery module
         "gnosis_safe_same_address_multisig": "0x6e7f594f680f7aBad18b7a63de50F0FeE47dfD06",  # Same address multisig WITHOUT recovery module
@@ -99,7 +94,6 @@ CHAIN_PROFILES = {
     "arbitrum_one": {
         "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
         "service_registry_token_utility": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
-        "service_manager_token": "0x34C895f302D0b5cf52ec0Edd3945321EB0f83dd5",
         "operator_whitelist": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
         "gnosis_safe_proxy_factory": "0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b",  # Multisig WITHOUT recovery module
         "gnosis_safe_same_address_multisig": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",  # Same address multisig WITHOUT recovery module
@@ -112,7 +106,6 @@ CHAIN_PROFILES = {
     "optimism": {
         "service_registry": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
         "service_registry_token_utility": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",
-        "service_manager_token": "0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB",
         "operator_whitelist": "0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b",
         "gnosis_safe_proxy_factory": "0x5953f21495BD9aF1D78e87bb42AcCAA55C1e896C",  # Multisig WITHOUT recovery module
         "gnosis_safe_same_address_multisig": "0xb09CcF0Dbf0C178806Aaee28956c74bd66d21f73",  # Same address multisig WITHOUT recovery module
@@ -125,7 +118,6 @@ CHAIN_PROFILES = {
     "base": {
         "service_registry": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
         "service_registry_token_utility": "0x34C895f302D0b5cf52ec0Edd3945321EB0f83dd5",
-        "service_manager_token": "0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b",
         "operator_whitelist": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
         "gnosis_safe_proxy_factory": "0x22bE6fDcd3e29851B29b512F714C328A00A96B83",  # Multisig WITHOUT recovery module
         "gnosis_safe_same_address_multisig": "0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB",  # Same address multisig WITHOUT recovery module
@@ -139,7 +131,6 @@ CHAIN_PROFILES = {
     "celo": {
         "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
         "service_registry_token_utility": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
-        "service_manager_token": "0x34C895f302D0b5cf52ec0Edd3945321EB0f83dd5",
         "operator_whitelist": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
         "gnosis_safe_proxy_factory": "0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b",  # Multisig WITHOUT recovery module
         "gnosis_safe_same_address_multisig": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",  # Same address multisig WITHOUT recovery module
@@ -152,7 +143,6 @@ CHAIN_PROFILES = {
     "mode": {
         "service_registry": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
         "service_registry_token_utility": "0x34C895f302D0b5cf52ec0Edd3945321EB0f83dd5",
-        "service_manager_token": "0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b",
         "operator_whitelist": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
         "gnosis_safe_proxy_factory": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",  # Multisig WITHOUT recovery module
         "gnosis_safe_same_address_multisig": "0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB",  # Same address multisig WITHOUT recovery module
@@ -213,6 +203,17 @@ CHAIN_NAME_TO_CHAIN_ID = {
 }
 CHAIN_ID_TO_CHAIN_NAME = {
     chain_id: chain_name for chain_name, chain_id in CHAIN_NAME_TO_CHAIN_ID.items()
+}
+CHAIN_ID_TO_DEFAULT_PUBLIC_RPC = {
+    31337: "http://127.0.0.1:8545",
+    1: "https://eth.drpc.org",
+    137: "https://polygon-rpc.com",
+    100: "https://rpc.gnosischain.com",
+    42161: "https://arb1.arbitrum.io/rpc",
+    10: "https://mainnet.optimism.io",
+    8453: "https://mainnet.base.org",
+    42220: "https://forno.celo.org",
+    34443: "https://mainnet.mode.network",
 }
 # Contract PublicIds
 COMPONENT_REGISTRY_CONTRACT = PublicId.from_str("valory/component_registry")

@@ -118,8 +118,9 @@ if __name__ == "__main__":
                 "data/contracts/service_manager/build/*",
                 "test_tools/data/*",
             ],
+            "packages": ["packages/valory/contracts/service_registry/*"],
         },
-        packages=find_packages(include=["autonomy*"]),
+        packages=find_packages(include=["autonomy*", "packages*"]),
         classifiers=[
             "Environment :: Console",
             "Environment :: Web Environment",
