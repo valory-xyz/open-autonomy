@@ -17,7 +17,6 @@ Werkzeug= "==2.0.3"
 watchdog = ">=2.1.6"
 pytest = "==7.4.4"
 click = ">=8.1.0,<9"
-valory-docker-compose = "==1.29.3"
 
 [dev-packages]
 ### package deps

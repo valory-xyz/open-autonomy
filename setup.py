@@ -56,7 +56,6 @@ base_deps = [
     "open-aea[all]==2.0.6",
     "watchdog>=2.1.6",
     "pytest==7.4.4",
-    "valory-docker-compose==1.29.3",
     "werkzeug==2.0.3",
     "docker==7.1.0",
     "hexbytes",
