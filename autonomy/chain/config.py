@@ -330,10 +330,7 @@ class DynamicContract(Dict[ChainType, str]):
         if chain not in self:
             contract_config = ContractConfigs.get(self.source_contract_id.name)
             on_chain_helper = OnChainHelper(chain_type=chain)
-            try:
-                on_chain_helper.check_required_environment_variables((contract_config,))
-            except click.ClickException:
-                return None  # type: ignore[return-value]
+            on_chain_helper.check_required_environment_variables((contract_config,))
 
             source_contract = RegistryContracts.get_contract(
                 public_id=self.source_contract_id,

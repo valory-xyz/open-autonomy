@@ -35,6 +35,10 @@ from autonomy.chain.constants import (
 from tests.conftest import skip_docker_tests
 
 
+DEFAULT_LOCAL_RPC = "http://127.0.0.1:8545"
+SERVICE_MANAGER_TOKEN = "0x4c5859f0F772848b2D91F1D83E2Fe57935348029"  # nosec
+
+
 def _all_profile_chain_types() -> Iterable[chain_config.ChainType]:
     """Helper to yield ChainType for every CHAIN_PROFILES key."""
     for name in CHAIN_PROFILES.keys():
@@ -78,7 +82,7 @@ def test_chain_type_rpc_and_env_names(monkeypatch: pytest.MonkeyPatch) -> None:
     """`ChainType` RPC and environment variable names behave as expected."""
 
     # Local RPC is fixed
-    assert chain_config.ChainType.LOCAL.rpc == "http://127.0.0.1:8545"
+    assert chain_config.ChainType.LOCAL.rpc == DEFAULT_LOCAL_RPC
     assert chain_config.ChainType.LOCAL.rpc_env_name == "LOCAL_CHAIN_RPC"
 
     # Other chains resolve from environment when set
@@ -128,7 +132,7 @@ def test_chain_configs_local_and_get(monkeypatch: pytest.MonkeyPatch) -> None:
 
     c = chain_config.ChainConfigs.local
     assert c.chain_type == chain_config.ChainType.LOCAL
-    assert c.rpc == "http://127.0.0.1:8545"
+    assert c.rpc == DEFAULT_LOCAL_RPC
     assert c.chain_id == chain_config.DEFAULT_LOCAL_CHAIN_ID
 
     # get() picks up environment for non-local chains
@@ -223,5 +227,5 @@ def test_dynamic_contract_addresses() -> None:
     )
     assert (
         service_manager_config.contracts[chain_config.ChainType.LOCAL]
-        == "0x4c5859f0F772848b2D91F1D83E2Fe57935348029"
+        == SERVICE_MANAGER_TOKEN
     )
