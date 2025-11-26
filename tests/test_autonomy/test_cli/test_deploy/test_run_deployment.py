@@ -57,9 +57,7 @@ class TestRun(BaseCliTest):
     ) -> None:
         """Run test."""
         (self.t / DOCKER_COMPOSE_YAML).touch()
-        with mock.patch(
-            "autonomy.cli.helpers.deployment.docker_compose.project_from_options"
-        ), mock.patch("autonomy.cli.helpers.deployment.docker_compose.TopLevelCommand"):
+        with mock.patch("autonomy.cli.helpers.deployment._run_compose_command"):
             result = self.run_cli(("--detach",))
             assert result.exit_code == 0, result.output
             assert "Running build @" in result.output
@@ -133,9 +131,7 @@ class TestStop(BaseCliTest):
     ) -> None:
         """Run test."""
         (self.t / DOCKER_COMPOSE_YAML).touch()
-        with mock.patch(
-            "autonomy.cli.helpers.deployment.docker_compose.project_from_options"
-        ), mock.patch("autonomy.cli.helpers.deployment.docker_compose.TopLevelCommand"):
+        with mock.patch("autonomy.cli.helpers.deployment._run_compose_command"):
             result = self.run_cli()
             assert result.exit_code == 0, result.output
             assert "Don't cancel while stopping services..." in result.output

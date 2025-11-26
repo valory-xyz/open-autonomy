@@ -15,11 +15,11 @@ open-aea-ledger-ethereum = "==1.65.0"
 open-aea-ledger-ethereum-hwi = "==1.65.0"
 open-aea-cli-ipfs = "==1.65.0"
 ipfshttpclient = "==0.8.0a2"
+multiaddr = "==0.0.9"
 Werkzeug = "==2.0.3"
 watchdog = ">=2.1.6"
 pytest = "==7.2.1"
 click = ">=8.1.0,<8.2.0"
-valory-docker-compose = "==1.29.3"
 tomte = { extras = ["tox", "docs"], version = "==0.2.17" }
 mkdocs-monorepo-plugin = "^1.0.5"
 

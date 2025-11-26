@@ -32,10 +32,6 @@ import click
 from aea.configurations.constants import AGENT
 from aea.configurations.data_types import PublicId
 from aea.helpers.base import cd
-from compose.cli import main as docker_compose
-from compose.config.errors import ConfigurationError
-from compose.project import Project, ProjectError
-from docker.errors import NotFound
 
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
@@ -66,6 +62,43 @@ from autonomy.deploy.generators.localhost.utils import check_tendermint_version
 from autonomy.deploy.image import build_image
 
 
+def _compose_base_command(project_name: Optional[str]) -> List[str]:
+    """Build docker compose command."""
+
+    cmd = ["docker", "compose"]
+    if project_name:
+        cmd += ["--project-name", project_name]
+    return cmd
+
+
+def _run_compose_command(
+    build_dir: Path,
+    args: List[str],
+    project_name: Optional[str] = None,
+    capture_output: bool = False,
+) -> subprocess.CompletedProcess:
+    """Execute docker compose command."""
+
+    cmd = _compose_base_command(project_name) + args
+    try:
+        return subprocess.run(  # type: ignore[call-overload] # nosec
+            cmd,
+            check=True,
+            cwd=build_dir,
+            capture_output=capture_output,
+            text=capture_output,
+        )
+    except FileNotFoundError as exc:  # pragma: no cover
+        raise click.ClickException(
+            "Docker CLI with compose plugin is required but was not found in PATH."
+        ) from exc
+    except subprocess.CalledProcessError as exc:
+        output = (exc.stderr or exc.stdout or "").strip()
+        raise click.ClickException(
+            f"`{' '.join(cmd)}` failed with exit code {exc.returncode}: {output}"
+        ) from exc
+
+
 def _build_dirs(build_dir: Path, mkdir: Optional[List[str]] = None) -> None:
     """Build the necessary directories."""
 
@@ -92,38 +125,36 @@ def _build_dirs(build_dir: Path, mkdir: Optional[List[str]] = None) -> None:
             continue
 
 
-def _print_log(compose_app: docker_compose.TopLevelCommand) -> None:
-    """Print docker container logs."""
+def _print_log(build_dir: Path, project_name: Optional[str]) -> None:
+    """Print docker compose logs."""
+
     terminal_width, _ = shutil.get_terminal_size()
-    for service in compose_app.project.service_names:
-        try:
-            click.echo("=" * terminal_width)
-            click.echo(f"Trying to get logs for {service}")
-            click.echo(compose_app.project.client.logs(service))
-        except NotFound:
-            continue
-
-
-def _kill_containers(compose_app: docker_compose.TopLevelCommand) -> None:
-    """Kill active containers before exiting."""
-    for container in compose_app.project.containers(compose_app.project.service_names):
-        click.echo(f"Trying to kill {container.name}")
-        container.kill()
-
-
-def _load_compose_project(
-    build_dir: Path, options: Optional[Dict[str, str]] = None
-) -> Project:
-    """Load docker compose project."""
     try:
-        return docker_compose.project_from_options(build_dir, options or {})
-    except ConfigurationError as e:  # pragma: no cover
-        if "Invalid interpolation format" in e.msg:
-            raise click.ClickException(
-                "Provided docker compose file contains environment placeholders, "
-                "please use `--aev` flag if you intend to use environment variables."
-            )
-        raise
+        result = _run_compose_command(
+            build_dir,
+            ["logs", "--no-color"],
+            project_name=project_name,
+            capture_output=True,
+        )
+    except click.ClickException as exc:
+        click.echo(f"Failed to fetch docker compose logs: {exc}")
+        return
+    click.echo("=" * terminal_width)
+    click.echo(result.stdout)
+
+
+def _kill_containers(build_dir: Path, project_name: Optional[str]) -> None:
+    """Kill active containers before exiting."""
+
+    try:
+        _run_compose_command(
+            build_dir,
+            ["kill"],
+            project_name=project_name,
+            capture_output=False,
+        )
+    except click.ClickException as exc:
+        click.echo(f"Failed to kill containers: {exc}")
 
 
 def run_deployment(
@@ -135,47 +166,24 @@ def run_deployment(
 ) -> None:
     """Run deployment."""
     try:
-        options = {"--project-name": project_name} if project_name else {}
-        project = _load_compose_project(build_dir=build_dir, options=options)
-        commands = docker_compose.TopLevelCommand(project=project)
-        commands.up(
-            {
-                "--detach": True,
-                "--no-color": False,
-                "--quiet-pull": False,
-                "--no-deps": False,
-                "--force-recreate": not no_recreate,
-                "--always-recreate-deps": False,
-                "--no-recreate": no_recreate,
-                "--no-build": False,
-                "--no-start": False,
-                "--build": True,
-                "--abort-on-container-exit": False,
-                "--attach-dependencies": False,
-                "--timeout": None,
-                "--renew-anon-volumes": False,
-                "--remove-orphans": remove_orphans,
-                "--exit-code-from": None,
-                "--scale": [],
-                "--no-log-prefix": False,
-                "SERVICE": None,
-            }
-        )
+        compose_args = ["up", "--detach", "--build"]
+        if remove_orphans:
+            compose_args.append("--remove-orphans")
+        compose_args.append("--no-recreate" if no_recreate else "--force-recreate")
+        _run_compose_command(build_dir, compose_args, project_name=project_name)
         if detach:
             click.echo("The service is running...")
             return
         click.echo("The service is running, press CTRL + C to stop...")
         while True:
             time.sleep(1)
-    except NotFound as e:  # pragma: no cover
-        raise click.ClickException(e.explanation)
-    except ProjectError as e:  # pragma: no cover
-        click.echo("Error occured bringing up the project")
-        _print_log(compose_app=commands)
-        _kill_containers(compose_app=commands)
-        raise click.ClickException(e)
+    except click.ClickException:  # pragma: no cover
+        click.echo("Error occurred bringing up the project")
+        _print_log(build_dir, project_name)
+        _kill_containers(build_dir, project_name)
+        raise
     except KeyboardInterrupt:  # pragma: no cover
-        stop_deployment(build_dir=build_dir)
+        stop_deployment(build_dir=build_dir, project_name=project_name)
 
 
 def _get_deattached_creation_flags() -> int:
@@ -239,15 +247,17 @@ def run_host_deployment(build_dir: Path, detach: bool = False) -> None:
 
 def stop_deployment(build_dir: Path, project_name: Optional[str] = None) -> None:
     """Stop running deployment."""
+    click.echo("\nDon't cancel while stopping services...")
     try:
-        options = {"--project-name": project_name} if project_name else {}
-        project = _load_compose_project(build_dir=build_dir, options=options)
-        commands = docker_compose.TopLevelCommand(project=project)
-        click.echo("\nDon't cancel while stopping services...")
-        commands.down({"--volumes": False, "--remove-orphans": True, "--rmi": None})
-        _kill_containers(compose_app=commands)
-    except NotFound as e:  # pragma: no cover
-        raise click.ClickException(e.explanation)
+        _run_compose_command(
+            build_dir,
+            ["down", "--remove-orphans"],
+            project_name=project_name,
+        )
+    except click.ClickException as exc:  # pragma: no cover
+        click.echo(f"Failed to stop deployment cleanly: {exc}")
+    finally:
+        _kill_containers(build_dir, project_name)
 
 
 def build_deployment(  # pylint: disable=too-many-locals
