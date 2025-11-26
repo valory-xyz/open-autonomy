@@ -27,6 +27,7 @@ from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F4
 from autonomy.chain import config as chain_config
 from autonomy.chain.constants import (
     CHAIN_ID_TO_CHAIN_NAME,
+    CHAIN_ID_TO_DEFAULT_PUBLIC_RPC,
     CHAIN_PROFILES,
     SERVICE_MANAGER_CONTRACT,
 )
@@ -77,7 +78,7 @@ def test_chain_type_rpc_and_env_names(monkeypatch: pytest.MonkeyPatch) -> None:
     """`ChainType` RPC and environment variable names behave as expected."""
 
     # Local RPC is fixed
-    assert chain_config.ChainType.LOCAL.rpc == chain_config.DEFAULT_LOCAL_RPC
+    assert chain_config.ChainType.LOCAL.rpc == "http://127.0.0.1:8545"
     assert chain_config.ChainType.LOCAL.rpc_env_name == "LOCAL_CHAIN_RPC"
 
     # Other chains resolve from environment when set
@@ -87,7 +88,7 @@ def test_chain_type_rpc_and_env_names(monkeypatch: pytest.MonkeyPatch) -> None:
 
     # When not set returns None
     monkeypatch.delenv("ETHEREUM_CHAIN_RPC", raising=False)
-    assert chain_config.ChainType.ETHEREUM.rpc is None
+    assert chain_config.ChainType.ETHEREUM.rpc == CHAIN_ID_TO_DEFAULT_PUBLIC_RPC[1]
 
     # Custom uses CUSTOM_CHAIN_RPC
     monkeypatch.setenv("CUSTOM_CHAIN_RPC", "https://custom.example")
@@ -127,7 +128,7 @@ def test_chain_configs_local_and_get(monkeypatch: pytest.MonkeyPatch) -> None:
 
     c = chain_config.ChainConfigs.local
     assert c.chain_type == chain_config.ChainType.LOCAL
-    assert c.rpc == chain_config.DEFAULT_LOCAL_RPC
+    assert c.rpc == "http://127.0.0.1:8545"
     assert c.chain_id == chain_config.DEFAULT_LOCAL_CHAIN_ID
 
     # get() picks up environment for non-local chains

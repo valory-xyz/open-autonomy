@@ -34,6 +34,7 @@ from aea.crypto.registries import crypto_registry, ledger_apis_registry
 from autonomy.chain.base import RegistryContracts
 from autonomy.chain.constants import (
     CHAIN_ID_TO_CHAIN_NAME,
+    CHAIN_ID_TO_DEFAULT_PUBLIC_RPC,
     CHAIN_NAME_TO_CHAIN_ID,
     CHAIN_PROFILES,
     SERVICE_REGISTRY_CONTRACT,
@@ -51,7 +52,6 @@ except ImportError:  # pragma: nocover
     ETHEREUM_PLUGIN_INSTALLED = False
 
 
-DEFAULT_LOCAL_RPC = "http://127.0.0.1:8545"
 DEFAULT_LOCAL_CHAIN_ID = 31337
 CUSTOM_CHAIN_RPC = "CUSTOM_CHAIN_RPC"
 ETHEREUM_CHAIN_RPC = "ETHEREUM_CHAIN_RPC"
@@ -115,9 +115,10 @@ class ChainType(Enum):
     @property
     def rpc(self) -> Optional[str]:
         """RPC String"""
-        if self == ChainType.LOCAL:
-            return DEFAULT_LOCAL_RPC
-        return os.environ.get(self.rpc_env_name)
+        return os.getenv(
+            key=self.rpc_env_name,
+            default=CHAIN_ID_TO_DEFAULT_PUBLIC_RPC.get(self.id) if self.id else None,
+        )
 
     @property
     def rpc_env_name(self) -> str:
@@ -362,7 +363,7 @@ class ChainConfigs:  # pylint: disable=too-few-public-methods
 
     local = ChainConfig(
         chain_type=ChainType.LOCAL,
-        rpc=DEFAULT_LOCAL_RPC,
+        rpc=ChainType.LOCAL.rpc,
         chain_id=DEFAULT_LOCAL_CHAIN_ID,
     )
 

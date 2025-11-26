@@ -204,6 +204,17 @@ CHAIN_NAME_TO_CHAIN_ID = {
 CHAIN_ID_TO_CHAIN_NAME = {
     chain_id: chain_name for chain_name, chain_id in CHAIN_NAME_TO_CHAIN_ID.items()
 }
+CHAIN_ID_TO_DEFAULT_PUBLIC_RPC = {
+    31337: "http://127.0.0.1:8545",
+    1: "https://eth.drpc.org",
+    137: "https://polygon-rpc.com",
+    100: "https://rpc.gnosischain.com",
+    42161: "https://arb1.arbitrum.io/rpc",
+    10: "https://mainnet.optimism.io",
+    8453: "https://mainnet.base.org",
+    42220: "https://forno.celo.org",
+    34443: "https://mainnet.mode.network",
+}
 # Contract PublicIds
 COMPONENT_REGISTRY_CONTRACT = PublicId.from_str("valory/component_registry")
 AGENT_REGISTRY_CONTRACT = PublicId.from_str("valory/agent_registry")
