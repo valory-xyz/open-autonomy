@@ -97,9 +97,7 @@ class TestMintComponentMethod:
         with pytest.raises(
             click.ClickException,
             match=(
-                "RPC URL cannot be `None`, "
-                "Please set the environment variable for ethereum chain "
-                "using `ETHEREUM_CHAIN_RPC` environment variable"
+                "Please provide hash for NFT image to mint component on `ethereum` chain"
             ),
         ):
             MintHelper(
@@ -472,7 +470,7 @@ def test_get_ledger_and_crypto_failure() -> None:
 
     with pytest.raises(
         click.ClickException,
-        match="RPC URL cannot be `None`, Please set the environment variable for ethereum chain using `ETHEREUM_CHAIN_RPC` environment variable",
+        match="Please provide hash for NFT image to mint component on `ethereum` chain",
     ):
         MintHelper(
             chain_type=ChainType.ETHEREUM,
