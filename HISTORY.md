@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+# 0.21.4 (2025-11-26)
+
+Autonomy:
+- TxSettler will now retry transaction if the RPC is unsynced #2371
+- `open-autonomy` is no longer dependent on `valory-docker-compose` package #2371
+
 # 0.21.3 (2025-10-20)
 
 Docs:
