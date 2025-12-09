@@ -228,6 +228,13 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
             timeout=self.timeout,
             poll_latency=self.sleep,
         )
+        while self.ledger_api.api.eth.block_number < self.tx_receipt.blockNumber:
+            # explicit check for load-balanced RPC nodes that momentarily lag behind
+            logger.warning(
+                f"RPC node lagging behind. Waiting for {self.sleep} seconds..."
+            )
+            time.sleep(self.sleep)
+
         return self
 
     def get_events(

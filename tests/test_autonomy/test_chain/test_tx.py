@@ -281,6 +281,50 @@ def test_timeout() -> None:
         settler.transact()
 
 
+@mock.patch("autonomy.chain.tx.logger")
+def test_settle_waits_for_receipt_block(logger: mock.Mock) -> None:
+    """Test settler waits until RPC catches up with receipt block."""
+
+    class _LaggingEth:
+        def __init__(self, block_sequence: list[int], receipt_block: int) -> None:
+            self._blocks = block_sequence
+            self.wait_for_transaction_receipt = mock.Mock(
+                return_value=mock.Mock(blockNumber=receipt_block)
+            )
+
+        @property
+        def block_number(self) -> int:
+            if len(self._blocks) > 1:
+                return self._blocks.pop(0)
+            return self._blocks[0]
+
+    receipt_block = 10
+    lagging_eth = _LaggingEth(
+        block_sequence=[receipt_block - 1, receipt_block], receipt_block=receipt_block
+    )
+    ledger_api = mock.Mock(api=mock.Mock(eth=lagging_eth))
+    settler = TxSettler(
+        ledger_api=ledger_api,
+        crypto=mock.Mock(),
+        chain_type=ChainType.LOCAL,
+        tx_builder=lambda: {},
+    )
+    settler.tx_hash = "0x123"
+
+    with mock.patch("autonomy.chain.tx.time.sleep") as mocked_sleep:
+        settler.settle()
+
+    lagging_eth.wait_for_transaction_receipt.assert_called_once_with(
+        transaction_hash="0x123",
+        timeout=settler.timeout,
+        poll_latency=settler.sleep,
+    )
+    logger.warning.assert_called_with(
+        f"RPC node lagging behind. Waiting for {settler.sleep} seconds..."
+    )
+    mocked_sleep.assert_called_once_with(settler.sleep)
+
+
 def test_programming_errors() -> None:
     """Test programming errors."""
 
@@ -291,6 +335,14 @@ def test_programming_errors() -> None:
                 "maxPriorityFeePerGas": 100,
             },
             update_with_gas_estimate=lambda tx: tx,
+            api=mock.Mock(
+                eth=mock.Mock(
+                    block_number=1,
+                    wait_for_transaction_receipt=mock.Mock(
+                        return_value=mock.Mock(blockNumber=1)
+                    ),
+                ),
+            ),
         ),
         crypto=mock.Mock(),
         chain_type=ChainType.LOCAL,
