@@ -29,7 +29,7 @@ from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import CHAIN_PROFILES
 
 
-ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/refs/tags/v1.2.7/docs/configuration.json"
+ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/refs/tags/v1.3.0/docs/configuration.json"
 
 
 class TestAddresses:
@@ -61,11 +61,11 @@ class TestAddresses:
 
         for contract in contracts:
             name = _camel_case_to_snake_case(contract["name"]).replace("_l2", "")
-            if name == "service_manager" and chain == ChainType.POLYGON:
+            if name in ("service_manager", "service_manager_token"):
                 continue
 
             address = contract["address"]
-            if name == "service_manager_token":
+            if name == "service_manager_proxy":
                 monkeypatch.setenv(f"{chain.value.upper()}_CHAIN_RPC", chain.rpc)
                 constant_address = ContractConfigs.service_manager.contracts[chain]
             elif name == "gnosis_safe_multisig":
