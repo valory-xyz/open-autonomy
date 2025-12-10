@@ -228,12 +228,27 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
             timeout=self.timeout,
             poll_latency=self.sleep,
         )
+        rpc_sync_check_deadline = datetime.now().timestamp() + self.timeout
+        retries = 0
         while self.ledger_api.api.eth.block_number < self.tx_receipt.blockNumber:
-            # explicit check for load-balanced RPC nodes that momentarily lag behind
             logger.warning(
-                f"RPC node lagging behind. Waiting for {self.sleep} seconds..."
+                f"RPC state not synced with block {self.tx_receipt.blockNumber}. "
+                f"Retrying in {self.sleep} seconds..."
             )
             time.sleep(self.sleep)
+            retries += 1
+
+            if retries > self.retries:
+                raise ChainTimeoutError(
+                    f"RPC node not synced with block {self.tx_receipt.blockNumber} "
+                    f"after {self.retries} retries."
+                )
+
+            if datetime.now().timestamp() >= rpc_sync_check_deadline:
+                raise ChainTimeoutError(
+                    f"RPC node not synced with block {self.tx_receipt.blockNumber} "
+                    f"after {self.timeout} seconds."
+                )
 
         return self
 
