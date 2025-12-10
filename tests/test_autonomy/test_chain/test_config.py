@@ -36,7 +36,7 @@ from tests.conftest import skip_docker_tests
 
 
 DEFAULT_LOCAL_RPC = "http://127.0.0.1:8545"
-SERVICE_MANAGER_TOKEN = "0x4c5859f0F772848b2D91F1D83E2Fe57935348029"  # nosec
+SERVICE_MANAGER_PROXY = "0x4c5859f0F772848b2D91F1D83E2Fe57935348029"  # nosec
 
 
 def _all_profile_chain_types() -> Iterable[chain_config.ChainType]:
@@ -227,5 +227,5 @@ def test_dynamic_contract_addresses() -> None:
     )
     assert (
         service_manager_config.contracts[chain_config.ChainType.LOCAL]
-        == SERVICE_MANAGER_TOKEN
+        == SERVICE_MANAGER_PROXY
     )
