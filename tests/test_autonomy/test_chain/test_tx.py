@@ -281,6 +281,87 @@ def test_timeout() -> None:
         settler.transact()
 
 
+@mock.patch("autonomy.chain.tx.logger")
+def test_settle_waits_until_rpc_syncs(logger: mock.Mock) -> None:
+    """Test settler loops until RPC catches up with receipt block."""
+
+    class _LaggingEth:
+        def __init__(self, block_sequence: list[int], receipt_block: int) -> None:
+            self._blocks = block_sequence
+            self.wait_for_transaction_receipt = mock.Mock(
+                return_value=mock.Mock(blockNumber=receipt_block)
+            )
+
+        @property
+        def block_number(self) -> int:
+            if len(self._blocks) > 1:
+                return self._blocks.pop(0)
+            return self._blocks[0]
+
+    receipt_block = 10
+    lagging_eth = _LaggingEth(
+        block_sequence=[receipt_block - 1, receipt_block], receipt_block=receipt_block
+    )
+    ledger_api = mock.Mock(api=mock.Mock(eth=lagging_eth))
+    settler = TxSettler(
+        ledger_api=ledger_api,
+        crypto=mock.Mock(),
+        chain_type=ChainType.LOCAL,
+        tx_builder=lambda: {},
+    )
+    settler.tx_hash = "0x123"
+
+    with mock.patch("autonomy.chain.tx.time.sleep") as mocked_sleep:
+        settler.settle()
+
+    lagging_eth.wait_for_transaction_receipt.assert_called_once_with(
+        transaction_hash="0x123",
+        timeout=settler.timeout,
+        poll_latency=settler.sleep,
+    )
+    logger.warning.assert_called_once_with(
+        f"RPC state not synced with block {receipt_block}. Retrying in {settler.sleep} seconds..."
+    )
+    mocked_sleep.assert_called_once_with(settler.sleep)
+
+
+@mock.patch("autonomy.chain.tx.logger")
+def test_settle_raises_when_rpc_never_syncs(logger: mock.Mock) -> None:
+    """Test settler raises when RPC node never reaches receipt block."""
+
+    class _StuckEth:
+        def __init__(self, block_number: int, receipt_block: int) -> None:
+            self._block_number = block_number
+            self.wait_for_transaction_receipt = mock.Mock(
+                return_value=mock.Mock(blockNumber=receipt_block)
+            )
+
+        @property
+        def block_number(self) -> int:
+            return self._block_number
+
+    receipt_block = 10
+    stuck_eth = _StuckEth(block_number=receipt_block - 2, receipt_block=receipt_block)
+    ledger_api = mock.Mock(api=mock.Mock(eth=stuck_eth))
+    settler = TxSettler(
+        ledger_api=ledger_api,
+        crypto=mock.Mock(),
+        chain_type=ChainType.LOCAL,
+        tx_builder=lambda: {},
+        retries=2,
+        sleep=0.01,
+    )
+    settler.tx_hash = "0x123"
+
+    with mock.patch("autonomy.chain.tx.time.sleep") as mocked_sleep:
+        with pytest.raises(ChainTimeoutError, match="RPC node not synced"):
+            settler.settle()
+
+    stuck_eth.wait_for_transaction_receipt.assert_called_once()
+    assert logger.warning.call_count == settler.retries + 1
+    assert mocked_sleep.call_count == settler.retries + 1
+
+
 def test_programming_errors() -> None:
     """Test programming errors."""
 
@@ -291,6 +372,14 @@ def test_programming_errors() -> None:
                 "maxPriorityFeePerGas": 100,
             },
             update_with_gas_estimate=lambda tx: tx,
+            api=mock.Mock(
+                eth=mock.Mock(
+                    block_number=1,
+                    wait_for_transaction_receipt=mock.Mock(
+                        return_value=mock.Mock(blockNumber=1)
+                    ),
+                ),
+            ),
         ),
         crypto=mock.Mock(),
         chain_type=ChainType.LOCAL,
