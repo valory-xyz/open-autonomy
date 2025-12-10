@@ -70,7 +70,7 @@ class TestRunServiceLocally(BaseCliTest):
             "AgentRegistry deployed to: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
             "RegistriesManager deployed to: 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
             "ServiceRegistry deployed to: 0x998abeb3E57409262aE5b751f60747921B33613E",
-            "ServiceManager deployed to: 0x70e0bA845a1A0F2DA3359C97E0285013525FFC49",
+            "ServiceManager deployed to: 0x36C02dA8a0983159322a80FFE9F24b1acfF8B570",
             "Gnosis Safe master copy deployed to: 0x4826533B4897376654Bb4d4AD88B7faFD0C98528",
             "Gnosis Safe proxy factory deployed to: 0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf",
             "Gnosis Safe Multisig deployed to: 0x0E801D84Fa97b50751Dbf25036d067dCf18858bF",

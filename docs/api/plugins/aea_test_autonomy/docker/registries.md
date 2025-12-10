@@ -46,9 +46,9 @@ nosec
 
 nosec
 
-<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.registries.SERVICE_MANAGER_TOKEN"></a>
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.registries.SERVICE_MANAGER_PROXY"></a>
 
-#### SERVICE`_`MANAGER`_`TOKEN
+#### SERVICE`_`MANAGER`_`PROXY
 
 nosec
 
