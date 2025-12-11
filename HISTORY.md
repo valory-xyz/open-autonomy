@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+# 0.21.5 (2025-12-10)
+
+Autonomy:
+- TxSettler will now wait for an unsynced RPC to sync when settling a transaction #2374
+- `open-autonomy` now uses the contract addresses from `autonolas-registries@v1.3.0` #2375
+
 # 0.21.4 (2025-11-26)
 
 Autonomy:
