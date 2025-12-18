@@ -71,6 +71,7 @@ class RandomnessBehaviour(BaseBehaviour, ABC):
             performative=LedgerApiMessage.Performative.GET_STATE,  # type: ignore
             ledger_callable="get_block",
             block_identifier="latest",
+            chain_id=self.params.default_chain_id,
         )
 
         if (
