@@ -73,6 +73,8 @@ CHAIN_PROFILES = {
         "gnosis_safe_same_address_multisig": "0xd8BCC126ff31d2582018715d5291A508530587b0",  # Same address multisig WITHOUT recovery module
         "safe_multisig_with_recovery_module": "0x1a0bFCC27051BCcDDc444578f56A4F5920e0E083",  # Multisig WITH recovery module
         "recovery_module": "0x02C26437B292D86c5F4F21bbCcE0771948274f84",  # Same address multisig WITH recovery module
+        "poly_safe_creator_with_recovery_module": "0xA749f605D93B3efcc207C54270d83C6E8fa70fF8",  # Polymarket multisig WITH recovery module
+        "poly_safe_same_address_with_recovery_module": "0xBcb1BAC84B5BcAb350C89c50ADc9064eD15a4485",  # Polymarket same address multisig WITH recovery module
         "operator_whitelist": "0x526E064cB694E8f5B7DB299158e17F33055B3943",
         "staking_token": "0x4aba1Cf7a39a51D75cBa789f5f21cf4882162519",
         "staking_verifier": "0x8Bc0a5c5B1612A16983B01ecd7ae130E728390CB",
