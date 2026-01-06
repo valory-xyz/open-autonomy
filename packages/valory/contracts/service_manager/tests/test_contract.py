@@ -20,7 +20,6 @@
 """Test for contract module."""
 
 from pathlib import Path
-from unittest import mock
 
 from aea_test_autonomy.base_test_classes.contracts import BaseRegistriesContractsTest
 from aea_test_autonomy.docker.base import skip_docker_tests
@@ -61,6 +60,7 @@ class TestServiceManager(BaseRegistriesContractsTest):
         tx = self.contract.get_create_transaction(
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
+            chain_id_=self.ledger_api.api.eth.chain_id,
             owner=self.deployer_crypto.address,
             sender=self.deployer_crypto.address,
             metadata_hash=METADATA_HASH,
@@ -88,21 +88,17 @@ class TestServiceManager(BaseRegistriesContractsTest):
     def test_get_create_transaction_l2(self) -> None:
         """Test `get_create_transaction` method."""
 
-        with mock.patch.object(
-            self.ledger_api.api,
-            "eth",
-            return_value=mock.MagicMock(chain_id=100),
-        ):
-            tx = self.contract.get_create_transaction(
-                ledger_api=self.ledger_api,
-                contract_address=self.contract_address,
-                owner=self.deployer_crypto.address,
-                sender=self.deployer_crypto.address,
-                metadata_hash=METADATA_HASH,
-                agent_ids=[AGENT_ID],
-                agent_params=[[NUMBER_OF_SLOTS, COST_OF_BOND]],
-                threshold=THRESHOLD,
-            )
+        tx = self.contract.get_create_transaction(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            chain_id_=100,
+            owner=self.deployer_crypto.address,
+            sender=self.deployer_crypto.address,
+            metadata_hash=METADATA_HASH,
+            agent_ids=[AGENT_ID],
+            agent_params=[[NUMBER_OF_SLOTS, COST_OF_BOND]],
+            threshold=THRESHOLD,
+        )
         assert all(
             [
                 key
@@ -125,6 +121,7 @@ class TestServiceManager(BaseRegistriesContractsTest):
         tx = self.contract.get_update_transaction(
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
+            chain_id_=self.ledger_api.api.eth.chain_id,
             sender=self.deployer_crypto.address,
             service_id=2,
             metadata_hash=METADATA_HASH,
@@ -155,6 +152,7 @@ class TestServiceManager(BaseRegistriesContractsTest):
         tx = self.contract.get_activate_registration_transaction(
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
+            chain_id_=self.ledger_api.api.eth.chain_id,
             owner=self.deployer_crypto.address,
             service_id=1,
             security_deposit=COST_OF_BOND,
@@ -182,6 +180,7 @@ class TestServiceManager(BaseRegistriesContractsTest):
         tx = self.contract.get_service_deploy_transaction(
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
+            chain_id_=self.ledger_api.api.eth.chain_id,
             owner=self.deployer_crypto.address,
             service_id=1,
             gnosis_safe_multisig="0x0E801D84Fa97b50751Dbf25036d067dCf18858bF",
@@ -210,6 +209,7 @@ class TestServiceManager(BaseRegistriesContractsTest):
         tx = self.contract.get_terminate_service_transaction(
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
+            chain_id_=self.ledger_api.api.eth.chain_id,
             owner=self.deployer_crypto.address,
             service_id=1,
         )
@@ -236,6 +236,7 @@ class TestServiceManager(BaseRegistriesContractsTest):
         tx = self.contract.get_unbond_service_transaction(
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
+            chain_id_=self.ledger_api.api.eth.chain_id,
             owner=self.deployer_crypto.address,
             service_id=1,
         )

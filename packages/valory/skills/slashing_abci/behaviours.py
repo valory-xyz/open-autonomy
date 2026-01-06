@@ -84,6 +84,11 @@ _ETHER_VALUE = 0
 class SlashingBaseBehaviour(BaseBehaviour, ABC):
     """Represents the base class for the slashing background FSM."""
 
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the slashing check behaviour."""
+        super().__init__(**kwargs)
+        self.chain_id: Optional[int] = None
+
     @property
     def shared_state(self) -> SharedState:
         """Get the round sequence from the shared state."""
@@ -103,6 +108,23 @@ class SlashingBaseBehaviour(BaseBehaviour, ABC):
     def offence_status(self, status: Dict[str, OffenceStatus]) -> None:
         """Set the offence status in the round sequence."""
         self.round_sequence.offence_status = status
+
+    def async_act(self) -> Generator:
+        """
+        Performs the base slashing check logic.
+
+        This method is responsible for checking whether the chain id has been set by the registration behaviour.
+        It does not proceed if that's not the case.
+
+        :return: None
+        :yield: None
+        """
+        self.chain_id = self.shared_state.chain_id
+        if not self.chain_id:
+            self.context.logger.info(
+                "Slashing behaviour waiting for registration to be completed."
+            )
+            yield from self.sleep(self.params.sleep_time)
 
 
 class SlashingCheckBehaviour(SlashingBaseBehaviour):
@@ -237,6 +259,14 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
             agent_instances=self.slashable_instances,
             amounts=self.slashable_amounts,
             service_id=self.params.on_chain_service_id,
+            # this is very hacky and confusing as two chain ids are given.
+            # this is due to a problematic implementation in the framework which requires a "chain_id"
+            # in order to figure out which ledger configuration to use.
+            # this is popped by the dispatcher before the kwargs are passed to the actual method of the contract package
+            # i.e., the `get_slash_data` in this case.
+            # as a result, the chain_id name cannot be used for the proper meaning, i.e., the id of the chain.
+            # instead, we use chain_id_ to pass the chain id.
+            chain_id_=self.chain_id,
             chain_id=self.params.default_chain_id,
         )
         if response_msg.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
@@ -269,6 +299,14 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
             value=_ETHER_VALUE,
             data=data,
             safe_tx_gas=_SAFE_GAS,
+            # this is very hacky and confusing as two chain ids are given.
+            # this is due to a problematic implementation in the framework which requires a "chain_id"
+            # in order to figure out which ledger configuration to use.
+            # this is popped by the dispatcher before the kwargs are passed to the actual method of the contract package
+            # i.e., the `get_raw_safe_transaction_hash` in this case.
+            # as a result, the chain_id name cannot be used for the proper meaning, i.e., the chain id of the safe.
+            # instead, we use chain_id_ to pass the chain id of the safe.
+            chain_id_=self.chain_id,
             chain_id=self.params.default_chain_id,
         )
 
@@ -301,6 +339,10 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
         :return: None
         :yield: None
         """
+        yield from super().async_act()
+        if not self.chain_id:
+            return
+
         if not self.is_majority_possible() or self.synchronized_data.slashing_in_flight:
             # If the service does not have enough participants to reach consensus, there is no need to run the act.
             # Additionally, we verify whether a slashing operation has already been triggered to avoid duplication.
@@ -400,6 +442,14 @@ class StatusResetBehaviour(SlashingBaseBehaviour):
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="process_slash_receipt",
             tx_hash=slash_tx_hash,
+            # this is very hacky and confusing as two chain ids are given.
+            # this is due to a problematic implementation in the framework which requires a "chain_id"
+            # in order to figure out which ledger configuration to use.
+            # this is popped by the dispatcher before the kwargs are passed to the actual method of the contract package
+            # i.e., the `process_slash_receipt` in this case.
+            # as a result, the chain_id name cannot be used for the proper meaning, i.e., the id of the chain.
+            # instead, we use chain_id_ to pass the chain id of the safe.
+            chain_id_=self.chain_id,
             chain_id=self.params.default_chain_id,
         )
 
@@ -436,6 +486,14 @@ class StatusResetBehaviour(SlashingBaseBehaviour):
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="get_operators_mapping",
             agent_instances=agent_instances,
+            # this is very hacky and confusing as two chain ids are given.
+            # this is due to a problematic implementation in the framework which requires a "chain_id"
+            # in order to figure out which ledger configuration to use.
+            # this is popped by the dispatcher before the kwargs are passed to the actual method of the contract package
+            # i.e., the `get_operators_mapping` in this case.
+            # as a result, the chain_id name cannot be used for the proper meaning, i.e., the id of the chain.
+            # instead, we use chain_id_ to pass the chain id of the safe.
+            chain_id_=self.chain_id,
             chain_id=self.params.default_chain_id,
         )
 
@@ -456,6 +514,10 @@ class StatusResetBehaviour(SlashingBaseBehaviour):
         to determine whether the slashing tx was successful.
         If that is the case, it proceeds with resetting the offence status of the slashed agents.
         """
+        yield from super().async_act()
+        if not self.chain_id:
+            return
+
         # the `OperatorSlashed` event returns the operators and not the agent instances, so we will need a mapping
         operators_mapping = self.slashing_synced_data.operators_mapping
         if operators_mapping is None:

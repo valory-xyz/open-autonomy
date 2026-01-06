@@ -129,6 +129,7 @@ class MintManager:
         self.retries = retries
         self.sleep = sleep
         self.dry_run = dry_run
+        self.chain_id = ledger_api.api.eth.chain_id
 
     def _transact(
         self,
@@ -322,6 +323,7 @@ class MintManager:
                 token=token,
                 owner=owner,
                 sender=self.crypto.address,
+                chain_id_=self.chain_id,
             ),
             event="CreateService",
             process_receipt_ctr=SERVICE_REGISTRY_CONTRACT,
@@ -402,6 +404,7 @@ class MintManager:
                 agent_params=agent_params,
                 threshold=threshold,
                 token=token,
+                chain_id_=self.chain_id,
             ),
             event="UpdateService",
             process_receipt_ctr=SERVICE_REGISTRY_CONTRACT,

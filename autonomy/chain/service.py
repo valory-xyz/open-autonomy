@@ -106,6 +106,7 @@ def get_agent_instances(
         contract_address=ContractConfigs.get(SERVICE_REGISTRY_CONTRACT.name).contracts[
             chain_type
         ],
+        chain_id_=ledger_api.api.eth.chain_id,
         service_id=token_id,
     )
 
@@ -129,6 +130,8 @@ def get_service_info(
         contract_address=ContractConfigs.get(SERVICE_REGISTRY_CONTRACT.name).contracts[
             chain_type
         ],
+        # TODO: chain id should ideally be cached and passed as an arg here instead of being called every time.
+        chain_id_=ledger_api.api.eth.chain_id,
         token_id=token_id,
     )
 
@@ -274,6 +277,7 @@ class ServiceManager:
         self.retries = retries
         self.sleep = sleep
         self.dry_run = dry_run
+        self.chain_id = ledger_api.api.eth.chain_id
 
     def _transact(
         self,
@@ -379,6 +383,7 @@ class ServiceManager:
                 owner=self.crypto.address,
                 service_id=service_id,
                 security_deposit=cost_of_bond,
+                chain_id_=self.chain_id,
             ),
             event="ActivateRegistration",
             service_id=service_id,
@@ -436,6 +441,7 @@ class ServiceManager:
                 instances=instances,
                 agent_ids=agent_ids,
                 security_deposit=security_deposit,
+                chain_id_=self.chain_id,
             ),
             event="RegisterInstance",
             service_id=service_id,
@@ -530,6 +536,7 @@ class ServiceManager:
                 service_id=service_id,
                 gnosis_safe_multisig=gnosis_safe_multisig,
                 deployment_payload=deployment_payload,
+                chain_id_=self.chain_id,
             ),
             build_tx_ctr_public_id=SERVICE_MANAGER_CONTRACT,
             event="DeployService",
@@ -567,6 +574,7 @@ class ServiceManager:
             kwargs=dict(
                 owner=self.crypto.address,
                 service_id=service_id,
+                chain_id_=self.chain_id,
             ),
             build_tx_ctr_public_id=SERVICE_MANAGER_CONTRACT,
             event="TerminateService",
@@ -601,6 +609,7 @@ class ServiceManager:
             kwargs=dict(
                 owner=self.crypto.address,
                 service_id=service_id,
+                chain_id_=self.chain_id,
             ),
             build_tx_ctr_public_id=SERVICE_MANAGER_CONTRACT,
             event="OperatorUnbond",

@@ -91,6 +91,11 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     updated_genesis_data: Dict[str, Any] = {}
     collection_complete: bool = False
 
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize a `RegistrationStartupBehaviour`"""
+        super().__init__(**kwargs)
+        self.chain_id: Optional[int] = None
+
     @property
     def initial_tm_configs(self) -> Dict[str, Dict[str, Any]]:
         """A mapping of the other agents' addresses to their initial Tendermint configuration."""
@@ -174,6 +179,14 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             contract_address=service_registry_address,
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="verify_contract",
+            # this is very hacky and confusing as two chain ids are given.
+            # this is due to a problematic implementation in the framework which requires a "chain_id"
+            # in order to figure out which ledger configuration to use.
+            # this is popped by the dispatcher before the kwargs are passed to the actual method of the contract package
+            # i.e., the `verify_contract` in this case.
+            # as a result, the chain_id name cannot be used for the proper meaning, i.e., the id of the chain.
+            # instead, we use chain_id_ to pass the chain id.
+            chain_id_=self.chain_id,
             chain_id=self.params.default_chain_id,
         )
         contract_api_response = yield from self.get_contract_api_response(**kwargs)  # type: ignore
@@ -207,6 +220,14 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="get_agent_instances",
             service_id=on_chain_service_id,
+            # this is very hacky and confusing as two chain ids are given.
+            # this is due to a problematic implementation in the framework which requires a "chain_id"
+            # in order to figure out which ledger configuration to use.
+            # this is popped by the dispatcher before the kwargs are passed to the actual method of the contract package
+            # i.e., the `get_agent_instances` in this case.
+            # as a result, the chain_id name cannot be used for the proper meaning, i.e., the id of the chain.
+            # instead, we use chain_id_ to pass the chain id.
+            chain_id_=self.chain_id,
             chain_id=self.params.default_chain_id,
         )
         contract_api_response = yield from self.get_contract_api_response(**kwargs)  # type: ignore
@@ -419,6 +440,11 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         5. Restart Tendermint to establish the validator network.
         """
 
+        self.chain_id = yield from self.get_chain_id()
+        if self.chain_id is None:
+            self.context.logger.error("Could not get the chain id.")
+            return
+
         exchange_config = self.params.share_tm_config_on_startup
         log_message = self.LogMessages.config_sharing.value
         self.context.logger.info(f"{log_message}: {exchange_config}")
@@ -436,7 +462,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
                 yield from self.sleep(self.params.sleep_time)
                 return
 
-        # if the agent doesn't have it's tm config info set, then make service registry contract call
+        # if the agent doesn't have its tm config info set, then make service registry contract call
         # to get the rest of the agents, so we can get their tm config info later
         info = self.initial_tm_configs.get(self.context.agent_address, None)
         if info is None:

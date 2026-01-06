@@ -100,6 +100,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         result = self.contract.verify_contract(
             self.ledger_api,
             contract_address,
+            CHAIN_ID,
         )
 
         assert result["verified"] is valid_address, result
@@ -112,6 +113,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         exists = self.contract.exists(
             self.ledger_api,
             self.contract_address,
+            CHAIN_ID,
             service_id,
         )
 
@@ -130,6 +132,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         result = self.contract.get_agent_instances(
             self.ledger_api,
             self.contract_address,
+            CHAIN_ID,
             VALID_SERVICE_ID,
         )
 
@@ -143,6 +146,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         actual = self.contract.get_service_owner(
             self.ledger_api,
             self.contract_address,
+            CHAIN_ID,
             VALID_SERVICE_ID,
         )
 
@@ -155,6 +159,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         token_uri = self.contract.get_token_uri(
             self.ledger_api,
             self.contract_address,
+            CHAIN_ID,
             VALID_SERVICE_ID,
         )
 
@@ -178,6 +183,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         ) = self.contract.get_service_information(
             self.ledger_api,
             self.contract_address,
+            CHAIN_ID,
             VALID_SERVICE_ID,
         )
 
@@ -195,6 +201,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         result = self.contract.get_slash_data(
             self.ledger_api,
             self.contract_address,
+            CHAIN_ID,
             AGENT_INSTANCES,
             [0, 0, 0, 1],
             service_id=1,
@@ -227,6 +234,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
                     self.ledger_api,
                     self.contract_address,
                     agent_instance,
+                    CHAIN_ID,
                 )
             )
             assert actual_operator == expected_operator
@@ -237,5 +245,6 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
             self.ledger_api,
             self.contract_address,
             frozenset(OPERATORS_MAPPING.keys()),
+            CHAIN_ID,
         )
         assert actual_mapping == OPERATORS_MAPPING

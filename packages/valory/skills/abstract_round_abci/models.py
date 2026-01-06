@@ -322,6 +322,12 @@ class BaseParams(
         # TODO add to all configs
         self.default_chain_id: str = kwargs.get("default_chain_id", DEFAULT_CHAIN)
 
+        # TODO replace with:
+        #  self.chain_id: Optional[int] = kwargs.get("chain_id", None)  # noqa: E800
+        #  after open-aea supports accessing properties of web3py. It currently only supports callables:
+        #  https://github.com/valory-xyz/open-aea/blob/v2.0.7/plugins/aea-ledger-ethereum/aea_ledger_ethereum/ethereum.py#L998
+        self.chain_id: int = self._ensure("chain_id", kwargs, int)
+
         # we sanitize for null values as these are just kept for schema definitions
         skill_id = kwargs["skill_context"].skill_id
         super().__init__(*args, **kwargs)
@@ -441,6 +447,7 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
         self.tm_recovery_params: TendermintRecoveryParams = TendermintRecoveryParams(
             self.abci_app_cls.initial_round_cls.auto_round_id()
         )
+        self.chain_id: Optional[int] = None
         kwargs["skill_context"] = skill_context
         super().__init__(*args, **kwargs)
 
@@ -497,8 +504,13 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
 
     def setup(self) -> None:
         """Set up the model."""
+        params = cast(BaseParams, self.context.params)
+        self.chain_id = params.chain_id
+        if self.chain_id:
+            self.context.logger.info(f"Cached {self.chain_id=}.")
+
         self._round_sequence = RoundSequence(self.context, self.abci_app_cls)
-        setup_params = cast(BaseParams, self.context.params).setup_params
+        setup_params = params.setup_params
         self.round_sequence.setup(
             BaseSynchronizedData(
                 AbciAppDB(

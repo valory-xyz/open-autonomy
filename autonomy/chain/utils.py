@@ -49,18 +49,21 @@ def resolve_component_id(
     """Resolve component ID to metadata json"""
 
     try:
+        kwargs = dict(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+            token_id=token_id,
+        )
         if is_service:
             token_uri_callable = registry_contracts.service_registry.get_token_uri
+            # TODO: chain id should ideally be cached and passed as an arg here instead of being called every time.
+            kwargs["chain_id_"] = ledger_api.api.eth.chain_id
         elif is_agent:
             token_uri_callable = registry_contracts.agent_registry.get_token_uri
         else:
             token_uri_callable = registry_contracts.component_registry.get_token_uri
 
-        metadata_uri = token_uri_callable(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-            token_id=token_id,
-        )
+        metadata_uri = token_uri_callable(**kwargs)
     except RequestConnectionError as e:
         raise FailedToRetrieveComponentMetadata(
             "Error connecting to the RPC. Please make sure that "

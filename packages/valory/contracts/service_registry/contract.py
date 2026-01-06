@@ -22,7 +22,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, FrozenSet, List, Optional, Tuple, Union, cast
+from typing import Any, Dict, FrozenSet, List, Optional, Tuple, Union
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -89,11 +89,6 @@ class ServiceRegistryContract(Contract):
         raise NotImplementedError  # pragma: nocover
 
     @staticmethod
-    def is_l1_chain(ledger_api: LedgerApi) -> bool:
-        """Check if we're interecting with an L1 chain"""
-        return ledger_api.api.eth.chain_id in L1_CHAINS
-
-    @staticmethod
     def load_l2_build() -> JSONLike:
         """Load L2 ABI"""
         path = Path(__file__).parent / "build" / L2_BUILD_FILENAME
@@ -104,16 +99,20 @@ class ServiceRegistryContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: Optional[str] = None,
+        chain_id: Optional[int] = None,
     ) -> Any:
         """Get contract instance."""
         if ledger_api.identifier != ETHEREUM_IDENTIFIER:
             return super().get_instance(
                 ledger_api=ledger_api, contract_address=contract_address
             )
-        if cls.is_l1_chain(ledger_api=ledger_api):
-            contract_interface = cls.contract_interface.get(ledger_api.identifier, {})
-        else:
-            contract_interface = cls.load_l2_build()
+
+        chain_id = chain_id or ledger_api.api.eth.chain_id
+        contract_interface = (
+            cls.contract_interface.get(ledger_api.identifier, {})
+            if chain_id in L1_CHAINS
+            else cls.load_l2_build()
+        )
         instance = ledger_api.get_contract_instance(
             contract_interface, contract_address
         )
@@ -121,20 +120,23 @@ class ServiceRegistryContract(Contract):
 
     @classmethod
     def verify_contract(
-        cls, ledger_api: LedgerApi, contract_address: str
+        cls,
+        ledger_api: LedgerApi,  # pylint: disable=unused-argument
+        contract_address: str,
+        chain_id_: int,
     ) -> Dict[str, Union[bool, str]]:
         """
         Verify the contract's bytecode
 
         :param ledger_api: the ledger API object
         :param contract_address: the contract address
+        :param chain_id_: the chain id of the contract
         :return: the verified status
         """
-        chain_id = ledger_api.api.eth.chain_id
-        expected_address = EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID[chain_id]
+        expected_address = EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID[chain_id_]
         if contract_address != expected_address:
             _logger.error(
-                f"For chain_id {chain_id} expected {expected_address} and got {contract_address}."
+                f"For chain_id {chain_id_} expected {expected_address} and got {contract_address}."
             )
             return dict(verified=False)
 
@@ -145,29 +147,31 @@ class ServiceRegistryContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         service_id: int,
     ) -> bool:
         """Check if the service id exists"""
 
-        contract_instance = cls.get_instance(ledger_api, contract_address)
+        contract_instance = cls.get_instance(ledger_api, contract_address, chain_id_)
         exists = ledger_api.contract_method_call(
             contract_instance=contract_instance,
             method_name="exists",
             unitId=service_id,
         )
 
-        return cast(bool, exists)
+        return bool(exists)
 
     @classmethod
     def get_agent_instances(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         service_id: int,
     ) -> Dict[str, Any]:
         """Retrieve on-chain agent instances."""
 
-        contract_instance = cls.get_instance(ledger_api, contract_address)
+        contract_instance = cls.get_instance(ledger_api, contract_address, chain_id_)
         service_info = ledger_api.contract_method_call(
             contract_instance=contract_instance,
             method_name="getAgentInstances",
@@ -184,10 +188,11 @@ class ServiceRegistryContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         service_id: int,
     ) -> Dict[str, Any]:
         """Retrieve the service owner."""
-        contract_instance = cls.get_instance(ledger_api, contract_address)
+        contract_instance = cls.get_instance(ledger_api, contract_address, chain_id_)
         service_owner = contract_instance.functions.ownerOf(service_id).call()
         checksum_service_owner = ledger_api.api.to_checksum_address(service_owner)
         return dict(
@@ -199,14 +204,12 @@ class ServiceRegistryContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         token_id: int,
     ) -> ServiceInfo:
         """Retrieve service information"""
 
-        contract_interface = cls.get_instance(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-        )
+        contract_interface = cls.get_instance(ledger_api, contract_address, chain_id_)
         return contract_interface.functions.getService(token_id).call()
 
     @classmethod
@@ -214,13 +217,11 @@ class ServiceRegistryContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         token_id: int,
     ) -> str:
         """Returns the latest metadata URI for a component."""
-        contract_interface = cls.get_instance(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-        )
+        contract_interface = cls.get_instance(ledger_api, contract_address, chain_id_)
         return contract_interface.functions.tokenURI(token_id).call()
 
     @classmethod
@@ -228,13 +229,11 @@ class ServiceRegistryContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         receipt: JSONLike,
     ) -> Optional[int]:
         """Returns `CreateUnit` event filter."""
-        contract_interface = cls.get_instance(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-        )
+        contract_interface = cls.get_instance(ledger_api, contract_address, chain_id_)
         return contract_interface.events.CreateService().process_receipt(receipt)
 
     @classmethod
@@ -242,13 +241,11 @@ class ServiceRegistryContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         receipt: JSONLike,
     ) -> Optional[int]:
         """Returns `CreateUnit` event filter."""
-        contract_interface = cls.get_instance(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-        )
+        contract_interface = cls.get_instance(ledger_api, contract_address, chain_id_)
         return contract_interface.events.UpdateService().process_receipt(receipt)
 
     @classmethod
@@ -256,13 +253,11 @@ class ServiceRegistryContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         receipt: JSONLike,
     ) -> Optional[int]:
         """Returns `CreateUnit` event filter."""
-        contract_interface = cls.get_instance(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-        )
+        contract_interface = cls.get_instance(ledger_api, contract_address, chain_id_)
         return contract_interface.events.UpdateUnitHash().process_receipt(receipt)
 
     @classmethod
@@ -270,14 +265,12 @@ class ServiceRegistryContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         event: str,
         receipt: JSONLike,
     ) -> Dict:
         """Process receipt for events."""
-        contract_interface = cls.get_instance(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-        )
+        contract_interface = cls.get_instance(ledger_api, contract_address, chain_id_)
         Event = getattr(contract_interface.events, event, None)
         if Event is None:
             return {"events": []}
@@ -288,14 +281,12 @@ class ServiceRegistryContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         event: str,
         receipt: JSONLike,
     ) -> JSONLike:
         """Checks for a successful service registration event in the latest block"""
-        contract_interface = cls.get_instance(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-        )
+        contract_interface = cls.get_instance(ledger_api, contract_address, chain_id_)
         Event = getattr(contract_interface.events, event, None)
         if Event is None:
             return {"events": []}
@@ -306,16 +297,14 @@ class ServiceRegistryContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         agent_instances: List[str],
         amounts: List[int],
         service_id: int,
     ) -> Dict[str, bytes]:
         """Gets the encoded arguments for a slashing tx, which should only be called via the multisig."""
 
-        contract_instance = cls.get_instance(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-        )
+        contract_instance = cls.get_instance(ledger_api, contract_address, chain_id_)
 
         slash_kwargs = dict(
             agentInstances=agent_instances,
@@ -333,6 +322,7 @@ class ServiceRegistryContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         tx_hash: str,
     ) -> Optional[JSONLike]:
         """
@@ -341,9 +331,10 @@ class ServiceRegistryContract(Contract):
         :param ledger_api: the ledger apis.
         :param contract_address: the contract address.
         :param tx_hash: the hash of a slash tx to be processed.
+        :param chain_id_: the chain id.
         :return: a dictionary with the timestamp of the slashing and the `OperatorSlashed` events.
         """
-        contract = cls.get_instance(ledger_api, contract_address)
+        contract = cls.get_instance(ledger_api, contract_address, chain_id_)
         receipt: TxReceipt = ledger_api.api.eth.get_transaction_receipt(tx_hash)
         logs: List[EventData] = list(
             contract.events.OperatorSlashed().process_receipt(receipt)
@@ -366,10 +357,11 @@ class ServiceRegistryContract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         agent_instance: str,
+        chain_id_: int,
     ) -> str:
         """Retrieve an operator given its agent instance."""
 
-        contract_instance = cls.get_instance(ledger_api, contract_address)
+        contract_instance = cls.get_instance(ledger_api, contract_address, chain_id_)
         map_fn = contract_instance.functions.mapAgentInstanceOperators
         return map_fn(agent_instance).call()
 
@@ -379,6 +371,7 @@ class ServiceRegistryContract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         agent_instances: FrozenSet[str],
+        chain_id_: int,
     ) -> Dict[str, str]:
         """
         Retrieve a mapping of the given agent instances to their operators.
@@ -388,9 +381,10 @@ class ServiceRegistryContract(Contract):
         :param ledger_api: the ledger api.
         :param contract_address: the contract address.
         :param agent_instances: the agent instances to be mapped.
+        :param chain_id_: the chain id.
         :return: a mapping of the given agent instances to their operators.
         """
         return {
-            agent: cls._get_operator(ledger_api, contract_address, agent)
+            agent: cls._get_operator(ledger_api, contract_address, agent, chain_id_)
             for agent in agent_instances
         }

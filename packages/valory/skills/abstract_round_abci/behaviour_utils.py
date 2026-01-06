@@ -120,6 +120,7 @@ INITIAL_HEIGHT = "0"
 TM_REQ_TIMEOUT = 5  # 5 seconds
 FLASHBOTS_LEDGER_ID = "ethereum_flashbots"
 SOLANA_LEDGER_ID = "solana"
+LEDGER_CHAIN_ID_RESULT = "chain_id_result"
 
 
 class SendException(Exception):
@@ -2129,6 +2130,44 @@ class BaseBehaviour(
         response = yield from self.wait_for_message(timeout=timeout)
         ipfs_message = cast(IpfsMessage, response)
         return ipfs_message
+
+    def get_chain_id(self) -> Generator[None, None, Optional[int]]:
+        """Get the chain id."""
+        chain_id = self.shared_state.chain_id
+        if chain_id:
+            return chain_id
+
+        ledger_api_response = yield from self.get_ledger_api_response(
+            performative=LedgerApiMessage.Performative.GET_STATE,  # type: ignore
+            ledger_callable="chain_id",
+            chain_id=self.params.default_chain_id,
+        )
+
+        if ledger_api_response.performative == LedgerApiMessage.Performative.ERROR:
+            self.context.logger.error(
+                f"Could not get the chain id: {ledger_api_response}"
+            )
+            return None
+
+        chain_id = ledger_api_response.state.body
+        if chain_id is None:
+            self.context.logger.error(
+                f"Empty body received while trying to get the chain id: {ledger_api_response}."
+            )
+            return None
+
+        try:
+            chain_id = int(chain_id[LEDGER_CHAIN_ID_RESULT])
+        except (ValueError, TypeError, KeyError):
+            self.context.logger.error(
+                f"Invalid {chain_id=} received. Cannot be converted to an `int`."
+            )
+            return None
+
+        self.context.logger.info(f"Cached {chain_id=}.")
+
+        self.shared_state.chain_id = chain_id
+        return chain_id
 
 
 class TmManager(BaseBehaviour):

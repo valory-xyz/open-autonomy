@@ -18,8 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the termination behaviour classes."""
+
 import sys
-from typing import Callable, Dict, Generator, List, Optional, Set, Type, cast
+from typing import Any, Callable, Dict, Generator, List, Optional, Set, Type, cast
 
 from aea.protocols.base import Message
 from hexbytes import HexBytes
@@ -39,7 +40,10 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
-from packages.valory.skills.termination_abci.models import TerminationParams
+from packages.valory.skills.termination_abci.models import (
+    SharedState,
+    TerminationParams,
+)
 from packages.valory.skills.termination_abci.payloads import BackgroundPayload
 from packages.valory.skills.termination_abci.rounds import (
     BackgroundRound,
@@ -73,6 +77,16 @@ class BackgroundBehaviour(BaseBehaviour):
     matching_round = BackgroundRound
     _service_owner_address: Optional[str] = None
 
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize a `BackgroundBehaviour`"""
+        super().__init__(**kwargs)
+        self.chain_id: Optional[int] = None
+
+    @property
+    def shared_state(self) -> SharedState:
+        """Get the shared state."""
+        return cast(SharedState, self.context.state)
+
     def async_act(self) -> Generator:
         """
         Performs the termination logic.
@@ -84,6 +98,14 @@ class BackgroundBehaviour(BaseBehaviour):
         :return: None
         :yield: None
         """
+        self.chain_id = self.shared_state.chain_id
+        if not self.chain_id:
+            self.context.logger.info(
+                "Background behaviour waiting for registration to be completed."
+            )
+            yield from self.sleep(self.params.sleep_time)
+            return
+
         if not self._is_majority_possible() or self._is_termination_majority():
             # if the service has not enough participants to reach
             # consensus or if termination majority has already
@@ -259,6 +281,14 @@ class BackgroundBehaviour(BaseBehaviour):
             contract_callable="get_service_owner",
             contract_address=self.params.service_registry_address,
             service_id=self.params.on_chain_service_id,
+            # this is very hacky and confusing as two chain ids are given.
+            # this is due to a problematic implementation in the framework which requires a "chain_id"
+            # in order to figure out which ledger configuration to use.
+            # this is popped by the dispatcher before the kwargs are passed to the actual method of the contract package
+            # i.e., the `get_service_owner` in this case.
+            # as a result, the chain_id name cannot be used for the proper meaning, i.e., the id of the chain.
+            # instead, we use chain_id_ to pass the chain id.
+            chain_id_=self.chain_id,
             chain_id=self.params.default_chain_id,
         )
 
@@ -397,6 +427,14 @@ class BackgroundBehaviour(BaseBehaviour):
             data=data,
             safe_tx_gas=_SAFE_GAS,
             operation=SafeOperation.DELEGATE_CALL.value,
+            # this is very hacky and confusing as two chain ids are given.
+            # this is due to a problematic implementation in the framework which requires a "chain_id"
+            # in order to figure out which ledger configuration to use.
+            # this is popped by the dispatcher before the kwargs are passed to the actual method of the contract package
+            # i.e., the `get_raw_safe_transaction_hash` in this case.
+            # as a result, the chain_id name cannot be used for the proper meaning, i.e., the chain id of the safe.
+            # instead, we use chain_id_ to pass the chain id of the safe.
+            chain_id_=self.chain_id,
             chain_id=self.params.default_chain_id,
         )
 

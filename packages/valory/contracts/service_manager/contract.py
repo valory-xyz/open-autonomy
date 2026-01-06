@@ -78,26 +78,25 @@ class ServiceManagerContract(Contract):
         path = Path(__file__).parent / "build" / SERVICE_MANAGER_BUILD
         return json.loads(path.read_text(encoding="utf-8"))
 
-    @staticmethod
-    def is_service_manager_token_compatible_chain(ledger_api: LedgerApi) -> bool:
-        """Check if we're interacting with a ServiceManagerToken compatible chain"""
-        return ledger_api.api.eth.chain_id in SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS
-
     @classmethod
     def get_instance(
         cls,
         ledger_api: LedgerApi,
         contract_address: Optional[str] = None,
+        chain_id: Optional[int] = None,
     ) -> Any:
         """Get contract instance."""
         if ledger_api.identifier != ETHEREUM_IDENTIFIER:
             return super().get_instance(
                 ledger_api=ledger_api, contract_address=contract_address
             )
-        if cls.is_service_manager_token_compatible_chain(ledger_api=ledger_api):
-            contract_interface = cls.contract_interface.get(ledger_api.identifier, {})
-        else:
-            contract_interface = cls.load_service_manager_abi()
+
+        chain_id = chain_id or ledger_api.api.eth.chain_id
+        contract_interface = (
+            cls.contract_interface.get(ledger_api.identifier, {})
+            if chain_id in SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS
+            else cls.load_service_manager_abi()
+        )
         return ledger_api.get_contract_instance(contract_interface, contract_address)
 
     @classmethod
@@ -105,13 +104,15 @@ class ServiceManagerContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         event: str,
         receipt: JSONLike,
     ) -> Dict:
         """Process receipt for events."""
         contract_interface = cls.get_instance(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
+            ledger_api,
+            contract_address,
+            chain_id_,
         )
         Event = getattr(contract_interface.events, event, None)
         if Event is None:
@@ -123,6 +124,7 @@ class ServiceManagerContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         owner: str,
         sender: str,
         metadata_hash: str,
@@ -140,15 +142,13 @@ class ServiceManagerContract(Contract):
             "agentParams": agent_params,
             "threshold": threshold,
         }
-        if cls.is_service_manager_token_compatible_chain(ledger_api=ledger_api):
+        if chain_id_ in SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS:
             method_args["token"] = ledger_api.api.to_checksum_address(
                 token or ETHEREUM_ERC20
             )
 
         return ledger_api.build_transaction(
-            contract_instance=cls.get_instance(
-                ledger_api=ledger_api, contract_address=contract_address
-            ),
+            contract_instance=cls.get_instance(ledger_api, contract_address, chain_id_),
             method_name="create",
             method_args=method_args,
             tx_args={
@@ -162,6 +162,7 @@ class ServiceManagerContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         sender: str,
         service_id: int,
         metadata_hash: str,
@@ -179,15 +180,13 @@ class ServiceManagerContract(Contract):
             "agentParams": agent_params,
             "threshold": threshold,
         }
-        if cls.is_service_manager_token_compatible_chain(ledger_api=ledger_api):
+        if chain_id_ in SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS:
             method_args["token"] = ledger_api.api.to_checksum_address(
                 token or ETHEREUM_ERC20
             )
 
         return ledger_api.build_transaction(
-            contract_instance=cls.get_instance(
-                ledger_api=ledger_api, contract_address=contract_address
-            ),
+            contract_instance=cls.get_instance(ledger_api, contract_address, chain_id_),
             method_name="update",
             method_args=method_args,
             tx_args={
@@ -201,6 +200,7 @@ class ServiceManagerContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         owner: str,
         service_id: int,
         security_deposit: int,
@@ -209,9 +209,7 @@ class ServiceManagerContract(Contract):
         """Retrieve the service owner."""
 
         tx_params = ledger_api.build_transaction(
-            contract_instance=cls.get_instance(
-                ledger_api=ledger_api, contract_address=contract_address
-            ),
+            contract_instance=cls.get_instance(ledger_api, contract_address, chain_id_),
             method_name="activateRegistration",
             method_args={
                 "serviceId": service_id,
@@ -227,6 +225,7 @@ class ServiceManagerContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         owner: str,
         service_id: int,
         instances: List[str],
@@ -237,9 +236,7 @@ class ServiceManagerContract(Contract):
         """Retrieve the service owner."""
 
         tx_params = ledger_api.build_transaction(
-            contract_instance=cls.get_instance(
-                ledger_api=ledger_api, contract_address=contract_address
-            ),
+            contract_instance=cls.get_instance(ledger_api, contract_address, chain_id_),
             method_name="registerAgents",
             method_args={
                 "serviceId": service_id,
@@ -257,6 +254,7 @@ class ServiceManagerContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         owner: str,
         service_id: int,
         gnosis_safe_multisig: str,
@@ -266,9 +264,7 @@ class ServiceManagerContract(Contract):
         """Retrieve the service owner."""
 
         tx_params = ledger_api.build_transaction(
-            contract_instance=cls.get_instance(
-                ledger_api=ledger_api, contract_address=contract_address
-            ),
+            contract_instance=cls.get_instance(ledger_api, contract_address, chain_id_),
             method_name="deploy",
             method_args={
                 "serviceId": service_id,
@@ -286,6 +282,7 @@ class ServiceManagerContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         owner: str,
         service_id: int,
         raise_on_try: bool = False,
@@ -293,9 +290,7 @@ class ServiceManagerContract(Contract):
         """Retrieve the service owner."""
 
         tx_params = ledger_api.build_transaction(
-            contract_instance=cls.get_instance(
-                ledger_api=ledger_api, contract_address=contract_address
-            ),
+            contract_instance=cls.get_instance(ledger_api, contract_address, chain_id_),
             method_name="terminate",
             method_args={
                 "serviceId": service_id,
@@ -311,6 +306,7 @@ class ServiceManagerContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        chain_id_: int,
         owner: str,
         service_id: int,
         raise_on_try: bool = False,
@@ -318,9 +314,7 @@ class ServiceManagerContract(Contract):
         """Retrieve the service owner."""
 
         tx_params = ledger_api.build_transaction(
-            contract_instance=cls.get_instance(
-                ledger_api=ledger_api, contract_address=contract_address
-            ),
+            contract_instance=cls.get_instance(ledger_api, contract_address, chain_id_),
             method_name="unbond",
             method_args={
                 "serviceId": service_id,
