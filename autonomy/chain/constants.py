@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -182,6 +182,15 @@ CHAIN_PROFILES = {
         "service_registry_token_utility": cast(
             str, os.environ.get("CUSTOM_SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS")
         ),
+        "poly_safe_creator_with_recovery_module": cast(  # Polymarket multisig WITH recovery module
+            str, os.environ.get("CUSTOM_POLY_SAFE_CREATOR_WITH_RECOVERY_MODULE_ADDRESS")
+        ),
+        "poly_safe_same_address_with_recovery_module": cast(
+            str,
+            os.environ.get(
+                "CUSTOM_POLY_SAFE_SAME_ADDRESS_WITH_RECOVERY_MODULE_ADDRESS"
+            ),
+        ),  # Polymarket same address multisig WITH recovery module
         "multisend": cast(
             str,
             os.environ.get(
@@ -236,6 +245,12 @@ SAFE_MULTISIG_WITH_RECOVERY_MODULE_CONTRACT = PublicId.from_str(
 RECOVERY_MODULE_CONTRACT = PublicId.from_str(
     "valory/recovery_module"
 )  # Same address multisig WITH recovery module
+POLY_SAFE_CREATOR_WITH_RECOVERY_MODULE_CONTRACT = PublicId.from_str(
+    "valory/poly_safe_creator_with_recovery_module"
+)  # Polymarket multisig WITH recovery module
+POLY_SAFE_SAME_ADDRESS_WITH_RECOVERY_MODULE_CONTRACT = PublicId.from_str(
+    "valory/poly_safe_same_address_with_recovery_module"
+)  # Polymarket same address multisig WITH recovery module
 SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT = PublicId.from_str(
     "valory/service_registry_token_utility"
 )

@@ -458,6 +458,26 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
         },
     )
 
+    poly_safe_creator_with_recovery_module = ContractConfig(
+        name="poly_safe_creator_with_recovery_module",
+        contracts={
+            ChainType(chain_name): cast(
+                str, container.get("poly_safe_creator_with_recovery_module")
+            )
+            for chain_name, container in CHAIN_PROFILES.items()
+        },
+    )
+
+    poly_safe_same_address_with_recovery_module = ContractConfig(
+        name="poly_safe_same_address_with_recovery_module",
+        contracts={
+            ChainType(chain_name): cast(
+                str, container.get("poly_safe_same_address_with_recovery_module")
+            )
+            for chain_name, container in CHAIN_PROFILES.items()
+        },
+    )
+
     service_registry_token_utility = ContractConfig(
         name="service_registry_token_utility",
         contracts={
