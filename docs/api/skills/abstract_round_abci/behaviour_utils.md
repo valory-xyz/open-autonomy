@@ -975,6 +975,16 @@ Gets an object from IPFS.
 
 the downloaded object, corresponding to ipfs_hash.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.get_chain_id"></a>
+
+#### get`_`chain`_`id
+
+```python
+def get_chain_id() -> Generator[None, None, Optional[int]]
+```
+
+Get the chain id.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TmManager"></a>
 
 ## TmManager Objects

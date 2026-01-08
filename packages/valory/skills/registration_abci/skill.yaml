@@ -8,7 +8,7 @@ aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeieztbubb6yn5umyt5ulknvb2xxppz5ecxaosxqsaejnrcrrwfu2ji
   __init__.py: bafybeigqj2uodavhrygpqn6iah3ljp53z54c5fxyh5ykgkxuhh5lof6pda
-  behaviours.py: bafybeieocqje27laddjjetzf77xkwoeomw52gfuqqybodz4h5ypxxaex5i
+  behaviours.py: bafybeifyscy3x2sifrriustqqrff3wvfwudbi3lpi7evw2wqx7sggku354
   dialogues.py: bafybeicm4bqedlyytfo4icqqbyolo36j2hk7pqh32d3zc5yqg75bt4demm
   fsm_specification.yaml: bafybeicx5eutgr4lin7mhwr73xhanuzwdmps7pfoy5f2k7gfxmuec4qbyu
   handlers.py: bafybeifby6yecei2d7jvxbqrc3tpyemb7xdb4ood2kny5dqja26qnxrf24
@@ -26,13 +26,13 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/p2p_libp2p_client:0.1.0:bafybeihezztwiiismlbblbv67i4zibp7w6xzpqadt67mcdjaoauibjqii4
 contracts:
-- valory/service_registry:0.1.0:bafybeigcr4y6ylathz5owdyq6nhvrdpv5unyeb3ol3h3xbncq24useqlpa
+- valory/service_registry:0.1.0:bafybeieehjblqxy42s7kpxs2loy4ivwh46f2qlch5ekohwyla25ee5gw4y
 protocols:
 - valory/contract_api:1.0.0:bafybeicmo2ufeoqyyczkom6xp3nwmhosd75kpe4xfwn7gaz6vegj732b4m
 - valory/http:1.0.0:bafybeibxab2yfpchusrzw4rgrasjomtpphazanpivhhtznmuao5ny2lsmi
-- valory/tendermint:0.1.0:bafybeif5wq5i2ugr66alniej2bk4vws5sikal7otx674y5kz52e3ulo2qm
+- valory/tendermint:0.1.0:bafybeie4jqosqiicefnlnxsvrymqj6tycv7x5qeitsdew6abhdcxlu23r4
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeialiwbba4lhfzeuppyomzya754twb3x2olgki7xb6mdnzrs6gttly
+- valory/abstract_round_abci:0.1.0:bafybeidsqwd2qzehat65vjbffwkcukdboulzj6ckhhuhofrr5bl3fsnv2e
 behaviours:
   main:
     args: {}

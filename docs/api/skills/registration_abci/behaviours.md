@@ -46,6 +46,16 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour)
 
 Agent registration to the FSM App.
 
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(**kwargs: Any) -> None
+```
+
+Initialize a `RegistrationStartupBehaviour`
+
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.initial_tm_configs"></a>
 
 #### initial`_`tm`_`configs
