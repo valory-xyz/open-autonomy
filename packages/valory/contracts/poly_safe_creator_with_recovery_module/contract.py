@@ -58,4 +58,6 @@ class PolySafeCreatorWithRecoveryModule(Contract):
         contract_instance = cls.get_instance(
             ledger_api=ledger_api, contract_address=contract_address
         )
-        return contract_instance.functions.getEnableModuleTransactionHash(signer_address).call()
+        return contract_instance.functions.getEnableModuleTransactionHash(
+            signer_address
+        ).call()
