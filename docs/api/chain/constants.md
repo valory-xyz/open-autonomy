@@ -44,11 +44,11 @@ Same address multisig WITH recovery module
 
 #### POLY`_`SAFE`_`CREATOR`_`WITH`_`RECOVERY`_`MODULE`_`CONTRACT
 
-Polymarket multisig WITH recovery module
+Poly Safe multisig WITH recovery module
 
 <a id="autonomy.chain.constants.POLY_SAFE_SAME_ADDRESS_WITH_RECOVERY_MODULE_CONTRACT"></a>
 
 #### POLY`_`SAFE`_`SAME`_`ADDRESS`_`WITH`_`RECOVERY`_`MODULE`_`CONTRACT
 
-Polymarket same address multisig WITH recovery module
+Poly Safe same address multisig WITH recovery module
 
