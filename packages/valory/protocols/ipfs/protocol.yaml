@@ -8,12 +8,12 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeif42b47nzix2qrlzjjlpan6qalikctvqun2snnji5cawkjsk7ivfy
-  __init__.py: bafybeihkw3wvugsw7wtcdusukuh52ua3eyyfl34hqfcjgqtlez6d7x635i
-  dialogues.py: bafybeibotm6rbph2muiyxjpi2gxcf6udj2pecsbokfegpjah77sjbrkgh4
+  __init__.py: bafybeigu274gyvgokmbpixzqhddyw2ciuepmp7mtayr4zhtepyn7zfwvxu
+  dialogues.py: bafybeigawfraizyx3hyfgcil5kcd3qg7okqqh74puxgf4ynnkswnjok75y
   ipfs.proto: bafybeifpe6szd3m2zjlvn5zwiy7mbimur7pu46lobxvyyarozabxpmhcs4
   ipfs_pb2.py: bafybeihzspjtj2zoy3owb5itbz2lrintf7odanhvsi4qooxuqxu3ar6qpu
-  message.py: bafybeieop2r4xewenkda35wofkkn7nao2v4xgnmss5dr5yh5advcukk7ce
-  serialization.py: bafybeihigiogflews3tiqwcvpkmscsjaydaoggaxhvjwiiztk3aug7ayga
+  message.py: bafybeigsdtdm4ollb4q5plu3pred3quwnimppdthhqbv6ercwujhkpzbpi
+  serialization.py: bafybeigjz6rzlxg5k5djegxt7g4khjelpqbmcfugojttaiv5xt76r3ch7m
   tests/test_ipfs_dialogues.py: bafybeigqi2cal5m252qf3ry75mldfd5kyqj3bgstvyzpjgpjgxhi2otpoa
   tests/test_ipfs_messages.py: bafybeiasgajluoijzuln3s4gcbv5xenzazejt5kgbs54momozsntzrudw4
 fingerprint_ignore_patterns: []

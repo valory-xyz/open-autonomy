@@ -14,7 +14,7 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
-- valory/ipfs:0.1.0:bafybeib7jhgyocjwdq3r5wzq3z4qeubj3dwi3aqjn2uxzuwnjp5fhvafcu
+- valory/ipfs:0.1.0:bafybeidqfs3njcishcwv4ymf4srxibw44u7qrnryxiwrg5ulk2h7myvt6q
 class_name: IpfsConnection
 config:
   ipfs_domain: null
