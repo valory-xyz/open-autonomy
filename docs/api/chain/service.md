@@ -41,11 +41,11 @@ Calculates deployment payload.
 
 ```python
 def get_poly_safe_deployment_payload(ledger_api: LedgerApi,
-                                     chain_type: ChainType, service_id: int,
+                                     chain_type: ChainType,
                                      crypto: Crypto) -> str
 ```
 
-Calculates Poly Safe deployment payload .
+Calculates Poly Safe deployment payload.
 
 <a id="autonomy.chain.service.get_agent_instances"></a>
 

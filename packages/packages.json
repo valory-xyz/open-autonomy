@@ -16,7 +16,7 @@
         "contract/valory/service_registry_token_utility/0.1.0": "bafybeiff5qt664ym4rjoyvgysfh6e4sw2sxjbkz6aqaecm4fi5evj3rfbe",
         "contract/valory/squads_multisig/0.1.0": "bafybeib2vmqdbtmkmgztiayalhi27ppcgmliqwrqtyv5afp2zdnphnibfi",
         "contract/valory/multicall2/0.1.0": "bafybeihjbi374hvi7jgypcwcoa3hsxlxkoqzo3nxu7xedpwhtgqnjrzsta",
-        "contract/valory/poly_safe_creator_with_recovery_module/0.1.0": "bafybeid5mqyo2rpddtrcfnztjfcwsxmgpfun6su76qxkmik2rqe2sg5zai",
+        "contract/valory/poly_safe_creator_with_recovery_module/0.1.0": "bafybeiddkzpuw5a4vu4guldbda26jebbphnyf5r44vf5575hctsmb2qdyy",
         "connection/valory/abci/0.1.0": "bafybeibtiw6wlcrkov6vshboixsjgaeodkhxjppk2fbzwleknbp24ci42i",
         "connection/valory/ipfs/0.1.0": "bafybeif7exoq2viwhfgfcjplxq73hnxvgpsx7pwshhntx6aekza25mdwli",
         "skill/valory/test_ipfs_abci/0.1.0": "bafybeifw7oztsbiudlr2ichsmnlrc4pehndubmqvxkg7k5nij3f7k2nyda",
