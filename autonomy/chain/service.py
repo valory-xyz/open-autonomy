@@ -24,10 +24,10 @@ import time
 from enum import Enum
 from typing import Callable, Dict, List, Optional, Tuple, cast
 
+import eth_abi
 from aea.configurations.data_types import PublicId
 from aea.crypto.base import Crypto, LedgerApi
 from hexbytes import HexBytes
-from web3 import Web3
 
 from autonomy.chain.base import ServiceState, registry_contracts
 from autonomy.chain.config import ChainType, ContractConfigs
@@ -134,7 +134,7 @@ def get_poly_safe_deployment_payload(
     r1 = sig1_bytes[0:32]
     s1 = sig1_bytes[32:64]
     v1 = sig1_bytes[64]
-    data = Web3().codec.encode(
+    data = eth_abi.encode(
         ["(uint8,bytes32,bytes32)", "bytes"], [(v1, r1, s1), sig2_bytes]
     )
 
