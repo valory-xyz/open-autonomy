@@ -33,22 +33,22 @@ To follow the next sections, you need to populate the local registry with a numb
         "service/valory/hello_world/0.1.0": "bafybeib5a5qxpx7sq6kzqjuirp6tbrujwz5zvj25ot7nsu3tp3me3ikdhy",
         "agent/valory/hello_world/0.1.0": "bafybeigfvkvjaqnelvjgrl2uroxdrwlcsabnusgdnkbsu6smwtg6skd52y",
         "connection/valory/abci/0.1.0": "bafybeiberscgdns2sc3oy4jvgneuexfk5c5vdgau4cyinhjdyhhvyzlq44",
-        "connection/valory/http_client/0.23.0": "bafybeih2aphmjyu5lrfg7nanymfuegvmq4bzeoc2nnfycu7jkd3uxm5sqm",
+        "connection/valory/http_client/0.23.0": "bafybeib34a2ukancj5524tz64smczju2q2njscgufmtml6dcjb3bjyaocy",
         "connection/valory/ipfs/0.1.0": "bafybeiay7i5fsahngv4hrxiq4vzeuanvmkj2ge2lujqx7ntvuboldjgpf4",
-        "connection/valory/ledger/0.19.0": "bafybeidkqf2alqmtr5sry7lodjaehi7teul7ts7f5y2wilv7ra4nqrqmke",
+        "connection/valory/ledger/0.19.0": "bafybeifdsep5suryfufmto4j5fyvjhmlgypyg6zvvwqsm4edlwfbfsav5y",
         "contract/valory/service_registry/0.1.0": "bafybeigcr4y6ylathz5owdyq6nhvrdpv5unyeb3ol3h3xbncq24useqlpa",
-        "protocol/open_aea/signing/1.0.0": "bafybeidrgyv262s2fhmtqoveaxvwh5xurlfxaktwzsqgo4vmz465g4p3em",
+        "protocol/open_aea/signing/1.0.0": "bafybeib7p5as3obcdzseiwg5umj2piiqaodkxkto7qh7b552l5emwsmdzm",
         "protocol/valory/abci/0.1.0": "bafybeicjjeintlqgg53zrreflmoafeiynt3gvdnovy5ocea7doddos3e5a",
-        "protocol/valory/acn/1.1.0": "bafybeianwuniror6abjsxskzefygyufc33rppfx2vfpw5p6qrkrl23p3dm",
-        "protocol/valory/contract_api/1.0.0": "bafybeig7houx7ygkz7vm4cjuiswflr3wy7ejsxltzyqi3e32fh23z2v4dq",
-        "protocol/valory/http/1.0.0": "bafybeicujdqq5whqio4wqi5m3or7dqcnvabcba2eh35bnwxm2hv76c42b4",
+        "protocol/valory/acn/1.1.0": "bafybeicztpzulro64brsms6qmlav3dz635eykpb7ihtchu2eke2hr52efa",
+        "protocol/valory/contract_api/1.0.0": "bafybeicmo2ufeoqyyczkom6xp3nwmhosd75kpe4xfwn7gaz6vegj732b4m",
+        "protocol/valory/http/1.0.0": "bafybeibxab2yfpchusrzw4rgrasjomtpphazanpivhhtznmuao5ny2lsmi",
         "protocol/valory/ipfs/0.1.0": "bafybeidqfs3njcishcwv4ymf4srxibw44u7qrnryxiwrg5ulk2h7myvt6q",
-        "protocol/valory/ledger_api/1.0.0": "bafybeidiebwpagccpj5dvmgpnw7xhilh4xldlnckppm4whl7feddxtqk7q",
+        "protocol/valory/ledger_api/1.0.0": "bafybeiga6gdd3ccdt5jgrov474koz524f3pfbhprwxfjj7wextkl7wozsa",
         "protocol/valory/tendermint/0.1.0": "bafybeie4jqosqiicefnlnxsvrymqj6tycv7x5qeitsdew6abhdcxlu23r4",
         "skill/valory/abstract_abci/0.1.0": "bafybeid2qayyeiomseygex6rdnqzetpyiuc2caslf7rnkojfbsovxhrsly",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeiajie7p7xi3xkl43eiiihpqrtblwtmr52pgh2mhsrcwtc57iblpga",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeic7qnx3fektetwxxdqt34f5wpwtvkpqpqh233hp3w4hdxjxlx5y7m",
         "skill/valory/hello_world_abci/0.1.0": "bafybeibj7uripgimp6eklmkltpo2gwqyinq524wficoulod3b5ehzrivv4",
-        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeiefehjlkcglj4s4z3il2yr7vcv5mxymuynz3nneuy7rxo62y57h34"
+        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihezztwiiismlbblbv67i4zibp7w6xzpqadt67mcdjaoauibjqii4"
     }
 }
 ```
