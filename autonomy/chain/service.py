@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ from typing import Callable, Dict, List, Optional, Tuple, cast
 from aea.configurations.data_types import PublicId
 from aea.crypto.base import Crypto, LedgerApi
 from hexbytes import HexBytes
+from web3 import Web3
 
 from autonomy.chain.base import ServiceState, registry_contracts
 from autonomy.chain.config import ChainType, ContractConfigs
@@ -35,6 +36,7 @@ from autonomy.chain.constants import (
     GNOSIS_SAFE_PROXY_FACTORY_CONTRACT,
     GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT,
     MULTISEND_CONTRACT,
+    POLY_SAFE_CREATOR_WITH_RECOVERY_MODULE_CONTRACT,
     RECOVERY_MODULE_CONTRACT,
     SAFE_MULTISIG_WITH_RECOVERY_MODULE_CONTRACT,
     SERVICE_MANAGER_CONTRACT,
@@ -87,6 +89,56 @@ def get_deployment_with_recovery_payload(fallback_handler: Optional[str] = None)
         )
         + int(time.time()).to_bytes(32, "big").hex()
     )
+
+
+def get_poly_safe_deployment_payload(
+    ledger_api: LedgerApi,
+    chain_type: ChainType,
+    crypto: Crypto,
+) -> str:
+    """Calculates Poly Safe deployment payload."""
+
+    # Poly Safe deployment payload data requires two (legacy) signatures by the AgentEOA packed in a specific format:
+    # - Signature 1: Poly Safe creation signature
+    # - Signature 2: Enable recovery module signature
+    #
+    # See contract at https://github.com/valory-xyz/autonolas-registries/blob/main/contracts/multisigs/PolySafeCreatorWithRecoveryModule.sol
+    # See example test at https://github.com/valory-xyz/autonolas-registries/blob/main/test/PolySafeCreatorWithRecoveryModule.t.sol#L49
+
+    contract_address = ContractConfigs.get(
+        POLY_SAFE_CREATOR_WITH_RECOVERY_MODULE_CONTRACT.name
+    ).contracts[chain_type]
+
+    create_transaction_hash = registry_contracts.poly_safe_creator_with_recovery_module.get_poly_safe_create_transaction_hash(
+        ledger_api=ledger_api,
+        contract_address=contract_address,
+    )
+    sig1 = crypto.sign_message(
+        create_transaction_hash,
+        is_deprecated_mode=True,  # Legacy signature, do not use EIP-191 signing
+    )
+    sig1_bytes = bytes.fromhex(sig1[2:])
+
+    enable_module_hash = registry_contracts.poly_safe_creator_with_recovery_module.get_enable_module_transaction_hash(
+        ledger_api=ledger_api,
+        contract_address=contract_address,
+        signer_address=crypto.address,
+    )
+    sig2 = crypto.sign_message(
+        enable_module_hash,
+        is_deprecated_mode=True,  # Legacy signature, do not use EIP-191 signing
+    )
+    sig2_bytes = bytes.fromhex(sig2[2:])
+
+    # Pack both signatures in the format required by PolySafeCreatorWithRecoveryModule.create(...)
+    r1 = sig1_bytes[0:32]
+    s1 = sig1_bytes[32:64]
+    v1 = sig1_bytes[64]
+    data = Web3().codec.encode(
+        ["(uint8,bytes32,bytes32)", "bytes"], [(v1, r1, s1), sig2_bytes]
+    )
+
+    return "0x" + data.hex()
 
 
 def get_agent_instances(
