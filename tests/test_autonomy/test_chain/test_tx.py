@@ -531,6 +531,7 @@ class TestTxSetterOnChain(BaseChainInteractionTest):
                 "from": self.crypto.address,
                 "to": self.crypto.address,
                 "value": 10**18,
+                "chainId": 31337,
             }
 
         settler = TxSettler(

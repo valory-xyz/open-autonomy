@@ -23,6 +23,7 @@ from typing import Any
 from unittest import mock
 
 import pytest
+import web3.eth
 from aea.configurations.data_types import PackageId
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
@@ -417,7 +418,8 @@ class TestConnectionError(BaseCliTest):
 
     cli_options = ("mint",)
 
-    def test_connection_error(self) -> None:
+    @mock.patch.object(web3.eth.Eth, "chain_id")
+    def test_connection_error(self, _: mock._patch) -> None:
         """Test connection error."""
         result = self.run_cli(
             commands=(

@@ -26,6 +26,7 @@ from typing import Any, Dict, List, Optional
 from unittest import mock
 
 import pytest
+import web3.eth
 from aea.configurations.data_types import PackageId, PackageType, PublicId
 from aea.crypto.base import Crypto, LedgerApi
 from aea.helpers.base import IPFSHash
@@ -33,7 +34,12 @@ from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 
 from autonomy.chain.base import registry_contracts
-from autonomy.chain.config import ChainType, ContractConfigs, OnChainHelper
+from autonomy.chain.config import (
+    ChainType,
+    ContractConfigs,
+    DEFAULT_LOCAL_CHAIN_ID,
+    OnChainHelper,
+)
 from autonomy.chain.metadata import publish_metadata
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH, MintManager, UnitType
 from autonomy.chain.service import ServiceManager
@@ -144,16 +150,19 @@ class BaseChainInteractionTest(BaseCliTest):
             chain_type=cls.chain_type,
             key=cls.key_file,
         )
-        cls.mint_manager = MintManager(
+        kwargs = dict(
             ledger_api=cls.ledger_api,
             crypto=cls.crypto,
             chain_type=cls.chain_type,
         )
-        cls.service_manager = ServiceManager(
-            ledger_api=cls.ledger_api,
-            crypto=cls.crypto,
-            chain_type=cls.chain_type,
-        )
+        with mock.patch.object(
+            web3.eth.Eth,
+            "chain_id",
+            new_callable=mock.PropertyMock,
+            return_value=DEFAULT_LOCAL_CHAIN_ID,
+        ):
+            cls.mint_manager = MintManager(**kwargs)
+            cls.service_manager = ServiceManager(**kwargs)
 
     @staticmethod
     def extract_token_id_from_output(output: str) -> int:

@@ -26,6 +26,7 @@ from unittest import mock
 
 import click
 import pytest
+import web3.eth
 from aea.configurations.data_types import PackageType
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 
@@ -67,8 +68,10 @@ def _get_ledger_and_crypto_objects_patch() -> mock._patch:
 class TestMintComponentMethod:
     """Test `mint_component` method."""
 
+    @mock.patch.object(web3.eth.Eth, "chain_id")
     def test_mint_component_rpc_connect_fail(
         self,
+        _: mock._patch,
     ) -> None:
         """Test RPC connection error."""
 
@@ -108,8 +111,10 @@ class TestMintComponentMethod:
                 package_type=PackageType.PROTOCOL,
             ).verify_nft().fetch_component_dependencies().publish_metadata().mint_component()
 
+    @mock.patch.object(web3.eth.Eth, "chain_id")
     def test_missing_nft_hash(
         self,
+        _: mock._patch,
     ) -> None:
         """Test NFT hash not provided failure."""
 
@@ -250,12 +255,11 @@ class TestRequiredEnvVars:
             mint_helper.check_is_service_token_secured().unbond_service()
 
 
+@mock.patch.object(web3.eth.Eth, "chain_id")
 class TestDependencyVerification:
     """Test dependency verification."""
 
-    def test_token_found(
-        self,
-    ) -> None:
+    def test_token_found(self, _: mock._patch) -> None:
         """Test NFT hash not provided failure."""
 
         with mock.patch(
@@ -283,9 +287,7 @@ class TestDependencyVerification:
 
             assert helpers.dependencies == [1]
 
-    def test_no_token_found(
-        self,
-    ) -> None:
+    def test_no_token_found(self, _: mock._patch) -> None:
         """Test NFT hash not provided failure."""
 
         with mock.patch(
@@ -305,9 +307,7 @@ class TestDependencyVerification:
                 package_type=PackageType.CONNECTION,
             ).fetch_component_dependencies()
 
-    def test_no_agent_found(
-        self,
-    ) -> None:
+    def test_no_agent_found(self, _: mock._patch) -> None:
         """Test NFT hash not provided failure."""
 
         with mock.patch(
@@ -334,9 +334,7 @@ class TestDependencyVerification:
                 agent_id=1
             )
 
-    def test_wrong_agent_found(
-        self,
-    ) -> None:
+    def test_wrong_agent_found(self, _: mock._patch) -> None:
         """Test NFT hash not provided failure."""
 
         with mock.patch(
@@ -366,9 +364,7 @@ class TestDependencyVerification:
                 agent_id=1
             )
 
-    def test_agent_found(
-        self,
-    ) -> None:
+    def test_agent_found(self, _: mock._patch) -> None:
         """Test NFT hash not provided failure."""
 
         with mock.patch(
@@ -404,7 +400,10 @@ class TestDependencyVerification:
         (ServiceState.TERMINATED_BONDED, "Service already terminated"),
     ),
 )
-def test_terminate_service_failures(state: ServiceState, error: str) -> None:
+@mock.patch.object(web3.eth.Eth, "chain_id")
+def test_terminate_service_failures(
+    _: mock._patch, state: ServiceState, error: str
+) -> None:
     """Test `terminate_service` method"""
 
     with pytest.raises(
@@ -432,7 +431,10 @@ def test_terminate_service_failures(state: ServiceState, error: str) -> None:
         ),
     ),
 )
-def test_unbond_service_failures(state: ServiceState, error: str) -> None:
+@mock.patch.object(web3.eth.Eth, "chain_id")
+def test_unbond_service_failures(
+    _: mock._patch, state: ServiceState, error: str
+) -> None:
     """Test `terminate_service` method"""
 
     with pytest.raises(
