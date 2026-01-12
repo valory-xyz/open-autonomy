@@ -273,6 +273,7 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
                 "address": chain_config.rpc,
                 "chain_id": chain_config.chain_id,
                 "is_gas_estimation_enabled": True,
+                "poa_chain": chain_type in (ChainType.OPTIMISM, ChainType.POLYGON),
             },
         )
 
