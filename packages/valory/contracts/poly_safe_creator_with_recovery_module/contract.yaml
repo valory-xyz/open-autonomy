@@ -16,8 +16,8 @@ contract_interface_paths:
   ethereum: build/PolySafeCreatorWithRecoveryModule.json
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.60.0
+    version: ==2.0.6
   open-aea-test-autonomy:
-    version: ==0.18.3
+    version: ==0.21.5
   web3:
-    version: <7,>=6.0.0
+    version: <8,>=7.0.0
