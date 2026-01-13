@@ -883,16 +883,4 @@ def get_reuse_multisig_with_recovery_payload(  # pylint: disable=too-many-locals
     return payload, None
 
 
-def get_reuse_poly_safe_multisig_payload(  # pylint: disable=too-many-locals
-    ledger_api: LedgerApi,
-    crypto: Crypto,
-    chain_type: ChainType,
-    service_id: int,
-) -> Tuple[Optional[str], Optional[str]]:
-    """Reuse multisig."""
-    return get_reuse_multisig_with_recovery_payload(
-        ledger_api=ledger_api,
-        crypto=crypto,
-        chain_type=chain_type,
-        service_id=service_id,
-    )
+get_reuse_poly_safe_multisig_payload = get_reuse_multisig_with_recovery_payload
