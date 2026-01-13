@@ -19,10 +19,12 @@
 
 """This module contains the class to connect to the `PolySafeCreatorWithRecoveryModule` contract."""
 
-import eth_abi
+from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import Crypto, LedgerApi
+from eth_abi import encode
+from eth_utils import to_checksum_address
 
 
 PUBLIC_ID = PublicId.from_str("valory/poly_safe_creator_with_recovery_module:0.1.0")
@@ -38,12 +40,15 @@ class PolySafeCreatorWithRecoveryModule(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-    ) -> bytes:
+    ) -> JSONLike:
         """Get the create transaction hash."""
         contract_instance = cls.get_instance(
             ledger_api=ledger_api, contract_address=contract_address
         )
-        return contract_instance.functions.getPolySafeCreateTransactionHash().call()
+        hash_bytes = (
+            contract_instance.functions.getPolySafeCreateTransactionHash().call()
+        )
+        return dict(hash_bytes=hash_bytes)
 
     @classmethod
     def get_enable_module_transaction_hash(
@@ -51,14 +56,15 @@ class PolySafeCreatorWithRecoveryModule(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         signer_address: str,
-    ) -> bytes:
+    ) -> JSONLike:
         """Get the enable module transaction hash for a given signer (Poly Safe owner)."""
         contract_instance = cls.get_instance(
             ledger_api=ledger_api, contract_address=contract_address
         )
-        return contract_instance.functions.getEnableModuleTransactionHash(
-            signer_address
+        hash_bytes = contract_instance.functions.getEnableModuleTransactionHash(
+            to_checksum_address(signer_address)
         ).call()
+        return dict(hash_bytes=hash_bytes)
 
     @classmethod
     def get_service_manager_deploy_data(
@@ -66,7 +72,7 @@ class PolySafeCreatorWithRecoveryModule(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         crypto: Crypto,
-    ) -> bytes:
+    ) -> JSONLike:
         """
         Get the `data` parameter required for the ServiceManager contract `deploy` function.
 
@@ -87,7 +93,7 @@ class PolySafeCreatorWithRecoveryModule(Contract):
         create_transaction_hash = cls.get_poly_safe_create_transaction_hash(
             ledger_api=ledger_api,
             contract_address=contract_address,
-        )
+        )["hash_bytes"]
 
         sig1 = crypto.sign_message(
             create_transaction_hash,
@@ -99,7 +105,7 @@ class PolySafeCreatorWithRecoveryModule(Contract):
             ledger_api=ledger_api,
             contract_address=contract_address,
             signer_address=crypto.address,
-        )
+        )["hash_bytes"]
         sig2 = crypto.sign_message(
             enable_module_hash,
             is_deprecated_mode=True,  # Legacy signature, do not use EIP-191 signing
@@ -110,8 +116,8 @@ class PolySafeCreatorWithRecoveryModule(Contract):
         r1 = sig1_bytes[0:32]
         s1 = sig1_bytes[32:64]
         v1 = sig1_bytes[64]
-        data = eth_abi.encode(
+        data_bytes = encode(
             ["(uint8,bytes32,bytes32)", "bytes"], [(v1, r1, s1), sig2_bytes]
         )
 
-        return data
+        return dict(data_bytes=data_bytes)

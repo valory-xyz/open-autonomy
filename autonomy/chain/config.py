@@ -151,6 +151,9 @@ class ChainType(Enum):
 Chain = ChainType
 
 
+POA_CHAINS = frozenset((ChainType.OPTIMISM, ChainType.POLYGON))
+
+
 @dataclass
 class ContractConfig:
     """Contract config class."""
@@ -273,7 +276,7 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
                 "address": chain_config.rpc,
                 "chain_id": chain_config.chain_id,
                 "is_gas_estimation_enabled": True,
-                "poa_chain": chain_type in (ChainType.OPTIMISM, ChainType.POLYGON),
+                "poa_chain": chain_type in POA_CHAINS,
             },
         )
 

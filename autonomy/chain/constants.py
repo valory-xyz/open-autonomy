@@ -74,7 +74,7 @@ CHAIN_PROFILES = {
         "safe_multisig_with_recovery_module": "0x1a0bFCC27051BCcDDc444578f56A4F5920e0E083",  # Multisig WITH recovery module
         "recovery_module": "0x02C26437B292D86c5F4F21bbCcE0771948274f84",  # Same address multisig WITH recovery module
         "poly_safe_creator_with_recovery_module": "0xA749f605D93B3efcc207C54270d83C6E8fa70fF8",  # Poly Safe multisig WITH recovery module
-        "poly_safe_same_address_with_recovery_module": "0xBcb1BAC84B5BcAb350C89c50ADc9064eD15a4485",  # Poly Safe same address multisig WITH recovery module
+        "poly_safe_same_address_with_recovery_module": "0x02C26437B292D86c5F4F21bbCcE0771948274f84",  # Poly Safe same address multisig WITH recovery module
         "operator_whitelist": "0x526E064cB694E8f5B7DB299158e17F33055B3943",
         "staking_token": "0x4aba1Cf7a39a51D75cBa789f5f21cf4882162519",
         "staking_verifier": "0x8Bc0a5c5B1612A16983B01ecd7ae130E728390CB",
@@ -233,24 +233,41 @@ REGISTRIES_MANAGER_CONTRACT = PublicId.from_str("valory/registries_manager")
 SERVICE_MANAGER_CONTRACT = PublicId.from_str("valory/service_manager")
 SERVICE_REGISTRY_CONTRACT = PublicId.from_str("valory/service_registry")
 GNOSIS_SAFE_CONTRACT = PublicId.from_str("valory/gnosis_safe")
+
+# Multisig WITHOUT recovery module
 GNOSIS_SAFE_PROXY_FACTORY_CONTRACT = PublicId.from_str(
     "valory/gnosis_safe_proxy_factory"
-)  # Multisig WITHOUT recovery module
+)
+
+# Same address multisig WITHOUT recovery module
+# NOTE: No dedicated contract package. Used internally by ServiceManager.
+# Defined only to reference values in CHAIN_PROFILES.
 GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT = PublicId.from_str(
     "valory/gnosis_safe_same_address_multisig"
-)  # Same address multisig WITHOUT recovery module
+)
+
+# Multisig WITH recovery module
+# NOTE: No dedicated contract package. Used internally by ServiceManager.
+# Defined only to reference values in CHAIN_PROFILES.
 SAFE_MULTISIG_WITH_RECOVERY_MODULE_CONTRACT = PublicId.from_str(
     "valory/safe_multisig_with_recovery_module"
-)  # Multisig WITH recovery module
-RECOVERY_MODULE_CONTRACT = PublicId.from_str(
-    "valory/recovery_module"
-)  # Same address multisig WITH recovery module
+)
+
+# Same address multisig WITH recovery module
+RECOVERY_MODULE_CONTRACT = PublicId.from_str("valory/recovery_module")
+
+# Poly Safe multisig WITH recovery module
 POLY_SAFE_CREATOR_WITH_RECOVERY_MODULE_CONTRACT = PublicId.from_str(
     "valory/poly_safe_creator_with_recovery_module"
-)  # Poly Safe multisig WITH recovery module
+)
+
+# Poly Safe same address multisig WITH recovery module
+# NOTE: No dedicated contract package. Used internally by ServiceManager.
+# Defined only to reference values in CHAIN_PROFILES.
 POLY_SAFE_SAME_ADDRESS_WITH_RECOVERY_MODULE_CONTRACT = PublicId.from_str(
     "valory/poly_safe_same_address_with_recovery_module"
-)  # Poly Safe same address multisig WITH recovery module
+)
+
 SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT = PublicId.from_str(
     "valory/service_registry_token_utility"
 )

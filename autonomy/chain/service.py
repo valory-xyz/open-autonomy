@@ -101,12 +101,14 @@ def get_poly_safe_deployment_payload(
         POLY_SAFE_CREATOR_WITH_RECOVERY_MODULE_CONTRACT.name
     ).contracts[chain_type]
 
-    data = registry_contracts.poly_safe_creator_with_recovery_module.get_service_manager_deploy_data(
+    data_bytes = registry_contracts.poly_safe_creator_with_recovery_module.get_service_manager_deploy_data(
         ledger_api=ledger_api,
         contract_address=contract_address,
         crypto=crypto,
-    )
-    return "0x" + data.hex()
+    )[
+        "data_bytes"
+    ]
+    return "0x" + data_bytes.hex()
 
 
 def get_agent_instances(

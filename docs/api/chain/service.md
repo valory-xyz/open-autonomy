@@ -338,15 +338,3 @@ def get_reuse_multisig_with_recovery_payload(
 
 Reuse multisig.
 
-<a id="autonomy.chain.service.get_reuse_poly_safe_multisig_payload"></a>
-
-#### get`_`reuse`_`poly`_`safe`_`multisig`_`payload
-
-```python
-def get_reuse_poly_safe_multisig_payload(
-        ledger_api: LedgerApi, crypto: Crypto, chain_type: ChainType,
-        service_id: int) -> Tuple[Optional[str], Optional[str]]
-```
-
-Reuse multisig.
-

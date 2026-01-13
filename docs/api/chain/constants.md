@@ -16,39 +16,3 @@ use from an editable/local installation
 
 nosec
 
-<a id="autonomy.chain.constants.GNOSIS_SAFE_PROXY_FACTORY_CONTRACT"></a>
-
-#### GNOSIS`_`SAFE`_`PROXY`_`FACTORY`_`CONTRACT
-
-Multisig WITHOUT recovery module
-
-<a id="autonomy.chain.constants.GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT"></a>
-
-#### GNOSIS`_`SAFE`_`SAME`_`ADDRESS`_`MULTISIG`_`CONTRACT
-
-Same address multisig WITHOUT recovery module
-
-<a id="autonomy.chain.constants.SAFE_MULTISIG_WITH_RECOVERY_MODULE_CONTRACT"></a>
-
-#### SAFE`_`MULTISIG`_`WITH`_`RECOVERY`_`MODULE`_`CONTRACT
-
-Multisig WITH recovery module
-
-<a id="autonomy.chain.constants.RECOVERY_MODULE_CONTRACT"></a>
-
-#### RECOVERY`_`MODULE`_`CONTRACT
-
-Same address multisig WITH recovery module
-
-<a id="autonomy.chain.constants.POLY_SAFE_CREATOR_WITH_RECOVERY_MODULE_CONTRACT"></a>
-
-#### POLY`_`SAFE`_`CREATOR`_`WITH`_`RECOVERY`_`MODULE`_`CONTRACT
-
-Poly Safe multisig WITH recovery module
-
-<a id="autonomy.chain.constants.POLY_SAFE_SAME_ADDRESS_WITH_RECOVERY_MODULE_CONTRACT"></a>
-
-#### POLY`_`SAFE`_`SAME`_`ADDRESS`_`WITH`_`RECOVERY`_`MODULE`_`CONTRACT
-
-Poly Safe same address multisig WITH recovery module
-
