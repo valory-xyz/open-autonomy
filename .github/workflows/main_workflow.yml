@@ -217,7 +217,7 @@ jobs:
         with:
           remove_android: true
           rm_cmd: "rm"
-          testing: false
+          testing: true
       - if: matrix.os == 'ubuntu-latest'
         name: Free Disk Space check post cleanup
         run: df -h
