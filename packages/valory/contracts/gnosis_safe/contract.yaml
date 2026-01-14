@@ -34,7 +34,7 @@ dependencies:
     version: ==0.21.5
   packaging: {}
   pycryptodome:
-    version: ==3.18.0
+    version: ==3.20.0
   requests: {}
   web3:
     version: <8,>=7.0.0
