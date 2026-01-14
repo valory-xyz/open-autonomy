@@ -247,15 +247,13 @@ POLY_SAFE_CREATOR_WITH_RECOVERY_MODULE_CONTRACT = PublicId.from_str(
 # Same address multisig WITHOUT recovery module
 # NOTE: No dedicated contract package. Used internally by ServiceManager.
 # Defined only to reference values in CHAIN_PROFILES.
-# NOTE: For redeployment of multisigs WITHOUT recovery module
-# (gnosis_safe_proxy_factory)
+# NOTE: For redeployment of multisigs WITHOUT recovery module (gnosis_safe_proxy_factory)
 GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT = PublicId.from_str(
     "valory/gnosis_safe_same_address_multisig"
 )
 
 # Same address multisig WITH recovery module
-# NOTE: For redeployment of multisigs WITH recovery module
-# (safe_multisig_with_recovery_module, poly_safe_creator_with_recovery_module)
+# NOTE: For redeployment of multisigs WITH recovery module (safe_multisig_with_recovery_module, poly_safe_creator_with_recovery_module)
 RECOVERY_MODULE_CONTRACT = PublicId.from_str("valory/recovery_module")
 
 SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT = PublicId.from_str(
