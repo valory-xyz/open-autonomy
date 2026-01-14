@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 __title__ = "open-autonomy"
 __description__ = "A framework for the creation of autonomous agent services."
 __url__ = "https://github.com/valory-xyz/open-autonomy.git"
-__version__ = "0.21.5"
+__version__ = "0.21.6"
 __author__ = "Valory AG"
 __license__ = "Apache-2.0"
 __copyright__ = "2021-2024 Valory AG"

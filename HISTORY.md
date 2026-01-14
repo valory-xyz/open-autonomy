@@ -1,5 +1,15 @@
 # Release History - `open-autonomy`
 
+# 0.21.6 (2026-01-14)
+
+Autonomy:
+- Adds missing `chain_id` to the ledger message to fix the `failsafe_randomness` for agents using non-default chains. #2377
+- Adds internal support for PolySafe multisig contract #2378
+
+Packages:
+- Bump `open-aea` to `2.0.7` in `gnosis_safe` contract #2384
+- Bump `pycryptodome` to `3.20.0` in `gnosis_safe` contract #2383
+
 # 0.21.5 (2025-12-10)
 
 Autonomy:
