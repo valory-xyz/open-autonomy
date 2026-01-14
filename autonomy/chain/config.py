@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -151,6 +151,9 @@ class ChainType(Enum):
 Chain = ChainType
 
 
+POA_CHAINS = frozenset((ChainType.OPTIMISM, ChainType.POLYGON))
+
+
 @dataclass
 class ContractConfig:
     """Contract config class."""
@@ -273,6 +276,7 @@ class OnChainHelper:  # pylint: disable=too-few-public-methods
                 "address": chain_config.rpc,
                 "chain_id": chain_config.chain_id,
                 "is_gas_estimation_enabled": True,
+                "poa_chain": chain_type in POA_CHAINS,
             },
         )
 
@@ -430,21 +434,31 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
         },
     )
 
-    gnosis_safe_same_address_multisig = ContractConfig(
-        name="gnosis_safe_same_address_multisig",
-        contracts={
-            ChainType(chain_name): cast(
-                str, container.get("gnosis_safe_same_address_multisig")
-            )
-            for chain_name, container in CHAIN_PROFILES.items()
-        },
-    )
-
     safe_multisig_with_recovery_module = ContractConfig(
         name="safe_multisig_with_recovery_module",
         contracts={
             ChainType(chain_name): cast(
                 str, container.get("safe_multisig_with_recovery_module")
+            )
+            for chain_name, container in CHAIN_PROFILES.items()
+        },
+    )
+
+    poly_safe_creator_with_recovery_module = ContractConfig(
+        name="poly_safe_creator_with_recovery_module",
+        contracts={
+            ChainType(chain_name): cast(
+                str, container.get("poly_safe_creator_with_recovery_module")
+            )
+            for chain_name, container in CHAIN_PROFILES.items()
+        },
+    )
+
+    gnosis_safe_same_address_multisig = ContractConfig(
+        name="gnosis_safe_same_address_multisig",
+        contracts={
+            ChainType(chain_name): cast(
+                str, container.get("gnosis_safe_same_address_multisig")
             )
             for chain_name, container in CHAIN_PROFILES.items()
         },

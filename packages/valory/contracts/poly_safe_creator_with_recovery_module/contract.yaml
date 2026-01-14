@@ -1,0 +1,25 @@
+name: poly_safe_creator_with_recovery_module
+author: valory
+version: 0.1.0
+type: contract
+description: PolySafe creator with recovery module
+license: Apache-2.0
+aea_version: '>=2.0.0, <3.0.0'
+fingerprint:
+  __init__.py: bafybeihfvdcbxhdrslacdtdeda57ia6eyrfv2i7i6hjxvkdo4xg5nh4k7m
+  build/PolySafeCreatorWithRecoveryModule.json: bafybeidw37vjzgb2vsl5l6tnz2syhwrod25a6yzem4mauhpnpbdc2lmuwu
+  contract.py: bafybeigi23kb2drqw52qrkilv3gnrtgemysxouc2g7hzqfxrrgrvinn7xm
+fingerprint_ignore_patterns: []
+contracts: []
+class_name: PolySafeCreatorWithRecoveryModule
+contract_interface_paths:
+  ethereum: build/PolySafeCreatorWithRecoveryModule.json
+dependencies:
+  eth-abi:
+    version: ==5.2.0
+  eth-utils:
+    version: ==5.3.0
+  open-aea-ledger-ethereum:
+    version: ==2.0.6
+  open-aea-test-autonomy:
+    version: ==0.21.5

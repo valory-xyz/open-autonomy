@@ -22,23 +22,23 @@ fingerprint:
   tests/test_register_reset.py: bafybeiecdipytoorhfpecbzd5pyx7e5zjpxsjc6yyqxezq2q6bhz7yuk7i
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeibtiw6wlcrkov6vshboixsjgaeodkhxjppk2fbzwleknbp24ci42i
+- valory/abci:0.1.0:bafybeiberscgdns2sc3oy4jvgneuexfk5c5vdgau4cyinhjdyhhvyzlq44
 - valory/http_client:0.23.0:bafybeib34a2ukancj5524tz64smczju2q2njscgufmtml6dcjb3bjyaocy
-- valory/ipfs:0.1.0:bafybeif7exoq2viwhfgfcjplxq73hnxvgpsx7pwshhntx6aekza25mdwli
+- valory/ipfs:0.1.0:bafybeiay7i5fsahngv4hrxiq4vzeuanvmkj2ge2lujqx7ntvuboldjgpf4
 - valory/ledger:0.19.0:bafybeifdsep5suryfufmto4j5fyvjhmlgypyg6zvvwqsm4edlwfbfsav5y
 - valory/p2p_libp2p_client:0.1.0:bafybeihezztwiiismlbblbv67i4zibp7w6xzpqadt67mcdjaoauibjqii4
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeib7p5as3obcdzseiwg5umj2piiqaodkxkto7qh7b552l5emwsmdzm
-- valory/abci:0.1.0:bafybeigdi6wsbdn2nv7clzhnuhki3taywgiiajwawdaat57o5ntlgqj2qe
+- valory/abci:0.1.0:bafybeicjjeintlqgg53zrreflmoafeiynt3gvdnovy5ocea7doddos3e5a
 - valory/http:1.0.0:bafybeibxab2yfpchusrzw4rgrasjomtpphazanpivhhtznmuao5ny2lsmi
-- valory/ipfs:0.1.0:bafybeib7jhgyocjwdq3r5wzq3z4qeubj3dwi3aqjn2uxzuwnjp5fhvafcu
+- valory/ipfs:0.1.0:bafybeidqfs3njcishcwv4ymf4srxibw44u7qrnryxiwrg5ulk2h7myvt6q
 skills:
-- valory/abstract_abci:0.1.0:bafybeidr3dqykchbw7rnmxcrp3qkuafk24pyvr7zehfbkcfon62qwuft7y
-- valory/abstract_round_abci:0.1.0:bafybeialiwbba4lhfzeuppyomzya754twb3x2olgki7xb6mdnzrs6gttly
-- valory/register_reset_abci:0.1.0:bafybeibap7dhyx46izfwqftgarsvzn7766p7iprkfsn5jxpfvc22ojv6fe
-- valory/registration_abci:0.1.0:bafybeibeu34sr3lukrokjidkf7gsjjpq2bx2d6vecxdbtbuoqwxh46jsfq
-- valory/reset_pause_abci:0.1.0:bafybeibvxxo5hqtm3ky76d45xwnh2cpt43dn7hp4fczoee3c56wz4myorq
+- valory/abstract_abci:0.1.0:bafybeid2qayyeiomseygex6rdnqzetpyiuc2caslf7rnkojfbsovxhrsly
+- valory/abstract_round_abci:0.1.0:bafybeic7qnx3fektetwxxdqt34f5wpwtvkpqpqh233hp3w4hdxjxlx5y7m
+- valory/register_reset_abci:0.1.0:bafybeibq3gbrk3e7wr2flk6weihsqva36f3lh64pgv7znwnthtkvrfbc6m
+- valory/registration_abci:0.1.0:bafybeialpn7l37pw2ndoura27acqxp236gvde4lzi5bfrcjgxweht6lfii
+- valory/reset_pause_abci:0.1.0:bafybeicyvjm2toqtycsxd7um3zsswcequpvnkknxm2aswkeacy2n6mygiy
 default_ledger: ethereum
 required_ledgers:
 - ethereum

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2026 valory
+#   Copyright 2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,14 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""
-This module contains the support resources for the abci protocol.
-
-It was created with protocol buffer compiler version `libprotoc 24.3` and aea protocol generator version `1.0.0`.
-"""
-
-from packages.valory.protocols.abci.message import AbciMessage
-from packages.valory.protocols.abci.serialization import AbciSerializer
-
-
-AbciMessage.serializer = AbciSerializer
+"""This module contains the support resources for the `PolySafeCreatorWithRecoveryModule` contract."""

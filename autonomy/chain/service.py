@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ from autonomy.chain.constants import (
     GNOSIS_SAFE_PROXY_FACTORY_CONTRACT,
     GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT,
     MULTISEND_CONTRACT,
+    POLY_SAFE_CREATOR_WITH_RECOVERY_MODULE_CONTRACT,
     RECOVERY_MODULE_CONTRACT,
     SAFE_MULTISIG_WITH_RECOVERY_MODULE_CONTRACT,
     SERVICE_MANAGER_CONTRACT,
@@ -87,6 +88,27 @@ def get_deployment_with_recovery_payload(fallback_handler: Optional[str] = None)
         )
         + int(time.time()).to_bytes(32, "big").hex()
     )
+
+
+def get_poly_safe_deployment_payload(
+    ledger_api: LedgerApi,
+    chain_type: ChainType,
+    crypto: Crypto,
+) -> str:
+    """Calculates Poly Safe deployment payload."""
+
+    contract_address = ContractConfigs.get(
+        POLY_SAFE_CREATOR_WITH_RECOVERY_MODULE_CONTRACT.name
+    ).contracts[chain_type]
+
+    data_bytes = registry_contracts.poly_safe_creator_with_recovery_module.get_service_manager_deploy_data(
+        ledger_api=ledger_api,
+        contract_address=contract_address,
+        crypto=crypto,
+    )[
+        "data_bytes"
+    ]
+    return "0x" + data_bytes.hex()
 
 
 def get_agent_instances(
@@ -861,3 +883,6 @@ def get_reuse_multisig_with_recovery_payload(  # pylint: disable=too-many-locals
 
     payload = "0x" + int(service_id).to_bytes(32, "big").hex()
     return payload, None
+
+
+get_reuse_poly_safe_multisig_payload = get_reuse_multisig_with_recovery_payload

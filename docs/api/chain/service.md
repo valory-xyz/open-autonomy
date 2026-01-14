@@ -35,6 +35,18 @@ def get_deployment_with_recovery_payload(
 
 Calculates deployment payload.
 
+<a id="autonomy.chain.service.get_poly_safe_deployment_payload"></a>
+
+#### get`_`poly`_`safe`_`deployment`_`payload
+
+```python
+def get_poly_safe_deployment_payload(ledger_api: LedgerApi,
+                                     chain_type: ChainType,
+                                     crypto: Crypto) -> str
+```
+
+Calculates Poly Safe deployment payload.
+
 <a id="autonomy.chain.service.get_agent_instances"></a>
 
 #### get`_`agent`_`instances

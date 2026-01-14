@@ -159,6 +159,17 @@ def recovery_module() -> Contract
 
 Returns an instance of the recovery module contract.
 
+<a id="autonomy.chain.base.RegistryContracts.poly_safe_creator_with_recovery_module"></a>
+
+#### poly`_`safe`_`creator`_`with`_`recovery`_`module
+
+```python
+@property
+def poly_safe_creator_with_recovery_module() -> Contract
+```
+
+Returns an instance of the recovery module contract.
+
 <a id="autonomy.chain.base.RegistryContracts.multisend"></a>
 
 #### multisend
