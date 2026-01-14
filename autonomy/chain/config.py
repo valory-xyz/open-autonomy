@@ -434,30 +434,12 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
         },
     )
 
-    gnosis_safe_same_address_multisig = ContractConfig(
-        name="gnosis_safe_same_address_multisig",
-        contracts={
-            ChainType(chain_name): cast(
-                str, container.get("gnosis_safe_same_address_multisig")
-            )
-            for chain_name, container in CHAIN_PROFILES.items()
-        },
-    )
-
     safe_multisig_with_recovery_module = ContractConfig(
         name="safe_multisig_with_recovery_module",
         contracts={
             ChainType(chain_name): cast(
                 str, container.get("safe_multisig_with_recovery_module")
             )
-            for chain_name, container in CHAIN_PROFILES.items()
-        },
-    )
-
-    recovery_module = ContractConfig(
-        name="recovery_module",
-        contracts={
-            ChainType(chain_name): cast(str, container.get("recovery_module"))
             for chain_name, container in CHAIN_PROFILES.items()
         },
     )
@@ -472,12 +454,20 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
         },
     )
 
-    poly_safe_same_address_with_recovery_module = ContractConfig(
-        name="poly_safe_same_address_with_recovery_module",
+    gnosis_safe_same_address_multisig = ContractConfig(
+        name="gnosis_safe_same_address_multisig",
         contracts={
             ChainType(chain_name): cast(
-                str, container.get("poly_safe_same_address_with_recovery_module")
+                str, container.get("gnosis_safe_same_address_multisig")
             )
+            for chain_name, container in CHAIN_PROFILES.items()
+        },
+    )
+
+    recovery_module = ContractConfig(
+        name="recovery_module",
+        contracts={
+            ChainType(chain_name): cast(str, container.get("recovery_module"))
             for chain_name, container in CHAIN_PROFILES.items()
         },
     )
