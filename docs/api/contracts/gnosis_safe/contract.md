@@ -122,7 +122,7 @@ def get_raw_safe_transaction_hash(cls,
                                   refund_receiver: str = NULL_ADDRESS,
                                   safe_nonce: Optional[int] = None,
                                   safe_version: Optional[str] = None,
-                                  chain_id: Optional[int] = None) -> JSONLike
+                                  chain_id_: Optional[int] = None) -> JSONLike
 ```
 
 Get the hash of the raw Safe transaction.
@@ -147,7 +147,7 @@ Note, because safe_nonce is included in the tx_hash the agents implicitly agree 
 - `refund_receiver`: Address of receiver of gas payment (or `0x000..000`  if tx.origin).
 - `safe_nonce`: Current nonce of the Safe. If not provided, it will be retrieved from network
 - `safe_version`: Safe version 1.0.0 renamed `baseGas` to `dataGas`. Safe version 1.3.0 added `chainId` to the `domainSeparator`. If not provided, it will be retrieved from network
-- `chain_id`: Ethereum network chain_id is used in hash calculation for Safes >= 1.3.0. If not provided, it will be retrieved from the provided ethereum_client
+- `chain_id_`: Ethereum network chain_id_ is used in hash calculation for Safes >= 1.3.0. If not provided, it will be retrieved from the provided ethereum_client
 
 **Returns**:
 

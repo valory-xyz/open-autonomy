@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -129,6 +129,7 @@ class MintManager:
         self.retries = retries
         self.sleep = sleep
         self.dry_run = dry_run
+        self.chain_id = ledger_api.api.eth.chain_id
 
     def _transact(
         self,
@@ -322,6 +323,7 @@ class MintManager:
                 token=token,
                 owner=owner,
                 sender=self.crypto.address,
+                chain_id_=self.chain_id,
             ),
             event="CreateService",
             process_receipt_ctr=SERVICE_REGISTRY_CONTRACT,
@@ -402,6 +404,7 @@ class MintManager:
                 agent_params=agent_params,
                 threshold=threshold,
                 token=token,
+                chain_id_=self.chain_id,
             ),
             event="UpdateService",
             process_receipt_ctr=SERVICE_REGISTRY_CONTRACT,

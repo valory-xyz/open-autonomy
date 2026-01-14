@@ -5,6 +5,13 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.5` to `v0.22.0`
+
+- The `chain_id_` parameter has been added to the `get_raw_safe_transaction_hash` method of the gnosis safe contract 
+  and multiple methods of the service manager and service registry contracts. 
+  This is to provide the id of the chain and avoid excess, unnecessary calls to the `eth_chainId` RPC method.
+- The `chain_id` parameter configuration is now mandatory and should be provided by all the skills.
+
 ## `v0.21.4` to `v0.21.5`
 
 No backwards incompatible changes.
