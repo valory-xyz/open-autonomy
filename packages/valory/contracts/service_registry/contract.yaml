@@ -19,7 +19,7 @@ contract_interface_paths:
   ethereum: build/ServiceRegistry.json
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.0.6
+    version: ==2.0.7
   open-aea-test-autonomy:
     version: ==0.21.5
   web3:
