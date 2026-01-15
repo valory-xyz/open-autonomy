@@ -883,6 +883,3 @@ def get_reuse_multisig_with_recovery_payload(  # pylint: disable=too-many-locals
 
     payload = "0x" + int(service_id).to_bytes(32, "big").hex()
     return payload, None
-
-
-get_reuse_poly_safe_multisig_payload = get_reuse_multisig_with_recovery_payload
