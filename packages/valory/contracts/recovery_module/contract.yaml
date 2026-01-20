@@ -16,7 +16,7 @@ contract_interface_paths:
   ethereum: build/RecoveryModule.json
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.0.7
+    version: ==2.0.8
   open-aea-test-autonomy:
     version: ==0.21.6
   web3:
