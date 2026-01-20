@@ -68,6 +68,7 @@ ERRORS_TO_RETRY = ERRORS_TO_REPRICE | {
     "oldnonce",
     "replacement transaction underpriced",
     "is contract deployed correctly and chain synced?",
+    "request beyond head block",
 }
 
 
