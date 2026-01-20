@@ -74,7 +74,7 @@ To use these chain profiles, you have to export an environment variable that def
     The chain profile flags (`--use-ethereum`, etc.) are mutually exclusive.
 
 `--use-recovery`
-: Use a multisig with a recovery module when deploying or redeploying the AI agent. This module allows ownership of the AI agent multisig to be transferred to the AI agent owner if the agent instances have not done so. This functionality is only available during the [*Pre-Registration*](https://docs.olas.network/protocol/life_cycle_of_a_service/#pre-registration) phase and is executed automatically when [activating](#autonomy-service-activate) the AI agent. See notes <sup>&#8224;</sup> and <sup>&#8225;</sup> above.
+: Use a multisig with a recovery module when deploying or redeploying the AI agent. This module allows ownership of the AI agent multisig to be transferred to the AI agent owner if the agent instances have not done so. This functionality is only available during the [*Pre-Registration*](https://stack.olas.network/protocol/life_cycle_of_a_service/#pre-registration) phase and is executed automatically when [activating](#autonomy-service-activate) the AI agent. See notes <sup>&#8224;</sup> and <sup>&#8225;</sup> above.
 
 `-t, --timeout FLOAT`
 : Timeout for on-chain interactions
