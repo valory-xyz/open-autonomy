@@ -18,10 +18,10 @@ fingerprint:
   utils.py: bafybeihrzltjkh2pfkctsuanhtx234bwcqh6vdabkxzmp7qoyva3om5x7m
 fingerprint_ignore_patterns: []
 connections:
-- valory/http_client:0.23.0:bafybeib34a2ukancj5524tz64smczju2q2njscgufmtml6dcjb3bjyaocy
+- valory/http_client:0.23.0:bafybeigwzn4hkry3wy7nf2myk3h3pl5xrqkvvxp2ppdbwwffa4c2s2bkwy
 contracts: []
 protocols:
-- valory/http:1.0.0:bafybeibxab2yfpchusrzw4rgrasjomtpphazanpivhhtznmuao5ny2lsmi
+- valory/http:1.0.0:bafybeia4tq7ycivm3dnekelrnlzdwb4qnrjdykk6gf5tizq6djr66adotm
 skills: []
 behaviours:
   incrementer:
