@@ -1,5 +1,14 @@
 # Release History - `open-autonomy`
 
+# 0.21.7 (2026-01-20)
+
+Autonomy:
+- Updates a link in the docs to the new domain `stack.olas.network` #2379
+- Fixes the `TxSettler` retry mechanism for Polygon RPCs #2388
+
+Packages:
+- Bump `open-aea` to `2.0.8` #2389
+
 # 0.21.6 (2026-01-14)
 
 Autonomy:

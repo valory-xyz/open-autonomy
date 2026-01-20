@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "open-autonomy"
-version = "0.21.6"
+version = "0.21.7"
 description = "Open Autonomy Framework"
 authors = ["developer-valory <develope@valory.xyz>"]
 license = "Apache-2.0 license"
