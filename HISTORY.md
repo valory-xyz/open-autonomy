@@ -7,7 +7,7 @@ Autonomy:
 - Fixes the `TxSettler` retry mechanism for Polygon RPCs #2388
 
 Packages:
-- Bump `open-aea` to `2.0.8` #2389
+- Bumps `open-aea` to `2.0.8` #2389
 
 # 0.21.6 (2026-01-14)
 
