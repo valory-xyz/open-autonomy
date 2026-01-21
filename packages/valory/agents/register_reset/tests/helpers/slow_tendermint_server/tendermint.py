@@ -258,7 +258,7 @@ class TendermintNode:
                         # this occurs when we lose connection from the tm side
                         "RPC HTTP server stopped",
                         # this occurs when we lose connection from the AEA side.
-                        "Stopping abci.socketClient for error: read message: EOF module=abci-client connection=",
+                        "Stopping abci.socketClient for error: read message: ",
                     ]:
                         if line.find(trigger) >= 0:
                             self._stop_tm_process()

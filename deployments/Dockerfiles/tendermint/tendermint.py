@@ -207,7 +207,7 @@ class TendermintNode:
                         # whenever the node is stopped because of a closed connection
                         # from on any of the tendermint modules (abci, p2p, rpc, etc)
                         # we restart the node
-                        "Stopping abci.socketClient for error: read message: EOF",
+                        "Stopping abci.socketClient for error: read message: ",
                     ]:
                         if self._monitoring.stopped():
                             break
