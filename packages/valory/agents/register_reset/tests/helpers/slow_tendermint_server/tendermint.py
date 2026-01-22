@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -258,7 +258,7 @@ class TendermintNode:
                         # this occurs when we lose connection from the tm side
                         "RPC HTTP server stopped",
                         # this occurs when we lose connection from the AEA side.
-                        "Stopping abci.socketClient for error: read message: EOF module=abci-client connection=",
+                        "Stopping abci.socketClient for error: read message: ",
                     ]:
                         if line.find(trigger) >= 0:
                             self._stop_tm_process()

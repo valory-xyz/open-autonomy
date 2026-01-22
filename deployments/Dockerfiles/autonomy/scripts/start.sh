@@ -16,10 +16,10 @@ fi
 function generateKey() {
     if [ "$AEA_PASSWORD" != "" ]; then
         echo "Generating key $1 with a password!"
-        aea generate-key $1 --password $AEA_PASSWORD
+        echo "y" | aea generate-key $1 --password $AEA_PASSWORD
     else
         echo "Generating key $1 without a password!"
-        aea generate-key $1
+        echo "y" | aea generate-key $1
     fi
 }
 
@@ -54,11 +54,11 @@ function handleCosmosConnectionKeyAndCerts() {
 
     if [[ "$AEA_PASSWORD" != "" ]]; then
         echo "Issuing certificates with password"
-        aea add-key cosmos --connection --password $AEA_PASSWORD
+        aea add-key cosmos --connection --password $AEA_PASSWORD 2>&1 | grep -v "already present!" || true
         aea issue-certificates --password $AEA_PASSWORD
     else
         echo "Issuing certificates without password"
-        aea add-key cosmos --connection
+        aea add-key cosmos --connection 2>&1 | grep -v "already present!" || true
         aea issue-certificates
     fi
 }
@@ -76,9 +76,9 @@ function addKey() {
     if [ -f "$FILE" ]; then
         echo "$1 key provided. Adding to agent."
         if [[ "$AEA_PASSWORD" != "" ]]; then
-            aea add-key $1 --password $AEA_PASSWORD
+            aea add-key $1 --password $AEA_PASSWORD 2>&1 | grep -v "already present!" || true
         else
-            aea add-key $1
+            aea add-key $1 2>&1 | grep -v "already present!" || true
         fi
     fi
 }

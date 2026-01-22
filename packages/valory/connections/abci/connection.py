@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -1205,7 +1205,7 @@ class TendermintNode:
                         # whenever the node is stopped because of a closed connection
                         # from on any of the tendermint modules (abci, p2p, rpc, etc)
                         # we restart the node
-                        "Stopping abci.socketClient for error: read message: EOF",
+                        "Stopping abci.socketClient for error: read message: ",
                     ]:
                         if self._monitoring.stopped():
                             break
