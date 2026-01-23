@@ -169,13 +169,14 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
                 if dry_run:  # Return with only the transaction dict on dry-run
                     return self
 
-                self.tx_dict.update(
-                    self.ledger_api.try_get_gas_pricing(
-                        gas_price_strategy=self._get_preferred_gas_price_strategy(
-                            self.tx_dict
-                        ),
-                    )
+                gas_price = self.ledger_api.try_get_gas_pricing(
+                    gas_price_strategy=self._get_preferred_gas_price_strategy(
+                        self.tx_dict
+                    ),
                 )
+                if gas_price is not None:
+                    self.tx_dict.update(gas_price)
+
                 self.tx_dict = self.ledger_api.update_with_gas_estimate(
                     {
                         **self.tx_dict,
