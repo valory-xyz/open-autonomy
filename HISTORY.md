@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+# 0.21.8 (2026-01-22)
+
+Autonomy:
+- Fixes the tendermint node to reset on connection failure with the ABCI app #2390
+- Fixes docker deployment of agent to self-recover on container restart #2390
+
 # 0.21.7 (2026-01-20)
 
 Autonomy:
@@ -16,8 +22,8 @@ Autonomy:
 - Adds internal support for PolySafe multisig contract #2378
 
 Packages:
-- Bump `open-aea` to `2.0.7` in `gnosis_safe` contract #2384
-- Bump `pycryptodome` to `3.20.0` in `gnosis_safe` contract #2383
+- Bumps `open-aea` to `2.0.7` in `gnosis_safe` contract #2384
+- Bumps `pycryptodome` to `3.20.0` in `gnosis_safe` contract #2383
 
 # 0.21.5 (2025-12-10)
 
