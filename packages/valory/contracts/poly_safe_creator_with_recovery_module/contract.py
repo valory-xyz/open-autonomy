@@ -97,7 +97,7 @@ class PolySafeCreatorWithRecoveryModule(Contract):
         chain_id = ledger_api.api.eth.chain_id
         expected_chain_id = ChainType.POLYGON.id
         if chain_id != expected_chain_id:
-            raise ValueError(f"Chain ID mismatch: expected {expected_chain_id}, got {chain_id}")
+            raise ValueError(f"Chain ID mismatch: expected {expected_chain_id}, got {chain_id}.")
 
         create_transaction_hash = cls.get_poly_safe_create_transaction_hash(
             ledger_api=ledger_api,
