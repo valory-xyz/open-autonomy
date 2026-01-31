@@ -50,7 +50,9 @@ class PolySafeCreatorWithRecoveryModule(Contract):
             contract_instance.functions.getPolySafeCreateTransactionHash().call()
         )
         if not isinstance(hash_bytes, bytes) or len(hash_bytes) != 32:
-            raise RuntimeError(f"Invalid hash format: expected 32 bytes, got {len(hash_bytes)} {type(hash_bytes)}.")
+            raise RuntimeError(
+                f"Invalid hash format: expected 32 bytes, got {len(hash_bytes)} {type(hash_bytes)}."
+            )
 
         return dict(hash_bytes=hash_bytes)
 
@@ -97,7 +99,9 @@ class PolySafeCreatorWithRecoveryModule(Contract):
         chain_id = ledger_api.api.eth.chain_id
         expected_chain_id = ChainType.POLYGON.id
         if chain_id != expected_chain_id:
-            raise ValueError(f"Chain ID mismatch: expected {expected_chain_id}, got {chain_id}.")
+            raise ValueError(
+                f"Chain ID mismatch: expected {expected_chain_id}, got {chain_id}."
+            )
 
         create_transaction_hash = cls.get_poly_safe_create_transaction_hash(
             ledger_api=ledger_api,
