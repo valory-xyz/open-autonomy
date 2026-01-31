@@ -8,7 +8,7 @@ aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeihfvdcbxhdrslacdtdeda57ia6eyrfv2i7i6hjxvkdo4xg5nh4k7m
   build/PolySafeCreatorWithRecoveryModule.json: bafybeidw37vjzgb2vsl5l6tnz2syhwrod25a6yzem4mauhpnpbdc2lmuwu
-  contract.py: bafybeicweruxisz3duybkobypi2ajk27ronuvioedxqww7pzsbu53fzm74
+  contract.py: bafybeidhyhqn7pvdgsauqonieyglaxnptbhlikwh4gtguty3fcdpwp5aha
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: PolySafeCreatorWithRecoveryModule

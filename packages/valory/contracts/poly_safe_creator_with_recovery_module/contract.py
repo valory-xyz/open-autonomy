@@ -25,6 +25,7 @@ from aea.contracts.base import Contract
 from aea.crypto.base import Crypto, LedgerApi
 from eth_abi import encode
 from eth_utils import to_checksum_address
+
 from autonomy.chain.config import ChainType
 
 
