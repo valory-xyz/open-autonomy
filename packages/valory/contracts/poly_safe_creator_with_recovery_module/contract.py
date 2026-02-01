@@ -74,7 +74,7 @@ class PolySafeCreatorWithRecoveryModule(Contract):
         return dict(hash_bytes=hash_bytes)
 
     @classmethod
-    def get_service_manager_deploy_data(
+    def get_service_manager_deploy_data(  # pylint: disable=too-many-locals
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
