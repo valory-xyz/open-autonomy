@@ -26,13 +26,13 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/p2p_libp2p_client:0.1.0:bafybeigg3kzkywemiswrgjhb7hei5qsysxcsx36c6weyewtirctbmleowm
 contracts:
-- valory/service_registry:0.1.0:bafybeibzuktplryzlfhdyahcbldfh5dz6pnvukigzbejeuvlvv24774lpi
+- valory/service_registry:0.1.0:bafybeie7r3pvyrnkadldit6mpr4bzhn5um5op4htorftlwtyqy7qrlprza
 protocols:
 - valory/contract_api:1.0.0:bafybeigl7mxuyxngk4gztgygeccbgdfrllx73kwbvvkjvtkfw6ionyd56q
 - valory/http:1.0.0:bafybeia4tq7ycivm3dnekelrnlzdwb4qnrjdykk6gf5tizq6djr66adotm
 - valory/tendermint:0.1.0:bafybeie4jqosqiicefnlnxsvrymqj6tycv7x5qeitsdew6abhdcxlu23r4
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihhadgaitdltynzaq4w7jhgwbdnizsobbaa2riqtqwbml3li2tieq
+- valory/abstract_round_abci:0.1.0:bafybeifeetnxcdhj4o7ljjo4aa4gdeboywhnbscc5a3uy7ccjvfvqfg3g4
 behaviours:
   main:
     args: {}

@@ -23,7 +23,7 @@ from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 
-from packages.valory.contracts.multisend.contract import MultiSendOperation
+from autonomy.chain.service import MultiSendOperation
 
 
 PUBLIC_ID = PublicId.from_str("valory/erc8004_identity_registry_bridger:0.1.0")
