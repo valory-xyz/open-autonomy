@@ -19,6 +19,7 @@
 
 """Tx settlement helper."""
 
+import math
 import time
 from datetime import datetime
 from typing import Any, Callable, Dict, Optional, TYPE_CHECKING, cast
@@ -47,6 +48,7 @@ logger = setup_logger(name="autonomy.tx")
 DEFAULT_ON_CHAIN_INTERACT_TIMEOUT = 60.0
 DEFAULT_ON_CHAIN_INTERACT_RETRIES = 5
 DEFAULT_ON_CHAIN_INTERACT_SLEEP = 3.0
+DEFAULT_GAS_ESTIMATE_MULTIPLIER = 1.0
 DEFAULT_MISSING_EVENT_EXCEPTION = Exception(
     "Could not verify transaction. Event not found."
 )
@@ -111,6 +113,7 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
         timeout: Optional[float] = None,
         retries: Optional[int] = None,
         sleep: Optional[float] = None,
+        gas_estimate_multiplier: Optional[float] = None,
     ) -> None:
         """Initialize object."""
         self.chain_type = chain_type
@@ -120,6 +123,14 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
         self.timeout = timeout or DEFAULT_ON_CHAIN_INTERACT_TIMEOUT
         self.retries = retries or DEFAULT_ON_CHAIN_INTERACT_RETRIES
         self.sleep = sleep or DEFAULT_ON_CHAIN_INTERACT_SLEEP
+
+        if gas_estimate_multiplier:
+            if gas_estimate_multiplier > 2.5:
+                logger.warning(f"{gas_estimate_multiplier=} is unusually high.")
+            if gas_estimate_multiplier <= 0:
+                raise ValueError(f"{gas_estimate_multiplier=} must be positive.")
+
+        self.gas_multiplier = gas_estimate_multiplier or DEFAULT_GAS_ESTIMATE_MULTIPLIER
 
     def _get_preferred_gas_price_strategy(self, tx_dict: dict) -> str | None:
         """Get the preferred gas price strategy based on tx_dict fields."""
@@ -176,13 +187,14 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
                 )
                 if gas_price is not None:
                     self.tx_dict.update(gas_price)
-
                 self.tx_dict = self.ledger_api.update_with_gas_estimate(
                     {
                         **self.tx_dict,
                         "gas": self.tx_dict.get("gas", 0),
                     }
                 )
+                gas_estimated = cast(int, self.tx_dict.get("gas", 0))
+                self.tx_dict["gas"] = math.ceil(gas_estimated * self.gas_multiplier)
                 tx_signed = self.crypto.sign_transaction(transaction=self.tx_dict)
                 self.tx_hash = self.ledger_api.send_signed_transaction(
                     tx_signed=tx_signed,

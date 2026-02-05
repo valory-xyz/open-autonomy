@@ -55,7 +55,8 @@ def __init__(ledger_api: LedgerApi,
              tx_builder: Callable[[], Dict],
              timeout: Optional[float] = None,
              retries: Optional[int] = None,
-             sleep: Optional[float] = None) -> None
+             sleep: Optional[float] = None,
+             gas_estimate_multiplier: Optional[float] = None) -> None
 ```
 
 Initialize object.
