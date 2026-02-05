@@ -1,0 +1,20 @@
+name: sign_message_lib
+author: valory
+version: 0.1.0
+type: contract
+description: SignMessageLib contract
+license: Apache-2.0
+aea_version: '>=2.0.0, <3.0.0'
+fingerprint:
+  __init__.py: bafybeih7guwgkfzpknjxg53ankzedjfakrpnyx7e5gvykcyntadrq7wgoi
+  build/SignMessageLib.json: bafybeia4ktcx53routje6rae3lwcdz6e3l4ex73k6ilefh635z2lnci3lu
+  contract.py: bafybeiddcyeevb7kvhfybc4sjl6qhy5erff73nazv5ao3jjqdqad4t56de
+fingerprint_ignore_patterns: []
+contracts:
+- valory/multisend:0.1.0:bafybeidjdgi2kyexajirj3cnpzgse4y5u664b2blztt4flv6i7knlecyr4
+class_name: SignMessageLibContract
+contract_interface_paths:
+  ethereum: build/SignMessageLib.json
+dependencies:
+  web3:
+    version: <8,>=7.0.0

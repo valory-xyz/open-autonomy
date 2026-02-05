@@ -495,6 +495,32 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
         contracts={},
     )
 
+    sign_message_lib = ContractConfig(
+        name="sign_message_lib",
+        contracts={
+            ChainType(chain_name): cast(str, container.get("sign_message_lib"))
+            for chain_name, container in CHAIN_PROFILES.items()
+        },
+    )
+
+    erc8004_identity_registry = ContractConfig(
+        name="erc8004_identity_registry",
+        contracts={
+            ChainType(chain_name): cast(str, container.get("erc8004_identity_registry"))
+            for chain_name, container in CHAIN_PROFILES.items()
+        },
+    )
+
+    erc8004_identity_registry_bridger = ContractConfig(
+        name="erc8004_identity_registry_bridger",
+        contracts={
+            ChainType(chain_name): cast(
+                str, container.get("erc8004_identity_registry_bridger")
+            )
+            for chain_name, container in CHAIN_PROFILES.items()
+        },
+    )
+
     @classmethod
     def get(cls, name: str) -> ContractConfig:
         """Return chain config for given chain type."""

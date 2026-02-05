@@ -36,7 +36,7 @@ CONTRACTS_DIR_LOCAL = (
 )  # use from an editable/local installation
 
 ERC20_TOKEN_ADDRESS_LOCAL = "0x1291Be112d480055DaFd8a610b7d1e203891C274"  # nosec
-DEFAULT_MULTISEND = "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"
+DEFAULT_MULTISEND = "0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761"
 CHAIN_PROFILES = {
     "local": {
         "component_registry": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
@@ -65,6 +65,9 @@ CHAIN_PROFILES = {
         "staking_verifier": "0x4503b79d468e81Ad2d4bd6Db991810da269bA777",
         "staking_factory": "0xEBdde456EA288b49f7D5975E7659bA1Ccf607efc",
         "complementary_service_metadata": "0x0561cE39A1ab785B02DE0D9903125702559993A1",
+        "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",
+        "erc8004_identity_registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+        "erc8004_identity_registry_bridger": "0x461A76074596F080dfba414532Ab51280611B8e6",
     },
     "polygon": {
         "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
@@ -78,6 +81,9 @@ CHAIN_PROFILES = {
         "staking_token": "0x4aba1Cf7a39a51D75cBa789f5f21cf4882162519",
         "staking_verifier": "0x8Bc0a5c5B1612A16983B01ecd7ae130E728390CB",
         "staking_factory": "0x46C0D07F55d4F9B5Eed2Fc9680B5953e5fd7b461",
+        "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",
+        "erc8004_identity_registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+        "erc8004_identity_registry_bridger": "0x6F121552765424f0B2331B541C0938480cA314Db",
     },
     "gnosis": {
         "service_registry": "0x9338b5153AE39BB89f50468E608eD9d764B755fD",
@@ -91,6 +97,9 @@ CHAIN_PROFILES = {
         "staking_verifier": "0x1D59DadE4FAeA7771eC7221420012d413175404C",
         "staking_factory": "0xb0228CA253A88Bc8eb4ca70BCAC8f87b381f4700",
         "complementary_service_metadata": "0x0598081D48FB80B0A7E52FAD2905AE9beCd6fC69",
+        "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",
+        "erc8004_identity_registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+        "erc8004_identity_registry_bridger": "0x6e8F740F23f07cE129Daa59786926fecA8C2D2F3",
     },
     "arbitrum_one": {
         "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
@@ -103,6 +112,7 @@ CHAIN_PROFILES = {
         "staking_token": "0x04b0007b2aFb398015B76e5f22993a1fddF83644",
         "staking_verifier": "0x7Fd1F4b764fA41d19fe3f63C85d12bf64d2bbf68",
         "staking_factory": "0xEB5638eefE289691EcE01943f768EDBF96258a80",
+        "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",
     },
     "optimism": {
         "service_registry": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
@@ -115,6 +125,7 @@ CHAIN_PROFILES = {
         "staking_token": "0x63C2c53c09dE534Dd3bc0b7771bf976070936bAC",
         "staking_verifier": "0x526E064cB694E8f5B7DB299158e17F33055B3943",
         "staking_factory": "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",
+        "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",
     },
     "base": {
         "service_registry": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
@@ -128,6 +139,9 @@ CHAIN_PROFILES = {
         "staking_verifier": "0x10c5525F77F13b28f42c5626240c001c2D57CAd4",
         "staking_factory": "0x1cEe30D08943EB58EFF84DD1AB44a6ee6FEff63a",
         "complementary_service_metadata": "0x28C1edC7CEd549F7f80B732fDC19f0370160707d",
+        "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",
+        "erc8004_identity_registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+        "erc8004_identity_registry_bridger": "0x67722c823010ceb4bed5325fe109196c0f67d053",
     },
     "celo": {
         "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
@@ -140,6 +154,7 @@ CHAIN_PROFILES = {
         "staking_token": "0xe1E1B286EbE95b39F785d8069f2248ae9C41b7a9",
         "staking_verifier": "0xc40C79C275F3fA1F3f4c723755C81ED2D53A8D81",
         "staking_factory": "0x1c2cD884127b080F940b7546c1e9aaf525b1FA55",
+        "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",
     },
     "mode": {
         "service_registry": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
@@ -153,6 +168,7 @@ CHAIN_PROFILES = {
         "staking_native_token": "0x88DE734655184a09B70700aE4F72364d1ad23728",
         "staking_verifier": "0x87c511c8aE3fAF0063b3F3CF9C6ab96c4AA5C60c",
         "staking_factory": "0x75D529FAe220bC8db714F0202193726b46881B76",
+        "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",
     },
     "custom_chain": {
         "component_registry": cast(
@@ -189,6 +205,16 @@ CHAIN_PROFILES = {
             os.environ.get(
                 "CUSTOM_MULTISEND_ADDRESS", "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"
             ),
+        ),
+        "sign_message_lib": cast(
+            str, os.environ.get("CUSTOM_SIGN_MESSAGE_LIB_ADDRESS")
+        ),
+        "erc8004_identity_registry": cast(
+            str, os.environ.get("CUSTOM_ERC8004_IDENTITY_REGISTRY_ADDRESS")
+        ),
+        "erc8004_identity_registry_bridger": cast(
+            str,
+            os.environ.get("CUSTOM_ERC8004_IDENTITY_REGISTRY_BRIDGER_ADDRESS"),
         ),
     },
 }
@@ -261,6 +287,13 @@ SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT = PublicId.from_str(
 )
 MULTISEND_CONTRACT = PublicId.from_str("valory/multisend")
 ERC20_CONTRACT = PublicId.from_str("valory/erc20")
+SIGN_MESSAGE_LIB_CONTRACT = PublicId.from_str("valory/sign_message_lib")
+ERC8004_IDENTITY_REGISTRY_CONTRACT = PublicId.from_str(
+    "valory/erc8004_identity_registry"
+)
+ERC8004_IDENTITY_REGISTRY_BRIDGER_CONTRACT = PublicId.from_str(
+    "valory/erc8004_identity_registry_bridger"
+)
 
 SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS = (
     1,
