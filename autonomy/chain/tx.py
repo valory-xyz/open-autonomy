@@ -193,7 +193,7 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
                         "gas": self.tx_dict.get("gas", 0),
                     }
                 )
-                gas_estimated = cast(int, self.tx_dict.get("gas", 0))
+                gas_estimated = int(self.tx_dict.get("gas", 0))
                 self.tx_dict["gas"] = math.ceil(gas_estimated * self.gas_multiplier)
                 tx_signed = self.crypto.sign_transaction(transaction=self.tx_dict)
                 self.tx_hash = self.ledger_api.send_signed_transaction(
