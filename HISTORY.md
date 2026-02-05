@@ -1,5 +1,13 @@
 # Release History - `open-autonomy`
 
+# 0.21.9 (2026-02-05)
+
+Autonomy:
+- Adds support for setting custom gas multiplier in the TxSettler #2394
+
+Autonomy && Packages:
+- Adds the contracts for supporting agent wallets in ERC8004 registry #2395
+
 # 0.21.8 (2026-01-22)
 
 Autonomy:
