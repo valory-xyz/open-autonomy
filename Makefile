@@ -130,7 +130,7 @@ install: clean
 
 .PHONY: eject-contracts
 eject-contracts:
-	@for contract in component_registry agent_registry registries_manager service_manager service_registry gnosis_safe gnosis_safe_proxy_factory service_registry_token_utility multisend erc20 recovery_module poly_safe_creator_with_recovery_module; do \
+	@for contract in component_registry agent_registry registries_manager service_manager service_registry gnosis_safe gnosis_safe_proxy_factory service_registry_token_utility multisend erc20 recovery_module poly_safe_creator_with_recovery_module sign_message_lib erc8004_identity_registry erc8004_identity_registry_bridger; do \
 		echo Updating $$contract contract; \
     	rm -rf autonomy/data/contracts/$$contract ; \
 		cp -r packages/valory/contracts/$$contract autonomy/data/contracts/$$contract ; \
