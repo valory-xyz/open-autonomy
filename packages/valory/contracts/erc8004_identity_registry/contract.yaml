@@ -1,0 +1,21 @@
+name: erc8004_identity_registry
+author: valory
+version: 0.1.0
+type: contract
+description: ERC8004 Identity Registry contract
+license: Apache-2.0
+aea_version: '>=2.0.0, <3.0.0'
+fingerprint:
+  __init__.py: bafybeicaa2qu7gth6ufjy7qcmgmxpt5u45543vlpmw5y2pii6dbjmban5i
+  build/ERC8004IdentityRegistry.json: bafybeiht65cqoyaxasdl5jkvt6mahbivr7dh7yl7k4iqazisgh7cdmfftu
+  contract.py: bafybeihhj7xhixqy3l7kpl4mosjwvhu3kdpgtuu5237yapxufa5cmrqctm
+fingerprint_ignore_patterns: []
+contracts: []
+class_name: ERC8004IdentityRegistryContract
+contract_interface_paths:
+  ethereum: build/ERC8004IdentityRegistry.json
+dependencies:
+  web3:
+    version: <8,>=7.0.0
+  eth-abi:
+    version: ==5.2.0

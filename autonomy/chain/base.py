@@ -31,6 +31,8 @@ from autonomy.chain.constants import (
     CONTRACTS_DIR_FRAMEWORK,
     CONTRACTS_DIR_LOCAL,
     ERC20_CONTRACT,
+    ERC8004_IDENTITY_REGISTRY_BRIDGER_CONTRACT,
+    ERC8004_IDENTITY_REGISTRY_CONTRACT,
     GNOSIS_SAFE_CONTRACT,
     GNOSIS_SAFE_PROXY_FACTORY_CONTRACT,
     MULTISEND_CONTRACT,
@@ -40,6 +42,7 @@ from autonomy.chain.constants import (
     SERVICE_MANAGER_CONTRACT,
     SERVICE_REGISTRY_CONTRACT,
     SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT,
+    SIGN_MESSAGE_LIB_CONTRACT,
 )
 
 
@@ -87,6 +90,9 @@ class RegistryContracts:  # pylint: disable=too-many-instance-attributes
     _recovery_module: Optional[Contract] = None
     _poly_safe_creator_with_recovery_module: Optional[Contract] = None
     _multisend: Optional[Contract] = None
+    _sign_message_lib: Optional[Contract] = None
+    _erc8004_identity_registry: Optional[Contract] = None
+    _erc8004_identity_registry_bridger: Optional[Contract] = None
 
     @staticmethod
     def get_contract(public_id: PublicId, cache: bool = True) -> Contract:
@@ -259,6 +265,42 @@ class RegistryContracts:  # pylint: disable=too-many-instance-attributes
             )
 
         return self._multisend
+
+    @property
+    def sign_message_lib(
+        self,
+    ) -> Contract:
+        """Returns an instance of the sign message lib contract."""
+        if self._sign_message_lib is None:
+            self._sign_message_lib = self.get_contract(
+                public_id=SIGN_MESSAGE_LIB_CONTRACT,
+            )
+
+        return self._sign_message_lib
+
+    @property
+    def erc8004_identity_registry(
+        self,
+    ) -> Contract:
+        """Returns an instance of the ERC8004 identity registry contract."""
+        if self._erc8004_identity_registry is None:
+            self._erc8004_identity_registry = self.get_contract(
+                public_id=ERC8004_IDENTITY_REGISTRY_CONTRACT,
+            )
+
+        return self._erc8004_identity_registry
+
+    @property
+    def erc8004_identity_registry_bridger(
+        self,
+    ) -> Contract:
+        """Returns an instance of the ERC8004 identity registry bridger contract."""
+        if self._erc8004_identity_registry_bridger is None:
+            self._erc8004_identity_registry_bridger = self.get_contract(
+                public_id=ERC8004_IDENTITY_REGISTRY_BRIDGER_CONTRACT,
+            )
+
+        return self._erc8004_identity_registry_bridger
 
 
 registry_contracts = RegistryContracts()
