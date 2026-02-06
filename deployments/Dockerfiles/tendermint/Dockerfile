@@ -1,4 +1,4 @@
-FROM alpine:3.7
+FROM alpine:3.22.2
 
 ENV TENDERMINT_VERSION=0.34.19
 ENV USE_GRPC=false
