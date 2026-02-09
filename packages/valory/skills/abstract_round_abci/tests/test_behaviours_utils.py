@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -1012,26 +1012,28 @@ class TestBaseBehaviour:
         )
         self.behaviour._tx_not_found(tx_hash="tx_hash", res=res)
 
-    def test_is_invalid_transaction_late_arriving(self) -> None:
-        """Test _is_invalid_transaction recognizes LateArrivingTransaction errors."""
-        # Test with LateArrivingTransaction error
-        res_late_arriving = MagicMock()
-        res_late_arriving.body = '{"tx_result": {"info": "LateArrivingTransaction: request \'RedeemPayload(...round_count=368...\'."}}'
-        assert self.behaviour._is_invalid_transaction(res_late_arriving) is True
-
-    def test_is_invalid_transaction_transaction_not_valid(self) -> None:
-        """Test _is_invalid_transaction recognizes TransactionNotValidError errors."""
-        # Test with TransactionNotValidError
-        res_not_valid = MagicMock()
-        res_not_valid.body = '{"tx_result": {"info": "TransactionNotValidError: ..."}}'
-        assert self.behaviour._is_invalid_transaction(res_not_valid) is True
-
-    def test_is_invalid_transaction_valid_tx(self) -> None:
-        """Test _is_invalid_transaction returns False for valid transactions."""
-        # Test with valid transaction
-        res_valid = MagicMock()
-        res_valid.body = '{"tx_result": {"info": ""}}'
-        assert self.behaviour._is_invalid_transaction(res_valid) is False
+    @pytest.mark.parametrize(
+        "body, expected",
+        [
+            (
+                '{"tx_result": {"info": "LateArrivingTransaction: request \'RedeemPayload(...round_count=368...\'."}}',
+                True,
+            ),
+            (
+                '{"tx_result": {"info": "TransactionNotValidError: ..."}}',
+                True,
+            ),
+            (
+                '{"tx_result": {"info": ""}}',
+                False,
+            ),
+        ],
+    )
+    def test_is_invalid_transaction(self, body: str, expected: bool) -> None:
+        """Test _is_invalid_transaction recognizes various transaction error types."""
+        res = MagicMock()
+        res.body = body
+        assert self.behaviour._is_invalid_transaction(res) is expected
 
     @mock.patch.object(BaseBehaviour, "_send_signing_request")
     def test_send_transaction_signing_error(self, *_: Any) -> None:
