@@ -935,7 +935,7 @@ class BaseBehaviour(
     def _is_invalid_transaction(res: HttpMessage) -> bool:
         """Check if the transaction is invalid."""
         try:
-            error_codes = ["TransactionNotValidError"]
+            error_codes = ["TransactionNotValidError", "LateArrivingTransaction"]
             body_ = json.loads(res.body)
             return any(
                 [error_code in body_["tx_result"]["info"] for error_code in error_codes]
