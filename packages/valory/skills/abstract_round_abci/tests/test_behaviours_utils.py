@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -1011,6 +1011,29 @@ class TestBaseBehaviour:
             body='{"error": {"code": "dummy_code", "message": "dummy_message", "data": "dummy_data"}}'
         )
         self.behaviour._tx_not_found(tx_hash="tx_hash", res=res)
+
+    @pytest.mark.parametrize(
+        "body, expected",
+        [
+            (
+                '{"tx_result": {"info": "LateArrivingTransaction: request \'RedeemPayload(...round_count=368...\'."}}',
+                True,
+            ),
+            (
+                '{"tx_result": {"info": "TransactionNotValidError: ..."}}',
+                True,
+            ),
+            (
+                '{"tx_result": {"info": ""}}',
+                False,
+            ),
+        ],
+    )
+    def test_is_invalid_transaction(self, body: str, expected: bool) -> None:
+        """Test _is_invalid_transaction recognizes various transaction error types."""
+        res = MagicMock()
+        res.body = body
+        assert self.behaviour._is_invalid_transaction(res) is expected
 
     @mock.patch.object(BaseBehaviour, "_send_signing_request")
     def test_send_transaction_signing_error(self, *_: Any) -> None:

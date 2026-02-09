@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.21.10 (2026-02-09)
+
+Packages:
+- Fix handling `LateArrivingTransaction` error from tendermint in `abstract_round_abci` #2397
+
 # 0.21.9 (2026-02-05)
 
 Autonomy:
