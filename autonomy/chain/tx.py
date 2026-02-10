@@ -124,7 +124,7 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
         self.retries = retries or DEFAULT_ON_CHAIN_INTERACT_RETRIES
         self.sleep = sleep or DEFAULT_ON_CHAIN_INTERACT_SLEEP
 
-        if gas_estimate_multiplier:
+        if gas_estimate_multiplier is not None:
             if gas_estimate_multiplier > 2.5:
                 logger.warning(f"{gas_estimate_multiplier=} is unusually high.")
             if gas_estimate_multiplier <= 0:
