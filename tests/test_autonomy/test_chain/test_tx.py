@@ -651,6 +651,7 @@ def test_gas_estimate_multiplier() -> None:
 
     # Test that gas is multiplied correctly in transaction
     settler_with_multiplier.transact(dry_run=False)
+    assert settler_with_multiplier.tx_dict is not None
     assert settler_with_multiplier.tx_dict["gas"] == 150  # 100 * 1.5
 
     # Test invalid multiplier (must be positive)
