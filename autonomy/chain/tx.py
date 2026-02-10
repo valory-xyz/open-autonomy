@@ -48,6 +48,7 @@ logger = setup_logger(name="autonomy.tx")
 DEFAULT_ON_CHAIN_INTERACT_TIMEOUT = 60.0
 DEFAULT_ON_CHAIN_INTERACT_RETRIES = 5
 DEFAULT_ON_CHAIN_INTERACT_SLEEP = 3.0
+DEFAULT_GAS_PRICE_MULTIPLIER = 1.0
 DEFAULT_GAS_ESTIMATE_MULTIPLIER = 1.0
 DEFAULT_MISSING_EVENT_EXCEPTION = Exception(
     "Could not verify transaction. Event not found."
@@ -113,6 +114,7 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
         timeout: Optional[float] = None,
         retries: Optional[int] = None,
         sleep: Optional[float] = None,
+        gas_price_multiplier: Optional[float] = None,
         gas_estimate_multiplier: Optional[float] = None,
     ) -> None:
         """Initialize object."""
@@ -124,13 +126,22 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
         self.retries = retries or DEFAULT_ON_CHAIN_INTERACT_RETRIES
         self.sleep = sleep or DEFAULT_ON_CHAIN_INTERACT_SLEEP
 
+        if gas_price_multiplier:
+            if gas_price_multiplier > 1.5:
+                logger.warning(f"{gas_price_multiplier=} is unusually high.")
+            if gas_price_multiplier <= 0:
+                raise ValueError(f"{gas_price_multiplier=} must be positive.")
+
         if gas_estimate_multiplier:
-            if gas_estimate_multiplier > 2.5:
+            if gas_estimate_multiplier > 1.5:
                 logger.warning(f"{gas_estimate_multiplier=} is unusually high.")
             if gas_estimate_multiplier <= 0:
                 raise ValueError(f"{gas_estimate_multiplier=} must be positive.")
 
-        self.gas_multiplier = gas_estimate_multiplier or DEFAULT_GAS_ESTIMATE_MULTIPLIER
+        self.gas_price_multiplier = gas_price_multiplier or DEFAULT_GAS_PRICE_MULTIPLIER
+        self.gas_estimate_multiplier = (
+            gas_estimate_multiplier or DEFAULT_GAS_ESTIMATE_MULTIPLIER
+        )
 
     def _get_preferred_gas_price_strategy(self, tx_dict: dict) -> str | None:
         """Get the preferred gas price strategy based on tx_dict fields."""
@@ -142,29 +153,43 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
 
         return None
 
-    def _reprice(self, tx_dict: Dict) -> Optional[Dict]:
-        """Reprice transaction."""
-        gas_price_strategy = self._get_preferred_gas_price_strategy(tx_dict)
-        if gas_price_strategy == "eip1559":
-            old_price = {
-                "maxFeePerGas": tx_dict["maxFeePerGas"],
-                "maxPriorityFeePerGas": tx_dict["maxPriorityFeePerGas"],
-            }
-        elif gas_price_strategy == "gas_station":
-            old_price = {"gasPrice": tx_dict["gasPrice"]}
-        else:
-            # This means something went wrong when building the transaction
-            # returning a None value to the main loop will tell the main loop
-            # to rebuild the transaction
-            return None
-
-        tx_dict.update(
-            self.ledger_api.try_get_gas_pricing(
-                gas_price_strategy=gas_price_strategy,
-                old_price=old_price,
+    def _apply_gas_multipliers(self, tx_dict: Dict) -> Dict:
+        """Apply gas price and estimate multipliers separately."""
+        # Apply gas price multiplier to EIP-1559 prices
+        if "maxFeePerGas" in tx_dict:
+            tx_dict["maxFeePerGas"] = int(
+                tx_dict["maxFeePerGas"] * self.gas_price_multiplier
             )
-        )
+        if "maxPriorityFeePerGas" in tx_dict:
+            tx_dict["maxPriorityFeePerGas"] = int(
+                tx_dict["maxPriorityFeePerGas"] * self.gas_price_multiplier
+            )
+        # Apply gas price multiplier to legacy gas price
+        if "gasPrice" in tx_dict:
+            tx_dict["gasPrice"] = int(tx_dict["gasPrice"] * self.gas_price_multiplier)
+
+        # Apply gas estimate multiplier
+        gas_estimated = int(tx_dict.get("gas", 0))
+        tx_dict["gas"] = math.ceil(gas_estimated * self.gas_estimate_multiplier)
+
         return tx_dict
+
+    def _update_gas_and_price(self, tx_dict: Dict) -> Dict:
+        """Update gas price and estimate, then apply multipliers."""
+        # Get gas price
+        gas_price = self.ledger_api.try_get_gas_pricing(
+            gas_price_strategy=self._get_preferred_gas_price_strategy(tx_dict),
+        )
+        if gas_price is not None:
+            tx_dict.update(gas_price)
+
+        # Get gas estimate
+        tx_dict = self.ledger_api.update_with_gas_estimate(
+            {**tx_dict, "gas": tx_dict.get("gas", 0)}
+        )
+
+        # Apply both gas price and estimate multipliers
+        return self._apply_gas_multipliers(tx_dict)
 
     def transact(self, dry_run: bool = False) -> "TxSettler":
         """Make a transaction and return a receipt"""
@@ -180,21 +205,8 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
                 if dry_run:  # Return with only the transaction dict on dry-run
                     return self
 
-                gas_price = self.ledger_api.try_get_gas_pricing(
-                    gas_price_strategy=self._get_preferred_gas_price_strategy(
-                        self.tx_dict
-                    ),
-                )
-                if gas_price is not None:
-                    self.tx_dict.update(gas_price)
-                self.tx_dict = self.ledger_api.update_with_gas_estimate(
-                    {
-                        **self.tx_dict,
-                        "gas": self.tx_dict.get("gas", 0),
-                    }
-                )
-                gas_estimated = int(self.tx_dict.get("gas", 0))
-                self.tx_dict["gas"] = math.ceil(gas_estimated * self.gas_multiplier)
+                # Update gas pricing and estimate with multipliers applied
+                self.tx_dict = self._update_gas_and_price(self.tx_dict)
                 tx_signed = self.crypto.sign_transaction(transaction=self.tx_dict)
                 self.tx_hash = self.ledger_api.send_signed_transaction(
                     tx_signed=tx_signed,
@@ -217,7 +229,7 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
                 if should_reprice(error):
                     logger.warning(f"Low gas error: {e}; Repricing the transaction...")
                     self.tx_hash = None
-                    self.tx_dict = self._reprice(self.tx_dict or {})  # type: ignore
+                    time.sleep(self.sleep)
                     continue
 
                 self.tx_dict = None

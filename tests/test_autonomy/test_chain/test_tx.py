@@ -21,7 +21,7 @@
 
 from logging import Logger
 from time import sleep
-from typing import Any, Callable
+from typing import Any, Callable, Dict
 from unittest import mock
 
 import pytest
@@ -600,8 +600,299 @@ class TestTxSetterOnChain(BaseChainInteractionTest):
             in mock_logger.warning.call_args[0][0]
         )
         assert state["try_update_with_gas_estimate_call_count"] == 2
-        assert state["try_get_gas_pricing_call_count"] == 3
+        assert state["try_get_gas_pricing_call_count"] == 2
         assert settler.tx_hash is not None
 
         settler.settle()
         assert settler.tx_receipt is not None
+
+
+class TestGasMultipliers:
+    """Test TxSettler gas multipliers functionality."""
+
+    def test_default_gas_multipliers(self) -> None:
+        """Test default gas multipliers are set correctly."""
+        settler = TxSettler(
+            ledger_api=mock.Mock(),
+            crypto=mock.Mock(),
+            chain_type=ChainType.LOCAL,
+            tx_builder=lambda: {},
+        )
+        assert settler.gas_price_multiplier == 1.0
+        assert settler.gas_estimate_multiplier == 1.0
+
+    def test_custom_gas_price_multiplier(self) -> None:
+        """Test custom gas price multiplier initialization."""
+        settler = TxSettler(
+            ledger_api=mock.Mock(),
+            crypto=mock.Mock(),
+            chain_type=ChainType.LOCAL,
+            tx_builder=lambda: {},
+            gas_price_multiplier=1.5,
+        )
+        assert settler.gas_price_multiplier == 1.5
+        assert settler.gas_estimate_multiplier == 1.0
+
+    def test_custom_gas_estimate_multiplier(self) -> None:
+        """Test custom gas estimate multiplier initialization."""
+        settler = TxSettler(
+            ledger_api=mock.Mock(),
+            crypto=mock.Mock(),
+            chain_type=ChainType.LOCAL,
+            tx_builder=lambda: {},
+            gas_estimate_multiplier=1.5,
+        )
+        assert settler.gas_price_multiplier == 1.0
+        assert settler.gas_estimate_multiplier == 1.5
+
+    def test_custom_both_multipliers(self) -> None:
+        """Test custom both gas multipliers initialization."""
+        settler = TxSettler(
+            ledger_api=mock.Mock(),
+            crypto=mock.Mock(),
+            chain_type=ChainType.LOCAL,
+            tx_builder=lambda: {},
+            gas_price_multiplier=1.2,
+            gas_estimate_multiplier=1.3,
+        )
+        assert settler.gas_price_multiplier == 1.2
+        assert settler.gas_estimate_multiplier == 1.3
+
+    def test_gas_price_multiplier_validation_negative(self) -> None:
+        """Test gas price multiplier must be positive (negative value)."""
+        with pytest.raises(
+            ValueError, match="gas_price_multiplier=.* must be positive"
+        ):
+            TxSettler(
+                ledger_api=mock.Mock(),
+                crypto=mock.Mock(),
+                chain_type=ChainType.LOCAL,
+                tx_builder=lambda: {},
+                gas_price_multiplier=-0.5,
+            )
+
+    def test_gas_estimate_multiplier_validation_negative(self) -> None:
+        """Test gas estimate multiplier must be positive (negative value)."""
+        with pytest.raises(
+            ValueError, match="gas_estimate_multiplier=.* must be positive"
+        ):
+            TxSettler(
+                ledger_api=mock.Mock(),
+                crypto=mock.Mock(),
+                chain_type=ChainType.LOCAL,
+                tx_builder=lambda: {},
+                gas_estimate_multiplier=-0.5,
+            )
+
+    @mock.patch("autonomy.chain.tx.logger")
+    def test_gas_price_multiplier_warning_unusually_high(
+        self, mock_logger: mock.Mock
+    ) -> None:
+        """Test warning when gas price multiplier is unusually high."""
+        TxSettler(
+            ledger_api=mock.Mock(),
+            crypto=mock.Mock(),
+            chain_type=ChainType.LOCAL,
+            tx_builder=lambda: {},
+            gas_price_multiplier=1.6,
+        )
+        mock_logger.warning.assert_called_once()
+        assert "gas_price_multiplier=" in mock_logger.warning.call_args[0][0]
+        assert "unusually high" in mock_logger.warning.call_args[0][0]
+
+    @mock.patch("autonomy.chain.tx.logger")
+    def test_gas_estimate_multiplier_warning_unusually_high(
+        self, mock_logger: mock.Mock
+    ) -> None:
+        """Test warning when gas estimate multiplier is unusually high."""
+        TxSettler(
+            ledger_api=mock.Mock(),
+            crypto=mock.Mock(),
+            chain_type=ChainType.LOCAL,
+            tx_builder=lambda: {},
+            gas_estimate_multiplier=1.6,
+        )
+        mock_logger.warning.assert_called_once()
+        assert "gas_estimate_multiplier=" in mock_logger.warning.call_args[0][0]
+        assert "unusually high" in mock_logger.warning.call_args[0][0]
+
+    def test_gas_multipliers_applied_eip1559_on_initial_transact(self) -> None:
+        """Test gas multipliers are applied to EIP-1559 prices on initial transact."""
+        settler = TxSettler(
+            ledger_api=mock.Mock(
+                try_get_gas_pricing=lambda **kwargs: {
+                    "maxFeePerGas": 100,
+                    "maxPriorityFeePerGas": 50,
+                },
+                update_with_gas_estimate=lambda tx: {**tx, "gas": 21000},
+                send_signed_transaction=mock.Mock(return_value="0x123"),
+                api=mock.Mock(
+                    eth=mock.Mock(
+                        block_number=1,
+                        wait_for_transaction_receipt=mock.Mock(
+                            return_value=mock.Mock(blockNumber=1)
+                        ),
+                    )
+                ),
+            ),
+            crypto=mock.Mock(sign_transaction=lambda transaction: transaction),
+            chain_type=ChainType.LOCAL,
+            tx_builder=lambda: {"from": "0x123"},
+            gas_price_multiplier=1.5,
+            gas_estimate_multiplier=1.2,
+        )
+        settler.transact()
+
+        # Verify multipliers were applied
+        assert settler.tx_dict is not None
+        assert settler.tx_dict["maxFeePerGas"] == 150  # 100 * 1.5
+        assert settler.tx_dict["maxPriorityFeePerGas"] == 75  # 50 * 1.5
+        assert settler.tx_dict["gas"] == 25200  # ceil(21000 * 1.2)
+
+    def test_gas_multipliers_applied_legacy_on_initial_transact(self) -> None:
+        """Test gas multipliers are applied to legacy gasPrice on initial transact."""
+        settler = TxSettler(
+            ledger_api=mock.Mock(
+                try_get_gas_pricing=lambda **kwargs: {"gasPrice": 100},
+                update_with_gas_estimate=lambda tx: {**tx, "gas": 21000},
+                send_signed_transaction=mock.Mock(return_value="0x123"),
+                api=mock.Mock(
+                    eth=mock.Mock(
+                        block_number=1,
+                        wait_for_transaction_receipt=mock.Mock(
+                            return_value=mock.Mock(blockNumber=1)
+                        ),
+                    )
+                ),
+            ),
+            crypto=mock.Mock(sign_transaction=lambda transaction: transaction),
+            chain_type=ChainType.LOCAL,
+            tx_builder=lambda: {"from": "0x123"},
+            gas_price_multiplier=2.0,
+            gas_estimate_multiplier=1.5,
+        )
+        settler.transact()
+
+        assert settler.tx_dict is not None
+        assert settler.tx_dict["gasPrice"] == 200  # 100 * 2.0
+        assert settler.tx_dict["gas"] == 31500  # ceil(21000 * 1.5)
+
+    def test_gas_multipliers_applied_on_reprice(self) -> None:
+        """Test gas price multiplier is applied when repricing transaction."""
+        call_count = {"reprice": 0, "estimate": 0}
+
+        def mock_try_get_gas_pricing(**kwargs: Any) -> Dict[str, int]:
+            call_count["reprice"] += 1
+            if call_count["reprice"] == 1:
+                # Initial pricing
+                return {"maxFeePerGas": 100, "maxPriorityFeePerGas": 50}
+            else:
+                # Repricing with bump
+                return {"maxFeePerGas": 150, "maxPriorityFeePerGas": 75}
+
+        def mock_update_with_gas_estimate(tx: Dict[str, Any]) -> Dict[str, Any]:
+            call_count["estimate"] += 1
+            return {**tx, "gas": 21000}
+
+        def mock_send_signed_transaction(**kwargs: Any) -> str:
+            if call_count["estimate"] == 1:
+                raise ValueError("gas too low")
+            return "0x123"
+
+        settler = TxSettler(
+            ledger_api=mock.Mock(
+                try_get_gas_pricing=mock_try_get_gas_pricing,
+                update_with_gas_estimate=mock_update_with_gas_estimate,
+                send_signed_transaction=mock_send_signed_transaction,
+                api=mock.Mock(
+                    eth=mock.Mock(
+                        block_number=1,
+                        wait_for_transaction_receipt=mock.Mock(
+                            return_value=mock.Mock(blockNumber=1)
+                        ),
+                    )
+                ),
+            ),
+            crypto=mock.Mock(sign_transaction=lambda transaction: transaction),
+            chain_type=ChainType.LOCAL,
+            tx_builder=lambda: {"from": "0x123"},
+            gas_price_multiplier=1.5,
+            gas_estimate_multiplier=1.2,
+        )
+        settler.transact()
+
+        # After reprice with multiplier, prices should be bumped and multiplied
+        # Initial reprice: 150 * 1.5 = 225, 75 * 1.5 = 112.5
+        # Then _update_gas_and_price is called again: same calculation since mock returns same bump
+        assert settler.tx_dict is not None
+        assert settler.tx_dict["maxFeePerGas"] == 225  # 150 * 1.5
+        assert (
+            settler.tx_dict["maxPriorityFeePerGas"] == 112
+        )  # 75 * 1.5 (int truncates)
+        assert settler.tx_dict["gas"] == 25200  # ceil(21000 * 1.2)
+
+    def test_gas_estimate_alone_multiplier(self) -> None:
+        """Test only gas estimate multiplier is applied without price multiplier."""
+        settler = TxSettler(
+            ledger_api=mock.Mock(
+                try_get_gas_pricing=lambda **kwargs: {
+                    "maxFeePerGas": 100,
+                    "maxPriorityFeePerGas": 50,
+                },
+                update_with_gas_estimate=lambda tx: {**tx, "gas": 21000},
+                send_signed_transaction=mock.Mock(return_value="0x123"),
+                api=mock.Mock(
+                    eth=mock.Mock(
+                        block_number=1,
+                        wait_for_transaction_receipt=mock.Mock(
+                            return_value=mock.Mock(blockNumber=1)
+                        ),
+                    )
+                ),
+            ),
+            crypto=mock.Mock(sign_transaction=lambda transaction: transaction),
+            chain_type=ChainType.LOCAL,
+            tx_builder=lambda: {"from": "0x123"},
+            gas_estimate_multiplier=2.0,
+        )
+        settler.transact()
+
+        # Price should not be multiplied (using default 1.0)
+        assert settler.tx_dict is not None
+        assert settler.tx_dict["maxFeePerGas"] == 100
+        assert settler.tx_dict["maxPriorityFeePerGas"] == 50
+        # Gas estimate should be multiplied
+        assert settler.tx_dict["gas"] == 42000  # ceil(21000 * 2.0)
+
+    def test_gas_price_alone_multiplier(self) -> None:
+        """Test only gas price multiplier is applied without estimate multiplier."""
+        settler = TxSettler(
+            ledger_api=mock.Mock(
+                try_get_gas_pricing=lambda **kwargs: {
+                    "maxFeePerGas": 100,
+                    "maxPriorityFeePerGas": 50,
+                },
+                update_with_gas_estimate=lambda tx: {**tx, "gas": 21000},
+                send_signed_transaction=mock.Mock(return_value="0x123"),
+                api=mock.Mock(
+                    eth=mock.Mock(
+                        block_number=1,
+                        wait_for_transaction_receipt=mock.Mock(
+                            return_value=mock.Mock(blockNumber=1)
+                        ),
+                    )
+                ),
+            ),
+            crypto=mock.Mock(sign_transaction=lambda transaction: transaction),
+            chain_type=ChainType.LOCAL,
+            tx_builder=lambda: {"from": "0x123"},
+            gas_price_multiplier=2.0,
+        )
+        settler.transact()
+
+        # Price should be multiplied
+        assert settler.tx_dict is not None
+        assert settler.tx_dict["maxFeePerGas"] == 200  # 100 * 2.0
+        assert settler.tx_dict["maxPriorityFeePerGas"] == 100  # 50 * 2.0
+        # Gas estimate should not be multiplied (using default 1.0)
+        assert settler.tx_dict["gas"] == 21000
