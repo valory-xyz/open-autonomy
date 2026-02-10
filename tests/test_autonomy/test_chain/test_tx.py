@@ -605,3 +605,88 @@ class TestTxSetterOnChain(BaseChainInteractionTest):
 
         settler.settle()
         assert settler.tx_receipt is not None
+
+
+def test_gas_estimate_multiplier() -> None:
+    """Test gas_estimate_multiplier parameter."""
+
+    def _tx_builder_with_gas() -> dict:
+        return {
+            "from": "0x123",
+            "to": "0x456",
+            "value": 100,
+            "gas": 100,
+        }
+
+    # Test default multiplier (should be 1.0)
+    settler = TxSettler(
+        ledger_api=mock.Mock(
+            try_get_gas_pricing=lambda **kwargs: {
+                "maxFeePerGas": 100,
+                "maxPriorityFeePerGas": 100,
+            },
+            update_with_gas_estimate=lambda tx: {**tx, "gas": 100},
+        ),
+        crypto=mock.Mock(sign_transaction=lambda transaction: transaction),
+        chain_type=ChainType.LOCAL,
+        tx_builder=_tx_builder_with_gas,
+    )
+    assert settler.gas_multiplier == 1.0
+
+    # Test custom multiplier
+    settler_with_multiplier = TxSettler(
+        ledger_api=mock.Mock(
+            try_get_gas_pricing=lambda **kwargs: {
+                "maxFeePerGas": 100,
+                "maxPriorityFeePerGas": 100,
+            },
+            update_with_gas_estimate=lambda tx: {**tx, "gas": 100},
+        ),
+        crypto=mock.Mock(sign_transaction=lambda transaction: transaction),
+        chain_type=ChainType.LOCAL,
+        tx_builder=_tx_builder_with_gas,
+        gas_estimate_multiplier=1.5,
+    )
+    assert settler_with_multiplier.gas_multiplier == 1.5
+
+    # Test that gas is multiplied correctly in transaction
+    settler_with_multiplier.transact(dry_run=False)
+    assert settler_with_multiplier.tx_dict["gas"] == 150  # 100 * 1.5
+
+    # Test invalid multiplier (must be positive)
+    with pytest.raises(ValueError, match="gas_estimate_multiplier.*must be positive"):
+        TxSettler(
+            ledger_api=mock.Mock(),
+            crypto=mock.Mock(),
+            chain_type=ChainType.LOCAL,
+            tx_builder=_tx_builder_with_gas,
+            gas_estimate_multiplier=0,
+        )
+
+    with pytest.raises(ValueError, match="gas_estimate_multiplier.*must be positive"):
+        TxSettler(
+            ledger_api=mock.Mock(),
+            crypto=mock.Mock(),
+            chain_type=ChainType.LOCAL,
+            tx_builder=_tx_builder_with_gas,
+            gas_estimate_multiplier=-1.0,
+        )
+
+
+@mock.patch("autonomy.chain.tx.logger")
+def test_gas_estimate_multiplier_warning(logger: mock.Mock) -> None:
+    """Test that gas_estimate_multiplier warns when > 2.5."""
+
+    def _tx_builder() -> dict:
+        return {"from": "0x123", "to": "0x456", "value": 100}
+
+    TxSettler(
+        ledger_api=mock.Mock(),
+        crypto=mock.Mock(),
+        chain_type=ChainType.LOCAL,
+        tx_builder=_tx_builder,
+        gas_estimate_multiplier=3.0,
+    )
+
+    logger.warning.assert_called_once()  # type: ignore[attr-defined]
+    assert "unusually high" in logger.warning.call_args[0][0]  # type: ignore[attr-defined]
