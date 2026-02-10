@@ -126,13 +126,13 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
         self.retries = retries or DEFAULT_ON_CHAIN_INTERACT_RETRIES
         self.sleep = sleep or DEFAULT_ON_CHAIN_INTERACT_SLEEP
 
-        if gas_price_multiplier:
+        if gas_price_multiplier is not None:
             if gas_price_multiplier > 1.5:
                 logger.warning(f"{gas_price_multiplier=} is unusually high.")
             if gas_price_multiplier <= 0:
                 raise ValueError(f"{gas_price_multiplier=} must be positive.")
 
-        if gas_estimate_multiplier:
+        if gas_estimate_multiplier is not None:
             if gas_estimate_multiplier > 1.5:
                 logger.warning(f"{gas_estimate_multiplier=} is unusually high.")
             if gas_estimate_multiplier <= 0:
