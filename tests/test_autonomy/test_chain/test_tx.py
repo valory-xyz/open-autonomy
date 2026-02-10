@@ -607,10 +607,10 @@ class TestTxSetterOnChain(BaseChainInteractionTest):
         assert settler.tx_receipt is not None
 
 
-def test_gas_estimate_multiplier() -> None:
+def test_gas_estimate_multiplier(logger: mock.Mock) -> None:
     """Test gas_estimate_multiplier parameter."""
 
-    def _tx_builder_with_gas() -> dict:
+    def _tx_builder() -> dict:
         return {
             "from": "0x123",
             "to": "0x456",
@@ -629,7 +629,7 @@ def test_gas_estimate_multiplier() -> None:
         ),
         crypto=mock.Mock(sign_transaction=lambda transaction: transaction),
         chain_type=ChainType.LOCAL,
-        tx_builder=_tx_builder_with_gas,
+        tx_builder=_tx_builder,
     )
     assert settler.gas_multiplier == 1.0
 
@@ -644,7 +644,7 @@ def test_gas_estimate_multiplier() -> None:
         ),
         crypto=mock.Mock(sign_transaction=lambda transaction: transaction),
         chain_type=ChainType.LOCAL,
-        tx_builder=_tx_builder_with_gas,
+        tx_builder=_tx_builder,
         gas_estimate_multiplier=1.5,
     )
     assert settler_with_multiplier.gas_multiplier == 1.5
@@ -660,7 +660,7 @@ def test_gas_estimate_multiplier() -> None:
             ledger_api=mock.Mock(),
             crypto=mock.Mock(),
             chain_type=ChainType.LOCAL,
-            tx_builder=_tx_builder_with_gas,
+            tx_builder=_tx_builder,
             gas_estimate_multiplier=0,
         )
 
@@ -669,18 +669,11 @@ def test_gas_estimate_multiplier() -> None:
             ledger_api=mock.Mock(),
             crypto=mock.Mock(),
             chain_type=ChainType.LOCAL,
-            tx_builder=_tx_builder_with_gas,
+            tx_builder=_tx_builder,
             gas_estimate_multiplier=-1.0,
         )
 
-
-@mock.patch("autonomy.chain.tx.logger")
-def test_gas_estimate_multiplier_warning(logger: mock.Mock) -> None:
-    """Test that gas_estimate_multiplier warns when > 2.5."""
-
-    def _tx_builder() -> dict:
-        return {"from": "0x123", "to": "0x456", "value": 100}
-
+    # Test that gas_estimate_multiplier warns when > 2.5
     TxSettler(
         ledger_api=mock.Mock(),
         crypto=mock.Mock(),
