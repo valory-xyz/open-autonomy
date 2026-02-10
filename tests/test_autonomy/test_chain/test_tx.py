@@ -607,7 +607,7 @@ class TestTxSetterOnChain(BaseChainInteractionTest):
         assert settler.tx_receipt is not None
 
 
-def test_gas_estimate_multiplier(logger: mock.Mock) -> None:
+def test_gas_estimate_multiplier() -> None:
     """Test gas_estimate_multiplier parameter."""
 
     def _tx_builder() -> dict:
@@ -673,7 +673,14 @@ def test_gas_estimate_multiplier(logger: mock.Mock) -> None:
             gas_estimate_multiplier=-1.0,
         )
 
-    # Test that gas_estimate_multiplier warns when > 2.5
+
+@mock.patch("autonomy.chain.tx.logger")
+def test_gas_estimate_multiplier_warning(logger: mock.Mock) -> None:
+    """Test that gas_estimate_multiplier warns when > 2.5."""
+
+    def _tx_builder() -> dict:
+        return {"from": "0x123", "to": "0x456", "value": 100}
+
     TxSettler(
         ledger_api=mock.Mock(),
         crypto=mock.Mock(),
