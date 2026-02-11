@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+# 0.21.11 (2026-02-11)
+
+Autonomy:
+- Support both gas and its price multipliers in TxSettler #2398
+- Add ERC8004 contract addresses for Arbitrum and Optimism #2400
+
 # 0.21.10 (2026-02-09)
 
 Packages:
