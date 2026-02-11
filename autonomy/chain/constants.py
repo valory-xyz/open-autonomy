@@ -113,6 +113,8 @@ CHAIN_PROFILES = {
         "staking_verifier": "0x7Fd1F4b764fA41d19fe3f63C85d12bf64d2bbf68",
         "staking_factory": "0xEB5638eefE289691EcE01943f768EDBF96258a80",
         "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",
+        "erc8004_identity_registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+        "erc8004_identity_registry_bridger": "0x22be6fdcd3e29851b29b512f714c328a00a96b83",
     },
     "optimism": {
         "service_registry": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
@@ -126,6 +128,8 @@ CHAIN_PROFILES = {
         "staking_verifier": "0x526E064cB694E8f5B7DB299158e17F33055B3943",
         "staking_factory": "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",
         "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",
+        "erc8004_identity_registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+        "erc8004_identity_registry_bridger": "0x7fc0ddf4DFB61CfA5519db2A5eE7B2Eb02De0140",
     },
     "base": {
         "service_registry": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
