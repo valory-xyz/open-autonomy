@@ -56,6 +56,7 @@ def __init__(ledger_api: LedgerApi,
              timeout: Optional[float] = None,
              retries: Optional[int] = None,
              sleep: Optional[float] = None,
+             gas_price_multiplier: Optional[float] = None,
              gas_estimate_multiplier: Optional[float] = None) -> None
 ```
 
