@@ -69,6 +69,7 @@ NUMBER_OF_RETRIES: int = 5
 DEFAULT_BACKOFF_FACTOR: float = 2.0
 DEFAULT_TYPE_NAME: str = "str"
 DEFAULT_CHAIN = "ethereum"
+MAX_SUGGESTED_SLEEP_TIME = 3600
 
 
 class FrozenMixin:  # pylint: disable=too-few-public-methods
@@ -609,7 +610,8 @@ class RetriesInfo(TypeCheckMixin):
     @property
     def suggested_sleep_time(self) -> float:
         """The suggested amount of time to sleep."""
-        return self.backoff_factor**self.retries_attempted
+        suggested_sleep_time = self.backoff_factor**self.retries_attempted
+        return min(suggested_sleep_time, MAX_SUGGESTED_SLEEP_TIME)
 
 
 @dataclass(frozen=True)
