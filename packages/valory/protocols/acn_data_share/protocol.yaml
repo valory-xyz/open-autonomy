@@ -13,7 +13,7 @@ fingerprint:
   acn_data_share_pb2.py: bafybeifyna3ykdjrh2t5etusxc22hiplfvekh6vjlrnom2tzgcolmhsslu
   dialogues.py: bafybeifpky4uei4qxbiypsm7ntlawwmpecwvk7yaz7hwlw7edbdhlczxjy
   message.py: bafybeienfz4rtimckzrpayefkwgwqhua4pujzjrtf4x2zatwr2rsyhdpay
-  serialization.py: bafybeigmmjdokqkcq6jiz4axpcpt7f6i4jzyumx2ayookdzttku7jl3lr4
+  serialization.py: bafybeihtwbofxds7quhu4qb6w2ptu3baaz2zrp72ntuv6x5xgptw23jomy
   tests/test_acn_data_share_dialogues.py: bafybeie5kcwchjl5vozdlrnwhmim4kffa7fr5zsqjy3r27mjzuilaog5su
   tests/test_acn_data_share_messages.py: bafybeifap2cnraojc4ohd46rrjgusi6iisjm5tum2bs4sfgdocx5zjsqea
 fingerprint_ignore_patterns: []

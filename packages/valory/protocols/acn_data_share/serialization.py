@@ -93,7 +93,7 @@ class AcnDataShareSerializer(Serializer):
         acn_data_share_pb.ParseFromString(message_pb.dialogue_message.content)
         performative = acn_data_share_pb.WhichOneof("performative")
         performative_id = AcnDataShareMessage.Performative(str(performative))
-        performative_content = dict()  # type: Dict[str, Any]
+        performative_content: Dict[str, Any] = dict()
         if performative_id == AcnDataShareMessage.Performative.DATA:
             request_id = acn_data_share_pb.data.request_id
             performative_content["request_id"] = request_id
