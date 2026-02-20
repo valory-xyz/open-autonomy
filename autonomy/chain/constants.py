@@ -241,7 +241,7 @@ CHAIN_ID_TO_CHAIN_NAME = {
 CHAIN_ID_TO_DEFAULT_PUBLIC_RPC = {
     31337: "http://127.0.0.1:8545",
     1: "https://eth.drpc.org",
-    137: "https://polygon-rpc.com",
+    137: "https://polygon.drpc.org",
     100: "https://rpc.gnosischain.com",
     42161: "https://arb1.arbitrum.io/rpc",
     10: "https://mainnet.optimism.io",
