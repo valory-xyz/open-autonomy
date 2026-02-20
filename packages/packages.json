@@ -3,7 +3,7 @@
         "protocol/valory/abci/0.1.0": "bafybeicjjeintlqgg53zrreflmoafeiynt3gvdnovy5ocea7doddos3e5a",
         "protocol/valory/tendermint/0.1.0": "bafybeie4jqosqiicefnlnxsvrymqj6tycv7x5qeitsdew6abhdcxlu23r4",
         "protocol/valory/ipfs/0.1.0": "bafybeidqfs3njcishcwv4ymf4srxibw44u7qrnryxiwrg5ulk2h7myvt6q",
-        "protocol/valory/acn_data_share/0.1.0": "bafybeic7infync56c4b5qzmgomcfkh3au5bpsd53rlfq4hzyjelb3w2u74",
+        "protocol/valory/acn_data_share/0.1.0": "bafybeicfmgmebpihf4m2i46obtzdhawnektzptdbzihshrefwb43t4hfq4",
         "contract/valory/gnosis_safe_proxy_factory/0.1.0": "bafybeihnuhz6n7quvmfi36owk3k2qse7unjeykrlmjecet5o6kcrrhtpsa",
         "contract/valory/component_registry/0.1.0": "bafybeihitc3xybzbnxsybb46uqejqunwhvnvkwtk23yxacfdafm3n4bu2a",
         "contract/valory/agent_registry/0.1.0": "bafybeicinlkh76yggtqrzhii6zhavpxqkpbles3wh73durkqchbj2elor4",
