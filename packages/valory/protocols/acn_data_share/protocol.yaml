@@ -1,0 +1,21 @@
+name: acn_data_share
+author: valory
+version: 0.1.0
+protocol_specification_id: valory/acn_data_share:0.1.0
+type: protocol
+description: A protocol for sharing raw data using ACN.
+license: Apache-2.0
+aea_version: '>=2.0.0, <3.0.0'
+fingerprint:
+  README.md: bafybeic6mapxpqdjuenn4xdmqqsvkv2axup3skrwbuuywakzpb7zvs46fq
+  __init__.py: bafybeiady6rvu4qryn3ni4sgsssfcay6a4qx4qsi6wklztnex6tv7hurly
+  acn_data_share.proto: bafybeiell3oa6eo2oogbgymu5cupeakbkpkmxkh7gossgy4jdip7lrr7tu
+  acn_data_share_pb2.py: bafybeifyna3ykdjrh2t5etusxc22hiplfvekh6vjlrnom2tzgcolmhsslu
+  dialogues.py: bafybeifpky4uei4qxbiypsm7ntlawwmpecwvk7yaz7hwlw7edbdhlczxjy
+  message.py: bafybeienfz4rtimckzrpayefkwgwqhua4pujzjrtf4x2zatwr2rsyhdpay
+  serialization.py: bafybeihtwbofxds7quhu4qb6w2ptu3baaz2zrp72ntuv6x5xgptw23jomy
+  tests/test_acn_data_share_dialogues.py: bafybeie5kcwchjl5vozdlrnwhmim4kffa7fr5zsqjy3r27mjzuilaog5su
+  tests/test_acn_data_share_messages.py: bafybeifap2cnraojc4ohd46rrjgusi6iisjm5tum2bs4sfgdocx5zjsqea
+fingerprint_ignore_patterns: []
+dependencies:
+  protobuf: {}
