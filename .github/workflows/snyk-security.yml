@@ -70,13 +70,13 @@ jobs:
       # - name: Snyk Open Source monitor
       #   run: snyk monitor --all-projects
 
+      - name: Snyk Open Source monitor (pyproject.toml)
+        run: snyk monitor --file=pyproject.toml        
+
       - name: Snyk Open Source monitor (Pipfile)
         run: |
           pipenv --version
           snyk monitor --file=Pipfile
-
-      - name: Snyk Open Source monitor (pyproject.toml)
-        run: snyk monitor --file=pyproject.toml        
 
       #   # Runs Snyk Infrastructure as Code (IaC) analysis and uploads result to Snyk.
       #   # Use || true to not fail the pipeline.
