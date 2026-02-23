@@ -77,6 +77,7 @@ function addKey() {
         echo "$1 key provided. Adding to agent."
         if [[ "$AEA_PASSWORD" != "" ]]; then
             aea add-key $1 --password $AEA_PASSWORD 2>&1 | grep -v "already present!" || true
+            aea add-key $1 --password $AEA_PASSWORD --connection 2>&1 | grep -v "already present!" || true
         else
             aea add-key $1 2>&1 | grep -v "already present!" || true
         fi
