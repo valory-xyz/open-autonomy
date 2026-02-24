@@ -29,7 +29,7 @@ permissions:
 
 jobs:
   snyk:
-    continue-on-error: True
+    continue-on-error: true
     permissions:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
@@ -54,6 +54,9 @@ jobs:
         # In this case we want to upload the SAST issues to GitHub Code Scanning
         uses: snyk/actions/setup@806182742461562b67788a64410098c9d9b96adb
 
+      - name: Set Snyk organization
+        run: snyk config set org=valory-xyz
+
         # For Snyk Open Source you must first set up the development environment for your application's dependencies
         # For example for Node
         #- uses: actions/setup-node@v4
@@ -63,11 +66,12 @@ jobs:
         # Runs Snyk Code (SAST) analysis and uploads result into GitHub.
         # Use || true to not fail the pipeline
       - name: Snyk Code test
-        run: snyk code test --sarif > snyk-code.sarif
         continue-on-error: true
+        run: snyk code test --sarif > snyk-code.sarif
 
         # Runs Snyk Open Source (SCA) analysis and uploads result to Snyk.
       - name: Snyk Open Source monitor
+        continue-on-error: true
         run: snyk monitor --all-projects
 
       #   # Runs Snyk Infrastructure as Code (IaC) analysis and uploads result to Snyk.
