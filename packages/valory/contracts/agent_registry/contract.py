@@ -219,5 +219,7 @@ class AgentRegistryContract(Contract):
             if Web3.to_checksum_address(sender_address) in owners:
                 return dict(is_valid=True)
 
+            return dict(is_valid=False)
+
         except Exception as e:
             return dict(is_valid=False, error=str(e))  # pragma: no cover
