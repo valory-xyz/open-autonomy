@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest-large, windows-latest ]
-        python-version: ["3.10.9"]
+        python-version: ["3.14"]
 
     timeout-minutes: 18
 
@@ -49,7 +49,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        python-version: ["3.10.9"]
+        python-version: ["3.14"]
     timeout-minutes: 10
     steps:
     - uses: actions/checkout@v2
@@ -67,7 +67,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.10.9"]
+        python-version: ["3.14"]
 
     timeout-minutes: 30
 
@@ -104,7 +104,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.10.9"]
+        python-version: ["3.14"]
 
     timeout-minutes: 30
 
@@ -193,7 +193,7 @@ jobs:
       fail-fast: false  # prevents all matrix jobs from canceling if one fails
       matrix:
         os: [ ubuntu-latest, macos-latest-large, windows-latest ]
-        python-version: [ "3.10", "3.11" ]
+        python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
 
     timeout-minutes: 90
 
@@ -387,7 +387,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ "3.10.9" ]
+        python-version: [ "3.14" ]
 
     timeout-minutes: 150
 
