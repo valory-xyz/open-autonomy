@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'test_ipfs_behaviour' skill."""
+
 import sys
 from abc import ABC
 from typing import Generator, Set, Type, cast

@@ -48,7 +48,6 @@ from aea.helpers.env_vars import apply_env_variables, generate_env_vars_recursiv
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE, SCHEMAS_DIR
 from autonomy.configurations.validation import ConfigValidator
 
-
 COMPONENT_CONFIGS: Dict = {
     component.package_type.value: component  # type: ignore
     for component in [

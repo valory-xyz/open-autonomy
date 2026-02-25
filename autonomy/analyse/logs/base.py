@@ -19,11 +19,9 @@
 
 """Tools for analysing logs."""
 
-
 import re
 from datetime import datetime
 from typing import Tuple
-
 
 LOGS_DB = "logs.db"
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S,%f"

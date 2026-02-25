@@ -21,5 +21,4 @@
 
 from aea.configurations.base import PublicId  # pragma: nocover
 
-
 PUBLIC_ID = PublicId.from_str("valory/abstract_round_abci:0.1.0")

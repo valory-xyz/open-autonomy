@@ -19,7 +19,6 @@
 
 """Integration tests for the valory/register_reset skill."""
 
-
 from pathlib import Path
 
 import pytest
@@ -46,7 +45,6 @@ from packages.valory.agents.register_reset_recovery.tests.base import (
     BaseTestRegisterResetRecoveryEnd2End,
 )
 from packages.valory.skills.registration_abci.rounds import RegistrationStartupRound
-
 
 HAPPY_PATH = (RoundChecks(RegistrationStartupRound.auto_round_id()),)
 

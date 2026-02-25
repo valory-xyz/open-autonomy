@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint manager."""
+
 import json
 import logging
 import os
@@ -28,7 +29,6 @@ from logging import Logger
 from pathlib import Path
 from threading import Event, Thread
 from typing import Any, Dict, List, Optional
-
 
 ENCODING = "utf-8"
 DEFAULT_P2P_LISTEN_ADDRESS = "tcp://0.0.0.0:26656"

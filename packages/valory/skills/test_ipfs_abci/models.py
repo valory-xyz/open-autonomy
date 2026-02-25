@@ -29,7 +29,6 @@ from packages.valory.skills.abstract_round_abci.models import (
 )
 from packages.valory.skills.test_ipfs_abci.rounds import IpfsTestAbciApp
 
-
 MARGIN = 5
 
 

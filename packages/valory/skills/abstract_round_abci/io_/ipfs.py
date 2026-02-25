@@ -19,7 +19,6 @@
 
 """This module contains all the interaction operations of the behaviours with IPFS."""
 
-
 import os
 from typing import Any, Dict, Optional, Type
 

@@ -37,7 +37,6 @@ from autonomy.replay.utils import (
     load_docker_config,
 )
 
-
 REGISTRY_PATH = Path(PACKAGES)
 
 

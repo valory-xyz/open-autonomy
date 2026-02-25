@@ -34,7 +34,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     TransactionSubmissionAbciApp,
 )
 
-
 slashing_transition_function: AbciAppTransitionMapping = {
     FinishedTransactionSubmissionRound: PostSlashingTxAbciApp.initial_round_cls,
     FailedRound: TransactionSubmissionAbciApp.initial_round_cls,

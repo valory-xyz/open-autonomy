@@ -33,7 +33,6 @@ from autonomy.analyse.benchmark.html import (
     TROW_TEMPLATE,
 )
 
-
 STATISTICS = {
     "Mean": statistics.mean,
     "Maximum": max,

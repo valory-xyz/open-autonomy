@@ -42,7 +42,6 @@ from packages.valory.connections.abci.tests.helper import (
     replace_keys,
 )
 
-
 KEY_MAPPING = dict(  # AEA to Tendermint, one-to-one
     request_set_option={"key": "option_key", "value": "option_value"},
     request_query={"data": "query_data"},

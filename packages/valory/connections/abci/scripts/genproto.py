@@ -32,7 +32,6 @@ from distutils.spawn import find_executable
 from pathlib import Path
 from typing import cast
 
-
 PACKAGE_IMPORT_PATH_PREFIX = "packages.valory.connections.abci"
 
 

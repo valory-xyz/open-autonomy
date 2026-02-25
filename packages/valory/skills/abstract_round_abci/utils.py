@@ -49,7 +49,6 @@ from eth_typing.bls import BLSPubkey, BLSSignature
 from py_ecc.bls import G2Basic as bls
 from typing_extensions import Literal, TypeGuard
 
-
 MAX_UINT64 = 2**64 - 1
 DEFAULT_TENDERMINT_P2P_PORT = 26656
 

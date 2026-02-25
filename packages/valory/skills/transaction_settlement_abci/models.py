@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Custom objects for the transaction settlement ABCI application."""
+
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -36,7 +37,6 @@ from packages.valory.skills.abstract_round_abci.models import TypeCheckMixin
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     TransactionSubmissionAbciApp,
 )
-
 
 _MINIMUM_VALIDATE_TIMEOUT = 300  # 5 minutes
 BenchmarkTool = BaseBenchmarkTool

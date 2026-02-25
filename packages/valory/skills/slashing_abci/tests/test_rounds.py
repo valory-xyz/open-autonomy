@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests the slashing background rounds."""
+
 from copy import deepcopy
 from typing import cast
 from unittest.mock import MagicMock
@@ -41,7 +42,6 @@ from packages.valory.skills.slashing_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TxSettlementSyncedData,
 )
-
 
 settings.load_profile(profile_name)
 

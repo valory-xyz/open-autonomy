@@ -25,7 +25,6 @@ from aea.crypto.base import LedgerApi
 
 from autonomy.chain.service import MultiSendOperation
 
-
 PUBLIC_ID = PublicId.from_str("valory/sign_message_lib:0.1.0")
 
 

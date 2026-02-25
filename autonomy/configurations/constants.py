@@ -19,9 +19,7 @@
 
 """Configuration constants."""
 
-
 from pathlib import Path
-
 
 CONFIG_PATH = Path(__file__).absolute().parent
 SCHEMAS_DIR = CONFIG_PATH / "schemas"

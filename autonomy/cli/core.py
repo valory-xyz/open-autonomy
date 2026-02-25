@@ -39,7 +39,6 @@ from autonomy.cli.push_all import push_all
 from autonomy.cli.replay import replay_group
 from autonomy.cli.service import service
 
-
 cli.add_command(analyse_group)
 cli.add_command(deploy_group)
 cli.add_command(develop_group)

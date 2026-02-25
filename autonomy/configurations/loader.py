@@ -36,7 +36,6 @@ from aea.helpers.yaml_utils import yaml_load_all
 
 from autonomy.configurations.base import Service, load_dependencies
 
-
 COMPONENT_CONFIGS: Dict = {
     component.package_type.value: component  # type: ignore
     for component in [

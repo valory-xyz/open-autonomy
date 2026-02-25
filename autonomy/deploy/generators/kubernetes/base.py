@@ -207,7 +207,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             # insert an ACN node into resources
             ...
 
-        agent_vars = self.service_builder.generate_agents()  # type:ignore
+        agent_vars = self.service_builder.generate_agents()  # type: ignore
         runtime_image = OAR_IMAGE.format(
             image_author=self.image_author,
             agent=self.service_builder.service.agent.name,

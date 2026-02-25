@@ -61,7 +61,6 @@ from packages.valory.protocols.tendermint.dialogues import (
     TendermintDialogues as BaseTendermintDialogues,
 )
 
-
 AbciDialogue = BaseAbciDialogue
 
 

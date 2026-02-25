@@ -31,7 +31,6 @@ from packages.valory.skills.register_reset_recovery_abci.composition import (
     RegisterResetRecoveryAbciApp,
 )
 
-
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
 Params = BaseParams

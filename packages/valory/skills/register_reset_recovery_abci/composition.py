@@ -32,7 +32,6 @@ from packages.valory.skills.registration_abci.rounds import (
     FinishedRegistrationRound,
 )
 
-
 abci_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationRound: RoundCountRound,
 }

@@ -45,7 +45,6 @@ from autonomy.cli.packages import get_package_manager
 from tests.conftest import DATA_DIR, skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
-
 PACKAGES_DIR = DATA_DIR / "dummy_packages"
 DUMMY_PACKAGE_MANAGER = get_package_manager(packages_dir=PACKAGES_DIR)
 DUMMY_AUTHOR = "dummy_author"

@@ -23,5 +23,4 @@ from pathlib import Path
 
 from .__version__ import __version__
 
-
 AUTONOMY_DIR = Path(__file__).resolve().parent

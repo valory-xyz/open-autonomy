@@ -45,7 +45,6 @@ from autonomy.analyse.abci.app_spec import DFASpecificationError
 from packages.valory import skills
 from packages.valory.skills.abstract_round_abci.base import _MetaPayload
 
-
 VALORY_SKILLS_PATH = Path(os.path.join(*skills.__package__.split("."))).absolute()
 fsm_specifications = list(VALORY_SKILLS_PATH.glob("**/fsm_specification.yaml"))
 

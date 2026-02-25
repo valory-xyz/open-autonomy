@@ -48,7 +48,6 @@ from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.abstract_round_abci.tests.conftest import irrelevant_config
 from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
 
-
 ReturnValueType = TypeVar("ReturnValueType")
 
 

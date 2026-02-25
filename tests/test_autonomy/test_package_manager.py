@@ -19,7 +19,6 @@
 
 """Test package manager API."""
 
-
 import json
 import tempfile
 from pathlib import Path
@@ -36,7 +35,6 @@ from autonomy.cli.packages import (
 )
 from autonomy.configurations.base import Service
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
-
 
 DUMMY_HASH = "bafybei0000000000000000000000000000000000000000000000000000"
 SERVICE_ID = PackageId(

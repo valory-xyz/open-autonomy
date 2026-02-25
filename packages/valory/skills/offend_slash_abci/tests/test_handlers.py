@@ -20,7 +20,6 @@
 
 """Test the dialogues.py module of the skill."""
 
-
 import packages.valory.skills.offend_slash_abci.handlers  # noqa  # pylint: disable=unused-import
 
 

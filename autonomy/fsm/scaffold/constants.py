@@ -19,7 +19,6 @@
 
 """Constants."""
 
-
 DEGENERATE_ROUND = "DegenerateRound"
 ABSTRACT_ROUND = "AbstractRound"
 

@@ -33,7 +33,6 @@ from packages.valory.skills.slashing_abci.models import (
 )
 from packages.valory.skills.slashing_abci.models import SlashingParams
 
-
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
 RandomnessApi = SlashingRandomness

@@ -26,5 +26,4 @@ a toy example for [Tendermint](https://docs.tendermint.com/master/tendermint-cor
 
 from aea.configurations.base import PublicId
 
-
 PUBLIC_ID = PublicId.from_str("valory/counter:0.1.0")

@@ -20,7 +20,6 @@
 
 """Test the dialogues.py module of the skill."""
 
-
 import packages.valory.skills.register_termination_abci.dialogues  # noqa
 
 

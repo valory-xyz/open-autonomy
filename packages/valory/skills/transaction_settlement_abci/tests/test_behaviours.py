@@ -105,7 +105,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TransactionSettlementSynchronizedSata,
 )
 
-
 PACKAGE_DIR = Path(__file__).parent.parent
 
 

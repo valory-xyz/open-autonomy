@@ -43,7 +43,6 @@ from packages.valory.skills.reset_pause_abci.behaviours import ResetAndPauseBeha
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetEvent
 from packages.valory.skills.reset_pause_abci.rounds import FinishedResetAndPauseRound
 
-
 PACKAGE_DIR = Path(__file__).parent.parent
 
 

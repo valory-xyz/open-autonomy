@@ -45,7 +45,6 @@ from packages.valory.skills.registration_abci.rounds import (
     RegistrationStartupRound,
 )
 
-
 # pylint: skip-file
 
 

@@ -31,7 +31,6 @@ from packages.valory.skills.abstract_round_abci.tests.conftest import (
 from packages.valory.skills.offend_abci.models import OffendParams, SharedState
 from packages.valory.skills.offend_abci.rounds import Event, OffendAbciApp
 
-
 settings.load_profile(profile_name)
 
 

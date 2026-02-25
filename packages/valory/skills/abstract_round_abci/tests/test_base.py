@@ -143,7 +143,6 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
 )
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
-
 # pylint: skip-file
 
 

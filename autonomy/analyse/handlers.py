@@ -19,7 +19,6 @@
 
 """Analyse handlers."""
 
-
 import importlib
 import importlib.machinery
 import importlib.util

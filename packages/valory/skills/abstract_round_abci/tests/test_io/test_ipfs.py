@@ -39,7 +39,6 @@ from packages.valory.skills.abstract_round_abci.io_.store import (
     SupportedFiletype,
 )
 
-
 use_ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
 
 

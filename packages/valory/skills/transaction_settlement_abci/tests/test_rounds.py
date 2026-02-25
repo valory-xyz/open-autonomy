@@ -99,7 +99,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     ValidateTransactionRound,
 )
 
-
 MAX_PARTICIPANTS: int = 4
 RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
 DUMMY_RANDOMNESS = hashlib.sha256("hash".encode() + str(0).encode()).hexdigest()

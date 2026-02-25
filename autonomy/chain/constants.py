@@ -29,7 +29,6 @@ from autonomy import AUTONOMY_DIR
 from autonomy.constants import VALORY
 from autonomy.data import DATA_DIR
 
-
 CONTRACTS_DIR_FRAMEWORK = DATA_DIR / CONTRACTS
 CONTRACTS_DIR_LOCAL = (
     AUTONOMY_DIR.parent / PACKAGES / VALORY / CONTRACTS

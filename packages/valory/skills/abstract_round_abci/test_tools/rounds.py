@@ -56,7 +56,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     VotingRound,
 )
 
-
 MAX_PARTICIPANTS: int = 4
 
 

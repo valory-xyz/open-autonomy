@@ -29,7 +29,6 @@ from packages.valory.skills.abstract_round_abci.models import (
 )
 from packages.valory.skills.register_reset_abci.composition import RegisterResetAbciApp
 
-
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
 Params = BaseParams

@@ -56,7 +56,6 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import TX_HASH_LENGTH
 
-
 STUB_OPERATORS_MAPPING = {
     "test_instance_1": "test_operator",
     "test_instance_0": "test_operator",

@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the handler for the 'abci' skill."""
+
 from typing import List, cast
 
 from aea.protocols.base import Message
@@ -34,7 +35,6 @@ from packages.valory.protocols.abci.custom_types import (
     ValidatorUpdates,
 )
 from packages.valory.protocols.abci.dialogues import AbciDialogue, AbciDialogues
-
 
 ERROR_CODE = 1
 

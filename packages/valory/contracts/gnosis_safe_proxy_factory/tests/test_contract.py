@@ -30,7 +30,6 @@ from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
     PROXY_FACTORY_CONTRACT,
 )
 
-
 PACKAGE_DIR = Path(__file__).parent.parent
 
 DEFAULT_GAS = 1000000

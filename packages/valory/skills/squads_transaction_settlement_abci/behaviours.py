@@ -62,7 +62,6 @@ from packages.valory.skills.squads_transaction_settlement_abci.rounds import (
     VerifyTxRound,
 )
 
-
 SOLANA = "solana"
 
 

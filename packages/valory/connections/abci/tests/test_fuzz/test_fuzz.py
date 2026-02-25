@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Fuzzy tests for valory/abci connection"""
+
 import os
 
 from hypothesis import settings
@@ -30,7 +31,6 @@ from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.grpc_ch
 from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.tcp_channel import (
     TcpChannel,
 )
-
 
 running_on_ci = os.getenv(CI)
 if running_on_ci:

@@ -19,6 +19,7 @@
 # pylint: disable=unused-import
 
 """Integration tests for the valory/register_termination skill."""
+
 from pathlib import Path
 
 import pytest
@@ -43,7 +44,6 @@ from packages.valory.skills.registration_abci.rounds import RegistrationStartupR
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     ValidateTransactionRound,
 )
-
 
 TARGET_AGENT = "valory/register_termination:0.1.0"
 TARGET_SKILL = "valory/register_termination_abci:0.1.0"

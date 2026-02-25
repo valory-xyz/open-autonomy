@@ -25,5 +25,4 @@ It is created only for testing purposes for the slashing feature.
 
 from aea.configurations.base import PublicId
 
-
 PUBLIC_ID = PublicId.from_str("valory/offend_slash_abci:0.1.0")

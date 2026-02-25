@@ -19,7 +19,6 @@
 
 """Test service helpers."""
 
-
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 
 from autonomy.chain.service import get_reuse_multisig_payload

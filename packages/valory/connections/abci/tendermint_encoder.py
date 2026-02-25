@@ -17,6 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 """Encode AEA messages into Tendermint protobuf messages."""
+
 # pylint: disable=no-member
 from typing import Callable, Optional, Union, cast
 

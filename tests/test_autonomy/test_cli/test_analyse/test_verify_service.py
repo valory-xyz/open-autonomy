@@ -41,7 +41,6 @@ from autonomy.configurations.base import Service
 
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
-
 DUMMY_SERVICE_HASH = "bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vj"
 DUMMY_AGENT_HASH = "bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vm"
 DUMMY_LEDGER_CONNECTION_HASH = (

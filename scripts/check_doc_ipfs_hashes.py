@@ -34,7 +34,6 @@ from aea.cli.packages import get_package_manager
 from aea.configurations.data_types import PackageId
 from aea.helpers.base import IPFS_HASH_REGEX, SIMPLE_ID_REGEX
 
-
 CLI_REGEX = r"(?P<cli>aea|autonomy)"
 # CMD_REGEX should be r"(?P<cmd>(\S+\s(\s--\S+)*)+)",
 # but python implementation differs from others and does not match it properly

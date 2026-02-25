@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Localhost Deployment Generator."""
+
 import json
 import subprocess  # nosec
 import typing as t

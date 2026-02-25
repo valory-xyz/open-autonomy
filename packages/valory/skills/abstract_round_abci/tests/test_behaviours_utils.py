@@ -105,7 +105,6 @@ from packages.valory.skills.abstract_round_abci.models import (
 )
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
-
 _DEFAULT_REQUEST_TIMEOUT = 10.0
 _DEFAULT_REQUEST_RETRY_DELAY = 1.0
 _DEFAULT_TX_MAX_ATTEMPTS = 10

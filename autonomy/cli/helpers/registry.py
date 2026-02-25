@@ -49,7 +49,6 @@ from autonomy.configurations.base import (
     PACKAGE_TYPE_TO_CONFIG_CLASS,
 )
 
-
 try:
     from aea_cli_ipfs.ipfs_utils import IPFSTool  # type: ignore
 

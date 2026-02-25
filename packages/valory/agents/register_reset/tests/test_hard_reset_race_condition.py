@@ -57,7 +57,6 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 from packages.valory.skills.reset_pause_abci.rounds import ResetAndPauseRound
 
-
 HAPPY_PATH = (
     RoundChecks(RegistrationStartupRound.auto_round_id()),
     RoundChecks(RegistrationRound.auto_round_id(), n_periods=2),

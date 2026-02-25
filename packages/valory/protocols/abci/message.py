@@ -46,7 +46,6 @@ from packages.valory.protocols.abci.custom_types import (
     ValidatorUpdates as CustomValidatorUpdates,
 )
 
-
 _default_logger = logging.getLogger("aea.packages.valory.protocols.abci.message")
 
 DEFAULT_BODY_SIZE = 4

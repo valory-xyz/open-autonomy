@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the handlers.py module of the skill."""
+
 import logging
 from pathlib import Path
 from typing import Any, cast
@@ -48,7 +49,6 @@ from packages.valory.protocols.abci.custom_types import (
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
 from packages.valory.skills.abstract_abci.dialogues import AbciDialogue, AbciDialogues
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler, ERROR_CODE
-
 
 PACKAGE_DIR = Path(__file__).parent.parent
 

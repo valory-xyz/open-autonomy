@@ -36,7 +36,6 @@ from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetEvent
 from packages.valory.skills.reset_pause_abci.rounds import ResetAndPauseRound
 
-
 MAX_PARTICIPANTS: int = 4
 DUMMY_RANDOMNESS = hashlib.sha256("hash".encode() + str(0).encode()).hexdigest()
 

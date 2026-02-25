@@ -18,12 +18,12 @@
 #
 # ------------------------------------------------------------------------------
 """Check dependencies."""
+
 import re
 import shutil
 import subprocess  # nosec
 from itertools import islice
 from typing import Iterable, List, Pattern, Tuple
-
 
 ERROR_MESSAGE_TEMPLATE_BINARY_NOT_FOUND = (
     "'{command}' is required by the "

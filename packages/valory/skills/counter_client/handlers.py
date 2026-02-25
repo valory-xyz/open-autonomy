@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the handlers for the 'counter_client' skill."""
+
 # isort: skip_file # noqa
 from typing import Optional, cast
 

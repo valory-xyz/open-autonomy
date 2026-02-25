@@ -19,7 +19,6 @@
 
 """Test the models.py module of the skill."""
 
-
 from packages.valory.skills.abstract_round_abci.test_tools.base import DummyContext
 from packages.valory.skills.slashing_abci.models import SharedState
 

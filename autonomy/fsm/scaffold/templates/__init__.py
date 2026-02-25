@@ -21,7 +21,6 @@
 
 from datetime import datetime
 
-
 COPYRIGHT_HEADER = """\
     # -*- coding: utf-8 -*-
     # ------------------------------------------------------------------------------
@@ -41,6 +40,4 @@ COPYRIGHT_HEADER = """\
     #   limitations under the License.
     #
     # ------------------------------------------------------------------------------
-    """.format(
-    year=datetime.now().year
-)
+    """.format(year=datetime.now().year)

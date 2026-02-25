@@ -27,7 +27,6 @@ from aea_test_autonomy.docker.registries import AGENT_REGISTRY
 
 from packages.valory.contracts.agent_registry.contract import AgentRegistryContract
 
-
 PACKAGE_DIR = Path(__file__).parent.parent
 
 

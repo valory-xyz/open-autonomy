@@ -40,7 +40,6 @@ from autonomy.cli.mint import (
 )
 from autonomy.cli.utils.click_utils import chain_selection_flag
 
-
 service_id_flag = click.argument("service_id", type=int)
 
 

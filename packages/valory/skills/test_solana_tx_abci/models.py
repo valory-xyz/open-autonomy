@@ -31,7 +31,6 @@ from packages.valory.skills.abstract_round_abci.models import (
 )
 from packages.valory.skills.test_solana_tx_abci.composition import ComposedAbciApp
 
-
 MARGIN = 5
 
 

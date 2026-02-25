@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Fixture helpers."""
+
 import logging
 from typing import Generator, cast
 

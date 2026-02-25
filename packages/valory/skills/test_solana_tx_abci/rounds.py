@@ -17,6 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 """This module contains the data classes for the Hello World ABCI application."""
+
 import json
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, cast

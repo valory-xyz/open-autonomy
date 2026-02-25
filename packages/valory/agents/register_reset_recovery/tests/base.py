@@ -19,12 +19,12 @@
 # pylint: disable=broad-except,unspecified-encoding,import-error,redefined-outer-name
 
 """End2End tests base classes for the register_reset_recovery agent."""
+
 import logging
 
 import requests
 from aea_test_autonomy.base_test_classes.agents import BaseTestEnd2End
 from aea_test_autonomy.configurations import LOCALHOST
-
 
 TERMINATION_TIMEOUT = 120
 

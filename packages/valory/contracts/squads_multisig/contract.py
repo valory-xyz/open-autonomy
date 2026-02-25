@@ -30,7 +30,6 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from solders.system_program import transfer  # pylint: disable=import-error
 
-
 Pubkey = Any  # defined in solders.pubkey
 Keypair = Any  # defined in solders.keypair
 Program = Any  # defined in anchorpy

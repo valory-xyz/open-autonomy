@@ -31,7 +31,6 @@ from typing import Dict, List, Optional
 
 from autonomy.deploy.base import TENDERMINT_COM_URL_PARAM, TENDERMINT_URL_PARAM
 
-
 ETHEREUM_PRIVATE_KEY_FILE = "ethereum_private_key.txt"
 
 CONNECTION_ABCI_CONFIG_HOST = "CONNECTION_ABCI_CONFIG_HOST"

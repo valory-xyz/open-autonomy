@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Conftest module for Pytest."""
+
 import inspect
 import json
 import os
@@ -29,7 +30,6 @@ from typing import Optional
 import pytest
 from aea.configurations.constants import PACKAGES
 from aea.package_manager.base import PACKAGES_FILE
-
 
 # https://pytest-cov.readthedocs.io/en/latest/subprocess-support.html#if-you-use-multiprocessing-process
 try:

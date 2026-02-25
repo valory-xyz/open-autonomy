@@ -19,12 +19,10 @@
 
 """Deployment Templates."""
 
-
 import textwrap
 from typing import Dict
 
 import yaml
-
 
 TENDERMINT_CONFIG_TEMPLATE: str = (
     """bash /app/build.sh "{validators}" "{hosts}" "{user}" """

@@ -19,6 +19,7 @@
 # ------------------------------------------------------------------------------
 
 """This tool generates the API docs."""
+
 import argparse
 import re
 import shutil
@@ -30,7 +31,6 @@ from typing import Set
 
 from aea.configurations.base import ComponentType, PublicId
 from aea.configurations.constants import PACKAGES
-
 
 DOCS_DIR = Path("docs/")
 API_DIR = DOCS_DIR / "api/"

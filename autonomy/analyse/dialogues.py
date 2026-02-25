@@ -19,7 +19,6 @@
 
 """Analyse dialogue definitions."""
 
-
 import importlib
 import importlib.machinery
 import importlib.util

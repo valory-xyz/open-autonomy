@@ -46,7 +46,6 @@ from packages.valory.skills.test_abci.handlers import (
     SigningHandler,
 )
 
-
 PACKAGE_DIR = Path(__file__).parent.parent
 
 

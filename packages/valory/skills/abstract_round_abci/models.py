@@ -63,7 +63,6 @@ from packages.valory.skills.abstract_round_abci.utils import (
     get_value_with_type,
 )
 
-
 MIN_RESET_PAUSE_DURATION = 10
 NUMBER_OF_RETRIES: int = 5
 DEFAULT_BACKOFF_FACTOR: float = 2.0

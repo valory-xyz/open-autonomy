@@ -19,7 +19,6 @@
 
 """Develop CLI module."""
 
-
 import click
 
 from autonomy.constants import (

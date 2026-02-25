@@ -19,7 +19,6 @@
 
 """Component generators."""
 
-
 from typing import List
 
 from aea.protocols.generator.common import _camel_case_to_snake_case

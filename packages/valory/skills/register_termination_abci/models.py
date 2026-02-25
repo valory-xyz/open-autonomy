@@ -34,7 +34,6 @@ from packages.valory.skills.termination_abci.models import (
 )
 from packages.valory.skills.termination_abci.models import TerminationParams
 
-
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
 RandomnessApi = TerminationRandomness

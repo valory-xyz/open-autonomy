@@ -19,6 +19,7 @@
 # pylint: disable=unused-import
 
 """Test the models.py module of the skill."""
+
 from typing import Any, Dict
 from unittest.mock import MagicMock
 

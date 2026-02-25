@@ -33,7 +33,6 @@ from autonomy.analyse.handlers import check_handlers
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
-
 COMMON_HANDLERS = (
     "abci",
     "http",

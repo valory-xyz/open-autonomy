@@ -19,7 +19,6 @@
 
 """Log streams"""
 
-
 import re
 from abc import ABC, abstractmethod
 from datetime import datetime
@@ -99,7 +98,7 @@ class LogCollection(ABC):
 
                 match = ENTER_ROUND_REGEX.match(string=log_block)
                 if match is not None:
-                    (current_round, current_period) = cast(
+                    current_round, current_period = cast(
                         Tuple[str, int], match.groups()
                     )
 

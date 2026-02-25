@@ -62,7 +62,6 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     ValidatePayload,
 )
 
-
 ADDRESS_LENGTH = 42
 TX_HASH_LENGTH = 66
 RETRIES_LENGTH = 64

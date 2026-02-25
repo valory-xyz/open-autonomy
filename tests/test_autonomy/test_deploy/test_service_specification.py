@@ -56,7 +56,6 @@ from autonomy.deploy.base import (
 
 from tests.test_autonomy.base import get_dummy_service_config
 
-
 COMMON_VARS = (
     ENV_VAR_ID,
     ENV_VAR_AEA_AGENT,

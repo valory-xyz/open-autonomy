@@ -76,7 +76,6 @@ from autonomy.deploy.generators.docker_compose.templates import (
     indent_yaml,
 )
 
-
 NETWORK_ADDRESS_OFFSET = 1
 BASE_SUBNET = cast(ipaddress.IPv4Network, ipaddress.ip_network("192.167.11.0/24"))
 SUBNET_OVERFLOW = 256

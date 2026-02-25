@@ -52,7 +52,6 @@ from tests.test_autonomy.test_chain.base import (
     patch_subgraph,
 )
 
-
 DEFAULT_AGENT_INSTANCE_ADDRESS = (
     "0x976EA74026E726554dB657fA54763abd0C3a0aa9"  # a key from default hardhat keys
 )

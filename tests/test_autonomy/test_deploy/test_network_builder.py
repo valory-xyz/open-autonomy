@@ -28,7 +28,6 @@ from docker.client import NetworkCollection
 
 from autonomy.deploy.generators.docker_compose.base import Network
 
-
 BASE_SUBNET = cast(
     ipaddress.IPv4Network,
     ipaddress.ip_network("192.168.21.0/24"),

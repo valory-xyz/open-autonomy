@@ -17,6 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 """Connection to interact with an ABCI server."""
+
 import asyncio
 import json
 import logging
@@ -86,7 +87,6 @@ from packages.valory.connections.abci.tendermint_encoder import (
     _TendermintProtocolEncoder,
 )
 from packages.valory.protocols.abci import AbciMessage
-
 
 PUBLIC_ID = PublicId.from_str("valory/abci:0.1.0")
 

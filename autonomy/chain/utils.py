@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Utility functions."""
+
 from json import JSONDecodeError
 from typing import Dict
 

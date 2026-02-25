@@ -28,7 +28,6 @@ from aea_test_autonomy.docker.base import skip_docker_tests
 
 from packages.valory.contracts.multicall2.contract import Multicall2Contract
 
-
 DEFAULT_GAS = 10000000
 DEFAULT_MAX_FEE_PER_GAS = 10**10
 DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10**10

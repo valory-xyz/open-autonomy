@@ -29,7 +29,6 @@ from packages.valory.skills.abstract_round_abci.models import (
 )
 from packages.valory.skills.test_abci.rounds import Event, TestAbciApp
 
-
 MARGIN = 5
 
 

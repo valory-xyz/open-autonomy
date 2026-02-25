@@ -37,7 +37,6 @@ from autonomy.deploy.generators.localhost.base import HostDeploymentGenerator
 
 from tests.conftest import ROOT_DIR
 
-
 AGENT = PublicId(
     author="valory",
     name="oracle",

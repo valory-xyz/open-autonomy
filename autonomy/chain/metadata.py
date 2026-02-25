@@ -30,7 +30,6 @@ from aea.helpers.cid import CID, to_v1
 from aea.helpers.ipfs.base import IPFSHashOnly
 from aea_cli_ipfs.ipfs_utils import IPFSTool
 
-
 IPFS_URI_PREFIX = "ipfs://"
 BASE16_HASH_PREFIX = "f01701220"
 CONFIG_HASH_STRING_PREFIX = "0x"

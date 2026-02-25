@@ -29,7 +29,6 @@ from packages.valory.skills.abstract_round_abci.models import (
 )
 from packages.valory.skills.reset_pause_abci.rounds import Event, ResetPauseAbciApp
 
-
 MARGIN = 5
 
 Requests = BaseRequests

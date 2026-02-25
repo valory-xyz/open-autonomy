@@ -31,7 +31,6 @@ from packages.valory.skills.abstract_round_abci.models import (
 )
 from packages.valory.skills.offend_abci.rounds import Event, OffendAbciApp
 
-
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
 

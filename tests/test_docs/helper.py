@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains helper function to extract code from the .md files."""
+
 import os
 import re
 from enum import Enum
@@ -27,7 +28,6 @@ from typing import Callable, Dict, List, Optional
 import requests
 
 from tests.conftest import ROOT_DIR
-
 
 IPFS_HASH_REGEX = r"bafybei[A-Za-z0-9]{52}"
 PYTHON_LINE_COMMENT_REGEX = r"^#.*\n"

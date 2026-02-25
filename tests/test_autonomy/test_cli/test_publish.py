@@ -19,7 +19,6 @@
 
 """Test hash command group."""
 
-
 import os
 import shutil
 from pathlib import Path

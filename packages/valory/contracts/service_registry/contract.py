@@ -30,7 +30,6 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from web3.types import BlockData, EventData, TxReceipt
 
-
 PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
 ETHEREUM_IDENTIFIER = "ethereum"
 UNIT_HASH_PREFIX = "0x{metadata_hash}"

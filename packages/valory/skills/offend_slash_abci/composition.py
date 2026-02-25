@@ -30,7 +30,6 @@ from packages.valory.skills.abstract_round_abci.base import BackgroundAppConfig
 from packages.valory.skills.slashing_abci.composition import SlashingAbciApp
 from packages.valory.skills.slashing_abci.rounds import Event, SlashingCheckRound
 
-
 abci_app_transition_mapping: AbciAppTransitionMapping = {
     RegistrationAbci.FinishedRegistrationRound: OffendAbci.OffendRound,
     OffendAbci.FinishedOffendRound: ResetAndPauseAbci.ResetAndPauseRound,

@@ -17,6 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 """GrpcChannel for MockNode"""
+
 # pylint: skip-file
 
 import logging
@@ -28,7 +29,6 @@ import packages.valory.connections.abci.tendermint.abci.types_pb2 as abci_types 
 import packages.valory.connections.abci.tendermint.abci.types_pb2_grpc as tendermint_grpc  # type: ignore
 
 from .base import BaseChannel
-
 
 _default_logger = logging.getLogger(__name__)
 

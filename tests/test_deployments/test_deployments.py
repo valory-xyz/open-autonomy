@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests package for the 'deployments' functionality."""
+
 import json
 import os
 import re
@@ -55,7 +56,6 @@ from autonomy.deploy.generators.docker_compose.base import (
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
-
 
 deployment_generators: List[Any] = [
     DockerComposeGenerator,

@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/transaction_settlement_abci skill."""
-from pathlib import Path
 
+from pathlib import Path
 
 PACKAGE_DIR = Path(__file__).parents[1]

@@ -76,7 +76,6 @@ from packages.valory.skills.abstract_round_abci.utils import (
     is_json_serializable,
 )
 
-
 _logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base")
 
 OK_CODE = 0
