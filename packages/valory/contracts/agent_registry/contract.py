@@ -221,5 +221,5 @@ class AgentRegistryContract(Contract):
 
             return dict(is_valid=False)
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             return dict(is_valid=False, error=str(e))  # pragma: no cover
