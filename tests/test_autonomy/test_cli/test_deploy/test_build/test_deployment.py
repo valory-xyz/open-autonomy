@@ -955,7 +955,7 @@ class TestKubernetesBuild(BaseDeployBuildTest):
 
         build_config = self.load_kubernetes_config(build_dir)
         assert (
-            f"'image': '{get_default_author_from_cli_config() or  DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-"
+            f"'image': '{get_default_author_from_cli_config() or DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-"
             in str(build_config)
         )
 

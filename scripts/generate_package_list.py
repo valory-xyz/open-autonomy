@@ -70,7 +70,7 @@ def generate_table() -> None:
     # Table header
     content = (
         f"| {'Package name'.ljust(COL_WIDTH, ' ')} | {'Package hash'.ljust(COL_WIDTH, ' ')} | {'Description'.ljust(COL_WIDTH * 2, ' ')} |\n"
-        f"| {'-'*COL_WIDTH} | {'-'*COL_WIDTH} | {'-'*COL_WIDTH * 2} |\n"
+        f"| {'-' * COL_WIDTH} | {'-' * COL_WIDTH} | {'-' * (COL_WIDTH * 2)} |\n"
     )
 
     # Table rows
