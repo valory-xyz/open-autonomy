@@ -42,12 +42,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@master
+        with:
+          python-version: "3.10.9"
 
-      - name: Install pipenv via pipx
+      - name: Pipenv install requirements
         run: |
-          pipx install pipenv==2023.7.23
-          pipx ensurepath
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          pip install pipenv==2023.7.23
+          pipenv --clear
+          time pipenv install --dev --deploy
 
       - name: Set up Snyk CLI to check for security issues
         # Snyk can be used to break the build when it detects security issues.
@@ -72,7 +75,8 @@ jobs:
         # Runs Snyk Open Source (SCA) analysis and uploads result to Snyk.
       - name: Snyk Open Source monitor
         continue-on-error: true
-        run: snyk monitor --all-projects
+        run: |
+          snyk monitor --all-projects --exclude=deployments
 
       #   # Runs Snyk Infrastructure as Code (IaC) analysis and uploads result to Snyk.
       #   # Use || true to not fail the pipeline.
