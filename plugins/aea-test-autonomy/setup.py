@@ -24,7 +24,7 @@ from setuptools import setup  # type: ignore
 
 base_deps = [
     "open-aea[all]>=2.0.8,<3.0.0",
-    "pytest==7.4.4",
+    "pytest==8.4.2",
     "open-aea-ledger-ethereum>=2.0.8,<3.0.0",
     "docker==7.1.0",
 ]

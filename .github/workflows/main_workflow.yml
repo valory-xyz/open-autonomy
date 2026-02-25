@@ -104,7 +104,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.14"]
+        python-version: ["3.13"]  # use 3.14 after https://github.com/akaihola/darglint2/issues/44 is fixed
 
     timeout-minutes: 30
 
