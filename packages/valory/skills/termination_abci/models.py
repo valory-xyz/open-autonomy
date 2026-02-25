@@ -32,7 +32,9 @@ from packages.valory.skills.termination_abci.rounds import TerminationAbciApp
 from packages.valory.skills.transaction_settlement_abci.models import (
     RandomnessApi as TransactionSettlementRandomness,
 )
-from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
+from packages.valory.skills.transaction_settlement_abci.models import (
+    TransactionParams,
+)
 
 
 class SharedState(BaseSharedState):

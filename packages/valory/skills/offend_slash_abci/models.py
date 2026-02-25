@@ -31,7 +31,9 @@ from packages.valory.skills.offend_slash_abci.composition import OffendSlashAbci
 from packages.valory.skills.slashing_abci.models import (
     RandomnessApi as SlashingRandomness,
 )
-from packages.valory.skills.slashing_abci.models import SlashingParams
+from packages.valory.skills.slashing_abci.models import (
+    SlashingParams,
+)
 
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool

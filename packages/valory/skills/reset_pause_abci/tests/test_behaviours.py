@@ -28,7 +28,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB
+from packages.valory.skills.abstract_round_abci.base import (
+    AbciAppDB,
+)
 from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData as ResetSynchronizedSata,
 )

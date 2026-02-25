@@ -38,7 +38,9 @@ from aea.protocols.generator.common import (
 )
 from google.protobuf.descriptor import FieldDescriptor
 
-from packages.valory.connections.abci.connection import PUBLIC_ID
+from packages.valory.connections.abci.connection import (
+    PUBLIC_ID,
+)
 from packages.valory.connections.abci.connection import (
     _TendermintProtocolDecoder as Decoder,
 )

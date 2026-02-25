@@ -35,7 +35,10 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
 )
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 from packages.valory.skills.slashing_abci.payloads import SlashingTxPayload
-from packages.valory.skills.slashing_abci.rounds import Event, SlashingCheckRound
+from packages.valory.skills.slashing_abci.rounds import (
+    Event,
+    SlashingCheckRound,
+)
 from packages.valory.skills.slashing_abci.rounds import (
     SynchronizedData as SlashingSyncedData,
 )

@@ -25,7 +25,10 @@ from typing import Any, Dict, List, Optional
 from web3.types import Nonce, Wei
 
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
+from packages.valory.skills.abstract_round_abci.models import (
+    ApiSpecs,
+    BaseParams,
+)
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
@@ -33,7 +36,9 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.abstract_round_abci.models import TypeCheckMixin
+from packages.valory.skills.abstract_round_abci.models import (
+    TypeCheckMixin,
+)
 from packages.valory.skills.squads_transaction_settlement_abci.rounds import (
     SolanaTransactionSubmissionAbciApp,
 )

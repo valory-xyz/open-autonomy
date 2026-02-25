@@ -26,7 +26,9 @@ from unittest.mock import MagicMock, PropertyMock
 
 import pytest
 
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB
+from packages.valory.skills.abstract_round_abci.base import (
+    AbciAppDB,
+)
 from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData as SynchronizedData,
 )

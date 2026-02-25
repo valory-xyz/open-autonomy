@@ -51,7 +51,10 @@ from aea.helpers.transaction.base import (
     SignedTransaction,
 )
 from aea.helpers.transaction.base import State as TrState
-from aea.helpers.transaction.base import TransactionDigest, TransactionReceipt
+from aea.helpers.transaction.base import (
+    TransactionDigest,
+    TransactionReceipt,
+)
 from aea.skills.base import SkillContext
 from web3.types import Nonce
 

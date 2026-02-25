@@ -34,7 +34,11 @@ from aea.configurations.base import (
 from aea.configurations.base import (
     PACKAGE_TYPE_TO_CONFIG_CLASS as _PACKAGE_TYPE_TO_CONFIG_CLASS,
 )
-from aea.configurations.base import PackageConfiguration, ProtocolConfig, SkillConfig
+from aea.configurations.base import (
+    PackageConfiguration,
+    ProtocolConfig,
+    SkillConfig,
+)
 from aea.configurations.data_types import (
     Dependencies,
     Dependency,
