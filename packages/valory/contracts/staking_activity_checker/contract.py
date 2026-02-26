@@ -19,8 +19,6 @@
 
 """This module contains the class to connect to the `StakingActivityChecker` contract."""
 
-from enum import Enum
-
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract

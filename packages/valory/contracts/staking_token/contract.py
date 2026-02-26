@@ -19,8 +19,6 @@
 
 """This module contains the class to connect to the `StakingToken` contract."""
 
-from enum import Enum
-
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
@@ -190,7 +188,7 @@ class StakingTokenContract(Contract):
         contract = cls.get_instance(ledger_api, contract_address)
         duration = contract.functions.minStakingDuration().call()
         return dict(data=duration)
-    
+
 
     @classmethod
     def get_agent_ids(
