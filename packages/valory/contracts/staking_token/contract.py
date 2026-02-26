@@ -189,7 +189,6 @@ class StakingTokenContract(Contract):
         duration = contract.functions.minStakingDuration().call()
         return dict(data=duration)
 
-
     @classmethod
     def get_agent_ids(
         cls,
