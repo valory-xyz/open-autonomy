@@ -8,7 +8,7 @@ aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeifuv5yh7fc2oy5wgfq2bdvetn7hxg3rhsdrxmlkppj4ns2y6il4e4
   build/ERC20.json: bafybeiccjj4jwmpianz6vsxtubzg7bkssorapbcti4fx3e5d7g32pqmtee
-  contract.py: bafybeidiflld5zcfogh5orb2k6ptpu5k72d7gxfldo7m537cdyvv3valri
+  contract.py: bafybeihfa54dnt3gfkmv5old6rkqec2vrqcgnacds5cestba2fu6jcb2za
 fingerprint_ignore_patterns: []
 class_name: ERC20TokenContract
 contract_interface_paths:
@@ -22,11 +22,11 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==2.0.8
   open-aea-test-autonomy:
-    version: ==0.21.8
+    version: ==0.21.11
   packaging: {}
   py-eth-sig-utils: {}
   requests:
-    version: ==2.28.1
+    version: <2.32.5,>=2.28.1
   web3:
     version: <8,>=7.0.0
   eth-abi:

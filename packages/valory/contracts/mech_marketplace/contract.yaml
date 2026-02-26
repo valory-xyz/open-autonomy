@@ -2,14 +2,14 @@ name: mech_marketplace
 author: valory
 version: 0.1.0
 type: contract
-description: Mech Marketplace contract for the AgentMech project.
+description: Mech Marketplace contract.
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   BatchRequestIdStatusData.sol: bafybeiarqhq77lrobd76rbqmlowldrwjzucj4wy63junaowkw7e5477ilm
-  __init__.py: bafybeigqedpnruwcvjarngql7yfnpqwozvvgzcei2xcrp7mjf4ccspa62y
+  __init__.py: bafybeigxt2zte6jgemvrsebh5urxsyqryqcdounnevarelttgpz7wdaa64
   build/MechMarketplace.json: bafybeib3fopqudslnrl2ipmzqlzbbggvc6kb2rcdfasbbtuehcc7iv3gfe
-  contract.py: bafybeihz6zygwoqkauxcv6hp4pz5vnj5qlvzk2shxisn5a52q3u3verwru
+  contract.py: bafybeiaxqvtlupgf5ro6meena74uco65gwtieodlo6eoilzg7weufsafoa
 fingerprint_ignore_patterns: []
 class_name: MechMarketplaceContract
 contract_interface_paths:

@@ -6,9 +6,9 @@ description: Service staking token contract
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  __init__.py: bafybeicmgkagyhgwn2ktcdjbprijalbdyj26cvza4d3b7uvmehvy4mmr3i
+  __init__.py: bafybeibej7umzml4rv3js35u7yp42cuyfclmtrbok6hfhz4tyhffua3gda
   build/StakingToken.json: bafybeid4b4bkcrxytcb7o5m4guchthezjgwx2sbnv2vvcgtrh47ylevymu
-  contract.py: bafybeib5x52cbskkvut4zvc6mheqsg2pgngmokoianikahmacchnpj7ihy
+  contract.py: bafybeifbz6sgmc7baoqcoulu5qqza6vz32kerwl5wahutjx3frzbdjanjm
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: StakingTokenContract
@@ -18,6 +18,6 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==2.0.8
   open-aea-test-autonomy:
-    version: ==0.21.8
+    version: ==0.21.11
   web3:
     version: <8,>=7.0.0

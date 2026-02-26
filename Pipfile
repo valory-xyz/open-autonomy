@@ -53,7 +53,6 @@ pycryptodome = "==3.20.0"
 jsonschema = "<4.4.0,>=4.3.0"
 gql = "==3.5.0"
 py-eth-sig-utils = "*"
-requests-toolbelt = "==1.0.0"
 
 [requires]
 python_version = "3.10"

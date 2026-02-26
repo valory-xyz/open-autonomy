@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the dynamic_contribution contract definition."""
+"""This module contains the Mech Marketplace contract definition."""
 
 import logging
 from enum import Enum
@@ -243,16 +243,16 @@ class MechMarketplaceContract(Contract):
 
     @classmethod
     def get_marketplace_undelivered_reqs(  # pylint: disable=too-many-locals,unused-argument
-            cls,
-            ledger_api: LedgerApi,
-            contract_address: str,
-            wait_for_timeout_tasks: List[Dict[str, Any]],
-            timeout_tasks: List[Dict[str, Any]],
-            marketplace_address: str,
-            from_block: BlockIdentifier = "earliest",
-            to_block: BlockIdentifier = "latest",
-            max_block_window: int = 1000,
-            **kwargs: Any,
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        wait_for_timeout_tasks: List[Dict[str, Any]],
+        timeout_tasks: List[Dict[str, Any]],
+        marketplace_address: str,
+        from_block: BlockIdentifier = "earliest",
+        to_block: BlockIdentifier = "latest",
+        max_block_window: int = 1000,
+        **kwargs: Any,
     ) -> JSONLike:
         """Get the requests that are not delivered."""
         if from_block == "earliest":
@@ -264,26 +264,18 @@ class MechMarketplaceContract(Contract):
             to_block_batch: Union[int, str] = (from_block_batch + max_block_window) - 1
             if to_block_batch >= current_block:
                 to_block_batch = "latest"
-            requests_batch: List[
-                Dict[str, Any]
-            ] = cls.get_marketplace_request_events(
+            requests_batch: List[Dict[str, Any]] = cls.get_marketplace_request_events(
                 ledger_api,
                 checksumed_contract_address,
                 from_block_batch,
                 to_block_batch,
-            )[
-                "data"
-            ]
-            delivers_batch: List[
-                Dict[str, Any]
-            ] = cls.get_marketplace_deliver_events(
+            )["data"]
+            delivers_batch: List[Dict[str, Any]] = cls.get_marketplace_deliver_events(
                 ledger_api,
                 checksumed_contract_address,
                 from_block_batch,
                 to_block_batch,
-            )[
-                "data"
-            ]
+            )["data"]
             requests.extend(requests_batch)
             delivers.extend(delivers_batch)
         existing_ids = {rid for d in delivers for rid in d["requestIds"]}
@@ -295,8 +287,12 @@ class MechMarketplaceContract(Contract):
             for i, rid in enumerate(ids):
                 if rid in existing_ids:
                     continue  # skip delivered
-                st = cls.get_request_id_status(ledger_api, marketplace_address, rid)["data"]
-                info = cls.get_request_id_info(ledger_api, marketplace_address, rid)["data"]
+                st = cls.get_request_id_status(ledger_api, marketplace_address, rid)[
+                    "data"
+                ]
+                info = cls.get_request_id_info(ledger_api, marketplace_address, rid)[
+                    "data"
+                ]
                 pending_tasks.append(
                     {
                         "tx_hash": req.get("tx_hash"),
@@ -314,26 +310,34 @@ class MechMarketplaceContract(Contract):
         updated_wait: List[Dict[str, Any]] = []
         for existing_req in wait_for_timeout_tasks:
             request_id = existing_req["requestId"]
-            if request_id  not in existing_ids:
-                status = cls.get_request_id_status(ledger_api, marketplace_address, request_id)
+            if request_id not in existing_ids:
+                status = cls.get_request_id_status(
+                    ledger_api, marketplace_address, request_id
+                )
                 existing_req["status"] = status["data"]
                 updated_wait.append(existing_req)
         timed_out: List[Dict[str, Any]] = []
         for timed_req in timeout_tasks:
             request_id = timed_req["requestId"]
             if request_id not in existing_ids:
-                status = cls.get_request_id_status(ledger_api, marketplace_address, request_id)
+                status = cls.get_request_id_status(
+                    ledger_api, marketplace_address, request_id
+                )
                 timed_req["status"] = status["data"]
                 timed_out.append(timed_req)
-        return {"data": pending_tasks, "wait_for_timeout_tasks": updated_wait, "timed_out_requests": timed_out}
+        return {
+            "data": pending_tasks,
+            "wait_for_timeout_tasks": updated_wait,
+            "timed_out_requests": timed_out,
+        }
 
     @classmethod
     def get_marketplace_request_events(
-            cls,
-            ledger_api: LedgerApi,
-            contract_address: str,
-            from_block: BlockIdentifier = "earliest",
-            to_block: BlockIdentifier = "latest",
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        from_block: BlockIdentifier = "earliest",
+        to_block: BlockIdentifier = "latest",
     ) -> JSONLike:
         """Get the Request events emitted by the contract."""
         ledger_api = cast(EthereumApi, ledger_api)
@@ -360,11 +364,11 @@ class MechMarketplaceContract(Contract):
 
     @classmethod
     def get_marketplace_deliver_events(
-            cls,
-            ledger_api: LedgerApi,
-            contract_address: str,
-            from_block: BlockIdentifier = "earliest",
-            to_block: BlockIdentifier = "latest",
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        from_block: BlockIdentifier = "earliest",
+        to_block: BlockIdentifier = "latest",
     ) -> JSONLike:
         """Get the Deliver events emitted by the contract."""
         ledger_api = cast(EthereumApi, ledger_api)
@@ -388,7 +392,6 @@ class MechMarketplaceContract(Contract):
             for entry in entries
         )
         return {"data": deliver_events}
-
 
     @classmethod
     def process_tx_receipt(
@@ -549,18 +552,15 @@ class MechMarketplaceContract(Contract):
     @classmethod
     def get_request_id_status(
         cls,
-        ledger_api:LedgerApi,
+        ledger_api: LedgerApi,
         contract_address: str,
         request_id: bytes,
     ) -> JSONLike:
         """Fetch status for a given request id."""
         ledger_api = cast(EthereumApi, ledger_api)
         contract_instance = cls.get_instance(ledger_api, contract_address)
-        status = contract_instance.functions.getRequestStatus(
-            request_id
-        ).call()
+        status = contract_instance.functions.getRequestStatus(request_id).call()
         return dict(data=status)
-
 
     @classmethod
     def get_balance_tracker_for_mech_type(

@@ -2,12 +2,12 @@ name: agent_mech
 author: valory
 version: 0.1.0
 type: contract
-description: Agent mech marketplace contract.
+description: Agent Mech contract.
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeihygfmkbo4cegrqnz5ws6bbjaifubvk7r2uyvuanxpqy24l634tba
-  __init__.py: bafybeien2jiopu7htty6dwg6vtm43iwosnxhv6p27hoatlrf65hjf7a3ze
+  README.md: bafybeibygutu6yhowkumxdmjhlldtxk72ivhpdxco5h2gl7o2m3zbfb7yu
+  __init__.py: bafybeicmc2ccpqgvgpyapsb62djmgrtscww6djqirkpjysqixuxwcw4lve
   build/mech.json: bafybeiczngojkmncocmx33ddlwjdu3kicsz5hikymsuk4zytunf5aeogvy
   contract.py: bafybeieuqstlgmdndcyfx4jniev7yw6j4bv4mycxkheixpaah75poi6cgu
 fingerprint_ignore_patterns: []

@@ -6,9 +6,9 @@ description: Staking activity checker contract
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  __init__.py: bafybeigmmjlwkk7hhxdfrtl3doeplr5hj4ybdtkou24njj43butui6mbrq
+  __init__.py: bafybeidqcg3zmyc2m4txhq2necsqe7t5okfpjmylwozk2uqpap4t55nt2a
   build/StakingActivityChecker.json: bafybeics5mactf3d2mq5ncwyeiruojqurltcia5tqx7garazmopurlotam
-  contract.py: bafybeigmrohj5oey4qmtgiwnehl3rrggypeo3tdenilzfxydcw7nyaigkq
+  contract.py: bafybeifsxp3tolyda7fbkmytdzmepxnryf7nhffqircazatsugcpt5hbti
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: StakingActivityCheckerContract
@@ -18,6 +18,6 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==2.0.8
   open-aea-test-autonomy:
-    version: ==0.21.8
+    version: ==0.21.11
   web3:
     version: <8,>=7.0.0
