@@ -6,7 +6,6 @@ description: Mech Marketplace contract.
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  BatchRequestIdStatusData.sol: bafybeiarqhq77lrobd76rbqmlowldrwjzucj4wy63junaowkw7e5477ilm
   __init__.py: bafybeigxt2zte6jgemvrsebh5urxsyqryqcdounnevarelttgpz7wdaa64
   build/MechMarketplace.json: bafybeib3fopqudslnrl2ipmzqlzbbggvc6kb2rcdfasbbtuehcc7iv3gfe
   contract.py: bafybeiaxqvtlupgf5ro6meena74uco65gwtieodlo6eoilzg7weufsafoa
