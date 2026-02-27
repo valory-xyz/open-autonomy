@@ -7,27 +7,27 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeiff3e5cjvl74rtybyvodggnsxubw7agw37epoagwrpz6g2szufmxa
-  __init__.py: bafybeiaopodjnkdcukf3vw4racq552bzt22uh5oioebcaklwpnvjyihpfy
+  __init__.py: bafybeidiuv5qsfiqidy2d5x2mgb2tmpiedwwf3j5mkvxmv5227crmpouhi
   behaviours.py: bafybeices54uowgfsq67funxpl2b7k7xxbshiorgrrkmncdhqrcwnothnq
-  composition.py: bafybeihoddfltsv4nt34qstcw77ttoiwqssgaqhtgj4na7534wz4cq7sge
-  dialogues.py: bafybeigpwuzku3we7axmxeamg7vn656maww6emuztau5pg3ebsoquyfdqm
-  handlers.py: bafybeifnzry2revihwvjkvc6aqbbsdwvauw7jqv253m5clc23qbwepxfzu
-  models.py: bafybeiaoxx4n7c2zc4pcphh5laxil2d2ejq6kjbghb3rkt26a5utymnpva
+  composition.py: bafybeignjrr5yxqlk7amkm3kxqoo6m5iqseevnhn55jnk534jtypby4hae
+  dialogues.py: bafybeidd5caop4lj2egfuehw25qd742aavyeak4uskfux43nwjtdqwgfge
+  handlers.py: bafybeif5wx75tkqdqo5eatohdduyjjffcpcsitkrvtakjiwvkdn5fsngz4
+  models.py: bafybeihm6tshxai5t6pgvftaxmog6odvyvtuamvjmqgpu3yy6jellqcjvu
   tests/__init__.py: bafybeihg5ifbullyt64anjht5vlmspr6byo4rk6arcg5ufzmmw6xr5t77i
   tests/test_behaviours.py: bafybeiajcitxmshmwgkeizd4dnhb34t2w47wxh7lhcizhoimijnfgvswaq
-  tests/test_dialogues.py: bafybeibb3tlcp7cz76iounglv32tjgebclqi3wm4cslxf3neyeibyqy5t4
-  tests/test_handlers.py: bafybeif65ihrcfmhidos4wyq3ub2cbhhsrezanr3r3jyhgfhuxetjjl6im
-  tests/test_models.py: bafybeiectmzpvdgytmqt6b2rc22qx2bogudm7mtkcc2ol4q3l3ayvmx7sa
+  tests/test_dialogues.py: bafybeih72hcc32frjg7xihhcmu2vq5v6hxm4lwiorpvdhgn4y5oktnorie
+  tests/test_handlers.py: bafybeifmdibxcuoxt6uozjwh3sdjxvvhtmi2n5kpgfe7fg5vxircg2zuh4
+  tests/test_models.py: bafybeicyn2wp3vp5aiq7zboksd6dprfv3ktpfcqol5k4dkyq4b7sso6d3y
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeico2i67lk5wkgyvmu5ska7phbugxbfh4ofnm57vwpypis5zmpjnim
-- valory/offend_abci:0.1.0:bafybeiaklnmrqo37ghshvxfj66tzunpexxzxipe3au57hjslzjetzelchi
-- valory/registration_abci:0.1.0:bafybeiaur5o7xjf5jod2gzbhxa2m2l2m7z76rfs7gf2sfuf3ffjlqodaxy
-- valory/reset_pause_abci:0.1.0:bafybeibgbbt4yzd6amf2wuldrdvhyfqibjqx2uxhybqhrkumlp4jcfndia
-- valory/slashing_abci:0.1.0:bafybeib3fov3i2yo2qey5rtqxtt5blniveyodxh3kv6czoi2esqno7oz4m
+- valory/abstract_round_abci:0.1.0:bafybeicksbzbf72tohfxbvqh6xskp5flu63wjfgn43nsaadqpzendfxdmq
+- valory/offend_abci:0.1.0:bafybeiesakcpsmc6mixbannqdyizmoouemu62453p2zueofuo4f2i63b4y
+- valory/registration_abci:0.1.0:bafybeigk6vqszbt5xt4bt3nvkolbfkrymo2sgcatt27srn3dqfgbjykfe4
+- valory/reset_pause_abci:0.1.0:bafybeigmb4nkyi526rejfzvsxfapoidchydubm33zlygqldv3onderopo4
+- valory/slashing_abci:0.1.0:bafybeiaf2xerlu3ucjf4xup77gjby7hk7rmk4cxx77rrql6rhie2yxjusy
 behaviours:
   main:
     args: {}

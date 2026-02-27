@@ -7,14 +7,14 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeiercvjoct4tygo4oif5y4chnst2y7b6mhdgdj3zvoeakstbn4m7g4
-  connection.py: bafybeidshqttrtiz754vfp7g6uztt64cemdlalwismpb7746i3otyxo4uu
+  connection.py: bafybeihsipqgpwjyvhjau7im4yabiesa7n72uscubphwvznpqqdtspack4
   readme.md: bafybeihdrtloo2stz7frhfhtl5m7ewwigdeehnujf6julwj6c5pzr7iefu
   tests/__init__.py: bafybeicqjmce5v5ympy2rcryfh644rxrtujvbcuzk7ylmfmzynoh6wujx4
-  tests/test_connection.py: bafybeiaa5dv4ns4ly2gwcehjtbxiabb7ou6y7gbxtqumxx4lrhgtinyrt4
+  tests/test_connection.py: bafybeidwxgtq4v3hpov7xw47337un3kjr3y5rk4c2kwcycpfku2monu7pm
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
-- valory/ipfs:0.1.0:bafybeidqfs3njcishcwv4ymf4srxibw44u7qrnryxiwrg5ulk2h7myvt6q
+- valory/ipfs:0.1.0:bafybeibz5xqhxdbuvba7nuw2w6ardjermtcoqercopnypdplnaekf3joam
 class_name: IpfsConnection
 config:
   ipfs_domain: null

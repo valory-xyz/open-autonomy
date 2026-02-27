@@ -7,26 +7,26 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeigyx3zutnbq2sqlgeo2hi2vjgpmnlspnkyh4wemjfrqkrpel27bwi
-  __init__.py: bafybeicx55fcmu5t2lrrs4wqi6bdvsmoq2csfqebyzwy6oh4olmhnvmelu
+  __init__.py: bafybeigc6wn6k4xansbse6wn5pzb5fycbfgjrdqrimoratxqllriilj7ru
   behaviours.py: bafybeich7tmipn2zsuqsmhtbrmmqys3mpvn3jctx6g3kz2atet2atl3j6q
-  dialogues.py: bafybeigabhaykiyzbluu4mk6bbrmqhzld2kyp32pg24bvjmzrrb74einwm
+  dialogues.py: bafybeiegfdtxea4i5td3usnbyst5x23f7jcwotg54whmafmmwxqnnsnut4
   fsm_specification.yaml: bafybeietrxvm2odv3si3ecep3by6rftsirzzazxpmeh73yvtsis2mfaali
-  handlers.py: bafybeie22h45jr2opf2waszr3qt5km2fppcaahalcavhzutgb6pyyywqxq
-  models.py: bafybeigkir75p2tqldxd7zggfhvf5uu2maqw3d4h4nlgqntpsj3pygh3ti
+  handlers.py: bafybeieusher5u4jkor3ie6ctq2tanjeqmrhxszpvctch5bw6jalg2xzb4
+  models.py: bafybeid44p4lm5k5t7clebckiz363tfgf2dk426gk6zeqjekzgqcbfkmwu
   payloads.py: bafybeihychpsosovpyq7bh6aih2cyjkxr23j7becd5apetrqivvnolzm7i
   rounds.py: bafybeiakwxqf6e2h3svdroweoc3nx6bsd35kstek45isuecunf4ul2qoxy
   tests/__init__.py: bafybeiclijinxvycj7agcagt2deuuyh7zxyp7k2s55la6lh3jghzqvfux4
-  tests/test_behaviours.py: bafybeigblrmkjci6at74yetaevgw5zszhivpednbok7fby4tqn7zt2vemy
+  tests/test_behaviours.py: bafybeih4jziaerdqu6uxal7qrtp7mposua265y4sbr3rj5c4zhaisse6la
   tests/test_dialogues.py: bafybeif7pe7v34cfznzv4htyuevx733ersmk4bqjcgajn2535jmuujdmzm
   tests/test_handlers.py: bafybeiggog2k65ijtvqwkvjvmaoo6khwgfkeodddzl6u76gcvvongwjawy
   tests/test_payloads.py: bafybeifj343tlaiasebfgahfxehn4oi74omgah3ju2pze2fefoouid2zdq
-  tests/test_rounds.py: bafybeifz67lfay4pkz5ipblpfpadl4zmd5riajkv6sdsiby22z24gp3cxa
+  tests/test_rounds.py: bafybeieg5qazpcttfki3gxmz5qzp7by4kxqubvyzorshmzwivzw2ea5wmq
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeico2i67lk5wkgyvmu5ska7phbugxbfh4ofnm57vwpypis5zmpjnim
+- valory/abstract_round_abci:0.1.0:bafybeicksbzbf72tohfxbvqh6xskp5flu63wjfgn43nsaadqpzendfxdmq
 behaviours:
   main:
     args: {}
