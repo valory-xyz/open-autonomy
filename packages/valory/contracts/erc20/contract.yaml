@@ -7,7 +7,7 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeifuv5yh7fc2oy5wgfq2bdvetn7hxg3rhsdrxmlkppj4ns2y6il4e4
-  build/ERC20.json: bafybeiccjj4jwmpianz6vsxtubzg7bkssorapbcti4fx3e5d7g32pqmtee
+  build/ERC20.json: bafybeihbrreyjqryea4sc2fv2rmelfsilosozmuskgyyzlrtcuhmmh7ieu
   contract.py: bafybeicg4rzshvmwkswkqafaihgnrvrzzkt52dichqqrczubiuk6325uc4
 fingerprint_ignore_patterns: []
 class_name: ERC20TokenContract
