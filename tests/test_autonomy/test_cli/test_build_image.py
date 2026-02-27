@@ -49,9 +49,9 @@ class TestBuildImage(BaseCliTest):
     package_hash: str
     package_id: PackageId
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup class."""
-        super().setup()
+        super().setup_method()
 
         self.docker_api = docker.APIClient()
         self.package_id = PackageId(

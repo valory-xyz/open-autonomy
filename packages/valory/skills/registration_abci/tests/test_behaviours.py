@@ -176,15 +176,15 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     _time_in_future = datetime.datetime.now() + datetime.timedelta(hours=10)
     _time_in_past = datetime.datetime.now() - datetime.timedelta(hours=10)
 
-    def setup(self, **kwargs: Any) -> None:
+    def setup_method(self, **kwargs: Any) -> None:
         """Setup"""
-        super().setup(**kwargs)
+        super().setup_method(**kwargs)
         self.state.params.__dict__["sleep_time"] = 0.01
         self.state.params.__dict__["share_tm_config_on_startup"] = True
 
-    def teardown(self, **kwargs: Any) -> None:
+    def teardown_method(self, **kwargs: Any) -> None:
         """Teardown."""
-        super().teardown(**kwargs)
+        super().teardown_method(**kwargs)
         self.state.initial_tm_configs = {}
 
     @property

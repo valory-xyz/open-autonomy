@@ -474,9 +474,9 @@ class TestServiceManager(BaseServiceManagerTest):
 class TestERC20AsBond(BaseServiceManagerTest):
     """Test ERC20 token as bond."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
         erc20_instance = Contract.from_dir(
             ROOT_DIR / "packages" / "valory" / "contracts" / "erc20"
         ).get_instance(
@@ -638,9 +638,9 @@ class TestERC20AsBond(BaseServiceManagerTest):
 class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
     """Test service deployment with same multisig."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup class."""
-        super().setup()
+        super().setup_method()
         self.ledger_api._api = Web3(
             HTTPProvider(
                 endpoint_uri="http://127.0.0.1:8545",

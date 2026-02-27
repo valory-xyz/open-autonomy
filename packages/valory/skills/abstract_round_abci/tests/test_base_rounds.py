@@ -55,11 +55,11 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
 class TestCollectionRound(_BaseRoundTestClass):
     """Test class for CollectionRound."""
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
 
         self.test_round = DummyCollectionRound(
             synchronized_data=self.synchronized_data, context=MagicMock()

@@ -46,7 +46,7 @@ class TestLoadEnvFile:
         """Generate random string."""
         return "".join([random.choice(string.ascii_letters) for i in range(n)])  # nosec
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test"""
 
         self._t = tempfile.TemporaryDirectory()
@@ -85,7 +85,7 @@ class TestLoadEnvFile:
             load_env_file(file=json_file, serialize_json=True)
             assert json.loads(os.environ[self.env_var]) == env_var_value
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Test teardown"""
         os.chdir(self.cwd)
         self._t.cleanup()

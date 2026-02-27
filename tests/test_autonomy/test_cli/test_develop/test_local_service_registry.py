@@ -49,9 +49,9 @@ class TestRunServiceLocally(BaseCliTest):
     expected_network_address = "http://localhost:8545"
     running_process: multiprocessing.Process
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
         os.chdir(self.t)
 
     def test_run_service_locally(

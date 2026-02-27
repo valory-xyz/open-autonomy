@@ -95,7 +95,7 @@ class TestServiceBuilder:
         """Setup test class."""
         cls.cwd = Path.cwd()
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test."""
@@ -631,7 +631,7 @@ class TestServiceBuilder:
             == '"Hello from agent 1"'
         )
 
-    def teardown(
+    def teardown_method(
         self,
     ) -> None:
         """Teardown test."""

@@ -38,7 +38,7 @@ from packages.valory.skills.abstract_round_abci.io_.store import SupportedFilety
 class TestLoader:
     """Tests for the `Loader`."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup the tests."""
         self.json_loader = Loader(SupportedFiletype.JSON, None)
 

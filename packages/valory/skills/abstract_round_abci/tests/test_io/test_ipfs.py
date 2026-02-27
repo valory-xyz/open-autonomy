@@ -45,7 +45,7 @@ use_ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
 class TestIPFSInteract:
     """Test `IPFSInteract`."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test class."""
         self.ipfs_interact = IPFSInteract()
 

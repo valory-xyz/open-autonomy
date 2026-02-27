@@ -291,7 +291,7 @@ class TestRandomnessBehaviour(BaseDummyBehaviour):
         self.behaviour.clean_up()
         self.behaviour.context.randomness_api.reset_retries.assert_called_once()
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown run after each test method."""
         self.behaviour.context.randomness_api.increment_retries.reset_mock()
 

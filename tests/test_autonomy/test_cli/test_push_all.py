@@ -40,10 +40,10 @@ class TestPushAll(BaseCliTest):
     cli_options: Tuple[str, ...] = ("push-all", "--remote")
     packages_dir: Path
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
 
-        super().setup()
+        super().setup_method()
 
         self.packages_dir = self.t / PACKAGES
         shutil.copytree(ROOT_DIR / PACKAGES, self.packages_dir)

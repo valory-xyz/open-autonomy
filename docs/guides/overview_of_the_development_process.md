@@ -34,7 +34,7 @@ To follow the next sections, you need to populate the local registry with a numb
         "agent/valory/hello_world/0.1.0": "bafybeigfvkvjaqnelvjgrl2uroxdrwlcsabnusgdnkbsu6smwtg6skd52y",
         "connection/valory/abci/0.1.0": "bafybeief5zccg4nt2oy5pjnmr2mjv267e6li2jcshpqybgrnycr6lektya",
         "connection/valory/http_client/0.23.0": "bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4",
-        "connection/valory/ipfs/0.1.0": "bafybeiehghruhrjmqx7sspdajhx4fiomkrhmxqdn6iyunhlzrmnrcmubgu",
+        "connection/valory/ipfs/0.1.0": "bafybeiga63e5j7tysip655civogtyvybp5f3i5h53uohzy4lsz53flgfim",
         "connection/valory/ledger/0.19.0": "bafybeidxzeygks5zcky4u2ztcdufzptssgf6uqytxofnn6yta7qq6jsim4",
         "contract/valory/service_registry/0.1.0": "bafybeic6fq6ry7grxegvjcbaujonycvfq5d5grgr53kaffhbkfffvmvyni",
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",
@@ -45,8 +45,8 @@ To follow the next sections, you need to populate the local registry with a numb
         "protocol/valory/ipfs/0.1.0": "bafybeibz5xqhxdbuvba7nuw2w6ardjermtcoqercopnypdplnaekf3joam",
         "protocol/valory/ledger_api/1.0.0": "bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi",
         "protocol/valory/tendermint/0.1.0": "bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq",
-        "skill/valory/abstract_abci/0.1.0": "bafybeibdvszwimqp3nvnlm7pd5yygvfnul44mov773qpn6slllbfbtjj5y",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeibfmunnjpozeko2rsgf3mujhgflze6edxap6nx6xgdtbykfq2jhw4",
+        "skill/valory/abstract_abci/0.1.0": "bafybeibzvjggdw2b7dburuppjr5hznmsp5ficjjaxfobrospvwleoca24i",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeicfyk5lub5ikkh6ebuailrxwvgexe2onumeqevciahwdsxgj7zlpm",
         "skill/valory/hello_world_abci/0.1.0": "bafybeibj7uripgimp6eklmkltpo2gwqyinq524wficoulod3b5ehzrivv4",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu"
     }

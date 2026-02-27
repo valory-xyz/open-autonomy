@@ -170,9 +170,9 @@ class BaseDeployBuildTest(BaseCliTest):
     keys_file: Path
     spec: ServiceBuilder
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
-        super().setup()
+        super().setup_method()
 
         self.keys_file = self.t / "keys.json"
         shutil.copytree(ROOT_DIR / PACKAGES, self.t / PACKAGES)
@@ -334,9 +334,9 @@ class BaseDeployBuildTest(BaseCliTest):
 class TestLocalhostBuilds(BaseDeployBuildTest):
     """Test localhost builds."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test for localhost deployment."""
-        super().setup()
+        super().setup_method()
         shutil.copy(
             ROOT_DIR
             / PACKAGES
@@ -384,9 +384,9 @@ class TestLocalhostBuilds(BaseDeployBuildTest):
                 "0x0000000000000000000000000000000000000000000000000000000000000001"
             )
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown method."""
-        super().teardown()
+        super().teardown_method()
         DEFAULT_CLI_CONFIG["registry_config"]["settings"][REGISTRY_LOCAL][
             "default_packages_path"
         ] = None
@@ -428,9 +428,9 @@ class TestLocalhostBuilds(BaseDeployBuildTest):
 class TestDockerComposeBuilds(BaseDeployBuildTest):
     """Test docker-compose build."""
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown method."""
-        super().teardown()
+        super().teardown_method()
         os.environ.pop(AUTONOMY_PKEY_PASSWORD, None)
 
     def test_docker_compose_build(
@@ -994,9 +994,9 @@ class TestKubernetesBuild(BaseDeployBuildTest):
 class TestExposePorts(BaseDeployBuildTest):
     """Test expose ports from service config."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
 
         service_data = get_dummy_service_config(file_number=1)
         service_data[0]["deployment"] = {
@@ -1073,9 +1073,9 @@ class TestExtraVolumes(BaseDeployBuildTest):
 
     volume: Path
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
 
         self.volume = self.t / "extra_volume"
         service_data = get_dummy_service_config(file_number=1)
@@ -1167,9 +1167,9 @@ class TestLoadEnvVars(BaseDeployBuildTest):
     env_var_path = "SKILL_DUMMY_SKILL_MODELS_PARAMS_ARGS_HELLO_WORLD_MESSAGE"
     env_var_value = "ENV_VAR_VALUE"
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
         service_data = get_dummy_service_config(file_number=4)
         with open("./service.yaml", "w+") as fp:
             yaml.dump_all(service_data, fp)
@@ -1217,9 +1217,9 @@ class TestLoadEnvVars(BaseDeployBuildTest):
 class TestResourceSpecification(BaseDeployBuildTest):
     """Test expose ports from service config."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
         service_data = get_dummy_service_config(file_number=4)
         with open("./service.yaml", "w+") as fp:
             yaml.dump_all(service_data, fp)

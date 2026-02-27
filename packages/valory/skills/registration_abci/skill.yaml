@@ -16,7 +16,7 @@ fingerprint:
   payloads.py: bafybeiacrixfazch2a5ydj7jfk2pnvlxwkygqlwzkfmdeldrj4fqgwyyzm
   rounds.py: bafybeih4cjgizw64dhrswclidmq5dgbemk5nahxebalmoyu72df6ul7j7i
   tests/__init__.py: bafybeiab2s4vkmbz5bc4wggcclapdbp65bosv4en5zaazk5dwmldojpqja
-  tests/test_behaviours.py: bafybeih3gqv4mjk4g5u6gip5gqruwfmkwgjr6oab5f63dwxiizxmakfrrq
+  tests/test_behaviours.py: bafybeiadg5wvxgowtok7pozll25yxxp3xgcvhsr3cgm5jrovwbczlsmosu
   tests/test_dialogues.py: bafybeibeqnpzuzgcfb6yz76htslwsbbpenihswbp7j3qdyq42yswjq25l4
   tests/test_handlers.py: bafybeifpnwaktxckbvclklo6flkm5zqs7apmb33ffs4jrmunoykjbl5lni
   tests/test_models.py: bafybeiewxl7nio5av2aukql2u7hlhodzdvjjneleba32abr42xeirrycb4
@@ -32,7 +32,7 @@ protocols:
 - valory/http:1.0.0:bafybeidxkp3vga7t6x2pbt2tpkgyaxa5bgpdgryao54py7w3yxyzr7neoy
 - valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeibfmunnjpozeko2rsgf3mujhgflze6edxap6nx6xgdtbykfq2jhw4
+- valory/abstract_round_abci:0.1.0:bafybeicfyk5lub5ikkh6ebuailrxwvgexe2onumeqevciahwdsxgj7zlpm
 behaviours:
   main:
     args: {}

@@ -41,11 +41,11 @@ class TestDocstrings(BaseCliTest):
     cli_options: Tuple[str, ...] = ("analyse", "docstrings")
     rounds_file = Path(PACKAGES, "valory", "skills", skill_name, "rounds.py")
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test method."""
-        super().setup()
+        super().setup_method()
 
         os.chdir(self.t)
 

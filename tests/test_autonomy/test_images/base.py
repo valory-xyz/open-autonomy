@@ -45,7 +45,7 @@ class BaseImageBuildTest:
 
         cls.client = docker.from_env()
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
         self.running_containers = []
 
@@ -81,7 +81,7 @@ class BaseImageBuildTest:
 
         return True, output
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown test."""
 
         for container in self.running_containers:

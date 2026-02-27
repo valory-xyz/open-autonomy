@@ -130,9 +130,9 @@ class BaseChainInteractionTest(BaseCliTest):
 
     key_file: Path = ETHEREUM_KEY_DEPLOYER
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
 
     @classmethod
     def setup_class(cls) -> None:

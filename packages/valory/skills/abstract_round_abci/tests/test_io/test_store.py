@@ -39,7 +39,7 @@ from packages.valory.skills.abstract_round_abci.io_.store import (
 class TestStorer:
     """Tests for the `Storer`."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup the tests."""
         self.path = "tmp"
         self.json_storer = Storer(SupportedFiletype.JSON, None, self.path)

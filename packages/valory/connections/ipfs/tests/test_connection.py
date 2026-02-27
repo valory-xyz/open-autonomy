@@ -54,7 +54,7 @@ ANY_SKILL = "skill/any:0.1.0"
 class TestIpfsConnection:
     """Tests for IpfsConnection"""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         configuration = ConnectionConfig(
             ipfs_domain=LOCAL_IPFS,

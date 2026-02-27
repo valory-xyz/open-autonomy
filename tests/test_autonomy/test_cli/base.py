@@ -55,7 +55,7 @@ class BaseCliTest:
         cls.cli_runner = CliRunner()
         cls.cwd = Path.cwd().absolute()
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test."""
@@ -90,7 +90,7 @@ class BaseCliTest:
             stderr = stderr.replace("\r", "")
         return process.returncode, stdout, stderr
 
-    def teardown(
+    def teardown_method(
         self,
     ) -> None:
         """Teardown method."""
