@@ -52,6 +52,7 @@ eth-abi = "==5.2.0"
 pycryptodome = "==3.20.0"
 jsonschema = "<4.4.0,>=4.3.0"
 gql = "==3.5.0"
+py-eth-sig-utils = "*"
 
 [requires]
 python_version = "3.10"
