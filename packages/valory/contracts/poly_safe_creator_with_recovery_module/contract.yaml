@@ -20,6 +20,6 @@ dependencies:
   eth-utils:
     version: ==5.3.0
   open-aea-ledger-ethereum:
-    version: ==2.0.8
+    version: ==2.1.0rc1
   open-aea-test-autonomy:
     version: ==0.21.11

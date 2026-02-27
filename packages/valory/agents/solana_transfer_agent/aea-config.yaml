@@ -66,9 +66,9 @@ logging_config:
       propagate: false
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.0.8
+    version: ==2.1.0rc1
   open-aea-ledger-solana:
-    version: ==2.0.8
+    version: ==2.1.0rc1
   open-aea-test-autonomy:
     version: ==0.21.11
 customs: []
