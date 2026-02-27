@@ -226,6 +226,7 @@ class TestPythonSnippets(BaseTestDocCode):
         "docs/demos/price_oracle_technical_details.md",  # price oracle has been extracted to a separate repo on #1441
         "docs/advanced_reference/developer_tooling/benchmarking.md",  # just placeholder examples
         "docs/configure_service/on-chain_deployment_checklist.md",  # just placeholder examples
+        "docs/advanced_reference/testing_behaviours.md",  # just placeholder examples
     ]
 
 
