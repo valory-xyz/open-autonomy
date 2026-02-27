@@ -68,6 +68,7 @@ config:
     home: null
     consensus_create_empty_blocks: true
   use_grpc: false
+  use_mock: false
   use_tendermint: true
 excluded_protocols: []
 restricted_to_protocols: []
