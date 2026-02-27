@@ -53,4 +53,4 @@ jsonschema = "<4.24.0,>=4.3.0"
 gql = "==3.5.0"
 
 [requires]
-python_version = "3.13"
+python_version = "3.14"
