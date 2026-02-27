@@ -135,7 +135,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
             for param_name, param_value in kwargs["param_overrides"].items():
                 cls.behaviour.context.params.__dict__[param_name] = param_value
 
-    def setup(self, **kwargs: Any) -> None:
+    def setup_method(self, **kwargs: Any) -> None:
         """
         Set up the test method.
 
@@ -143,7 +143,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
 
         :param kwargs: the keyword arguments passed to _prepare_skill
         """
-        super().setup(**kwargs)
+        super().setup_method(**kwargs)
         self.behaviour.setup()
         self._skill.skill_context.state.setup()
         self._skill.skill_context.state.round_sequence.end_sync()
@@ -420,9 +420,9 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
         if getattr(cls, "old_tx_type_to_payload_cls", False):
             _MetaPayload.registry = cls.old_tx_type_to_payload_cls
 
-    def teardown(self, **kwargs: Any) -> None:
+    def teardown_method(self, **kwargs: Any) -> None:
         """Teardown."""
-        super().teardown(**kwargs)
+        super().teardown_method(**kwargs)
         self.benchmark_dir.cleanup()
 
 

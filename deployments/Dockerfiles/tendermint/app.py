@@ -157,9 +157,9 @@ class PeriodDumper:
         self.dump_dir = dump_dir or Path("/tm_state")
 
         if self.dump_dir.is_dir():
-            shutil.rmtree(
+            shutil.rmtree(  # pylint: disable=deprecated-argument
                 str(self.dump_dir), onerror=self.readonly_handler
-            )  # pylint: disable=deprecated-argument
+            )
         self.dump_dir.mkdir(exist_ok=True)
 
     @staticmethod
