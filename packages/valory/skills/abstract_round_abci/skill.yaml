@@ -149,7 +149,7 @@ dependencies:
   open-aea-test-autonomy:
     version: ==0.21.11
   protobuf:
-    version: <4.25.0,>=4.21.6
+    version: <6,>=5
   py-ecc:
     version: ==8.0.0
   pytest:

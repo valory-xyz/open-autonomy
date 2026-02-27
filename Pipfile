@@ -37,7 +37,7 @@ open-aea-ledger-cosmos = "==2.1.0rc1"
 grpcio = "==1.78.1"
 hypothesis = "==6.21.6"
 # latest supported for Python 3.7
-protobuf = "<4.25.0,>=4.21.6"
+protobuf = "<6,>=5"
 pytz = "==2022.2.1"
 py-ecc = "==8.0.0"
 python-dotenv = ">=0.14.5,<0.22.0"

@@ -60,7 +60,7 @@ base_deps = [
     "docker==7.1.0",
     "hexbytes",
     "jsonschema<4.4.0,>=4.3.0",
-    "protobuf<4.25.0,>=4.21.6",
+    "protobuf<6,>=5",
     "gql==3.5.0",
     "requests<2.33.0,>=2.28.1",
     "requests-toolbelt==1.0.0",  # Required for graphql client
