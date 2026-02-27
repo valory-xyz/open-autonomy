@@ -50,7 +50,7 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.1.0rc2
+    version: ==2.1.0rc3
   open-aea-test-autonomy:
     version: ==0.21.11
 customs: []
