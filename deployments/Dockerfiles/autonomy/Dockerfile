@@ -1,4 +1,4 @@
-ARG AEA_VERSION=2.1.0rc1
+ARG AEA_VERSION=2.1.0rc2
 
 FROM valory/open-aea-user:${AEA_VERSION}
 

@@ -59,9 +59,9 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-cosmos:
-    version: ==2.1.0rc1
+    version: ==2.1.0rc2
   open-aea-ledger-ethereum:
-    version: ==2.1.0rc1
+    version: ==2.1.0rc2
   open-aea-test-autonomy:
     version: ==0.21.11
 skill_exception_policy: stop_and_exit
