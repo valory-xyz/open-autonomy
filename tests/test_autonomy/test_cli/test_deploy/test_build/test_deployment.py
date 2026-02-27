@@ -304,7 +304,7 @@ class BaseDeployBuildTest(BaseCliTest):
                 "ID": "0",
                 "AEA_AGENT": f"valory/register_reset:0.1.0:{hash_}",
                 "LOG_LEVEL": INFO,
-                "AEA_PASSWORD": "",
+                "AEA_PASSWORD": "",  # nosec
                 "CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_ADDRESS": "http://host.docker.internal:8545",
                 "CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_CHAIN_ID": "31337",
                 "CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_POA_CHAIN": "False",
