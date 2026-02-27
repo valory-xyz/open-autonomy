@@ -34,7 +34,7 @@ Provides better cancel behaviour: on cancel it will wait till cancelled complete
 #### `__`init`__`
 
 ```python
-def __init__(coro: Union[Coroutine[Any, Any, Any], Generator[Any, None, Any]],
+def __init__(coro: Union[Coroutine[Any, Any, Any]],
              loop: AbstractEventLoop) -> None
 ```
 
@@ -132,9 +132,7 @@ Run code inside thread.
 #### call
 
 ```python
-def call(
-        coro: Union[Coroutine[Any, Any, Any], Generator[Any, None,
-                                                        Any]]) -> Any
+def call(coro: Union[Coroutine[Any, Any, Any]]) -> Any
 ```
 
 Run a coroutine inside the event loop.
@@ -182,7 +180,7 @@ Set up the class.
 #### execute
 
 ```python
-def execute(coro: Union[Coroutine[Any, Any, Any], Generator[Any, None, Any]],
+def execute(coro: Union[Coroutine[Any, Any, Any]],
             timeout: float = DEFAULT_ASYNC_TIMEOUT) -> Any
 ```
 

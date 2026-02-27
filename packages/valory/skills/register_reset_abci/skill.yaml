@@ -7,13 +7,13 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeigoqyrvnxe6rk7jbbuqia73wym2gckucwr2dut2erivmzp3ypm7p4
-  __init__.py: bafybeidjgupscvuvvvza5llvnkrx45bv4vpcninpt6oqmmth4kh6s355pm
+  __init__.py: bafybeigi2errhm5qixiv5jl2tk4dxxsjph6e5iu4cvtb2d2vgpxxxwudz4
   behaviours.py: bafybeierwaykvll6vrzd5ck55ts7k4xlyyjp7uwvtzwk3qxiiickplkyjq
-  composition.py: bafybeigtsxszmw3t3lscnheup5av53a7xi3ov3d7ep3bwxcinewy7s5cl4
-  dialogues.py: bafybeiegfdtxea4i5td3usnbyst5x23f7jcwotg54whmafmmwxqnnsnut4
+  composition.py: bafybeih42ofvwip6me3c7kxddkhpiae7wkqciabfs2qljls5lxb5m36aue
+  dialogues.py: bafybeiafgwadv6kzts6yx5gtjyuvaftnofyn3rrwvczfd5seihpydzukju
   fsm_specification.yaml: bafybeiabsy6pmiv6bd2jvn3gagbv6sm553vsm3krfpejcjiyrrlsgphkqi
-  handlers.py: bafybeif5fks3rmwkrfh7fp7ooujkl3ueagx34tj3ogbwzxrbaxxkstxkca
-  models.py: bafybeibatz44avwjhodjva7iyslmudafd7o6zo4a67dglaontqxvydzzee
+  handlers.py: bafybeif77byb45buljvgijerp3bhba7nglzdp5uxi2kpzoanevudscyo3m
+  models.py: bafybeiacsgkqlmfq2jrly32rnctskjv4g4k3uxeolmyvxemj6phqo6u3gu
   tests/__init__.py: bafybeifyyzb3rbknjnqrdsp34pya3koxyihbbvoiiuh3rxttehoolzch5e
   tests/test_behaviours.py: bafybeiev3itsy23bwnjqvsxgnsk4ivmrfwzusy626dj67tdprg6ig3vw3m
   tests/test_dialogues.py: bafybeiduhiqmywlfls2rlhtzrikurbapvivscr6wbvr4lvdsegnernet34
@@ -24,9 +24,9 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiaxhsqnlxilddmvyzfdsustd6j274pbl5s4ugrwg6nn3whnxsg2em
-- valory/registration_abci:0.1.0:bafybeif5fpsaqxhvnvdliqe7tahyjg3k2hya54u2sx3gu7k675hal7wgua
-- valory/reset_pause_abci:0.1.0:bafybeidf2odt57uavqxl5mk5s66qe7b6cwqny6333zaozyei5qeyerjqnu
+- valory/abstract_round_abci:0.1.0:bafybeid7uilyaxie5iga5z4f3hesh4wlc2rwxw6ehox2quywypcy3hxeni
+- valory/registration_abci:0.1.0:bafybeiabnfdiydffjvyom2qyp7nvdvstfbri7fjwdg5hpj5aq2nilzmpwy
+- valory/reset_pause_abci:0.1.0:bafybeielehltufi4cipcbtul6wrmsprbja7l6brfbo6rhbbcfbsxc27ewm
 behaviours:
   main:
     args: {}

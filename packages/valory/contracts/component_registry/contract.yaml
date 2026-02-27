@@ -8,9 +8,9 @@ aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeihqlwkxffyqkqzzoqbm3t5caqxl75po6yk5cfjg5jp56dy47qqmv4
   build/ComponentRegistry.json: bafybeicssz7csipr7lhxvro6chtd45f6iqykserv35ppjtxetpx75ouno4
-  contract.py: bafybeiaoskxgdwlzoctxxmtuoqocatfd2vqmiepn4pobdesv6ff5ahwba4
+  contract.py: bafybeihbfxfnzfxdb2sr5jf46fn7akrhdqqaok66g2qit4mrdhl2z3u3ae
   tests/__init__.py: bafybeihe42ydu66tbdogfyjh3rqgnwuhglnwll47aaagjj6b3fjngrxauq
-  tests/test_contract.py: bafybeiboa2swidaczz7emscgwh6hloq4ovt367x6ztovtwj653zvzrqlge
+  tests/test_contract.py: bafybeidyajptylhqnwkndedey3w3mlv6uuyp4vckzadlixzhkbgbjbhla4
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: ComponentRegistryContract

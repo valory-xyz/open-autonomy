@@ -6,31 +6,31 @@ description: Slashing skill.
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  __init__.py: bafybeig5ctgii7jsf4mrj5fluyyo3x2w7crnl4nokmzqfgsdodqv4hpqpe
-  behaviours.py: bafybeifugbbgu5nisuxpq35amnmin6v2k2nhozoy4u3aea5fo453jdmghe
-  composition.py: bafybeidreop3btfgepkefdf5dwzi5s4plmsucmmmh7bklukxvej2reo3xm
-  dialogues.py: bafybeidd5caop4lj2egfuehw25qd742aavyeak4uskfux43nwjtdqwgfge
-  handlers.py: bafybeihbhqpmrldbvbnv2ioqgjljpjjepgvxmrzpz3ystwadabpmgsgace
-  models.py: bafybeihmcnvvijbtmb3ogugc76glqje7ezrzo35zfrbnvzxjkdzxrg657y
+  __init__.py: bafybeiair24srpl7qhfbm4qsg7difa5ndnstassnr622rqugz5idtrayoi
+  behaviours.py: bafybeigzgm6lthik5ebhvfxghs3oujbf3e3p74coabdnu7utpkgdlorvfi
+  composition.py: bafybeica4wfhfvgg6755wefr7hqbzhgh7fldotsorxke3vombdhtjgthky
+  dialogues.py: bafybeieyicxgks5it6a5llkwithftdv32dosfmwg3zbxgaleltr7yn47ku
+  handlers.py: bafybeif3wdz2t2v2ds2knuk6rwkvdkhngzzfd6fstwtsut2nq2swtpofqe
+  models.py: bafybeih4x7d5pwsx4ovfkky5cv6abnkuqfjznihwdap5wz7scjbdr2hlzi
   payloads.py: bafybeif6hfnib6yrurrju4dtxnccwsnoi2keqp7sr4qas6xegseunygydu
   rounds.py: bafybeigoxlc2hgspqjwmen3tj45x2djxsxkr4qeg42b6x2wlau3dctorye
   tests/__init__.py: bafybeiesff34nldcxucqzb7fz5bg6awtqxgcafvasecdsh5eutmtahwaeu
-  tests/test_behaviours.py: bafybeial2bctzx3dzxkkwp42qs3ycipz4ke6mhphc6x7yxveyhrjukjmti
-  tests/test_dialogues.py: bafybeie2xeskgoy6ez2f2utjhltzl3t6gcnqcdttuz3gecuwz5ybtkbcvu
-  tests/test_handlers.py: bafybeifnyua2nefgakhtmxd5mfi6xhuckj33cuui5cizvlkhir5e4mb4hm
-  tests/test_models.py: bafybeibblc4jv7c4426uvou2zgvotqrmc4otm5gc5iy3dyeiaawp2rq2wa
+  tests/test_behaviours.py: bafybeicn4ytfvgf7hhbozhlerh2ow7oddqxo2lyvopp57vvwckxho23nbm
+  tests/test_dialogues.py: bafybeibcwbwmiwn626v3kyjmdtqnguukhp3go45ieh4hkpmty32kt6gwxa
+  tests/test_handlers.py: bafybeif6xpu3tayeesxkhldutqrqcgzadjf2r76tb3lochfybsstgyaqay
+  tests/test_models.py: bafybeiawer55ml6tgiau2yzbue5gtt7va5vkvq3et3p2wpjxjw4u2ehwou
   tests/test_payloads.py: bafybeifo57bmelwv2rbtzvmk5yfrv6x4rbq6jdlrwpfge62ija5a7zj56m
-  tests/test_rounds.py: bafybeiddwl24icxelqgx35r7s4qky7txctmyngqooktkrujn43eltpkcc4
+  tests/test_rounds.py: bafybeifvrwjk2oxzzz7ovhgedqdmbvczjfzsqc5gxdggmajpgutd4dezfu
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeia4akggj3mjz2bpl6pguud6vm2l34jc6jaebgnybp7h27ockamrlu
-- valory/service_registry:0.1.0:bafybeihqrc55fdvhcsuiqksplrtlte3lqde2fxullgsn7o2a23npw7lu5m
+- valory/gnosis_safe:0.1.0:bafybeif6sndoqzbhygjgsk5iw4vsvw7e7ecyzonnxgjc5rndw4kqibfqzy
+- valory/service_registry:0.1.0:bafybeigecr2yejg6bntqdghtgp6txc3xdtyauv23w4lyztq7evr3wpdmru
 protocols:
 - valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiaxhsqnlxilddmvyzfdsustd6j274pbl5s4ugrwg6nn3whnxsg2em
-- valory/transaction_settlement_abci:0.1.0:bafybeicx42gyzcrlrewmwqwqnmeg7oam3y7bx2fbu6tlohxe23s23vx3ty
+- valory/abstract_round_abci:0.1.0:bafybeid7uilyaxie5iga5z4f3hesh4wlc2rwxw6ehox2quywypcy3hxeni
+- valory/transaction_settlement_abci:0.1.0:bafybeihpyrcrmehevp45cu7fb73tkqt3xdaey7y2s5nswx24xxtgz3mr2q
 behaviours:
   main:
     args: {}

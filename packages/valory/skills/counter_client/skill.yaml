@@ -7,15 +7,15 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeib6zaiamsyuuppq5kflgsxk774mq44ttumidbixtaflt2fmfjcqtu
-  __init__.py: bafybeigr5xrsnirj5lfm3vbikc7if4yswwfve7eykrf6tptyi5vcduuooi
-  behaviours.py: bafybeieegxj7ns7cj5zntkcqca4efe6a6tpkihjwohji47vvpt56o76qlm
-  dialogues.py: bafybeidyoqnxmrgavbllrccpoxn44f3vr2hhw4upbwpk7363wunyo6dumq
-  handlers.py: bafybeih6fdoo2h5vvvvngeysejishuo2cbbasbpfejbycgdiveqlvvxzci
-  models.py: bafybeihgs63ahl5736xl6fxfunnyxpvohs6vsi4nolxxszedbr6n2hg7x4
+  __init__.py: bafybeihx6cmebdljz32zup4fzx6hdgrwrexsrmronhzswbltivw52d2fo4
+  behaviours.py: bafybeidlihqkgmr3kfyidl45yw53ejuzcedstr4dlwotvww75bja7i2yra
+  dialogues.py: bafybeig4iysizsh4z4yfyjfkzvbnkrqbvbvul53apr6c4wy4rlmczxhkky
+  handlers.py: bafybeigt3zew5wiubid2co3hcgsuwgyu5attjqb7ueashrratjgxq74qni
+  models.py: bafybeicjz2jvndr7i3bpv27vjkcn6titiqut3iirsovj5z66fek52ymlfe
   tests/__init__.py: bafybeico62tplfccctl7o2ixzpzpysjk5klj36nlk4uqqwzqxc5xrx2ldu
-  tests/test_behaviours.py: bafybeigpukacbrfjuscmnpotb7jdvpra7qsgxeujyurngqujbkydl37jta
+  tests/test_behaviours.py: bafybeieyhjcdpwseedxzoysc46dkzbhnx5kucqxp3kxiwpq5nesvpkhdam
   tests/test_models.py: bafybeiawp6qj3nmecv3xj4lq7abcs2robysnwr6ekxtscefyqfo7zgfmwa
-  utils.py: bafybeigd2extff4gmlvfnus6tjkc5vprgo54tv3dz2chl3l2bvu4yj72cy
+  utils.py: bafybeif4rookwnuikoj5hzmvrxcmjk7vgvqdlacwj4tibrcj5vbnxait2a
 fingerprint_ignore_patterns: []
 connections:
 - valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4

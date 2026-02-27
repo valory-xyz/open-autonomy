@@ -7,19 +7,19 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeibmfgmw57jtco75kgk4wkhevwig377bmedbhpqb4nuwdkbphh6bbi
-  __init__.py: bafybeighsxxprkwzpay2a5aehz2r7xhyodh2e7aezhovn6ol7seoipkbhe
-  dialogues.py: bafybeiaweihc4fcbqummnfy3d4z5poaubvrc6iqzkma7mmln6lwpgystia
-  handlers.py: bafybeibkckwfc4ahqm3ise3p3ztf3rbdb5ge75zovhps62kmq2zbchyfba
+  __init__.py: bafybeibjpkftgqlvqkvg5nxidzl2uxabfud3h2c3ef6acc5t2zn3qxoubq
+  dialogues.py: bafybeihy2bw4jjkrt7au3hgaxecznwuqlmbabehyoluhn5hgel6vxk57i4
+  handlers.py: bafybeieyj5ddzjp7yuebzl523upev6zqsvrvo7jg2eligr5kyfardvapmi
   tests/__init__.py: bafybeico62tplfccctl7o2ixzpzpysjk5klj36nlk4uqqwzqxc5xrx2ldu
   tests/test_counter.py: bafybeiazi36djqnjzu5t6rn72mngsmntoqz7z7wqa53z3lccgblgsycnbi
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeigk7brllfiiu5y6yikz4tqscgjkzmf7xdbvoqqzb7rkxbsp44voi4
+- valory/abci:0.1.0:bafybeief5zccg4nt2oy5pjnmr2mjv267e6li2jcshpqybgrnycr6lektya
 contracts: []
 protocols:
 - valory/abci:0.1.0:bafybeiak4pwac3pwjtd7weskxdhkrcopckr32vtazfbuteu6yqjkwarpte
 skills:
-- valory/abstract_abci:0.1.0:bafybeiewppbl7mcdnquekt5hm2bwivnrbm5we2kytg5r3ercvyr4klmj2q
+- valory/abstract_abci:0.1.0:bafybeibdvszwimqp3nvnlm7pd5yygvfnul44mov773qpn6slllbfbtjj5y
 behaviours: {}
 handlers:
   abci:

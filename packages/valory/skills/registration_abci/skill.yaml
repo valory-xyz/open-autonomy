@@ -7,32 +7,32 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeieztbubb6yn5umyt5ulknvb2xxppz5ecxaosxqsaejnrcrrwfu2ji
-  __init__.py: bafybeieqc3dhqwlo5mskpmfydwjmlj7qgcl45jmzgw4skztqcpyf5aevvy
-  behaviours.py: bafybeibq2lwclwjwrorrh7comasnccrkeppvuzx4epg2qzenlsgzyufmtq
-  dialogues.py: bafybeiegfdtxea4i5td3usnbyst5x23f7jcwotg54whmafmmwxqnnsnut4
+  __init__.py: bafybeifwrvmxhli3pcxssz2jlnw434axs3zrspf4tg34fqlrozmxfacq2a
+  behaviours.py: bafybeihl2g266slvva4esfys4dzxa7gevlo47ph77g4lgangpny6v5phyq
+  dialogues.py: bafybeiafgwadv6kzts6yx5gtjyuvaftnofyn3rrwvczfd5seihpydzukju
   fsm_specification.yaml: bafybeicx5eutgr4lin7mhwr73xhanuzwdmps7pfoy5f2k7gfxmuec4qbyu
-  handlers.py: bafybeibt3rksa6pkdc6r7imq3jmbwjt7star5vllekm4m3jiwsyxz46xdi
-  models.py: bafybeib2brstqg74kvytfl2t2z3xodmmuxicm27y52lsvkgb3u3qklz7oe
+  handlers.py: bafybeifjql3dmehulet56igr2iv2mq2azc7u7zx6qnkiwf4q3cnp4ro7oa
+  models.py: bafybeiajdveum5k7g3w7zhqb2hknvu6ntyjgpd6usxhg2dm2dgauhja76e
   payloads.py: bafybeiacrixfazch2a5ydj7jfk2pnvlxwkygqlwzkfmdeldrj4fqgwyyzm
   rounds.py: bafybeih4cjgizw64dhrswclidmq5dgbemk5nahxebalmoyu72df6ul7j7i
   tests/__init__.py: bafybeiab2s4vkmbz5bc4wggcclapdbp65bosv4en5zaazk5dwmldojpqja
-  tests/test_behaviours.py: bafybeiedwxzdbrn5cerefky2wjmsjtpkapw5ebzj3xahgimciv3l5cu5he
+  tests/test_behaviours.py: bafybeih3gqv4mjk4g5u6gip5gqruwfmkwgjr6oab5f63dwxiizxmakfrrq
   tests/test_dialogues.py: bafybeibeqnpzuzgcfb6yz76htslwsbbpenihswbp7j3qdyq42yswjq25l4
   tests/test_handlers.py: bafybeifpnwaktxckbvclklo6flkm5zqs7apmb33ffs4jrmunoykjbl5lni
   tests/test_models.py: bafybeiewxl7nio5av2aukql2u7hlhodzdvjjneleba32abr42xeirrycb4
   tests/test_payloads.py: bafybeifik6ek75ughyd4y6t2lchlmjadkzbrz4hsb332k6ul4pwhlo2oga
-  tests/test_rounds.py: bafybeibooh52eo5ekgy3qgl47iopzn3dplkav5ypzaxgh3u4ytkryjlsty
+  tests/test_rounds.py: bafybeifsadwxqm7rujlm46oa7mv5j5hh5tghebcdmvhhoa4hhoxrntibuy
 fingerprint_ignore_patterns: []
 connections:
 - valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts:
-- valory/service_registry:0.1.0:bafybeihqrc55fdvhcsuiqksplrtlte3lqde2fxullgsn7o2a23npw7lu5m
+- valory/service_registry:0.1.0:bafybeigecr2yejg6bntqdghtgp6txc3xdtyauv23w4lyztq7evr3wpdmru
 protocols:
 - valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
 - valory/http:1.0.0:bafybeidxkp3vga7t6x2pbt2tpkgyaxa5bgpdgryao54py7w3yxyzr7neoy
 - valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiaxhsqnlxilddmvyzfdsustd6j274pbl5s4ugrwg6nn3whnxsg2em
+- valory/abstract_round_abci:0.1.0:bafybeid7uilyaxie5iga5z4f3hesh4wlc2rwxw6ehox2quywypcy3hxeni
 behaviours:
   main:
     args: {}

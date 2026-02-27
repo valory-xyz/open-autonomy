@@ -7,66 +7,66 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
-  __init__.py: bafybeihmowmzawzj4uekizwpa7chkvr6shgtacph5zv242wdohzjz6csnq
-  abci_app_chain.py: bafybeiel4hwkzp4jkkjcrr2hkmi4pjx7xracp6sq2i3gbra246aucddytq
-  base.py: bafybeifstazbt3kkpewnj7cceacu4r3e2p5fr4h65eismtn3jhw7dvjp4i
+  __init__.py: bafybeicp5mrmo4k5wkcljgr47vr4xafgum7iuobwwr2uujgkm3uspenc2m
+  abci_app_chain.py: bafybeigkdzpx5g5uxura36y5bjgqkh7spq6ll2mnufco6pbhs4gkxwzhum
+  base.py: bafybeifzj5zhp6q4hiyqdhjpcsogvajh5yu35swm7mdivhiyy6h7gva3jm
   behaviour_utils.py: bafybeid5ydeu4uvadfgayhyts7isu54tfbpobktr5hvenxbxcuk4ppmcvm
-  behaviours.py: bafybeiehuuj5uqj7tqmpihxhyfcybdpaxgjjfqq2dchl26s5ynwboag5ky
-  common.py: bafybeib2wevzh5apkc3xhfweby4pktv7nzder2oam542t5mraiw3fo5xle
-  dialogues.py: bafybeihd4lzvdn2suk3s6bb4yahqsace4sdrojxxo4drevyprttpp3jwue
+  behaviours.py: bafybeihwiquwccpgujsu5pnz7quiaplwcqvrqhf6tlbthggujfkixh74ei
+  common.py: bafybeigzo5pvbjuruhpiq754wgemyd7qw2lzzds3p7q6k3oqivig6yq46i
+  dialogues.py: bafybeiezwvocuzmpjmvk3lichudpmgdju32izj37qyogeorj2w6klsjrx4
   handlers.py: bafybeib5tb7sldg6u33zknnv7fdqqh76c7lvpcpeglskaiowg5ytypacqa
   io_/__init__.py: bafybeihv6ytxeo5jkbdlqjum4pfo4aaluvw4m7c55k5xncvvs7ubrlokhy
-  io_/ipfs.py: bafybeifwhx4matztyk4pfwz3vz76qny65h45zhfwpci4xbu4f7gzohstjm
-  io_/load.py: bafybeififo2rd6ukio6mazuu3ywyjwdxdi6eoqmymcrxblmwrd3prdy7em
-  io_/paths.py: bafybeibdl3c6xe5ajhjs7wg4tdp3fpyq37tflyzpm7uz7i3nksptm4ytyi
-  io_/store.py: bafybeigpsyq64sfreom7cqxeow4gs2rddgyuo44kmhze37pcbmgvhfjuei
-  models.py: bafybeiel76kl5f7rrwyfc6hi5goxzmijtvj2sa6dzhgvle72h5cvlmteqe
+  io_/ipfs.py: bafybeihqatdfin72wmofxl3ozokcl4gc4jtpxfqrol77dkf3iks6fih5au
+  io_/load.py: bafybeigpo2fb2i2w5ibmtiwxopte6ypwndnpauefqwyeldy2ad4ksy3x34
+  io_/paths.py: bafybeiholgzt4zhsrnre35aayc3cnmbsryapix7sl6caquw2o3bez4byqu
+  io_/store.py: bafybeifylhoafjgow3xfvvflg3wrxijete5bi5i3fv3x3m25asjn2rkrfm
+  models.py: bafybeib6rob3m46dnjwbnc5a3ttuohhaq7kjbjretlhk255q7tmwikjmzu
   test_tools/__init__.py: bafybeibayeahoo73eztt2chpwi45taj2uv3dxbpyn47ksqfjoepjyaoca4
-  test_tools/abci_app.py: bafybeibrxuykkpwxnvz6czn5m7h5wrgfkcpygvspsgtcvrrl5qds25uegu
-  test_tools/base.py: bafybeibfnzhdjfw2aa7wa3dprsue7rm3w7oobfc7ydo5qvxzhytoegb4iq
-  test_tools/common.py: bafybeiajitvloi5t7v2puaspcrrv6nwyqwooeywxwk4pt4fhfpi5fxg66a
-  test_tools/integration.py: bafybeibbxxcbvninqrrwr24ah5d7m4ominntztvkhbvji75rexwrrd7pk4
-  test_tools/rounds.py: bafybeiajbwpahe3dyhi45tzovnmfalwrgp2meftp4w23qqz7g5man3js4m
-  tests/__init__.py: bafybeidt5uyi2t6pd5xzqjbafyoptrtmzb4e7dgay5m4pue27t2r7dpuni
-  tests/conftest.py: bafybeigbdiu5fbjw7hwzqhihyfi722e5u7jwihgldeazsyrmush3dwq544
+  test_tools/abci_app.py: bafybeihby2kywfspxson2onsrrjw4mj4hlf6ovwveotskkcbqorf3wf37i
+  test_tools/base.py: bafybeibazz3rmmsrsy5hhsrzijkbttd7xxbyasbzvykdotopv37as2fjsq
+  test_tools/common.py: bafybeibxaulhsjdc4ctkt6jae2vpiy4c7mou34qyc6ouwu64gp3efjqzte
+  test_tools/integration.py: bafybeigbeuw4mh72mccwellbc5e4ezlvwzmb5o2rkbtrfird4kpksrzv2i
+  test_tools/rounds.py: bafybeiedhkoyzhozcby2yotx7ooaviouliackm6totf7kmj36yy5n3ddh4
+  tests/__init__.py: bafybeifrwcudnswns3goivcw4g4f7ilnxev5mksx4np7j2sqlixyqrylmm
+  tests/conftest.py: bafybeiag2twvdpk6kor76wt425ppcnlwoc6qmvwic657vxzsouc7vt6avu
   tests/data/__init__.py: bafybeifmqjnrqgbau4tshhdtrosru7xyjky72ljlrf3ynrk76fxjcsgfpi
-  tests/data/dummy_abci/__init__.py: bafybeibodzugg2envifnkwsyps2i3tnvhl4otwn2grzvgliocyn4iqfy4y
+  tests/data/dummy_abci/__init__.py: bafybeiaeawvpyxultmezyfknnjqzyyllt5fgcgdey4ajzdrqbwl3rqenqa
   tests/data/dummy_abci/behaviours.py: bafybeibei4ngebbktuq6a2uvwhrulgkvn6uhaj5k3a75zihkxwnfarqh4m
-  tests/data/dummy_abci/dialogues.py: bafybeihgbo4rqjwf32nxqu6edmkkkgrlduwnjppjheuwafbijxf4ieb3cq
-  tests/data/dummy_abci/handlers.py: bafybeihtvjbpnyqo3agnau6zq3jsq7wmkasjlrbggxtmhem6yasohp66cu
-  tests/data/dummy_abci/models.py: bafybeidzyzq7vbmwxky5pam55goq2al6zrzbtvd54ixfqsygzwi6fvt5u4
+  tests/data/dummy_abci/dialogues.py: bafybeigusxlzzwcy2kf3hg5tbojljhzzuwjhywnyhu2dutr5n4d45sfz2a
+  tests/data/dummy_abci/handlers.py: bafybeig6cp3maypzckujf6lw35b7q464fg7il3kyxkymjozxut6socloie
+  tests/data/dummy_abci/models.py: bafybeifkuijomm53ystziupk7afoayliz37svrvxpenm7jzuuuzcxzhy4m
   tests/data/dummy_abci/payloads.py: bafybeiczldqiumb7prcusb7l5vb575vschwyseyigpupvteldfyz7h6fyi
   tests/data/dummy_abci/rounds.py: bafybeihhn67atkbvgem5ebttkjbjjauu3evxtyltaykik3epx5sbqfyb3e
   tests/test_abci_app_chain.py: bafybeic3bm4i4yviwwv6uydwcadcvoynndgf3zkcwtd7ck4liiinujc4ae
-  tests/test_base.py: bafybeiafphngfixp7cn75vghcc7ygaafxcc2ynwyfgsqdagwvcbar6r2kq
+  tests/test_base.py: bafybeieauds65pp5idwwwz5yhu2tqnnyvotwzedifid7nriv56yrm45lrm
   tests/test_base_rounds.py: bafybeiadvit4t54qmh3fxiulcsjg6fu7jphtypnkdpzt72kklk4javju5y
-  tests/test_behaviours.py: bafybeihmretfvgp3kahvvi2v4xf2krslpndj4iaeilfoqyjgbfuuqvrz2u
+  tests/test_behaviours.py: bafybeifokvzvnnypd5qoc4oivwncjb2ycy2zewjoheesfw5oqxiado2peq
   tests/test_behaviours_utils.py: bafybeidgx5nrswxtzt6pvl2oao7yib7rnvl33rbirt7tps7wmlfymq7efu
-  tests/test_common.py: bafybeidgn2eszzw3pdzuyzsgnu5ls6vky3ksmwdv5aluzmfnnjo5ao2ife
+  tests/test_common.py: bafybeigujxj5oj3p7uq6afe2lt4o6fxr6ikjg6g35eq62m36izbny2rew4
   tests/test_dialogues.py: bafybeigpfrslqaz2yullyehia5bsl7cmy2qqxtz627ig7rbrypw5xfzeum
   tests/test_handlers.py: bafybeih64lmsukci3oc5mwi636gntyx243xnbzwx64dwjxittch77qyqsu
   tests/test_io/__init__.py: bafybeid3sssvbbyju4snrdssxyafleuo57sqyuepl25btxcbuj3p5oonsm
-  tests/test_io/test_ipfs.py: bafybeiakgk7xl5ba6smzgbpqdyir7um2ur5n6lveo4goaajgk52tl2soti
+  tests/test_io/test_ipfs.py: bafybeifwocrs4rohoug4izqdlq5idm7hddtjhpj2juesvdu6xjc7xo7dim
   tests/test_io/test_load.py: bafybeidgnxt5rt67ackbcgi5vnlliedxakcnzgihogplolck7kp57pc6iy
   tests/test_io/test_store.py: bafybeid2zbdjtgbplenacudk6re7si7dloqs2u7faqt7vhapjipjuw35ku
-  tests/test_models.py: bafybeihjjmcsqkxqxwphhmqi2duq3gxlt4fyue5wptpurwsb4mm7vbhpza
+  tests/test_models.py: bafybeidp43eukazmygtxz625rnpwop4yejl7gqszzkjvka5vjivbojt7m4
   tests/test_tools/__init__.py: bafybeiew6gu4pgp2sjevq4dbnmv2ail5dph7vj4yi7h3eae4gzx7vj7cbq
   tests/test_tools/base.py: bafybeihi7ax53326dhin3riwwwk3bouqvsoeq26han4nspodzj6hrk3gia
   tests/test_tools/test_base.py: bafybeie2hox7v6sy677grl6awq57ouliohpwhmlvrypz5rqcz5gxsxn24y
   tests/test_tools/test_common.py: bafybeieauphpcqm5on7d2u2lc5lrf3esbhojp6sxlf7phrlmpqy5cfoitq
   tests/test_tools/test_integration.py: bafybeidxkvb2kizi7djrpuw446dqxo2v5s7j2dbdrdpfmnd2ggezaxbnkm
-  tests/test_tools/test_rounds.py: bafybeie3cweh7nfxvlglho24wisolej23czselo6c3ydcecfvdu6bqsq6m
-  tests/test_utils.py: bafybeibn3auo5m34vn75mhjibnodx67qtqa23773jtd5dt2jouzon4ncwy
-  utils.py: bafybeibq5wcj45cwibowr2a7aunrum7z2g7ljohkbpwqzrkem7hp5hncbu
+  tests/test_tools/test_rounds.py: bafybeihefteeolnqg7fdw6qsjqjwdjxitveffrvx4asi2z2qfx2bugq4se
+  tests/test_utils.py: bafybeifdp5edysthbjozj2hvdembdpwhdwl4oo7dddqlt6ffurgrh6l2pm
+  utils.py: bafybeieyqpjkmwi6f4xq5vdlitupi4bzet5ap57qsbyj45zw7675pybjta
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeigk7brllfiiu5y6yikz4tqscgjkzmf7xdbvoqqzb7rkxbsp44voi4
+- valory/abci:0.1.0:bafybeief5zccg4nt2oy5pjnmr2mjv267e6li2jcshpqybgrnycr6lektya
 - valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
 - valory/ipfs:0.1.0:bafybeifdngfvl327fxkpfuv5ognuleefrqdvujir6xxohl2pczjaukzmsq
 - valory/ledger:0.19.0:bafybeidxzeygks5zcky4u2ztcdufzptssgf6uqytxofnn6yta7qq6jsim4
 - valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts:
-- valory/service_registry:0.1.0:bafybeihqrc55fdvhcsuiqksplrtlte3lqde2fxullgsn7o2a23npw7lu5m
+- valory/service_registry:0.1.0:bafybeigecr2yejg6bntqdghtgp6txc3xdtyauv23w4lyztq7evr3wpdmru
 protocols:
 - open_aea/signing:1.0.0:bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye
 - valory/abci:0.1.0:bafybeiak4pwac3pwjtd7weskxdhkrcopckr32vtazfbuteu6yqjkwarpte
@@ -76,7 +76,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 - valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
 skills:
-- valory/abstract_abci:0.1.0:bafybeiewppbl7mcdnquekt5hm2bwivnrbm5we2kytg5r3ercvyr4klmj2q
+- valory/abstract_abci:0.1.0:bafybeibdvszwimqp3nvnlm7pd5yygvfnul44mov773qpn6slllbfbtjj5y
 behaviours:
   main:
     args: {}
