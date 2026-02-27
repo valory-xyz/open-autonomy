@@ -59,7 +59,7 @@ base_deps = [
     "werkzeug==2.0.3",
     "docker==7.1.0",
     "hexbytes",
-    "jsonschema<4.4.0,>=4.3.0",
+    "jsonschema<4.24.0,>=4.3.0",
     "protobuf<6,>=5",
     "gql==3.5.0",
     "requests<2.33.0,>=2.28.1",
