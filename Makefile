@@ -168,7 +168,7 @@ new_env: clean
 	then\
 		pipenv --rm;\
 		pipenv --clear;\
-		pipenv --python 3.13;\
+		pipenv --python $(PYTHON_VERSION);\
 		pipenv install --dev --skip-lock;\
 		pipenv run pip install -e .[all];\
 		pipenv run pip install --no-deps file:plugins/aea-test-autonomy;\

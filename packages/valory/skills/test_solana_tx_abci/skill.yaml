@@ -7,26 +7,26 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeigk5acokdkncbzao7oa6stvuj4pwio5bog7f3priz42ahqe2huysu
-  __init__.py: bafybeifhe4k3inquya6lhpwk5ywdba3opc2jixuanzsd2bwvhbtsac4l2q
-  behaviours.py: bafybeiai3vcjatk7xflaeyeyleclzhux7uzwxhei5x43g5l7iaswdsmbpu
-  composition.py: bafybeichlzt5datgg53w3gpujzghmu4wbpmn2s4oxmockxkyxlstlvnxn4
-  dialogues.py: bafybeih3pcrpmxgt5epgfnmqjaifvtp2qb6dfu64ko42zcj3jezn32tab4
+  __init__.py: bafybeihw3enyaeqw4kwe5e3453waaerf3f2kt35qvhsqwgrjsvzxpo2nci
+  behaviours.py: bafybeihqnpv6cvmb4ezib74m7esvfdc27xiskarry7ucvshchr66mls3du
+  composition.py: bafybeiam7tbdza75rp3r5d3fyitrjl7lpzjljma4h7jkkwzc3skkpd7lf4
+  dialogues.py: bafybeieyicxgks5it6a5llkwithftdv32dosfmwg3zbxgaleltr7yn47ku
   fsm_specification.yaml: bafybeieiawta2ii7uwdiv5zekm2w75hv5tj3lidm5kx36mxuv2ibve4gfe
-  handlers.py: bafybeihv6atdb4ce3tl42f7znzsbriocv4sbtly6ooh4v4unqa7c2zp3mm
-  models.py: bafybeih6erg6de4sirnztbqtmjjca7h6fb6v6q35c3jm3a476zgewlkdtm
-  payloads.py: bafybeifq6pflnppqptjgvlhusd653cd7tr6m6ct5homgrzxp5iqckhfj5e
-  rounds.py: bafybeifu4sywfln7fnu4ivdogotsg2ksdkaxm55ygsaspqfjckdxtvnmae
+  handlers.py: bafybeiclhaszx4b73df77zhkik4ijsqxahuok67ffkvcirqggvazpyfu6e
+  models.py: bafybeibyh27j3lspckkrd6k4zeeaqxh46ajh3yjo2etjsqrdjzlcjhdvoe
+  payloads.py: bafybeihpxdhb3oiynohkgnjjf4iysmf4voe5ydyuwgntgxbmheti5vb6ki
+  rounds.py: bafybeihqg56qmg3n6nrep2b45u4aqpkgm6wm3fzr5tozx2dknencxq6ape
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/squads_multisig:0.1.0:bafybeigjamatvbf3ofouvbth2ldvaur7m5pxklzqiwfnjneenvdvc3c2mq
+- valory/squads_multisig:0.1.0:bafybeifrg3dw5oxylubwstxktva4dlq5vbbxq5hm5m3sr3fh7wnnzl5eqa
 protocols:
-- valory/contract_api:1.0.0:bafybeigl7mxuyxngk4gztgygeccbgdfrllx73kwbvvkjvtkfw6ionyd56q
+- valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeico2i67lk5wkgyvmu5ska7phbugxbfh4ofnm57vwpypis5zmpjnim
-- valory/registration_abci:0.1.0:bafybeiaur5o7xjf5jod2gzbhxa2m2l2m7z76rfs7gf2sfuf3ffjlqodaxy
-- valory/reset_pause_abci:0.1.0:bafybeibgbbt4yzd6amf2wuldrdvhyfqibjqx2uxhybqhrkumlp4jcfndia
-- valory/squads_transaction_settlement_abci:0.1.0:bafybeih2gktykgnaq2ya5rqzq4yjcvavgmzsqfjxxcp2vmcd3x5snos33e
+- valory/abstract_round_abci:0.1.0:bafybeibfmunnjpozeko2rsgf3mujhgflze6edxap6nx6xgdtbykfq2jhw4
+- valory/registration_abci:0.1.0:bafybeihobvuoenokl42mbqi56zgrofdwujtyq4idivelwqp3dqbht7i5ii
+- valory/reset_pause_abci:0.1.0:bafybeifaz2lujccsswomcw4clade2vp6yg5vtb537yeh7jjd365lgifety
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeiftbtustvysctnzn66nvutjbgq32elvvy4xvv7m7hm4fsfvnz7liu
 behaviours:
   main:
     args: {}

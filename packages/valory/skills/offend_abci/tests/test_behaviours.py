@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ class TestOffendBehaviour(FSMBehaviourBaseCase):
         """Get the current behaviour."""
         return cast(OffendBehaviour, self.behaviour.current_behaviour)
 
-    def setup(self, **kwargs: Any) -> None:
+    def setup_method(self, **kwargs: Any) -> None:
         """
         Set up the test method.
 
@@ -68,7 +68,7 @@ class TestOffendBehaviour(FSMBehaviourBaseCase):
 
         :param kwargs: the keyword arguments passed to _prepare_skill
         """
-        super().setup(**kwargs)
+        super().setup_method(**kwargs)
         self.synchronized_data = BaseSynchronizedData(
             AbciAppDB(
                 setup_data=AbciAppDB.data_to_lists(

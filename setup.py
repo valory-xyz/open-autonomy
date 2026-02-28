@@ -32,7 +32,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 def get_all_extras() -> Dict:
     cli_deps = [
         "click>=8.1.0,<9",
-        "open-aea-cli-ipfs==2.0.8",
+        "open-aea-cli-ipfs==2.1.0rc3",
         "texttable==1.6.7",
         "python-dotenv>=0.14.5,<0.22.0",
         "pytest>=8.0.0,<8.5.0",
@@ -53,19 +53,19 @@ all_extras = get_all_extras()
 
 base_deps = [
     "Flask>=2.0.2,<3.0.0",
-    "open-aea[all]==2.0.8",
+    "open-aea[all]==2.1.0rc3",
     "watchdog>=2.1.6",
     "pytest==8.4.2",
     "werkzeug==2.0.3",
     "docker==7.1.0",
     "hexbytes",
-    "jsonschema<4.4.0,>=4.3.0",
-    "protobuf<4.25.0,>=4.21.6",
+    "jsonschema<4.24.0,>=4.3.0",
+    "protobuf<6,>=5",
     "gql==3.5.0",
     "requests<2.33.0,>=2.28.1",
     "requests-toolbelt==1.0.0",  # Required for graphql client
     "aiohttp<4.0.0,>=3.8.5",
-    "typing_extensions<4.15.0,>=3.10.0.2",
+    "typing_extensions<=4.15.0,>=3.10.0.2",
     "multiaddr==0.0.9"
 ]
 base_deps.extend(all_extras["cli"])

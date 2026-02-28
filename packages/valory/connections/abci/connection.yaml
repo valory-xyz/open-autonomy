@@ -8,11 +8,11 @@ aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   Makefile: bafybeibdgarch56r46dfy7x7fouj52nbjpjs4fgtrd3prgtwelowyjan5i
   __init__.py: bafybeic2m6f6j42cbfxz3jcwhju2dcbbdcw6xyc7mslq7uk2hwe6ctcugi
-  check_dependencies.py: bafybeihmhemryyl2iacwwrqebr7us7wx4otvwbdbtckwkl5kxqopidyzwm
-  connection.py: bafybeiawkjjcd3u4hzxbwdcb6ufpaswqdo3cfn44h6shhafvjjp4md55x4
-  dialogues.py: bafybeibpdsphu5vqjpieczrb3ulhqfcq4l73qnx6j3zhbz4dpunwegboxq
+  check_dependencies.py: bafybeidusow4q5ue2brrdpruisldydyum7vmtfioqbbpx6cdpni5klled4
+  connection.py: bafybeiglvft5jwbbvg6gtrjthivfcq3fc76fxogtvmxyczcn3ytnw4lmce
+  dialogues.py: bafybeiegsmt3ip3q4ofbksdlupkqsssu6mv52brhgt5ny5vhtg6q2kekye
   gogoproto/__init__.py: bafybeifmpcbkrpygdt7uvhpq6gaxgskofpczxktoalp2cwyouay46drcke
-  gogoproto/gogo_pb2.py: bafybeifdutphcruyva7lcngujrcmfsaycyodyfjbgwcrxthiouotl4fxpu
+  gogoproto/gogo_pb2.py: bafybeia6r5qnnub6kbgtd4zt5ek4ucdlaqmr4y5blzqy5vk3kjw57trx3q
   protos/gogoproto/gogo.proto: bafybeieg7yu62cx25ssjgvjnsc2alececsgush6l5adpxuscaf6ksh6dou
   protos/tendermint/abci/types.proto: bafybeigimbf3rrfavl2o2jakr5c6dfm652lzxsddcmho7w5ytxo33sgrm4
   protos/tendermint/crypto/keys.proto: bafybeiar5g76sw7wgiyvaczpfgmw2bqkuillti7lnibmmmenz5zdofm6xe
@@ -22,32 +22,32 @@ fingerprint:
   protos/tendermint/types/validator.proto: bafybeihejcuz3m5gm37sscly4azzdc72gng4kcnd7pwlxkjuhabw6yh7jm
   protos/tendermint/version/types.proto: bafybeidqxroep4axnt6y6dhdu7et5abmktsswtwajvm32uot5q4wziefnq
   readme.md: bafybeierlmc7t4dwpgc3sgmn5m5l3r4fwnwzbf6agna3igndsogk3iqlv4
-  scripts/genproto.py: bafybeicfgwktvlrzqwfbvbld6bor3qd2rcfcgmk5rzfcfl6oj3jrr2mequ
+  scripts/genproto.py: bafybeiho6ap4gin77qj2aknswqyoa7yjmejo3u7stjcr3nhxm4iifd6kl4
   tendermint/__init__.py: bafybeifayxyjcebekkn62sucyupfcuwzlj57kuiwafynpw4nrbocqxe6ya
-  tendermint/abci/types_pb2.py: bafybeidampon4gavyqkcxoqjnb5zrfaf6uraiw2kbdtfvbomcbaqtjxkem
-  tendermint/abci/types_pb2_grpc.py: bafybeihmecy4uas7itftoaslrqvrjb3m2jewojuzxvie7pjzsrw5exnu6u
-  tendermint/crypto/keys_pb2.py: bafybeiamkizmrn7txfboyrqqdara7n6ix5pbfh4evc3xedeva65snmlfhe
-  tendermint/crypto/proof_pb2.py: bafybeie7zueijrsuzldcol7dkcd2udupbof6nm73zm6zzkkin6teauan2m
-  tendermint/types/params_pb2.py: bafybeiaqzoz3u7cn3hj5sknvtor2vo3yfcio75cawbqr3mivdltjriovx4
-  tendermint/types/types_pb2.py: bafybeiewrupdype2pug4fghvehlkts7nswlrt5gyjp37o45r3qetsgtxs4
-  tendermint/types/validator_pb2.py: bafybeibdhuvir43t4he337ajwe6sk7suhzxgdxyk2i6neoonoxfjqtqd6q
-  tendermint/version/types_pb2.py: bafybeib7ucwdh2oqbprdjskfofjkidf3odpj34zwicckkze6esx2zlsdaq
+  tendermint/abci/types_pb2.py: bafybeifmteatwdloxztg2qka5f6vef4bwt327tdy3smht5hebwotjhsjzm
+  tendermint/abci/types_pb2_grpc.py: bafybeicifpezqw5zjotxu5pwuynrpc4p5ylnh7bwmp6kfvt5cunmfhp4z4
+  tendermint/crypto/keys_pb2.py: bafybeicpoqr5k4go3hsrbptzmetwd4cs4c62j6pcfisfzldvklr7h5dvra
+  tendermint/crypto/proof_pb2.py: bafybeiblfzavk6eupvytvkcylawvdl2owm2q6vkmqnotyfgb3dmzxeap3a
+  tendermint/types/params_pb2.py: bafybeiamu3wjzr46jrjc3fi4mphipwdgcn4tkihyaw6udcrso7kepxxvae
+  tendermint/types/types_pb2.py: bafybeib6sdznrsevocycd6fojlwrjv6uwwklvsaqf2jpv24kdzl7ny7eom
+  tendermint/types/validator_pb2.py: bafybeibn735ioraiydeb25ttu7wuzfvmzsyzlxevmqutrthctlpp4gf5ru
+  tendermint/version/types_pb2.py: bafybeigufjnq2nkuh4v23zk5iv7mmdmocj4jljux5x5jt4v7o7g2xyijo4
   tendermint_decoder.py: bafybeig3teywhof2vztwaiqj36nx5bv6fysxzmu7i5ewqxa2w7rdf3wa7i
-  tendermint_encoder.py: bafybeibpnofkac6jizpbezlo7rdsbijloovsuz5rjysshjrims7x44wxv4
-  tests/__init__.py: bafybeiaca7l7u423yejqpbbkyvrkrhog2zqpmtbvrga6bjou3yogj4bina
-  tests/helper.py: bafybeifh6g2r6r4ln5ihmjf4ehog7aebzogou6nscqea6nfetluyuftvm4
-  tests/test_abci.py: bafybeihbaueybqob5kdivaphlorsflf4f2flzyvp5f4f2qqhgp3taiulvu
-  tests/test_abci_fuzz.py: bafybeiddeye3fbgefihbgdhqwwuv3dlseo6d5kt3jpixpq45bewm5dep2u
-  tests/test_abci_spec.py: bafybeidmp3qogkxo7z2u3qyynosaohnplal4ej3cvmyyaiykdpgs54ch24
+  tendermint_encoder.py: bafybeig4mxbaaz342lkuusjgaxfo6u2kqjbye7whokh2mcvamipajsdnau
+  tests/__init__.py: bafybeidk5u7j6e6jpzcfiafahaxyoqvd3jqvhi3dsnzjlky6xkkdc3qgla
+  tests/helper.py: bafybeidrhejsalouhkmsjafnommxvi6upkswb5f5b6zdm6vpyvadvlxyya
+  tests/test_abci.py: bafybeihan7anewq7pxs347my7yvowl4ynkqcb6smc5fqcw5jzxumei4kci
+  tests/test_abci_fuzz.py: bafybeicmcy2atfnnazqnsepgee5jdxuxd6m7e4hq6zo5ohckourz7phwga
+  tests/test_abci_spec.py: bafybeih7durlzlq2po63kegjck7l4hduntivqxi2isusf73jej34kezebi
   tests/test_fuzz/__init__.py: bafybeiggaobawdxpx2j637ldmacq7r7tnyeygukmjuayodj3vytdyqsjze
-  tests/test_fuzz/base.py: bafybeifcv7r4dk7dfw726r3dy42s6mozb5yk4mmhml5i3hpu653odax7bq
+  tests/test_fuzz/base.py: bafybeienon2ukj4gopk2vx53b4inlzad3qt42oftfogd73r7zslwycajv4
   tests/test_fuzz/mock_node/__init__.py: bafybeibt3bm4l3wethryy564mzcbhqmnztsbko4c5bt5ila5ghq2e7vz7u
   tests/test_fuzz/mock_node/channels/__init__.py: bafybeifjjnlxtqd4pz76aq6w642n5d6pa635ehkhjxgzyjidakza27adja
   tests/test_fuzz/mock_node/channels/base.py: bafybeicsirvtetuxnophhibjlzeos4bwtchhxr76v4k4ajsht6vrsqb5ni
-  tests/test_fuzz/mock_node/channels/grpc_channel.py: bafybeidita6lkds4urwrt3jwpou22js7ngruoof7kynuhkultdytx5taua
-  tests/test_fuzz/mock_node/channels/tcp_channel.py: bafybeiehlihhp7itiypkilugorwa2rytz2fm3awkm7vhti5p2v7fcvvajq
-  tests/test_fuzz/mock_node/node.py: bafybeiakzuvng5elaws6mv246o2nrjitdvjr7j5ltrhxscpezybbsyzh3i
-  tests/test_fuzz/test_fuzz.py: bafybeihfsayqmhajvhthvirxicd4swpe32u2gohe7sq5ixjuygico6wzge
+  tests/test_fuzz/mock_node/channels/grpc_channel.py: bafybeigrfyi7oqb4zvwsbyvp7cwfpsw3yyvvnyibdeipv6g3bl3hciqp6e
+  tests/test_fuzz/mock_node/channels/tcp_channel.py: bafybeifnacouimlr3tltrlfn7pmeiwqcjj6knob3uetkbdudhzqytcqt6e
+  tests/test_fuzz/mock_node/node.py: bafybeihlklt7hwgxaf3xnuxm5xqbhbtrxa7v7wgacon5giijxpgfccrtjy
+  tests/test_fuzz/test_fuzz.py: bafybeigami4kjgwpdvfhheiny5pvdrthacw4h4iesefegwpbbfjrvn7ndu
   tests/test_tendermint_decoder.py: bafybeihogt3aopyln5newihm3rbiqimoc4aw6za2cngplnjnwatv6nakea
   tests/test_tendermint_encoder.py: bafybeigpun2ybwr5tu7b52his3b5apyrlmdytlgofcszbctsmmabo3sjg4
   version.txt: bafybeifjb44fd7qve2ku62ythui6z4mvd4k7qkjomlcdnl3ymb3bnq6xee
@@ -55,7 +55,7 @@ fingerprint_ignore_patterns: []
 build_entrypoint: check_dependencies.py
 connections: []
 protocols:
-- valory/abci:0.1.0:bafybeicjjeintlqgg53zrreflmoafeiynt3gvdnovy5ocea7doddos3e5a
+- valory/abci:0.1.0:bafybeiak4pwac3pwjtd7weskxdhkrcopckr32vtazfbuteu6yqjkwarpte
 class_name: ABCIServerConnection
 config:
   host: 127.0.0.1
@@ -79,6 +79,6 @@ dependencies:
   open-aea-test-autonomy:
     version: ==0.21.11
   protobuf:
-    version: <4.25.0,>=4.21.6
+    version: <6,>=5
 is_abstract: false
 cert_requests: []

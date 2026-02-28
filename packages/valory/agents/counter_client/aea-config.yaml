@@ -8,14 +8,14 @@ fingerprint:
   README.md: bafybeifivouq2u4pqw4hesxyjzcdhj4fodbkerqwcykuvfcepogaxbl5ru
 fingerprint_ignore_patterns: []
 connections:
-- valory/http_client:0.23.0:bafybeigwzn4hkry3wy7nf2myk3h3pl5xrqkvvxp2ppdbwwffa4c2s2bkwy
-- valory/p2p_libp2p_client:0.1.0:bafybeigg3kzkywemiswrgjhb7hei5qsysxcsx36c6weyewtirctbmleowm
+- valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
+- valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:bafybeiei6h5suazzfta7n3uyq7bsz26zkmdiiylptu5i44p7s2wiygxt24
-- valory/http:1.0.0:bafybeia4tq7ycivm3dnekelrnlzdwb4qnrjdykk6gf5tizq6djr66adotm
+- open_aea/signing:1.0.0:bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye
+- valory/http:1.0.0:bafybeidxkp3vga7t6x2pbt2tpkgyaxa5bgpdgryao54py7w3yxyzr7neoy
 skills:
-- valory/counter_client:0.1.0:bafybeiamd423q3mzqgen33wgbka63h26zujuk4orxyj2hux5g5llawe4xy
+- valory/counter_client:0.1.0:bafybeictnuzwjih3wift5zxfwvyin6zcr2sprv4eyelewusmcc3aiz7nki
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -28,7 +28,7 @@ logging_config:
   version: 1
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.0.8
+    version: ==2.1.0rc3
 customs: []
 default_connection: null
 ---
