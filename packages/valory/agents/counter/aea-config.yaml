@@ -19,7 +19,7 @@ protocols:
 - valory/abci:0.1.0:bafybeiak4pwac3pwjtd7weskxdhkrcopckr32vtazfbuteu6yqjkwarpte
 skills:
 - valory/abstract_abci:0.1.0:bafybeibzvjggdw2b7dburuppjr5hznmsp5ficjjaxfobrospvwleoca24i
-- valory/counter:0.1.0:bafybeidpqhh6pwlzzxgyyr4mehyxh4skae6bzlj2apfl2kn235qyooecxq
+- valory/counter:0.1.0:bafybeihpyb2nshhzfx4ccc2tok27bftsndbedqtllvuxsxcx25qu2a6xxu
 default_ledger: ethereum
 required_ledgers:
 - ethereum
