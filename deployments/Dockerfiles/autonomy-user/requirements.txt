@@ -1,5 +1,5 @@
 open-autonomy[all]==0.21.11
-open-aea[all]==2.1.0rc3
-open-aea-cli-ipfs==2.1.0rc3
-open-aea-ledger-ethereum==2.1.0rc3
+open-aea[all]==2.1.0rc4
+open-aea-cli-ipfs==2.1.0rc4
+open-aea-ledger-ethereum==2.1.0rc4
 protobuf>=4.21.6,<5.0.0
