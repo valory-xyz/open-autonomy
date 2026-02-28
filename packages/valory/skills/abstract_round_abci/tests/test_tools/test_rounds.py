@@ -57,7 +57,6 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 from packages.valory.skills.abstract_round_abci.tests.test_common import last_iteration
 
-
 settings.load_profile(profile_name)
 
 # this is how many times we need to iterate before reaching the last iteration for a base test.

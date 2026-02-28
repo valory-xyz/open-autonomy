@@ -38,7 +38,6 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401; pylint: disable=u
 )
 from web3 import Web3
 
-
 TERMINATION_TIMEOUT = 120
 _HTTP = "http://"
 

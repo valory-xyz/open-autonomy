@@ -19,7 +19,6 @@
 
 """Tests for specs commands."""
 
-
 import copy
 import importlib
 import os

@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """HTTP server to control the tendermint execution environment."""
+
 import json
 import logging
 import os
@@ -40,7 +41,6 @@ from autonomy.deploy.constants import (
     TM_ENV_TMHOME,
     TM_ENV_USE_GRPC,
 )
-
 
 try:
     from .tendermint import (  # type: ignore

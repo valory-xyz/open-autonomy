@@ -19,7 +19,6 @@
 
 """This module contains all the storing operations of the behaviours."""
 
-
 import json
 import os.path
 from abc import ABC, abstractmethod
@@ -27,7 +26,6 @@ from enum import Enum, auto
 from typing import Any, Callable, Dict, Optional, TypeVar, Union, cast
 
 from packages.valory.skills.abstract_round_abci.io_.paths import create_pathdirs
-
 
 StoredJSONType = Union[dict, list]
 NativelySupportedSingleObjectType = StoredJSONType

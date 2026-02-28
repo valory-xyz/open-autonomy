@@ -35,7 +35,6 @@ from packages.valory.skills.counter_client import PUBLIC_ID
 from packages.valory.skills.counter_client.behaviours import BaseBehaviour
 from packages.valory.skills.counter_client.handlers import HttpHandler, HttpMessage
 
-
 PACKAGE_DIR = Path(__file__).parent.parent
 
 

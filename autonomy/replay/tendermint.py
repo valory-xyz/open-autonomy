@@ -30,7 +30,6 @@ from typing import Dict, List, Optional, Tuple
 
 from flask import Flask
 
-
 # TODO: extract constants
 
 

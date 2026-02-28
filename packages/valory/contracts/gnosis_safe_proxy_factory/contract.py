@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the class to connect to an Gnosis Safe Proxy Factory contract."""
+
 import logging
 from typing import Any, Optional, Tuple, cast
 
@@ -27,7 +28,6 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
 from web3.types import Nonce, TxParams, Wei
-
 
 PUBLIC_ID = PublicId.from_str("valory/gnosis_safe_proxy_factory:0.1.0")
 MIN_GAS = 1

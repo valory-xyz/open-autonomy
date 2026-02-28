@@ -36,7 +36,6 @@ from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.base im
 )
 from packages.valory.connections.abci.tests.test_fuzz.mock_node.node import MockNode
 
-
 running_on_ci = os.getenv(CI)
 if running_on_ci:
     settings.load_profile(CI)

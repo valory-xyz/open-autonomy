@@ -39,7 +39,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Iterator, Optional, Tuple, cast
 
-
 INIT_YEAR = 2021
 CURRENT_YEAR = datetime.now().year
 NEXT_YEAR = CURRENT_YEAR + 1

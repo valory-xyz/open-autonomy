@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the handler for the 'abci' skill."""
+
 import struct
 from typing import Any, cast
 
@@ -25,7 +26,6 @@ from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import Events, ProofOps
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.counter.dialogues import AbciDialogue
-
 
 OK_CODE = 0
 ERROR_CODE = 1

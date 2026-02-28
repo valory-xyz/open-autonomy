@@ -19,7 +19,6 @@
 
 """Test `run` command."""
 
-
 import json
 import os
 import shutil

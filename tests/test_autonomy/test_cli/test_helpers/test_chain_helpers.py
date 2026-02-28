@@ -37,7 +37,6 @@ from autonomy.cli.helpers.chain import MintHelper, ServiceHelper
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_chain.base import patch_subgraph
 
-
 PACKAGE_DIR = ROOT_DIR / "packages" / "valory" / "protocols" / "abci"
 DUMMY_METADATA_HASH = (
     "0xd913b5bf68193dfacb941538d5900466c449c9ec8121153f152de2e026fa7f3a"

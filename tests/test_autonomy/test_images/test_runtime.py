@@ -41,7 +41,6 @@ from autonomy.deploy.constants import DOCKERFILES
 from tests.conftest import ROOT_DIR, get_package_hash_from_latest_tag, skip_docker_tests
 from tests.test_autonomy.test_images.base import BaseImageBuildTest
 
-
 AGENT = PackageId.from_uri_path("agent/valory/offend_slash/0.1.0")
 TENDERMINT_IMAGE = f"{TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}"
 

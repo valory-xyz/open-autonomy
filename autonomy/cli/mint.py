@@ -36,7 +36,6 @@ from autonomy.cli.utils.click_utils import (
     chain_selection_flag,
 )
 
-
 package_path_decorator = click.argument(
     "package_path",
     type=PathArgument(exists=True, file_okay=False, dir_okay=True),

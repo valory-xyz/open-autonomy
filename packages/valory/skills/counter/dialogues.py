@@ -26,6 +26,5 @@ from packages.valory.skills.abstract_abci.dialogues import (
     AbciDialogues as BaseAbciDialogues,
 )
 
-
 AbciDialogue = BaseAbciDialogue
 AbciDialogues = BaseAbciDialogues

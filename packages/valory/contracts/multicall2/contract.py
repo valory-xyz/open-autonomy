@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains a wrapper around Multicall2."""
+
 import logging
 from typing import Any, Callable, Dict, List, Tuple
 
@@ -25,7 +26,6 @@ from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
-
 
 PUBLIC_ID = PublicId.from_str("valory/multicall2:0.1.0")
 

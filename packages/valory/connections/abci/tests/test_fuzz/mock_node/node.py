@@ -17,6 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 """Used for mocking a tendermint node"""
+
 # flake8: noqa:D102
 # pylint: skip-file
 
@@ -44,7 +45,6 @@ from packages.valory.protocols.abci.custom_types import (
 )
 
 from .channels.base import BaseChannel
-
 
 _default_logger = logging.getLogger(__name__)
 
@@ -244,8 +244,7 @@ class MockNode:
         request.app_state_bytes = app_state_bytes
         request.initial_height = initial_height
 
-        self.logger.info(
-            f"""Calling init_chain
+        self.logger.info(f"""Calling init_chain
                 time_seconds={time_seconds}
                 time_nanos={time_nanos}
                 chain_id={chain_id}
@@ -261,8 +260,7 @@ class MockNode:
                 validator_power={validator_power}
                 app_state_bytes={app_state_bytes!r}
                 initial_height={initial_height}
-            """
-        )
+            """)
 
         response = self.channel.send_init_chain(request)
 
@@ -396,8 +394,7 @@ class MockNode:
         request.last_commit_info.CopyFrom(last_commit_info)
         request.byzantine_validators.extend(evidences)
 
-        self.logger.info(
-            f"""
+        self.logger.info(f"""
             Calling begin_block
             hash_: {hash_!r}
             consen_ver_block={consen_ver_block}
@@ -428,8 +425,7 @@ class MockNode:
             evidence_time_seconds={evidence_time_seconds}
             evidence_time_nanos={evidence_time_nanos}
             evidence_total_voting_power={evidence_total_voting_power}
-            """
-        )
+            """)
 
         response = self.channel.send_begin_block(request)
 

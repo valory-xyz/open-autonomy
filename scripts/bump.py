@@ -43,7 +43,6 @@ from aea.package_manager.v1 import PackageManagerV1
 
 from autonomy.cli.helpers.ipfs_hash import load_configuration
 
-
 BUMP_BRANCH = "chore/bump"
 PIPFILE = Path.cwd() / "Pipfile"
 PYPROJECT_TOML = Path.cwd() / "pyproject.toml"

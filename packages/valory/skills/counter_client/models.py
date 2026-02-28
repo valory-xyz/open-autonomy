@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the model 'state' for the 'counter_client' skill."""
+
 from typing import Any, Dict
 
 from aea.skills.base import Model

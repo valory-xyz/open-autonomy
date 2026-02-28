@@ -19,7 +19,6 @@
 
 """This module contains all the path related operations of the behaviours."""
 
-
 import os
 
 

@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the class to connect to an Gnosis Safe contract."""
+
 import binascii
 import logging
 import secrets
@@ -42,7 +43,6 @@ from packages.valory.contracts.gnosis_safe.encode import encode_typed_data
 from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
     GnosisSafeProxyFactoryContract,
 )
-
 
 PUBLIC_ID = PublicId.from_str("valory/gnosis_safe:0.1.0")
 MIN_GAS = MIN_GASPRICE = 1

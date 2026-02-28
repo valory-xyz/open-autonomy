@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the rounds of the skill."""
+
 from unittest.mock import MagicMock
 
 from packages.valory.skills.test_ipfs_abci.rounds import IpfsRound

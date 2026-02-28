@@ -19,7 +19,6 @@
 
 """ABCI App test tools."""
 
-
 from abc import ABC
 from enum import Enum
 from typing import Dict, Tuple, Type, Union

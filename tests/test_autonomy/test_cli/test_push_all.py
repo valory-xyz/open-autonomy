@@ -19,7 +19,6 @@
 
 """Test push-all command group."""
 
-
 import os
 import shutil
 from pathlib import Path

@@ -25,5 +25,4 @@ Its purpose is to facilitate testing of the slashing implementation.
 
 from aea.configurations.base import PublicId
 
-
 PUBLIC_ID = PublicId.from_str("valory/offend_abci:0.1.0")

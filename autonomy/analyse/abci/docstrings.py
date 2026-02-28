@@ -22,7 +22,6 @@
 import re
 from typing import Any, Tuple, cast
 
-
 INDENT = " " * 4
 NEWLINE = "\n"
 COMMA = ", "

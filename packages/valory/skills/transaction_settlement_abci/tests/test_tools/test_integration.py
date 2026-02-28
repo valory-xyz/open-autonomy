@@ -46,7 +46,6 @@ from packages.valory.skills.transaction_settlement_abci.test_tools.integration i
     _TxHelperIntegration,
 )
 
-
 DUMMY_TX_HASH = "a" * 234
 
 

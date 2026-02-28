@@ -28,7 +28,6 @@ from aea.skills.base import Model
 from packages.valory.protocols.abci.dialogues import AbciDialogue as BaseAbciDialogue
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
 
-
 AbciDialogue = BaseAbciDialogue
 
 

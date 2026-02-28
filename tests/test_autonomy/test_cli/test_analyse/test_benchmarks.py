@@ -30,7 +30,6 @@ from autonomy.deploy.constants import BENCHMARKS_DIR
 
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
-
 NUMBER_OF_AGENTS = 4
 NUMBER_OF_PERIODS = 3
 NUMBER_OF_BEHAVIOURS = 3

@@ -19,7 +19,6 @@
 
 """Test agent runner."""
 
-
 import json
 import os
 import shutil
@@ -37,7 +36,6 @@ from autonomy.replay.tendermint import TendermintNetwork
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
-
 
 OS_ENV_PATCH = mock.patch.dict(
     os.environ, values={**os.environ, "ALL_PARTICIPANTS": "[]"}, clear=True

@@ -20,7 +20,6 @@
 
 from autonomy.cli.core import cli  # pragma: no cover
 
-
 if __name__ == "__main__":  # pragma: no cover
     cli(  # type: ignore # pylint: disable = unexpected-keyword-arg, no-value-for-parameter
         prog_name="autonomy"

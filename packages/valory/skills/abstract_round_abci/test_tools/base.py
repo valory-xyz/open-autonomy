@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/abstract_round_abci skill's behaviours."""
+
 import json
 from abc import ABC
 from copy import copy
@@ -59,7 +60,6 @@ from packages.valory.skills.abstract_round_abci.handlers import (
     SigningHandler,
     TendermintHandler,
 )
-
 
 # pylint: disable=protected-access,too-few-public-methods,consider-using-with
 

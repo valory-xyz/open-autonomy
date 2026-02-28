@@ -55,7 +55,6 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
 )
 from packages.valory.skills.abstract_round_abci.models import SharedState
 
-
 SLASHING_BACKGROUND_BEHAVIOUR_ID = "slashing_check_behaviour"
 TERMINATION_BACKGROUND_BEHAVIOUR_ID = "background_behaviour"
 

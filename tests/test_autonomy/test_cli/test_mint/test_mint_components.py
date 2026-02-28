@@ -45,7 +45,6 @@ from tests.test_autonomy.test_chain.base import (
 )
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
-
 CUSTOM_OWNER = "0x8626F6940E2EB28930EFB4CEF49B2D1F2C9C1199"
 
 

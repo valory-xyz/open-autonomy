@@ -32,8 +32,9 @@ from packages.valory.skills.register_termination_abci.composition import (
 from packages.valory.skills.termination_abci.models import (
     RandomnessApi as TerminationRandomness,
 )
-from packages.valory.skills.termination_abci.models import TerminationParams
-
+from packages.valory.skills.termination_abci.models import (
+    TerminationParams,
+)
 
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool

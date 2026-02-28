@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utilities for AbciApps."""
+
 import logging
 from copy import deepcopy
 from typing import Any, Dict, FrozenSet, List, Optional, Set, Tuple, Type
@@ -31,7 +32,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     EventToTimeout,
     EventType,
 )
-
 
 _default_logger = logging.getLogger(
     "aea.packages.valory.skills.abstract_round_abci.abci_app_chain"

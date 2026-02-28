@@ -25,5 +25,4 @@ It is created only for testing purposes for the termination feature.
 
 from aea.configurations.base import PublicId  # pragma: nocover
 
-
 PUBLIC_ID = PublicId.from_str("valory/register_termination_abci:0.1.0")

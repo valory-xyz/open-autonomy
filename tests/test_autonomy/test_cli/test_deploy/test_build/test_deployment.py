@@ -92,7 +92,6 @@ from tests.conftest import PACKAGES_DIR, ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.base import get_dummy_service_config
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
-
 OS_ENV_PATCH = mock.patch.dict(
     os.environ, values={**os.environ, "ALL_PARTICIPANTS": "[]"}, clear=True
 )
@@ -956,7 +955,7 @@ class TestKubernetesBuild(BaseDeployBuildTest):
 
         build_config = self.load_kubernetes_config(build_dir)
         assert (
-            f"'image': '{get_default_author_from_cli_config() or  DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-"
+            f"'image': '{get_default_author_from_cli_config() or DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-"
             in str(build_config)
         )
 

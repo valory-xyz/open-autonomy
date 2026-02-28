@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Localhost Deployment utilities."""
+
 import json
 import os
 import platform
@@ -35,7 +36,6 @@ from autonomy.deploy.constants import (
     TENDERMINT_BIN_UNIX,
     TENDERMINT_BIN_WINDOWS,
 )
-
 
 LOCAL_TENDERMINT_VERSION = "0.34.19"
 

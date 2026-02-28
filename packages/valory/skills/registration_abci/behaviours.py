@@ -50,7 +50,6 @@ from packages.valory.skills.registration_abci.rounds import (
     RegistrationStartupRound,
 )
 
-
 NODE = "node_{address}"
 WAIT_FOR_BLOCK_TIMEOUT = 60.0  # 1 minute
 

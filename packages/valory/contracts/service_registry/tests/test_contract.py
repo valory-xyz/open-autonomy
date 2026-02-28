@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/service_registry contract."""
+
 from pathlib import Path
 from typing import Any
 from unittest import mock
@@ -32,7 +33,6 @@ from packages.valory.contracts.service_registry.contract import (
     EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID,
     ServiceRegistryContract,
 )
-
 
 PACKAGE_DIR = Path(__file__).parent.parent
 

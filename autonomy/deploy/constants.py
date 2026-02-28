@@ -22,15 +22,12 @@
 from pathlib import Path
 from string import Template
 
-
-DEPLOYMENT_REPORT: Template = Template(
-    """
+DEPLOYMENT_REPORT: Template = Template("""
 Generated Deployment!\n\n
 Type:                 $type
 Agents:               $agents
 Build Length          $size\n\n
-"""
-)
+""")
 
 DEPLOYMENT_KEY_DIRECTORY = "agent_keys"
 DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA = "agent_{agent_n}"

@@ -19,6 +19,7 @@
 # ------------------------------------------------------------------------------
 
 """This CLI tool freezes the dependencies."""
+
 import argparse
 import re
 import subprocess  # nosec
@@ -37,7 +38,7 @@ if __name__ == "__main__":
     pip_freeze_call = subprocess.Popen(  # nosec  # pylint: disable=consider-using-with
         ["pip", "freeze"], stdout=subprocess.PIPE
     )
-    (stdout, stderr) = pip_freeze_call.communicate()
+    stdout, stderr = pip_freeze_call.communicate()
     requirements = stdout.decode("utf-8")
 
     # remove 'open-autonomy' itself

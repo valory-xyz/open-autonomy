@@ -29,7 +29,6 @@ from typing import Optional, Tuple
 
 import requests
 
-
 IPFS_ENDPOINT = "https://gateway.autonolas.tech/ipfs"
 MAX_WORKERS = 10
 REQUEST_TIMEOUT = 10  # seconds

@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Conftest module for Pytest."""
+
 import logging
 import socket
 import time
@@ -30,7 +31,6 @@ import requests
 from deployments.Dockerfiles.tendermint.tendermint import (  # type: ignore
     DEFAULT_RPC_LISTEN_ADDRESS,
 )
-
 
 __parse_result = urllib.parse.urlparse(DEFAULT_RPC_LISTEN_ADDRESS)  # type: ignore
 __IP, __RPC_PORT = __parse_result.hostname, __parse_result.port

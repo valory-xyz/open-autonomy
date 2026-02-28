@@ -36,7 +36,6 @@ from packages.valory.skills.abstract_round_abci.test_tools.base import (
 from packages.valory.skills.offend_abci.behaviours import OffendBehaviour
 from packages.valory.skills.offend_abci.rounds import Event, FinishedOffendRound
 
-
 PACKAGE_DIR = Path(__file__).parents[1]
 
 

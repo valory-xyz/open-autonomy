@@ -19,7 +19,6 @@
 
 """Tests for docstring generator."""
 
-
 import os
 from pathlib import Path
 from typing import Tuple

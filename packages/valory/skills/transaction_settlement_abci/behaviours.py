@@ -86,7 +86,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     ValidateTransactionRound,
 )
 
-
 TxDataType = Dict[str, Union[VerificationStatus, Deque[str], int, Set[str], str]]
 
 drand_check = VerifyDrand()

@@ -56,7 +56,6 @@ from packages.valory.skills.registration_abci.behaviours import (
 )
 from packages.valory.skills.registration_abci.rounds import RegistrationStartupRound
 
-
 log_messages = RegistrationStartupBehaviour.LogMessages
 
 

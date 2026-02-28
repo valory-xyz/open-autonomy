@@ -19,7 +19,9 @@
 
 """This module contains the shared state for the 'reset_pause_abci' application."""
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.models import (
+    BaseParams,
+)
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
@@ -28,7 +30,6 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.reset_pause_abci.rounds import Event, ResetPauseAbciApp
-
 
 MARGIN = 5
 

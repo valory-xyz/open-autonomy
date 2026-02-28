@@ -39,7 +39,6 @@ from autonomy.configurations.constants import (
     SCHEMAS_DIR,
 )
 
-
 FSM_SCHEMA_FILE = "fsm_specification_schema.json"
 ROUND_CLASS_POST_FIX = "Round"
 ABCI_APP_CLASS_POST_FIX = "AbciApp"

@@ -45,7 +45,6 @@ from tests.test_autonomy.base import get_dummy_service_config
 from tests.test_autonomy.test_chain.base import BaseChainInteractionTest
 from tests.test_autonomy.test_cli.base import BaseCliTest, cli
 
-
 IPFS_REGISTRY = "/dns/registry.autonolas.tech/tcp/443/https"
 
 

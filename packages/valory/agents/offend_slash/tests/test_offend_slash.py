@@ -54,7 +54,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     ValidateTransactionRound,
 )
 
-
 NO_SLASHING_HAPPY_PATH = (
     RoundChecks(RegistrationStartupRound.auto_round_id()),
     RoundChecks(OffendRound.auto_round_id(), n_periods=2),

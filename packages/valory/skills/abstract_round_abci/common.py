@@ -30,7 +30,6 @@ from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
 
-
 RandomnessObservation = Optional[Dict[str, Union[str, int]]]
 
 

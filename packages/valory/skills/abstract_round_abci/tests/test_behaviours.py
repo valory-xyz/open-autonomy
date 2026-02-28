@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the behaviours.py module of the skill."""
+
 # pylint: skip-file
 
 import platform
@@ -58,7 +59,6 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 )
 from packages.valory.skills.abstract_round_abci.models import TendermintRecoveryParams
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
-
 
 BEHAVIOUR_A_ID = "behaviour_a"
 BEHAVIOUR_B_ID = "behaviour_b"

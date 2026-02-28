@@ -53,7 +53,6 @@ from deployments.Dockerfiles.tendermint.app import (  # type: ignore
     update_peers,
 )
 
-
 ENCODING = "utf-8"
 VERSION = "0.34.19"
 DUMMY_CONFIG_TOML = """

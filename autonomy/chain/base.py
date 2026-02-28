@@ -45,7 +45,6 @@ from autonomy.chain.constants import (
     SIGN_MESSAGE_LIB_CONTRACT,
 )
 
-
 _contract_registry_cache: Dict[PublicId, Contract] = {}
 
 

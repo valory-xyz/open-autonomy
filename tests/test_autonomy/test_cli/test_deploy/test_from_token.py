@@ -33,7 +33,6 @@ from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
 from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_chain.base import BaseChainInteractionTest
 
-
 MOCK_IPFS_RESPONSE = {
     "name": "valory/oracle_hardhat",
     "description": "Oracle service.",

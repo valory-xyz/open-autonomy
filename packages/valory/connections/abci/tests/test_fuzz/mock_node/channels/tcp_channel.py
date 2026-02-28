@@ -17,6 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 """TcpChannel for MockNode"""
+
 # pylint: skip-file
 
 import asyncio
@@ -37,7 +38,6 @@ from packages.valory.connections.abci.connection import (
 from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.base import (
     BaseChannel,
 )
-
 
 _default_logger = logging.getLogger(__name__)
 

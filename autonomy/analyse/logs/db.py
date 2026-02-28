@@ -27,7 +27,6 @@ from typing import Any, Iterator, List, Optional, Tuple
 
 from autonomy.analyse.logs.base import LogRow
 
-
 TIMESTAMP = "timestamp"
 LOG_LEVEL = "log_level"
 MESSAGE = "message"

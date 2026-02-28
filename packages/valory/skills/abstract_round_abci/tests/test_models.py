@@ -73,7 +73,6 @@ from packages.valory.skills.abstract_round_abci.tests.conftest import (
     irrelevant_genesis_config,
 )
 
-
 BASE_DUMMY_SPECS_CONFIG = dict(
     name="dummy",
     skill_context=MagicMock(),

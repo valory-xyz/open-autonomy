@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """HTTP server to control the tendermint execution environment."""
+
 import json
 import logging
 import os
@@ -31,7 +32,6 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, cast
 import requests
 from flask import Flask, Response, jsonify, request
 from werkzeug.exceptions import InternalServerError, NotFound
-
 
 try:
     from .tendermint import TendermintNode, TendermintParams  # type: ignore

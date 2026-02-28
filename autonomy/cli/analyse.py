@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Analyse CLI module."""
+
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, cast
@@ -52,7 +53,6 @@ from autonomy.cli.utils.click_utils import (
     sys_path_patch,
 )
 from autonomy.deploy.constants import LOGGING_LEVELS
-
 
 TIME_FORMAT_TEMPLATE = "YYYY-MM-DD H:M:S,MS"
 BENCHMARKS_DIR = Path("./benchmarks.html")

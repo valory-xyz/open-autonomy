@@ -21,7 +21,6 @@
 
 import packages.valory.skills.test_ipfs_abci.handlers  # noqa
 
-
 # pylint: skip-file
 
 

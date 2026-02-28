@@ -19,7 +19,6 @@
 
 """Integration tests for various transaction settlement skill's failure modes."""
 
-
 import binascii
 import os
 import tempfile
@@ -63,7 +62,6 @@ from packages.valory.skills.transaction_settlement_abci.payloads import Signatur
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TxSettlementSynchronizedSata,
 )
-
 
 # pylint: disable=protected-access,too-many-ancestors,unbalanced-tuple-unpacking,too-many-locals,consider-using-with,unspecified-encoding,unidiomatic-typecheck
 

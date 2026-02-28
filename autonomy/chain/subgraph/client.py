@@ -33,7 +33,6 @@ from autonomy.chain.subgraph.queries import (
     FIND_BY_TOKEN_ID,
 )
 
-
 SUBGRAPH_URL = os.environ.get(
     "OPEN_AUTONOMY_SUBGRAPH_URL",
     "https://subgraph.autonolas.tech/subgraphs/name/autonolas",

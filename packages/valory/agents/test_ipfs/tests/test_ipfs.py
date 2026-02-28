@@ -19,6 +19,7 @@
 # pylint: disable=unused-import
 
 """Integration tests for the valory/register_termination skill."""
+
 from pathlib import Path
 
 import pytest
@@ -36,7 +37,6 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     registries_scope_class,
     tendermint_port,
 )
-
 
 TARGET_AGENT = "valory/test_ipfs:0.1.0"
 TARGET_SKILL = "valory/test_ipfs_abci:0.1.0"

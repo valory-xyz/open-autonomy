@@ -35,7 +35,7 @@ def get_all_extras() -> Dict:
         "open-aea-cli-ipfs==2.0.8",
         "texttable==1.6.7",
         "python-dotenv>=0.14.5,<0.22.0",
-        "pytest>=7.0.0,<7.5.0",
+        "pytest>=8.0.0,<8.5.0",
         "coverage>=6.4.4,<8.0.0",
     ]
 
@@ -55,17 +55,17 @@ base_deps = [
     "Flask>=2.0.2,<3.0.0",
     "open-aea[all]==2.0.8",
     "watchdog>=2.1.6",
-    "pytest==7.4.4",
+    "pytest==8.4.2",
     "werkzeug==2.0.3",
     "docker==7.1.0",
     "hexbytes",
     "jsonschema<4.4.0,>=4.3.0",
     "protobuf<4.25.0,>=4.21.6",
     "gql==3.5.0",
-    "requests<2.32.5,>=2.28.1",
+    "requests<2.33.0,>=2.28.1",
     "requests-toolbelt==1.0.0",  # Required for graphql client
     "aiohttp<4.0.0,>=3.8.5",
-    "typing_extensions<=4.13.2,>=3.10.0.2",
+    "typing_extensions<4.15.0,>=3.10.0.2",
     "multiaddr==0.0.9"
 ]
 base_deps.extend(all_extras["cli"])

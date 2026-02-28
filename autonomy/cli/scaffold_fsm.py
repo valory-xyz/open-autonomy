@@ -24,7 +24,6 @@ This module patches the 'aea scaffold' command so to add a new subcommand for sc
  starting from FSM specification.
 """
 
-
 from pathlib import Path
 
 import click

@@ -39,7 +39,6 @@ from autonomy.replay.tendermint import (
 
 from tests.conftest import ROOT_DIR
 
-
 TENDERMINT_BIN = shutil.which("tendermint")
 AGENT_DATA = {
     "mem_limit": "1024m",

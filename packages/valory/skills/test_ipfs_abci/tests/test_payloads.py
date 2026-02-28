@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the payloads.py module of the skill."""
+
 from packages.valory.skills.test_ipfs_abci.payloads import DummyPayload, TransactionType
 
 

@@ -31,7 +31,6 @@ from packages.valory.contracts.service_manager.contract import (
     ServiceManagerContract,
 )
 
-
 PACKAGE_DIR = Path(__file__).parent.parent
 
 METADATA_HASH = "0xaaca27f6156089376fd85900d511c7570b6c9b0f6afc64576aac5aa0da8de92d"

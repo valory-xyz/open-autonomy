@@ -92,7 +92,6 @@ from packages.valory.protocols.abci.custom_types import (
 from packages.valory.protocols.abci.dialogues import AbciDialogue
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
 
-
 PACKAGE_DIR = Path(__file__).parent.parent
 
 

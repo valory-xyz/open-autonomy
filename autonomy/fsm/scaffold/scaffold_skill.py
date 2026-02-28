@@ -19,7 +19,6 @@
 
 """Scaffold skill from an FSM"""
 
-
 import itertools
 import os
 import re
@@ -69,7 +68,6 @@ from autonomy.fsm.scaffold.generators.tests import (
     RoundTestsFileGenerator,
 )
 from autonomy.fsm.scaffold.templates import COPYRIGHT_HEADER
-
 
 TO_LOCAL_REGISTRY_FLAG = "to_local_registry"
 

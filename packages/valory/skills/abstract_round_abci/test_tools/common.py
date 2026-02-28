@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test common classes."""
+
 import binascii
 import json
 import time
@@ -39,7 +40,6 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehav
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
-
 
 PACKAGE_DIR = Path(__file__).parent.parent
 DRAND_VALUE = {

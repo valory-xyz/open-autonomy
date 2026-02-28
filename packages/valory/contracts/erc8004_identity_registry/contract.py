@@ -19,13 +19,11 @@
 
 """This module contains the class to connect to the `ERC8004IdentityRegistry` contract."""
 
-
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from eth_abi import encode
 from web3 import Web3
-
 
 PUBLIC_ID = PublicId.from_str("valory/erc8004_identity_registry:0.1.0")
 

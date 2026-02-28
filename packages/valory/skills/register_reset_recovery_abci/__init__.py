@@ -25,5 +25,4 @@ It is created only for debugging purposes, regarding the Tendermint reset issue.
 
 from aea.configurations.base import PublicId
 
-
 PUBLIC_ID = PublicId.from_str("valory/register_reset_recovery_abci:0.1.0")

@@ -28,7 +28,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB
+from packages.valory.skills.abstract_round_abci.base import (
+    AbciAppDB,
+)
 from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData as ResetSynchronizedSata,
 )
@@ -42,7 +44,6 @@ from packages.valory.skills.reset_pause_abci import PUBLIC_ID
 from packages.valory.skills.reset_pause_abci.behaviours import ResetAndPauseBehaviour
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetEvent
 from packages.valory.skills.reset_pause_abci.rounds import FinishedResetAndPauseRound
-
 
 PACKAGE_DIR = Path(__file__).parent.parent
 

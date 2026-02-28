@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """HTTP server to control the tendermint execution environment."""
+
 import json
 import logging
 import os
@@ -34,7 +35,6 @@ from packages.valory.agents.register_reset.tests.helpers.slow_tendermint_server.
     TendermintNode,
     TendermintParams,
 )
-
 
 ENCODING = "utf-8"
 DEFAULT_LOG_FILE = "log.log"

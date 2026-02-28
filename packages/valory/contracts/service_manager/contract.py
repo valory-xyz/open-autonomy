@@ -29,7 +29,6 @@ from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 
-
 PUBLIC_ID = PublicId.from_str("valory/service_manager:0.1.0")
 ETHEREUM_ERC20 = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
 ETHEREUM_IDENTIFIER = "ethereum"

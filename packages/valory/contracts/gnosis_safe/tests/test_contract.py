@@ -57,7 +57,6 @@ from packages.valory.contracts.gnosis_safe_proxy_factory.tests.test_contract imp
     PACKAGE_DIR as PROXY_DIR,
 )
 
-
 PACKAGE_DIR = Path(__file__).parent.parent
 
 DEFAULT_GAS = 1000000

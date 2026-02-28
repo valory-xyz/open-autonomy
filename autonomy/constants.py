@@ -17,10 +17,10 @@
 #
 # ------------------------------------------------------------------------------
 """Constants"""
+
 import os
 
 from autonomy.__version__ import __version__ as DEFAULT_AUTONOMY_VERSION
-
 
 DEFAULT_BUILD_FOLDER = "abci_build_{}"
 DEFAULT_KEYS_FILE = "keys.json"

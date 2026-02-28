@@ -24,7 +24,6 @@ from pathlib import Path
 
 import requests
 
-
 DOC_FILE = "docs/advanced_reference/on_chain_addresses.md"
 ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/main/docs/configuration.json"
 CONTRACT_TO_SLUG = {

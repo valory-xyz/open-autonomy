@@ -19,7 +19,6 @@
 
 """Test the payloads.py module of the skill."""
 
-
 from packages.valory.skills.termination_abci.payloads import BackgroundPayload
 
 

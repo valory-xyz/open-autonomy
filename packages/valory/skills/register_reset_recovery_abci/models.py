@@ -19,7 +19,9 @@
 
 """This module contains the shared state for the register-reset ABCI application."""
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.models import (
+    BaseParams,
+)
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
@@ -30,7 +32,6 @@ from packages.valory.skills.abstract_round_abci.models import (
 from packages.valory.skills.register_reset_recovery_abci.composition import (
     RegisterResetRecoveryAbciApp,
 )
-
 
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool

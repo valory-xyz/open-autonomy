@@ -64,7 +64,6 @@ from packages.valory.skills.registration_abci.rounds import (
     FinishedRegistrationRound,
 )
 
-
 PACKAGE_DIR = Path(__file__).parent.parent
 
 

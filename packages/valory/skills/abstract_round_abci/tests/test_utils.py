@@ -45,7 +45,6 @@ from packages.valory.skills.abstract_round_abci.utils import (
     parse_tendermint_p2p_url,
 )
 
-
 settings.load_profile(profile_name)
 
 

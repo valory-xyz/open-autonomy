@@ -35,7 +35,6 @@ from packages.valory.skills.reset_pause_abci.rounds import (
     ResetPauseAbciApp,
 )
 
-
 abci_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationRound: ResetAndPauseRound,
     FinishedResetAndPauseRound: RegistrationRound,

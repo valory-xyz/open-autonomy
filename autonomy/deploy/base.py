@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Base deployments module."""
+
 import abc
 import json
 import logging
@@ -45,7 +46,6 @@ from autonomy.configurations.base import Service
 from autonomy.configurations.loader import load_service_config
 from autonomy.constants import DEFAULT_DOCKER_IMAGE_AUTHOR
 from autonomy.deploy.constants import DEFAULT_ENCODING, INFO
-
 
 ENV_VAR_ID = "ID"
 ENV_VAR_AEA_AGENT = "AEA_AGENT"

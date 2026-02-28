@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the classes required for dialogue management."""
+
 # isort:skip_file  # noqa
 from typing import Any
 
@@ -31,7 +32,6 @@ from packages.valory.protocols.http.dialogues import (  # pylint: disable=no-nam
 from packages.valory.protocols.http.dialogues import (  # pylint: disable=no-name-in-module,import-error
     HttpDialogues as BaseHttpDialogues,
 )
-
 
 HttpDialogue = BaseHttpDialogue
 

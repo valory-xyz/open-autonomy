@@ -48,7 +48,6 @@ from packages.valory.connections.abci.tests.helper import (
     replace_keys,
 )
 
-
 Node = Dict[str, Any]
 
 # constants & utility functions

@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests package for valory/multicall2 contract."""
-from pathlib import Path
 
+from pathlib import Path
 
 PACKAGE_DIR = Path(__file__).parent.parent

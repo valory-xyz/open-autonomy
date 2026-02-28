@@ -24,7 +24,6 @@ from pathlib import Path
 
 from autonomy.analyse.logs.collection import LogCollection
 
-
 LOGS = """[2023-09-26 06:27:56,015] [INFO] [agent] Entered in the 'check_transaction_history_behaviour' behaviour
 [2023-09-26 06:27:56,078] [ERROR] [agent] get_safe_nonce unsuccessful! Received: Message(sender=valory/ledger:0.19.0,to=valory/trader_abci:0.1.0,code=500,data=b'',dialogue_reference=('974278ff7b4e00019f7542a193987a8359b1c785d11a98a84bfaff2ea77b1e8f', '6b8e33fe183de2ac45e8d8f9625db5562b6230677fdc6995efc4ce05c798f83a'),message=Traceback (most recent call last):
 

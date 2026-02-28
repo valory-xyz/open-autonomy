@@ -36,7 +36,6 @@ from packages.valory.contracts.multisend.contract import (
     MultiSendOperation,
 )
 
-
 PACKAGE_DIR = Path(__file__).parent.parent
 CONTRACT_ADDRESS = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
 CHAIN_ID = 1

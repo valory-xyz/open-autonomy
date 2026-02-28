@@ -19,7 +19,6 @@
 
 """Integration tests for various transaction settlement skill's failure modes."""
 
-
 import asyncio
 import os
 import tempfile
@@ -46,7 +45,6 @@ from packages.valory.skills.abstract_round_abci.handlers import SigningHandler
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
-
 
 # pylint: disable=protected-access,too-many-ancestors,unbalanced-tuple-unpacking,too-many-locals,consider-using-with,unspecified-encoding,unidiomatic-typecheck
 

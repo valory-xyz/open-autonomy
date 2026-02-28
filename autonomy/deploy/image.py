@@ -19,7 +19,6 @@
 
 """Image building."""
 
-
 import subprocess  # nosec
 from pathlib import Path
 from typing import Optional, Tuple

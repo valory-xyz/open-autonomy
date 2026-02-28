@@ -39,7 +39,6 @@ from autonomy.chain.constants import (
 from autonomy.chain.exceptions import ComponentMintFailed, InvalidMintParameter
 from autonomy.chain.tx import TxSettler
 
-
 try:
     from web3.exceptions import Web3Exception
 except (ModuleNotFoundError, ImportError):

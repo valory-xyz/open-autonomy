@@ -29,7 +29,6 @@ from packages.valory.contracts.component_registry.contract import (
     ComponentRegistryContract,
 )
 
-
 PACKAGE_DIR = Path(__file__).parent.parent
 
 

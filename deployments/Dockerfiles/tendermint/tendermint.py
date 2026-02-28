@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint manager."""
+
 import json
 import logging
 import os
@@ -30,7 +31,6 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from threading import Event, Thread
 from typing import Any, Dict, List, Optional
-
 
 _TCP = "tcp://"
 ENCODING = "utf-8"

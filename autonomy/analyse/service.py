@@ -46,7 +46,6 @@ from autonomy.chain.config import ChainType
 from autonomy.chain.service import get_service_info
 from autonomy.configurations.base import Service
 
-
 ABCI_CONNECTION_SCHEMA = {
     "type": "object",
     "properties": {
@@ -320,7 +319,7 @@ class ServiceAnalyser:
 
         self.logger.info("Checking if the service is deployed on-chain")
         try:
-            (*_, _service_state, _) = get_service_info(
+            *_, _service_state, _ = get_service_info(
                 ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
             )
         except RequestConnectionError as e:

@@ -60,7 +60,6 @@ from aea_test_autonomy.docker.tendermint import (
 )
 from eth_account import Account
 
-
 logger = logging.getLogger(__name__)
 
 

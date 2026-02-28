@@ -24,7 +24,6 @@ from typing import Any, Optional, Tuple
 
 from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 
-
 NULL_ADDRESS: str = "0x" + "0" * 40
 MAX_UINT256 = 2**256 - 1
 

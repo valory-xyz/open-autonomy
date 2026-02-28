@@ -19,7 +19,6 @@
 
 """Push all available packages to a registry."""
 
-
 from pathlib import Path
 from typing import Optional
 

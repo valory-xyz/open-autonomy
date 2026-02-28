@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utilities for the 'counter_client' skill."""
+
 # isort:skip_file # noqa
 import base64
 import datetime

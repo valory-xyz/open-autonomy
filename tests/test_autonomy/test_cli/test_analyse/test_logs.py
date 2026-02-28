@@ -30,7 +30,6 @@ from autonomy.deploy.constants import WARNING
 from tests.conftest import DATA_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
-
 LOGS_DIR = DATA_DIR / "logs"
 LOGS_DB_FILE = LOGS_DIR / LOGS_DB
 

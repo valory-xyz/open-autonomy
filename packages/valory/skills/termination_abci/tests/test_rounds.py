@@ -38,7 +38,6 @@ from packages.valory.skills.termination_abci.rounds import (
     TerminationRound,
 )
 
-
 MAX_PARTICIPANTS: int = 4
 
 

@@ -21,7 +21,9 @@
 
 from typing import Any
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.models import (
+    BaseParams,
+)
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
@@ -30,7 +32,6 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.offend_abci.rounds import Event, OffendAbciApp
-
 
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
