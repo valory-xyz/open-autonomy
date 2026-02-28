@@ -210,7 +210,7 @@ class ConcreteRoundBehaviour(AbstractRoundBehaviour):
 class TestAbstractRoundBehaviour:
     """Test 'AbstractRoundBehaviour' class."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         self.round_sequence_mock = MagicMock()
         context_mock = MagicMock(params=MagicMock())

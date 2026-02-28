@@ -166,7 +166,7 @@ class CleanDirectoryClass:
     deployment_path = Path(ROOT_DIR) / "deployments"
     old_cwd = None
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Sets up the working directory for the test method."""
         self.old_cwd = os.getcwd()
         with tempfile.TemporaryDirectory() as path:
@@ -174,7 +174,7 @@ class CleanDirectoryClass:
         shutil.copytree(self.deployment_path, self.working_dir)
         os.chdir(self.working_dir)
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Removes the over-ride"""
         shutil.rmtree(str(self.working_dir), ignore_errors=True)
         os.chdir(str(self.old_cwd))

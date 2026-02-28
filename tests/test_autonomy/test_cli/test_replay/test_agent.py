@@ -92,9 +92,9 @@ class TestAgentRunner(BaseCliTest):
     output_dir: Path = ROOT_DIR
     keys_path: Path = ROOT_DIR / "deployments" / "keys" / "hardhat_keys.json"
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
-        super().setup()
+        super().setup_method()
 
         shutil.copytree(
             self.packages_dir / "valory" / "services" / "register_reset",

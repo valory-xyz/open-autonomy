@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ class BaseCliTest:
         cls.cli_runner = CliRunner()
         cls.cwd = Path.cwd().absolute()
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test."""
@@ -90,7 +90,7 @@ class BaseCliTest:
             stderr = stderr.replace("\r", "")
         return process.returncode, stdout, stderr
 
-    def teardown(
+    def teardown_method(
         self,
     ) -> None:
         """Teardown method."""

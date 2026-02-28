@@ -209,12 +209,12 @@ class TestTendermintServerApp(BaseTendermintServerTest):
     genesis_filepath: Path
     genesis_config: Dict
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup"""
         self.genesis_filepath = Path(os.environ["TMHOME"], "config", "genesis.json")
         self.genesis_config = load_genesis()
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown"""
         self.genesis_filepath.write_text(json.dumps(self.genesis_config))
 

@@ -186,7 +186,7 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
     _synchronized_data_class: Type[BaseSynchronizedData]
     _event_class: Any
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test class."""
@@ -591,12 +591,12 @@ class _BaseRoundTestClass(BaseRoundTestClass):  # pylint: disable=too-few-public
 
     _synchronized_data_class = DummySynchronizedData
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test class."""
 
-        super().setup()
+        super().setup_method()
         self.tx_payloads = get_dummy_tx_payloads(self.participants)
 
     @staticmethod

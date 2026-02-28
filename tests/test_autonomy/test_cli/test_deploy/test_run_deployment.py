@@ -45,10 +45,10 @@ class TestRun(BaseCliTest):
 
     cli_options = ("deploy", "run")
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
 
-        super().setup()
+        super().setup_method()
         os.chdir(self.t)
 
     def test_run(
@@ -63,7 +63,7 @@ class TestRun(BaseCliTest):
 
     def test_run_local(self) -> None:
         """Test that `deploy run` works on localhost."""
-        super().setup()
+        super().setup_method()
 
         # setup the service keys and packages
         self.keys_file = self.t / "keys.json"
@@ -120,9 +120,9 @@ class TestStop(BaseCliTest):
 
     cli_options = ("deploy", "stop")
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
-        super().setup()
+        super().setup_method()
         os.chdir(self.t)
 
     def test_run(

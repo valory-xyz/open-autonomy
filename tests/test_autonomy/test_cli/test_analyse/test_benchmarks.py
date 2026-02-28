@@ -61,10 +61,10 @@ class TestBenchmarks(BaseCliTest):
     benchmarks_dir: Path
     output_file: Path
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
 
-        super().setup()
+        super().setup_method()
 
         self.benchmarks_dir = self.t / BENCHMARKS_DIR
         self.benchmarks_dir.mkdir()
@@ -79,10 +79,10 @@ class TestBenchmarks(BaseCliTest):
 
         os.chdir(self.t)
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown test method."""
 
-        super().teardown()
+        super().teardown_method()
 
         with suppress(FileNotFoundError):
             os.remove(self.output_file)

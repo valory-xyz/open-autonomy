@@ -41,10 +41,10 @@ class TestPublish(BaseCliTest):
 
     cli_options: Tuple[str, ...] = ("publish",)
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup class."""
 
-        super().setup()
+        super().setup_method()
 
         self.packages_dir = self.t / "packages"
         self.service_dir = self.t / "packages" / "valory" / "services" / "counter"

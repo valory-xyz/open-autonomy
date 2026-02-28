@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ def test_exception_to_info_msg() -> None:
 class TestABCIRoundHandler:
     """Test 'ABCIRoundHandler'."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         self.context = MagicMock(skill_id=PublicId.from_str("dummy/skill:0.1.0"))
         self.dialogues = AbciDialogues(name="", skill_context=self.context)
@@ -300,7 +300,7 @@ class ConcreteResponseHandler(AbstractResponseHandler):
 class TestAbstractResponseHandler:
     """Test 'AbstractResponseHandler'."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         self.context = MagicMock()
         self.handler = ConcreteResponseHandler(name="", skill_context=self.context)
@@ -357,7 +357,7 @@ class TestAbstractResponseHandler:
 class TestTendermintHandler:
     """Test Tendermint Handler"""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         self.agent_name = "Alice"
         self.context = MagicMock(skill_id=PublicId.from_str("dummy/skill:0.1.0"))

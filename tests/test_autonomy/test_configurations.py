@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ class TestServiceConfig:
         """Setup test class."""
         cls.cwd = Path.cwd()
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test."""
@@ -166,7 +166,7 @@ class TestServiceConfig:
         service = load_service_config(self.t, substitute_env_vars=True)
         assert service.number_of_agents == 1
 
-    def teardown(
+    def teardown_method(
         self,
     ) -> None:
         """Teardown test."""

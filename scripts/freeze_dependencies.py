@@ -23,12 +23,13 @@
 import argparse
 import re
 import subprocess  # nosec
+from pathlib import Path
 
 
 def parse_args() -> argparse.Namespace:
     """Parse CLI arguments."""
     parser = argparse.ArgumentParser("freeze_dependencies")
-    parser.add_argument("-o", "--output", type=argparse.FileType("w"), default=None)
+    parser.add_argument("-o", "--output", type=Path, default=None)
     return parser.parse_args()
 
 
@@ -47,4 +48,4 @@ if __name__ == "__main__":
     if arguments.output is None:
         print(requirements)
     else:
-        arguments.output.write(requirements)
+        arguments.output.write_text(requirements, encoding="utf-8")

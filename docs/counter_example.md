@@ -25,7 +25,7 @@ you have followed the [setup instructions](guides/set_up.md#set-up-the-framework
 
 2. Use the CLI to download the `valory/counter` AI agent.
     ```bash
-    autonomy fetch valory/counter:0.1.0:bafybeia6owxujijx3vd5adqdncv27vhh3okkh5uhokh4qavokgnjavv3m4 --remote --service
+    autonomy fetch valory/counter:0.1.0:bafybeie4vzqfcvyg2mcvbsmsmvzmlbvqdohra7qj6lrnqdifbjywianx7u --remote --service
     cd counter
     ```
 

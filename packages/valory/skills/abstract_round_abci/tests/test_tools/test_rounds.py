@@ -237,13 +237,13 @@ class BaseTestBase:
     base_round_test_cls: Type[BaseRoundTestClass]
     test_method_name = "_test_round"
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup that is run before each test."""
         self.base_round_test = self.base_round_test_cls()
         self.base_round_test._synchronized_data_class = (  # pylint: disable=protected-access
             DummySynchronizedData
         )
-        self.base_round_test.setup()
+        self.base_round_test.setup_method()
         self.base_round_test._event_class = (  # pylint: disable=protected-access
             DummyEvent
         )
@@ -494,9 +494,9 @@ class TestBaseOnlyKeeperSendsRoundTest(BaseTestBase):
     )
     most_voted_keeper_address: str = "agent_0"
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup that is run before each test."""
-        super().setup()
+        super().setup_method()
         self.base_round_test.synchronized_data.update(
             most_voted_keeper_address=self.most_voted_keeper_address
         )

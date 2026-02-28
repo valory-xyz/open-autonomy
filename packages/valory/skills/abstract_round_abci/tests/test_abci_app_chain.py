@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ def make_round_class(name: str, bases: Tuple = (AbstractRound,)) -> Type[Abstrac
 class TestAbciAppChaining:
     """Test chaning of AbciApps."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
         self.round_1a = make_round_class("round_1a")
         self.round_1b = make_round_class("round_1b")

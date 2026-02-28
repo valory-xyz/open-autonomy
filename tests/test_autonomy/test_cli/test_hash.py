@@ -43,10 +43,10 @@ class TestHashAll(BaseCliTest):
         "all",
     )
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup class."""
 
-        super().setup()
+        super().setup_method()
 
         self.packages_dir = self.t / "packages"
         shutil.copytree(ROOT_DIR / "packages", self.packages_dir)
@@ -105,10 +105,10 @@ class TestHashOne(BaseCliTest):
         "one",
     )
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup class."""
 
-        super().setup()
+        super().setup_method()
 
         self.file = self.t / "some_file.txt"
         self.file.write_text("Hello, World!")

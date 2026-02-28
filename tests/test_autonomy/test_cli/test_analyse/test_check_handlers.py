@@ -55,9 +55,9 @@ class TestCheckHandlers(BaseCliTest):
     config_file: Path
     config_file_temp: Path
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup."""
-        super().setup()
+        super().setup_method()
 
         shutil.copytree(ROOT_DIR / "packages", self.t / "packages")
         os.chdir(self.t)

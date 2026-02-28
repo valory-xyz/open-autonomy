@@ -155,7 +155,7 @@ class BaseThreadedAsyncLoop:
     loop: ThreadedAsyncRunner
     thread: Thread
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the class."""
         self.loop = ThreadedAsyncRunner()
         self.loop.start()
@@ -169,7 +169,7 @@ class BaseThreadedAsyncLoop:
         task: AnotherThreadTask = self.loop.call(coro)
         return task.result(timeout=timeout)
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown the class."""
         self.loop.start()
         self.loop.join(5.0)

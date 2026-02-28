@@ -126,7 +126,7 @@ class TestABCIHandlerOld(BaseSkillTestCase):
 class TestABCIHandler:
     """Test 'ABCIHandler'."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         self.skill_id = (  # pylint: disable=attribute-defined-outside-init
             PublicId.from_str("dummy/skill:0.1.0")

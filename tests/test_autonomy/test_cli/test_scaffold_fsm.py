@@ -64,7 +64,7 @@ class BaseScaffoldFSMTest(AEATestCaseMany):
 
         cls.author = get_default_author_from_cli_config()
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test."""
@@ -85,7 +85,7 @@ class BaseScaffoldFSMTest(AEATestCaseMany):
             self.author,
         )
 
-    def teardown(
+    def teardown_method(
         self,
     ) -> None:
         """Teardown test."""

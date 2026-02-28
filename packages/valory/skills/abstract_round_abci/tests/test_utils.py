@@ -76,7 +76,7 @@ class TestVerifyDrand:
 
     drand_check: VerifyDrand
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test."""

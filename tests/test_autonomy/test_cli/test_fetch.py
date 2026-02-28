@@ -54,10 +54,10 @@ class FetchTest(BaseCliTest):
     packages_dir: Path
     package_type: str  # agent or service
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup class."""
 
-        super().setup()
+        super().setup_method()
 
         self.packages_dir = self.t / "packages"
         self.cli_options = (
@@ -252,9 +252,9 @@ class TestFromToken(BaseChainInteractionTest):
         },
     )
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup the test."""
-        super().setup()
+        super().setup_method()
 
         self.packages_dir = self.t / "packages"
         self.cli_options = ("fetch", "1")

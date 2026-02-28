@@ -501,7 +501,7 @@ class TestBaseBehaviour:
 
     _DUMMY_CONSENSUS_THRESHOLD = 3
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         self.context_mock = MagicMock()
         self.context_params_mock = MagicMock(
@@ -2348,7 +2348,7 @@ class TestTmManager:
 
     _DUMMY_CONSENSUS_THRESHOLD = 3
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         self.context_mock = MagicMock()
         self.context_params_mock = MagicMock(
@@ -2666,7 +2666,7 @@ def test_base_behaviour_instantiation_without_attributes_raises_error() -> None:
 class TestIPFSBehaviour:
     """Test IPFSBehaviour tests."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Sets up the tests."""
         self.context_mock = MagicMock()
         self.context_mock.ipfs_dialogues = IpfsDialogues(

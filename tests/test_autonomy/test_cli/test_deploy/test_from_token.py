@@ -85,9 +85,9 @@ class TestFromToken(BaseChainInteractionTest):
     chain = "staging"
     keys_file: Path
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
-        super().setup()
+        super().setup_method()
 
         os.chdir(self.t)
         self.keys_file = self.t / "keys.json"

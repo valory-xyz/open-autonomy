@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -49,9 +49,9 @@ class TestRunServiceLocally(BaseCliTest):
     expected_network_address = "http://localhost:8545"
     running_process: multiprocessing.Process
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
         os.chdir(self.t)
 
     def test_run_service_locally(
