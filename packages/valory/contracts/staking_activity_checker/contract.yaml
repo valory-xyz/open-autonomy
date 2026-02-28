@@ -1,0 +1,23 @@
+name: staking_activity_checker
+author: valory
+version: 0.1.0
+type: contract
+description: Staking activity checker contract
+license: Apache-2.0
+aea_version: '>=2.0.0, <3.0.0'
+fingerprint:
+  __init__.py: bafybeidqcg3zmyc2m4txhq2necsqe7t5okfpjmylwozk2uqpap4t55nt2a
+  build/StakingActivityChecker.json: bafybeics5mactf3d2mq5ncwyeiruojqurltcia5tqx7garazmopurlotam
+  contract.py: bafybeifsxp3tolyda7fbkmytdzmepxnryf7nhffqircazatsugcpt5hbti
+fingerprint_ignore_patterns: []
+contracts: []
+class_name: StakingActivityCheckerContract
+contract_interface_paths:
+  ethereum: build/StakingActivityChecker.json
+dependencies:
+  open-aea-ledger-ethereum:
+    version: ==2.0.8
+  open-aea-test-autonomy:
+    version: <0.22.0,>=0.21.0
+  web3:
+    version: <8,>=7.0.0

@@ -7,11 +7,29 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeifuv5yh7fc2oy5wgfq2bdvetn7hxg3rhsdrxmlkppj4ns2y6il4e4
-  build/ERC20.json: bafybeiccjj4jwmpianz6vsxtubzg7bkssorapbcti4fx3e5d7g32pqmtee
-  contract.py: bafybeihishgzcsqnppadlxj3cz36jtyesk6sjmiadxjklfgrdtgo7mzc3a
+  build/ERC20.json: bafybeihbrreyjqryea4sc2fv2rmelfsilosozmuskgyyzlrtcuhmmh7ieu
+  contract.py: bafybeicg4rzshvmwkswkqafaihgnrvrzzkt52dichqqrczubiuk6325uc4
 fingerprint_ignore_patterns: []
 class_name: ERC20TokenContract
 contract_interface_paths:
   ethereum: build/ERC20.json
-dependencies: {}
 contracts: []
+dependencies:
+  ecdsa:
+    version: '>=0.15'
+  eth_typing: {}
+  hexbytes: {}
+  open-aea-ledger-ethereum:
+    version: ==2.0.8
+  open-aea-test-autonomy:
+    version: <0.22.0,>=0.21.0
+  packaging: {}
+  py-eth-sig-utils: {}
+  requests:
+    version: <2.32.5,>=2.28.1
+  web3:
+    version: <8,>=7.0.0
+  eth-abi:
+    version: ==5.2.0
+  eth-utils:
+    version: ==5.3.0

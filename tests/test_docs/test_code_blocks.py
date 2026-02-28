@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -226,6 +226,7 @@ class TestPythonSnippets(BaseTestDocCode):
         "docs/demos/price_oracle_technical_details.md",  # price oracle has been extracted to a separate repo on #1441
         "docs/advanced_reference/developer_tooling/benchmarking.md",  # just placeholder examples
         "docs/configure_service/on-chain_deployment_checklist.md",  # just placeholder examples
+        "docs/advanced_reference/testing_behaviours.md",  # just placeholder examples
     ]
 
 
