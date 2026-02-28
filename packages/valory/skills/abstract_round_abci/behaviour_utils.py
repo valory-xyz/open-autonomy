@@ -19,7 +19,6 @@
 
 """This module contains helper classes for behaviours."""
 
-
 import datetime
 import inspect
 import json
@@ -108,7 +107,6 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState,
     TendermintRecoveryParams,
 )
-
 
 # TODO: port registration code from registration_abci to here
 

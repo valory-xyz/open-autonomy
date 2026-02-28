@@ -1,5 +1,5 @@
 # Base image
-FROM python:3.10-slim-bullseye AS base
+FROM python:3.14-slim-bullseye AS base
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
@@ -12,7 +12,7 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 # Customize base image with agent deps
-FROM python:3.10-slim-bullseye AS agent_deps
+FROM python:3.14-slim-bullseye AS agent_deps
 ARG AUTHOR=user
 
 # Install docker

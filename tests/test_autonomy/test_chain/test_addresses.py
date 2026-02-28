@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ from aea.protocols.generator.common import _camel_case_to_snake_case
 
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import CHAIN_PROFILES
-
 
 ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/refs/tags/v1.3.0/docs/configuration.json"
 

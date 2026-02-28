@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -70,8 +70,9 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TxSettlementSyncedData,
 )
-from packages.valory.skills.transaction_settlement_abci.rounds import TX_HASH_LENGTH
-
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    TX_HASH_LENGTH,
+)
 
 # setting the safe gas to 0 means that all available gas will be used
 # which is what we want in most cases

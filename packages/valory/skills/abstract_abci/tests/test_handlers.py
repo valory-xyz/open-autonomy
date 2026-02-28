@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the handlers.py module of the skill."""
+
 import logging
 from pathlib import Path
 from typing import Any, cast
@@ -48,7 +49,6 @@ from packages.valory.protocols.abci.custom_types import (
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
 from packages.valory.skills.abstract_abci.dialogues import AbciDialogue, AbciDialogues
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler, ERROR_CODE
-
 
 PACKAGE_DIR = Path(__file__).parent.parent
 
@@ -126,7 +126,7 @@ class TestABCIHandlerOld(BaseSkillTestCase):
 class TestABCIHandler:
     """Test 'ABCIHandler'."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         self.skill_id = (  # pylint: disable=attribute-defined-outside-init
             PublicId.from_str("dummy/skill:0.1.0")

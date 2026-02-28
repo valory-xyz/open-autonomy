@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ from autonomy.chain.constants import (
 )
 
 from tests.conftest import skip_docker_tests
-
 
 DEFAULT_LOCAL_RPC = "http://127.0.0.1:8545"
 SERVICE_MANAGER_PROXY = "0x4c5859f0F772848b2D91F1D83E2Fe57935348029"  # nosec

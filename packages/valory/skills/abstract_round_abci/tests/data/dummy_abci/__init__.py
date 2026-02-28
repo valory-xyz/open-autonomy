@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@
 from pathlib import Path
 
 from aea.configurations.base import PublicId
-
 
 PUBLIC_ID = PublicId.from_str("dummy/dummy_abci:0.1.0")
 PATH_TO_SKILL = Path(__file__).parent

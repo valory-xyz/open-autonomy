@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@
 #
 # ------------------------------------------------------------------------------
 """Check dependencies."""
+
 import re
 import shutil
 import subprocess  # nosec
 from itertools import islice
 from typing import Iterable, List, Pattern, Tuple
-
 
 ERROR_MESSAGE_TEMPLATE_BINARY_NOT_FOUND = (
     "'{command}' is required by the "

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,6 +20,5 @@
 """This module contains an abstract round ABCI skill template for an AEA."""  # pragma: nocover
 
 from aea.configurations.base import PublicId  # pragma: nocover
-
 
 PUBLIC_ID = PublicId.from_str("valory/abstract_round_abci:0.1.0")

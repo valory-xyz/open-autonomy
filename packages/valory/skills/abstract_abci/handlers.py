@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the handler for the 'abci' skill."""
+
 from typing import List, cast
 
 from aea.protocols.base import Message
@@ -34,7 +35,6 @@ from packages.valory.protocols.abci.custom_types import (
     ValidatorUpdates,
 )
 from packages.valory.protocols.abci.dialogues import AbciDialogue, AbciDialogues
-
 
 ERROR_CODE = 1
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -54,7 +54,6 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     make_degenerate_behaviour,
 )
 from packages.valory.skills.abstract_round_abci.models import SharedState
-
 
 SLASHING_BACKGROUND_BEHAVIOUR_ID = "slashing_check_behaviour"
 TERMINATION_BACKGROUND_BEHAVIOUR_ID = "background_behaviour"

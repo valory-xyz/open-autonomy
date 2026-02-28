@@ -29,7 +29,6 @@ from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
 from web3 import Web3
 
-
 PUBLIC_ID = PublicId.from_str("valory/agent_registry:0.1.0")
 
 AGENT_UNIT_TYPE = 1

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Test push-all command group."""
-
 
 import os
 import shutil
@@ -41,10 +40,10 @@ class TestPushAll(BaseCliTest):
     cli_options: Tuple[str, ...] = ("push-all", "--remote")
     packages_dir: Path
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
 
-        super().setup()
+        super().setup_method()
 
         self.packages_dir = self.t / PACKAGES
         shutil.copytree(ROOT_DIR / PACKAGES, self.packages_dir)

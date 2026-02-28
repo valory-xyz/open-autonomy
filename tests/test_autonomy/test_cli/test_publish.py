@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Test hash command group."""
-
 
 import os
 import shutil
@@ -42,10 +41,10 @@ class TestPublish(BaseCliTest):
 
     cli_options: Tuple[str, ...] = ("publish",)
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup class."""
 
-        super().setup()
+        super().setup_method()
 
         self.packages_dir = self.t / "packages"
         self.service_dir = self.t / "packages" / "valory" / "services" / "counter"

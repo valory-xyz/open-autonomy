@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -45,7 +45,6 @@ from autonomy.analyse.abci.app_spec import DFASpecificationError
 from packages.valory import skills
 from packages.valory.skills.abstract_round_abci.base import _MetaPayload
 
-
 VALORY_SKILLS_PATH = Path(os.path.join(*skills.__package__.split("."))).absolute()
 fsm_specifications = list(VALORY_SKILLS_PATH.glob("**/fsm_specification.yaml"))
 
@@ -65,7 +64,7 @@ class BaseScaffoldFSMTest(AEATestCaseMany):
 
         cls.author = get_default_author_from_cli_config()
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test."""
@@ -86,7 +85,7 @@ class BaseScaffoldFSMTest(AEATestCaseMany):
             self.author,
         )
 
-    def teardown(
+    def teardown_method(
         self,
     ) -> None:
         """Teardown test."""

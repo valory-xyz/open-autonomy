@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2024 Valory AG
+#   Copyright 2024-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_chain.base import BaseChainInteractionTest
-
 
 MOCK_IPFS_RESPONSE = {
     "name": "valory/oracle_hardhat",
@@ -86,9 +85,9 @@ class TestFromToken(BaseChainInteractionTest):
     chain = "staging"
     keys_file: Path
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
-        super().setup()
+        super().setup_method()
 
         os.chdir(self.t)
         self.keys_file = self.t / "keys.json"

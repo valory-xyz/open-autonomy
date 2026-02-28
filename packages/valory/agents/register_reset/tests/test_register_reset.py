@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -53,7 +53,6 @@ from packages.valory.skills.registration_abci.rounds import (
     RegistrationStartupRound,
 )
 from packages.valory.skills.reset_pause_abci.rounds import ResetAndPauseRound
-
 
 HAPPY_PATH = (
     RoundChecks(RegistrationRound.auto_round_id(), n_periods=3),

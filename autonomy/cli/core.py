@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ from autonomy.cli.publish import publish
 from autonomy.cli.push_all import push_all
 from autonomy.cli.replay import replay_group
 from autonomy.cli.service import service
-
 
 cli.add_command(analyse_group)
 cli.add_command(deploy_group)

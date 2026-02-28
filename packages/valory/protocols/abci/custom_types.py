@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains class representations corresponding to every custom type in the protocol specification."""
+
 import datetime
 from enum import Enum
 from typing import List, Optional

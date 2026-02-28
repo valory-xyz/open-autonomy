@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains testing utilities."""
+
 import logging
 import platform
 import re
@@ -31,7 +32,6 @@ import docker
 import pytest
 from docker.errors import ImageNotFound, NotFound
 from docker.models.containers import Container
-
 
 SEPARATOR = ("\n" + "*" * 40) * 3 + "\n"
 logger = logging.getLogger(__name__)

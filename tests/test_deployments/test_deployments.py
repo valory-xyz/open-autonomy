@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests package for the 'deployments' functionality."""
+
 import json
 import os
 import re
@@ -55,7 +56,6 @@ from autonomy.deploy.generators.docker_compose.base import (
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
-
 
 deployment_generators: List[Any] = [
     DockerComposeGenerator,
@@ -166,7 +166,7 @@ class CleanDirectoryClass:
     deployment_path = Path(ROOT_DIR) / "deployments"
     old_cwd = None
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Sets up the working directory for the test method."""
         self.old_cwd = os.getcwd()
         with tempfile.TemporaryDirectory() as path:
@@ -174,7 +174,7 @@ class CleanDirectoryClass:
         shutil.copytree(self.deployment_path, self.working_dir)
         os.chdir(self.working_dir)
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Removes the over-ride"""
         shutil.rmtree(str(self.working_dir), ignore_errors=True)
         os.chdir(str(self.old_cwd))

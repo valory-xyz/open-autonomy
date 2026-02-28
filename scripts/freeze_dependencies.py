@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,15 +19,17 @@
 # ------------------------------------------------------------------------------
 
 """This CLI tool freezes the dependencies."""
+
 import argparse
 import re
 import subprocess  # nosec
+from pathlib import Path
 
 
 def parse_args() -> argparse.Namespace:
     """Parse CLI arguments."""
     parser = argparse.ArgumentParser("freeze_dependencies")
-    parser.add_argument("-o", "--output", type=argparse.FileType("w"), default=None)
+    parser.add_argument("-o", "--output", type=Path, default=None)
     return parser.parse_args()
 
 
@@ -37,7 +39,7 @@ if __name__ == "__main__":
     pip_freeze_call = subprocess.Popen(  # nosec  # pylint: disable=consider-using-with
         ["pip", "freeze"], stdout=subprocess.PIPE
     )
-    (stdout, stderr) = pip_freeze_call.communicate()
+    stdout, stderr = pip_freeze_call.communicate()
     requirements = stdout.decode("utf-8")
 
     # remove 'open-autonomy' itself
@@ -46,4 +48,4 @@ if __name__ == "__main__":
     if arguments.output is None:
         print(requirements)
     else:
-        arguments.output.write(requirements)
+        arguments.output.write_text(requirements, encoding="utf-8")

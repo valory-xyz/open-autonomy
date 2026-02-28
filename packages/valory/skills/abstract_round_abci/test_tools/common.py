@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test common classes."""
+
 import binascii
 import json
 import time
@@ -39,7 +40,6 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehav
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
-
 
 PACKAGE_DIR = Path(__file__).parent.parent
 DRAND_VALUE = {

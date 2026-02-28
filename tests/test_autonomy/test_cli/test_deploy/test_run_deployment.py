@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Test `run` command."""
-
 
 import json
 import os
@@ -46,10 +45,10 @@ class TestRun(BaseCliTest):
 
     cli_options = ("deploy", "run")
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
 
-        super().setup()
+        super().setup_method()
         os.chdir(self.t)
 
     def test_run(
@@ -64,7 +63,7 @@ class TestRun(BaseCliTest):
 
     def test_run_local(self) -> None:
         """Test that `deploy run` works on localhost."""
-        super().setup()
+        super().setup_method()
 
         # setup the service keys and packages
         self.keys_file = self.t / "keys.json"
@@ -121,9 +120,9 @@ class TestStop(BaseCliTest):
 
     cli_options = ("deploy", "stop")
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
-        super().setup()
+        super().setup_method()
         os.chdir(self.t)
 
     def test_run(

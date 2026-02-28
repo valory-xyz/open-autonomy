@@ -6,31 +6,31 @@ description: Termination skill.
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  __init__.py: bafybeidztixckwwbn4ujl6kkvghgsk23xecbgnbiw3e4t3owxldhyjo3au
-  behaviours.py: bafybeibokpnebvmoq5dzdjzntbllmpl7nl6h7qusurpisobwnfskym7rzm
-  dialogues.py: bafybeif7uhfjkcz3ryhti6gafqxhvciw4ec5bdshxvq3355tun5ydkzrna
-  handlers.py: bafybeibh5b3p4bdvbnwiqwormduqjvuievylb3s2wgj4ald4led7gx2kji
-  models.py: bafybeihak6dcfqpjxbryeixksdn5lbdifq5ondzlh4wiweoptzzn42wco4
+  __init__.py: bafybeibgcuyc7kml7jddd4bmt3wfgeeszmz67iadf2joh45h3fzz2xxrue
+  behaviours.py: bafybeidxmgorumlm6nfcu3xumxuly7q3k5klwn6cs27hyxzl6m4mcsnihq
+  dialogues.py: bafybeiat3bcaov7ekmjzezczjyk2ux5ctvy4i6bcmwnyz7wprkd5xdnqca
+  handlers.py: bafybeihgd27xy5w2tb3fxvbk2bceymcmsbfcv2dww2vzdllod4tz6a5mcq
+  models.py: bafybeidpmdfwfamuopkhznkouzx5ver35mc64l2menzugwiuicqiyqwuby
   payloads.py: bafybeihbwfunongkws5lck67sdgpnytq6bdbiv22yuehmyfth4qeypjcpa
   rounds.py: bafybeidvmyb7jxj7l4tqky6txr42jqr7x36w5mvi266ajxp52mv2hbnm3a
   tests/__init__.py: bafybeigsjjibb2gcybzp5yrsy25vyiu54rw6oaeyw5onaqemsvul7bmroi
-  tests/test_behaviours.py: bafybeiaxfsp4f3wjclitskvfhammrn3tpkgd7my57tzxxq3lqdw2xzok5i
-  tests/test_dialogues.py: bafybeicb6gfanfyt3wiq3svdlvtxiuzpk72oxp7cfdeq4ezed7ixee5yae
-  tests/test_handlers.py: bafybeiefz2ebr5rlyxziwr4bts2r75abpqgji3k47a6hnrj7e7t2yvgmpu
-  tests/test_models.py: bafybeietbtyxwutpow5aighxc5impn6g2rjq2mjajl2eldl7xsp4h7o67i
-  tests/test_payloads.py: bafybeibai4dzjjdeyeinyirjndcfzbj2qst6roj6prjvcqwut5m3won3fa
-  tests/test_rounds.py: bafybeiafy4hqww4qqjfd7wrqhnezf47n66pnodect6hquf4bpkrwiqmufq
+  tests/test_behaviours.py: bafybeidjjgp36tgclvlsrkdzhpf5ukf55yhbejmgfsfldrq5nta2zx5xxm
+  tests/test_dialogues.py: bafybeiebrigfukrzywuoxtu6vpg2unypkamqrhsagz7e6vhqssg4rmwmkq
+  tests/test_handlers.py: bafybeif4kyxb37elmsqnw5fnynh5pxgzjjvuu2xfuueaivg3lkxjvvvg5q
+  tests/test_models.py: bafybeihqq3mmrsatitj6ddb6wwsnrbpk4szjj777ordwkea5tjpoogekua
+  tests/test_payloads.py: bafybeibzoenazcn2tltxyswrweg7rbgeqoh63gqev34ph2suha66m4fkwy
+  tests/test_rounds.py: bafybeigwkcqn4e33gnncii4wegqwo7sgwxj3dx5zgf5yv4kenhk4evyjk4
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeig666ryzt3bzavejkmk4jtspihzziq72qpxy4g2ta3d5j5sdwzv5i
-- valory/multisend:0.1.0:bafybeidjdgi2kyexajirj3cnpzgse4y5u664b2blztt4flv6i7knlecyr4
-- valory/service_registry:0.1.0:bafybeidheiinltcynckpgs35vknbs7s6zal3d544nfjcdjrbvely32j5le
+- valory/gnosis_safe:0.1.0:bafybeifbg2n2wjpcovggi5kzw3cluhjexm7ls5kpm5qbr2kawzcwnevpuu
+- valory/multisend:0.1.0:bafybeiaf3hapi3prgpjeugwhq64k7lqelo6kibhol5rkajt7id3knomp5q
+- valory/service_registry:0.1.0:bafybeieeqv53wtgqv4sbj2tqq6zwblewut5gdrfyrqysnzikaziguqh75a
 protocols:
-- valory/contract_api:1.0.0:bafybeigl7mxuyxngk4gztgygeccbgdfrllx73kwbvvkjvtkfw6ionyd56q
+- valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeico2i67lk5wkgyvmu5ska7phbugxbfh4ofnm57vwpypis5zmpjnim
-- valory/transaction_settlement_abci:0.1.0:bafybeidmg3beiqyubkze6wdiwhz4oqwvidhsjexjgcvso5bkrryqkbsgzu
+- valory/abstract_round_abci:0.1.0:bafybeiad5rbqxaxsik2fjmcidyfiaeuvyw2tr5oasuo6hphxyzwdav6ety
+- valory/transaction_settlement_abci:0.1.0:bafybeigbt5x65shxqhshcsqx4s6jlued2hk46ynhptxi6k5t76q2oai5ou
 behaviours:
   main:
     args: {}

@@ -22,11 +22,10 @@
 from setuptools import find_packages  # type: ignore
 from setuptools import setup  # type: ignore
 
-
 base_deps = [
-    "open-aea[all]>=2.0.8,<3.0.0",
-    "pytest==7.4.4",
-    "open-aea-ledger-ethereum>=2.0.8,<3.0.0",
+    "open-aea[all]>=2.1.0rc4,<3.0.0",
+    "pytest==8.4.2",
+    "open-aea-ledger-ethereum>=2.1.0rc4,<3.0.0",
     "docker==7.1.0",
 ]
 
@@ -61,6 +60,9 @@ setup(
         "Operating System :: Unix",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
         "Topic :: Communications",
         "Topic :: Internet",
         "Topic :: Software Development",

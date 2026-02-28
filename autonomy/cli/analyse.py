@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Analyse CLI module."""
+
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, cast
@@ -52,7 +53,6 @@ from autonomy.cli.utils.click_utils import (
     sys_path_patch,
 )
 from autonomy.deploy.constants import LOGGING_LEVELS
-
 
 TIME_FORMAT_TEMPLATE = "YYYY-MM-DD H:M:S,MS"
 BENCHMARKS_DIR = Path("./benchmarks.html")

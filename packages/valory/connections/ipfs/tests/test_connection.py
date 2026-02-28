@@ -19,6 +19,7 @@
 # pylint: disable=protected-access,attribute-defined-outside-init
 
 """Tests for ipfs connection."""
+
 import asyncio
 import os
 import platform
@@ -46,7 +47,6 @@ from packages.valory.connections.ipfs.connection import (
 )
 from packages.valory.protocols.ipfs import IpfsMessage
 
-
 ANY_SKILL = "skill/any:0.1.0"
 
 
@@ -54,7 +54,7 @@ ANY_SKILL = "skill/any:0.1.0"
 class TestIpfsConnection:
     """Tests for IpfsConnection"""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         configuration = ConnectionConfig(
             ipfs_domain=LOCAL_IPFS,

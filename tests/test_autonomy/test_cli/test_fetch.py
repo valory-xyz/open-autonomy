@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -45,7 +45,6 @@ from tests.test_autonomy.base import get_dummy_service_config
 from tests.test_autonomy.test_chain.base import BaseChainInteractionTest
 from tests.test_autonomy.test_cli.base import BaseCliTest, cli
 
-
 IPFS_REGISTRY = "/dns/registry.autonolas.tech/tcp/443/https"
 
 
@@ -55,10 +54,10 @@ class FetchTest(BaseCliTest):
     packages_dir: Path
     package_type: str  # agent or service
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup class."""
 
-        super().setup()
+        super().setup_method()
 
         self.packages_dir = self.t / "packages"
         self.cli_options = (
@@ -253,9 +252,9 @@ class TestFromToken(BaseChainInteractionTest):
         },
     )
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup the test."""
-        super().setup()
+        super().setup_method()
 
         self.packages_dir = self.t / "packages"
         self.cli_options = ("fetch", "1")

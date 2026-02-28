@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 # pylint: disable=unused-import
 
 """Integration tests for the valory/register_termination skill."""
+
 from pathlib import Path
 
 import pytest
@@ -43,7 +44,6 @@ from packages.valory.skills.registration_abci.rounds import RegistrationStartupR
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     ValidateTransactionRound,
 )
-
 
 TARGET_AGENT = "valory/register_termination:0.1.0"
 TARGET_SKILL = "valory/register_termination_abci:0.1.0"

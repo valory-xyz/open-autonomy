@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2024 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'test_solana_behaviour' skill."""
+
 import json
 from abc import ABC
 from typing import Any, Dict, Generator, Optional, Set, Type, cast
@@ -42,7 +43,6 @@ from packages.valory.skills.test_solana_tx_abci.composition import ComposedAbciA
 from packages.valory.skills.test_solana_tx_abci.models import Params
 from packages.valory.skills.test_solana_tx_abci.payloads import SolanaTransactionPayload
 from packages.valory.skills.test_solana_tx_abci.rounds import SolanaRound
-
 
 DUMMY_ADDRESS = "0x0"
 SOLANA = "solana"

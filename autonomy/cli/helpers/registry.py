@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,9 +22,7 @@
 import os
 import shutil
 import tempfile
-from distutils.dir_util import copy_tree  # pylint: disable=deprecated-module
 from pathlib import Path
-from shutil import copytree
 from typing import Optional, cast
 
 import click
@@ -48,7 +46,6 @@ from autonomy.configurations.base import (
     DEFAULT_SERVICE_CONFIG_FILE,
     PACKAGE_TYPE_TO_CONFIG_CLASS,
 )
-
 
 try:
     from aea_cli_ipfs.ipfs_utils import IPFSTool  # type: ignore
@@ -151,7 +148,7 @@ def fetch_service_local(
             f'Item "{target_path.name}" already exists in target folder "{target_path.parent}".'
         )
 
-    copy_tree(source_path, str(target_path))
+    shutil.copytree(source_path, str(target_path))
     click.echo(f"Copied service package {public_id}")
     return target_path
 
@@ -226,7 +223,7 @@ def publish_service_local(ctx: Context, public_id: PublicId) -> None:
         os.makedirs(author_dir, exist_ok=True)
     # TODO: also make services dir?
 
-    copytree(ctx.cwd, target_dir)
+    shutil.copytree(ctx.cwd, target_dir)
     click.echo(
         f'Service "{public_id.name}" successfully published on the local packages directory.'
     )

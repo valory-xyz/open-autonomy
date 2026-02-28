@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the class to connect to an Gnosis Safe contract."""
+
 import binascii
 import logging
 import secrets
@@ -42,7 +43,6 @@ from packages.valory.contracts.gnosis_safe.encode import encode_typed_data
 from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
     GnosisSafeProxyFactoryContract,
 )
-
 
 PUBLIC_ID = PublicId.from_str("valory/gnosis_safe:0.1.0")
 MIN_GAS = MIN_GASPRICE = 1

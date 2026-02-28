@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ class BaseImageBuildTest:
 
         cls.client = docker.from_env()
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
         self.running_containers = []
 
@@ -81,7 +81,7 @@ class BaseImageBuildTest:
 
         return True, output
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown test."""
 
         for container in self.running_containers:

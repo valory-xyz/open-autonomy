@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utilities for AbciApps."""
+
 import logging
 from copy import deepcopy
 from typing import Any, Dict, FrozenSet, List, Optional, Set, Tuple, Type
@@ -31,7 +32,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     EventToTimeout,
     EventType,
 )
-
 
 _default_logger = logging.getLogger(
     "aea.packages.valory.skills.abstract_round_abci.abci_app_chain"

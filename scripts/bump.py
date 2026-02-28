@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -42,7 +42,6 @@ from aea.helpers.yaml_utils import yaml_dump, yaml_dump_all, yaml_load, yaml_loa
 from aea.package_manager.v1 import PackageManagerV1
 
 from autonomy.cli.helpers.ipfs_hash import load_configuration
-
 
 BUMP_BRANCH = "chore/bump"
 PIPFILE = Path.cwd() / "Pipfile"

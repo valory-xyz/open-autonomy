@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
 
 """This module contains the tests for the links in the documentation."""
 
-
 import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -34,7 +33,6 @@ from requests.adapters import HTTPAdapter  # type: ignore
 from requests.packages.urllib3.util.retry import (  # type: ignore # pylint: disable=import-error
     Retry,
 )
-
 
 # Disable insecure request warning (expired SSL certificates)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)

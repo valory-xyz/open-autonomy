@@ -25,7 +25,6 @@ from aea.crypto.base import LedgerApi
 
 from autonomy.chain.service import MultiSendOperation
 
-
 PUBLIC_ID = PublicId.from_str("valory/erc8004_identity_registry_bridger:0.1.0")
 
 

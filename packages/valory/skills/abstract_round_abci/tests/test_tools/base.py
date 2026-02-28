@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -57,12 +57,12 @@ class FSMBehaviourTestToolSetup:
         """Teardown class"""
         _MetaPayload.registry = cls.__old_value
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test"""
         test_cls = copy_class(self.__test_cls)
         self.test_cls = cast(Type[FSMBehaviourBaseCase], test_cls)
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown test"""
         self.test_cls.teardown_class()
 
@@ -82,5 +82,5 @@ class FSMBehaviourTestToolSetup:
             self.test_cls.setup_class(**kwargs)
 
         test_instance = self.test_cls()
-        test_instance.setup()
+        test_instance.setup_method()
         return test_instance

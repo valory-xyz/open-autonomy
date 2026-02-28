@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 
 """Test package manager API."""
 
-
 import json
 import tempfile
 from pathlib import Path
@@ -36,7 +35,6 @@ from autonomy.cli.packages import (
 )
 from autonomy.configurations.base import Service
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
-
 
 DUMMY_HASH = "bafybei0000000000000000000000000000000000000000000000000000"
 SERVICE_ID = PackageId(

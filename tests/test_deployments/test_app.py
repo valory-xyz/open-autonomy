@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -52,7 +52,6 @@ from deployments.Dockerfiles.tendermint.app import (  # type: ignore
     override_config_toml,
     update_peers,
 )
-
 
 ENCODING = "utf-8"
 VERSION = "0.34.19"
@@ -210,12 +209,12 @@ class TestTendermintServerApp(BaseTendermintServerTest):
     genesis_filepath: Path
     genesis_config: Dict
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup"""
         self.genesis_filepath = Path(os.environ["TMHOME"], "config", "genesis.json")
         self.genesis_config = load_genesis()
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown"""
         self.genesis_filepath.write_text(json.dumps(self.genesis_config))
 

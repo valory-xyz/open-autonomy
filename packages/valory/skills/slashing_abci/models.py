@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,7 +30,9 @@ from packages.valory.skills.slashing_abci.composition import SlashingAbciApp
 from packages.valory.skills.transaction_settlement_abci.models import (
     RandomnessApi as TransactionSettlementRandomness,
 )
-from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
+from packages.valory.skills.transaction_settlement_abci.models import (
+    TransactionParams,
+)
 
 
 class SharedState(BaseSharedState):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Tests for specs commands."""
-
 
 import copy
 import importlib
@@ -57,9 +56,9 @@ class TestGenerateSpecs(BaseCliTest):
     app_name: str
     skill_path: Path
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
-        super().setup()
+        super().setup_method()
 
         self.app_name = "OffendAbciApp"
         self.skill_path = Path(PACKAGES, "valory", "skills", "offend_abci")
@@ -191,9 +190,9 @@ class TestCheckSpecs(BaseCliTest):
     packages_dir: Path
     specification_path: Path
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup class."""
-        super().setup()
+        super().setup_method()
 
         self.packages_dir = self.t / PACKAGES
         shutil.copytree(ROOT_DIR / PACKAGES, self.packages_dir)
@@ -216,9 +215,9 @@ class TestCheckSpecs(BaseCliTest):
         ] = (self.t / PACKAGES).as_posix()
         Path(CLI_CONFIG_PATH).write_text(yaml.dump(DEFAULT_CLI_CONFIG))
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown class."""
-        super().teardown()
+        super().teardown_method()
         DEFAULT_CLI_CONFIG["registry_config"]["settings"][REGISTRY_LOCAL][
             "default_packages_path"
         ] = None

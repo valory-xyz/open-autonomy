@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@
 # ------------------------------------------------------------------------------
 
 """Script to generate a markdown package table."""
+
 from pathlib import Path
 from typing import Dict
 
 import yaml
 from aea.cli.packages import get_package_manager
-
 
 COL_WIDTH = 61
 
@@ -70,7 +70,7 @@ def generate_table() -> None:
     # Table header
     content = (
         f"| {'Package name'.ljust(COL_WIDTH, ' ')} | {'Package hash'.ljust(COL_WIDTH, ' ')} | {'Description'.ljust(COL_WIDTH * 2, ' ')} |\n"
-        f"| {'-'*COL_WIDTH} | {'-'*COL_WIDTH} | {'-'*COL_WIDTH * 2} |\n"
+        f"| {'-' * COL_WIDTH} | {'-' * COL_WIDTH} | {'-' * (COL_WIDTH * 2)} |\n"
     )
 
     # Table rows

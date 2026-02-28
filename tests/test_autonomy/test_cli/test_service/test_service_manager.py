@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -51,7 +51,6 @@ from tests.test_autonomy.test_chain.base import (
     THRESHOLD,
     patch_subgraph,
 )
-
 
 DEFAULT_AGENT_INSTANCE_ADDRESS = (
     "0x976EA74026E726554dB657fA54763abd0C3a0aa9"  # a key from default hardhat keys
@@ -475,9 +474,9 @@ class TestServiceManager(BaseServiceManagerTest):
 class TestERC20AsBond(BaseServiceManagerTest):
     """Test ERC20 token as bond."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
         erc20_instance = Contract.from_dir(
             ROOT_DIR / "packages" / "valory" / "contracts" / "erc20"
         ).get_instance(
@@ -639,9 +638,9 @@ class TestERC20AsBond(BaseServiceManagerTest):
 class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
     """Test service deployment with same multisig."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup class."""
-        super().setup()
+        super().setup_method()
         self.ledger_api._api = Web3(
             HTTPProvider(
                 endpoint_uri="http://127.0.0.1:8545",

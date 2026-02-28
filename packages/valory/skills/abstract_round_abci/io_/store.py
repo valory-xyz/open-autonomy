@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 
 """This module contains all the storing operations of the behaviours."""
 
-
 import json
 import os.path
 from abc import ABC, abstractmethod
@@ -27,7 +26,6 @@ from enum import Enum, auto
 from typing import Any, Callable, Dict, Optional, TypeVar, Union, cast
 
 from packages.valory.skills.abstract_round_abci.io_.paths import create_pathdirs
-
 
 StoredJSONType = Union[dict, list]
 NativelySupportedSingleObjectType = StoredJSONType

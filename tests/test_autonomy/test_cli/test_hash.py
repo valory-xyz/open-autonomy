@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Test hash command group."""
-
 
 import json
 import shutil
@@ -44,10 +43,10 @@ class TestHashAll(BaseCliTest):
         "all",
     )
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup class."""
 
-        super().setup()
+        super().setup_method()
 
         self.packages_dir = self.t / "packages"
         shutil.copytree(ROOT_DIR / "packages", self.packages_dir)
@@ -106,10 +105,10 @@ class TestHashOne(BaseCliTest):
         "one",
     )
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup class."""
 
-        super().setup()
+        super().setup_method()
 
         self.file = self.t / "some_file.txt"
         self.file.write_text("Hello, World!")

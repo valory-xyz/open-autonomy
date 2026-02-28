@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests package for the 'valory/tendermint' protocol."""
+
 import logging
 from typing import Type
 from unittest import mock

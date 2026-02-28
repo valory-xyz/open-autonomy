@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Base deployments module."""
+
 import abc
 import json
 import logging
@@ -45,7 +46,6 @@ from autonomy.configurations.base import Service
 from autonomy.configurations.loader import load_service_config
 from autonomy.constants import DEFAULT_DOCKER_IMAGE_AUTHOR
 from autonomy.deploy.constants import DEFAULT_ENCODING, INFO
-
 
 ENV_VAR_ID = "ID"
 ENV_VAR_AEA_AGENT = "AEA_AGENT"

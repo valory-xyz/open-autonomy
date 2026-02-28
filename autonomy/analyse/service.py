@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2024 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -45,7 +45,6 @@ from autonomy.chain.base import ServiceState
 from autonomy.chain.config import ChainType
 from autonomy.chain.service import get_service_info
 from autonomy.configurations.base import Service
-
 
 ABCI_CONNECTION_SCHEMA = {
     "type": "object",
@@ -320,7 +319,7 @@ class ServiceAnalyser:
 
         self.logger.info("Checking if the service is deployed on-chain")
         try:
-            (*_, _service_state, _) = get_service_info(
+            *_, _service_state, _ = get_service_info(
                 ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
             )
         except RequestConnectionError as e:

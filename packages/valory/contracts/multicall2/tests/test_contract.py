@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ from aea_test_autonomy.configurations import DEFAULT_AMOUNT as DEFAULT_ETH_BALAN
 from aea_test_autonomy.docker.base import skip_docker_tests
 
 from packages.valory.contracts.multicall2.contract import Multicall2Contract
-
 
 DEFAULT_GAS = 10000000
 DEFAULT_MAX_FEE_PER_GAS = 10**10

@@ -40,7 +40,6 @@ from autonomy.chain.constants import (
     SERVICE_REGISTRY_CONTRACT,
 )
 
-
 try:
     from aea_ledger_ethereum.ethereum import (  # pylint: disable=ungrouped-imports
         EthereumApi,

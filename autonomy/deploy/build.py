@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 """Script for generating deployment environments."""
+
 from pathlib import Path
 from typing import Dict, List, Optional, Type
 
@@ -25,7 +26,6 @@ from autonomy.deploy.constants import DEPLOYMENT_REPORT, INFO
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 from autonomy.deploy.generators.localhost.base import HostDeploymentGenerator
-
 
 DEPLOYMENT_OPTIONS: Dict[str, Type[BaseDeploymentGenerator]] = {
     "kubernetes": KubernetesGenerator,

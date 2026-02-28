@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ from packages.valory.connections.http_client.connection import (
 from packages.valory.skills.counter_client import PUBLIC_ID
 from packages.valory.skills.counter_client.behaviours import BaseBehaviour
 from packages.valory.skills.counter_client.handlers import HttpHandler, HttpMessage
-
 
 PACKAGE_DIR = Path(__file__).parent.parent
 

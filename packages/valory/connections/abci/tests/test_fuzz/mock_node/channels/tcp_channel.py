@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 """TcpChannel for MockNode"""
+
 # pylint: skip-file
 
 import asyncio
@@ -37,7 +38,6 @@ from packages.valory.connections.abci.connection import (
 from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.base import (
     BaseChannel,
 )
-
 
 _default_logger = logging.getLogger(__name__)
 

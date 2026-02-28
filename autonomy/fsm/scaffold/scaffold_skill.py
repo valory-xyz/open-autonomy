@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Scaffold skill from an FSM"""
-
 
 import itertools
 import os
@@ -69,7 +68,6 @@ from autonomy.fsm.scaffold.generators.tests import (
     RoundTestsFileGenerator,
 )
 from autonomy.fsm.scaffold.templates import COPYRIGHT_HEADER
-
 
 TO_LOCAL_REGISTRY_FLAG = "to_local_registry"
 

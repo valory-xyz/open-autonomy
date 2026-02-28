@@ -7,26 +7,26 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeiaq6b5s6hl4imzdlk3wdmdtiqyxncikimrk6zmnuuvqhphkikenke
-  __init__.py: bafybeicc7zwcm4vljmtobhmgkqinpjgoztznwhfzkndvnnsrolr6eivmsm
+  __init__.py: bafybeiabbqd4ntdfemsl4n4pxxrpfsklsunvkbjaodhntthfvc4mja7fqe
   behaviours.py: bafybeidjhvk6aexwr4oat6bkmxbvh3d6kpqpgpo3blrdiasqahc5xlyt5m
-  composition.py: bafybeic7kp2wqjyhqgvvcy5y2fgiquikuxfksvnibkorvkafomjcchvqli
-  dialogues.py: bafybeif7uhfjkcz3ryhti6gafqxhvciw4ec5bdshxvq3355tun5ydkzrna
-  handlers.py: bafybeifktnmipajc5wtdfjlb46uqd6owlwlcxdvurabehqvdxkvwxdckum
-  models.py: bafybeiha3uip6slahhuqdiusjeosy3yhr7r6u3wxxhrrhhokaxuczofrsm
+  composition.py: bafybeihzdhodm5tuniw5kd4g7qhrwlsmqd3c2kj5v7wo6tov2jlvxeyoa4
+  dialogues.py: bafybeiat3bcaov7ekmjzezczjyk2ux5ctvy4i6bcmwnyz7wprkd5xdnqca
+  handlers.py: bafybeift76libi5hravm56rqfpgjd5q7n2v3ubci5w6k5s2hhzcubppnfi
+  models.py: bafybeiamivxxnk4ln2uumsd45tbivy6rxahleq73tudz4dkmu36vlzr6fy
   tests/__init__.py: bafybeid2pb3mfobqtzsadxzris67d4hkmcflqfnzay3y3errmtd7tdtvoe
   tests/test_behaviours.py: bafybeidabcgpnfrbgmvjsoobpkfem4ytloemo7d2fhwguzyakznkjl5hlq
-  tests/test_dialogues.py: bafybeiha37jzqmgtfjl52c52xz7osnu7y2ic2sxdp6wkmdgwlbzqtzz3me
-  tests/test_handlers.py: bafybeidxd375se3fx5gpakpauglsmqom3bbizflpw3k265knyy6fxtckra
-  tests/test_models.py: bafybeidr63hqozw5mqhkd32e4zfcacafedv5tfkz4kiyltvbveriwo3u3i
+  tests/test_dialogues.py: bafybeigghqnthvld3n3yy3snjkuustmcsqqdpii3hbzkdj6qunnnzmwu4i
+  tests/test_handlers.py: bafybeicwlgbmqbkil7ibrcyboa2jv26qotnhjv7k3dzld2vgw3farslx7y
+  tests/test_models.py: bafybeidqksaarrz7sh4z7kswl5ovwtspxfafzohwsvmo3zgbiemtkjkgmi
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeico2i67lk5wkgyvmu5ska7phbugxbfh4ofnm57vwpypis5zmpjnim
-- valory/registration_abci:0.1.0:bafybeiaur5o7xjf5jod2gzbhxa2m2l2m7z76rfs7gf2sfuf3ffjlqodaxy
-- valory/reset_pause_abci:0.1.0:bafybeibgbbt4yzd6amf2wuldrdvhyfqibjqx2uxhybqhrkumlp4jcfndia
-- valory/termination_abci:0.1.0:bafybeifjwbctocnxrtgyzn7z2ml2q6bxdxrd4sa7m5u43p7ts6hk6ujvce
+- valory/abstract_round_abci:0.1.0:bafybeiad5rbqxaxsik2fjmcidyfiaeuvyw2tr5oasuo6hphxyzwdav6ety
+- valory/registration_abci:0.1.0:bafybeicbf57kt3hswq6iukv2jgkshgu4d6hfeoe3ny2jm6gkd6hzc7nmsu
+- valory/reset_pause_abci:0.1.0:bafybeidbft3jsf6kaoeltr2t2ttb6xd3rllwtyjjemslyyoubfh6lfryiu
+- valory/termination_abci:0.1.0:bafybeibbojds3vigtyxxmfvlx7gigi6awzbl4wmi55g67ifrkq5dfpdody
 behaviours:
   main:
     args: {}

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -143,7 +143,6 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
 )
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
-
 # pylint: skip-file
 
 
@@ -279,7 +278,7 @@ def test_specific_round_instantiation_without_extended_requirements_raises_error
 class TestTransactions:
     """Test Transactions class."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the test."""
         self.old_value = copy(_MetaPayload.registry)
 
@@ -357,7 +356,7 @@ class TestTransactions:
         lookalike = ObjectImitator(transaction)
         assert not transaction == lookalike
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Tear down the test."""
         _MetaPayload.registry = self.old_value
 
@@ -403,7 +402,7 @@ def test_initialize_block() -> None:
 class TestBlockchain:
     """Test a blockchain object."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the test."""
         self.blockchain = Blockchain()
 
@@ -447,7 +446,7 @@ class TestBlockchain:
 class TestBlockBuilder:
     """Test block builder."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the method."""
         self.block_builder = BlockBuilder()
 
@@ -500,7 +499,7 @@ class TestBlockBuilder:
 class TestAbciAppDB:
     """Test 'AbciAppDB' class."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         self.participants = ("a", "b")
         self.db = AbciAppDB(
@@ -1038,7 +1037,7 @@ class TestAbciAppDB:
 class TestBaseSynchronizedData:
     """Test 'BaseSynchronizedData' class."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         self.participants = ("a", "b")
         self.base_synchronized_data = BaseSynchronizedData(
@@ -1284,7 +1283,7 @@ class DummyConcreteRound(AbstractRound):
 class TestAbstractRound:
     """Test the 'AbstractRound' class."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         self.known_payload_type = ConcreteRoundA.payload_class
         self.participants = ("a", "b")
@@ -1543,7 +1542,7 @@ class TestAbstractRound:
 class TestTimeouts:
     """Test the 'Timeouts' class."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the test."""
         self.timeouts: Timeouts = Timeouts()
 
@@ -1674,12 +1673,12 @@ STUB_SLASH_CONFIG = abci_base.BackgroundAppConfig(
 class TestAbciApp:
     """Test the 'AbciApp' class."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the test."""
         self.abci_app = AbciAppTest(MagicMock(), MagicMock(), MagicMock())
         self.abci_app.add_background_app(STUB_TERMINATION_CONFIG)
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown the test."""
         self.abci_app.background_apps.clear()
 
@@ -2410,7 +2409,7 @@ class TestOffenseStatusEncoderDecoder:
 class TestRoundSequence:
     """Test the RoundSequence class."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the test."""
         self.round_sequence = RoundSequence(
             context=MagicMock(), abci_app_cls=AbciAppTest

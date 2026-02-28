@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for the valory/register_reset skill."""
-
 
 from pathlib import Path
 
@@ -46,7 +45,6 @@ from packages.valory.agents.register_reset_recovery.tests.base import (
     BaseTestRegisterResetRecoveryEnd2End,
 )
 from packages.valory.skills.registration_abci.rounds import RegistrationStartupRound
-
 
 HAPPY_PATH = (RoundChecks(RegistrationStartupRound.auto_round_id()),)
 

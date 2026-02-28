@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@
 
 """This module contains the shared state for the register-reset ABCI application."""
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.models import (
+    BaseParams,
+)
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
@@ -30,7 +32,6 @@ from packages.valory.skills.abstract_round_abci.models import (
 from packages.valory.skills.register_reset_recovery_abci.composition import (
     RegisterResetRecoveryAbciApp,
 )
-
 
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
