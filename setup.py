@@ -52,11 +52,11 @@ all_extras = get_all_extras()
 
 
 base_deps = [
-    "Flask>=2.0.2,<3.0.0",
+    "Flask>=3.1.0,<4.0.0",
     "open-aea[all]==2.1.0rc4",
     "watchdog>=2.1.6",
     "pytest==8.4.2",
-    "werkzeug==2.0.3",
+    "werkzeug>=3.1.0,<4.0.0",
     "docker==7.1.0",
     "hexbytes",
     "jsonschema<4.24.0,>=4.3.0",

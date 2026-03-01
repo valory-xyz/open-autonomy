@@ -12,7 +12,7 @@ fingerprint:
   tests/helpers/conftest.py: bafybeiezrieqjmmmhz3mxuhaaliy4lo77h4i5zajvgakluuw5tjlmmpj4y
   tests/helpers/docker/__init__.py: bafybeid5bzd6ebfglfmvm44rnnrib7qvonxac2w337qyeihpkbucby7fdi
   tests/helpers/docker/docker.py: bafybeiet3ohbcjqxgaxiu2edvahgwur2nvouffbbuc3qrtklkgkd5kqezy
-  tests/helpers/slow_tendermint_server/Dockerfile: bafybeihextohv7h5z3rowlrkl5egi7h5yuuwtdsn5jhuxqwejjozk2feky
+  tests/helpers/slow_tendermint_server/Dockerfile: bafybeifppz3jpqxtpoar6ocplcnr7qzmezggroalv3hp4x5pbnesooyvgu
   tests/helpers/slow_tendermint_server/__init__.py: bafybeieosq65nub4bhueyjug3auh36fpcqcwtyrjkomffyi4jyrrvirlnm
   tests/helpers/slow_tendermint_server/app.py: bafybeia7zqjro6vz5fquvnqcvwq37co55pjs6cx43ce5lu6koxwbz7migi
   tests/helpers/slow_tendermint_server/config-template.toml: bafybeibzoxwjjn5cacrtx4p2gov75ktg467xoyglistwjn5xt5l6d6tpea

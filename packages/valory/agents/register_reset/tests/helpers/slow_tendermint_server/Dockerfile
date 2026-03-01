@@ -24,7 +24,7 @@ COPY app.py /app/
 COPY tendermint.py /app/
 
 WORKDIR /app
-RUN pip3 install Flask==2.0.2 requests==2.27.1 Werkzeug==2.0.3
+RUN pip3 install "Flask>=3.1.0,<4.0.0" "requests==2.28.1" "Werkzeug>=3.1.0,<4.0.0"
 
 
 VOLUME /tendermint

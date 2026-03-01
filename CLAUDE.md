@@ -139,5 +139,5 @@ The central design pattern is the **FSM App**: skills define a finite state mach
 - `open-aea[all]==2.1.0rc4` - Core AEA framework
 - `web3>=7,<8` - Ethereum interaction
 - `docker==7.1.0` - Container management for deployments
-- `Flask==2.0.2` - Tendermint monitoring server
+- `Flask>=3.1.0,<4.0.0` - Tendermint monitoring server
 - `tomte` - Valory's linting/tooling meta-package
