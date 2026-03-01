@@ -743,6 +743,8 @@ class TestTendermintNodeStop:
             node._stop_tm_process()
 
         # Verify readline returned within a reasonable time
-        assert readline_returned.wait(timeout=5), "readline() was not unblocked by closing stdout"
+        assert readline_returned.wait(
+            timeout=5
+        ), "readline() was not unblocked by closing stdout"
         reader_thread.join(timeout=5)
         assert not reader_thread.is_alive(), "Reader thread did not terminate"
