@@ -63,12 +63,17 @@ def abci_spec_format_flag(
 
     def wrapper(f: Callable) -> Callable:
         for of in FSMSpecificationLoader.OutputFormats.ALL:
+            is_default = (of == default) and mark_default
+            option_kwargs: Dict[str, Any] = dict(
+                flag_value=of,
+                help=f"{of.title()} file.",
+            )
+            if is_default:
+                option_kwargs["default"] = of
             f = click.option(
                 f"--{of}",
                 "spec_format",
-                flag_value=of,
-                help=f"{of.title()} file.",
-                default=(of == default) and mark_default,
+                **option_kwargs,
             )(f)
 
         return f
