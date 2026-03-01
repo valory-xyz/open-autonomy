@@ -23,7 +23,7 @@ import contextlib
 import copy
 import sys
 from pathlib import Path
-from typing import Any, Callable, Generator, Optional, Union, cast
+from typing import Any, Callable, Dict, Generator, Optional, Union, cast
 
 import click
 from aea.cli.utils.click_utils import PublicIdParameter
