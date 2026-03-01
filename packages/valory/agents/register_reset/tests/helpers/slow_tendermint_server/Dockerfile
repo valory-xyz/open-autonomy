@@ -1,4 +1,4 @@
-FROM alpine:3.7
+FROM alpine:3.20
 MAINTAINER Valory AG
 
 ENV TENDERMINT_VERSION=0.34.19
@@ -24,7 +24,7 @@ COPY app.py /app/
 COPY tendermint.py /app/
 
 WORKDIR /app
-RUN pip3 install "Flask>=3.1.0,<4.0.0" "requests==2.28.1" "Werkzeug>=3.1.0,<4.0.0"
+RUN pip3 install --break-system-packages "Flask>=3.1.0,<4.0.0" "requests==2.28.1" "Werkzeug>=3.1.0,<4.0.0"
 
 
 VOLUME /tendermint
