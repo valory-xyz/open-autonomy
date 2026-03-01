@@ -24,6 +24,7 @@
 import asyncio
 import logging
 import os
+import platform
 import shutil
 import time
 from abc import ABC, abstractmethod
@@ -684,7 +685,10 @@ class TestTendermintNodeStop:
         node._process = mock_process
         node._stopping = False
 
-        with mock.patch.object(node, "_unix_stop_tm"):
+        stop_method = (
+            "_win_stop_tm" if platform.system() == "Windows" else "_unix_stop_tm"
+        )
+        with mock.patch.object(node, stop_method):
             node._stop_tm_process()
 
         mock_stdout.close.assert_called_once()
@@ -739,7 +743,10 @@ class TestTendermintNodeStop:
         os.close(write_fd)
 
         # Now close the read pipe (as our fix does) - this should unblock readline
-        with mock.patch.object(node, "_unix_stop_tm"):
+        stop_method = (
+            "_win_stop_tm" if platform.system() == "Windows" else "_unix_stop_tm"
+        )
+        with mock.patch.object(node, stop_method):
             node._stop_tm_process()
 
         # Verify readline returned within a reasonable time
