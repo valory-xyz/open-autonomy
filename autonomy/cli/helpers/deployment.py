@@ -348,15 +348,11 @@ def _resolve_on_chain_token_id(
             ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
         )
         agent_instances = info["agentInstances"]
-        (
-            _,
-            multisig_address,
-            _,
-            consensus_threshold,
-            *_,
-        ) = get_service_info(
+        info = get_service_info(
             ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
         )
+        multisig_address = info["multisig_address"]
+        consensus_threshold = info["threshold"]
     except FailedToRetrieveComponentMetadata as e:
         raise click.ClickException(str(e)) from e
     except Exception as e:

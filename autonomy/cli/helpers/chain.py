@@ -427,13 +427,13 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
             )
         )
 
-        *_, state, _ = get_service_info(
+        info = get_service_info(
             ledger_api=self.ledger_api,
             chain_type=self.chain_type,
             token_id=cast(int, self.update_token),
         )
 
-        if ServiceState(state) != ServiceState.PRE_REGISTRATION:
+        if ServiceState(info["service_state"]) != ServiceState.PRE_REGISTRATION:
             raise click.ClickException(
                 "Cannot update service hash, service needs to be in the pre-registration state"
             )
@@ -742,30 +742,21 @@ class ServiceHelper(OnChainHelper):
 def print_service_info(service_id: int, chain_type: ChainType) -> None:
     """Print service information"""
     ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(chain_type=chain_type)
-    (
-        security_deposit,
-        multisig_address,
-        _,
-        threshold,
-        max_agents,
-        number_of_agent_instances,
-        _service_state,
-        cannonical_agents,
-    ) = get_service_info(
+    info = get_service_info(
         ledger_api=ledger_api,
         chain_type=chain_type,
         token_id=service_id,
     )
-    service_state = ServiceState(_service_state)
+    service_state = ServiceState(info["service_state"])
     rows = [
         ("Property", "Value"),
         ("Service State", service_state.name),
-        ("Security Deposit", security_deposit),
-        ("Multisig Address", multisig_address),
-        ("Cannonical Agents", ", ".join(map(str, cannonical_agents))),
-        ("Max Agents", max_agents),
-        ("Threshold", threshold),
-        ("Number Of Agent Instances", number_of_agent_instances),
+        ("Security Deposit", info["security_deposit"]),
+        ("Multisig Address", info["multisig_address"]),
+        ("Cannonical Agents", ", ".join(map(str, info["canonical_agents"]))),
+        ("Max Agents", info["max_num_agent_instances"]),
+        ("Threshold", info["threshold"]),
+        ("Number Of Agent Instances", info["num_agent_instances"]),
     ]
 
     if service_state.value >= ServiceState.ACTIVE_REGISTRATION.value:

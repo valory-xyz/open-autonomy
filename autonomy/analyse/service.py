@@ -322,9 +322,10 @@ class ServiceAnalyser:
 
         self.logger.info("Checking if the service is deployed on-chain")
         try:
-            *_, _service_state, _ = get_service_info(
+            info = get_service_info(
                 ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
             )
+            _service_state = info["service_state"]
         except RequestConnectionError as e:
             raise ServiceValidationFailed(
                 "On chain service validation failed, could not connect to the RPC"

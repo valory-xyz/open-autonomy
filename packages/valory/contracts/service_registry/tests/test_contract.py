@@ -166,29 +166,20 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
     def test_get_service_information(self) -> None:
         """Test `test_get_service_information` method."""
 
-        (
-            security_deposit,
-            multisig_address,
-            ipfs_hash_for_config,
-            threshold,
-            max_number_of_agent_instances,
-            number_of_agent_instances,
-            service_state,
-            list_of_cannonical_agents,
-        ) = self.contract.get_service_information(
+        info = self.contract.get_service_information(
             self.ledger_api,
             self.contract_address,
             VALID_SERVICE_ID,
         )
 
-        assert security_deposit == 10000000000000000
-        assert multisig_address == "0x42B4Ef74f1E1E13b3132687bCa9308A89B3D81b2"
-        assert ipfs_hash_for_config == b"UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
-        assert threshold == 3
-        assert max_number_of_agent_instances == 4
-        assert number_of_agent_instances == 4
-        assert service_state == 4
-        assert list_of_cannonical_agents == [1]
+        assert info["security_deposit"] == 10000000000000000
+        assert info["multisig_address"] == "0x42B4Ef74f1E1E13b3132687bCa9308A89B3D81b2"
+        assert info["config_hash"] == b"UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+        assert info["threshold"] == 3
+        assert info["max_num_agent_instances"] == 4
+        assert info["num_agent_instances"] == 4
+        assert info["service_state"] == 4
+        assert info["canonical_agents"] == [1]
 
     def test_get_slash_data(self) -> None:
         """Test the `get_slash_data`."""
