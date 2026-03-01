@@ -22,7 +22,7 @@
 import binascii
 import time
 from enum import Enum
-from typing import Callable, Dict, List, Optional, Tuple, cast
+from typing import Any, Callable, Dict, List, Optional, Tuple, cast
 
 from aea.configurations.data_types import PublicId
 from aea.crypto.base import Crypto, LedgerApi
@@ -59,7 +59,7 @@ DEFAULT_FALLBACK_HANDLER = "0xf48f2b2d2a534e402487b3ee7c18c33aec0fe5e4"
 DEFAULT_DEPLOY_PAYLOAD = "0x0000000000000000000000000000000000000000{fallback_handler}000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 DEFAULT_DEPLOY_PAYLOAD_WITH_RECOVERY = "0x000000000000000000000000{fallback_handler}"
 
-ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
+ServiceInfo = Dict[str, Any]
 
 
 class MultiSendOperation(Enum):
@@ -162,9 +162,10 @@ def get_token_deposit_amount(
 ) -> int:
     """Returns service info."""
     if agent_id is None:
-        *_, (agent_id, *_) = get_service_info(
+        info = get_service_info(
             ledger_api=ledger_api, chain_type=chain_type, token_id=service_id
         )
+        agent_id = info["canonical_agents"][0]
     return registry_contracts.service_registry_token_utility.get_agent_bond(
         ledger_api=ledger_api,
         contract_address=ContractConfigs.get(
@@ -380,12 +381,9 @@ class ServiceManager:
         :param service_id: Service ID retrieved after minting a service
         """
 
-        (
-            cost_of_bond,
-            *_,
-            service_state,
-            _,
-        ) = self.get_service_info(token_id=service_id)
+        info = self.get_service_info(token_id=service_id)
+        cost_of_bond = info["security_deposit"]
+        service_state = info["service_state"]
 
         if service_state == ServiceState.NON_EXISTENT.value:
             raise ServiceRegistrationFailed("Service does not exist")
@@ -434,12 +432,9 @@ class ServiceManager:
                 "Number of agent instances and agent IDs needs to be same"
             )
 
-        (
-            cost_of_bond,
-            *_,
-            service_state,
-            _,
-        ) = self.get_service_info(token_id=service_id)
+        info = self.get_service_info(token_id=service_id)
+        cost_of_bond = info["security_deposit"]
+        service_state = info["service_state"]
 
         if service_state == ServiceState.NON_EXISTENT.value:
             raise InstanceRegistrationFailed("Service does not exist")
@@ -482,11 +477,8 @@ class ServiceManager:
         :param use_recovery_module: Use multisig with recovery module
         """
 
-        (
-            *_,
-            service_state,
-            _,
-        ) = self.get_service_info(token_id=service_id)
+        info = self.get_service_info(token_id=service_id)
+        service_state = info["service_state"]
 
         if service_state == ServiceState.NON_EXISTENT.value:
             raise ServiceDeployFailed("Service does not exist")
@@ -568,11 +560,8 @@ class ServiceManager:
         :param service_id: Service ID retrieved after minting a service
         """
 
-        (
-            *_,
-            service_state,
-            _,
-        ) = self.get_service_info(token_id=service_id)
+        info = self.get_service_info(token_id=service_id)
+        service_state = info["service_state"]
 
         if service_state == ServiceState.NON_EXISTENT.value:
             raise TerminateServiceFailed("Service does not exist")
@@ -605,11 +594,8 @@ class ServiceManager:
         :param service_id: Service ID retrieved after minting a service
         """
 
-        (
-            *_,
-            service_state,
-            _,
-        ) = self.get_service_info(token_id=service_id)
+        info = self.get_service_info(token_id=service_id)
+        service_state = info["service_state"]
 
         if service_state == ServiceState.NON_EXISTENT.value:
             raise UnbondServiceFailed("Service does not exist")
@@ -645,16 +631,9 @@ class ServiceManager:
         :param service_id: Service ID retrieved after minting a service
         """
 
-        (
-            _,
-            multisig_address,
-            _,
-            _,
-            _,
-            _,
-            service_state,
-            _,
-        ) = self.get_service_info(token_id=service_id)
+        info = self.get_service_info(token_id=service_id)
+        multisig_address = info["multisig_address"]
+        service_state = info["service_state"]
 
         if service_state == ServiceState.NON_EXISTENT.value:
             raise RecoverServiceMultisigFailed("Service does not exist")
@@ -714,11 +693,13 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
     service_id: int,
 ) -> Tuple[Optional[str], Optional[str]]:
     """Reuse multisig."""
-    _, multisig_address, _, threshold, *_ = get_service_info(
+    info = get_service_info(
         ledger_api=ledger_api,
         chain_type=chain_type,
         token_id=service_id,
     )
+    multisig_address = info["multisig_address"]
+    threshold = info["threshold"]
     if multisig_address == NULL_ADDRESS:
         return None, "Cannot reuse multisig, No previous deployment exist!"
 
@@ -860,11 +841,12 @@ def get_reuse_multisig_with_recovery_payload(  # pylint: disable=too-many-locals
     service_id: int,
 ) -> Tuple[Optional[str], Optional[str]]:
     """Reuse multisig."""
-    _, multisig_address, _, _, *_ = get_service_info(
+    info = get_service_info(
         ledger_api=ledger_api,
         chain_type=chain_type,
         token_id=service_id,
     )
+    multisig_address = info["multisig_address"]
     if multisig_address == NULL_ADDRESS:
         return None, "Cannot reuse multisig, No previous deployment exist!"
 

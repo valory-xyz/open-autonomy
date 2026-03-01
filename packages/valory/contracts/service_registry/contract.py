@@ -22,7 +22,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, FrozenSet, List, Optional, Tuple, Union, cast
+from typing import Any, Dict, FrozenSet, List, Optional, Union, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -54,7 +54,6 @@ L1_CHAINS = (
 )
 L2_BUILD_FILENAME = "ServiceRegistryL2.json"
 
-ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
 
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
@@ -199,14 +198,33 @@ class ServiceRegistryContract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         token_id: int,
-    ) -> ServiceInfo:
+    ) -> JSONLike:
         """Retrieve service information"""
 
         contract_interface = cls.get_instance(
             ledger_api=ledger_api,
             contract_address=contract_address,
         )
-        return contract_interface.functions.getService(token_id).call()
+        (
+            security_deposit,
+            multisig_address,
+            config_hash,
+            threshold,
+            max_num_agent_instances,
+            num_agent_instances,
+            service_state,
+            canonical_agents,
+        ) = contract_interface.functions.getService(token_id).call()
+        return dict(
+            security_deposit=security_deposit,
+            multisig_address=multisig_address,
+            config_hash=config_hash,
+            threshold=threshold,
+            max_num_agent_instances=max_num_agent_instances,
+            num_agent_instances=num_agent_instances,
+            service_state=service_state,
+            canonical_agents=canonical_agents,
+        )
 
     @classmethod
     def get_token_uri(
