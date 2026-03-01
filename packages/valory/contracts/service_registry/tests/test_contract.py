@@ -97,10 +97,16 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
             contract_address = self.invalid_contract_address
             bytecode += "invalid"
 
-        result = self.contract.verify_contract(
-            self.ledger_api,
-            contract_address,
-        )
+        with mock.patch.object(
+            type(self.ledger_api.api.eth),
+            "chain_id",
+            new_callable=mock.PropertyMock,
+            return_value=CHAIN_ID,
+        ):
+            result = self.contract.verify_contract(
+                self.ledger_api,
+                contract_address,
+            )
 
         assert result["verified"] is valid_address, result
 
