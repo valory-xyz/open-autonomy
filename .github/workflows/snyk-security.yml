@@ -42,15 +42,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@master
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.10.9"
+          python-version: "3.14"
+          allow-prereleases: true
 
       - name: Pipenv install requirements
         run: |
-          pip install pipenv==2023.7.23
+          pip install pipenv==2024.4.0
           pipenv --clear
-          time pipenv install --dev --deploy
+          time pipenv install --dev --skip-lock
 
       - name: Set up Snyk CLI to check for security issues
         # Snyk can be used to break the build when it detects security issues.
