@@ -258,7 +258,7 @@ class CustomSchemaValidator(Draft4Validator):
                 )
                 continue
 
-            if "does not have enough properties" in message:
+            if "does not have enough properties" in message or "should be non-empty" in message:
                 not_enough_properties.append(message)
 
         error = CustomSchemaValidationError(
