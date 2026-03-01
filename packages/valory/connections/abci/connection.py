@@ -1125,17 +1125,13 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
     @staticmethod
     def get_node_command_kwargs() -> Dict:
         """Get the node command kwargs"""
-        kwargs = {
+        return {
             "bufsize": 1,
             "universal_newlines": True,
             "stdout": subprocess.PIPE,
             "stderr": subprocess.STDOUT,
+            "start_new_session": True,
         }
-        if platform.system() == "Windows":  # pragma: nocover
-            kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
-        else:
-            kwargs["preexec_fn"] = os.setsid  # type: ignore
-        return kwargs
 
 
 class TendermintNode:
@@ -1473,11 +1469,11 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
             return
 
         self.state = ConnectionStates.disconnecting
-        self.channel = cast(Union[TcpServerChannel, GrpcServerChannel], self.channel)
-        await self.channel.disconnect()
         if self.use_tendermint:
             self.node = cast(TendermintNode, self.node)
             self.node.stop()
+        self.channel = cast(Union[TcpServerChannel, GrpcServerChannel], self.channel)
+        await self.channel.disconnect()
         self.state = ConnectionStates.disconnected
 
     async def send(self, envelope: Envelope) -> None:

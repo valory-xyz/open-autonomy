@@ -130,10 +130,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
             kwargs["stdout"] = subprocess.PIPE
             kwargs["stderr"] = subprocess.STDOUT
 
-        if platform.system() == "Windows":  # pragma: nocover
-            kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
-        else:
-            kwargs["preexec_fn"] = os.setsid  # type: ignore
+        kwargs["start_new_session"] = True
 
         return kwargs
 
