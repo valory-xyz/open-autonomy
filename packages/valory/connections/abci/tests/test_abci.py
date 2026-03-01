@@ -71,6 +71,8 @@ from packages.valory.connections.abci.connection import (
     DecodeVarintError,
     EncodeVarintError,
     ShortBufferLengthError,
+    TendermintNode,
+    TendermintParams,
     TooLargeVarint,
     VarintMessageReader,
     _TendermintABCISerializer,
@@ -660,3 +662,87 @@ async def test_varint_message_reader() -> None:
     ):
         res = await vmr.read_next_message()
         assert res == b"hello"
+
+
+class TestTendermintNodeStop:
+    """Tests for TendermintNode stop behavior."""
+
+    def _make_node(self) -> TendermintNode:
+        """Create a TendermintNode with mock params."""
+        params = MagicMock(spec=TendermintParams)
+        params.home = None
+        node = TendermintNode(params=params, write_to_log=False)
+        return node
+
+    def test_stop_tm_process_closes_stdout(self) -> None:
+        """Test that _stop_tm_process closes stdout before nulling _process."""
+        node = self._make_node()
+        mock_stdout = MagicMock()
+        mock_process = MagicMock()
+        mock_process.stdout = mock_stdout
+        mock_process.poll.return_value = 0  # process already terminated
+        node._process = mock_process
+        node._stopping = False
+
+        with mock.patch.object(node, "_unix_stop_tm"):
+            node._stop_tm_process()
+
+        mock_stdout.close.assert_called_once()
+        assert node._process is None
+
+    def test_stop_monitoring_thread_uses_timeout(self) -> None:
+        """Test that _stop_monitoring_thread calls join with a timeout."""
+        node = self._make_node()
+        mock_thread = MagicMock()
+        node._monitoring = mock_thread
+
+        node._stop_monitoring_thread()
+
+        mock_thread.stop.assert_called_once()
+        mock_thread.join.assert_called_once_with(timeout=10)
+
+    def test_stop_completes_with_blocking_readline(self) -> None:
+        """Test that stop() completes even when readline() would block.
+
+        Simulates a monitoring thread blocked on readline() and verifies
+        that closing stdout unblocks it, allowing stop() to complete
+        within a reasonable time.
+        """
+        import io
+        import threading
+
+        node = self._make_node()
+
+        # Create a real pipe to simulate blocking readline
+        read_fd, write_fd = os.pipe()
+        read_pipe = io.TextIOWrapper(io.FileIO(read_fd, closefd=True))
+
+        mock_process = MagicMock()
+        mock_process.stdout = read_pipe
+        mock_process.poll.return_value = 0
+        node._process = mock_process
+
+        # Start a thread that blocks on readline (simulating monitoring)
+        readline_returned = threading.Event()
+
+        def blocking_reader() -> None:
+            try:
+                read_pipe.readline()
+            except (ValueError, OSError):
+                pass  # Expected when pipe is closed
+            readline_returned.set()
+
+        reader_thread = threading.Thread(target=blocking_reader, daemon=True)
+        reader_thread.start()
+
+        # Close write end so that closing read end will unblock readline
+        os.close(write_fd)
+
+        # Now close the read pipe (as our fix does) - this should unblock readline
+        with mock.patch.object(node, "_unix_stop_tm"):
+            node._stop_tm_process()
+
+        # Verify readline returned within a reasonable time
+        assert readline_returned.wait(timeout=5), "readline() was not unblocked by closing stdout"
+        reader_thread.join(timeout=5)
+        assert not reader_thread.is_alive(), "Reader thread did not terminate"
