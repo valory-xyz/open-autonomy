@@ -326,24 +326,29 @@ def _get_chained_abci_skill(
         if override is None:
             continue
 
+        # Check if the skill override has the `is_abstract` property set to true
+        if override.get("is_abstract", False):
+            continue
+
         package_id = PackageId(
             package_type=PackageType.SKILL,
             public_id=skill_id,
         )
 
-        skill_config = cast(
-            SkillConfig,
-            (
-                _load_from_ipfs(package_id=package_id)
-                if is_on_chain_check
-                else _load_from_local(
-                    package_id=package_id, package_manager=package_manager
-                )
-            ),
-        )
-
-        # Check if the skill override has the `is_abstract` property set to true
-        if override.get("is_abstract", False):
+        try:
+            skill_config = cast(
+                SkillConfig,
+                (
+                    _load_from_ipfs(package_id=package_id)
+                    if is_on_chain_check
+                    else _load_from_local(
+                        package_id=package_id, package_manager=package_manager
+                    )
+                ),
+            )
+        except FileNotFoundError:
+            # Skip skills whose packages are not available locally
+            # (e.g. third-party packages that have not been synced)
             continue
 
         # Check if the skill has the `is_abstract` property set to true
