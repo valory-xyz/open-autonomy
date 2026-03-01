@@ -86,12 +86,17 @@ def chain_selection_flag(
     def wrapper(f: Callable) -> Callable:
         for chain_type in ChainType:
             chain_name = cast(str, chain_type.value).replace("_", "-")
+            is_default = (chain_type == default) and mark_default
+            option_kwargs: Dict[str, Any] = dict(
+                flag_value=chain_type.value,
+                help=help_string_format.format(chain_name),
+            )
+            if is_default:
+                option_kwargs["default"] = chain_type.value
             f = click.option(
                 f"--use-{chain_name}",
                 "chain_type",
-                flag_value=chain_type.value,
-                help=help_string_format.format(chain_name),
-                default=(chain_type == default) and mark_default,
+                **option_kwargs,
             )(f)
         return f
 
