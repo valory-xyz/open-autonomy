@@ -106,7 +106,14 @@ class TestRunServiceLocally(BaseCliTest):
             client.containers.get(CONTAINER_NAME).remove()
 
     def _invoke_command(self) -> multiprocessing.Process:
-        """Run the command on a different process, as it blocks."""
-        process = multiprocessing.Process(target=self.run_cli)
+        """Run the command on a different process, as it blocks.
+
+        Uses 'fork' context explicitly because the target (self.run_cli)
+        requires inheriting parent state (cli_runner, fixtures) which
+        cannot be pickled as required by 'spawn'/'forkserver' start methods.
+        Python 3.14 changed the default from 'fork' to 'forkserver' on Linux.
+        """
+        ctx = multiprocessing.get_context("fork")
+        process = ctx.Process(target=self.run_cli)
         process.start()
         return process
