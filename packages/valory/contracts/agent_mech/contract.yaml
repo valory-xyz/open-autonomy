@@ -9,7 +9,7 @@ fingerprint:
   README.md: bafybeibygutu6yhowkumxdmjhlldtxk72ivhpdxco5h2gl7o2m3zbfb7yu
   __init__.py: bafybeicmc2ccpqgvgpyapsb62djmgrtscww6djqirkpjysqixuxwcw4lve
   build/mech.json: bafybeiczngojkmncocmx33ddlwjdu3kicsz5hikymsuk4zytunf5aeogvy
-  contract.py: bafybeieuqstlgmdndcyfx4jniev7yw6j4bv4mycxkheixpaah75poi6cgu
+  contract.py: bafybeidv7efmb7chgjzkqzp362vs4stizqjvqpkwe3rlwcyehdyvchyo54
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: AgentMech
