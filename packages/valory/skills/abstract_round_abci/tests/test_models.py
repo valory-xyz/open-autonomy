@@ -126,7 +126,7 @@ class TestApiSpecsModel:
 
     api_specs: ApiSpecs
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test."""
