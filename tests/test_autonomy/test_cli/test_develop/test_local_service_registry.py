@@ -113,6 +113,8 @@ class TestRunServiceLocally(BaseCliTest):
         requires inheriting parent state (cli_runner, fixtures) which
         cannot be pickled as required by 'spawn'/'forkserver' start methods.
         Python 3.14 changed the default from 'fork' to 'forkserver' on Linux.
+
+        :return: the started process.
         """
         ctx = multiprocessing.get_context("fork")
         process = ctx.Process(target=self.run_cli)
