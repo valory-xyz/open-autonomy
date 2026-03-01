@@ -97,7 +97,7 @@ class TypeCheckMixin:  # pylint: disable=too-few-public-methods
 
     def __post_init__(self) -> None:
         """Check that the type of the provided attributes is correct."""
-        for attr, type_ in get_type_hints(self).items():
+        for attr, type_ in get_type_hints(type(self)).items():
             value = getattr(self, attr)
             check_type(attr, value, type_)
 
