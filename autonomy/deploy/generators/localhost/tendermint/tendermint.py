@@ -184,6 +184,9 @@ class TendermintNode:
             try:
                 if self._process is not None and self._process.stdout is not None:
                     line = self._process.stdout.readline()
+                    if not line:
+                        # EOF: process exited and stdout pipe closed
+                        break
                     self.log(line)
                     for trigger in [
                         # this occurs when we lose connection from the tm side
