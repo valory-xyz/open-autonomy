@@ -253,6 +253,8 @@ class VarintMessageReader:  # pylint: disable=too-few-public-methods
         read_bytes = 0
         while read_bytes < n:
             data = await self._reader.read(n - read_bytes)
+            if not data:
+                raise EOFError("Connection closed while reading")
             result.write(data)
             read_bytes += len(data)
         return result.getvalue()

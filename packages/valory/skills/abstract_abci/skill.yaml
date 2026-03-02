@@ -15,7 +15,7 @@ fingerprint:
   tests/test_handlers.py: bafybeiaokr7y6i24qvheu6jftzrt6w7vqqldrxi5mvletp5mg3ciir6r2u
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeicrj5ayfwmfuj5ti43xxqo2btffvdosojzvoknoxqt4zfczgo5h6e
+- valory/abci:0.1.0:bafybeicl5xxs7ju6tkapdeqnwrdbpeumldyi2n4c6binpcqhqoho5a2y2m
 contracts: []
 protocols:
 - valory/abci:0.1.0:bafybeiak4pwac3pwjtd7weskxdhkrcopckr32vtazfbuteu6yqjkwarpte
