@@ -20,7 +20,7 @@ fingerprint:
   io_/load.py: bafybeigpo2fb2i2w5ibmtiwxopte6ypwndnpauefqwyeldy2ad4ksy3x34
   io_/paths.py: bafybeiholgzt4zhsrnre35aayc3cnmbsryapix7sl6caquw2o3bez4byqu
   io_/store.py: bafybeifylhoafjgow3xfvvflg3wrxijete5bi5i3fv3x3m25asjn2rkrfm
-  models.py: bafybeib6rob3m46dnjwbnc5a3ttuohhaq7kjbjretlhk255q7tmwikjmzu
+  models.py: bafybeiaewunem6p6k2s52rm6drab6ojkxq4omdzw2fyvbspgsc5l54ryxq
   test_tools/__init__.py: bafybeibayeahoo73eztt2chpwi45taj2uv3dxbpyn47ksqfjoepjyaoca4
   test_tools/abci_app.py: bafybeihby2kywfspxson2onsrrjw4mj4hlf6ovwveotskkcbqorf3wf37i
   test_tools/base.py: bafybeic4fsyy7cbtybezbsfsm6iinmmlwwrvrbiliem6gbdopnswhs7asu
@@ -49,24 +49,24 @@ fingerprint:
   tests/test_io/test_ipfs.py: bafybeiahem7fildogmva2ykocpc6r3utsq3d4szdpyxmy6vsi5uy2k4pt4
   tests/test_io/test_load.py: bafybeiedkxdqz3sbi5omi3yydydk7lq47f43ov43h3yzal4ftepywpckvu
   tests/test_io/test_store.py: bafybeiggym5322cpvo7hdttrtaz3tsbeiekcqgrgpbh6e3ojiz657ibs2y
-  tests/test_models.py: bafybeidp43eukazmygtxz625rnpwop4yejl7gqszzkjvka5vjivbojt7m4
+  tests/test_models.py: bafybeihj3abeilx3pbsl762fuoa7y2owphs3dqkffrcdbs3j2vnxzc5h4i
   tests/test_tools/__init__.py: bafybeiew6gu4pgp2sjevq4dbnmv2ail5dph7vj4yi7h3eae4gzx7vj7cbq
   tests/test_tools/base.py: bafybeig7uceh74b4uecb53opqfxfnlvc7kysclmcubgtlcascajpylwvpa
   tests/test_tools/test_base.py: bafybeie2hox7v6sy677grl6awq57ouliohpwhmlvrypz5rqcz5gxsxn24y
   tests/test_tools/test_common.py: bafybeieauphpcqm5on7d2u2lc5lrf3esbhojp6sxlf7phrlmpqy5cfoitq
-  tests/test_tools/test_integration.py: bafybeidxkvb2kizi7djrpuw446dqxo2v5s7j2dbdrdpfmnd2ggezaxbnkm
+  tests/test_tools/test_integration.py: bafybeig25ktj2bcq6pbyobrkk25rahwfgbrd4di4eipk535jivhdvxag4y
   tests/test_tools/test_rounds.py: bafybeiavengy2zq56qb5jm322k3dw5sx3vw7l4oefxppmfiuavgkpagjvy
   tests/test_utils.py: bafybeibjmxkne6pkbyypcdt2elxan6w6oddl2kefjdcoom2i2bmlq2cwie
   utils.py: bafybeieyqpjkmwi6f4xq5vdlitupi4bzet5ap57qsbyj45zw7675pybjta
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeief5zccg4nt2oy5pjnmr2mjv267e6li2jcshpqybgrnycr6lektya
+- valory/abci:0.1.0:bafybeidxwqeydwmzox7b2hgjlzzhgl3jvsdvscwfknyjgnoyfapq62qxta
 - valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
 - valory/ipfs:0.1.0:bafybeifid7nlalrgqphdxpg6p3rzlrinzgis5ecz2zk62dqk4xzgrc56mm
 - valory/ledger:0.19.0:bafybeidxzeygks5zcky4u2ztcdufzptssgf6uqytxofnn6yta7qq6jsim4
 - valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts:
-- valory/service_registry:0.1.0:bafybeieeqv53wtgqv4sbj2tqq6zwblewut5gdrfyrqysnzikaziguqh75a
+- valory/service_registry:0.1.0:bafybeigb5qt5t5l4ktechtxlhkqt63evv4tkmd7x62xnqcfn3wzbybuloa
 protocols:
 - open_aea/signing:1.0.0:bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye
 - valory/abci:0.1.0:bafybeiak4pwac3pwjtd7weskxdhkrcopckr32vtazfbuteu6yqjkwarpte
@@ -76,7 +76,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 - valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
 skills:
-- valory/abstract_abci:0.1.0:bafybeibzvjggdw2b7dburuppjr5hznmsp5ficjjaxfobrospvwleoca24i
+- valory/abstract_abci:0.1.0:bafybeianqjostmczu7kl67scqpjhgqtqg7uiayjfieztc7cmaeafyxdepi
 behaviours:
   main:
     args: {}

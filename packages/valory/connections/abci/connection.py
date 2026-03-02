@@ -253,6 +253,8 @@ class VarintMessageReader:  # pylint: disable=too-few-public-methods
         read_bytes = 0
         while read_bytes < n:
             data = await self._reader.read(n - read_bytes)
+            if not data:
+                raise EOFError("Connection closed while reading")
             result.write(data)
             read_bytes += len(data)
         return result.getvalue()
@@ -932,6 +934,11 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         self._is_stopped = True
         self._server = cast(AbstractServer, self._server)
         self._server.close()
+        # Close all active client connections so that receive_messages
+        # detects EOF and returns.  Required on Python 3.12+ where
+        # wait_closed() actually waits for handler tasks to finish.
+        for _reader, writer in self._streams_by_socket.values():
+            writer.close()
         await self._server.wait_closed()
 
         self.queue = None
@@ -1125,7 +1132,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
     @staticmethod
     def get_node_command_kwargs() -> Dict:
         """Get the node command kwargs"""
-        kwargs = {
+        kwargs: Dict = {
             "bufsize": 1,
             "universal_newlines": True,
             "stdout": subprocess.PIPE,
@@ -1134,7 +1141,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         if platform.system() == "Windows":  # pragma: nocover
             kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
         else:
-            kwargs["preexec_fn"] = os.setsid  # type: ignore
+            kwargs["start_new_session"] = True
         return kwargs
 
 
@@ -1198,6 +1205,9 @@ class TendermintNode:
             try:
                 if self._process is not None and self._process.stdout is not None:
                     line = self._process.stdout.readline()
+                    if not line:
+                        # EOF: process exited and stdout pipe closed
+                        break
                     self.log(line)
                     for trigger in [
                         # this occurs when we lose connection from the tm side
@@ -1259,6 +1269,9 @@ class TendermintNode:
             self._unix_stop_tm()
 
         self._stopping = False
+        # Close stdout to unblock the monitoring thread's readline()
+        if self._process is not None and self._process.stdout is not None:
+            self._process.stdout.close()
         self._process = None
         self.log("Tendermint process stopped\n")
 
@@ -1290,7 +1303,7 @@ class TendermintNode:
         """Stop a monitoring process."""
         if self._monitoring is not None:
             self._monitoring.stop()  # set stop event
-            self._monitoring.join()
+            self._monitoring.join(timeout=10)
 
     def stop(self) -> None:
         """Stop a Tendermint node process."""
@@ -1470,11 +1483,11 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
             return
 
         self.state = ConnectionStates.disconnecting
-        self.channel = cast(Union[TcpServerChannel, GrpcServerChannel], self.channel)
-        await self.channel.disconnect()
         if self.use_tendermint:
             self.node = cast(TendermintNode, self.node)
             self.node.stop()
+        self.channel = cast(Union[TcpServerChannel, GrpcServerChannel], self.channel)
+        await self.channel.disconnect()
         self.state = ConnectionStates.disconnected
 
     async def send(self, envelope: Envelope) -> None:

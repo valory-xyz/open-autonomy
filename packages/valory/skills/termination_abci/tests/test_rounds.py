@@ -52,7 +52,7 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
     synchronized_data: SynchronizedData
     participants: FrozenSet[str]
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup the test class."""

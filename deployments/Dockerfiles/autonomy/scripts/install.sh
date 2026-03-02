@@ -10,7 +10,7 @@ echo Running the aea with $(aea --version)
 
 echo "Loading $AEA_AGENT"
 cd /home
-aea fetch $AEA_AGENT --alias agent || exit 1
+aea fetch --remote $AEA_AGENT --alias agent || exit 1
 cd agent
 
 echo "Building the deployments host dependencies."

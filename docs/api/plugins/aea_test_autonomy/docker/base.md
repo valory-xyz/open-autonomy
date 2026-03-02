@@ -56,7 +56,7 @@ Return the image name.
 def stop_if_already_running() -> None
 ```
 
-Stop the running images with the same tag, if any.
+Stop running containers with the same image or conflicting ports.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.base.DockerImage.create"></a>
 

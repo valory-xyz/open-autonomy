@@ -23,7 +23,7 @@ import contextlib
 import copy
 import sys
 from pathlib import Path
-from typing import Any, Callable, Generator, Optional, Union, cast
+from typing import Any, Callable, Dict, Generator, Optional, Union, cast
 
 import click
 from aea.cli.utils.click_utils import PublicIdParameter
@@ -63,12 +63,17 @@ def abci_spec_format_flag(
 
     def wrapper(f: Callable) -> Callable:
         for of in FSMSpecificationLoader.OutputFormats.ALL:
+            is_default = (of == default) and mark_default
+            option_kwargs: Dict[str, Any] = dict(
+                flag_value=of,
+                help=f"{of.title()} file.",
+            )
+            if is_default:
+                option_kwargs["default"] = of
             f = click.option(
                 f"--{of}",
                 "spec_format",
-                flag_value=of,
-                help=f"{of.title()} file.",
-                default=(of == default) and mark_default,
+                **option_kwargs,
             )(f)
 
         return f
@@ -86,12 +91,17 @@ def chain_selection_flag(
     def wrapper(f: Callable) -> Callable:
         for chain_type in ChainType:
             chain_name = cast(str, chain_type.value).replace("_", "-")
+            is_default = (chain_type == default) and mark_default
+            option_kwargs: Dict[str, Any] = dict(
+                flag_value=chain_type.value,
+                help=help_string_format.format(chain_name),
+            )
+            if is_default:
+                option_kwargs["default"] = chain_type.value
             f = click.option(
                 f"--use-{chain_name}",
                 "chain_type",
-                flag_value=chain_type.value,
-                help=help_string_format.format(chain_name),
-                default=(chain_type == default) and mark_default,
+                **option_kwargs,
             )(f)
         return f
 
