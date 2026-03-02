@@ -17,6 +17,10 @@ contracts: []
 dependencies:
   ecdsa:
     version: '>=0.15'
+  eth-abi:
+    version: ==5.2.0
+  eth-utils:
+    version: ==5.3.0
   eth_typing: {}
   hexbytes: {}
   open-aea-ledger-ethereum:
@@ -29,7 +33,3 @@ dependencies:
     version: <2.32.5,>=2.28.1
   web3:
     version: <8,>=7.0.0
-  eth-abi:
-    version: ==5.2.0
-  eth-utils:
-    version: ==5.3.0

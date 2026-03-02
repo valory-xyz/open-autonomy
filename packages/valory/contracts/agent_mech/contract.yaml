@@ -16,8 +16,8 @@ class_name: AgentMech
 contract_interface_paths:
   ethereum: build/mech.json
 dependencies:
+  eth_typing: {}
   open-aea-ledger-ethereum:
     version: ==2.1.0rc5
   web3:
     version: <8,>=7.0.0
-  eth_typing: {}
