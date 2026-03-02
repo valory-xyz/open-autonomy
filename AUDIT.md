@@ -36,9 +36,9 @@
 - **Files:** `deployments/Dockerfiles/tendermint/app.py`, `autonomy/deploy/generators/localhost/tendermint/app.py`
 - **Impact:** Unauthenticated endpoints `/hard_reset`, `/gentle_reset`, `/params` (POST) allow any network-reachable peer to reset consensus state, reconfigure genesis, or read node parameters. Returns full Python tracebacks on error (information leakage).
 
-### H3. TendermintNode copied to 4 locations, already diverged
+### H3. ~~TendermintNode copied to 4 locations, already diverged~~ **RESOLVED**
 - **Files:** `packages/valory/connections/abci/connection.py:1041-1334`, `deployments/Dockerfiles/tendermint/tendermint.py`, `autonomy/deploy/generators/localhost/tendermint/tendermint.py`, `packages/valory/agents/register_reset/tests/helpers/slow_tendermint_server/tendermint.py`
-- **Impact:** Bug fixes must be applied 4 times independently. Copies have already diverged (stdout close, join timeout, logging, stop order). Root cause of recurring sync failures in CI.
+- **Resolution:** All 4 copies now have safety fixes applied. Group 1 (connection.py + Docker copy) is enforced identical by `test_deployment_class_identical`. Group 2 (localhost + slow_tendermint_server) has intentional architectural differences but all safety backports applied. See `TENDERMINT_NODE_SYNC.md`.
 
 ### H4. Race condition: monitoring thread vs `_stop_tm_process` (no lock)
 - **Files:** All 4 TendermintNode copies (see H3)
