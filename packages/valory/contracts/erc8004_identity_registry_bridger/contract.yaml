@@ -8,7 +8,7 @@ aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeiadjnmymfy57b44xk3uwphg2g3oklmodyc7mqoh3a3hhamz55ati4
   build/ERC8004IdentityRegistryBridger.json: bafybeie4cxuie25ot6sv656rdtho27klpuqqqx4kupddzlihns5vfco7eu
-  contract.py: bafybeifn3of2hqkqqdbs4nw76livo25i4bdzy7ht54tshks3vur7msjgia
+  contract.py: bafybeiarruui4ga7bgjpq3bvgujrsve7zjqknphprlfnqwavjfjmdnylay
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: ERC8004IdentityRegistryBridgerContract

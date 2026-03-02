@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ from aea_test_autonomy.docker.base import skip_docker_tests
 from aea_test_autonomy.docker.registries import AGENT_REGISTRY
 
 from packages.valory.contracts.agent_registry.contract import AgentRegistryContract
-
 
 PACKAGE_DIR = Path(__file__).parent.parent
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Tests for docstring generator."""
-
 
 import os
 from pathlib import Path
@@ -42,11 +41,11 @@ class TestDocstrings(BaseCliTest):
     cli_options: Tuple[str, ...] = ("analyse", "docstrings")
     rounds_file = Path(PACKAGES, "valory", "skills", skill_name, "rounds.py")
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test method."""
-        super().setup()
+        super().setup_method()
 
         os.chdir(self.t)
 

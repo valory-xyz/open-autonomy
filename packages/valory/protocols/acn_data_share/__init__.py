@@ -28,5 +28,4 @@ from packages.valory.protocols.acn_data_share.serialization import (
     AcnDataShareSerializer,
 )
 
-
 AcnDataShareMessage.serializer = AcnDataShareSerializer

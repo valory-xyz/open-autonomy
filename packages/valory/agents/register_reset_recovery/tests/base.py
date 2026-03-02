@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@
 # pylint: disable=broad-except,unspecified-encoding,import-error,redefined-outer-name
 
 """End2End tests base classes for the register_reset_recovery agent."""
+
 import logging
 
 import requests
 from aea_test_autonomy.base_test_classes.agents import BaseTestEnd2End
 from aea_test_autonomy.configurations import LOCALHOST
-
 
 TERMINATION_TIMEOUT = 120
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2024-2025 Valory AG
+#   Copyright 2024-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 """This module contains the composition for the test SOLANA skill."""
+
 import packages.valory.skills.registration_abci.rounds as RegistrationAbci
 import packages.valory.skills.reset_pause_abci.rounds as ResetAndPauseAbci
 import packages.valory.skills.squads_transaction_settlement_abci.rounds as TransactionSubmissionAbciApp
@@ -25,7 +26,6 @@ from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
     chain,
 )
-
 
 # Here we define how the transition between the FSMs should happen
 # more information here: https://stack.olas.network/open-autonomy/key_concepts/fsm_app_introduction/#composition-of-fsm-apps

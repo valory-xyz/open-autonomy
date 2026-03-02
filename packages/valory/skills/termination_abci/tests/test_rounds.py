@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ from packages.valory.skills.termination_abci.rounds import (
     TerminationRound,
 )
 
-
 MAX_PARTICIPANTS: int = 4
 
 
@@ -53,7 +52,7 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
     synchronized_data: SynchronizedData
     participants: FrozenSet[str]
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup the test class."""

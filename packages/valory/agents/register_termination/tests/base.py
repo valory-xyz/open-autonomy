@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 # pylint: disable=broad-except,unspecified-encoding,import-error,redefined-outer-name
 
 """End2End tests base classes for the Termination agent."""
+
 import web3
 from aea.configurations.base import PublicId
 from aea_test_autonomy.base_test_classes.agents import BaseTestEnd2End
@@ -39,7 +40,6 @@ from aea_test_autonomy.docker.registries import (
     SERVICE_REGISTRY as _DEFAULT_SERVICE_REGISTRY_ADDRESS,
 )
 from web3.types import Wei
-
 
 TERMINATION_TIMEOUT = 120
 

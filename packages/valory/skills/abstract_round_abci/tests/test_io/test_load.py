@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ from packages.valory.skills.abstract_round_abci.io_.store import SupportedFilety
 class TestLoader:
     """Tests for the `Loader`."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup the tests."""
         self.json_loader = Loader(SupportedFiletype.JSON, None)
 

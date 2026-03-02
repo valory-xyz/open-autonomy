@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -75,7 +75,6 @@ from packages.valory.skills.abstract_round_abci.utils import (
     consensus_threshold,
     is_json_serializable,
 )
-
 
 _logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base")
 

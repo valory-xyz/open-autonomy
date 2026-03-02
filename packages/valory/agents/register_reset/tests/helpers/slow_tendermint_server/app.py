@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """HTTP server to control the tendermint execution environment."""
+
 import json
 import logging
 import os
@@ -34,7 +35,6 @@ from packages.valory.agents.register_reset.tests.helpers.slow_tendermint_server.
     TendermintNode,
     TendermintParams,
 )
-
 
 ENCODING = "utf-8"
 DEFAULT_LOG_FILE = "log.log"
@@ -96,9 +96,9 @@ class PeriodDumper:
         self.dump_dir = dump_dir or Path("/tm_state")
 
         if self.dump_dir.is_dir():
-            shutil.rmtree(
+            shutil.rmtree(  # pylint: disable=deprecated-argument
                 str(self.dump_dir), onerror=self.readonly_handler
-            )  # pylint: disable=deprecated-argument
+            )
         self.dump_dir.mkdir(exist_ok=True)
 
     @staticmethod

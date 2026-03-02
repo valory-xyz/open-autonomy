@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -73,7 +73,6 @@ from packages.valory.skills.abstract_round_abci.tests.conftest import (
     irrelevant_genesis_config,
 )
 
-
 BASE_DUMMY_SPECS_CONFIG = dict(
     name="dummy",
     skill_context=MagicMock(),
@@ -127,7 +126,7 @@ class TestApiSpecsModel:
 
     api_specs: ApiSpecs
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test."""

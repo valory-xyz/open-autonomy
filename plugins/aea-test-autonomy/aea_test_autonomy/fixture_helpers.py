@@ -60,7 +60,6 @@ from aea_test_autonomy.docker.tendermint import (
 )
 from eth_account import Account
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -289,14 +288,14 @@ class UseGanache:
 
     key_pairs: List[Tuple[str, str]] = []
 
-    @classmethod
     @pytest.fixture(autouse=True, scope="class")
     def _start_ganache(
-        cls,
+        self,
         ganache_scope_class: GanacheDockerImage,  # pylint: disable=redefined-outer-name
         ganache_configuration: Dict,  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start Ganache instance."""
+        cls = type(self)
         cls.key_pairs = cast(
             List[Tuple[str, str]],
             [
@@ -394,14 +393,14 @@ class UseACNNode:
 
     _acn_node_image: ACNNodeDockerImage
 
-    @classmethod
     @pytest.fixture(autouse=True)
     def _start_acn(
-        cls,
+        self,
         acn_node: ACNNodeDockerImage,  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start an ACN instance."""
-        cls._acn_node_image = acn_node
+        cls = type(self)
+        cls._acn_node_image = acn_node  # pylint: disable=protected-access
 
 
 class ACNNodeBaseTest(DockerBaseTest):
@@ -500,15 +499,15 @@ class UseRegistries:
 
     key_pairs: List[Tuple[str, str]] = KEY_PAIRS
 
-    @classmethod
     @pytest.fixture(autouse=True)
     def _start_gnosis_and_registries(
-        cls,
+        self,
         registries_scope_class: Any,  # pylint: disable=redefined-outer-name
         hardhat_port: int,  # pylint: disable=redefined-outer-name
         key_pairs: List[Tuple[str, str]],  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start a Hardhat instance, with registries contracts deployed."""
+        cls = type(self)
         cls.key_pairs = key_pairs
 
 
@@ -551,15 +550,15 @@ class UseGnosisSafeHardHatNet:
 
     key_pairs: List[Tuple[str, str]] = KEY_PAIRS
 
-    @classmethod
     @pytest.fixture(autouse=True)
     def _start_hardhat(
-        cls,
+        self,
         gnosis_safe_hardhat_scope_function: Any,  # pylint: disable=redefined-outer-name
         hardhat_port: int,  # pylint: disable=redefined-outer-name
         key_pairs: List[Tuple[str, str]],  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start an HardHat instance."""
+        cls = type(self)
         cls.key_pairs = key_pairs
 
 
@@ -631,12 +630,12 @@ class UseLocalIpfs:
 
     ipfs_domain: str
 
-    @classmethod
     @pytest.fixture(autouse=True)
     def _start_ipfs_daemon(
-        cls,
+        self,
         ipfs_daemon: Any,  # pylint: disable=redefined-outer-name
         ipfs_domain: str,  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start IPFS daemon."""
+        cls = type(self)
         cls.ipfs_domain = ipfs_domain

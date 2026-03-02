@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Helpers for Tendermint."""
+
 import logging
 import subprocess  # nosec
 from pathlib import Path
@@ -26,7 +27,6 @@ from typing import Any, List
 import pytest
 from aea_test_autonomy.configurations import LOCALHOST
 from aea_test_autonomy.helpers.base import tendermint_health_check
-
 
 _TCP = "tcp://"
 _HTTP = "http://"

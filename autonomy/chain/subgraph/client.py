@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2024 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ from autonomy.chain.subgraph.queries import (
     FIND_BY_PUBLIC_ID,
     FIND_BY_TOKEN_ID,
 )
-
 
 SUBGRAPH_URL = os.environ.get(
     "OPEN_AUTONOMY_SUBGRAPH_URL",

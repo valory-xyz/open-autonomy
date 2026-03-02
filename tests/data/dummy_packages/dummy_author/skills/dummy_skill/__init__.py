@@ -21,5 +21,4 @@
 
 from aea.configurations.base import PublicId
 
-
 PUBLIC_ID = PublicId.from_str("dummy_author/dummy_connection:0.1.0")

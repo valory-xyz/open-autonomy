@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -63,7 +63,6 @@ from packages.valory.skills.abstract_round_abci.utils import (
     get_value_with_type,
 )
 
-
 MIN_RESET_PAUSE_DURATION = 10
 NUMBER_OF_RETRIES: int = 5
 DEFAULT_BACKOFF_FACTOR: float = 2.0
@@ -98,7 +97,7 @@ class TypeCheckMixin:  # pylint: disable=too-few-public-methods
 
     def __post_init__(self) -> None:
         """Check that the type of the provided attributes is correct."""
-        for attr, type_ in get_type_hints(self).items():
+        for attr, type_ in get_type_hints(type(self)).items():
             value = getattr(self, attr)
             check_type(attr, value, type_)
 

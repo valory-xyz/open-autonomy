@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -44,7 +44,6 @@ from autonomy.cli.packages import get_package_manager
 
 from tests.conftest import DATA_DIR, skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
-
 
 PACKAGES_DIR = DATA_DIR / "dummy_packages"
 DUMMY_PACKAGE_MANAGER = get_package_manager(packages_dir=PACKAGES_DIR)
@@ -131,9 +130,9 @@ class BaseChainInteractionTest(BaseCliTest):
 
     key_file: Path = ETHEREUM_KEY_DEPLOYER
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
 
     @classmethod
     def setup_class(cls) -> None:

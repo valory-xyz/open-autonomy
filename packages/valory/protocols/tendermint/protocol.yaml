@@ -9,15 +9,15 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeibfdzt2rq6yjod6hs67agejcbdevpgqysprdzzlsxgkhiy2ou2jmu
-  __init__.py: bafybeibecne3ocf37ctk4636b23pdeanuerssswikvsw6ncqrfspvaekyq
+  __init__.py: bafybeibd6bnyou3sbpeptcmqfl46vdwehc7opupu652dv2fsyiugo3xt4m
   custom_types.py: bafybeidbqm4h4fv24o3w6ueu4o3lyn5yaleyukahq7suvk6m2b6ydw4w3a
   dialogues.py: bafybeihewqdxvofu447wuxj3ufzlzd6agwnvoksyb33i4qlgckge2jq6ze
-  message.py: bafybeiansrpqgc7wp5crsod6rizq47ojqzlhfnpdkakou35zwrzlvlinxy
+  message.py: bafybeigta2xpkpebeunbxxxx7plsycej5pwwftlyufw5ccwosjxtolrxiu
   serialization.py: bafybeicf2deal3av6g57z4zk5gjss3jg2eluqbb5lvru2djrbgtn67gare
   tendermint.proto: bafybeiaqoltnijwje7iog7s3r4nbtly6rbfp6zwb2btnrw7xuenoxtobui
-  tendermint_pb2.py: bafybeifevafws5tgos32hng3v76bobfeuwy7lmnall672lnwgsvquroxku
+  tendermint_pb2.py: bafybeiadu6ti4dx6ztgq2mkvz4rng5f27kmiweibzd6x2el4oeqyaloxlm
   tests/__init__.py: bafybeiguds53xs5tmygjd26a7xxilzdrgi2x262relfagdlvdzymacumie
-  tests/test_tendermint.py: bafybeihnjxpkvgsclevn4bwi4qepw56vz554wox7gmhnjwobelbee7xpce
+  tests/test_tendermint.py: bafybeifg2icu4jp6ix5i7lskhfwthda3z3czyumrdva3gmlwzffga67vhq
   tests/test_tendermint_dialogues.py: bafybeieoviq62cv62h4nglyr7qflzb32bjcvjbepmytgfpycuypnz3mriy
   tests/test_tendermint_messages.py: bafybeifqebxh5x5i5luiiypi6mqtcroejmb7ov6foj37ipfgqm7h5f5yve
 fingerprint_ignore_patterns: []

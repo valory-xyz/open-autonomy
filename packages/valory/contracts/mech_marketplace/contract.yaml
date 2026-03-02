@@ -8,14 +8,14 @@ aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeigxt2zte6jgemvrsebh5urxsyqryqcdounnevarelttgpz7wdaa64
   build/MechMarketplace.json: bafybeib3fopqudslnrl2ipmzqlzbbggvc6kb2rcdfasbbtuehcc7iv3gfe
-  contract.py: bafybeiaxqvtlupgf5ro6meena74uco65gwtieodlo6eoilzg7weufsafoa
+  contract.py: bafybeiflhtx6fyg2ta6pc6atexk4stmelkqobzd5qwaf2vrxpv2cmiotui
 fingerprint_ignore_patterns: []
 class_name: MechMarketplaceContract
 contract_interface_paths:
   ethereum: build/MechMarketplace.json
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.0.8
+    version: ==2.1.0rc4
   web3:
     version: <8,>=7.0.0
   eth-abi:

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the termination behaviour classes."""
+
 import sys
 from typing import Callable, Dict, Generator, List, Optional, Set, Type, cast
 
@@ -53,7 +54,6 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
 )
-
 
 # setting the safe gas to 0 means that all available gas will be used
 # which is what we want in most cases

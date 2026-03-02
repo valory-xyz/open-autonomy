@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Conftest module for Pytest."""
+
 import logging
 import socket
 import time
@@ -30,7 +31,6 @@ import requests
 from deployments.Dockerfiles.tendermint.tendermint import (  # type: ignore
     DEFAULT_RPC_LISTEN_ADDRESS,
 )
-
 
 __parse_result = urllib.parse.urlparse(DEFAULT_RPC_LISTEN_ADDRESS)  # type: ignore
 __IP, __RPC_PORT = __parse_result.hostname, __parse_result.port

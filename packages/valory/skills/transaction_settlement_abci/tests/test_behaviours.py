@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -51,7 +51,10 @@ from aea.helpers.transaction.base import (
     SignedTransaction,
 )
 from aea.helpers.transaction.base import State as TrState
-from aea.helpers.transaction.base import TransactionDigest, TransactionReceipt
+from aea.helpers.transaction.base import (
+    TransactionDigest,
+    TransactionReceipt,
+)
 from aea.skills.base import SkillContext
 from web3.types import Nonce
 
@@ -104,7 +107,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TransactionSettlementSynchronizedSata,
 )
-
 
 PACKAGE_DIR = Path(__file__).parent.parent
 

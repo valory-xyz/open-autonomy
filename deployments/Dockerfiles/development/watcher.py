@@ -32,7 +32,6 @@ import requests
 from watchdog.events import EVENT_TYPE_CLOSED, FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
-
 ID = os.environ.get("ID")
 ROOT = "/root"
 AGENT_DIR = ROOT + "/agent"

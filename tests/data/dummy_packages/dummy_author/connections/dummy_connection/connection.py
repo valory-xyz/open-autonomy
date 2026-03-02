@@ -17,12 +17,12 @@
 #
 # ------------------------------------------------------------------------------
 """Scaffold connection and channel."""
+
 from typing import Any, Optional
 
 from aea.configurations.base import PublicId
 from aea.connections.base import BaseSyncConnection, Connection
 from aea.mail.base import Envelope
-
 
 """
 Choose one of the possible implementations:

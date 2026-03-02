@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 from autonomy.deploy.generators.localhost.base import HostDeploymentGenerator
 
 from tests.conftest import ROOT_DIR
-
 
 AGENT = PublicId(
     author="valory",

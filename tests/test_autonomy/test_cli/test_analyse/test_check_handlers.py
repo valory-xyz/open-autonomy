@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ from autonomy.analyse.handlers import check_handlers
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
-
 COMMON_HANDLERS = (
     "abci",
     "http",
@@ -56,9 +55,9 @@ class TestCheckHandlers(BaseCliTest):
     config_file: Path
     config_file_temp: Path
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup."""
-        super().setup()
+        super().setup_method()
 
         shutil.copytree(ROOT_DIR / "packages", self.t / "packages")
         os.chdir(self.t)

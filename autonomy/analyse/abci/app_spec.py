@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ from autonomy.configurations.constants import (
     DEFAULT_FSM_SPEC_YAML,
     SCHEMAS_DIR,
 )
-
 
 FSM_SCHEMA_FILE = "fsm_specification_schema.json"
 ROUND_CLASS_POST_FIX = "Round"

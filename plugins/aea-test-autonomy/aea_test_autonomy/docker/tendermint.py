@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint Docker image."""
+
 import logging
 import os
 import subprocess  # nosec
@@ -34,7 +35,6 @@ from aea_test_autonomy.configurations import (
 from aea_test_autonomy.docker.base import DockerImage
 from aea_test_autonomy.helpers.base import tendermint_health_check
 from docker.models.containers import Container
-
 
 _TCP = "tcp://"
 _HTTP = "http://"

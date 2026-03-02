@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -40,7 +40,6 @@ from autonomy.analyse.service import ServiceAnalyser
 from autonomy.configurations.base import Service
 
 from tests.test_autonomy.test_cli.base import BaseCliTest
-
 
 DUMMY_SERVICE_HASH = "bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vj"
 DUMMY_AGENT_HASH = "bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vm"
@@ -543,7 +542,11 @@ class TestCheckRequiredServiceOverrides(BaseAnalyseServiceTest):
                 get_dummy_overrides_skill(env_vars_with_name=True),
                 connection_config,
             ],
-            agent_data=[get_dummy_agent_config(), get_dummy_overrides_skill()],
+            agent_data=[
+                get_dummy_agent_config(),
+                get_dummy_overrides_skill(),
+                get_dummy_overrides_ledger_connection(),
+            ],
             skill_data=get_dummy_skill_config(),
         ), self.patch_ipfs_tool([]):
             result = self.run_cli(commands=self.public_id_option)
@@ -571,12 +574,16 @@ class TestCheckRequiredServiceOverrides(BaseAnalyseServiceTest):
                 get_dummy_overrides_skill(env_vars_with_name=True),
                 connection_config,
             ],
-            agent_data=[get_dummy_agent_config(), get_dummy_overrides_skill()],
+            agent_data=[
+                get_dummy_agent_config(),
+                get_dummy_overrides_skill(),
+                get_dummy_overrides_ledger_connection(),
+            ],
             skill_data=get_dummy_skill_config(),
         ), self.patch_ipfs_tool([]), caplog.at_level(logging.WARNING):
             result = self.run_cli(commands=self.public_id_option)
 
-        assert result.exit_code == 1, result.stdout
+        assert result.exit_code == 0, result.stderr
         assert (
             "Following unknown ledgers found in the (connection, valory/ledger:0.1.0) override\n\t- solana\n"
             in caplog.text
@@ -594,7 +601,11 @@ class TestCheckRequiredServiceOverrides(BaseAnalyseServiceTest):
                 get_dummy_overrides_skill(),
                 connection_config,
             ],
-            agent_data=[get_dummy_agent_config(), get_dummy_overrides_skill()],
+            agent_data=[
+                get_dummy_agent_config(),
+                get_dummy_overrides_skill(),
+                get_dummy_overrides_ledger_connection(),
+            ],
             skill_data=get_dummy_skill_config(),
         ), self.patch_ipfs_tool([]):
             result = self.run_cli(commands=self.public_id_option)
@@ -618,7 +629,11 @@ class TestCheckRequiredServiceOverrides(BaseAnalyseServiceTest):
                 get_dummy_overrides_skill(),
                 connection_config,
             ],
-            agent_data=[get_dummy_agent_config(), get_dummy_overrides_skill()],
+            agent_data=[
+                get_dummy_agent_config(),
+                get_dummy_overrides_skill(),
+                get_dummy_overrides_abci_connection(),
+            ],
             skill_data=get_dummy_skill_config(),
         ), self.patch_ipfs_tool([]):
             result = self.run_cli(commands=self.public_id_option)

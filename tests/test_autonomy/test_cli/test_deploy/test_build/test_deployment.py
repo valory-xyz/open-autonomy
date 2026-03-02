@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -92,7 +92,6 @@ from tests.conftest import PACKAGES_DIR, ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.base import get_dummy_service_config
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
-
 OS_ENV_PATCH = mock.patch.dict(
     os.environ, values={**os.environ, "ALL_PARTICIPANTS": "[]"}, clear=True
 )
@@ -171,9 +170,9 @@ class BaseDeployBuildTest(BaseCliTest):
     keys_file: Path
     spec: ServiceBuilder
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
-        super().setup()
+        super().setup_method()
 
         self.keys_file = self.t / "keys.json"
         shutil.copytree(ROOT_DIR / PACKAGES, self.t / PACKAGES)
@@ -305,7 +304,7 @@ class BaseDeployBuildTest(BaseCliTest):
                 "ID": "0",
                 "AEA_AGENT": f"valory/register_reset:0.1.0:{hash_}",
                 "LOG_LEVEL": INFO,
-                "AEA_PASSWORD": "",
+                "AEA_PASSWORD": "",  # nosec
                 "CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_ADDRESS": "http://host.docker.internal:8545",
                 "CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_CHAIN_ID": "31337",
                 "CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_POA_CHAIN": "False",
@@ -335,9 +334,9 @@ class BaseDeployBuildTest(BaseCliTest):
 class TestLocalhostBuilds(BaseDeployBuildTest):
     """Test localhost builds."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test for localhost deployment."""
-        super().setup()
+        super().setup_method()
         shutil.copy(
             ROOT_DIR
             / PACKAGES
@@ -385,9 +384,9 @@ class TestLocalhostBuilds(BaseDeployBuildTest):
                 "0x0000000000000000000000000000000000000000000000000000000000000001"
             )
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown method."""
-        super().teardown()
+        super().teardown_method()
         DEFAULT_CLI_CONFIG["registry_config"]["settings"][REGISTRY_LOCAL][
             "default_packages_path"
         ] = None
@@ -429,9 +428,9 @@ class TestLocalhostBuilds(BaseDeployBuildTest):
 class TestDockerComposeBuilds(BaseDeployBuildTest):
     """Test docker-compose build."""
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown method."""
-        super().teardown()
+        super().teardown_method()
         os.environ.pop(AUTONOMY_PKEY_PASSWORD, None)
 
     def test_docker_compose_build(
@@ -956,7 +955,7 @@ class TestKubernetesBuild(BaseDeployBuildTest):
 
         build_config = self.load_kubernetes_config(build_dir)
         assert (
-            f"'image': '{get_default_author_from_cli_config() or  DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-"
+            f"'image': '{get_default_author_from_cli_config() or DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-"
             in str(build_config)
         )
 
@@ -995,9 +994,9 @@ class TestKubernetesBuild(BaseDeployBuildTest):
 class TestExposePorts(BaseDeployBuildTest):
     """Test expose ports from service config."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
 
         service_data = get_dummy_service_config(file_number=1)
         service_data[0]["deployment"] = {
@@ -1074,9 +1073,9 @@ class TestExtraVolumes(BaseDeployBuildTest):
 
     volume: Path
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
 
         self.volume = self.t / "extra_volume"
         service_data = get_dummy_service_config(file_number=1)
@@ -1168,9 +1167,9 @@ class TestLoadEnvVars(BaseDeployBuildTest):
     env_var_path = "SKILL_DUMMY_SKILL_MODELS_PARAMS_ARGS_HELLO_WORLD_MESSAGE"
     env_var_value = "ENV_VAR_VALUE"
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
         service_data = get_dummy_service_config(file_number=4)
         with open("./service.yaml", "w+") as fp:
             yaml.dump_all(service_data, fp)
@@ -1218,9 +1217,9 @@ class TestLoadEnvVars(BaseDeployBuildTest):
 class TestResourceSpecification(BaseDeployBuildTest):
     """Test expose ports from service config."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
         service_data = get_dummy_service_config(file_number=4)
         with open("./service.yaml", "w+") as fp:
             yaml.dump_all(service_data, fp)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -63,7 +63,6 @@ from packages.valory.skills.registration_abci.rounds import (
     Event,
     FinishedRegistrationRound,
 )
-
 
 PACKAGE_DIR = Path(__file__).parent.parent
 
@@ -177,15 +176,15 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     _time_in_future = datetime.datetime.now() + datetime.timedelta(hours=10)
     _time_in_past = datetime.datetime.now() - datetime.timedelta(hours=10)
 
-    def setup(self, **kwargs: Any) -> None:
+    def setup_method(self, **kwargs: Any) -> None:
         """Setup"""
-        super().setup(**kwargs)
+        super().setup_method(**kwargs)
         self.state.params.__dict__["sleep_time"] = 0.01
         self.state.params.__dict__["share_tm_config_on_startup"] = True
 
-    def teardown(self, **kwargs: Any) -> None:
+    def teardown_method(self, **kwargs: Any) -> None:
         """Teardown."""
-        super().teardown(**kwargs)
+        super().teardown_method(**kwargs)
         self.state.initial_tm_configs = {}
 
     @property

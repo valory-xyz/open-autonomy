@@ -38,7 +38,6 @@ from autonomy.chain.exceptions import (
     TxVerifyError,
 )
 
-
 if TYPE_CHECKING:
     from web3.contract import Contract
     from web3.types import EventData, TxReceipt

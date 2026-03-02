@@ -26,7 +26,6 @@ from aea.crypto.base import Crypto, LedgerApi
 from eth_abi import encode
 from eth_utils import to_checksum_address
 
-
 PUBLIC_ID = PublicId.from_str("valory/poly_safe_creator_with_recovery_module:0.1.0")
 
 

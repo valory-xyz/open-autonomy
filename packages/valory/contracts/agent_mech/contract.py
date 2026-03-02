@@ -29,7 +29,6 @@ from aea_ledger_ethereum import EthereumApi
 from eth_typing import HexStr
 from web3.types import BlockData, EventData, TxReceipt
 
-
 PUBLIC_ID = PublicId.from_str("valory/agent_mech:0.1.0")
 FIVE_MINUTES = 300.0
 

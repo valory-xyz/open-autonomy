@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Ganache Docker Image."""
+
 import logging
 import time
 from typing import Dict, List, Optional
@@ -27,7 +28,6 @@ from aea.exceptions import enforce
 from aea_test_autonomy.docker.base import DockerImage
 from docker import DockerClient
 from docker.models.containers import Container
-
 
 DEFAULT_GANACHE_ADDR = "http://127.0.0.1"
 DEFAULT_GANACHE_PORT = 8545
