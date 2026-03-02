@@ -22,8 +22,6 @@ import os
 import re
 from typing import Dict
 
-from setuptools import find_packages, setup  # type: ignore
-
 
 PACKAGE_NAME = "autonomy"
 here = os.path.abspath(os.path.dirname(__file__))
@@ -88,6 +86,8 @@ def parse_readme():
 
 
 if __name__ == "__main__":
+    from setuptools import find_packages, setup
+
     setup(
         name=about["__title__"],
         description=about["__description__"],
