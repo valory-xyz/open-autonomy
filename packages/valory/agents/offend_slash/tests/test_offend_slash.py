@@ -121,6 +121,7 @@ class TestSlashing(
 
     happy_path = SLASHING_HAPPY_PATH
     strict_check_strings = SLASHING_STRICT_CHECKS
+    wait_to_finish = 300
     extra_configs = [
         {
             "dotted_path": f"{SlashingE2E._args_prefix}.validator_downtime",
