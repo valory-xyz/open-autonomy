@@ -125,13 +125,17 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
     @staticmethod
     def get_node_command_kwargs() -> Dict:
         """Get the node command kwargs"""
-        return {
+        kwargs: Dict = {
             "bufsize": 1,
             "universal_newlines": True,
             "stdout": subprocess.PIPE,
             "stderr": subprocess.STDOUT,
-            "start_new_session": True,
         }
+        if platform.system() == "Windows":  # pragma: nocover
+            kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
+        else:
+            kwargs["start_new_session"] = True
+        return kwargs
 
 
 class TendermintNode:
