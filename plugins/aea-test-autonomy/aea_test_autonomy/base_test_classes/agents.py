@@ -210,6 +210,10 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
             type_="int",
         )
         self.set_config(
+            "vendor.valory.connections.ledger.config.ledger_apis.ethereum.chain_id",
+            31337,
+        )
+        self.set_config(
             f"vendor.{skill.author}.skills.{skill.name}.models.params.args.service_registry_address",
             SERVICE_REGISTRY,  # address on registries image
             type_="str",
