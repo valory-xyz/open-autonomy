@@ -24,10 +24,12 @@ import shutil
 from pathlib import Path
 from unittest import mock
 
+import click
 import pytest
 from aea.cli.fetch import NotAnAgentPackage
 from aea.cli.registry.settings import REMOTE_IPFS
 from aea.configurations.constants import (
+    AGENT,
     DEFAULT_README_FILE,
     DEFAULT_SERVICE_CONFIG_FILE,
 )
@@ -37,6 +39,7 @@ from aea.helpers.io import open_file
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 
 from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
+from autonomy.cli.fetch import fetch as fetch_cmd
 from autonomy.cli.helpers.registry import IPFSTool
 from autonomy.configurations.base import Service
 
@@ -46,6 +49,19 @@ from tests.test_autonomy.test_chain.base import BaseChainInteractionTest
 from tests.test_autonomy.test_cli.base import BaseCliTest, cli
 
 IPFS_REGISTRY = "/dns/registry.autonolas.tech/tcp/443/https"
+
+
+def test_fetch_package_type_defaults() -> None:
+    """Test fetch package type defaults are order-robust."""
+
+    package_type_options = [
+        parameter
+        for parameter in fetch_cmd.params
+        if isinstance(parameter, click.Option) and parameter.name == "package_type"
+    ]
+
+    assert len(package_type_options) == 2
+    assert all(option.default == AGENT for option in package_type_options)
 
 
 class FetchTest(BaseCliTest):

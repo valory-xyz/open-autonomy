@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -45,13 +45,14 @@ from autonomy.cli.utils.click_utils import PublicIdOrHashOrTokenId, chain_select
     "--agent",
     "package_type",
     help="Specify the package type as agent (default).",
-    default=True,
+    default=AGENT,
     flag_value=AGENT,
 )
 @click.option(
     "--service",
     "package_type",
     help="Specify the package type as service.",
+    default=AGENT,
     flag_value=SERVICE,
 )
 @click.argument("public-id", type=PublicIdOrHashOrTokenId(), required=True)

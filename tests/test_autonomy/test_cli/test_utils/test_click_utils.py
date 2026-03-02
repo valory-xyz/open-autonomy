@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -52,18 +52,28 @@ class ClickFlagTestCase:
     decorator: Callable
     items: Tuple
     opt_prefix: str = ""
+    expected_default: Optional[str] = None
 
 
 @pytest.mark.parametrize(
     "test_case",
     [
-        ClickFlagTestCase(image_profile_flag, ImageProfiles.ALL),
+        ClickFlagTestCase(
+            image_profile_flag,
+            ImageProfiles.ALL,
+            expected_default=ImageProfiles.PRODUCTION,
+        ),
         ClickFlagTestCase(
             chain_selection_flag,
             tuple(map(lambda x: x.value, ChainType)),
             opt_prefix="use-",
+            expected_default=ChainType.LOCAL.value,
         ),
-        ClickFlagTestCase(abci_spec_format_flag, FSMSpecLoader.OutputFormats.ALL),
+        ClickFlagTestCase(
+            abci_spec_format_flag,
+            FSMSpecLoader.OutputFormats.ALL,
+            expected_default=FSMSpecLoader.OutputFormats.YAML,
+        ),
     ],
 )
 def test_flag_decorators(test_case: ClickFlagTestCase) -> None:
@@ -80,6 +90,7 @@ def test_flag_decorators(test_case: ClickFlagTestCase) -> None:
         assert item in parameter.flag_value
         assert parameter.opts == [f"--{test_case.opt_prefix}" + item.replace("_", "-")]
         assert parameter.help
+        assert parameter.default == test_case.expected_default
 
 
 def test_path_argument() -> None:

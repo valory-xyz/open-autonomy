@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -137,19 +137,21 @@ def deploy_group(
     "--localhost",
     "deployment_type",
     flag_value=HostDeploymentGenerator.deployment_type,
+    default=DockerComposeGenerator.deployment_type,
     help="Use localhost as a backend.",
 )
 @click.option(
     "--docker",
     "deployment_type",
     flag_value=DockerComposeGenerator.deployment_type,
-    default=True,
+    default=DockerComposeGenerator.deployment_type,
     help="Use docker as a backend. (default)",
 )
 @click.option(
     "--kubernetes",
     "deployment_type",
     flag_value=KubernetesGenerator.deployment_type,
+    default=DockerComposeGenerator.deployment_type,
     help="Use kubernetes as a backend.",
 )
 @click.option(
@@ -319,7 +321,7 @@ def build_deployment_command(  # pylint: disable=too-many-locals
                 },
             )
         except (NotValidKeysFile, FileNotFoundError, FileExistsError) as e:
-            shutil.rmtree(build_dir)
+            shutil.rmtree(build_dir, ignore_errors=True)
             raise click.ClickException(str(e)) from e
 
 
@@ -351,6 +353,7 @@ def build_deployment_command(  # pylint: disable=too-many-locals
     "--localhost",
     "deployment_type",
     flag_value="localhost",
+    default="docker",
     help="Use localhost as a backend.",
 )
 @click.option(
@@ -358,7 +361,7 @@ def build_deployment_command(  # pylint: disable=too-many-locals
     "deployment_type",
     flag_value="docker",
     help="Use docker as a backend. (default)",
-    default=True,
+    default="docker",
 )
 def run(
     build_dir: Path,
@@ -416,13 +419,14 @@ def stop(build_dir: Path) -> None:
     "--docker",
     "deployment_type",
     flag_value=DockerComposeGenerator.deployment_type,
-    default=True,
+    default=DockerComposeGenerator.deployment_type,
     help="Use docker as a backend.",
 )
 @click.option(
     "--kubernetes",
     "deployment_type",
     flag_value=KubernetesGenerator.deployment_type,
+    default=DockerComposeGenerator.deployment_type,
     help="Use kubernetes as a backend.",
 )
 @click.option(
