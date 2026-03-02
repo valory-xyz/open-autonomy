@@ -15,7 +15,7 @@ contract_interface_paths:
   ethereum: build/MechMarketplace.json
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.1.0rc4
+    version: ==2.1.0rc5
   web3:
     version: <8,>=7.0.0
   eth-abi:
