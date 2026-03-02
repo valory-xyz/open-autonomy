@@ -24,11 +24,13 @@ import os
 from pathlib import Path
 from unittest import mock
 
+import click
 import pytest
 from aea.cli.registry.settings import REMOTE_IPFS
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 
 from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
+from autonomy.cli.deploy import run_deployment_from_token
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_chain.base import BaseChainInteractionTest
@@ -73,6 +75,23 @@ ipfs_resolve_patch = mock.patch(
     "autonomy.cli.helpers.deployment.resolve_component_id",
     return_value=MOCK_IPFS_RESPONSE,
 )
+
+
+def test_from_token_deployment_type_defaults() -> None:
+    """Test from-token deployment type defaults are order-robust."""
+
+    deployment_type_options = [
+        parameter
+        for parameter in run_deployment_from_token.params
+        if isinstance(parameter, click.Option) and parameter.name == "deployment_type"
+    ]
+
+    assert len(deployment_type_options) == 2
+    default_values = {option.default for option in deployment_type_options}
+    assert len(default_values) == 1
+    default_value = default_values.pop()
+    assert isinstance(default_value, str)
+    assert default_value in {option.flag_value for option in deployment_type_options}
 
 
 @pytest.mark.integration

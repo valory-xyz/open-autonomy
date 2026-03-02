@@ -42,13 +42,14 @@ def image_profile_flag(
     """Choice of one flag between: '--local/--remote'."""
 
     def wrapper(f: Callable) -> Callable:
+        option_default = default if mark_default else None
         for profile in ImageProfiles.ALL:
             f = click.option(
                 f"--{profile}",
                 "profile",
                 flag_value=profile,
                 help=f"To use the {profile} profile.",
-                default=(profile == default) and mark_default,
+                default=option_default,
             )(f)
 
         return f
@@ -62,14 +63,13 @@ def abci_spec_format_flag(
     """Flags for abci spec outputs formats."""
 
     def wrapper(f: Callable) -> Callable:
+        option_default = default if mark_default else None
         for of in FSMSpecificationLoader.OutputFormats.ALL:
-            is_default = (of == default) and mark_default
             option_kwargs: Dict[str, Any] = dict(
                 flag_value=of,
                 help=f"{of.title()} file.",
+                default=option_default,
             )
-            if is_default:
-                option_kwargs["default"] = of
             f = click.option(
                 f"--{of}",
                 "spec_format",
@@ -89,15 +89,14 @@ def chain_selection_flag(
     """Flags for abci spec outputs formats."""
 
     def wrapper(f: Callable) -> Callable:
+        option_default = default.value if mark_default else None
         for chain_type in ChainType:
             chain_name = cast(str, chain_type.value).replace("_", "-")
-            is_default = (chain_type == default) and mark_default
             option_kwargs: Dict[str, Any] = dict(
                 flag_value=chain_type.value,
                 help=help_string_format.format(chain_name),
+                default=option_default,
             )
-            if is_default:
-                option_kwargs["default"] = chain_type.value
             f = click.option(
                 f"--use-{chain_name}",
                 "chain_type",

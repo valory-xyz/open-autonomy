@@ -57,19 +57,21 @@ Deploy an agent service.
     "--localhost",
     "deployment_type",
     flag_value=HostDeploymentGenerator.deployment_type,
+    default=DockerComposeGenerator.deployment_type,
     help="Use localhost as a backend.",
 )
 @click.option(
     "--docker",
     "deployment_type",
     flag_value=DockerComposeGenerator.deployment_type,
-    default=True,
+    default=DockerComposeGenerator.deployment_type,
     help="Use docker as a backend. (default)",
 )
 @click.option(
     "--kubernetes",
     "deployment_type",
     flag_value=KubernetesGenerator.deployment_type,
+    default=DockerComposeGenerator.deployment_type,
     help="Use kubernetes as a backend.",
 )
 @click.option(
@@ -218,6 +220,7 @@ Build deployment setup for n agents.
     "--localhost",
     "deployment_type",
     flag_value="localhost",
+    default="docker",
     help="Use localhost as a backend.",
 )
 @click.option(
@@ -225,7 +228,7 @@ Build deployment setup for n agents.
     "deployment_type",
     flag_value="docker",
     help="Use docker as a backend. (default)",
-    default=True,
+    default="docker",
 )
 def run(build_dir: Path, no_recreate: bool, remove_orphans: bool, detach: bool,
         deployment_type: str) -> None
@@ -274,13 +277,14 @@ Stop a running deployment.
     "--docker",
     "deployment_type",
     flag_value=DockerComposeGenerator.deployment_type,
-    default=True,
+    default=DockerComposeGenerator.deployment_type,
     help="Use docker as a backend.",
 )
 @click.option(
     "--kubernetes",
     "deployment_type",
     flag_value=KubernetesGenerator.deployment_type,
+    default=DockerComposeGenerator.deployment_type,
     help="Use kubernetes as a backend.",
 )
 @click.option(
