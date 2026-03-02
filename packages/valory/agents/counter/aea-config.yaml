@@ -8,11 +8,11 @@ fingerprint:
   README.md: bafybeigwd2qrq4e5rtsr4pqm22f3ev765hixoa5gi7tp3sxhatppkp7xdm
   __init__.py: bafybeifhegkalvgxfovnld7ni72nzyfeys6p27bgvt6hr2rzcn4zfise4i
   tests/__init__.py: bafybeie2owisfwjo4bkoz2dur64wzfzodyybjoe75acehwuiswu4jqtopy
-  tests/test_counter.py: bafybeiat2m7drn3aodx2gen767bva7xnj5fzvj6z5qptnn3l7da235izie
+  tests/test_counter.py: bafybeidiyw3o3gie73lhxlnw2hd25zbdnpxdhdmoz4um6vnxv7becrzufu
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeicpbhxg7sskmh7fgykfl7aixa3pjezcmqcjlso7qy4dc3qve5qkju
-- valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
+- valory/p2p_libp2p_client:0.1.0:bafybeif2pr4vrh2e24enjdymb4ortqkqmvcaq22tlzl5nfccvftomggjiu
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye

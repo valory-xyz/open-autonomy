@@ -15,7 +15,7 @@ class_name: ERC8004IdentityRegistryContract
 contract_interface_paths:
   ethereum: build/ERC8004IdentityRegistry.json
 dependencies:
-  web3:
-    version: <8,>=7.0.0
   eth-abi:
     version: ==5.2.0
+  web3:
+    version: <8,>=7.0.0

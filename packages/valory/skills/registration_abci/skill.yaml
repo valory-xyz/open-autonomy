@@ -24,7 +24,7 @@ fingerprint:
   tests/test_rounds.py: bafybeifsadwxqm7rujlm46oa7mv5j5hh5tghebcdmvhhoa4hhoxrntibuy
 fingerprint_ignore_patterns: []
 connections:
-- valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
+- valory/p2p_libp2p_client:0.1.0:bafybeif2pr4vrh2e24enjdymb4ortqkqmvcaq22tlzl5nfccvftomggjiu
 contracts:
 - valory/service_registry:0.1.0:bafybeigz6xsbg3nafjhh5pspzqyszndakhxuns4gaqerqxqs5ulmv7d42e
 protocols:
@@ -32,7 +32,7 @@ protocols:
 - valory/http:1.0.0:bafybeidxkp3vga7t6x2pbt2tpkgyaxa5bgpdgryao54py7w3yxyzr7neoy
 - valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifbnsn2j6yul3k3yh7jgrqkpmqdmdug4yzagl243ashb3imjvdqge
+- valory/abstract_round_abci:0.1.0:bafybeih5ntetka6fzhitpvv6es4nr5cxqayiqgghd3kpnq7iplkyco7jy4
 behaviours:
   main:
     args: {}
