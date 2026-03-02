@@ -30,6 +30,7 @@ jobs:
       - name: Build wheels and source tarball
         run: |
           echo Processing open-autonomy
+          pipenv run pip install --upgrade setuptools wheel
           pipenv run make dist
 
           echo Processing aea-test-autonomy
@@ -74,7 +75,7 @@ jobs:
           sudo apt-get autoremove
           sudo apt-get autoclean
           python -m pip install --upgrade pip
-          pip install open-autonomy[all] --no-cache
+          pip install .[all] --no-cache
 
       - name: Push Packages
         run: |
@@ -100,7 +101,7 @@ jobs:
           docker buildx create --use --name multibuild
           docker buildx inspect --bootstrap
       - name: Set up tag
-        run: echo export TAG=$(python3 -c "from setup import about; print(about[\"__version__\"])") > env.sh
+        run: echo export TAG=$(python3 -c "import runpy; print(runpy.run_path('autonomy/__version__.py')['__version__'])") > env.sh
       - name: Build and push version tagged images
         run: |
           # export `TAG` variable
@@ -127,7 +128,7 @@ jobs:
           docker buildx create --use --name multibuild
           docker buildx inspect --bootstrap
       - name: Set up tag
-        run: echo export TAG=$(python3 -c "from setup import about; print(about[\"__version__\"])") > env.sh
+        run: echo export TAG=$(python3 -c "import runpy; print(runpy.run_path('autonomy/__version__.py')['__version__'])") > env.sh
       - name: Build and push version tagged images
         run: |
           # export `TAG` variable
@@ -154,7 +155,7 @@ jobs:
           docker buildx create --use --name multibuild
           docker buildx inspect --bootstrap
       - name: Set up tag
-        run: echo export TAG=$(python3 -c "from setup import about; print(about[\"__version__\"])") > env.sh
+        run: echo export TAG=$(python3 -c "import runpy; print(runpy.run_path('autonomy/__version__.py')['__version__'])") > env.sh
       - name: Build and push version tagged images
         run: |
           # export `TAG` variable
@@ -185,7 +186,7 @@ jobs:
           docker buildx create --use --name multibuild
           docker buildx inspect --bootstrap
       - name: Set up tag
-        run: echo export TAG=$(python3 -c "from setup import about; print(about[\"__version__\"])") > env.sh
+        run: echo export TAG=$(python3 -c "import runpy; print(runpy.run_path('autonomy/__version__.py')['__version__'])") > env.sh
       - name: Build and push version tagged images
         run: |
           # export `TAG` variable
