@@ -10,7 +10,6 @@ fingerprint:
   README.md: bafybeic3cjcjwq6nash43aqjdonj26w7q2y7kvyrx66ntynvhm2lqlcqqa
 fingerprint_ignore_patterns: []
 deployment: {}
-dependencies: {}
 ---
 public_id: valory/ledger:0.19.0
 type: connection
