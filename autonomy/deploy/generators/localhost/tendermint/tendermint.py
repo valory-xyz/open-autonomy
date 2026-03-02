@@ -248,6 +248,9 @@ class TendermintNode:
             self._unix_stop_tm()
 
         self._stopping = False
+        # Close stdout to unblock the monitoring thread's readline()
+        if self._process is not None and self._process.stdout is not None:
+            self._process.stdout.close()
         self._process = None
         self.log("Tendermint process stopped\n")
 
@@ -279,7 +282,7 @@ class TendermintNode:
         """Stop a monitoring process."""
         if self._monitoring is not None:
             self._monitoring.stop()  # set stop event
-            self._monitoring.join()
+            self._monitoring.join(timeout=10)
 
     def stop(self) -> None:
         """Stop a Tendermint node process."""

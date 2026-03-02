@@ -49,7 +49,7 @@
         "agent/valory/abstract_abci/0.1.0": "bafybeibna5l5en47ux3urvtk6urp52txiapw7i3amh44waeza5sxzvkwxy",
         "agent/valory/counter/0.1.0": "bafybeicw6brbnfhokc44szqs5pwqawjyjdzj7nmatrodru6dlvle6mh52e",
         "agent/valory/counter_client/0.1.0": "bafybeic6bmdvijzhetpsczoubfb6p7qvjpetybaq2ffoq64o7ju3phkiiy",
-        "agent/valory/register_reset/0.1.0": "bafybeiacj2ry4e5ul6ubqr7sffltwzh7653pnvrot4vgmwdjhes6lk7lvi",
+        "agent/valory/register_reset/0.1.0": "bafybeifp66jadi2pyaczkusyhncysa75lgdy4rfp7ogwyqm3fyjtdvplma",
         "agent/valory/register_termination/0.1.0": "bafybeib6iwqxtig6ws5alfrflrxjfnjruebsek6meul74qftcpaglk2o5m",
         "agent/valory/registration_start_up/0.1.0": "bafybeid2ulpwadpfv2ufam3inkrpk3mz2cz27db63q7x2inolset4awdfa",
         "agent/valory/test_abci/0.1.0": "bafybeifc7ab2ppjmist3kaofuh7occcymy5yfybmkr2tayiat45cs5324a",
@@ -57,7 +57,7 @@
         "agent/valory/offend_slash/0.1.0": "bafybeiejafp3mcomgmwpbyq57tcs44phn7iknpn7tffxgacoa3mdnuqkci",
         "agent/valory/solana_transfer_agent/0.1.0": "bafybeihxhdwtfyi7sgejnjyw33a4wuocuuf6yobnyjks7y3w5ssc25qrhm",
         "service/valory/counter/0.1.0": "bafybeifmf72a7sqwujlpmyczc2bqjudffjh34bdtewdg3tkuq5epls32we",
-        "service/valory/register_reset/0.1.0": "bafybeihnyqcmhdp46b4mwp5hp2i4d3ud4jibverpmtlxisysn3cwwldpjy"
+        "service/valory/register_reset/0.1.0": "bafybeifbbocl3wmm3lz7mhwi64hvgdxqucpnxhbvt32g7d7engluhp3z3m"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye",
