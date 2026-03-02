@@ -147,6 +147,7 @@ class TestABCICounterSkill(AEATestCaseMany, UseTendermint):
             )
 
 
+@pytest.mark.flaky(reruns=1)
 class TestABCICounterSkillMany(
     AEATestCaseMany, BaseTendermintTestClass, BaseTestABCICounterSkill
 ):

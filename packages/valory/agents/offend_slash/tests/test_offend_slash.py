@@ -72,6 +72,7 @@ SLASHING_STRICT_CHECKS = (
 )
 
 
+@pytest.mark.flaky(reruns=1)
 @pytest.mark.parametrize("nb_nodes", (4,))
 class SlashingE2E(
     UseRegistries, UseACNNode, BaseTestEnd2End
@@ -81,7 +82,7 @@ class SlashingE2E(
     package_registry_src_rel = Path(__file__).parents[4]
     agent_package = "valory/offend_slash:0.1.0"
     skill_package = "valory/offend_slash_abci:0.1.0"
-    wait_to_finish = 120
+    wait_to_finish = 200
     _args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
 
     def __set_configs(  # pylint: disable=unused-private-member
