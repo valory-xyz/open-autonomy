@@ -8,9 +8,9 @@ fingerprint:
   README.md: bafybeigjajva62ldqv2q7d26gbs6z6vvk4jsbxml7bc5y5ztkgpglfzboi
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeief5zccg4nt2oy5pjnmr2mjv267e6li2jcshpqybgrnycr6lektya
+- valory/abci:0.1.0:bafybeicebncf2ahrqpyqzkzriigp3ibfqhyxn74jqmwkllvns5rckgyyri
 - valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
-- valory/ipfs:0.1.0:bafybeifid7nlalrgqphdxpg6p3rzlrinzgis5ecz2zk62dqk4xzgrc56mm
+- valory/ipfs:0.1.0:bafybeid4vwtp542wmketcp2btpyrpwki7hmpeamrlawj5rjdsrqp2omg6e
 - valory/ledger:0.19.0:bafybeidxzeygks5zcky4u2ztcdufzptssgf6uqytxofnn6yta7qq6jsim4
 - valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts: []
@@ -22,9 +22,9 @@ protocols:
 - valory/ipfs:0.1.0:bafybeibz5xqhxdbuvba7nuw2w6ardjermtcoqercopnypdplnaekf3joam
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 skills:
-- valory/abstract_abci:0.1.0:bafybeibzvjggdw2b7dburuppjr5hznmsp5ficjjaxfobrospvwleoca24i
-- valory/abstract_round_abci:0.1.0:bafybeibcz3m53xno2zfeysr2az4zrph3ukkq6ct7t6odtf5kbna4mxz4mm
-- valory/test_abci:0.1.0:bafybeibc3d5sp4ukakgzfhq4mu7vwsi4aursheqrkafbmtcrexwo2dgcqu
+- valory/abstract_abci:0.1.0:bafybeibfp7yezt6ipmyd3w6pvmi43tuf4tnjsuyj3yc2vrbgrfja2etmke
+- valory/abstract_round_abci:0.1.0:bafybeibtithky3lzsbxuygszvbn7kul6okfi7e7hc5rczy2ystfnst2lci
+- valory/test_abci:0.1.0:bafybeifum7nd6gdtyztddjlzsqe26rgjvgzb2c763u3n5jirlowsjdc2ea
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -49,7 +49,7 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.1.0rc4
+    version: ==2.1.0rc5
 customs: []
 default_connection: null
 ---

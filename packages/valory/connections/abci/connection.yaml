@@ -9,7 +9,7 @@ fingerprint:
   Makefile: bafybeibdgarch56r46dfy7x7fouj52nbjpjs4fgtrd3prgtwelowyjan5i
   __init__.py: bafybeic2m6f6j42cbfxz3jcwhju2dcbbdcw6xyc7mslq7uk2hwe6ctcugi
   check_dependencies.py: bafybeidusow4q5ue2brrdpruisldydyum7vmtfioqbbpx6cdpni5klled4
-  connection.py: bafybeiglvft5jwbbvg6gtrjthivfcq3fc76fxogtvmxyczcn3ytnw4lmce
+  connection.py: bafybeie2jhpk3hh4ac7ru7ubocoytztajrk74os54rgpkjeiarsrwo2jc4
   dialogues.py: bafybeiegsmt3ip3q4ofbksdlupkqsssu6mv52brhgt5ny5vhtg6q2kekye
   gogoproto/__init__.py: bafybeifmpcbkrpygdt7uvhpq6gaxgskofpczxktoalp2cwyouay46drcke
   gogoproto/gogo_pb2.py: bafybeia6r5qnnub6kbgtd4zt5ek4ucdlaqmr4y5blzqy5vk3kjw57trx3q
@@ -36,7 +36,7 @@ fingerprint:
   tendermint_encoder.py: bafybeig4mxbaaz342lkuusjgaxfo6u2kqjbye7whokh2mcvamipajsdnau
   tests/__init__.py: bafybeidk5u7j6e6jpzcfiafahaxyoqvd3jqvhi3dsnzjlky6xkkdc3qgla
   tests/helper.py: bafybeidrhejsalouhkmsjafnommxvi6upkswb5f5b6zdm6vpyvadvlxyya
-  tests/test_abci.py: bafybeihan7anewq7pxs347my7yvowl4ynkqcb6smc5fqcw5jzxumei4kci
+  tests/test_abci.py: bafybeicqi7dpgggaujmrpc3fhrywbveovbpft6planbu5j3zsf5mdrdhvy
   tests/test_abci_fuzz.py: bafybeicmcy2atfnnazqnsepgee5jdxuxd6m7e4hq6zo5ohckourz7phwga
   tests/test_abci_spec.py: bafybeih7durlzlq2po63kegjck7l4hduntivqxi2isusf73jej34kezebi
   tests/test_fuzz/__init__.py: bafybeiggaobawdxpx2j637ldmacq7r7tnyeygukmjuayodj3vytdyqsjze
@@ -77,7 +77,7 @@ dependencies:
   hypothesis:
     version: ==6.21.6
   open-aea-test-autonomy:
-    version: ==0.21.11
+    version: ==0.21.12rc3
   protobuf:
     version: <6,>=5
 is_abstract: false

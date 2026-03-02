@@ -307,7 +307,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         """
         for i in range(self.nb_nodes):
             path = Path(f"{os.getcwd()}", "nodes", f"node{i}", "config")
-            os.makedirs(path)
+            os.makedirs(path, exist_ok=True)
             open(  # pylint: disable=consider-using-with,unspecified-encoding
                 path / "config.toml", "a"
             ).close()

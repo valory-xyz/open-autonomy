@@ -17,19 +17,19 @@ contracts: []
 dependencies:
   ecdsa:
     version: '>=0.15'
+  eth-abi:
+    version: ==5.2.0
+  eth-utils:
+    version: ==5.3.0
   eth_typing: {}
   hexbytes: {}
   open-aea-ledger-ethereum:
-    version: ==2.1.0rc4
+    version: ==2.1.0rc5
   open-aea-test-autonomy:
-    version: ==0.21.11
+    version: ==0.21.12rc3
   packaging: {}
   py-eth-sig-utils: {}
   requests:
     version: <2.32.5,>=2.28.1
   web3:
     version: <8,>=7.0.0
-  eth-abi:
-    version: ==5.2.0
-  eth-utils:
-    version: ==5.3.0

@@ -54,19 +54,19 @@ fingerprint:
   tests/test_tools/base.py: bafybeig7uceh74b4uecb53opqfxfnlvc7kysclmcubgtlcascajpylwvpa
   tests/test_tools/test_base.py: bafybeie2hox7v6sy677grl6awq57ouliohpwhmlvrypz5rqcz5gxsxn24y
   tests/test_tools/test_common.py: bafybeieauphpcqm5on7d2u2lc5lrf3esbhojp6sxlf7phrlmpqy5cfoitq
-  tests/test_tools/test_integration.py: bafybeidxkvb2kizi7djrpuw446dqxo2v5s7j2dbdrdpfmnd2ggezaxbnkm
+  tests/test_tools/test_integration.py: bafybeig25ktj2bcq6pbyobrkk25rahwfgbrd4di4eipk535jivhdvxag4y
   tests/test_tools/test_rounds.py: bafybeiavengy2zq56qb5jm322k3dw5sx3vw7l4oefxppmfiuavgkpagjvy
   tests/test_utils.py: bafybeibjmxkne6pkbyypcdt2elxan6w6oddl2kefjdcoom2i2bmlq2cwie
   utils.py: bafybeieyqpjkmwi6f4xq5vdlitupi4bzet5ap57qsbyj45zw7675pybjta
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeief5zccg4nt2oy5pjnmr2mjv267e6li2jcshpqybgrnycr6lektya
+- valory/abci:0.1.0:bafybeicebncf2ahrqpyqzkzriigp3ibfqhyxn74jqmwkllvns5rckgyyri
 - valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
-- valory/ipfs:0.1.0:bafybeifid7nlalrgqphdxpg6p3rzlrinzgis5ecz2zk62dqk4xzgrc56mm
+- valory/ipfs:0.1.0:bafybeid4vwtp542wmketcp2btpyrpwki7hmpeamrlawj5rjdsrqp2omg6e
 - valory/ledger:0.19.0:bafybeidxzeygks5zcky4u2ztcdufzptssgf6uqytxofnn6yta7qq6jsim4
 - valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts:
-- valory/service_registry:0.1.0:bafybeieeqv53wtgqv4sbj2tqq6zwblewut5gdrfyrqysnzikaziguqh75a
+- valory/service_registry:0.1.0:bafybeiatyqf2ocabyktkqxuzyjwb7rqshwceliu4mbpbfvofb2kpu27f4u
 protocols:
 - open_aea/signing:1.0.0:bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye
 - valory/abci:0.1.0:bafybeiak4pwac3pwjtd7weskxdhkrcopckr32vtazfbuteu6yqjkwarpte
@@ -76,7 +76,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 - valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
 skills:
-- valory/abstract_abci:0.1.0:bafybeibzvjggdw2b7dburuppjr5hznmsp5ficjjaxfobrospvwleoca24i
+- valory/abstract_abci:0.1.0:bafybeibfp7yezt6ipmyd3w6pvmi43tuf4tnjsuyj3yc2vrbgrfja2etmke
 behaviours:
   main:
     args: {}
@@ -145,9 +145,9 @@ dependencies:
   ipfshttpclient:
     version: ==0.8.0a2
   open-aea-cli-ipfs:
-    version: ==2.1.0rc4
+    version: ==2.1.0rc5
   open-aea-test-autonomy:
-    version: ==0.21.11
+    version: ==0.21.12rc3
   protobuf:
     version: <6,>=5
   py-ecc:

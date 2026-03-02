@@ -22,8 +22,6 @@ import os
 import re
 from typing import Dict
 
-from setuptools import find_packages, setup  # type: ignore
-
 
 PACKAGE_NAME = "autonomy"
 here = os.path.abspath(os.path.dirname(__file__))
@@ -32,7 +30,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 def get_all_extras() -> Dict:
     cli_deps = [
         "click>=8.1.0,<9",
-        "open-aea-cli-ipfs==2.1.0rc4",
+        "open-aea-cli-ipfs==2.1.0rc5",
         "texttable==1.6.7",
         "python-dotenv>=0.14.5,<0.22.0",
         "pytest>=8.0.0,<8.5.0",
@@ -53,7 +51,7 @@ all_extras = get_all_extras()
 
 base_deps = [
     "Flask>=3.1.0,<4.0.0",
-    "open-aea[all]==2.1.0rc4",
+    "open-aea[all]==2.1.0rc5",
     "watchdog>=2.1.6",
     "pytest==8.4.2",
     "werkzeug>=3.1.0,<4.0.0",
@@ -88,6 +86,8 @@ def parse_readme():
 
 
 if __name__ == "__main__":
+    from setuptools import find_packages, setup
+
     setup(
         name=about["__title__"],
         description=about["__description__"],

@@ -120,10 +120,11 @@ The central design pattern is the **FSM App**: skills define a finite state mach
 4. Skills are composed by chaining multiple `AbciApp`s together via `abci_app_chain.py`
 
 ### Test Infrastructure
-- **plugins/aea-test-autonomy** - Testing plugin providing base test classes and fixtures
+- **plugins/aea-test-autonomy** - Testing plugin providing base test classes, Docker helpers, and fixtures. This is part of this repo and is covered by linters/pylint.
 - **packages/valory/skills/*/tests/** - Each package has co-located tests
 - **tests/** - Framework-level tests mirroring `autonomy/` structure
 - Test markers: `integration` (external services required), `e2e` (end-to-end agent tests)
+- **Important:** Do not use `@classmethod @pytest.fixture` in test fixtures — Python 3.14 broke this pattern. Use `self` + `type(self)` instead (see `UseFlaskTendermintNode` in `fixture_helpers.py` for the correct pattern).
 
 ## Code Style
 
@@ -136,7 +137,7 @@ The central design pattern is the **FSM App**: skills define a finite state mach
 
 ## Key Dependencies
 
-- `open-aea[all]==2.1.0rc4` - Core AEA framework
+- `open-aea[all]==2.1.0rc5` - Core AEA framework
 - `web3>=7,<8` - Ethereum interaction
 - `docker==7.1.0` - Container management for deployments
 - `Flask>=3.1.0,<4.0.0` - Tendermint monitoring server

@@ -44,6 +44,8 @@ from aea_test_autonomy.fixture_helpers import (
 )
 from aea_test_autonomy.helpers.contracts import get_register_contract
 
+HARDHAT_CHAIN_ID = 31337
+
 
 class BaseContractTest(ABC):
     """Base test class for contract tests."""
@@ -55,6 +57,7 @@ class BaseContractTest(ABC):
     deployer_crypto: Crypto
     contract_address: Optional[str] = None
     deploy_contract: bool = True
+    chain_id: int = DEFAULT_CHAIN_ID
 
     @classmethod
     def _setup_class(cls, **kwargs: Any) -> None:
@@ -63,7 +66,7 @@ class BaseContractTest(ABC):
         url: str = kwargs.pop("url")
         new_config = {
             "address": url,
-            "chain_id": DEFAULT_CHAIN_ID,
+            "chain_id": cls.chain_id,
             "denom": DEFAULT_CURRENCY_DENOM,
             "default_gas_price_strategy": "eip1559",
             "gas_price_strategies": {
@@ -130,14 +133,19 @@ class BaseGanacheContractTest(BaseContractTest, GanacheBaseTest):
 class BaseHardhatGnosisContractTest(BaseContractTest, HardHatGnosisBaseTest):
     """Base test case for testing contracts on Hardhat with Gnosis."""
 
+    chain_id: int = HARDHAT_CHAIN_ID
+
 
 class BaseHardhatAMMContractTest(BaseContractTest, HardHatAMMBaseTest):
     """Base test case for testing AMM contracts on Hardhat."""
+
+    chain_id: int = HARDHAT_CHAIN_ID
 
 
 class BaseRegistriesContractsTest(BaseContractTest, RegistriesBaseTest):
     """Base test case for the registries contract."""
 
+    chain_id: int = HARDHAT_CHAIN_ID
     deploy_contract: bool = False
 
 
@@ -181,7 +189,7 @@ class BaseContractWithDependencyTest(BaseContractTest):
         url: str = kwargs.pop("url")
         new_config = {
             "address": url,
-            "chain_id": DEFAULT_CHAIN_ID,
+            "chain_id": cls.chain_id,
             "denom": DEFAULT_CURRENCY_DENOM,
             "default_gas_price_strategy": "eip1559",
             "gas_price_strategies": {
@@ -221,8 +229,12 @@ class BaseHardhatGnosisContractWithDependencyTest(
 ):
     """Base test case for testing contracts with dependencies on Hardhat with Gnosis."""
 
+    chain_id: int = HARDHAT_CHAIN_ID
+
 
 class BaseHardhatAMMContractWithDependencyTest(
     BaseContractWithDependencyTest, HardHatAMMBaseTest
 ):
     """Base test case for testing AMM contracts with dependencies on Hardhat."""
+
+    chain_id: int = HARDHAT_CHAIN_ID

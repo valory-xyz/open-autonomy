@@ -20,6 +20,7 @@
 """Test `service-registry-network` command."""
 
 import multiprocessing
+import multiprocessing.process
 import os
 import time
 from typing import Tuple, cast
@@ -47,7 +48,7 @@ class TestRunServiceLocally(BaseCliTest):
         "service-registry-network",
     )
     expected_network_address = "http://localhost:8545"
-    running_process: multiprocessing.Process
+    running_process: multiprocessing.process.BaseProcess
 
     def setup_method(self) -> None:
         """Setup test."""
@@ -105,8 +106,17 @@ class TestRunServiceLocally(BaseCliTest):
             client.containers.get(CONTAINER_NAME).kill()
             client.containers.get(CONTAINER_NAME).remove()
 
-    def _invoke_command(self) -> multiprocessing.Process:
-        """Run the command on a different process, as it blocks."""
-        process = multiprocessing.Process(target=self.run_cli)
+    def _invoke_command(self) -> multiprocessing.process.BaseProcess:
+        """Run the command on a different process, as it blocks.
+
+        Uses 'fork' context explicitly because the target (self.run_cli)
+        requires inheriting parent state (cli_runner, fixtures) which
+        cannot be pickled as required by 'spawn'/'forkserver' start methods.
+        Python 3.14 changed the default from 'fork' to 'forkserver' on Linux.
+
+        :return: the started process.
+        """
+        ctx = multiprocessing.get_context("fork")
+        process = ctx.Process(target=self.run_cli)
         process.start()
         return process
