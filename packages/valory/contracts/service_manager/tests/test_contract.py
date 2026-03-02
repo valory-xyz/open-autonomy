@@ -38,7 +38,6 @@ AGENT_ID = 1
 NUMBER_OF_SLOTS = 1
 COST_OF_BOND = 1000
 THRESHOLD = 3
-CHAIN_ID = 31337
 
 
 @skip_docker_tests
@@ -58,22 +57,16 @@ class TestServiceManager(BaseRegistriesContractsTest):
 
     def test_get_create_transaction(self) -> None:
         """Test `get_create_transaction` method."""
-        with mock.patch.object(
-            type(self.ledger_api.api.eth),
-            "chain_id",
-            new_callable=mock.PropertyMock,
-            return_value=CHAIN_ID,
-        ):
-            tx = self.contract.get_create_transaction(
-                ledger_api=self.ledger_api,
-                contract_address=self.contract_address,
-                owner=self.deployer_crypto.address,
-                sender=self.deployer_crypto.address,
-                metadata_hash=METADATA_HASH,
-                agent_ids=[AGENT_ID],
-                agent_params=[[NUMBER_OF_SLOTS, COST_OF_BOND]],
-                threshold=THRESHOLD,
-            )
+        tx = self.contract.get_create_transaction(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            owner=self.deployer_crypto.address,
+            sender=self.deployer_crypto.address,
+            metadata_hash=METADATA_HASH,
+            agent_ids=[AGENT_ID],
+            agent_params=[[NUMBER_OF_SLOTS, COST_OF_BOND]],
+            threshold=THRESHOLD,
+        )
         assert all(
             [
                 key
@@ -128,22 +121,16 @@ class TestServiceManager(BaseRegistriesContractsTest):
 
     def test_get_update_transaction(self) -> None:
         """Test `get_update_transaction` method."""
-        with mock.patch.object(
-            type(self.ledger_api.api.eth),
-            "chain_id",
-            new_callable=mock.PropertyMock,
-            return_value=CHAIN_ID,
-        ):
-            tx = self.contract.get_update_transaction(
-                ledger_api=self.ledger_api,
-                contract_address=self.contract_address,
-                sender=self.deployer_crypto.address,
-                service_id=2,
-                metadata_hash=METADATA_HASH,
-                agent_ids=[AGENT_ID],
-                agent_params=[[NUMBER_OF_SLOTS, COST_OF_BOND]],
-                threshold=THRESHOLD,
-            )
+        tx = self.contract.get_update_transaction(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            sender=self.deployer_crypto.address,
+            service_id=2,
+            metadata_hash=METADATA_HASH,
+            agent_ids=[AGENT_ID],
+            agent_params=[[NUMBER_OF_SLOTS, COST_OF_BOND]],
+            threshold=THRESHOLD,
+        )
         assert all(
             [
                 key
