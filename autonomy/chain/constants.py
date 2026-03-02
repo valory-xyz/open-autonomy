@@ -158,6 +158,8 @@ CHAIN_PROFILES = {
         "staking_verifier": "0xc40C79C275F3fA1F3f4c723755C81ED2D53A8D81",  # nosec
         "staking_factory": "0x1c2cD884127b080F940b7546c1e9aaf525b1FA55",  # nosec
         "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",  # nosec
+        "erc8004_identity_registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",  # nosec
+        "erc8004_identity_registry_bridger": "0x7fc0ddf4DFB61CfA5519db2A5eE7B2Eb02De0140",  # nosec
     },
     "mode": {
         "service_registry": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
