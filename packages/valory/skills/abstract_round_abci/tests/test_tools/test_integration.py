@@ -19,6 +19,7 @@
 
 """Tests for abstract_round_abci/test_tools/integration.py"""
 
+from functools import partial
 from typing import cast
 
 import pytest
@@ -28,7 +29,10 @@ from packages.open_aea.protocols.signing.custom_types import SignedMessage
 from packages.valory.connections.ledger.connection import (
     PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
-from packages.valory.connections.ledger.tests.conftest import make_ledger_api_connection
+from packages.valory.connections.ledger.tests.conftest import (
+    DEFAULT_ETHEREUM_TESTNET_CONFIG,
+    make_ledger_api_connection,
+)
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.protocols.ledger_api.dialogues import LedgerApiDialogue
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
@@ -46,6 +50,14 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds imp
 from packages.valory.skills.abstract_round_abci.tests.test_tools.base import (
     FSMBehaviourTestToolSetup,
 )
+
+# Use a port guaranteed to be unused so the ledger connection fails
+# deterministically. Port 8545 can conflict with Hardhat/Ganache
+# containers left over from other package tests in the same CI run.
+_UNREACHABLE_LEDGER_CONFIG = {
+    **DEFAULT_ETHEREUM_TESTNET_CONFIG,
+    "address": "http://127.0.0.1:19876",
+}
 
 
 def simulate_ledger_get_balance_request(test_instance: IntegrationBaseCase) -> None:
@@ -96,7 +108,9 @@ class TestIntegrationBaseCase(FSMBehaviourTestToolSetup):
         """Test process_message_cycle"""
 
         self.set_path_to_skill()
-        self.test_cls.make_ledger_api_connection_callable = make_ledger_api_connection
+        self.test_cls.make_ledger_api_connection_callable = partial(
+            make_ledger_api_connection, _UNREACHABLE_LEDGER_CONFIG
+        )
         test_instance = cast(IntegrationBaseCase, self.setup_test_cls())
 
         simulate_ledger_get_balance_request(test_instance)
