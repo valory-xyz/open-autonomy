@@ -934,6 +934,11 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         self._is_stopped = True
         self._server = cast(AbstractServer, self._server)
         self._server.close()
+        # Close all active client connections so that receive_messages
+        # detects EOF and returns.  Required on Python 3.12+ where
+        # wait_closed() actually waits for handler tasks to finish.
+        for _reader, writer in self._streams_by_socket.values():
+            writer.close()
         await self._server.wait_closed()
 
         self.queue = None
