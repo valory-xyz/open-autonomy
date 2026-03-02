@@ -19,6 +19,10 @@
 
 """e2e tests for the `valory/offend_slash` skill."""
 
+import logging
+import os
+import shutil
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -84,6 +88,32 @@ class SlashingE2E(
     skill_package = "valory/offend_slash_abci:0.1.0"
     wait_to_finish = 200
     _args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
+    _run_count: int = 0
+
+    def setup_method(self) -> None:
+        """Reinitialize temp directory on flaky reruns."""
+        type(self)._run_count += 1
+        if self._run_count <= 1:
+            return
+        logging.info("Flaky rerun detected, reinitializing temp directory")
+        type(self).t = Path(tempfile.mkdtemp())
+        os.chdir(self.t)
+        registry_tmp_dir = self.t / self.packages_dir_path
+        shutil.copytree(str(self.package_registry_src), str(registry_tmp_dir))
+        self.initialize_aea(self.author)
+        type(self).subprocesses = []
+        type(self).threads = []
+        type(self).agents = set()
+        type(self).current_agent_context = ""
+        type(self).stdout = {}
+        type(self).stderr = {}
+
+    def teardown_method(self) -> None:
+        """Clean up temp directory so flaky reruns start fresh."""
+        self.terminate_agents()
+        self._join_threads()
+        os.chdir(self.old_cwd)
+        shutil.rmtree(self.t, ignore_errors=True)
 
     def __set_configs(  # pylint: disable=unused-private-member
         self, i: int, nb_agents: int
