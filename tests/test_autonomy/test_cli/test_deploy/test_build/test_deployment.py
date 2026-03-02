@@ -233,9 +233,7 @@ class BaseDeployBuildTest(BaseCliTest):
         assert all(
             service in docker_compose["services"]
             for service in [
-                *map(
-                    lambda i: self.spec.get_abci_container_name(i), range(n_agents)
-                ),
+                *map(lambda i: self.spec.get_abci_container_name(i), range(n_agents)),
                 *map(lambda i: self.spec.get_tm_container_name(i), range(n_agents)),
             ]
         )
