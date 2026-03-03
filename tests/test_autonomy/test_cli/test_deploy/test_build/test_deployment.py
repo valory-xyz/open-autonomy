@@ -206,9 +206,7 @@ class BaseDeployBuildTest(BaseCliTest):
         """Check kubernetes build dir."""
 
         build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
-        assert any(
-            child in build_tree for child in ["persistent_storage", "build.yaml"]
-        )
+        assert "build.yaml" in build_tree
 
     def load_and_check_docker_compose_file(
         self,
@@ -227,19 +225,16 @@ class BaseDeployBuildTest(BaseCliTest):
                     service_hash_id=service_hash_id,
                 )
 
-        assert any(
+        assert all(
             [key in docker_compose for key in ["version", "services", "networks"]]
         )
 
-        assert any(
-            [
-                service in docker_compose["services"]
-                for service in [
-                    *map(
-                        lambda i: self.spec.get_abci_container_name(i), range(N_AGENTS)
-                    ),
-                    *map(lambda i: self.spec.get_tm_container_name(i), range(N_AGENTS)),
-                ]
+        n_agents = self.spec.service.number_of_agents
+        assert all(
+            service in docker_compose["services"]
+            for service in [
+                *map(lambda i: self.spec.get_abci_container_name(i), range(n_agents)),
+                *map(lambda i: self.spec.get_tm_container_name(i), range(n_agents)),
             ]
         )
 
@@ -319,16 +314,7 @@ class BaseDeployBuildTest(BaseCliTest):
     ) -> None:
         """Check docker compose build directory."""
         build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
-        assert any(
-            [
-                child in build_tree
-                for child in [
-                    "persistent_storage",
-                    "nodes",
-                    DockerComposeGenerator.output_name,
-                ]
-            ]
-        )
+        assert DockerComposeGenerator.output_name in build_tree
 
 
 class TestLocalhostBuilds(BaseDeployBuildTest):
@@ -925,10 +911,8 @@ class TestKubernetesBuild(BaseDeployBuildTest):
         )
 
         assert any(
-            [
-                resource["metadata"]["name"] == "config-nodes"
-                for resource in kubernetes_config
-            ]
+            resource["metadata"]["name"] == "config-nodes"
+            for resource in kubernetes_config
         )
 
     def test_kubernetes_build_image_author_default(
