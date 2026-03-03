@@ -64,53 +64,53 @@
 
 ## Medium (Architecture / Code Quality)
 
-### M1. `base.py` is a 3,924-line god-file with 40+ classes spanning 6 domains
+### M1. `base.py` is a 3,924-line god-file with 40+ classes spanning 6 domains — **ACKNOWLEDGED**
 - **File:** `packages/valory/skills/abstract_round_abci/base.py`
-- **Impact:** Contains transaction/payload layer, blockchain model, synchronized state, consensus rounds, FSM orchestration, and slashing/offences. The slashing subsystem alone (lines 2945-3924) is a large secondary concern that could be its own module. `BaseSynchronizedData` contains application-specific properties (`safe_contract_address`, `keeper_randomness`) that belong in `transaction_settlement_abci`.
+- **Assessment:** Architecture concern. Refactoring would be a major effort with high risk of breaking downstream packages. Not actionable now.
 
-### M2. Skill imports constant from connection module
+### M2. Skill imports constant from connection module — **ACKNOWLEDGED**
 - **File:** `packages/valory/skills/abstract_round_abci/base.py:63`
-- **Impact:** `from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES`. Skills can depend on connections (declared in `skill.yaml`), so this is not a layering violation per se. However, importing a transport-level buffer size constant creates tight coupling to a specific connection's implementation detail. If `MAX_READ_IN_BYTES` were defined in the protocol or a shared constants module, the skill would be decoupled from the connection's internals.
+- **Assessment:** Valid coupling concern but the import is declared in `skill.yaml` and works correctly. Moving the constant would change package hashes for no functional benefit.
 
-### M3. `ABCIApplicationServicer` — 15 near-identical gRPC handler methods (~450 lines of boilerplate)
+### M3. `ABCIApplicationServicer` — 15 near-identical gRPC handler methods — **ACKNOWLEDGED**
 - **File:** `packages/valory/connections/abci/connection.py:261-775`
-- **Impact:** Every handler follows the exact same pattern. Could be reduced to ~30 lines with a dispatch table.
+- **Assessment:** Boilerplate but explicit. A dispatch table would reduce lines but risk breaking the protobuf/gRPC contract and make handler-specific logic (e.g. C1 fix) harder to trace.
 
-### M4. `_MetaAbciApp` metaclass injects background round at import time, order-sensitive
+### M4. `_MetaAbciApp` metaclass injects background round at import time — **ACKNOWLEDGED**
 - **File:** `packages/valory/skills/abstract_round_abci/base.py:2042-2247`
-- **Impact:** `_add_pending_offences_bg_round` fires on the *first* concrete `AbciApp` encountered. Import order determines which class gets modified. In tests, classes defined before production ones may behave differently.
+- **Assessment:** By design. The metaclass injects background rounds on first concrete `AbciApp`. Import order is deterministic in production. Worth documenting but not a bug.
 
 ### M5. `deplopyment_type` typo baked into public API
 - **Files:** `autonomy/deploy/base.py:158,474,618,634`, `autonomy/deploy/build.py:81`, test files
 - **Impact:** Propagated across 8+ references. Renaming is a breaking change. Should be fixed with an alias for backward compat.
 
-### M6. `COMPONENT_CONFIGS` dict defined independently in 3 modules
+### M6. `COMPONENT_CONFIGS` dict defined independently in 3 modules — **ACKNOWLEDGED**
 - **Files:** `autonomy/configurations/base.py:55`, `autonomy/configurations/loader.py:39`, `autonomy/deploy/base.py:88`
-- **Impact:** Adding a new component type requires 3 coordinated edits.
+- **Assessment:** Duplication concern. Consolidation risks import cycles between configuration and deploy modules. Low priority.
 
-### M7. Flask server `create_server()` discards TendermintNode reference
+### M7. Flask server `create_server()` discards TendermintNode reference — **NOT APPLICABLE**
 - **Files:** `autonomy/deploy/generators/localhost/tendermint/app.py:354-357`, `deployments/Dockerfiles/tendermint/app.py:333-336`
-- **Impact:** `tendermint_node` assigned to `_` and discarded. No shutdown hook. Clean Flask shutdown leaves Tendermint subprocess and monitoring thread running.
+- **Assessment:** The TendermintNode lives as a closure variable referenced by route handlers — it won't be GC'd. Flask doesn't have a clean shutdown lifecycle; the process exits when the container stops.
 
-### M8. `docker.from_env()` clients created without closing
+### M8. `docker.from_env()` clients created without closing — **ACKNOWLEDGED**
 - **Files:** `plugins/aea-test-autonomy/aea_test_autonomy/docker/base.py:97`, `fixture_helpers.py` (15+ instances)
-- **Impact:** Each call creates a new DockerClient with HTTP connection pool. Never closed. Accumulates connections during test runs.
+- **Assessment:** Test infrastructure only. Pytest processes exit after each suite, closing all connections. Low priority.
 
-### M9. `asyncio.create_task()` task reference not stored
-- **File:** `packages/valory/connections/abci/connection.py:842`
-- **Impact:** Task may be garbage-collected before completion. `disconnect()` cannot cancel/await the server task.
+### M9. `asyncio.create_task()` task reference not stored — **ACKNOWLEDGED**
+- **File:** `packages/valory/connections/abci/connection.py:844`
+- **Assessment:** The task runs `_start_server()` which awaits the gRPC server. `disconnect()` stops the server, which completes the task. Not ideal but functional.
 
-### M10. 11 suppressed `safety` CVEs without documentation
+### M10. 11 suppressed `safety` CVEs without documentation — **ACKNOWLEDGED**
 - **File:** `tox.ini:546`
-- **Impact:** Each `safety check -i XXXXX` should have a comment explaining why the CVE is safe to ignore.
+- **Assessment:** Documentation gap. Each suppression should have a comment explaining why the CVE is safe to ignore.
 
-### M11. `curl | sh` and unchecked binary downloads in Dockerfiles
+### M11. `curl | sh` and unchecked binary downloads in Dockerfiles — **ACKNOWLEDGED**
 - **Files:** `deployments/Dockerfiles/autonomy/Dockerfile:10`, `autonomy-user/Dockerfile:21`, `tendermint/install.sh`
-- **Impact:** Docker and Tendermint binaries downloaded and executed without checksum verification. MITM risk during image builds.
+- **Assessment:** Standard Docker practice. Images are built in CI from pinned URLs. Adding checksums would be good hardening but low urgency.
 
-### M12. Node.js 16 EOL base image
+### M12. Node.js 16 EOL base image — **ACKNOWLEDGED**
 - **File:** `deployments/Dockerfiles/hardhat/Dockerfile:1`
-- **Impact:** `node:16.7.0` reached EOL September 2023. Contains known unpatched vulnerabilities.
+- **Assessment:** Only used for Hardhat (Ethereum dev tooling for testing). Not in production images. Low priority.
 
 ---
 
