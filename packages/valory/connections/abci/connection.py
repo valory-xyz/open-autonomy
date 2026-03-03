@@ -712,7 +712,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         response = _TendermintProtocolEncoder.response_offer_snapshot(message)
         context.set_code(grpc.StatusCode.OK)
 
-        return response.list_snapshots
+        return response.offer_snapshot
 
     async def LoadSnapshotChunk(
         self, request: RequestLoadSnapshotChunk, context: grpc.ServicerContext
