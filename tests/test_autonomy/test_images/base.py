@@ -54,6 +54,7 @@ class BaseImageBuildTest:
         path: Path,
         tag: str,
         buildargs: Optional[Dict[str, str]] = None,
+        dockerfile: Optional[str] = None,
     ) -> Tuple[bool, str]:
         """Build docker image."""
 
@@ -62,6 +63,7 @@ class BaseImageBuildTest:
             tag=tag,
             nocache=True,
             buildargs=(buildargs or {}),
+            dockerfile=dockerfile,
         )
         output = ""
         for stream_obj in stream:
@@ -73,7 +75,7 @@ class BaseImageBuildTest:
                 if "stream" in stream_data:
                     output += stream_data["stream"]
                 elif "errorDetail" in stream_data:
-                    return False, stream_data["errorDetail"]["message"]
+                    return False, output + stream_data["errorDetail"]["message"]
                 elif "aux" in stream_data:
                     output += stream_data["aux"]["ID"]
                 elif "status" in stream_data:

@@ -396,8 +396,6 @@ class TestLocalhostBuilds(BaseDeployBuildTest):
                 "--localhost",
                 "--mkdir",
                 "data",
-                "--password",
-                "test_password",  # nosec
             )
         )
 
