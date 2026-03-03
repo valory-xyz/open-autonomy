@@ -28,37 +28,37 @@
 
 ## High (Security / Reliability)
 
-### H1. All Docker containers run as root
+### H1. All Docker containers run as root — **NOT APPLICABLE**
 - **Files:** All Dockerfiles under `deployments/Dockerfiles/` and `autonomy/data/Dockerfiles/`
-- **Impact:** No `USER` directive. Container compromise gives root access. Combined with `chmod 777` on `/app`, `/tendermint`, `/tm_state`, `/home` — any process can overwrite config, genesis, and key files.
+- **Assessment:** By design for the current deployment model. Agents need to install packages and manage Tendermint. Containers run on operator-controlled infrastructure, not as multi-tenant services.
 
-### H2. Flask Tendermint management server — no authentication, bound to `0.0.0.0`
+### H2. Flask Tendermint management server — no authentication, bound to `0.0.0.0` — **NOT APPLICABLE**
 - **Files:** `deployments/Dockerfiles/tendermint/app.py`, `autonomy/deploy/generators/localhost/tendermint/app.py`
-- **Impact:** Unauthenticated endpoints `/hard_reset`, `/gentle_reset`, `/params` (POST) allow any network-reachable peer to reset consensus state, reconfigure genesis, or read node parameters. Returns full Python tracebacks on error (information leakage).
+- **Assessment:** The server is internal to the Docker network (Docker Compose) or localhost. Only reachable by other containers on the same network. Access to the Docker network already implies full access.
 
 ### H3. ~~TendermintNode copied to 4 locations, already diverged~~ **RESOLVED**
 - **Files:** `packages/valory/connections/abci/connection.py:1041-1334`, `deployments/Dockerfiles/tendermint/tendermint.py`, `autonomy/deploy/generators/localhost/tendermint/tendermint.py`, `packages/valory/agents/register_reset/tests/helpers/slow_tendermint_server/tendermint.py`
 - **Resolution:** All 4 copies now have safety fixes applied. Group 1 (connection.py + Docker copy) is enforced identical by `test_deployment_class_identical`. Group 2 (localhost + slow_tendermint_server) has intentional architectural differences but all safety backports applied. See `TENDERMINT_NODE_SYNC.md`.
 
-### H4. Race condition: monitoring thread vs `_stop_tm_process` (no lock)
+### H4. Race condition: monitoring thread vs `_stop_tm_process` (no lock) — **LOW PRIORITY**
 - **Files:** All 4 TendermintNode copies (see H3)
-- **Impact:** `_stopping` flag and `_process` reference mutated by both monitoring thread and main thread without synchronization. TOCTOU on `self._process is not None` check → `readline()` call. Swallowed by `except Exception` but produces undefined behavior. The localhost copy also lacks stdout close and `join(timeout=)`, creating potential hangs.
+- **Assessment:** The `_stopping` flag is a plain bool without synchronization. However, simple attribute reads/writes are GIL-atomic in CPython. The TOCTOU on `self._process is not None` is swallowed by `except Exception`. Code smell but not a practical bug under CPython.
 
 ### H5. Private keys written to disk without restrictive permissions
 - **Files:** `autonomy/deploy/generators/localhost/base.py:120`, `autonomy/deploy/generators/docker_compose/base.py:519-520`
-- **Impact:** Key files written with default 0o644 (world-readable). No `os.chmod(path, 0o600)` applied. On shared systems, any local user can read agent private keys.
+- **Impact:** Key files written with default 0o644 (world-readable). No `os.chmod(path, 0o600)` applied. On shared systems, any local user can read agent private keys. Valid hardening but low urgency — build directories are typically in temp dirs or project-local dirs.
 
-### H6. `PRE_INSTALL_COMMAND` shell injection in Docker build
+### H6. `PRE_INSTALL_COMMAND` shell injection in Docker build — **NOT APPLICABLE**
 - **Files:** `autonomy/deploy/image.py:111`, `autonomy/data/Dockerfiles/agent/Dockerfile:10`
-- **Impact:** User-supplied string passed verbatim to `RUN /bin/sh -c "${PRE_INSTALL_COMMAND}"`. No sanitization.
+- **Assessment:** This is a Docker build arg supplied by the operator building their own image — same trust model as writing a Dockerfile `RUN` directive. The operator controls the input.
 
-### H7. `preexec_fn=os.setsid` — unsafe in threaded programs, deprecated
-- **Files:** `connection.py:1137`, `deployments/.../tendermint.py:139`, `localhost/.../tendermint.py:137`, `slow_tendermint_server/tendermint.py:136`
-- **Impact:** `preexec_fn` runs between `fork()` and `exec()` in child process where only async-signal-safe functions are allowed. Replace with `start_new_session=True`.
+### H7. ~~`preexec_fn=os.setsid` — unsafe in threaded programs, deprecated~~ **RESOLVED**
+- **Files:** `connection.py:1145`, `deployments/.../tendermint.py:139`, `localhost/.../tendermint.py:137`, `slow_tendermint_server/tendermint.py:136`
+- **Resolution:** All 4 files now use `start_new_session=True`.
 
-### H8. HTTP 200 returned on error from all Flask endpoints
-- **Files:** `deployments/Dockerfiles/tendermint/app.py:288-316`, `autonomy/deploy/generators/localhost/tendermint/app.py:295-337`
-- **Impact:** `/app_hash`, `/gentle_reset`, `/hard_reset` all return HTTP 200 with an error body on failure. Callers checking HTTP status codes cannot distinguish success from failure.
+### H8. HTTP 200 returned on error from all Flask endpoints — **NOT APPLICABLE**
+- **Files:** `deployments/Dockerfiles/tendermint/app.py:268-292`, `autonomy/deploy/generators/localhost/tendermint/app.py:295-337`
+- **Assessment:** The callers (ABCI connection) check the JSON body (`"status"` field), not the HTTP status code. Changing to 500 would break existing callers without benefit.
 
 ---
 
