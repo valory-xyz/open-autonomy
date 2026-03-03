@@ -26,7 +26,7 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==2.1.0rc6
   open-aea-test-autonomy:
-    version: ==0.21.12rc3
+    version: ==0.21.12rc4
   packaging: {}
   py-eth-sig-utils: {}
   requests:
