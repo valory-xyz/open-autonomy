@@ -80,9 +80,9 @@
 - **File:** `packages/valory/skills/abstract_round_abci/base.py:2042-2247`
 - **Assessment:** By design. The metaclass injects background rounds on first concrete `AbciApp`. Import order is deterministic in production. Worth documenting but not a bug.
 
-### M5. `deplopyment_type` typo baked into public API
-- **Files:** `autonomy/deploy/base.py:158,474,618,634`, `autonomy/deploy/build.py:81`, test files
-- **Impact:** Propagated across 8+ references. Renaming is a breaking change. Should be fixed with an alias for backward compat.
+### M5. ~~`deplopyment_type` typo baked into public API~~ **RESOLVED**
+- **Files:** `autonomy/deploy/base.py`, `autonomy/deploy/build.py`, test files
+- **Resolution:** Renamed to `deployment_type` across all references. Not a true public API — only set internally in `build.py` and tests.
 
 ### M6. `COMPONENT_CONFIGS` dict defined independently in 3 modules — **ACKNOWLEDGED**
 - **Files:** `autonomy/configurations/base.py:55`, `autonomy/configurations/loader.py:39`, `autonomy/deploy/base.py:88`
@@ -205,4 +205,4 @@
 | L10 | Narrow `filterwarnings` to specific warnings | 5 min |
 | L12 | Remove dead `ganache_scope_function` | 5 min |
 | L18 | Fix "Usefule" typo | 1 line |
-| M5 | Add `deployment_type` property aliasing `deplopyment_type` | 5 min |
+| M5 | ~~Rename `deplopyment_type` to `deployment_type`~~ Done | 5 min |

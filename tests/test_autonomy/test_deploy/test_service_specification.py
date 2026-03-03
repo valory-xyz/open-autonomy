@@ -373,7 +373,7 @@ class TestServiceBuilder:
             self.keys_path,
         )
 
-        spec.deplopyment_type = KUBERNETES_DEPLOYMENT
+        spec.deployment_type = KUBERNETES_DEPLOYMENT
         spec.try_update_runtime_params()
         skill_config, *_ = spec.service.overrides
 
@@ -434,7 +434,7 @@ class TestServiceBuilder:
         spec = ServiceBuilder.from_dir(
             self.service_path,
         )
-        spec.deplopyment_type = KUBERNETES_DEPLOYMENT
+        spec.deployment_type = KUBERNETES_DEPLOYMENT
 
         spec.try_update_abci_connection_params()
         (conn_config,) = [

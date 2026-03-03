@@ -78,7 +78,7 @@ def generate_deployment(  # pylint: disable=too-many-locals
         service_hash_id=service_hash_id,
         service_offset=service_offset,
     )
-    service_builder.deplopyment_type = type_of_deployment
+    service_builder.deployment_type = type_of_deployment
     service_builder.log_level = log_level
     service_builder.try_update_runtime_params(
         multisig_address=multisig_address,
