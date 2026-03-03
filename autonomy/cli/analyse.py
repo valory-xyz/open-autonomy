@@ -233,7 +233,6 @@ def docstrings(ctx: Context, update: bool) -> None:
     "--fsm",
     "fsm_path",
     is_flag=True,
-    type=str,
     help="Print only the FSM execution path",
 )
 @click.option(

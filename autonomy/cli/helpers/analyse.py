@@ -254,7 +254,7 @@ def _get_content_from_ipfs(package_id: PackageId, file: str) -> bytes:
             f"{package_id.package_hash}/{package_id.name}/{file}"
         )
     except Exception as e:
-        message, *_ = e.args
+        message = str(e.args[0]) if e.args else str(e)
         if "merkledag: not found" in message:
             message = "File does not exist on the IPFS registry"
 
