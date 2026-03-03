@@ -75,7 +75,7 @@ class BaseImageBuildTest:
                 if "stream" in stream_data:
                     output += stream_data["stream"]
                 elif "errorDetail" in stream_data:
-                    return False, stream_data["errorDetail"]["message"]
+                    return False, output + stream_data["errorDetail"]["message"]
                 elif "aux" in stream_data:
                     output += stream_data["aux"]["ID"]
                 elif "status" in stream_data:

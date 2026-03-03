@@ -59,11 +59,17 @@ ARG AEA_AGENT
 ARG AUTHOR
 ARG EXTRA_DEPENDENCIES=""
 
+# Use local packages to avoid IPFS dependency
 COPY packages/ /home/packages/
+# Install aea-test-autonomy from source; the current dev version
+# may not yet be published to PyPI
+COPY plugins/ /home/plugins/
 
 WORKDIR /home
 
 ENV PIP_PRE=1
+
+RUN pip install --no-deps /home/plugins/aea-test-autonomy
 
 RUN aea init --reset --local --author ${AUTHOR}
 
@@ -104,12 +110,20 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
 
         cls.agent = str(AGENT.public_id)
 
-        # Create a temp build context with local packages
+        # Create a temp build context with local packages and plugins.
+        # We use local packages to avoid IPFS dependency and ensure the
+        # image builds against the current working tree. The aea-test-autonomy
+        # plugin is installed from source because agents depend on the
+        # current dev version which may not yet be published to PyPI.
         cls.local_build_dir = Path(tempfile.mkdtemp())
         (cls.local_build_dir / "Dockerfile").write_text(LOCAL_DOCKERFILE)
         shutil.copytree(
             str(PACKAGES_DIR),
             str(cls.local_build_dir / "packages"),
+        )
+        shutil.copytree(
+            str(ROOT_DIR / "plugins"),
+            str(cls.local_build_dir / "plugins"),
         )
 
     @classmethod
