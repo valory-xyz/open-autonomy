@@ -388,23 +388,30 @@ class TestLocalhostBuilds(BaseDeployBuildTest):
             / REGISTER_RESET_COMPONENT
             / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         )
-        result = self.run_cli(
-            (
-                str(self.keys_file),
-                "--o",
-                str(build_dir),
-                "--localhost",
-                "--mkdir",
-                "data",
+
+        # Ensure AEA_PASSWORD is not set; the aea CLI reads it via
+        # envvar= on the Click option (open-aea#825) and a stale value
+        # from a previous test causes add-key to attempt JSON decryption
+        # on plaintext keys.
+        env = {k: v for k, v in os.environ.items() if k != "AEA_PASSWORD"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(build_dir),
+                    "--localhost",
+                    "--mkdir",
+                    "data",
+                )
             )
-        )
 
-        assert result.exit_code == 0, result.output
-        assert build_dir.exists()
-        assert (build_dir / "data").exists()
+            assert result.exit_code == 0, result.output
+            assert build_dir.exists()
+            assert (build_dir / "data").exists()
 
-        self.check_localhost_build(build_dir)
-        self.load_and_check_localhost_build(build_dir)
+            self.check_localhost_build(build_dir)
+            self.load_and_check_localhost_build(build_dir)
 
     @pytest.mark.skip("Test is not implemented yet.")
     def test_dev_mode(self) -> None:
