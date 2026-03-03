@@ -116,93 +116,97 @@
 
 ## Low (Developer Experience / Cleanup)
 
-### L1. Inverted `svn` check in Makefile breaks `make new_env`
+### L1. ~~Inverted `svn` check in Makefile breaks `make new_env`~~ **RESOLVED**
 - **File:** `Makefile:161-163`
-- **Impact:** `if [ ! -z "$(which svn)" ]; then echo "requires SVN, exit"; exit 1; fi` exits if svn IS found (inverted logic). Developers with svn installed cannot run `make new_env`.
+- **Resolution:** Fixed `! -z` to `-z` so the check correctly exits when svn is NOT found.
 
-### L2. `--fsm` flag declared as both `is_flag=True` and `type=str`
-- **File:** `autonomy/cli/analyse.py:233-237`
-- **Impact:** Contradictory Click option declaration. A flag cannot carry a string value.
+### L2. ~~`--fsm` flag declared as both `is_flag=True` and `type=str`~~ **RESOLVED**
+- **File:** `autonomy/cli/analyse.py:232-237`
+- **Resolution:** Removed contradictory `type=str`. The option is a boolean flag.
 
-### L3. "of of the service" typo in user-facing error messages
+### L3. ~~"of of the service" typo in user-facing error messages~~ **RESOLVED**
 - **File:** `autonomy/cli/analyse.py:446,451`
+- **Resolution:** Fixed double "of of" to "of".
 
-### L4. CI uses `actions/checkout@v2` and `actions/setup-python@master`
+### L4. CI uses `actions/checkout@v2` and `actions/setup-python@master` — **ACKNOWLEDGED**
 - **File:** `.github/workflows/main_workflow.yml` (multiple lines)
-- **Impact:** v2 is outdated (v4 current). `@master` is unpinned — any commit to the action immediately affects all builds. Security and reproducibility risk.
+- **Assessment:** CI config concern. Should be updated to v4 and pinned versions in a separate CI-focused PR.
 
-### L5. Wrong docstrings on `tendermint` and `acn_node` fixtures
+### L5. ~~Wrong docstrings on `tendermint` and `acn_node` fixtures~~ **RESOLVED**
 - **File:** `plugins/aea-test-autonomy/aea_test_autonomy/fixture_helpers.py:97,383`
-- **Impact:** Both say "Launch the Ganache image" — copy-paste error.
+- **Resolution:** Fixed copy-paste docstrings to say "Tendermint" and "ACN node" respectively.
 
-### L6. `pytest` listed as production dependency
+### L6. `pytest` listed as production dependency — **ACKNOWLEDGED**
 - **File:** `setup.py:58`
-- **Impact:** `pytest==8.4.2` in `base_deps` forces pytest into any `pip install open-autonomy`.
+- **Assessment:** Intentional — the CLI uses pytest for `aea test`. Moving it to extras would break the test command.
 
-### L7. `tox.ini` is 1,004 lines with ~30 repetitive `[testenv]` blocks
+### L7. `tox.ini` is 1,004 lines with ~30 repetitive `[testenv]` blocks — **ACKNOWLEDGED**
 - **File:** `tox.ini`
-- **Impact:** Could be collapsed to ~200 lines using tox generative syntax. Hard for new developers to navigate.
+- **Assessment:** Refactoring concern. Not a bug.
 
-### L8. `pytz==2022.2.1` — unnecessary on Python 3.14
+### L8. `pytz==2022.2.1` — unnecessary on Python 3.14 — **ACKNOWLEDGED**
 - **Files:** `Pipfile:42`, `tox.ini:52`
-- **Impact:** Only used for UTC timestamps. Python 3.9+ has `zoneinfo` and `datetime.timezone.utc`.
+- **Assessment:** Dev dependency only (Pipfile). Not in production deps. Low priority.
 
-### L9. `hypothesis==6.21.6` pinned to 2022 release
+### L9. `hypothesis==6.21.6` pinned to 2022 release — **ACKNOWLEDGED**
 - **Files:** `Pipfile:38`, `tox.ini:49`
-- **Impact:** Current series is 6.100+. Old pin may conflict with consumer packages.
+- **Assessment:** Dev dependency. Upgrading risks test breakage from new strategies. Low priority.
 
-### L10. `filterwarnings("ignore")` at module scope
+### L10. `filterwarnings("ignore")` at module scope — **ACKNOWLEDGED**
 - **File:** `autonomy/cli/analyse.py:60`
-- **Impact:** Suppresses all Python warnings globally when any `analyse` subcommand runs. Hides real deprecation warnings from dependencies.
+- **Assessment:** Needs investigation into which warnings it suppresses before narrowing. Low priority.
 
-### L11. Deprecated CLI commands not using Click's `deprecated=True`
+### L11. Deprecated CLI commands not using Click's `deprecated=True` — **ACKNOWLEDGED**
 - **Files:** `autonomy/cli/scaffold_fsm.py:91`, `autonomy/cli/deploy.py:491`, `autonomy/cli/hash.py:52`
-- **Impact:** Users only discover deprecation at runtime, not in `--help`.
+- **Assessment:** Nice-to-have. The runtime warnings are already in place.
 
-### L12. `ganache_scope_function` fixture marked `# TODO: remove as not used`
+### L12. `ganache_scope_function` fixture marked `# TODO: remove as not used` — **ACKNOWLEDGED**
 - **File:** `plugins/aea-test-autonomy/aea_test_autonomy/fixture_helpers.py:241`
+- **Assessment:** Dead code. Can be removed but may require checking downstream consumers.
 
-### L13. Multiple dependency specification files with drifting version pins
+### L13. Multiple dependency specification files with drifting version pins — **ACKNOWLEDGED**
 - **Files:** `pyproject.toml`, `setup.py`, `tox.ini`, `Pipfile`, `setup.cfg`
-- **Impact:** `jsonschema` range differs between `pyproject.toml` (`<4.4.0`) and `setup.py`/`tox.ini` (`<4.24.0`). `typing_extensions` upper bound also drifts.
+- **Assessment:** Needs holistic cleanup across all spec files. Not a quick fix.
 
-### L14. `BaseBehaviour` bypasses MRO with explicit `__init__` calls
+### L14. `BaseBehaviour` bypasses MRO with explicit `__init__` calls — **ACKNOWLEDGED**
 - **File:** `packages/valory/skills/abstract_round_abci/behaviour_utils.py:566`
-- **Impact:** `# pylint: disable=super-init-not-called`. Diamond inheritance managed manually. Fragile if bases gain a common ancestor.
+- **Assessment:** Intentional design choice for diamond inheritance. Documented with pylint disable. Changing risks breaking all downstream skills.
 
-### L15. `$(PYTHON_VERSION)` used but never defined in Makefile
+### L15. `$(PYTHON_VERSION)` used but never defined in Makefile — **ACKNOWLEDGED**
 - **File:** `Makefile:171`
-- **Impact:** `make new_env` silently uses pipenv's default Python resolution.
+- **Assessment:** Expands to empty string, causing `pipenv --python` to error but pipenv falls back to default resolution. Existing behavior, low priority.
 
-### L16. Linter CI job runs 15 checks sequentially
+### L16. Linter CI job runs 15 checks sequentially — **ACKNOWLEDGED**
 - **File:** `.github/workflows/main_workflow.yml`
-- **Impact:** First failure aborts all subsequent linters. Developers must re-run CI to see the next error. Could be parallelized.
+- **Assessment:** CI config concern. Should be parallelized in a separate CI-focused PR.
 
-### L17. `e.args` destructuring can raise `IndexError`
+### L17. ~~`e.args` destructuring can raise `IndexError`~~ **RESOLVED**
 - **File:** `autonomy/cli/helpers/analyse.py:256-257`
-- **Impact:** `message, *_ = e.args` crashes if exception has empty args.
+- **Resolution:** Changed to safe indexing with `str(e)` fallback for empty args.
 
-### L18. "Usefule" typo in module docstring
+### L18. ~~"Usefule" typo in module docstring~~ **RESOLVED**
 - **File:** `autonomy/cli/utils/click_utils.py:20`
+- **Resolution:** Fixed to "Useful".
 
-### L19. Tendermint v0.34.19 — unmaintained, superseded by CometBFT
-- **Impact:** No security patches upstream.
+### L19. Tendermint v0.34.19 — unmaintained, superseded by CometBFT — **ACKNOWLEDGED**
+- **Assessment:** Upstream dependency. Migration to CometBFT is a major effort beyond the scope of this audit.
 
 ---
 
 ## Quick Wins (fixable in < 1 hour each)
 
-| # | Fix | Effort |
+| # | Fix | Status |
 |---|-----|--------|
-| C1 | Change `response.list_snapshots` to `response.offer_snapshot` | 1 line |
-| C3 | Migrate `onerror=` to `onexc=` (3 files) | 15 min |
-| H7 | Replace `preexec_fn=os.setsid` with `start_new_session=True` (4 files) | 10 min |
-| H8 | Return HTTP 500 on error in Flask endpoints | 15 min |
-| L1 | Fix inverted svn check in Makefile | 1 line |
-| L2 | Remove `is_flag=True` from `--fsm` option | 1 line |
-| L3 | Fix "of of" typo | 1 line |
-| L5 | Fix copy-paste docstrings | 2 lines |
-| L10 | Narrow `filterwarnings` to specific warnings | 5 min |
-| L12 | Remove dead `ganache_scope_function` | 5 min |
-| L18 | Fix "Usefule" typo | 1 line |
-| M5 | ~~Rename `deplopyment_type` to `deployment_type`~~ Done | 5 min |
+| C1 | Change `response.list_snapshots` to `response.offer_snapshot` | Done |
+| C3 | Migrate `onerror=` to `onexc=` (3 files) | Deferred — `onerror` still works on 3.14 |
+| H7 | Replace `preexec_fn=os.setsid` with `start_new_session=True` (4 files) | Already done (prior work) |
+| H8 | Return HTTP 500 on error in Flask endpoints | Not applicable — callers check JSON body |
+| L1 | Fix inverted svn check in Makefile | Done |
+| L2 | Remove `type=str` from `--fsm` flag option | Done |
+| L3 | Fix "of of" typo | Done |
+| L5 | Fix copy-paste docstrings | Done |
+| L10 | Narrow `filterwarnings` to specific warnings | Deferred — needs investigation |
+| L12 | Remove dead `ganache_scope_function` | Deferred — needs downstream check |
+| L17 | Fix unsafe `e.args` destructuring | Done |
+| L18 | Fix "Usefule" typo | Done |
+| M5 | Rename `deplopyment_type` to `deployment_type` | Done |
