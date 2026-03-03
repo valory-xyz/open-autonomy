@@ -54,6 +54,7 @@ class BaseImageBuildTest:
         path: Path,
         tag: str,
         buildargs: Optional[Dict[str, str]] = None,
+        dockerfile: Optional[str] = None,
     ) -> Tuple[bool, str]:
         """Build docker image."""
 
@@ -62,6 +63,7 @@ class BaseImageBuildTest:
             tag=tag,
             nocache=True,
             buildargs=(buildargs or {}),
+            dockerfile=dockerfile,
         )
         output = ""
         for stream_obj in stream:
