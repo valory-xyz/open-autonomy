@@ -8,21 +8,21 @@
 
 ## Critical (Functional Bugs)
 
-### C1. `OfferSnapshot` gRPC handler returns wrong protobuf field
-- **File:** `packages/valory/connections/abci/connection.py:713`
-- **Impact:** `OfferSnapshot` returns `response.list_snapshots` (always `None`) instead of `response.offer_snapshot`. Breaks Tendermint snapshot negotiation. Marked `# pragma: no cover` — never tested.
+### C1. ~~`OfferSnapshot` gRPC handler returns wrong protobuf field~~ **RESOLVED**
+- **File:** `packages/valory/connections/abci/connection.py:715`
+- **Resolution:** Changed `response.list_snapshots` to `response.offer_snapshot`. Copy-paste error from `ListSnapshots` handler above.
 
-### C2. `read_until()` infinite loop on TCP peer disconnect
+### C2. ~~`read_until()` infinite loop on TCP peer disconnect~~ **RESOLVED**
 - **File:** `packages/valory/connections/abci/connection.py:250-258`
-- **Impact:** If peer closes connection mid-read, `asyncio.StreamReader.read()` returns `b""` (EOF) but `read_bytes` never increases. The loop spins forever consuming 100% CPU until the task is cancelled.
+- **Resolution:** Already fixed in `b70663046`. `read_until()` now raises `EOFError` when the connection is closed mid-read.
 
-### C3. `shutil.rmtree(onerror=...)` removed in Python 3.14
+### C3. `shutil.rmtree(onerror=...)` deprecated in Python 3.12
 - **Files:** `deployments/Dockerfiles/tendermint/app.py:160`, `autonomy/deploy/generators/localhost/tendermint/app.py:179`, `packages/valory/agents/register_reset/tests/helpers/slow_tendermint_server/app.py:99`
-- **Impact:** `onerror=` parameter was deprecated in 3.12 and removed in 3.14. Must migrate to `onexc=`. Already acknowledged via `pylint: disable=deprecated-argument` but not yet fixed.
+- **Impact:** `onerror=` parameter was deprecated in 3.12 in favor of `onexc=`. Still functional on Python 3.14. Low urgency — can migrate when `onerror=` is actually removed.
 
-### C4. `writer.write()` without `await writer.drain()` in TCP channel
-- **File:** `packages/valory/connections/abci/connection.py:1038`
-- **Impact:** Under back-pressure, asyncio transport buffer fills silently. Responses to Tendermint are lost when the buffer overflows and the connection drops.
+### C4. ~~`writer.write()` without `await writer.drain()` in TCP channel~~ **RESOLVED**
+- **File:** `packages/valory/connections/abci/connection.py:1045`
+- **Resolution:** Added `await writer.drain()` after `writer.write(data)` to apply back-pressure.
 
 ---
 

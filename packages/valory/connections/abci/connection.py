@@ -1043,6 +1043,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         data = _TendermintABCISerializer.write_message(protobuf_message)
         self.logger.debug(f"Writing {len(data)} bytes")
         writer.write(data)
+        await writer.drain()
 
 
 class StoppableThread(
