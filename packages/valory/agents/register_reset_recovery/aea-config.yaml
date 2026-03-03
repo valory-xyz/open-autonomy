@@ -12,9 +12,9 @@ fingerprint:
   tests/test_register_reset_recovery.py: bafybeibs5c4ovhkq2nqsmlzwf6crdjecbbf56sv53h7hlfxbmpd2koi3ga
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeiav7khrd2nxoiwgpuxgf4lnbgkww4rxblvv4npq6j62szwvcrvcny
+- valory/abci:0.1.0:bafybeibgawlwyrdcghcrq5lbgmwmyyx2o7hn4lffyp5thxm3q3u5haybm4
 - valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
-- valory/ipfs:0.1.0:bafybeid4vwtp542wmketcp2btpyrpwki7hmpeamrlawj5rjdsrqp2omg6e
+- valory/ipfs:0.1.0:bafybeihpmn5ur4m6sxbgh4whcp33earzbcn2yd4q4eo6cwdkfkznvdpcqe
 - valory/ledger:0.19.0:bafybeidxzeygks5zcky4u2ztcdufzptssgf6uqytxofnn6yta7qq6jsim4
 - valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts: []
@@ -24,10 +24,10 @@ protocols:
 - valory/http:1.0.0:bafybeidxkp3vga7t6x2pbt2tpkgyaxa5bgpdgryao54py7w3yxyzr7neoy
 - valory/ipfs:0.1.0:bafybeibz5xqhxdbuvba7nuw2w6ardjermtcoqercopnypdplnaekf3joam
 skills:
-- valory/abstract_abci:0.1.0:bafybeifp6u2v6iy6jvavtle3b5hom2jv3rzqb2o4b5u5eyvq6b6bid6jni
-- valory/abstract_round_abci:0.1.0:bafybeiexzq4rk22bjreo3wszzd663yhc4vgqcrdjbherb2zqmvkkfua5ly
-- valory/register_reset_recovery_abci:0.1.0:bafybeihvbgncbtegx7cxfxr6ipq6wdsylgwietanix6pd6pedmwgsh6jlm
-- valory/registration_abci:0.1.0:bafybeihaqlvk44tqne2qcvtsutm7mjcdfsy6kau24rgkobt6uf77pv2v6y
+- valory/abstract_abci:0.1.0:bafybeie7omzycvazfg6edexn2k3fteuey3alopfmlwye6e44exfcxv5apa
+- valory/abstract_round_abci:0.1.0:bafybeicehi2yqab3lldm7qzoqev3tmqrdk275sbtcabneyorhmzft76z7m
+- valory/register_reset_recovery_abci:0.1.0:bafybeibbvzzixmxht7fxgtmkkhehvbowu7a3yltytbaireizyq52qv4h4u
+- valory/registration_abci:0.1.0:bafybeihjgfzqvuymqgku6mwqih7hlvqwr2tmdjrip3m6unt5l4e55bshkm
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -59,11 +59,11 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-cosmos:
-    version: ==2.1.0rc5
+    version: ==2.1.0rc6
   open-aea-ledger-ethereum:
-    version: ==2.1.0rc5
+    version: ==2.1.0rc6
   open-aea-test-autonomy:
-    version: ==0.21.12rc3
+    version: ==0.21.12rc4
 skill_exception_policy: stop_and_exit
 customs: []
 default_connection: null

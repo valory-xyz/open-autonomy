@@ -21,7 +21,7 @@ dependencies:
   eth_typing: {}
   hexbytes: {}
   open-aea-ledger-ethereum:
-    version: ==2.1.0rc5
+    version: ==2.1.0rc6
   web3:
     version: <8,>=7.0.0
 contracts: []
