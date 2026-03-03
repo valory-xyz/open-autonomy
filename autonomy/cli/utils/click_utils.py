@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Usefule click utils."""
+"""Useful click utils."""
 
 import contextlib
 import copy

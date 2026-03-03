@@ -158,7 +158,7 @@ v := $(shell pip -V | grep virtualenvs)
 
 .PHONY: new_env
 new_env: clean
-	if [ ! -z "$(which svn)" ];\
+	if [ -z "$(which svn)" ];\
 	then\
 		echo "The development setup requires SVN, exit";\
 		exit 1;\
