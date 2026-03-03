@@ -2,7 +2,7 @@
 
 # autonomy.cli.utils.click`_`utils
 
-Usefule click utils.
+Useful click utils.
 
 <a id="autonomy.cli.utils.click_utils.image_profile_flag"></a>
 
