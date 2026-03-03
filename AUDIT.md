@@ -128,9 +128,9 @@
 - **File:** `autonomy/cli/analyse.py:446,451`
 - **Resolution:** Fixed double "of of" to "of".
 
-### L4. CI uses `actions/checkout@v2` and `actions/setup-python@master` — **ACKNOWLEDGED**
+### L4. ~~CI uses `actions/checkout@v2` and `actions/setup-python@master`~~ **RESOLVED**
 - **File:** `.github/workflows/main_workflow.yml` (multiple lines)
-- **Assessment:** CI config concern. Should be updated to v4 and pinned versions in a separate CI-focused PR.
+- **Resolution:** Updated all actions to current stable versions: `checkout@v4`, `setup-python@v5`, `setup-go@v5`, `codecov-action@v4`.
 
 ### L5. ~~Wrong docstrings on `tendermint` and `acn_node` fixtures~~ **RESOLVED**
 - **File:** `plugins/aea-test-autonomy/aea_test_autonomy/fixture_helpers.py:97,383`
@@ -164,9 +164,9 @@
 - **File:** `plugins/aea-test-autonomy/aea_test_autonomy/fixture_helpers.py:241`
 - **Assessment:** Dead code. Can be removed but may require checking downstream consumers.
 
-### L13. Multiple dependency specification files with drifting version pins — **ACKNOWLEDGED**
-- **Files:** `pyproject.toml`, `setup.py`, `tox.ini`, `Pipfile`, `setup.cfg`
-- **Assessment:** Needs holistic cleanup across all spec files. Not a quick fix.
+### L13. ~~Multiple dependency specification files with drifting version pins~~ **RESOLVED**
+- **Files:** `pyproject.toml`, `setup.py`, `tox.ini`, `Pipfile`
+- **Resolution:** Aligned `typing_extensions` upper bound to `<=4.15.0` and `jsonschema` range to `>=4.3.0,<4.24.0` in `pyproject.toml` to match all other spec files.
 
 ### L14. `BaseBehaviour` bypasses MRO with explicit `__init__` calls — **ACKNOWLEDGED**
 - **File:** `packages/valory/skills/abstract_round_abci/behaviour_utils.py:566`
