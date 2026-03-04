@@ -234,6 +234,20 @@ class TestAbstractRoundBehaviour:
             else self.behaviour.background_behaviours == set()
         )
 
+    def test_setup_pending_offences_included_when_slashing_enabled(self) -> None:
+        """Test that PendingOffencesBehaviour is included when use_slashing=True."""
+        self.behaviour.background_behaviours_cls = {
+            ConcreteBackgroundBehaviour,
+            PendingOffencesBehaviour,
+        }
+        self.behaviour.context.params.use_termination = True
+        self.behaviour.context.params.use_slashing = True
+        self.behaviour.setup()
+        bg_types = {type(b) for b in self.behaviour.background_behaviours}
+        assert PendingOffencesBehaviour in bg_types, (
+            "PendingOffencesBehaviour should be included when use_slashing=True"
+        )
+
     def test_teardown(self) -> None:
         """Test 'teardown' method."""
         self.behaviour.teardown()

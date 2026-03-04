@@ -327,9 +327,11 @@ class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
                 == TERMINATION_BACKGROUND_BEHAVIOUR_ID
             ) or (
                 not params.use_slashing
-                and background_cls.auto_behaviour_id()
-                == SLASHING_BACKGROUND_BEHAVIOUR_ID
-                or background_cls == PendingOffencesBehaviour
+                and (
+                    background_cls.auto_behaviour_id()
+                    == SLASHING_BACKGROUND_BEHAVIOUR_ID
+                    or background_cls == PendingOffencesBehaviour
+                )
             ):
                 # comparing with the behaviour id is not entirely safe, as there is a potential for conflicts
                 # if a user creates a behaviour with the same name

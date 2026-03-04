@@ -18,49 +18,11 @@
 
 ## High
 
-### F2. Operator precedence bug unconditionally skips `PendingOffencesBehaviour`
+### F2. ~~Operator precedence bug unconditionally skips `PendingOffencesBehaviour`~~ **RESOLVED**
 - **File:** `packages/valory/skills/abstract_round_abci/behaviours.py:324-332`
-- **Issue:** The condition:
-  ```python
-  if (
-      not params.use_termination
-      and background_cls.auto_behaviour_id() == TERMINATION_BACKGROUND_BEHAVIOUR_ID
-  ) or (
-      not params.use_slashing
-      and background_cls.auto_behaviour_id() == SLASHING_BACKGROUND_BEHAVIOUR_ID
-      or background_cls == PendingOffencesBehaviour  # <-- outside the `and`
-  ):
-  ```
-  Due to `and` binding tighter than `or`, this evaluates as:
-  ```
-  (not use_termination AND id == TERMINATION_ID)
-  OR (not use_slashing AND id == SLASHING_ID)
-  OR (cls == PendingOffencesBehaviour)          # always true when cls matches
-  ```
-  `PendingOffencesBehaviour` is **always** skipped regardless of `use_slashing`.
+- **Issue:** Due to `and` binding tighter than `or`, `PendingOffencesBehaviour` is always skipped regardless of `use_slashing`.
 - **Impact:** Pending offences checking is non-functional even when slashing is enabled.
-- **Fix:** Add parentheses:
-  ```python
-  ) or (
-      not params.use_slashing
-      and (
-          background_cls.auto_behaviour_id() == SLASHING_BACKGROUND_BEHAVIOUR_ID
-          or background_cls == PendingOffencesBehaviour
-      )
-  ):
-  ```
-
-### F3. `sys.getsizeof()` used for transaction size validation instead of `len()`
-- **File:** `packages/valory/skills/abstract_round_abci/base.py:246, 269`
-- **Issue:** `sys.getsizeof(encoded_data)` returns the Python object's memory footprint (data + ~49 bytes overhead), not the byte length of the encoded data. While deterministic on CPython, it is semantically incorrect and could differ across Python implementations.
-- **Impact:** Size limit is effectively ~49 bytes lower than intended. Heterogeneous deployments (different Python implementations) could disagree on validity, breaking consensus.
-- **Fix:** Use `len(encoded_data)`.
-
-### F4. `commit()` handler re-raises exception instead of returning ABCI response
-- **File:** `packages/valory/skills/abstract_round_abci/handlers.py:295-297`
-- **Issue:** `AddBlockError` is caught, logged, then re-raised. Tendermint expects an ABCI response for every request. An unhandled exception breaks the ABCI protocol state machine.
-- **Impact:** Commit failures crash the ABCI connection instead of returning an error response. Tendermint hangs waiting for a reply.
-- **Assessment:** Needs investigation into what the correct ABCI error response should be. The current re-raise may be intentional as a fail-fast mechanism (forcing the agent to restart), but it violates the ABCI contract.
+- **Resolution:** Added parentheses to group the `or` condition under the `not params.use_slashing` guard. Added test.
 
 ---
 
@@ -195,3 +157,11 @@ These were flagged during the audit but confirmed as correct after manual verifi
 ### `ganache_scope_function` fixture kept for downstream compatibility (T9)
 - **File:** `plugins/aea-test-autonomy/aea_test_autonomy/fixture_helpers.py:241-256`
 - **Analysis:** Marked `# TODO: remove as not used` by original authors, but `aea-test-autonomy` is a public plugin used by downstream projects. Removing it could break consumers who import the fixture. Safe to leave as-is.
+
+### `sys.getsizeof()` used for transaction size validation (F3)
+- **File:** `packages/valory/skills/abstract_round_abci/base.py:246, 269`
+- **Analysis:** `sys.getsizeof(encoded_data)` measures the Python object's in-memory size, which is slightly larger than the raw byte length (~33 bytes overhead). The check guards against exceeding the ABCI connection's `MAX_READ_IN_BYTES` (1 MiB) read buffer. The overhead is constant and negligible vs the 1 MiB limit, deterministic across identical Docker deployments, and provides a conservative bound. Not a bug.
+
+### `commit()` handler re-raises `AddBlockError` (F4)
+- **File:** `packages/valory/skills/abstract_round_abci/handlers.py:295-297`
+- **Analysis:** Intentional fail-fast design. An `AddBlockError` during commit means the ABCI app state is inconsistent. Returning an error response would let Tendermint continue with corrupted state. Crashing forces the agent to restart and resync from a known-good state. The AEA framework catches unhandled handler exceptions at a higher level.
