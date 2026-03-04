@@ -185,7 +185,7 @@ class SlashingCheckRound(CollectSameUntilThresholdRound):
 
 
 class StatusResetRound(CollectSameUntilThresholdRound):
-    """Defines the slashing check background round, which runs after a slash tx has been verified."""
+    """Defines the status reset round, which runs after a slash tx has been verified."""
 
     payload_class = StatusResetPayload
     synchronized_data_class = SynchronizedData
