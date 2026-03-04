@@ -155,7 +155,7 @@ def build_hash_id() -> str:
 class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
     """Class to assist with generating deployments."""
 
-    deplopyment_type: str = DOCKER_COMPOSE_DEPLOYMENT
+    deployment_type: str = DOCKER_COMPOSE_DEPLOYMENT
     log_level: str = INFO
 
     def __init__(
@@ -471,8 +471,8 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
     ) -> None:
         """Try update the tendermint parameters"""
 
-        is_kubernetes_deployment = self.deplopyment_type == KUBERNETES_DEPLOYMENT
-        is_localhost_deployment = self.deplopyment_type == LOCALHOST_DEPLOYMENT
+        is_kubernetes_deployment = self.deployment_type == KUBERNETES_DEPLOYMENT
+        is_localhost_deployment = self.deployment_type == LOCALHOST_DEPLOYMENT
 
         def _update_tendermint_params(
             param_args: Dict,
@@ -615,7 +615,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         if self.service.number_of_agents == 1:
             processed_overrides["config"]["host"] = (
                 self.get_abci_container_name(index=0)
-                if self.deplopyment_type == DOCKER_COMPOSE_DEPLOYMENT
+                if self.deployment_type == DOCKER_COMPOSE_DEPLOYMENT
                 else LOOPBACK
             )
             processed_overrides["config"]["port"] = processed_overrides["config"].get(
@@ -631,7 +631,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         for idx, override in processed_overrides.items():
             override["config"]["host"] = (
                 self.get_abci_container_name(index=idx)
-                if self.deplopyment_type == DOCKER_COMPOSE_DEPLOYMENT
+                if self.deployment_type == DOCKER_COMPOSE_DEPLOYMENT
                 else LOOPBACK
             )
             override["config"]["port"] = override["config"].get(

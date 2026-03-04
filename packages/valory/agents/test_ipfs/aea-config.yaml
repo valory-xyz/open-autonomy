@@ -11,13 +11,13 @@ fingerprint:
   tests/test_ipfs.py: bafybeiegj6ykkj6eufpbp6hsyuyekt4wpbcjd4lvmvexnbkn52d2g2dguu
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeibgawlwyrdcghcrq5lbgmwmyyx2o7hn4lffyp5thxm3q3u5haybm4
+- valory/abci:0.1.0:bafybeiacpzarsrhhvdu3rov26cj6ywxxcwrgivbjtliebnboyqsua4x3zm
 - valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
 - valory/ipfs:0.1.0:bafybeihpmn5ur4m6sxbgh4whcp33earzbcn2yd4q4eo6cwdkfkznvdpcqe
 - valory/ledger:0.19.0:bafybeidxzeygks5zcky4u2ztcdufzptssgf6uqytxofnn6yta7qq6jsim4
 - valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts:
-- valory/service_registry:0.1.0:bafybeia66yhd3iyvuzojalivuj7yzyh4vi4cxnfoz22saax5257kmjcr6e
+- valory/service_registry:0.1.0:bafybeifxi2fbg4xeb4ciwlkkwrm6iohdmsaxwlloemal3yceej3h52zxiq
 protocols:
 - open_aea/signing:1.0.0:bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye
 - valory/abci:0.1.0:bafybeiak4pwac3pwjtd7weskxdhkrcopckr32vtazfbuteu6yqjkwarpte
@@ -28,9 +28,9 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 - valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
 skills:
-- valory/abstract_abci:0.1.0:bafybeie7omzycvazfg6edexn2k3fteuey3alopfmlwye6e44exfcxv5apa
-- valory/abstract_round_abci:0.1.0:bafybeicehi2yqab3lldm7qzoqev3tmqrdk275sbtcabneyorhmzft76z7m
-- valory/test_ipfs_abci:0.1.0:bafybeihcm6fq7pb3l5dsqrc2bzeakh4ne6qoeydg5dsc2tvbveoanqpmzm
+- valory/abstract_abci:0.1.0:bafybeifnj73dadqmyge2losvu7zw4qz7b74vdiapxozezy3u72zqmxmjha
+- valory/abstract_round_abci:0.1.0:bafybeig7ie5bwsdyczkdrgqw3ayukzwmn74o5flvju3ubs3efomr4stnqi
+- valory/test_ipfs_abci:0.1.0:bafybeifc3lpya3xbq5cvnsa42binaysphv6uwygiuyrnp5vbrugie4h5iy
 default_ledger: ethereum
 required_ledgers:
 - ethereum

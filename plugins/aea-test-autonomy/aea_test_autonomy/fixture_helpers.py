@@ -94,7 +94,7 @@ def tendermint(
     timeout: float = 2.0,
     max_attempts: int = 10,
 ) -> Generator:
-    """Launch the Ganache image."""
+    """Launch the Tendermint image."""
     client = docker.from_env()
     logging.info(f"Launching Tendermint at port {tendermint_port}")
     image = TendermintDockerImage(client, abci_host, abci_port, tendermint_port)
@@ -380,7 +380,7 @@ def acn_node(
     timeout: float = 2.0,
     max_attempts: int = 10,
 ) -> Generator:
-    """Launch the Ganache image."""
+    """Launch the ACN node image."""
     client = docker.from_env()
     logging.info(f"Launching ACNNode with the following config: {acn_config}")
     image = ACNNodeDockerImage(client, acn_config)

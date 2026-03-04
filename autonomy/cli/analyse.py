@@ -233,7 +233,6 @@ def docstrings(ctx: Context, update: bool) -> None:
     "--fsm",
     "fsm_path",
     is_flag=True,
-    type=str,
     help="Print only the FSM execution path",
 )
 @click.option(
@@ -443,12 +442,12 @@ def _check_service(
 
     if token_id is None and public_id is None:
         raise click.ClickException(
-            "Please provide either the public ID or the on-chain token ID of of the service"
+            "Please provide either the public ID or the on-chain token ID of the service"
         )
 
     if token_id is not None and public_id is not None:
         raise click.ClickException(
-            "Please provide either the public ID or the on-chain token ID of of the service, not both"
+            "Please provide either the public ID or the on-chain token ID of the service, not both"
         )
 
     check_service_readiness(
