@@ -1914,9 +1914,9 @@ class TestAbciApp:
         # each group must be a distinct list object
         for i in range(len(result)):
             for j in range(i + 1, len(result)):
-                assert result[i] is not result[j], (
-                    f"group {i} and {j} are the same object"
-                )
+                assert (
+                    result[i] is not result[j]
+                ), f"group {i} and {j} are the same object"
 
         # TERMINATING app (priority 0) should only be in group 0
         type_to_group: Dict[abci_base.BackgroundAppType, Set[int]] = {}

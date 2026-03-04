@@ -244,9 +244,9 @@ class TestAbstractRoundBehaviour:
         self.behaviour.context.params.use_slashing = True
         self.behaviour.setup()
         bg_types = {type(b) for b in self.behaviour.background_behaviours}
-        assert PendingOffencesBehaviour in bg_types, (
-            "PendingOffencesBehaviour should be included when use_slashing=True"
-        )
+        assert (
+            PendingOffencesBehaviour in bg_types
+        ), "PendingOffencesBehaviour should be included when use_slashing=True"
 
     def test_teardown(self) -> None:
         """Test 'teardown' method."""
