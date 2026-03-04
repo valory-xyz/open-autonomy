@@ -171,5 +171,5 @@ class BaseThreadedAsyncLoop:
 
     def teardown_method(self) -> None:
         """Teardown the class."""
-        self.loop.start()
+        self.loop.stop()
         self.loop.join(5.0)

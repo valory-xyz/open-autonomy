@@ -127,17 +127,16 @@ These were flagged during the audit but confirmed as correct after manual verifi
 
 ## Critical
 
-### T1. `teardown_method` calls `self.loop.start()` instead of `self.loop.stop()`
+### T1. ~~`teardown_method` calls `self.loop.start()` instead of `self.loop.stop()`~~ **RESOLVED**
 - **File:** `plugins/aea-test-autonomy/aea_test_autonomy/helpers/async_utils.py:174`
 - **Issue:** `BaseThreadedAsyncLoop.teardown_method()` calls `self.loop.start()` — an exact duplicate of `setup_method()`. The async event loop thread is never stopped.
 - **Impact:** Thread and event loop leak after every test method. Leads to port conflicts, resource exhaustion, and flaky tests in CI.
-- **Fix:** Change `self.loop.start()` to `self.loop.stop()`.
+- **Resolution:** Changed `self.loop.start()` to `self.loop.stop()`. Added test.
 
-### T2. Set modified during iteration in ACN node `wait()`
+### T2. ~~Fragile set mutation pattern in ACN node `wait()`~~ **RESOLVED**
 - **File:** `plugins/aea-test-autonomy/aea_test_autonomy/docker/acn_node.py:102-109`
-- **Issue:** `to_be_connected.remove(uri)` is called inside `for uri in to_be_connected:`. This raises `RuntimeError: Set changed size during iteration`.
-- **Impact:** ACN node health checks crash non-deterministically.
-- **Fix:** Iterate over `list(to_be_connected)` instead.
+- **Issue:** `to_be_connected.remove(uri)` is called inside `for uri in to_be_connected:`. The `break` on the next line prevents a `RuntimeError` in practice, but the pattern is fragile and the `break` also limits throughput to one URI check per outer loop iteration.
+- **Resolution:** Iterate over `list(to_be_connected)`, use `discard()`, remove the `break` so all ready URIs are checked per pass. Added test.
 
 ---
 
