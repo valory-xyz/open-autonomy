@@ -21,29 +21,13 @@
 - **Issue:** `Event.ROUND_TIMEOUT` is defined in the enum but never appears in any `transition_function` keys. `event_to_timeout` is empty. The class docstring falsely claims `round timeout: 30.0`.
 - **Fix:** Remove `ROUND_TIMEOUT` from the enum and update the docstring. *(Already fixed on `fix/audit-round-2` branch.)*
 
-### C4: Dead Timeout — `test_abci` `Event.ROUND_TIMEOUT` and `Event.RESET_TIMEOUT`
+### ~~C4: Dead Timeout — `test_abci` `Event.ROUND_TIMEOUT` and `Event.RESET_TIMEOUT`~~ — RECLASSIFIED: not-issue
 - **File:** `packages/valory/skills/test_abci/rounds.py:84-86`
-- **Issue:** Both events are in `event_to_timeout` but neither appears in any `transition_function` keys. These timeouts are never scheduled.
-- **Code:**
-  ```python
-  event_to_timeout: Dict[Event, float] = {
-      Event.ROUND_TIMEOUT: 30.0,
-      Event.RESET_TIMEOUT: 30.0,
-  }
-  ```
-- **Fix:** Remove dead timeout entries, or wire them into the transition function if timeouts are desired.
+- **Reclassification:** `test_abci` is a test/scaffold skill, not a production FSM app. The dead timeouts are intentional test fixtures — `models.py:SharedState.setup()` wires these `event_to_timeout` entries from params, which is the behaviour under test.
 
-### C4: Dead Timeout — `test_solana_tx_abci` `Event.ERROR`
+### ~~C4: Dead Timeout — `test_solana_tx_abci` `Event.ERROR`~~ — RECLASSIFIED: not-issue
 - **File:** `packages/valory/skills/test_solana_tx_abci/rounds.py:134`
-- **Issue:** `Event.ERROR` is in `event_to_timeout` with 30.0s but never appears in any `transition_function` keys.
-- **Code:**
-  ```python
-  event_to_timeout: Dict[Event, float] = {
-      Event.ROUND_TIMEOUT: 30.0,
-      Event.ERROR: 30.0,  # Dead — not in any transition
-  }
-  ```
-- **Fix:** Remove `Event.ERROR: 30.0` from `event_to_timeout`, or add it to the transition function.
+- **Reclassification:** `test_solana_tx_abci` is a test/scaffold skill. The `Event.ERROR` in `event_to_timeout` is part of the test scaffolding, not a production oversight.
 
 ---
 
@@ -89,9 +73,9 @@
 - **Issue:** `test_end_block()` calls `end_block()` without asserting the return value. No coverage for `Event.DONE` or `Event.ROUND_TIMEOUT` transitions.
 - **Fix:** Add assertions verifying correct events under different conditions.
 
-### T5: Incomplete Round Event Testing — `test_abci`
+### ~~T5: Incomplete Round Event Testing — `test_abci`~~ — RECLASSIFIED: not-issue
 - **File:** `packages/valory/skills/test_abci/tests/test_rounds.py:45-80`
-- **Issue:** Only `Event.DONE` is tested. `Event.ROUND_TIMEOUT` and `Event.RESET_TIMEOUT` have no test coverage (these are also dead timeouts per C4 above).
+- **Reclassification:** `test_abci` is a test/scaffold skill. `ROUND_TIMEOUT` and `RESET_TIMEOUT` are not in the transition function (they are test fixtures for `SharedState.setup()`), so there are no transitions to test for them.
 
 ---
 
@@ -139,10 +123,11 @@ No findings.
 
 | Severity | Count |
 |----------|-------|
-| Critical | 3     |
+| Critical | 1     |
 | High     | 2     |
 | Medium   | 4     |
 | Low      | 0     |
+| Reclassified (not-issue) | 2 |
 
 ## Notes
 - The C4 finding in `registration_abci` and the L3 docstring issues are already fixed on the `fix/audit-round-2` branch.
@@ -150,3 +135,4 @@ No findings.
 - The `squads_transaction_settlement_abci` payload_class bug (H) is a clear copy-paste error that should be fixed.
 - `counter` and `counter_client` skills are non-FSM skills and were excluded from this audit.
 - `abstract_round_abci` base module and behaviours were checked for C1/C2/H1 — all PASS on current branch.
+- `test_abci` and `test_solana_tx_abci` are test/scaffold skills — their C4 findings were reclassified as not-issues since the dead timeouts are intentional test fixtures.

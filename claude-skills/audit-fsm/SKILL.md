@@ -308,6 +308,8 @@ if (
 
 **Why it matters:** Developers may believe a timeout is protecting against hangs, when in fact it never fires. This creates a false sense of safety.
 
+**Caveat:** Skills whose directory name starts with `test_` (e.g. `test_abci`, `test_solana_tx_abci`) are **test/scaffold skills** that exist to exercise the framework, not production FSM apps. Dead timeouts in these skills are often intentional test fixtures (e.g. testing that `SharedState.setup()` can wire `event_to_timeout` from params). Do NOT flag these as C4 findings. See also the False Positive Guidance section.
+
 ### High (H) — Issues with significant impact
 
 #### H1: Background App Configuration
@@ -541,6 +543,14 @@ synchronized_data.update(synchronized_data_class=SomeSyncData, **kwargs)
 
 ### Test helpers using stub signatures or contract IDs
 **Why it's fine:** Intentional separation of concerns. Behaviour tests validate flow logic, not serialization correctness. Using stubs is correct test design.
+
+### Dead timeouts or unused events in `test_*` skills
+Skills whose directory name starts with `test_` (e.g. `test_abci`, `test_solana_tx_abci`, `test_ipfs_abci`) are **test/scaffold skills** — they exist to exercise and test the framework, not as production FSM apps. Patterns that look like bugs in production skills are often intentional in test skills:
+- `event_to_timeout` entries for events not in any `transition_function` (C4) — may exist to test that `SharedState.setup()` correctly wires timeout values from params
+- Unused event enum members (M2) — may exist to test event handling infrastructure
+- Incomplete round event testing (T5) — test skills often have minimal test coverage by design
+
+**When auditing test skills:** Note them in the report under a separate "Test/Scaffold Skills" section rather than as findings. Only flag issues in test skills if they would cause the test itself to fail or produce incorrect test results.
 
 ### Mutable class-level dicts/lists in `BaseBehaviour` subclasses
 ```python
