@@ -158,20 +158,10 @@ These were flagged during the audit but confirmed as correct after manual verifi
 
 ## Medium
 
-### T7. `mock_a2a_transaction()` uses stub signature and empty body
-- **File:** `packages/valory/skills/abstract_round_abci/test_tools/base.py:336-386`
-- **Issue:** Transaction mock uses `body="stub_signature"` and empty transaction body `b""`. These don't match real transaction formats, so tests don't validate serialization/deserialization or signature verification.
-- **Impact:** Transaction submission bugs may not be caught by unit tests.
-
 ### T8. Integration test event loop thread joined without timeout safety
 - **File:** `packages/valory/skills/abstract_round_abci/test_tools/integration.py:136-137`
 - **Issue:** `cls.thread_loop.join()` is called without a timeout. If the event loop thread hangs, the test suite blocks indefinitely.
 - **Impact:** CI hangs on integration test failures.
-
-### T9. `ganache_scope_function` fixture is dead code
-- **File:** `plugins/aea-test-autonomy/aea_test_autonomy/fixture_helpers.py:241-256`
-- **Issue:** Marked with `# TODO: remove as not used`. Dead code that creates Ganache containers unnecessarily if accidentally referenced.
-- **Impact:** Code quality; maintenance burden.
 
 ---
 
@@ -201,3 +191,11 @@ These were flagged during the audit but confirmed as correct after manual verifi
 ### `mock_contract_api_request()` uses hardcoded `contract_id` in response (T5)
 - **File:** `packages/valory/skills/abstract_round_abci/test_tools/base.py:270`
 - **Analysis:** Dialogue matching in the AEA framework routes on `dialogue_reference` + `target`/`message_id`, not on `contract_id`. The request validation (line 252) correctly checks the real `contract_id` — confirming the behaviour sent the request to the right contract. The response `contract_id` is just a required protocol field with no effect on routing or handler logic.
+
+### `mock_a2a_transaction()` uses stub signature and empty body (T7)
+- **File:** `packages/valory/skills/abstract_round_abci/test_tools/base.py:336-386`
+- **Analysis:** Same pattern as T4/T5. The helper tests that behaviours handle the signing → HTTP submit → HTTP confirm flow correctly and transition state. Validating real transaction serialization and signature verification is the concern of integration/e2e tests, not behaviour unit tests.
+
+### `ganache_scope_function` fixture kept for downstream compatibility (T9)
+- **File:** `plugins/aea-test-autonomy/aea_test_autonomy/fixture_helpers.py:241-256`
+- **Analysis:** Marked `# TODO: remove as not used` by original authors, but `aea-test-autonomy` is a public plugin used by downstream projects. Removing it could break consumers who import the fixture. Safe to leave as-is.
