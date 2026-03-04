@@ -5,6 +5,75 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.11` to `v0.21.12`
+
+- Python support is now `3.10-3.14` (previously `3.10-3.11`).
+- Regenerate your environment and lock files when upgrading, as several toolchain and runtime dependencies were bumped to support newer Python versions.
+
+Main dependency updates to account for:
+
+- `tomte: ==0.4.0 -> ==0.6.1`
+- `click: >=8.1.0,<8.3.0 -> >=8.1.0,<9`
+- `pytest: ==7.4.4 -> ==8.4.2`
+- `protobuf: >=4.21.6,<4.25.0 -> >=5,<6`
+- `requests: >=2.28.1,<2.32.5 -> >=2.28.1,<2.33.0`
+- `docker: 4.2.0 -> 7.1.0`
+
+Exact APIs/functions to check:
+
+### 1) Click `flag_value` default handling
+
+If your downstream CLI uses Click options with `flag_value`, audit these exact patterns against Open Autonomy fixes:
+
+- `autonomy/cli/deploy.py::build_deployment_command`
+- `autonomy/cli/deploy.py::run`
+- `autonomy/cli/deploy.py::run_deployment_from_token`
+- `autonomy/cli/fetch.py::fetch`
+- `autonomy/cli/analyse.py::abci_app_specs`
+- `autonomy/cli/analyse.py::abci_app_specs`
+- `autonomy/cli/mint.py::mint`
+- `autonomy/cli/service.py::service`
+
+Required behaviour:
+
+- Do **not** rely on decorator order to select defaults when multiple flags write to the same parameter.
+- Use explicit normalization in code for unset values (e.g. `if sync_type is None: sync_type = SyncTypes.THIRD_PARTY`).
+- Ensure upgrade command handlers consume a single `registry: str` mode rather than split boolean flags (`local` / `remote`).
+
+### 2) Python 3.13/3.14 asyncio/multiprocessing compatibility
+
+Audit downstream code for these exact anti-patterns and replacements:
+
+- `multiprocessing.Manager()` without explicit context on Python 3.14+.
+  - Required fix pattern: use `multiprocessing.get_context("spawn").Manager()` where process-manager context must be controlled.
+- Accessing private queue loop internals (e.g. `queue._loop`).
+  - Required fix pattern: store/use explicit event loop references instead of private attributes.
+- Removed/unsupported asyncio APIs in modern Python:
+  - `asyncio.StreamReader(loop=...)`
+  - `asyncio.ensure_future(..., loop=...)`
+  - unconditional `asyncio.get_child_watcher()` / child-watcher usage on Python 3.14+
+- Ready-awaitable internals relying on module-level coroutine/future objects.
+  - Required fix pattern: use a lightweight awaitable object/factory that is loop-safe across Python 3.10-3.14.
+
+### 3) Plugin dependency compatibility (Ethereum + Flashbots)
+
+If you install both plugins, verify dependency constraints in your lock/constraints files:
+
+- The Flashbots plugin package must be compatible with the same 2.1.x line of the Ethereum plugin package.
+- Reject locks where Flashbots still constrains Ethereum to `<2.1.0`.
+
+Run after upgrade:
+
+```bash
+make new_env
+```
+
+### API compatibility notes
+
+- CLI/API-surface changes:
+  - `aea/cli/utils/click_utils.py::build_deployment_command` and `aea/cli/utils/click_utils.py::run_deployment_from_token` 
+     now always prompt on `-p` and support `AEA_PASSWORD` for `--password`.
+
 ## `v0.21.10` to `v0.21.11`
 
 No backwards incompatible changes.
