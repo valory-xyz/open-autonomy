@@ -1904,6 +1904,29 @@ class TestAbciApp:
         assert len(EmptyAbciApp.background_apps) == 1
         assert EmptyAbciApp.cross_period_persisted_keys == {"1", "2", "3"}
 
+    def test_bg_apps_prioritized_independent_groups(self) -> None:
+        """Test that bg_apps_prioritized returns independent lists per group."""
+        self.abci_app.background_apps.clear()
+        self.abci_app.add_background_app(STUB_TERMINATION_CONFIG)
+        self.abci_app.add_background_app(STUB_SLASH_CONFIG)
+
+        result = self.abci_app.bg_apps_prioritized
+        # each group must be a distinct list object
+        for i in range(len(result)):
+            for j in range(i + 1, len(result)):
+                assert result[i] is not result[j], (
+                    f"group {i} and {j} are the same object"
+                )
+
+        # TERMINATING app (priority 0) should only be in group 0
+        type_to_group: Dict[abci_base.BackgroundAppType, Set[int]] = {}
+        for idx, group in enumerate(result):
+            for app in group:
+                type_to_group.setdefault(app.type, set()).add(idx)
+
+        assert type_to_group[abci_base.BackgroundAppType.TERMINATING] == {0}
+        assert type_to_group[abci_base.BackgroundAppType.NORMAL] == {2}
+
     def test_cleanup(self) -> None:
         """Test the cleanup method."""
         self.abci_app.setup()

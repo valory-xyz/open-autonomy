@@ -8,11 +8,11 @@
 
 ## Critical
 
-### F1. Shared list references in `bg_apps_prioritized` break background app prioritization
+### F1. ~~Shared list references in `bg_apps_prioritized` break background app prioritization~~ **RESOLVED**
 - **File:** `packages/valory/skills/abstract_round_abci/base.py:2542`
 - **Issue:** `([],) * n_correct_types` creates `n` references to the **same list object**. Every `.append()` on any index appends to all indices. All background apps end up in every priority group.
-- **Impact:** Background app prioritization is completely non-functional. Execution order of background rounds is undefined.
-- **Fix:** Replace with `tuple([] for _ in range(n_correct_types))`.
+- **Impact:** Background app prioritization is non-functional. In practice limited severity since compositions have at most 2 bg apps and the consumer returns early, but priority ordering is lost.
+- **Resolution:** Replaced with `tuple([] for _ in range(n_correct_types))`. Added test.
 
 ---
 
