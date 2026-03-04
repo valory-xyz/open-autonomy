@@ -2,7 +2,7 @@
 name: audit-fsm
 description: Audit open-autonomy FSM apps for correctness and safety
 argument-hint: "[path/to/skill or packages/]"
-disable-model-invocation: true
+disable-model-invocation: false
 ---
 
 # Audit FSM Skill
@@ -85,6 +85,12 @@ class AbstractRound(Generic[EventType], ABC):
 - **OnlyKeeperSendsRound**: Single designated agent submits; `done_event` / `fail_event`
 
 Each of these base classes defines which events can be emitted. Subclasses must wire all possible events in the transition function.
+
+**Key round subclass attributes for data flow:**
+- `collection_key`: DB key where the round stores all collected payloads (e.g. `"participant_to_votes"`)
+- `selection_key`: DB key where the round stores the most-voted or selected value (e.g. `"most_voted_tx_hash"`)
+
+The corresponding `SynchronizedData` property accessors must read from the **same** DB key. A mismatch means the property reads stale or wrong data.
 
 #### BaseTxPayload
 
@@ -337,11 +343,16 @@ Also check for shared mutable state between app configs (see C1).
 
 ### Medium (M) — Issues that indicate potential problems
 
-#### M1: Payload Class Registration
+#### M1: Payload Class Mismatch
 
-**What:** Each round's `payload_class` attribute must reference a valid `BaseTxPayload` subclass. The class must be importable (registered via `_MetaPayload` at import time).
+**What:** Each round's `payload_class` attribute must reference the correct `BaseTxPayload` subclass — the one that matches the round's `keeper_payload` type hint (for `OnlyKeeperSendsRound`) or the payloads agents actually send to that round.
 
-**How to check:** For each round, verify `payload_class` is set and points to a class that inherits from `BaseTxPayload`.
+**How to check:** For each round, verify:
+1. `payload_class` is set and points to a class that inherits from `BaseTxPayload`
+2. For `OnlyKeeperSendsRound` subclasses: `payload_class` matches the `keeper_payload` type hint
+3. The payload class fields match what `end_block()` accesses (e.g. `self.keeper_payload.some_field`)
+
+**Severity escalation:** If `payload_class` points to the wrong class, this is **Critical** — the round will reject valid transactions at runtime because `check_payload()` validates against the wrong type.
 
 #### M2: Event Enum Completeness
 
@@ -364,6 +375,28 @@ Also check for shared mutable state between app configs (see C1).
 **What:** `thread.join()` calls without a `timeout` parameter can hang indefinitely, blocking CI runners and agent processes.
 
 **Search pattern:** Grep for `\.join\(\)` in Python files, distinguish `thread.join()` from `str.join()` by context.
+
+#### M5: `collection_key`/`selection_key` vs SynchronizedData Property Mismatch
+
+**What:** Round subclasses of `CollectSameUntilThresholdRound` etc. define `collection_key` and `selection_key` that determine which DB keys the round writes to. The corresponding `SynchronizedData` properties must read from the **same** keys. A mismatch means the property returns wrong or missing data at runtime.
+
+**How to check:**
+1. For each round subclass, find the `collection_key` and `selection_key` values
+2. Find the corresponding `SynchronizedData` properties that are meant to read that data
+3. Verify the property calls `self.db.get_strict("same_key_name")` or `self.db.get("same_key_name")`
+
+**Bug example:**
+```python
+class StatusResetRound(CollectSameUntilThresholdRound):
+    collection_key = "participant_to_offence_reset"  # Writes here
+
+class SynchronizedData(BaseSynchronizedData):
+    @property
+    def participant_to_offence_reset(self) -> DeserializedCollection:
+        serialized = self.db.get_strict("participant_to_randomness")  # BUG: reads wrong key!
+```
+
+**Why it matters:** The property silently returns data from a different round, causing logic errors or `KeyError` crashes.
 
 ### Test (T) — Test correctness and coverage
 
@@ -509,6 +542,14 @@ synchronized_data.update(synchronized_data_class=SomeSyncData, **kwargs)
 ### Test helpers using stub signatures or contract IDs
 **Why it's fine:** Intentional separation of concerns. Behaviour tests validate flow logic, not serialization correctness. Using stubs is correct test design.
 
+### Mutable class-level dicts/lists in `BaseBehaviour` subclasses
+```python
+class MyBehaviour(BaseBehaviour):
+    local_params: Dict[str, Any] = {}
+    collected_data: List[str] = []
+```
+**Why it's fine:** Behaviours are single-instance per agent. These class-level mutables are used as instance state and are typically reset at the start of `async_act()`. This is NOT the same as the `([],) * n` bug (C1) which creates shared references within a single data structure. Only flag this if you can demonstrate that stale state from a previous round cycle actually causes a bug.
+
 ---
 
 ## Analysis Procedure
@@ -521,25 +562,24 @@ Before manual inspection, run the framework's built-in analysis commands to catc
 
 ```bash
 # Validate FSM spec consistency (transition function vs docstring vs yaml spec)
+# This is the ONLY tool that accepts a --package flag for scoped analysis
 autonomy analyse fsm-specs --package <skill-path>
 
-# Check handler definitions across skills
+# These three run repo-wide (no package scoping available).
+# They may report errors from skills OUTSIDE the audit scope — note those
+# separately and only include in-scope failures as findings.
 autonomy analyse handlers
-
-# Check dialogue definitions across skills
 autonomy analyse dialogues
-
-# Validate ABCI docstrings match the actual transition function
 autonomy analyse docstrings
 ```
 
 These tools catch issues the manual audit does not need to duplicate:
-- `fsm-specs` validates that the FSM spec file, the docstring, and the `transition_function` definition are all consistent
-- `handlers` verifies required handlers are defined and properly configured
-- `dialogues` verifies dialogue definitions match protocol specifications
-- `docstrings` checks the AbciApp class docstring matches the actual state machine definition
+- `fsm-specs` validates that the FSM spec file, the docstring, and the `transition_function` definition are all consistent (**scoped** to target skill)
+- `handlers` verifies required handlers are defined and properly configured (**repo-wide**)
+- `dialogues` verifies dialogue definitions match protocol specifications (**repo-wide**)
+- `docstrings` checks the AbciApp class docstring matches the actual state machine definition (**repo-wide**)
 
-**Include the output of these tools in the report.** If any fail, report them as findings. Then proceed with the manual checks below, which cover semantic and logic issues these tools cannot detect.
+**Include the output of these tools in the report.** If any fail, report them as findings but clearly distinguish in-scope failures from out-of-scope ones. Then proceed with the manual checks below, which cover semantic and logic issues these tools cannot detect.
 
 ### Step 1: Discovery
 
@@ -565,7 +605,7 @@ Launch up to **3 parallel Explore agents**, dividing skills evenly among them. E
    - `tests/test_rounds.py` — round test classes
    - `tests/test_behaviours.py` — behaviour test classes
 
-2. **Run all checks from the Audit Checklist** (C1–C4, H1–H3, M1–M4, T1–T6, L1–L3)
+2. **Run all checks from the Audit Checklist** (C1–C4, H1–H3, M1–M5, T1–T6, L1–L3)
 
 3. **Return findings** as a structured list with:
    - Check ID (e.g. C1, H2)

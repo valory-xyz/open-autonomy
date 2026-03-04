@@ -464,6 +464,11 @@ matching_round
 specs
 fsm-specs
 spec
+mutables
+dicts
+selection_key
+collection_key
+SynchronizedData
 AbciApp
 _MetaAbciApp
 AbstractRound
