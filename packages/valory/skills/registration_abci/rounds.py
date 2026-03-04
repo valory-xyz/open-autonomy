@@ -147,7 +147,7 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     Final states: {FinishedRegistrationRound}
 
     Timeouts:
-        round timeout: 30.0
+
     """
 
     initial_round_cls: AppState = RegistrationStartupRound
