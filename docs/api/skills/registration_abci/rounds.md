@@ -12,7 +12,7 @@ This module contains the data classes for common apps ABCI application.
 class Event(Enum)
 ```
 
-Event enumeration for the price estimation demo.
+Event enumeration for agent registration.
 
 <a id="packages.valory.skills.registration_abci.rounds.FinishedRegistrationRound"></a>
 
@@ -67,7 +67,7 @@ class RegistrationRound(CollectSameUntilThresholdRound)
 
 A round in which the agents get registered.
 
-This rounds waits until the threshold of agents has been reached
+This round waits until the threshold of agents has been reached
 and then a further x block confirmations.
 
 <a id="packages.valory.skills.registration_abci.rounds.RegistrationRound.end_block"></a>
@@ -105,5 +105,4 @@ Transition states:
 Final states: {FinishedRegistrationRound}
 
 Timeouts:
-    round timeout: 30.0
 
