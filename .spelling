@@ -461,6 +461,9 @@ EVER_RUNNING
 enum
 matching_round
  - claude-skills/audit-fsm/SKILL.md
+specs
+fsm-specs
+spec
 AbciApp
 _MetaAbciApp
 AbstractRound

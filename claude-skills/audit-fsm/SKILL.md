@@ -515,6 +515,32 @@ synchronized_data.update(synchronized_data_class=SomeSyncData, **kwargs)
 
 Follow these steps in order:
 
+### Step 0: Run Existing CLI Analysis Tools
+
+Before manual inspection, run the framework's built-in analysis commands to catch structural issues automatically. Use the Bash tool to execute these:
+
+```bash
+# Validate FSM spec consistency (transition function vs docstring vs yaml spec)
+autonomy analyse fsm-specs --package <skill-path>
+
+# Check handler definitions across skills
+autonomy analyse handlers
+
+# Check dialogue definitions across skills
+autonomy analyse dialogues
+
+# Validate ABCI docstrings match the actual transition function
+autonomy analyse docstrings
+```
+
+These tools catch issues the manual audit does not need to duplicate:
+- `fsm-specs` validates that the FSM spec file, the docstring, and the `transition_function` definition are all consistent
+- `handlers` verifies required handlers are defined and properly configured
+- `dialogues` verifies dialogue definitions match protocol specifications
+- `docstrings` checks the AbciApp class docstring matches the actual state machine definition
+
+**Include the output of these tools in the report.** If any fail, report them as findings. Then proceed with the manual checks below, which cover semantic and logic issues these tools cannot detect.
+
 ### Step 1: Discovery
 
 Determine the scope of the audit:
