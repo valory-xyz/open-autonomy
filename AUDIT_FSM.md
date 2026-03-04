@@ -40,15 +40,6 @@
 
 ---
 
-## Low
-
-### F8. Payload registry not thread-safe
-- **File:** `packages/valory/skills/abstract_round_abci/base.py:171-186`
-- **Issue:** `_MetaPayload.registry` is a class-level dict mutated during metaclass `__new__`. Safe under CPython's GIL for simple attribute writes, but not formally thread-safe.
-- **Impact:** Theoretical only — class creation is single-threaded in practice.
-
----
-
 ## Investigated and Confirmed Not Bugs
 
 These were flagged during the audit but confirmed as correct after manual verification:
@@ -164,3 +155,7 @@ These were flagged during the audit but confirmed as correct after manual verifi
 ### Missing `IndexError` guard in `AbciAppDB.sync()` (F5)
 - **File:** `packages/valory/skills/abstract_round_abci/base.py:790`
 - **Analysis:** `tuple(db_data.values())[0]` would raise `IndexError` if `db_data` is empty. However, `sync()` receives serialized state from the framework's own `AbciAppDB.serialize()`, which always includes at least index 0 (the initial round's data). An empty `db_data` would require a fundamentally corrupted sync payload that bypassed JSON structure validation. The `IndexError` would still surface the problem (just with a less descriptive message than `ABCIAppInternalError`). Defensive improvement at best, not a functional bug.
+
+### Payload registry not thread-safe (F8)
+- **File:** `packages/valory/skills/abstract_round_abci/base.py:171-186`
+- **Analysis:** `_MetaPayload.registry` is a class-level dict mutated during metaclass `__new__`, which runs at class definition time (module import). Class creation is single-threaded in Python — it happens sequentially during import. The GIL also protects simple dict writes. No scenario exists where two metaclass `__new__` calls race in this codebase.
