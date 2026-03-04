@@ -158,19 +158,11 @@ These were flagged during the audit but confirmed as correct after manual verifi
 
 ## Medium
 
-### T8. Integration test event loop thread joined without timeout safety
+### T8. ~~Integration test event loop thread joined without timeout safety~~ **RESOLVED**
 - **File:** `packages/valory/skills/abstract_round_abci/test_tools/integration.py:136-137`
 - **Issue:** `cls.thread_loop.join()` is called without a timeout. If the event loop thread hangs, the test suite blocks indefinitely.
 - **Impact:** CI hangs on integration test failures.
-
----
-
-## Low
-
-### T10. Dialogue reference uses arbitrary `"stub"` string
-- **File:** `packages/valory/skills/abstract_round_abci/test_tools/base.py:218, 263, 300, 326`
-- **Issue:** Mock response messages use `dialogue_reference=(ref[0], "stub")`. While this works for dialogue matching, it doesn't validate that real dialogue references follow protocol conventions.
-- **Impact:** Minor — dialogue matching works by reference tuple, and "stub" is valid for test responses.
+- **Resolution:** Added `timeout=30.0` to `cls.thread_loop.join()`.
 
 ---
 
@@ -191,6 +183,10 @@ These were flagged during the audit but confirmed as correct after manual verifi
 ### `mock_contract_api_request()` uses hardcoded `contract_id` in response (T5)
 - **File:** `packages/valory/skills/abstract_round_abci/test_tools/base.py:270`
 - **Analysis:** Dialogue matching in the AEA framework routes on `dialogue_reference` + `target`/`message_id`, not on `contract_id`. The request validation (line 252) correctly checks the real `contract_id` — confirming the behaviour sent the request to the right contract. The response `contract_id` is just a required protocol field with no effect on routing or handler logic.
+
+### Dialogue reference uses arbitrary `"stub"` string (T10)
+- **File:** `packages/valory/skills/abstract_round_abci/test_tools/base.py:218, 263, 300, 326`
+- **Analysis:** Standard AEA test pattern. `(ref[0], "stub")` provides the initiator's reference for dialogue matching plus a valid placeholder for the responder's reference. The dialogue protocol matches on the tuple; `"stub"` is a legitimate value for test response messages.
 
 ### `mock_a2a_transaction()` uses stub signature and empty body (T7)
 - **File:** `packages/valory/skills/abstract_round_abci/test_tools/base.py:336-386`

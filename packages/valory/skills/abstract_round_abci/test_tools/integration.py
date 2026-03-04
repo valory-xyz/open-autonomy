@@ -134,7 +134,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase, ABC):
         """Tear down the multiplexer."""
         cls.multiplexer.disconnect()
         cls.running_loop.call_soon_threadsafe(cls.running_loop.stop)
-        cls.thread_loop.join()
+        cls.thread_loop.join(timeout=30.0)
         super().teardown_class()
 
     def get_message_from_decision_maker_inbox(self) -> Optional[Message]:

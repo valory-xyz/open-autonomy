@@ -25,7 +25,7 @@ fingerprint:
   test_tools/abci_app.py: bafybeihby2kywfspxson2onsrrjw4mj4hlf6ovwveotskkcbqorf3wf37i
   test_tools/base.py: bafybeic4fsyy7cbtybezbsfsm6iinmmlwwrvrbiliem6gbdopnswhs7asu
   test_tools/common.py: bafybeibxaulhsjdc4ctkt6jae2vpiy4c7mou34qyc6ouwu64gp3efjqzte
-  test_tools/integration.py: bafybeigbeuw4mh72mccwellbc5e4ezlvwzmb5o2rkbtrfird4kpksrzv2i
+  test_tools/integration.py: bafybeigcphrs456qudedx4eyp5ghvbvftk5lm4djosmmjx5esinvfgtn6u
   test_tools/rounds.py: bafybeidvwxn57mnsjgn76toldxdqfzrszkrth4huv7cxsm325opvqspboq
   tests/__init__.py: bafybeifrwcudnswns3goivcw4g4f7ilnxev5mksx4np7j2sqlixyqrylmm
   tests/conftest.py: bafybeiag2twvdpk6kor76wt425ppcnlwoc6qmvwic657vxzsouc7vt6avu
