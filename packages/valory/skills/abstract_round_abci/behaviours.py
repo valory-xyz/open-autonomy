@@ -266,11 +266,6 @@ class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
         # keep track of last round height so to detect changes
         self._last_round_height = 0
 
-        # this variable remembers the actual next transition
-        # when we cannot preemptively interrupt the current behaviour
-        # because it has not a matching round.
-        self._next_behaviour_cls: Optional[BehaviourType] = None
-
     @classmethod
     def _get_behaviour_id_to_behaviour_mapping(
         cls, behaviours: AbstractSet[BehaviourType]
@@ -327,9 +322,11 @@ class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
                 == TERMINATION_BACKGROUND_BEHAVIOUR_ID
             ) or (
                 not params.use_slashing
-                and background_cls.auto_behaviour_id()
-                == SLASHING_BACKGROUND_BEHAVIOUR_ID
-                or background_cls == PendingOffencesBehaviour
+                and (
+                    background_cls.auto_behaviour_id()
+                    == SLASHING_BACKGROUND_BEHAVIOUR_ID
+                    or background_cls == PendingOffencesBehaviour
+                )
             ):
                 # comparing with the behaviour id is not entirely safe, as there is a potential for conflicts
                 # if a user creates a behaviour with the same name

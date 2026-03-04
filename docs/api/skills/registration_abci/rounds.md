@@ -105,5 +105,4 @@ Transition states:
 Final states: {FinishedRegistrationRound}
 
 Timeouts:
-    round timeout: 30.0
 

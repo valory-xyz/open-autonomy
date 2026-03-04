@@ -147,7 +147,7 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     Final states: {FinishedRegistrationRound}
 
     Timeouts:
-        round timeout: 30.0
+
     """
 
     initial_round_cls: AppState = RegistrationStartupRound
@@ -165,9 +165,7 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     final_states: Set[AppState] = {
         FinishedRegistrationRound,
     }
-    event_to_timeout: Dict[Event, float] = {
-        Event.ROUND_TIMEOUT: 30.0,
-    }
+    event_to_timeout: Dict[Event, float] = {}
     db_pre_conditions: Dict[AppState, Set[str]] = {
         RegistrationStartupRound: set(),
         RegistrationRound: set(),

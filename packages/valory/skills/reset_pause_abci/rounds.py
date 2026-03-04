@@ -87,7 +87,6 @@ class ResetPauseAbciApp(AbciApp[Event]):
     Final states: {FinishedResetAndPauseErrorRound, FinishedResetAndPauseRound}
 
     Timeouts:
-        round timeout: 30.0
         reset and pause timeout: 30.0
     """
 
@@ -106,7 +105,6 @@ class ResetPauseAbciApp(AbciApp[Event]):
         FinishedResetAndPauseErrorRound,
     }
     event_to_timeout: Dict[Event, float] = {
-        Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_AND_PAUSE_TIMEOUT: 30.0,
     }
     db_pre_conditions: Dict[AppState, Set[str]] = {ResetAndPauseRound: set()}

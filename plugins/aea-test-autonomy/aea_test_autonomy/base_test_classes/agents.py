@@ -487,6 +487,7 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
         for i in range(self.n_terminal):
             agent_name = self._get_agent_name(i)
             self.processes[i].terminate()
+            self.processes[i].wait()
             self.processes.pop(i)
             logging.info(f"Terminated {agent_name}")
 
