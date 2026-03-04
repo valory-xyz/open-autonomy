@@ -1,5 +1,42 @@
 # Release History - `open-autonomy`
 
+# 0.21.12 (TBD)
+
+Autonomy:
+- Adds aea key to connection also in docker deployment #2408
+- Updates defaults for click commands options #2427
+- Fixes `protobuf` version conflict in docker image #2429
+- Introduces ERC8004 for Celo #2431
+- Fixes localhost password propagation #2434
+- Fixes critical audit issues #2435
+
+Packages:
+- Adds acn data share package #2403
+- Refactors packages' dependencies #2411
+- Fixes dependency version conflict #2413
+- Adds FSM core and test infrastructure audit #2436
+
+CI:
+- Sets up Snyk #2406
+- Unblocks Python 3.14 packaging flow #2424
+- Installs local source in package-publish job #2425
+
+Docs:
+- Adds testing behaviours #2409
+
+Chore:
+- Bumps tomte==0.6.1, updates code based on the linters, resolves dependency conflicts #2412
+- Bumps open-aea #2414
+- Adds support for Python 3.12, 3.13, and 3.14 #2410
+- Improves Python3.14 compatibility #2416 && #2423
+- Bumps base image to `python:3.14-slim-trixie` #2428
+- Pins grpcio to 1.78.0 (1.78.1 was yanked from PyPI) #2432
+
+Tests:
+- Fixes tests for Python 3.14 #2415
+- Fixes TestSlashing flaky rerun #2430
+- Replaces incorrect `assert any` with `assert all` #2419
+
 # 0.21.11 (2026-02-11)
 
 Autonomy:
