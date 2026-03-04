@@ -23,7 +23,7 @@ This section encodes the domain knowledge you need. Do NOT rely on external docu
 
 ### Core Abstractions
 
-#### AbciApp (base.py)
+#### AbciApp
 
 The state machine definition. Key class attributes:
 
@@ -55,7 +55,7 @@ The metaclass already validates at class definition time:
 
 **Do NOT re-report issues the metaclass already catches.** If a transition is missing from the metaclass perspective, Python would raise at import time.
 
-#### AbstractRound (base.py)
+#### AbstractRound
 
 Consensus states. Key attributes and methods:
 
@@ -86,7 +86,7 @@ class AbstractRound(Generic[EventType], ABC):
 
 Each of these base classes defines which events can be emitted. Subclasses must wire all possible events in the transition function.
 
-#### BaseTxPayload (base.py)
+#### BaseTxPayload
 
 ```python
 @dataclass(frozen=True)
@@ -99,7 +99,7 @@ class BaseTxPayload(metaclass=_MetaPayload):
 - `_MetaPayload` maintains a global registry: `"{module}.{ClassName}"` → class
 - Registration happens at class creation (import time), which is single-threaded
 
-#### BaseBehaviour (behaviour_utils.py)
+#### BaseBehaviour
 
 ```python
 class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
@@ -148,6 +148,79 @@ The mapping connects final states of one app to initial states of the next. The 
 - All mapping keys are final states, all values are initial states
 - DB post-conditions of predecessor satisfy pre-conditions of successor
 - Event timeout consistency across apps
+
+### Test Infrastructure
+
+The framework provides base test classes in `packages/valory/skills/abstract_round_abci/test_tools/` and `plugins/aea-test-autonomy/`.
+
+#### Behaviour Test Base (`test_tools/base.py`)
+
+```python
+class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
+    path_to_skill: Path                    # Must be set by subclass
+    behaviour: AbstractRoundBehaviour
+
+    def fast_forward_to_behaviour(self, behaviour, behaviour_id, synchronized_data):
+        """Jump to a specific behaviour in the FSM."""
+
+    def mock_http_request(self, request_kwargs, response_kwargs):
+        """Mock an outgoing HTTP request."""
+
+    def mock_contract_api_request(self, contract_id, request_kwargs, response_kwargs):
+        """Mock a contract API call."""
+
+    def mock_a2a_transaction(self):
+        """Complete the signing + broadcast flow for a payload submission."""
+        # 1. Mock SIGN_MESSAGE → SIGNED_MESSAGE
+        # 2. Mock HTTP POST broadcast
+        # 3. Mock HTTP GET receipt check
+
+    def end_round(self, done_event):
+        """Transition the round to completion."""
+
+    def _test_done_flag_set(self):
+        """Verify the round completion flag is set."""
+```
+
+**Setup/teardown:** `setup_class()` saves and clears `_MetaPayload.registry`; `teardown_class()` restores it. Subclasses overriding these must call `super()`.
+
+#### Specialised Behaviour Tests (`test_tools/common.py`)
+
+```python
+class BaseRandomnessBehaviourTest(FSMBehaviourBaseCase):
+    randomness_behaviour_class: Type[BaseBehaviour]  # Required
+    next_behaviour_class: Type[BaseBehaviour]         # Required
+    done_event: Any                                   # Required
+
+class BaseSelectKeeperBehaviourTest(FSMBehaviourBaseCase):
+    select_keeper_behaviour_class: Type[BaseBehaviour]  # Required
+    next_behaviour_class: Type[BaseBehaviour]            # Required
+    done_event: Any                                      # Required
+```
+
+#### Round Test Base (`test_tools/rounds.py`)
+
+```python
+class BaseRoundTestClass:
+    _synchronized_data_class: Type[BaseSynchronizedData]  # Required
+    _event_class: Any                                      # Required
+
+    def _complete_run(self, test_runner, iter_count=MAX_PARTICIPANTS):
+        """Execute the test generator."""
+```
+
+**Specialised round test classes** (each provides a `_test_round()` generator):
+- `BaseCollectSameUntilAllRoundTest`
+- `BaseCollectSameUntilThresholdRoundTest`
+- `BaseCollectDifferentUntilAllRoundTest`
+- `BaseOnlyKeeperSendsRoundTest`
+- `BaseVotingRoundTest`
+
+#### Fixture Helpers (`plugins/aea-test-autonomy`)
+
+Mixin classes for external services: `UseFlaskTendermintNode`, `UseGanache`, `UseACNNode`, `UseRegistries`, `UseGnosisSafeHardHatNet`, `UseLocalIpfs`.
+
+**Critical:** These must use `self` + `type(self)` pattern for fixtures, NOT `@classmethod @pytest.fixture` (broken in Python 3.14).
 
 ---
 
@@ -292,6 +365,108 @@ Also check for shared mutable state between app configs (see C1).
 
 **Search pattern:** Grep for `\.join\(\)` in Python files, distinguish `thread.join()` from `str.join()` by context.
 
+### Test (T) — Test correctness and coverage
+
+#### T1: `@classmethod @pytest.fixture` Anti-Pattern
+
+**What:** Python 3.14 broke the `@classmethod @pytest.fixture` combination. Autouse fixtures using this pattern are silently not detected, causing test setup to be skipped entirely.
+
+**Search pattern:** Grep for `@classmethod` immediately followed by `@pytest.fixture` in test files.
+
+**Bug example:**
+```python
+class UseGanache:
+    @classmethod
+    @pytest.fixture(autouse=True, scope="class")
+    def _start_ganache(cls, ganache_scope_class):  # NEVER CALLED in Python 3.14!
+        cls.key_pairs = ganache_scope_class.key_pairs
+```
+
+**Correct:**
+```python
+class UseGanache:
+    @pytest.fixture(autouse=True, scope="class")
+    def _start_ganache(self, ganache_scope_class):
+        cls = type(self)  # Get class from instance
+        cls.key_pairs = ganache_scope_class.key_pairs
+```
+
+**Why it matters:** Tests pass vacuously because setup never runs. External services (Ganache, Tendermint, IPFS) are never started, so integration tests silently skip their actual verification.
+
+#### T2: Wrong Base Test Class for Round Type
+
+**What:** Each round collection type has a corresponding base test class. Using the wrong one means the test validates incorrect invariants.
+
+**Mapping:**
+| Round Type | Correct Test Base |
+|---|---|
+| `CollectSameUntilAllRound` | `BaseCollectSameUntilAllRoundTest` |
+| `CollectSameUntilThresholdRound` | `BaseCollectSameUntilThresholdRoundTest` |
+| `CollectDifferentUntilAllRound` | `BaseCollectDifferentUntilAllRoundTest` |
+| `OnlyKeeperSendsRound` | `BaseOnlyKeeperSendsRoundTest` |
+| `VotingRound` | `BaseVotingRoundTest` |
+
+**How to check:** For each round test class, verify it inherits from the base test that matches the round's actual parent class.
+
+**Why it matters:** A threshold round tested with an "until all" base class will pass even if the threshold logic is broken.
+
+#### T3: Missing Required Test Class Attributes
+
+**What:** Test base classes require specific attributes to be set by subclasses. Missing attributes cause silent failures or confusing errors.
+
+**Round tests** (`BaseRoundTestClass` subclasses) require:
+- `_synchronized_data_class` — must match the round's `synchronized_data_class`
+- `_event_class` — must be the event enum used by the AbciApp
+
+**Behaviour tests** (`FSMBehaviourBaseCase` subclasses) require:
+- `path_to_skill` — must point to the skill package directory
+
+**Specialized behaviour tests** require:
+- `BaseRandomnessBehaviourTest`: `randomness_behaviour_class`, `next_behaviour_class`, `done_event`
+- `BaseSelectKeeperBehaviourTest`: `select_keeper_behaviour_class`, `next_behaviour_class`, `done_event`
+
+**Search pattern:** Find test classes inheriting from these bases and verify attributes are set.
+
+#### T4: Missing `mock_a2a_transaction()` in Behaviour Tests
+
+**What:** When a behaviour sends a payload via `send_a2a_transaction()`, the test must call `mock_a2a_transaction()` to complete the signing and broadcast flow. Without it, the round never receives the payload.
+
+**The correct sequence:**
+```python
+self.behaviour.act_wrapper()       # Behaviour runs and sends payload
+self.mock_a2a_transaction()        # Mock signing + HTTP broadcast
+self._test_done_flag_set()         # Verify round completed
+self.end_round(done_event)         # Transition to next round
+```
+
+**What `mock_a2a_transaction()` does internally:**
+1. Mocks `SIGN_MESSAGE` → `SIGNED_MESSAGE` via signing handler
+2. Mocks HTTP POST to broadcast transaction
+3. Mocks HTTP GET to check transaction receipt
+
+**Why it matters:** Missing this call means the behaviour test never actually completes the round, so transitions are never tested.
+
+#### T5: Incomplete Round Event Testing
+
+**What:** Each round type can emit multiple events. All possible events should have test coverage:
+
+- `CollectSameUntilThresholdRound`: `done_event`, `none_event`, `no_majority_event`
+- `OnlyKeeperSendsRound`: `done_event`, `fail_event`
+- `VotingRound`: positive and negative outcomes
+- Custom `end_block()` implementations: every distinct return event
+
+**How to check:** For each round, collect all events from `transition_function` keys. For each event, verify there's a test that triggers it.
+
+**Why it matters:** Untested event paths may contain bugs in the data they produce or transitions they trigger.
+
+#### T6: `_MetaPayload.registry` Not Saved/Restored
+
+**What:** `FSMBehaviourBaseCase.setup_class()` saves and clears `_MetaPayload.registry`, and `teardown_class()` restores it. Test classes that override these methods without calling `super()` corrupt the payload registry for subsequent tests.
+
+**Search pattern:** Look for `setup_class` or `teardown_class` overrides in test files that don't call `super()`.
+
+**Why it matters:** Corrupted registry causes payload deserialization failures in unrelated tests, leading to flaky CI.
+
 ### Low (L) — Code quality and maintainability
 
 #### L1: Dead Code
@@ -350,7 +525,7 @@ Determine the scope of the audit:
 Glob pattern: packages/**/skills/*/rounds.py
 ```
 
-Build a list of skill directories to audit. Each skill directory should contain some subset of: `rounds.py`, `behaviours.py`, `payloads.py`, `models.py`, `__init__.py`.
+Build a list of skill directories to audit. Each skill directory should contain some subset of: `rounds.py`, `behaviours.py`, `payloads.py`, `models.py`, `__init__.py`, and a `tests/` subdirectory.
 
 ### Step 2: Parallel Analysis
 
@@ -361,8 +536,10 @@ Launch up to **3 parallel Explore agents**, dividing skills evenly among them. E
    - `behaviours.py` — behaviour classes, matching_round links
    - `payloads.py` — payload definitions
    - `models.py` — if it exists, for parameter and data model definitions
+   - `tests/test_rounds.py` — round test classes
+   - `tests/test_behaviours.py` — behaviour test classes
 
-2. **Run all checks from the Audit Checklist** (C1–C4, H1–H3, M1–M4, L1–L3)
+2. **Run all checks from the Audit Checklist** (C1–C4, H1–H3, M1–M4, T1–T6, L1–L3)
 
 3. **Return findings** as a structured list with:
    - Check ID (e.g. C1, H2)
