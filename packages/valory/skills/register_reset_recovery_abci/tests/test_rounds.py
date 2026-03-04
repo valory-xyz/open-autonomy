@@ -44,8 +44,8 @@ class BaseRoundTestClass(
     _event_class = Event
 
 
-class TestTerminationRound(BaseRoundTestClass):
-    """Tests for TerminationRound."""
+class TestRoundCountRound(BaseRoundTestClass):
+    """Tests for RoundCountRound."""
 
     def test_run(
         self,

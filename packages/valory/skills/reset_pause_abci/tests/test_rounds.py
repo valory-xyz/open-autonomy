@@ -85,6 +85,14 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
             )
         )
 
+    def test_no_majority_event(self) -> None:
+        """Test the NO_MAJORITY event."""
+        test_round = ResetAndPauseRound(
+            synchronized_data=self.synchronized_data,
+            context=MagicMock(),
+        )
+        self._test_no_majority_event(test_round)
+
     def test_accepting_payloads_from(self) -> None:
         """Test accepting payloads from"""
 

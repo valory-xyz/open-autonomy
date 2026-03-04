@@ -38,7 +38,7 @@ from packages.valory.skills.registration_abci.payloads import RegistrationPayloa
 
 
 class Event(Enum):
-    """Event enumeration for the price estimation demo."""
+    """Event enumeration for agent registration."""
 
     DONE = "done"
     ROUND_TIMEOUT = "round_timeout"
@@ -91,7 +91,7 @@ class RegistrationRound(CollectSameUntilThresholdRound):
     """
     A round in which the agents get registered.
 
-    This rounds waits until the threshold of agents has been reached
+    This round waits until the threshold of agents has been reached
     and then a further x block confirmations.
     """
 
@@ -147,7 +147,7 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     Final states: {FinishedRegistrationRound}
 
     Timeouts:
-        round timeout: 30.0
+
     """
 
     initial_round_cls: AppState = RegistrationStartupRound

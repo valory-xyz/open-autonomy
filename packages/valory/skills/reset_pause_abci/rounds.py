@@ -87,7 +87,6 @@ class ResetPauseAbciApp(AbciApp[Event]):
     Final states: {FinishedResetAndPauseErrorRound, FinishedResetAndPauseRound}
 
     Timeouts:
-        round timeout: 30.0
         reset and pause timeout: 30.0
     """
 

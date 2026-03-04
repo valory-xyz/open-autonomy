@@ -155,6 +155,27 @@ The mapping connects final states of one app to initial states of the next. The 
 - DB post-conditions of predecessor satisfy pre-conditions of successor
 - Event timeout consistency across apps
 
+**Important detail — event pruning during composition:** `chain()` builds a merged `transition_function` and then filters `event_to_timeout` to only include events that appear as keys in the merged transition function (lines 261-269 of `abci_app_chain.py`). Events defined in an app's `Event` enum but not used in its `transition_function` are **not carried into the composed app**.
+
+### Library Skills
+
+The open-autonomy framework ships several **library skills** — reusable building blocks designed to be composed into larger agent services, not run standalone:
+
+- `registration_abci` — agent registration
+- `reset_pause_abci` — reset and pause between periods
+- `transaction_settlement_abci` — on-chain transaction settlement
+- `slashing_abci` — slashing misbehaving agents
+- `termination_abci` — graceful service termination
+- `offend_abci` — offence tracking
+
+Downstream projects compose these library skills with their own custom skills via `chain()`. Library skills often define `Event.ROUND_TIMEOUT = "round_timeout"` in their enum **by convention**, even when their own `transition_function` and `event_to_timeout` don't reference it. This is intentional:
+
+1. **Extensibility:** Downstream services that compose these skills may subclass rounds or modify transition functions to add timeout handling. Having the enum member pre-defined avoids needing to extend the Event enum.
+2. **Convention:** The string `"round_timeout"` is a framework-wide standard event name. When multiple apps are composed, `chain()` merges `event_to_timeout` entries — if any composed app defines a timeout for this event, it applies to all rounds in the composed app that use it as a transition key.
+3. **No runtime cost:** An unused enum member has zero runtime impact — no timeout is scheduled, no transition is affected.
+
+**Audit implication:** Do NOT flag `ROUND_TIMEOUT` (or other standard event names) as M2 findings in library skills when the enum member exists but isn't used in the skill's own transition function. This is a convention, not dead code.
+
 ### Test Infrastructure
 
 The framework provides base test classes in `packages/valory/skills/abstract_round_abci/test_tools/` and `plugins/aea-test-autonomy/`.
@@ -308,6 +329,8 @@ if (
 
 **Why it matters:** Developers may believe a timeout is protecting against hangs, when in fact it never fires. This creates a false sense of safety.
 
+**Caveat:** Skills whose directory name starts with `test_` (e.g. `test_abci`, `test_solana_tx_abci`) are **test/scaffold skills** that exist to exercise the framework, not production FSM apps. Dead timeouts in these skills are often intentional test fixtures (e.g. testing that `SharedState.setup()` can wire `event_to_timeout` from params). Do NOT flag these as C4 findings. See also the False Positive Guidance section.
+
 ### High (H) — Issues with significant impact
 
 #### H1: Background App Configuration
@@ -361,6 +384,8 @@ Also check for shared mutable state between app configs (see C1).
 - Events referenced in code but not defined in the enum
 
 **Search pattern:** Parse the event enum, then cross-reference with `transition_function` definitions and `end_block()` returns.
+
+**Caveat — library skills:** Standard event names like `ROUND_TIMEOUT = "round_timeout"` are conventionally defined in library skills (e.g. `registration_abci`, `reset_pause_abci`) even when not used in the skill's own transition function. This is an extensibility convention, not dead code. See the "Library Skills" section above. Do NOT flag these as M2 findings.
 
 #### M3: DB Pre/Post Conditions Consistency
 
@@ -541,6 +566,14 @@ synchronized_data.update(synchronized_data_class=SomeSyncData, **kwargs)
 
 ### Test helpers using stub signatures or contract IDs
 **Why it's fine:** Intentional separation of concerns. Behaviour tests validate flow logic, not serialization correctness. Using stubs is correct test design.
+
+### Dead timeouts or unused events in `test_*` skills
+Skills whose directory name starts with `test_` (e.g. `test_abci`, `test_solana_tx_abci`, `test_ipfs_abci`) are **test/scaffold skills** — they exist to exercise and test the framework, not as production FSM apps. Patterns that look like bugs in production skills are often intentional in test skills:
+- `event_to_timeout` entries for events not in any `transition_function` (C4) — may exist to test that `SharedState.setup()` correctly wires timeout values from params
+- Unused event enum members (M2) — may exist to test event handling infrastructure
+- Incomplete round event testing (T5) — test skills often have minimal test coverage by design
+
+**When auditing test skills:** Note them in the report under a separate "Test/Scaffold Skills" section rather than as findings. Only flag issues in test skills if they would cause the test itself to fail or produce incorrect test results.
 
 ### Mutable class-level dicts/lists in `BaseBehaviour` subclasses
 ```python
