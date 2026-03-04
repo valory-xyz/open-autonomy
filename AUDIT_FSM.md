@@ -142,11 +142,11 @@ These were flagged during the audit but confirmed as correct after manual verifi
 
 ## High
 
-### T3. Socket resource leak in ACN node `wait()` exception path
+### T3. ~~Socket resource leak in ACN node `wait()` exception path~~ **RESOLVED**
 - **File:** `plugins/aea-test-autonomy/aea_test_autonomy/docker/acn_node.py:104-116`
 - **Issue:** `sock = socket.socket(...)` is created at line 104, but if an exception occurs before `sock.close()` at line 107, the socket leaks. The broad `except Exception` on line 112 catches and swallows the error.
 - **Impact:** File descriptor exhaustion during retry loops.
-- **Fix:** Use `with socket.socket(...) as sock:` or try/finally.
+- **Resolution:** Replaced with `with socket.socket(...) as sock:` context manager. Added test.
 
 ### T4. `end_round()` test helper bypasses all round transition validation
 - **File:** `packages/valory/skills/abstract_round_abci/test_tools/base.py:394-401`
@@ -162,10 +162,11 @@ These were flagged during the audit but confirmed as correct after manual verifi
 - **Issue:** Response message uses `contract_id="mock_contract_id"` regardless of what `contract_id` was in the request (line 252). The request validates the real contract ID, but the response returns a fake one.
 - **Impact:** Contract API dialogue matching is not properly tested. Handler bugs involving contract ID mismatch would go undetected.
 
-### T6. Agent process `terminate()` without `wait()` before cleanup
+### T6. ~~Agent process `terminate()` without `wait()` before cleanup~~ **RESOLVED**
 - **File:** `plugins/aea-test-autonomy/aea_test_autonomy/base_test_classes/agents.py:489-490`
 - **Issue:** `self.processes[i].terminate()` is called immediately followed by `self.processes.pop(i)` without waiting for the process to exit. The comment on line 486 says "don't pop before termination" but doesn't address waiting.
 - **Impact:** Orphaned processes, race conditions on process state, and potential port conflicts when restarting agents.
+- **Resolution:** Added `self.processes[i].wait()` between `terminate()` and `pop()`, matching the parent class `terminate_agents()` pattern.
 
 ---
 

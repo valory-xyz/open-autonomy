@@ -101,10 +101,9 @@ class ACNNodeDockerImage(DockerImage):
             i += 1
             for uri in list(to_be_connected):
                 try:
-                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    host, port = uri.split(":")
-                    result = sock.connect_ex((host, int(port)))
-                    sock.close()
+                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                        host, port = uri.split(":")
+                        result = sock.connect_ex((host, int(port)))
                     enforce(result == 0, "")
                     to_be_connected.discard(uri)
                     logging.info(f"URI ready: {uri}")
