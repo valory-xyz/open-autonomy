@@ -148,20 +148,6 @@ These were flagged during the audit but confirmed as correct after manual verifi
 - **Impact:** File descriptor exhaustion during retry loops.
 - **Resolution:** Replaced with `with socket.socket(...) as sock:` context manager. Added test.
 
-### T4. `end_round()` test helper bypasses all round transition validation
-- **File:** `packages/valory/skills/abstract_round_abci/test_tools/base.py:394-401`
-- **Issue:** Directly manipulates private attributes (`_current_round`, `_last_round`, `_previous_rounds`, `_current_round_height`) and creates the next round with `context=MagicMock()`. This bypasses:
-  - Round initialization validation
-  - Timeout scheduling
-  - Height tracking
-  - Block construction phase checks
-- **Impact:** Tests can pass even if the real round transition logic is broken. False confidence in FSM correctness.
-
-### T5. `mock_contract_api_request()` uses hardcoded `contract_id` in response
-- **File:** `packages/valory/skills/abstract_round_abci/test_tools/base.py:270`
-- **Issue:** Response message uses `contract_id="mock_contract_id"` regardless of what `contract_id` was in the request (line 252). The request validates the real contract ID, but the response returns a fake one.
-- **Impact:** Contract API dialogue matching is not properly tested. Handler bugs involving contract ID mismatch would go undetected.
-
 ### T6. ~~Agent process `terminate()` without `wait()` before cleanup~~ **RESOLVED**
 - **File:** `plugins/aea-test-autonomy/aea_test_autonomy/base_test_classes/agents.py:489-490`
 - **Issue:** `self.processes[i].terminate()` is called immediately followed by `self.processes.pop(i)` without waiting for the process to exit. The comment on line 486 says "don't pop before termination" but doesn't address waiting.
@@ -207,3 +193,11 @@ These were flagged during the audit but confirmed as correct after manual verifi
 ### Process dict modified during iteration in agent termination
 - **File:** `plugins/aea-test-autonomy/aea_test_autonomy/base_test_classes/agents.py:487-490`
 - **Analysis:** The loop iterates `range(self.n_terminal)` (integers), not `self.processes.keys()`. Popping `self.processes[0]` doesn't affect iteration over the pre-computed range. Not a dict-during-iteration bug.
+
+### `end_round()` test helper directly manipulates round state (T4)
+- **File:** `packages/valory/skills/abstract_round_abci/test_tools/base.py:394-401`
+- **Analysis:** Intentional separation of concerns. Behaviour unit tests need to simulate "the round ended with event X" without running the full ABCI consensus flow (multi-agent payload collection). The helper still uses the real `transition_function` to determine the next round class, so FSM wiring is validated. Round transition internals (timeout scheduling, height tracking) are tested separately in round tests.
+
+### `mock_contract_api_request()` uses hardcoded `contract_id` in response (T5)
+- **File:** `packages/valory/skills/abstract_round_abci/test_tools/base.py:270`
+- **Analysis:** Dialogue matching in the AEA framework routes on `dialogue_reference` + `target`/`message_id`, not on `contract_id`. The request validation (line 252) correctly checks the real `contract_id` — confirming the behaviour sent the request to the right contract. The response `contract_id` is just a required protocol field with no effect on routing or handler logic.
