@@ -28,20 +28,15 @@
 
 ## Medium
 
-### F5. Missing `IndexError` guard in `AbciAppDB.sync()`
-- **File:** `packages/valory/skills/abstract_round_abci/base.py:790`
-- **Issue:** `tuple(db_data.values())[0]` raises `IndexError` if `db_data` is an empty dict. Other validation errors in this method raise `ABCIAppInternalError`; this one would surface as an unexpected `IndexError`.
-- **Impact:** Inconsistent error handling during state synchronization with malformed data.
+### F6. ~~Dead `ROUND_TIMEOUT` config in registration and reset-pause skills~~ **RESOLVED**
+- **Files:** `packages/valory/skills/registration_abci/rounds.py`, `packages/valory/skills/reset_pause_abci/rounds.py`, `packages/valory/skills/reset_pause_abci/models.py`
+- **Issue:** `Event.ROUND_TIMEOUT` is in `event_to_timeout` but absent from any round's `transition_function`. The framework only schedules timeouts for events present in transitions (`base.py:2641`), so these entries are never used. For registration, a timeout makes no sense — agents wait indefinitely for peers to join. For reset_pause, timeout handling is already covered by `RESET_AND_PAUSE_TIMEOUT` which is properly wired to `FinishedResetAndPauseErrorRound`.
+- **Resolution:** Removed dead `ROUND_TIMEOUT` entries from `event_to_timeout` in both skills and the corresponding dead config update in `reset_pause_abci/models.py`. Kept `ROUND_TIMEOUT` enum members for downstream compatibility.
 
-### F6. Dead `ROUND_TIMEOUT` config in registration and reset-pause skills
-- **Files:** `packages/valory/skills/registration_abci/rounds.py:169`, `packages/valory/skills/reset_pause_abci/rounds.py:109`
-- **Issue:** `Event.ROUND_TIMEOUT` is declared in `event_to_timeout` but no round's `transition_function` includes it. The framework only schedules timeouts for events present in a round's transitions (see `base.py:2639-2641`), so this config is silently ignored.
-- **Impact:** No runtime effect, but misleading — suggests timeout handling exists when it doesn't.
-
-### F7. Unused `_next_behaviour_cls` instance variable
-- **File:** `packages/valory/skills/abstract_round_abci/behaviours.py:272`
-- **Issue:** Initialized in `__init__` but never read or written anywhere in the codebase. Likely a remnant of planned deferred behaviour transitions.
-- **Impact:** Dead code.
+### F7. ~~Unused `_next_behaviour_cls` instance variable~~ **RESOLVED**
+- **File:** `packages/valory/skills/abstract_round_abci/behaviours.py:269-272`
+- **Issue:** Initialized in `__init__` but never read or written anywhere in the codebase. The comment described deferred behaviour transitions ("remembers the actual next transition when we cannot preemptively interrupt the current behaviour"), but the framework uses immediate interruption instead — when a round changes, the current behaviour is immediately cleaned up and replaced (`_process_current_round`). Deferred transitions would add complexity with no benefit since behaviours are generator-based and interruption is clean.
+- **Resolution:** Removed the unused variable and its comment.
 
 ---
 
@@ -165,3 +160,7 @@ These were flagged during the audit but confirmed as correct after manual verifi
 ### `commit()` handler re-raises `AddBlockError` (F4)
 - **File:** `packages/valory/skills/abstract_round_abci/handlers.py:295-297`
 - **Analysis:** Intentional fail-fast design. An `AddBlockError` during commit means the ABCI app state is inconsistent. Returning an error response would let Tendermint continue with corrupted state. Crashing forces the agent to restart and resync from a known-good state. The AEA framework catches unhandled handler exceptions at a higher level.
+
+### Missing `IndexError` guard in `AbciAppDB.sync()` (F5)
+- **File:** `packages/valory/skills/abstract_round_abci/base.py:790`
+- **Analysis:** `tuple(db_data.values())[0]` would raise `IndexError` if `db_data` is empty. However, `sync()` receives serialized state from the framework's own `AbciAppDB.serialize()`, which always includes at least index 0 (the initial round's data). An empty `db_data` would require a fundamentally corrupted sync payload that bypassed JSON structure validation. The `IndexError` would still surface the problem (just with a less descriptive message than `ABCIAppInternalError`). Defensive improvement at best, not a functional bug.

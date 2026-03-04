@@ -266,11 +266,6 @@ class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
         # keep track of last round height so to detect changes
         self._last_round_height = 0
 
-        # this variable remembers the actual next transition
-        # when we cannot preemptively interrupt the current behaviour
-        # because it has not a matching round.
-        self._next_behaviour_cls: Optional[BehaviourType] = None
-
     @classmethod
     def _get_behaviour_id_to_behaviour_mapping(
         cls, behaviours: AbstractSet[BehaviourType]
