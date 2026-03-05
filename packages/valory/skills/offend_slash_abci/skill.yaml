@@ -23,11 +23,11 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeibunjghifu5br5vxswopelsiaypjgllym3qwt6ev76aozkngyfrim
-- valory/offend_abci:0.1.0:bafybeih4pblmyrxtjzb6yztvp24726zxjvqtttausa7ll2uupfcdwhvxwe
-- valory/registration_abci:0.1.0:bafybeidfki6wrf3ehp6jltls3u6esuc66bhzv3aarfldeuyofi2gjthdce
-- valory/reset_pause_abci:0.1.0:bafybeihbe5w4llyan3jrd7ss3qiyyfaci2z77wm7efwpyqev7tz7qjc6xa
-- valory/slashing_abci:0.1.0:bafybeieowjekwzgzqy5oswm5cq6zvooodzubiub5n6vnbw3krw6usdigzu
+- valory/abstract_round_abci:0.1.0:bafybeicmdgbovdgxy2kiac5qhm2nnqm3dl5fkmnsxfy4cardzyntqqzuwu
+- valory/offend_abci:0.1.0:bafybeibwkbvbblrcxc2yrkfuuvurut5ow3cso2w3pcznrkc5mjl37dftsu
+- valory/registration_abci:0.1.0:bafybeid2qcsg3gm2m6itxhrxnmpcmvdagi46zcy6oafp5dg3qgfgfih2me
+- valory/reset_pause_abci:0.1.0:bafybeifavtmjkli4i2cghp4yvxsqfrv4mxneq5z74je465updjt62t54um
+- valory/slashing_abci:0.1.0:bafybeiho5iavtx5wd6bk65xlutsrp6touo4i2kd7jyotbyoyy26munzy54
 behaviours:
   main:
     args: {}
