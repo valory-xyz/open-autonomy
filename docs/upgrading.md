@@ -71,7 +71,7 @@ make new_env
 ### API compatibility notes
 
 - CLI/API-surface changes:
-  - `aea/cli/utils/click_utils.py::build_deployment_command` and `aea/cli/utils/click_utils.py::run_deployment_from_token` 
+  - `autonomy.cli.deploy.py::build_deployment_command` and `autonomy.cli.deploy.py::run_deployment_from_token` 
      now always prompt on `-p` and support `AEA_PASSWORD` for `--password`.
 
 ## `v0.21.10` to `v0.21.11`
