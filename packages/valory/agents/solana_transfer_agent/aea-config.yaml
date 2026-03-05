@@ -12,13 +12,13 @@ fingerprint:
   tests/test_register_reset.py: bafybeihwoxo4voc3bmj5dlfdspmy6fcm4bleroy44vasq2cmd46a3hmixq
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeiacpzarsrhhvdu3rov26cj6ywxxcwrgivbjtliebnboyqsua4x3zm
+- valory/abci:0.1.0:bafybeih4xblxvkk2x3nretjufszkaihlube7esl3mjcm7kixu26bgt63sm
 - valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
 - valory/ipfs:0.1.0:bafybeihpmn5ur4m6sxbgh4whcp33earzbcn2yd4q4eo6cwdkfkznvdpcqe
-- valory/ledger:0.19.0:bafybeidxzeygks5zcky4u2ztcdufzptssgf6uqytxofnn6yta7qq6jsim4
+- valory/ledger:0.19.0:bafybeid5uwx4uqxkiibw6kazr7my5mk5kcqg2dx2owtcf7kcpbs2jrns2e
 - valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts:
-- valory/service_registry:0.1.0:bafybeifxi2fbg4xeb4ciwlkkwrm6iohdmsaxwlloemal3yceej3h52zxiq
+- valory/service_registry:0.1.0:bafybeifxh3cmxdv6qffnamkvyuihwob7zqvctqc3yf2rulbf3hdrtzqj7i
 - valory/squads_multisig:0.1.0:bafybeigdnzddcrji44xrc4vgvhwa6nmirv3t672l3csnou5f5ggmusbkk4
 protocols:
 - open_aea/signing:1.0.0:bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye
@@ -30,12 +30,12 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 - valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
 skills:
-- valory/abstract_abci:0.1.0:bafybeifnj73dadqmyge2losvu7zw4qz7b74vdiapxozezy3u72zqmxmjha
-- valory/abstract_round_abci:0.1.0:bafybeibunjghifu5br5vxswopelsiaypjgllym3qwt6ev76aozkngyfrim
-- valory/registration_abci:0.1.0:bafybeihvhgrcagf7ucp5ng3bemcxbiki24uepywohowcq25jy3ogkdl7ba
-- valory/reset_pause_abci:0.1.0:bafybeigtfzefxfxiuxfkzfj76uhz4fkv3czqvffwjzvngwt4q3sdvjp4bq
-- valory/squads_transaction_settlement_abci:0.1.0:bafybeigdzuccd3nwv457zmse4t5s3nuvaib2i5wqwl3plnv4ccx3sxxa4y
-- valory/test_solana_tx_abci:0.1.0:bafybeiejxzqm7tqtp3ikpxuhneamfwtckhwqc64gjb3hres7se3t72iula
+- valory/abstract_abci:0.1.0:bafybeierpmmkejvkdnvwl6wfcved5hjqdzwgfncg5ccfp5dctbk4mulfki
+- valory/abstract_round_abci:0.1.0:bafybeicmdgbovdgxy2kiac5qhm2nnqm3dl5fkmnsxfy4cardzyntqqzuwu
+- valory/registration_abci:0.1.0:bafybeic7mdirkf63nqrqz54idkrcqjjbrqb7yxkvg2erq54kzmceqyogb4
+- valory/reset_pause_abci:0.1.0:bafybeifsw6zbegug76amznkhahfivrgcmowh35q5ncoy5ojjkxrvrjkbsy
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeihm7a7t7ofuyn2cpvgatsqi5lzsrr3fre6kgitfb5kbapvhxzevta
+- valory/test_solana_tx_abci:0.1.0:bafybeidkkud4hiscmb7uvgqwzvp7uvpytbxkckprpkcpv7k2fkt4z2dwte
 default_ledger: solana
 required_ledgers:
 - solana
