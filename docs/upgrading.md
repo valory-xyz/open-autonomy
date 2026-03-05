@@ -18,6 +18,8 @@ Main dependency updates to account for:
 - `protobuf: >=4.21.6,<4.25.0 -> >=5,<6`
 - `requests: >=2.28.1,<2.32.5 -> >=2.28.1,<2.33.0`
 - `docker: 4.2.0 -> 7.1.0`
+- `typing_extensions`: `<4.15.0,>=3.10.0.2` -> `<=4.15.0,>=3.10.0.2`
+- `grpcio`: `==1.53.0` -> `==1.78.0`
 
 Exact APIs/functions to check:
 
