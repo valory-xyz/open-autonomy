@@ -41,14 +41,7 @@ class Event(Enum):
 
 
 class DummyRound(CollectDifferentUntilAllRound):
-    """
-    This class represents the registration round.
-
-    Input: None
-    Output: a synchronized data with the set of participants.
-
-    It schedules the SelectKeeperARound.
-    """
+    """A dummy round used for testing the ABCI framework."""
 
     payload_class = DummyPayload
     synchronized_data_class = BaseSynchronizedData

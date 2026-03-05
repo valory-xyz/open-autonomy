@@ -243,7 +243,7 @@ class SynchronizedData(
         self,
     ) -> Mapping[str, SynchronizeLateMessagesPayload]:  # pragma: no cover
         """Get the mapping from participants to checks."""
-        serialized = self.db.get_strict("participant_to_late_message")
+        serialized = self.db.get_strict("participant_to_late_messages")
         deserialized = CollectionRound.deserialize_collection(serialized)
         return cast(Mapping[str, SynchronizeLateMessagesPayload], deserialized)
 
