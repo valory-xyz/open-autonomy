@@ -20,14 +20,14 @@ fingerprint:
   tests/test_dialogues.py: bafybeifna75wlo2zpymsx2oa5ct7uzujgo6ahnvd5yhzvnn6ekoxrgeaei
   tests/test_handlers.py: bafybeichmiuqpbxog66ma5kiwlvns6jlbe74vyotq3s75lkvs3g44cruvq
   tests/test_models.py: bafybeiepyi7jgllfbnpfu6zoy3noha3usukpxiiavcdi272q6z2acqjphq
-  tests/test_rounds.py: bafybeihiwbc63zozxrm5ewlqsxrclgnpsw66lyof5o5lmqgswdvhf5mova
+  tests/test_rounds.py: bafybeidajayzic35cagzjf6r3sluc4umniqasvdv5st34linhazcvyr4li
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeicmdgbovdgxy2kiac5qhm2nnqm3dl5fkmnsxfy4cardzyntqqzuwu
-- valory/registration_abci:0.1.0:bafybeic7mdirkf63nqrqz54idkrcqjjbrqb7yxkvg2erq54kzmceqyogb4
+- valory/registration_abci:0.1.0:bafybeihcqql7giz43g53xk373qz2otqdcfmopv3c7t3yxrzhxwhxl6466q
 behaviours:
   main:
     args: {}

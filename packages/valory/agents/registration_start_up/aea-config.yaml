@@ -30,7 +30,7 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeierpmmkejvkdnvwl6wfcved5hjqdzwgfncg5ccfp5dctbk4mulfki
 - valory/abstract_round_abci:0.1.0:bafybeicmdgbovdgxy2kiac5qhm2nnqm3dl5fkmnsxfy4cardzyntqqzuwu
-- valory/registration_abci:0.1.0:bafybeic7mdirkf63nqrqz54idkrcqjjbrqb7yxkvg2erq54kzmceqyogb4
+- valory/registration_abci:0.1.0:bafybeihcqql7giz43g53xk373qz2otqdcfmopv3c7t3yxrzhxwhxl6466q
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -66,7 +66,7 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==2.1.0rc6
   open-aea-test-autonomy:
-    version: ==0.21.12rc5
+    version: ==0.21.12rc4
 skill_exception_policy: just_log
 connection_exception_policy: just_log
 customs: []

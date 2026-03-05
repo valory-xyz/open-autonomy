@@ -192,7 +192,7 @@ class ExecuteTxRound(OnlyKeeperSendsRound):
     """Execute tx round."""
 
     keeper_payload: Optional[ExecuteTxPayload] = None
-    payload_class = CreateTxPayload
+    payload_class = ExecuteTxPayload
     synchronized_data_class = SynchronizedData
     extended_requirements = ()
 
