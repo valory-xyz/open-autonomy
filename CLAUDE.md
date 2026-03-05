@@ -67,6 +67,7 @@ tox -e abci-docstrings
 # If you modified files in packages/:
 make generators               # updates docstrings, copyright, hashes, API docs
 make common-checks-1          # checks copyright, hashes, packages
+tox -e fix-doc-hashes         # updates IPFS hashes in docs (package_list.md etc.)
 
 # Otherwise just:
 tox -e fix-copyright
@@ -74,6 +75,17 @@ tox -e fix-copyright
 # After committing:
 make common-checks-2          # checks API docs, ABCI specs, handlers, dialogues
 ```
+
+### API Documentation
+```bash
+tox -e check-api-docs                # verify API docs are up to date
+tox -e generate-api-documentation    # regenerate API docs from source
+```
+
+### Important Hash Locations
+- `packages/packages.json` — canonical package hashes (updated via `autonomy packages lock`)
+- `autonomy/constants.py` — `ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH` must match the hash in `packages.json`
+- Doc files (`docs/package_list.md`, etc.) — IPFS hashes (updated via `tox -e fix-doc-hashes`)
 
 ### Package Management
 ```bash
@@ -134,6 +146,10 @@ The central design pattern is the **FSM App**: skills define a finite state mach
 - **Docstrings:** Sphinx style (`:param:`, `:return:`, `:raises:`)
 - **Copyright headers:** Apache 2.0 on all files (auto-fixed via `tox -e fix-copyright`)
 - **License policy:** MIT, BSD, Apache 2.0 allowed; GPL/LGPL/MPL prohibited
+
+## Claude Code Skills
+
+- **`/audit-fsm`** — Audits FSM skill packages for correctness bugs, safety issues, and configuration problems. Can target specific skills or scan all skills in the repo. Defined in `claude-skills/audit-fsm/SKILL.md`.
 
 ## Key Dependencies
 
