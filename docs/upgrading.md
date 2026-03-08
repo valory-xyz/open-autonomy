@@ -12,6 +12,7 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 Main dependency updates to account for:
 
+- `open-aea: ==2.0.8 -> ==2.1.0`
 - `tomte: ==0.4.0 -> ==0.6.1`
 - `click: >=8.1.0,<8.3.0 -> >=8.1.0,<9`
 - `pytest: ==7.4.4 -> ==8.4.2`
