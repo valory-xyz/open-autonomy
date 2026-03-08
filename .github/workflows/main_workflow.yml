@@ -97,6 +97,8 @@ jobs:
       run: tox -e check-doc-hashes
     - name: Check dependencies
       run: tox -e check-dependencies
+    - name: Check third-party hashes
+      run: tox -e check-third-party-hashes
 
   linter_checks:
     runs-on: ${{ matrix.os }}
