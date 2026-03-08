@@ -1,6 +1,6 @@
 # Release History - `open-autonomy`
 
-# 0.21.12 (TBD)
+# 0.21.12 (2026-03-08)
 
 Autonomy:
 - Adds aea key to connection also in docker deployment #2408
