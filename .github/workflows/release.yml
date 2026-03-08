@@ -76,6 +76,10 @@ jobs:
           sudo apt-get autoclean
           python -m pip install --upgrade pip
           pip install .[all] --no-cache
+          # Pin Click >=8.3.0: flag_value default handling is broken in <8.3,
+          # causing autonomy init --remote --ipfs to ignore the flags.
+          # Remove once setup.py lower bound is raised to >=8.3.0.
+          pip install "click>=8.3.0,<8.4.0" --no-cache
 
       - name: Push Packages
         run: |
