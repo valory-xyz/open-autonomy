@@ -50,6 +50,9 @@ DUMMY_ABCI_CONNECTION_HASH = (
     "bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vo"
 )
 DUMMY_SKILL_HASH = "bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vp"
+DUMMY_NON_ABCI_SKILL_HASH = (
+    "bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vq"
+)
 
 
 def get_dummy_service_config() -> Dict:
@@ -174,6 +177,33 @@ def get_dummy_overrides_abci_connection(env_vars_with_name: bool = False) -> Dic
             "host": "${str:host}",
             "port": "${str:port}",
             "use_tendermint": "${bool:false}",
+        },
+    }
+
+
+def get_dummy_overrides_non_abci_skill(env_vars_with_name: bool = False) -> Dict:
+    """Returns dummy overrides for a non-ABCI skill."""
+    if env_vars_with_name:
+        return {
+            "public_id": "valory/non_abci_skill:0.1.0",
+            "type": "skill",
+            "models": {
+                "params": {
+                    "args": {
+                        "some_param": "${SOME_PARAM:str:default_value}",
+                    },
+                }
+            },
+        }
+    return {
+        "public_id": "valory/non_abci_skill:0.1.0",
+        "type": "skill",
+        "models": {
+            "params": {
+                "args": {
+                    "some_param": "${str:default_value}",
+                },
+            }
         },
     }
 
@@ -436,6 +466,63 @@ class TestVerifySkillConfig(BaseAnalyseServiceTest):
             "The chained ABCI skill `valory/abci_skill:0.1.0` does not contain `params` model"
             in result.stderr
         )
+
+    def test_non_abci_skill_package_not_found(self) -> None:
+        """Test that missing non-ABCI skill packages are skipped gracefully."""
+
+        # Agent config with both ABCI and non-ABCI skills
+        agent_config = get_dummy_agent_config()
+        agent_config["skills"].append(
+            f"valory/non_abci_skill:0.1.0:{DUMMY_NON_ABCI_SKILL_HASH}"
+        )
+
+        non_abci_skill_id = PublicId.from_str(
+            f"valory/non_abci_skill:0.1.0:{DUMMY_NON_ABCI_SKILL_HASH}"
+        )
+
+        def _loader_patch(package_id: PackageId, **kwargs: Any) -> Any:
+            if package_id.package_type == PackageType.SERVICE:
+                service_data = [
+                    get_dummy_service_config(),
+                    get_dummy_overrides_skill(env_vars_with_name=True),
+                    get_dummy_overrides_non_abci_skill(env_vars_with_name=True),
+                ]
+                config, *overrides = service_data
+                service = Service.from_json(config)
+                service.overrides = overrides
+                return service
+
+            if package_id.package_type == PackageType.AGENT:
+                agent_data = [
+                    agent_config,
+                    get_dummy_overrides_skill(),
+                    get_dummy_overrides_non_abci_skill(),
+                ]
+                config, *_overrides = agent_data
+                agent_cfg = AgentConfig.from_json(config)
+                processed_overrides = {}
+                for o in _overrides:
+                    processed_overrides[
+                        ComponentId(
+                            component_type=ComponentType(o.pop("type")),
+                            public_id=PublicId.from_str(o.pop("public_id")),
+                        )
+                    ] = o
+                agent_cfg.component_configurations = processed_overrides
+                return agent_cfg
+
+            if package_id.package_type == PackageType.SKILL:
+                if package_id.public_id.to_any() == non_abci_skill_id.to_any():
+                    raise FileNotFoundError("Package not found")
+                return SkillConfig.from_json(get_dummy_skill_config())
+
+        with mock.patch(
+            "autonomy.cli.helpers.analyse._load_from_local",
+            new=_loader_patch,
+        ), self.patch_ipfs_tool([]):
+            result = self.run_cli(commands=self.public_id_option)
+
+        assert result.exit_code == 0, result.stderr
 
 
 class TestCheckRequiredAgentOverrides(BaseAnalyseServiceTest):
