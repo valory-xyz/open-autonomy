@@ -269,7 +269,7 @@ class ERC20TokenContract(Contract):
         """Build an ERC20 transfer transaction."""
         contract_instance = cls.get_instance(ledger_api, contract_address)
         checksumed_to_address = ledger_api.api.to_checksum_address(to_address)
-        data = contract_instance.encodeABI(
+        data = contract_instance.encode_abi(
             "transfer", args=(checksumed_to_address, amount)
         )
         return {"data": bytes.fromhex(data[2:])}
