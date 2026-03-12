@@ -98,7 +98,7 @@ autonomy --registry-path=./packages fetch valory/hello_world:0.1.0 --service --l
 
 Fetch the AI agent `hello_world` from a remote registry using [IPFS](https://ipfs.io) hash:
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeib5a5qxpx7sq6kzqjuirp6tbrujwz5zvj25ot7nsu3tp3me3ikdhy --service --remote
+autonomy fetch valory/hello_world:0.1.0:bafybeigirwxmzajw26a4fq6uwu2jmx5tshi3r3z6sp7wwpo7e5u26mqfdy --service --remote
 ```
 
 Fetch the AI agent with the token ID `123` on Gnosis chain:

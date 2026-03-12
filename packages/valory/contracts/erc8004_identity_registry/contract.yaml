@@ -7,7 +7,7 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeicaa2qu7gth6ufjy7qcmgmxpt5u45543vlpmw5y2pii6dbjmban5i
-  build/ERC8004IdentityRegistry.json: bafybeiht65cqoyaxasdl5jkvt6mahbivr7dh7yl7k4iqazisgh7cdmfftu
+  build/ERC8004IdentityRegistry.json: bafybeidjyuljqmyq5mn45vjcyuovlzyenpmfwq3mb3q6xcgm5lb5hisehy
   contract.py: bafybeie5pj6bzasryrknqimd7es22wuiq2h4jksisrab4wlzch7rc5yvjy
 fingerprint_ignore_patterns: []
 contracts: []
