@@ -185,9 +185,15 @@ class PackageHashManager:
 
         for url in package_json_urls:
             packages_from_url = get_packages_from_repository(url)
-            packages.update(packages_from_url)
+            # Only add packages that don't already exist locally
+            new_packages = {
+                key: value
+                for key, value in packages_from_url.items()
+                if key not in packages
+            }
+            packages.update(new_packages)
             self.packages.extend(
-                [Package(key, value, True) for key, value in packages_from_url.items()]
+                [Package(key, value, True) for key, value in new_packages.items()]
             )
 
         self.package_tree: Dict = {}
