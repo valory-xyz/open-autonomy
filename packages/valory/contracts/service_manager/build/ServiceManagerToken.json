@@ -14,11 +14,6 @@
                     "internalType": "address",
                     "name": "_serviceRegistryTokenUtility",
                     "type": "address"
-                },
-                {
-                    "internalType": "address",
-                    "name": "_operatorWhitelist",
-                    "type": "address"
                 }
             ],
             "stateMutability": "nonpayable",
@@ -71,6 +66,11 @@
                 }
             ],
             "name": "AgentNotInService",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "AlreadyInitialized",
             "type": "error"
         },
         {
@@ -462,6 +462,32 @@
                 {
                     "indexed": true,
                     "internalType": "address",
+                    "name": "identityRegistryBridger",
+                    "type": "address"
+                }
+            ],
+            "name": "IdentityRegistryBridgerUpdated",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "implementation",
+                    "type": "address"
+                }
+            ],
+            "name": "ImplementationUpdated",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
                     "name": "operator",
                     "type": "address"
                 },
@@ -520,6 +546,62 @@
                 {
                     "indexed": true,
                     "internalType": "address",
+                    "name": "operator",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "uint256",
+                    "name": "serviceId",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "address[]",
+                    "name": "agentInstances",
+                    "type": "address[]"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint32[]",
+                    "name": "agentIds",
+                    "type": "uint32[]"
+                }
+            ],
+            "name": "RegisterAgentsWithSignatureExecuted",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "operator",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "uint256",
+                    "name": "serviceId",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "refund",
+                    "type": "uint256"
+                }
+            ],
+            "name": "UnbondWithSignatureExecuted",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
                     "name": "owner",
                     "type": "address"
                 }
@@ -568,6 +650,32 @@
         },
         {
             "inputs": [],
+            "name": "NAME",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "PROXY_SERVICE_MANAGER",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
             "name": "REGISTER_AGENTS_TYPE_HASH",
             "outputs": [
                 {
@@ -587,6 +695,19 @@
                     "internalType": "bytes32",
                     "name": "",
                     "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "VERSION",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
                 }
             ],
             "stateMutability": "view",
@@ -622,6 +743,19 @@
                 }
             ],
             "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "implementation",
+                    "type": "address"
+                }
+            ],
+            "name": "changeImplementation",
+            "outputs": [],
+            "stateMutability": "nonpayable",
             "type": "function"
         },
         {
@@ -872,6 +1006,26 @@
                 }
             ],
             "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "identityRegistryBridger",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "initialize",
+            "outputs": [],
+            "stateMutability": "nonpayable",
             "type": "function"
         },
         {
@@ -1137,6 +1291,19 @@
                 }
             ],
             "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "newIdentityRegistryBridger",
+                    "type": "address"
+                }
+            ],
+            "name": "setIdentityRegistryBridger",
+            "outputs": [],
+            "stateMutability": "nonpayable",
             "type": "function"
         },
         {

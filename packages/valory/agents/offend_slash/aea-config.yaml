@@ -17,7 +17,7 @@ connections:
 - valory/ledger:0.19.0:bafybeid5uwx4uqxkiibw6kazr7my5mk5kcqg2dx2owtcf7kcpbs2jrns2e
 - valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeico3uzjdwumf2jg2e627ut4rwzwmedjavenw6e2hshi2m6yw642bq
+- valory/gnosis_safe:0.1.0:bafybeihj5dgheutnbci3lu4zbh3yp56pcvts5nrhqlka3sptmomfeksmfa
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeibp5vuocmwxl4jvw4sp3vmybsklvhnxhv3ohi5fi6ta5owqxig3im
 - valory/service_registry:0.1.0:bafybeifc4gpaz6vlpgvghsm64tkbukt744rpeoqpxijglxrv46gb7sbda4
 protocols:
@@ -33,11 +33,11 @@ skills:
 - valory/abstract_abci:0.1.0:bafybeia36n7ci7b6pi2bpa4r4ty6dcb3r4vs46vjftolsdxfl4y5iieyyy
 - valory/abstract_round_abci:0.1.0:bafybeiaalla55aprhvoumv4u7qt4v6l53fjmgln6wgyjr5e5tw7u4kscja
 - valory/offend_abci:0.1.0:bafybeid4u3hpxfy4wsdxdmfj45dknsjbhuceu7ha76565cg64mnvnboioq
-- valory/offend_slash_abci:0.1.0:bafybeigr6pvygnvuqr42dasiemkecaaa3qudfbdkxa2ps27vkbqzf53gma
+- valory/offend_slash_abci:0.1.0:bafybeigu4gwasl5vivobpqzhn4stbymees6qyq5cxxg5qu7a2z342bgxli
 - valory/registration_abci:0.1.0:bafybeiayry7tzttlivibbfnwikilbgdl54g3btvc4uhl4x5qqdv6a673o4
 - valory/reset_pause_abci:0.1.0:bafybeibsdhil35py7zjhielonaycxo7gp34jfufe2ynprjv2etwxnzcxqy
-- valory/slashing_abci:0.1.0:bafybeiamucgwgotykgjxv5b6heddjea5diojenkefxm3ydyfsrncqv4us4
-- valory/transaction_settlement_abci:0.1.0:bafybeigspkourznaiagdkedyxjbjl6svhuhdwbvejr3jv3e3dil2hslose
+- valory/slashing_abci:0.1.0:bafybeibraufpnmyayrumrtltidyqq6dfcnjzk55v54gsbcuiketdlkyigm
+- valory/transaction_settlement_abci:0.1.0:bafybeibuyr76rns4rtqakmpvnzfs2cdc2ipf6hib7lpzrfpanecsqro2hq
 default_ledger: ethereum
 required_ledgers:
 - ethereum
