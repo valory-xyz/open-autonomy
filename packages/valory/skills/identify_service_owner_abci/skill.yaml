@@ -30,9 +30,9 @@ contracts:
 - valory/service_registry:0.1.0:bafybeidiiagh6373ko64z5etk73qgqgfquqqq3av3vsehzpqnhwau5ldja
 - valory/staking_token:0.1.0:bafybeihvkbybplfipbnttsyakbbkaw4sy3uoieahpnnhnxxzrpx26ya6zu
 protocols:
-- valory/contract_api:1.0.0:bafybeigl7mxuyxngk4gztgygeccbgdfrllx73kwbvvkjvtkfw6ionyd56q
+- valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifimy2vj6d73bt5osn7jebho73q6yc7ojcwbktaegvegcztpddesy
+- valory/abstract_round_abci:0.1.0:bafybeigzfvbwdm7b3y7s6ft7rwdqmzrafltz7imvczcptfgwah7lfsyupe
 behaviours:
   main:
     args: {}
