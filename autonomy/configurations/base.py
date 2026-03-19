@@ -148,7 +148,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
     def overrides(self, obj: List) -> None:
         """Set overrides."""
 
-        self.check_overrides_valid(obj)
+        self.check_overrides_valid(obj, env_vars_friendly=True)
         self._overrides = obj
 
     @property
