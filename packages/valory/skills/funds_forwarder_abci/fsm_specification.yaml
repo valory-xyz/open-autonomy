@@ -1,0 +1,21 @@
+alphabet_in:
+- DONE
+- NONE
+- NO_MAJORITY
+- ROUND_TIMEOUT
+default_start_state: FundsForwarderRound
+final_states:
+- FinishedFundsForwarderNoTxRound
+- FinishedFundsForwarderWithTxRound
+label: FundsForwarderAbciApp
+start_states:
+- FundsForwarderRound
+states:
+- FinishedFundsForwarderNoTxRound
+- FinishedFundsForwarderWithTxRound
+- FundsForwarderRound
+transition_func:
+    (FundsForwarderRound, DONE): FinishedFundsForwarderWithTxRound
+    (FundsForwarderRound, NONE): FinishedFundsForwarderNoTxRound
+    (FundsForwarderRound, NO_MAJORITY): FundsForwarderRound
+    (FundsForwarderRound, ROUND_TIMEOUT): FundsForwarderRound
