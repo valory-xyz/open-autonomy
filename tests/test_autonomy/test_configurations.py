@@ -177,6 +177,9 @@ class TestServiceConfig:
         service = load_service_config(self.t)
         assert len(service.overrides) == 1
 
+        connection_override = service.overrides[0]
+        assert connection_override["is_abstract"] == "${DISABLE_CONNECTION:bool:true}"
+
     def teardown_method(
         self,
     ) -> None:
