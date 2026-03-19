@@ -76,6 +76,8 @@ class TestTermination(  # pylint: disable=too-few-public-methods
     agent_package = TARGET_AGENT
     skill_package = TARGET_SKILL
     wait_to_finish = TIME_TO_FINISH
+    HEALTH_CHECK_MAX_RETRIES = 40
+    HEALTH_CHECK_SLEEP_INTERVAL = 3.0
     strict_check_strings = (
         REGISTRATION_CHECK_STRINGS
         + TERMINATION_STRINGS
