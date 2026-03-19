@@ -166,6 +166,17 @@ class TestServiceConfig:
         service = load_service_config(self.t, substitute_env_vars=True)
         assert service.number_of_agents == 1
 
+    def test_overrides_accept_env_var_placeholders_in_typed_fields(
+        self,
+    ) -> None:
+        """Test that overrides with env var placeholders in non-string fields are accepted."""
+
+        dummy_service = get_dummy_service_config(file_number=5)
+        self._write_service(dummy_service)
+
+        service = load_service_config(self.t)
+        assert len(service.overrides) == 1
+
     def teardown_method(
         self,
     ) -> None:
