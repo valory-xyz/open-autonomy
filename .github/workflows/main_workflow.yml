@@ -29,6 +29,9 @@ jobs:
     - if: matrix.os != 'windows-latest'
       name: Pipenv install requirements and check it can be locked
       run: |
+        if [[ "$RUNNER_OS" == "macOS" ]]; then
+          export SDKROOT=$(xcrun --show-sdk-path)
+        fi
         pip install pipenv==2026.0.3
         pipenv --clear
         time pipenv install --verbose --dev --skip-lock
@@ -266,6 +269,10 @@ jobs:
         name: Packages unit tests ubuntu-latest
         run: |
           tox -e packages-py${{ matrix.python-version }}-linux -- -m 'not e2e'
+
+      - if: matrix.os == 'macos-latest-large'
+        name: Set macOS SDK root
+        run: echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
 
       - if: matrix.os == 'macos-latest-large'
         name: Install dependencies (macos-latest-large)
