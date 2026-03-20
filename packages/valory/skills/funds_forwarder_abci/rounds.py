@@ -20,7 +20,7 @@
 """This module contains the rounds of the FundsForwarderAbciApp."""
 
 from enum import Enum
-from typing import Dict, FrozenSet, Set, Tuple, Type, cast
+from typing import Dict, FrozenSet, Set, Tuple, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -112,7 +112,7 @@ class FundsForwarderAbciApp(AbciApp[Event]):
         round timeout: 30.0
     """
 
-    initial_round_cls: Type[AppState] = FundsForwarderRound
+    initial_round_cls: AppState = FundsForwarderRound
     initial_states: Set[AppState] = {FundsForwarderRound}
     transition_function: AbciAppTransitionFunction = {
         FundsForwarderRound: {

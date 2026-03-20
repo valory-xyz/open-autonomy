@@ -20,7 +20,7 @@
 """This module contains the rounds of the IdentifyServiceOwnerAbciApp."""
 
 from enum import Enum
-from typing import Dict, FrozenSet, Set, Type, cast
+from typing import Dict, FrozenSet, Set, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -99,7 +99,7 @@ class IdentifyServiceOwnerAbciApp(AbciApp[Event]):
         round timeout: 30.0
     """
 
-    initial_round_cls: Type[AppState] = IdentifyServiceOwnerRound
+    initial_round_cls: AppState = IdentifyServiceOwnerRound
     initial_states: Set[AppState] = {IdentifyServiceOwnerRound}
     transition_function: AbciAppTransitionFunction = {
         IdentifyServiceOwnerRound: {
