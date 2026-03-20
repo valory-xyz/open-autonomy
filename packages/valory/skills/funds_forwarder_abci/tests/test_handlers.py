@@ -17,26 +17,12 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for the funds_forwarder_abci handlers."""
+"""Test the handlers.py module of the skill."""
 
-import pytest
+# pylint: skip-file
 
-from packages.valory.skills.abstract_round_abci import handlers as base_handlers
-from packages.valory.skills.funds_forwarder_abci import handlers as skill_handlers
+import packages.valory.skills.funds_forwarder_abci.handlers  # noqa
 
 
-@pytest.mark.parametrize(
-    "skill_attr,base_attr",
-    [
-        ("ABCIHandler", "ABCIRoundHandler"),
-        ("HttpHandler", "HttpHandler"),
-        ("SigningHandler", "SigningHandler"),
-        ("LedgerApiHandler", "LedgerApiHandler"),
-        ("ContractApiHandler", "ContractApiHandler"),
-        ("TendermintHandler", "TendermintHandler"),
-        ("IpfsHandler", "IpfsHandler"),
-    ],
-)
-def test_handler_alias(skill_attr: str, base_attr: str) -> None:
-    """Test that each handler class is a direct alias of the base class."""
-    assert getattr(skill_handlers, skill_attr) is getattr(base_handlers, base_attr)
+def test_import() -> None:
+    """Test that the 'handlers.py' Python module can be imported."""

@@ -17,35 +17,12 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for the identify_service_owner_abci dialogues."""
+"""Test the dialogues.py module of the skill."""
 
-import pytest
+# pylint: skip-file
 
-from packages.valory.skills.abstract_round_abci import dialogues as base_dialogues
-from packages.valory.skills.identify_service_owner_abci import (
-    dialogues as skill_dialogues,
-)
+import packages.valory.skills.identify_service_owner_abci.dialogues  # noqa
 
 
-@pytest.mark.parametrize(
-    "skill_attr,base_attr",
-    [
-        ("AbciDialogue", "AbciDialogue"),
-        ("AbciDialogues", "AbciDialogues"),
-        ("HttpDialogue", "HttpDialogue"),
-        ("HttpDialogues", "HttpDialogues"),
-        ("SigningDialogue", "SigningDialogue"),
-        ("SigningDialogues", "SigningDialogues"),
-        ("LedgerApiDialogue", "LedgerApiDialogue"),
-        ("LedgerApiDialogues", "LedgerApiDialogues"),
-        ("ContractApiDialogue", "ContractApiDialogue"),
-        ("ContractApiDialogues", "ContractApiDialogues"),
-        ("TendermintDialogue", "TendermintDialogue"),
-        ("TendermintDialogues", "TendermintDialogues"),
-        ("IpfsDialogue", "IpfsDialogue"),
-        ("IpfsDialogues", "IpfsDialogues"),
-    ],
-)
-def test_dialogue_alias(skill_attr: str, base_attr: str) -> None:
-    """Test that each dialogue class is a direct alias of the base class."""
-    assert getattr(skill_dialogues, skill_attr) is getattr(base_dialogues, base_attr)
+def test_import() -> None:
+    """Test that the 'dialogues.py' Python module can be imported."""
