@@ -19,6 +19,8 @@
 
 """Tests for IdentifyServiceOwnerBehaviour."""
 
+# pylint: disable=protected-access,too-few-public-methods,attribute-defined-outside-init
+
 from typing import Any
 from unittest.mock import MagicMock, patch
 
@@ -43,7 +45,7 @@ SERVICE_ID = 42
 def _make_gen(return_value: Any) -> Any:
     """Create a no-yield generator returning the given value."""
 
-    def gen(*args: Any, **kwargs: Any) -> Any:
+    def gen(*_args: Any, **_kwargs: Any) -> Any:
         return return_value
         yield  # noqa: unreachable
 

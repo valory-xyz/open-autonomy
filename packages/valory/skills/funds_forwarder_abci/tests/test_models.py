@@ -19,6 +19,12 @@
 
 """Tests for the funds_forwarder_abci models."""
 
+# pylint: disable=protected-access,too-few-public-methods
+
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 from packages.valory.skills.abstract_round_abci.models import (
     BaseParams,
 )
@@ -65,15 +71,13 @@ class TestFundsForwarderParams:
 
     def test_init_parses_token_limits(self) -> None:
         """Test that __init__ parses token limits."""
-        from unittest.mock import MagicMock, patch
-
         token_limits = {"0xToken": {"retain_balance": 100, "max_transfer": 50}}
         mock_self = MagicMock(spec=FundsForwarderParams)
         mock_self._ensure = MagicMock(
             side_effect=lambda key, kwargs, type_=None: kwargs.pop(key)
         )
-        mock_self._validate_token_limits = (
-            FundsForwarderParams._validate_token_limits.__get__(mock_self)
+        mock_self._validate_token_limits = FundsForwarderParams._validate_token_limits.__get__(  # pylint: disable=assignment-from-no-return,no-value-for-parameter
+            mock_self
         )
         kwargs = {
             "expected_service_owner_address": "0xOwner",
@@ -85,10 +89,6 @@ class TestFundsForwarderParams:
 
     def test_min_transfer_greater_than_max_transfer_raises(self) -> None:
         """Test that min_transfer > max_transfer raises ValueError."""
-        from unittest.mock import MagicMock, patch
-
-        import pytest
-
         bad_limits = {
             "0xToken": {
                 "retain_balance": 100,
@@ -100,8 +100,8 @@ class TestFundsForwarderParams:
         mock_self._ensure = MagicMock(
             side_effect=lambda key, kwargs, type_=None: kwargs.pop(key)
         )
-        mock_self._validate_token_limits = (
-            FundsForwarderParams._validate_token_limits.__get__(mock_self)
+        mock_self._validate_token_limits = FundsForwarderParams._validate_token_limits.__get__(  # pylint: disable=assignment-from-no-return,no-value-for-parameter
+            mock_self
         )
         kwargs = {
             "expected_service_owner_address": "0xOwner",

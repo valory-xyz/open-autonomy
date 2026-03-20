@@ -19,7 +19,9 @@
 
 """Tests for FundsForwarderBehaviour."""
 
-from typing import Any
+# pylint: disable=protected-access,too-few-public-methods
+
+from typing import Any, List
 from unittest.mock import MagicMock, patch
 
 from packages.valory.protocols.contract_api import ContractApiMessage
@@ -44,7 +46,7 @@ TOKEN_ADDRESS = "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d"  # nosec B105
 def _make_gen(return_value: Any) -> Any:
     """Create a no-yield generator returning the given value."""
 
-    def gen(*args: Any, **kwargs: Any) -> Any:
+    def gen(*_args: Any, **_kwargs: Any) -> Any:
         return return_value
         yield  # noqa: unreachable
 
@@ -52,12 +54,14 @@ def _make_gen(return_value: Any) -> Any:
 
 
 def _exhaust_gen(gen: Any) -> Any:
-    """Exhaust a generator and return its value."""
+    """Exhaust a generator and return its StopIteration value."""
+    result = None
     try:
         while True:
             next(gen)
-    except StopIteration as e:
-        return e.value
+    except StopIteration as exc:
+        result = exc.value
+    return result
 
 
 def _make_behaviour(
@@ -326,7 +330,7 @@ class TestFundsForwarderBehaviour:
             new_callable=_sync_data_mock(),
         ), patch.object(b, "_get_native_balance", new=_make_gen(3 * 10**18)):
             gen = b._build_transfer_txs(OWNER_ADDRESS)
-            result = _exhaust_gen(gen)
+            result: List = _exhaust_gen(gen)
         assert len(result) == 1
         assert result[0]["to"] == OWNER_ADDRESS
         assert result[0]["value"] == 5 * 10**17  # min(max_transfer, excess)
@@ -349,7 +353,7 @@ class TestFundsForwarderBehaviour:
             b, "_build_erc20_transfer", new=_make_gen(b"\x01\x02")
         ):
             gen = b._build_transfer_txs(OWNER_ADDRESS)
-            result = _exhaust_gen(gen)
+            result: List = _exhaust_gen(gen)
         assert len(result) == 1
         assert result[0]["to"] == TOKEN_ADDRESS
         assert result[0]["value"] == ETHER_VALUE

@@ -170,7 +170,9 @@ class FundsForwarderBehaviour(FundsForwarderBaseBehaviour):
             yield from self.wait_until_round_end()
         self.set_done()
 
-    def _get_tx_hash(self) -> Generator[None, None, Optional[str]]:
+    def _get_tx_hash(  # pylint: disable=too-many-return-statements
+        self,
+    ) -> Generator[None, None, Optional[str]]:
         """Get the transaction hash for funds forwarding."""
         # Step 1: Validate service owner
         service_owner = self.synchronized_data.service_owner

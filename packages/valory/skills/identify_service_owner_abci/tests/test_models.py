@@ -19,6 +19,11 @@
 
 """Tests for the identify_service_owner_abci models."""
 
+# pylint: disable=too-few-public-methods
+
+from packages.valory.skills.abstract_round_abci.models import (
+    BaseParams,
+)
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
@@ -59,6 +64,4 @@ class TestIdentifyServiceOwnerParams:
 
     def test_is_subclass(self) -> None:
         """Test it is a subclass of BaseParams."""
-        from packages.valory.skills.abstract_round_abci.models import BaseParams
-
         assert issubclass(IdentifyServiceOwnerParams, BaseParams)

@@ -19,6 +19,8 @@
 
 """Tests for the IdentifyServiceOwnerAbciApp FSM."""
 
+# pylint: disable=redefined-outer-name,too-few-public-methods
+
 from unittest.mock import MagicMock
 
 import pytest
