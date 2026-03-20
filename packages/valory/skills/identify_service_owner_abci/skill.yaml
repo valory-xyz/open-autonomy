@@ -2,13 +2,12 @@ name: identify_service_owner_abci
 author: valory
 version: 0.1.0
 type: skill
-description: A reusable skill that resolves the real service owner, handling staking
-  contract indirection. When a service is staked, the registry owner is the staking
-  contract; this skill reads the original owner from the staking contract.
+description: A skill that resolves the real service owner, handling staking contract
+  indirection.
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeiamnqg6vkxbtwvxzvjs7hsj7nchducm7jkph7ad5awtpdth5z2ok4
+  README.md: bafybeiemsgnnz2uxrfmq3bnxnbbqujx62otwh7dj63h42dih4y3l5yvv54
   __init__.py: bafybeifzj5vb6xopmwug4aetixasmykfm2tek3ahsqxbe6qrxswxdgxoza
   behaviours.py: bafybeiewhmc7v7osf6qvp3xvqflaopokpwb54ojjsq75owpctyjysjzopi
   dialogues.py: bafybeib2jbaaoasdqak3j6w3fxvetum2rtvikazjr62meab3hzibjhasau

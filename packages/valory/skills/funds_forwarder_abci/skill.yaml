@@ -2,13 +2,12 @@ name: funds_forwarder_abci
 author: valory
 version: 0.1.0
 type: skill
-description: A reusable skill that sweeps excess token balances from the service safe
-  to the resolved service owner. Supports native tokens and ERC20 tokens with configurable
-  retention thresholds and max transfer amounts.
+description: A skill that sweeps excess token balances from the service safe to the
+  resolved service owner.
 license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeig6bd6xzlld6ngzvbqxijxvm4d7pqcmdkai774qi3okkof7va4vbu
+  README.md: bafybeibjidsr7e4hcdo3gxaz6a7z6ybcf427jb5x2tez3pr2tyirizzdcy
   __init__.py: bafybeiebvj5ccuw4fw2cx2lo4ztyxnl3trun72fmgg56uudimxd3iuyrcu
   behaviours.py: bafybeicjmnl4z5gyiezpvy5vj2fpmvrh73gvedqbl7f2vhbgzvftyhkhs4
   dialogues.py: bafybeigkezilmzhhr4wmgixm5rfxvpfqpyqdbfupr6eny7ped5poxi7lya

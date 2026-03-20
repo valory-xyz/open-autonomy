@@ -2,7 +2,7 @@
 
 ## Description
 
-Resolves the real service owner from the on-chain service registry, handling staking contract indirection. When a service is staked, `ServiceRegistry.ownerOf()` returns the staking contract address instead of the real owner. This skill detects that case and reads the original owner from `StakingContract.getServiceInfo()`.
+A skill that resolves the real service owner, handling staking contract indirection. When a service is staked, `ServiceRegistry.ownerOf()` returns the staking contract address instead of the real owner. This skill detects that case and reads the original owner from `StakingContract.getServiceInfo()`.
 
 The resolved owner is stored in `SynchronizedData.service_owner` for use by downstream skills.
 

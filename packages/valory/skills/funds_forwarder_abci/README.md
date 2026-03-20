@@ -2,7 +2,7 @@
 
 ## Description
 
-Transfers excess token balances from the service safe to the resolved service owner. Supports both native tokens and ERC20 tokens with per-token configurable thresholds. Designed to run after `identify_service_owner_abci`.
+A skill that sweeps excess token balances from the service safe to the resolved service owner. Supports both native tokens and ERC20 tokens with per-token configurable thresholds. Designed to run after `identify_service_owner_abci`.
 
 ## Parameters
 
