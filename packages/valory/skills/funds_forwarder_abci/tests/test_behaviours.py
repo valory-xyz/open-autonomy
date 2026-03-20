@@ -72,7 +72,7 @@ def _make_behaviour(
     context_mock.benchmark_tool = MagicMock()
     context_mock.agent_address = AGENT_ADDRESS
     context_mock.params.expected_service_owner_address = expected_owner
-    context_mock.params.funds_forwarder_token_limits = (
+    context_mock.params.funds_forwarder_token_config = (
         token_limits if token_limits is not None else {}
     )
     context_mock.params.multisend_address = "0xMultisend"
@@ -152,7 +152,7 @@ class TestFundsForwarderBehaviour:
         """Test _get_tx_hash when no token exceeds threshold."""
         b = _make_behaviour(
             token_limits={
-                TOKEN_ADDRESS: {"retain": 10**18, "max_transfer": 10**17}
+                TOKEN_ADDRESS: {"retain_balance": 10**18, "max_transfer": 10**17}
             }
         )
         with patch.object(
@@ -170,7 +170,7 @@ class TestFundsForwarderBehaviour:
         """Test _get_tx_hash with a single transfer."""
         b = _make_behaviour(
             token_limits={
-                TOKEN_ADDRESS: {"retain": 10**18, "max_transfer": 10**17}
+                TOKEN_ADDRESS: {"retain_balance": 10**18, "max_transfer": 10**17}
             }
         )
         tx = {"to": OWNER_ADDRESS, "value": 10**17, "data": b"\x01"}
@@ -194,7 +194,7 @@ class TestFundsForwarderBehaviour:
         """Test _get_tx_hash when safe tx hash fails for single tx."""
         b = _make_behaviour(
             token_limits={
-                TOKEN_ADDRESS: {"retain": 10**18, "max_transfer": 10**17}
+                TOKEN_ADDRESS: {"retain_balance": 10**18, "max_transfer": 10**17}
             }
         )
         tx = {"to": OWNER_ADDRESS, "value": 10**17, "data": b"\x01"}
@@ -215,8 +215,8 @@ class TestFundsForwarderBehaviour:
         """Test _get_tx_hash with multiple transfers."""
         b = _make_behaviour(
             token_limits={
-                ZERO_ADDRESS: {"retain": 10**18, "max_transfer": 10**17},
-                TOKEN_ADDRESS: {"retain": 10**18, "max_transfer": 10**17},
+                ZERO_ADDRESS: {"retain_balance": 10**18, "max_transfer": 10**17},
+                TOKEN_ADDRESS: {"retain_balance": 10**18, "max_transfer": 10**17},
             }
         )
         txs = [
@@ -337,7 +337,7 @@ class TestFundsForwarderBehaviour:
         """Test _build_transfer_txs with native token above threshold."""
         b = _make_behaviour(
             token_limits={
-                ZERO_ADDRESS: {"retain": 10**18, "max_transfer": 5 * 10**17}
+                ZERO_ADDRESS: {"retain_balance": 10**18, "max_transfer": 5 * 10**17}
             }
         )
         with patch.object(
@@ -358,7 +358,7 @@ class TestFundsForwarderBehaviour:
         """Test _build_transfer_txs with ERC20 above threshold."""
         b = _make_behaviour(
             token_limits={
-                TOKEN_ADDRESS: {"retain": 10**18, "max_transfer": 5 * 10**17}
+                TOKEN_ADDRESS: {"retain_balance": 10**18, "max_transfer": 5 * 10**17}
             }
         )
         with patch.object(
@@ -381,7 +381,7 @@ class TestFundsForwarderBehaviour:
         """Test _build_transfer_txs when balance is below retain."""
         b = _make_behaviour(
             token_limits={
-                TOKEN_ADDRESS: {"retain": 10**18, "max_transfer": 5 * 10**17}
+                TOKEN_ADDRESS: {"retain_balance": 10**18, "max_transfer": 5 * 10**17}
             }
         )
         with patch.object(
@@ -399,7 +399,7 @@ class TestFundsForwarderBehaviour:
         """Test _build_transfer_txs when balance check fails."""
         b = _make_behaviour(
             token_limits={
-                TOKEN_ADDRESS: {"retain": 10**18, "max_transfer": 5 * 10**17}
+                TOKEN_ADDRESS: {"retain_balance": 10**18, "max_transfer": 5 * 10**17}
             }
         )
         with patch.object(
@@ -417,7 +417,7 @@ class TestFundsForwarderBehaviour:
         """Test _build_transfer_txs when ERC20 transfer build fails."""
         b = _make_behaviour(
             token_limits={
-                TOKEN_ADDRESS: {"retain": 10**18, "max_transfer": 5 * 10**17}
+                TOKEN_ADDRESS: {"retain_balance": 10**18, "max_transfer": 5 * 10**17}
             }
         )
         with patch.object(

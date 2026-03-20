@@ -25,8 +25,8 @@ from typing import Generator, Optional, Set, Type, cast
 from packages.valory.contracts.service_registry.contract import (
     ServiceRegistryContract,
 )
-from packages.valory.contracts.staking_token.contract import (
-    StakingTokenContract,
+from packages.valory.contracts.service_staking_token.contract import (
+    ServiceStakingTokenContract,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
@@ -198,7 +198,7 @@ class IdentifyServiceOwnerBehaviour(IdentifyServiceOwnerBaseBehaviour):
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=staking_address,
-            contract_id=str(StakingTokenContract.contract_id),
+            contract_id=str(ServiceStakingTokenContract.contract_id),
             contract_callable="get_service_info",
             service_id=service_id,
         )

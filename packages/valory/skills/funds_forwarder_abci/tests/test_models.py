@@ -62,23 +62,51 @@ class TestFundsForwarderParams:
         assert issubclass(FundsForwarderParams, BaseParams)
 
     def test_init_parses_token_limits(self) -> None:
-        """Test that __init__ parses token limits from JSON string."""
+        """Test that __init__ parses token limits."""
         from unittest.mock import MagicMock, patch
 
-        token_limits_json = '{"0xToken": {"retain": 100, "max_transfer": 50}}'
+        token_limits = {"0xToken": {"retain_balance": 100, "max_transfer": 50}}
         mock_self = MagicMock(spec=FundsForwarderParams)
         mock_self._ensure = MagicMock(
             side_effect=lambda key, kwargs, type_=None: kwargs.pop(key)
         )
+        mock_self._validate_token_limits = (
+            FundsForwarderParams._validate_token_limits.__get__(mock_self)
+        )
         kwargs = {
             "expected_service_owner_address": "0xOwner",
-            "funds_forwarder_token_limits": token_limits_json,
+            "funds_forwarder_token_config": token_limits,
         }
         with patch.object(BaseParams, "__init__", return_value=None):
             FundsForwarderParams.__init__(mock_self, **kwargs)
-        assert mock_self.funds_forwarder_token_limits == {
-            "0xToken": {"retain": 100, "max_transfer": 50}
+        assert mock_self.funds_forwarder_token_config == token_limits
+
+    def test_min_transfer_greater_than_max_transfer_raises(self) -> None:
+        """Test that min_transfer > max_transfer raises ValueError."""
+        import pytest
+        from unittest.mock import MagicMock, patch
+
+        bad_limits = {
+            "0xToken": {
+                "retain_balance": 100,
+                "min_transfer": 200,
+                "max_transfer": 50,
+            }
         }
+        mock_self = MagicMock(spec=FundsForwarderParams)
+        mock_self._ensure = MagicMock(
+            side_effect=lambda key, kwargs, type_=None: kwargs.pop(key)
+        )
+        mock_self._validate_token_limits = (
+            FundsForwarderParams._validate_token_limits.__get__(mock_self)
+        )
+        kwargs = {
+            "expected_service_owner_address": "0xOwner",
+            "funds_forwarder_token_config": bad_limits,
+        }
+        with pytest.raises(ValueError, match="min_transfer.*> max_transfer"):
+            with patch.object(BaseParams, "__init__", return_value=None):
+                FundsForwarderParams.__init__(mock_self, **kwargs)
 
 
 class TestZeroAddress:
