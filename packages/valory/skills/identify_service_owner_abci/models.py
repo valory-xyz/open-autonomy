@@ -43,12 +43,7 @@ class SharedState(BaseSharedState):
     abci_app_cls: Type[AbciApp] = IdentifyServiceOwnerAbciApp
 
 
-class IdentifyServiceOwnerParams(BaseParams):
-    """Parameters for the identify_service_owner_abci skill.
-
-    Note: on_chain_service_id and service_registry_address are inherited
-    from BaseParams as Optional fields.
-    """
+IdentifyServiceOwnerParams = BaseParams
 
 
 Requests = BaseRequests

@@ -19,131 +19,33 @@
 
 """Tests for the identify_service_owner_abci dialogues."""
 
-from packages.valory.skills.abstract_round_abci.dialogues import (
-    AbciDialogue as BaseAbciDialogue,
-)
-from packages.valory.skills.abstract_round_abci.dialogues import (
-    AbciDialogues as BaseAbciDialogues,
-)
-from packages.valory.skills.abstract_round_abci.dialogues import (
-    ContractApiDialogue as BaseContractApiDialogue,
-)
-from packages.valory.skills.abstract_round_abci.dialogues import (
-    ContractApiDialogues as BaseContractApiDialogues,
-)
-from packages.valory.skills.abstract_round_abci.dialogues import (
-    HttpDialogue as BaseHttpDialogue,
-)
-from packages.valory.skills.abstract_round_abci.dialogues import (
-    HttpDialogues as BaseHttpDialogues,
-)
-from packages.valory.skills.abstract_round_abci.dialogues import (
-    IpfsDialogue as BaseIpfsDialogue,
-)
-from packages.valory.skills.abstract_round_abci.dialogues import (
-    IpfsDialogues as BaseIpfsDialogues,
-)
-from packages.valory.skills.abstract_round_abci.dialogues import (
-    LedgerApiDialogue as BaseLedgerApiDialogue,
-)
-from packages.valory.skills.abstract_round_abci.dialogues import (
-    LedgerApiDialogues as BaseLedgerApiDialogues,
-)
-from packages.valory.skills.abstract_round_abci.dialogues import (
-    SigningDialogue as BaseSigningDialogue,
-)
-from packages.valory.skills.abstract_round_abci.dialogues import (
-    SigningDialogues as BaseSigningDialogues,
-)
-from packages.valory.skills.abstract_round_abci.dialogues import (
-    TendermintDialogue as BaseTendermintDialogue,
-)
-from packages.valory.skills.abstract_round_abci.dialogues import (
-    TendermintDialogues as BaseTendermintDialogues,
-)
-from packages.valory.skills.identify_service_owner_abci.dialogues import (
-    AbciDialogue,
-    AbciDialogues,
-    ContractApiDialogue,
-    ContractApiDialogues,
-    HttpDialogue,
-    HttpDialogues,
-    IpfsDialogue,
-    IpfsDialogues,
-    LedgerApiDialogue,
-    LedgerApiDialogues,
-    SigningDialogue,
-    SigningDialogues,
-    TendermintDialogue,
-    TendermintDialogues,
+import pytest
+
+from packages.valory.skills.abstract_round_abci import dialogues as base_dialogues
+from packages.valory.skills.identify_service_owner_abci import (
+    dialogues as skill_dialogues,
 )
 
 
-def test_abci_dialogue_alias() -> None:
-    """Test AbciDialogue alias."""
-    assert AbciDialogue is BaseAbciDialogue
-
-
-def test_abci_dialogues_alias() -> None:
-    """Test AbciDialogues alias."""
-    assert AbciDialogues is BaseAbciDialogues
-
-
-def test_http_dialogue_alias() -> None:
-    """Test HttpDialogue alias."""
-    assert HttpDialogue is BaseHttpDialogue
-
-
-def test_http_dialogues_alias() -> None:
-    """Test HttpDialogues alias."""
-    assert HttpDialogues is BaseHttpDialogues
-
-
-def test_signing_dialogue_alias() -> None:
-    """Test SigningDialogue alias."""
-    assert SigningDialogue is BaseSigningDialogue
-
-
-def test_signing_dialogues_alias() -> None:
-    """Test SigningDialogues alias."""
-    assert SigningDialogues is BaseSigningDialogues
-
-
-def test_ledger_api_dialogue_alias() -> None:
-    """Test LedgerApiDialogue alias."""
-    assert LedgerApiDialogue is BaseLedgerApiDialogue
-
-
-def test_ledger_api_dialogues_alias() -> None:
-    """Test LedgerApiDialogues alias."""
-    assert LedgerApiDialogues is BaseLedgerApiDialogues
-
-
-def test_contract_api_dialogue_alias() -> None:
-    """Test ContractApiDialogue alias."""
-    assert ContractApiDialogue is BaseContractApiDialogue
-
-
-def test_contract_api_dialogues_alias() -> None:
-    """Test ContractApiDialogues alias."""
-    assert ContractApiDialogues is BaseContractApiDialogues
-
-
-def test_tendermint_dialogue_alias() -> None:
-    """Test TendermintDialogue alias."""
-    assert TendermintDialogue is BaseTendermintDialogue
-
-
-def test_tendermint_dialogues_alias() -> None:
-    """Test TendermintDialogues alias."""
-    assert TendermintDialogues is BaseTendermintDialogues
-
-
-def test_ipfs_dialogue_alias() -> None:
-    """Test IpfsDialogue alias."""
-    assert IpfsDialogue is BaseIpfsDialogue
-
-
-def test_ipfs_dialogues_alias() -> None:
-    """Test IpfsDialogues alias."""
-    assert IpfsDialogues is BaseIpfsDialogues
+@pytest.mark.parametrize(
+    "skill_attr,base_attr",
+    [
+        ("AbciDialogue", "AbciDialogue"),
+        ("AbciDialogues", "AbciDialogues"),
+        ("HttpDialogue", "HttpDialogue"),
+        ("HttpDialogues", "HttpDialogues"),
+        ("SigningDialogue", "SigningDialogue"),
+        ("SigningDialogues", "SigningDialogues"),
+        ("LedgerApiDialogue", "LedgerApiDialogue"),
+        ("LedgerApiDialogues", "LedgerApiDialogues"),
+        ("ContractApiDialogue", "ContractApiDialogue"),
+        ("ContractApiDialogues", "ContractApiDialogues"),
+        ("TendermintDialogue", "TendermintDialogue"),
+        ("TendermintDialogues", "TendermintDialogues"),
+        ("IpfsDialogue", "IpfsDialogue"),
+        ("IpfsDialogues", "IpfsDialogues"),
+    ],
+)
+def test_dialogue_alias(skill_attr: str, base_attr: str) -> None:
+    """Test that each dialogue class is a direct alias of the base class."""
+    assert getattr(skill_dialogues, skill_attr) is getattr(base_dialogues, base_attr)

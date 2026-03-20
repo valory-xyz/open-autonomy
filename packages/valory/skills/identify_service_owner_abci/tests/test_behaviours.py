@@ -21,8 +21,10 @@
 
 # pylint: disable=protected-access,too-few-public-methods,attribute-defined-outside-init
 
-from typing import Any
+from typing import Any, Optional
 from unittest.mock import MagicMock, PropertyMock, patch
+
+import pytest
 
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
@@ -86,16 +88,19 @@ class TestIdentifyServiceOwnerBehaviour:
         """Test matching_round is correctly set."""
         assert self.behaviour.matching_round == IdentifyServiceOwnerRound
 
-    def test_resolve_not_configured(self) -> None:
-        """Test _resolve_service_owner when service_id is None."""
-        self.behaviour.context.params.on_chain_service_id = None
-        gen = self.behaviour._resolve_service_owner()
-        result = _exhaust_gen(gen)
-        assert result is None
-
-    def test_resolve_registry_address_none(self) -> None:
-        """Test _resolve_service_owner when registry_address is None."""
-        self.behaviour.context.params.service_registry_address = None
+    @pytest.mark.parametrize(
+        "service_id,registry_address",
+        [
+            (None, REGISTRY_ADDRESS),
+            (SERVICE_ID, None),
+        ],
+    )
+    def test_resolve_not_configured(
+        self, service_id: Any, registry_address: Any
+    ) -> None:
+        """Test _resolve_service_owner when service_id or registry is None."""
+        self.behaviour.context.params.on_chain_service_id = service_id
+        self.behaviour.context.params.service_registry_address = registry_address
         gen = self.behaviour._resolve_service_owner()
         result = _exhaust_gen(gen)
         assert result is None
@@ -122,8 +127,18 @@ class TestIdentifyServiceOwnerBehaviour:
             result = _exhaust_gen(gen)
         assert result is None
 
-    def test_resolve_staked_service(self) -> None:
-        """Test _resolve_service_owner for a staked service."""
+    @pytest.mark.parametrize(
+        "staking_result,expected",
+        [
+            (OWNER_ADDRESS, OWNER_ADDRESS),
+            (None, OWNER_ADDRESS),
+        ],
+    )
+    def test_resolve_service_owner(
+        self, staking_result: Optional[str], expected: str
+    ) -> None:
+        """Test _resolve_service_owner for staked and non-staked services."""
+        registry_owner = STAKING_ADDRESS if staking_result else OWNER_ADDRESS
         with patch.object(
             self.behaviour,
             "_verify_agent_registration",
@@ -131,178 +146,132 @@ class TestIdentifyServiceOwnerBehaviour:
         ), patch.object(
             self.behaviour,
             "_get_registry_owner",
-            new=_make_gen(STAKING_ADDRESS),
+            new=_make_gen(registry_owner),
         ), patch.object(
             self.behaviour,
             "_get_owner_from_staking",
-            new=_make_gen(OWNER_ADDRESS),
+            new=_make_gen(staking_result),
         ):
             gen = self.behaviour._resolve_service_owner()
             result = _exhaust_gen(gen)
-        assert result == OWNER_ADDRESS
+        assert result == expected
 
-    def test_resolve_non_staked_service(self) -> None:
-        """Test _resolve_service_owner for a non-staked service."""
-        with patch.object(
-            self.behaviour,
-            "_verify_agent_registration",
-            new=_make_gen(True),
-        ), patch.object(
-            self.behaviour,
-            "_get_registry_owner",
-            new=_make_gen(OWNER_ADDRESS),
-        ), patch.object(
-            self.behaviour,
-            "_get_owner_from_staking",
-            new=_make_gen(None),
-        ):
-            gen = self.behaviour._resolve_service_owner()
-            result = _exhaust_gen(gen)
-        assert result == OWNER_ADDRESS
-
-    def test_verify_agent_registration_success(self) -> None:
-        """Test _verify_agent_registration when agent is registered."""
-        mock_response = MagicMock()
-        mock_response.performative = ContractApiMessage.Performative.STATE
-        mock_response.state.body = {
-            "agentInstances": [AGENT_ADDRESS],
-            "numAgentInstances": 1,
-        }
-
-        with patch.object(
-            self.behaviour,
-            "get_contract_api_response",
-            new=_make_gen(mock_response),
-        ):
-            gen = self.behaviour._verify_agent_registration(
-                SERVICE_ID, REGISTRY_ADDRESS
-            )
-            result = _exhaust_gen(gen)
-        assert result is True
-
-    def test_verify_agent_registration_not_registered(self) -> None:
-        """Test _verify_agent_registration when agent is not in the list."""
-        mock_response = MagicMock()
-        mock_response.performative = ContractApiMessage.Performative.STATE
-        mock_response.state.body = {
-            "agentInstances": ["0xOtherAgent"],
-            "numAgentInstances": 1,
-        }
-
-        with patch.object(
-            self.behaviour,
-            "get_contract_api_response",
-            new=_make_gen(mock_response),
-        ):
-            gen = self.behaviour._verify_agent_registration(
-                SERVICE_ID, REGISTRY_ADDRESS
-            )
-            result = _exhaust_gen(gen)
-        assert result is False
-
-    def test_verify_agent_registration_error(self) -> None:
-        """Test _verify_agent_registration when contract call fails."""
-        mock_response = MagicMock()
-        mock_response.performative = ContractApiMessage.Performative.ERROR
-
-        with patch.object(
-            self.behaviour,
-            "get_contract_api_response",
-            new=_make_gen(mock_response),
-        ):
-            gen = self.behaviour._verify_agent_registration(
-                SERVICE_ID, REGISTRY_ADDRESS
-            )
-            result = _exhaust_gen(gen)
-        assert result is False
-
-    def test_get_registry_owner_success(self) -> None:
-        """Test _get_registry_owner success."""
-        mock_response = MagicMock()
-        mock_response.performative = ContractApiMessage.Performative.STATE
-        mock_response.state.body = {"service_owner": OWNER_ADDRESS}
-
-        with patch.object(
-            self.behaviour,
-            "get_contract_api_response",
-            new=_make_gen(mock_response),
-        ):
-            gen = self.behaviour._get_registry_owner(SERVICE_ID, REGISTRY_ADDRESS)
-            result = _exhaust_gen(gen)
-        assert result == OWNER_ADDRESS
-
-    def test_get_registry_owner_error(self) -> None:
-        """Test _get_registry_owner when contract call fails."""
-        mock_response = MagicMock()
-        mock_response.performative = ContractApiMessage.Performative.ERROR
-
-        with patch.object(
-            self.behaviour,
-            "get_contract_api_response",
-            new=_make_gen(mock_response),
-        ):
-            gen = self.behaviour._get_registry_owner(SERVICE_ID, REGISTRY_ADDRESS)
-            result = _exhaust_gen(gen)
-        assert result is None
-
-    def test_get_owner_from_staking_success(self) -> None:
-        """Test _get_owner_from_staking when address is a staking contract."""
-        mock_response = MagicMock()
-        mock_response.performative = ContractApiMessage.Performative.STATE
-        mock_response.state.body = {"data": ["0xMultisig", OWNER_ADDRESS, [], 0, 0, 0]}
-
-        with patch.object(
-            self.behaviour,
-            "get_contract_api_response",
-            new=_make_gen(mock_response),
-        ):
-            gen = self.behaviour._get_owner_from_staking(STAKING_ADDRESS, SERVICE_ID)
-            result = _exhaust_gen(gen)
-        assert result == OWNER_ADDRESS
-
-    def test_get_owner_from_staking_not_staking(self) -> None:
-        """Test _get_owner_from_staking when address is not a staking contract."""
-        mock_response = MagicMock()
-        mock_response.performative = ContractApiMessage.Performative.ERROR
-
-        with patch.object(
-            self.behaviour,
-            "get_contract_api_response",
-            new=_make_gen(mock_response),
-        ):
-            gen = self.behaviour._get_owner_from_staking(OWNER_ADDRESS, SERVICE_ID)
-            result = _exhaust_gen(gen)
-        assert result is None
-
-    def test_async_act_with_owner(self) -> None:
-        """Test async_act when owner is resolved."""
-        with patch.object(
-            self.behaviour,
-            "_resolve_service_owner",
-            new=_make_gen(OWNER_ADDRESS),
-        ), patch.object(
-            type(self.behaviour),
-            "synchronized_data",
-            new_callable=lambda: property(
-                lambda self: MagicMock(safe_contract_address=SAFE_ADDRESS)
+    @pytest.mark.parametrize(
+        "performative,body,expected",
+        [
+            (
+                ContractApiMessage.Performative.STATE,
+                {
+                    "agentInstances": [AGENT_ADDRESS],
+                    "numAgentInstances": 1,
+                },
+                True,
             ),
-        ), patch.object(
-            self.behaviour, "send_a2a_transaction", new=_make_gen(None)
-        ), patch.object(
-            self.behaviour, "wait_until_round_end", new=_make_gen(None)
-        ), patch.object(
-            self.behaviour, "set_done"
-        ) as mock_set_done:
-            gen = self.behaviour.async_act()
-            _exhaust_gen(gen)
-            mock_set_done.assert_called_once()
+            (
+                ContractApiMessage.Performative.STATE,
+                {
+                    "agentInstances": ["0xOtherAgent"],
+                    "numAgentInstances": 1,
+                },
+                False,
+            ),
+            (ContractApiMessage.Performative.ERROR, None, False),
+        ],
+    )
+    def test_verify_agent_registration(
+        self, performative: Any, body: Any, expected: bool
+    ) -> None:
+        """Test _verify_agent_registration for success, not registered, and error."""
+        mock_response = MagicMock()
+        mock_response.performative = performative
+        if body is not None:
+            mock_response.state.body = body
 
-    def test_async_act_without_owner(self) -> None:
-        """Test async_act when owner resolution fails."""
+        with patch.object(
+            self.behaviour,
+            "get_contract_api_response",
+            new=_make_gen(mock_response),
+        ):
+            gen = self.behaviour._verify_agent_registration(
+                SERVICE_ID, REGISTRY_ADDRESS
+            )
+            result = _exhaust_gen(gen)
+        assert result is expected
+
+    @pytest.mark.parametrize(
+        "performative,body,expected",
+        [
+            (
+                ContractApiMessage.Performative.STATE,
+                {"service_owner": OWNER_ADDRESS},
+                OWNER_ADDRESS,
+            ),
+            (ContractApiMessage.Performative.ERROR, None, None),
+        ],
+    )
+    def test_get_registry_owner(
+        self, performative: Any, body: Any, expected: Any
+    ) -> None:
+        """Test _get_registry_owner for success and error cases."""
+        mock_response = MagicMock()
+        mock_response.performative = performative
+        if body is not None:
+            mock_response.state.body = body
+
+        with patch.object(
+            self.behaviour,
+            "get_contract_api_response",
+            new=_make_gen(mock_response),
+        ):
+            gen = self.behaviour._get_registry_owner(SERVICE_ID, REGISTRY_ADDRESS)
+            result = _exhaust_gen(gen)
+        assert result == expected
+
+    @pytest.mark.parametrize(
+        "performative,body,address,expected",
+        [
+            (
+                ContractApiMessage.Performative.STATE,
+                {"data": ["0xMultisig", OWNER_ADDRESS, [], 0, 0, 0]},
+                STAKING_ADDRESS,
+                OWNER_ADDRESS,
+            ),
+            (
+                ContractApiMessage.Performative.ERROR,
+                None,
+                OWNER_ADDRESS,
+                None,
+            ),
+        ],
+    )
+    def test_get_owner_from_staking(
+        self, performative: Any, body: Any, address: str, expected: Any
+    ) -> None:
+        """Test _get_owner_from_staking for staking and non-staking cases."""
+        mock_response = MagicMock()
+        mock_response.performative = performative
+        if body is not None:
+            mock_response.state.body = body
+
+        with patch.object(
+            self.behaviour,
+            "get_contract_api_response",
+            new=_make_gen(mock_response),
+        ):
+            gen = self.behaviour._get_owner_from_staking(address, SERVICE_ID)
+            result = _exhaust_gen(gen)
+        assert result == expected
+
+    @pytest.mark.parametrize(
+        "owner",
+        [OWNER_ADDRESS, None],
+    )
+    def test_async_act(self, owner: Optional[str]) -> None:
+        """Test async_act when owner is resolved or resolution fails."""
         with patch.object(
             self.behaviour,
             "_resolve_service_owner",
-            new=_make_gen(None),
+            new=_make_gen(owner),
         ), patch.object(
             type(self.behaviour),
             "synchronized_data",

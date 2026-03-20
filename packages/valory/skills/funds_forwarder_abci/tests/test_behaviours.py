@@ -21,8 +21,11 @@
 
 # pylint: disable=protected-access,too-few-public-methods
 
-from typing import Any, List
+from contextlib import ExitStack
+from typing import Any, Dict, List, Optional
 from unittest.mock import MagicMock, PropertyMock, patch
+
+import pytest
 
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
@@ -106,53 +109,35 @@ class TestFundsForwarderBehaviour:
         b = _make_behaviour()
         assert b.matching_round == FundsForwarderRound
 
-    def test_get_tx_hash_zero_owner(self) -> None:
-        """Test _get_tx_hash when service owner is zero address."""
-        b = _make_behaviour()
+    @pytest.mark.parametrize(
+        "service_owner,expected_owner,token_limits,description",
+        [
+            (ZERO_ADDRESS, OWNER_ADDRESS, None, "zero address owner"),
+            ("", OWNER_ADDRESS, None, "empty string owner"),
+            (OWNER_ADDRESS, "0xDifferentOwner", None, "owner mismatch"),
+            (OWNER_ADDRESS, OWNER_ADDRESS, {}, "empty token limits"),
+        ],
+    )
+    def test_get_tx_hash_returns_none(
+        self,
+        service_owner: str,
+        expected_owner: str,
+        token_limits: Optional[Dict],
+        description: str,
+    ) -> None:
+        """Test _get_tx_hash returns None for invalid/empty configurations."""
+        b = _make_behaviour(
+            token_limits=token_limits if token_limits is not None else {},
+            expected_owner=expected_owner,
+        )
         with patch.object(
             type(b),
             "synchronized_data",
-            new_callable=_sync_data_mock(service_owner=ZERO_ADDRESS),
+            new_callable=_sync_data_mock(service_owner=service_owner),
         ):
             gen = b._get_tx_hash()
             result = _exhaust_gen(gen)
-        assert result is None
-
-    def test_get_tx_hash_empty_owner(self) -> None:
-        """Test _get_tx_hash when service owner is empty string."""
-        b = _make_behaviour()
-        with patch.object(
-            type(b),
-            "synchronized_data",
-            new_callable=_sync_data_mock(service_owner=""),
-        ):
-            gen = b._get_tx_hash()
-            result = _exhaust_gen(gen)
-        assert result is None
-
-    def test_get_tx_hash_owner_mismatch(self) -> None:
-        """Test _get_tx_hash when owner does not match expected."""
-        b = _make_behaviour(expected_owner="0xDifferentOwner")
-        with patch.object(
-            type(b),
-            "synchronized_data",
-            new_callable=_sync_data_mock(),
-        ):
-            gen = b._get_tx_hash()
-            result = _exhaust_gen(gen)
-        assert result is None
-
-    def test_get_tx_hash_no_token_limits(self) -> None:
-        """Test _get_tx_hash when token limits is empty."""
-        b = _make_behaviour(token_limits={})
-        with patch.object(
-            type(b),
-            "synchronized_data",
-            new_callable=_sync_data_mock(),
-        ):
-            gen = b._get_tx_hash()
-            result = _exhaust_gen(gen)
-        assert result is None
+        assert result is None, f"Expected None for case: {description}"
 
     def test_get_tx_hash_no_excess(self) -> None:
         """Test _get_tx_hash when no token exceeds threshold."""
@@ -235,12 +220,26 @@ class TestFundsForwarderBehaviour:
             result = _exhaust_gen(gen)
         assert result == "0xmultisend"
 
-    def test_get_native_balance_success(self) -> None:
-        """Test _get_native_balance success."""
+    @pytest.mark.parametrize(
+        "performative,body,expected",
+        [
+            (
+                LedgerApiMessage.Performative.STATE,
+                {"get_balance_result": 5 * 10**18},
+                5 * 10**18,
+            ),
+            (LedgerApiMessage.Performative.ERROR, None, None),
+        ],
+    )
+    def test_get_native_balance(
+        self, performative: Any, body: Any, expected: Any
+    ) -> None:
+        """Test _get_native_balance for success and error cases."""
         b = _make_behaviour()
         mock_response = MagicMock()
-        mock_response.performative = LedgerApiMessage.Performative.STATE
-        mock_response.state.body = {"get_balance_result": 5 * 10**18}
+        mock_response.performative = performative
+        if body is not None:
+            mock_response.state.body = body
 
         with patch.object(
             type(b),
@@ -249,44 +248,28 @@ class TestFundsForwarderBehaviour:
         ), patch.object(b, "get_ledger_api_response", new=_make_gen(mock_response)):
             gen = b._get_native_balance()
             result = _exhaust_gen(gen)
-        assert result == 5 * 10**18
+        assert result == expected
 
-    def test_get_native_balance_error(self) -> None:
-        """Test _get_native_balance when ledger API fails."""
+    @pytest.mark.parametrize(
+        "performative,body,expected",
+        [
+            (
+                ContractApiMessage.Performative.STATE,
+                {"token": 10 * 10**18},
+                10 * 10**18,
+            ),
+            (ContractApiMessage.Performative.ERROR, None, None),
+        ],
+    )
+    def test_get_erc20_balance(
+        self, performative: Any, body: Any, expected: Any
+    ) -> None:
+        """Test _get_erc20_balance for success and error cases."""
         b = _make_behaviour()
         mock_response = MagicMock()
-        mock_response.performative = LedgerApiMessage.Performative.ERROR
-
-        with patch.object(
-            type(b),
-            "synchronized_data",
-            new_callable=_sync_data_mock(),
-        ), patch.object(b, "get_ledger_api_response", new=_make_gen(mock_response)):
-            gen = b._get_native_balance()
-            result = _exhaust_gen(gen)
-        assert result is None
-
-    def test_get_erc20_balance_success(self) -> None:
-        """Test _get_erc20_balance success."""
-        b = _make_behaviour()
-        mock_response = MagicMock()
-        mock_response.performative = ContractApiMessage.Performative.STATE
-        mock_response.state.body = {"token": 10 * 10**18}
-
-        with patch.object(
-            type(b),
-            "synchronized_data",
-            new_callable=_sync_data_mock(),
-        ), patch.object(b, "get_contract_api_response", new=_make_gen(mock_response)):
-            gen = b._get_erc20_balance(TOKEN_ADDRESS)
-            result = _exhaust_gen(gen)
-        assert result == 10 * 10**18
-
-    def test_get_erc20_balance_error(self) -> None:
-        """Test _get_erc20_balance when contract call fails."""
-        b = _make_behaviour()
-        mock_response = MagicMock()
-        mock_response.performative = ContractApiMessage.Performative.ERROR
+        mock_response.performative = performative
+        if body is not None:
+            mock_response.state.body = body
 
         with patch.object(
             type(b),
@@ -295,30 +278,33 @@ class TestFundsForwarderBehaviour:
         ), patch.object(b, "get_contract_api_response", new=_make_gen(mock_response)):
             gen = b._get_erc20_balance(TOKEN_ADDRESS)
             result = _exhaust_gen(gen)
-        assert result is None
+        assert result == expected
 
-    def test_build_erc20_transfer_success(self) -> None:
-        """Test _build_erc20_transfer success."""
+    @pytest.mark.parametrize(
+        "performative,body,expected",
+        [
+            (
+                ContractApiMessage.Performative.STATE,
+                {"data": "0xabcdef"},
+                bytes.fromhex("abcdef"),
+            ),
+            (ContractApiMessage.Performative.ERROR, None, None),
+        ],
+    )
+    def test_build_erc20_transfer(
+        self, performative: Any, body: Any, expected: Any
+    ) -> None:
+        """Test _build_erc20_transfer for success and error cases."""
         b = _make_behaviour()
         mock_response = MagicMock()
-        mock_response.performative = ContractApiMessage.Performative.STATE
-        mock_response.state.body = {"data": "0xabcdef"}
+        mock_response.performative = performative
+        if body is not None:
+            mock_response.state.body = body
 
         with patch.object(b, "get_contract_api_response", new=_make_gen(mock_response)):
             gen = b._build_erc20_transfer(TOKEN_ADDRESS, OWNER_ADDRESS, 10**17)
             result = _exhaust_gen(gen)
-        assert result == bytes.fromhex("abcdef")
-
-    def test_build_erc20_transfer_error(self) -> None:
-        """Test _build_erc20_transfer when contract call fails."""
-        b = _make_behaviour()
-        mock_response = MagicMock()
-        mock_response.performative = ContractApiMessage.Performative.ERROR
-
-        with patch.object(b, "get_contract_api_response", new=_make_gen(mock_response)):
-            gen = b._build_erc20_transfer(TOKEN_ADDRESS, OWNER_ADDRESS, 10**17)
-            result = _exhaust_gen(gen)
-        assert result is None
+        assert result == expected
 
     def test_build_transfer_txs_native_excess(self) -> None:
         """Test _build_transfer_txs with native token above threshold."""
@@ -362,64 +348,66 @@ class TestFundsForwarderBehaviour:
         assert result[0]["value"] == ETHER_VALUE
         assert result[0]["data"] == b"\x01\x02"
 
-    def test_build_transfer_txs_below_threshold(self) -> None:
-        """Test _build_transfer_txs when balance is below retain."""
+    @pytest.mark.parametrize(
+        "balance,transfer_result,description",
+        [
+            (5 * 10**17, None, "balance below retain threshold"),
+            (None, None, "balance check fails"),
+            (3 * 10**18, None, "ERC20 transfer build fails"),
+        ],
+    )
+    def test_build_transfer_txs_no_transfers(
+        self,
+        balance: Optional[int],
+        transfer_result: Any,
+        description: str,
+    ) -> None:
+        """Test _build_transfer_txs returns empty list for various failure cases."""
         b = _make_behaviour(
             token_limits={
                 TOKEN_ADDRESS: {"retain_balance": 10**18, "max_transfer": 5 * 10**17}
             }
         )
-        with patch.object(
-            type(b),
-            "synchronized_data",
-            new_callable=_sync_data_mock(),
-        ), patch.object(b, "_get_erc20_balance", new=_make_gen(5 * 10**17)):
+        patches = [
+            patch.object(
+                type(b),
+                "synchronized_data",
+                new_callable=_sync_data_mock(),
+            ),
+            patch.object(b, "_get_erc20_balance", new=_make_gen(balance)),
+        ]
+        # Only add transfer patch when balance exceeds threshold
+        if balance is not None and balance > 10**18:
+            patches.append(
+                patch.object(b, "_build_erc20_transfer", new=_make_gen(transfer_result))
+            )
+        with ExitStack() as stack:
+            for p in patches:
+                stack.enter_context(p)
             gen = b._build_transfer_txs(OWNER_ADDRESS)
             result = _exhaust_gen(gen)
-        assert len(result) == 0
+        assert len(result) == 0, f"Expected empty for case: {description}"
 
-    def test_build_transfer_txs_balance_none(self) -> None:
-        """Test _build_transfer_txs when balance check fails."""
-        b = _make_behaviour(
-            token_limits={
-                TOKEN_ADDRESS: {"retain_balance": 10**18, "max_transfer": 5 * 10**17}
-            }
-        )
-        with patch.object(
-            type(b),
-            "synchronized_data",
-            new_callable=_sync_data_mock(),
-        ), patch.object(b, "_get_erc20_balance", new=_make_gen(None)):
-            gen = b._build_transfer_txs(OWNER_ADDRESS)
-            result = _exhaust_gen(gen)
-        assert len(result) == 0
-
-    def test_build_transfer_txs_erc20_transfer_fails(self) -> None:
-        """Test _build_transfer_txs when ERC20 transfer build fails."""
-        b = _make_behaviour(
-            token_limits={
-                TOKEN_ADDRESS: {"retain_balance": 10**18, "max_transfer": 5 * 10**17}
-            }
-        )
-        with patch.object(
-            type(b),
-            "synchronized_data",
-            new_callable=_sync_data_mock(),
-        ), patch.object(
-            b, "_get_erc20_balance", new=_make_gen(3 * 10**18)
-        ), patch.object(
-            b, "_build_erc20_transfer", new=_make_gen(None)
-        ):
-            gen = b._build_transfer_txs(OWNER_ADDRESS)
-            result = _exhaust_gen(gen)
-        assert len(result) == 0
-
-    def test_get_safe_tx_hash_success(self) -> None:
-        """Test _get_safe_tx_hash success."""
+    @pytest.mark.parametrize(
+        "performative,body,expected",
+        [
+            (
+                ContractApiMessage.Performative.STATE,
+                {"tx_hash": "0xabcdef1234"},
+                "abcdef1234",
+            ),
+            (ContractApiMessage.Performative.ERROR, None, None),
+        ],
+    )
+    def test_get_safe_tx_hash(
+        self, performative: Any, body: Any, expected: Any
+    ) -> None:
+        """Test _get_safe_tx_hash for success and error cases."""
         b = _make_behaviour()
         mock_response = MagicMock()
-        mock_response.performative = ContractApiMessage.Performative.STATE
-        mock_response.state.body = {"tx_hash": "0xabcdef1234"}
+        mock_response.performative = performative
+        if body is not None:
+            mock_response.state.body = body
 
         with patch.object(
             type(b),
@@ -428,22 +416,7 @@ class TestFundsForwarderBehaviour:
         ), patch.object(b, "get_contract_api_response", new=_make_gen(mock_response)):
             gen = b._get_safe_tx_hash("0xto", b"\x01")
             result = _exhaust_gen(gen)
-        assert result == "abcdef1234"
-
-    def test_get_safe_tx_hash_error(self) -> None:
-        """Test _get_safe_tx_hash when contract call fails."""
-        b = _make_behaviour()
-        mock_response = MagicMock()
-        mock_response.performative = ContractApiMessage.Performative.ERROR
-
-        with patch.object(
-            type(b),
-            "synchronized_data",
-            new_callable=_sync_data_mock(),
-        ), patch.object(b, "get_contract_api_response", new=_make_gen(mock_response)):
-            gen = b._get_safe_tx_hash("0xto", b"\x01")
-            result = _exhaust_gen(gen)
-        assert result is None
+        assert result == expected
 
     def test_to_multisend_error(self) -> None:
         """Test _to_multisend when multisend compilation fails."""
@@ -493,22 +466,14 @@ class TestFundsForwarderBehaviour:
             result = _exhaust_gen(gen)
         assert result == "0xfinal"
 
-    def test_async_act_with_tx(self) -> None:
-        """Test async_act when tx_hash is not None."""
+    @pytest.mark.parametrize(
+        "tx_hash",
+        ["0xtxhash", None],
+    )
+    def test_async_act(self, tx_hash: Optional[str]) -> None:
+        """Test async_act with and without tx_hash."""
         b = _make_behaviour()
-        with patch.object(b, "_get_tx_hash", new=_make_gen("0xtxhash")), patch.object(
-            b, "send_a2a_transaction", new=_make_gen(None)
-        ), patch.object(b, "wait_until_round_end", new=_make_gen(None)), patch.object(
-            b, "set_done"
-        ) as mock_set_done:
-            gen = b.async_act()
-            _exhaust_gen(gen)
-            mock_set_done.assert_called_once()
-
-    def test_async_act_without_tx(self) -> None:
-        """Test async_act when tx_hash is None."""
-        b = _make_behaviour()
-        with patch.object(b, "_get_tx_hash", new=_make_gen(None)), patch.object(
+        with patch.object(b, "_get_tx_hash", new=_make_gen(tx_hash)), patch.object(
             b, "send_a2a_transaction", new=_make_gen(None)
         ), patch.object(b, "wait_until_round_end", new=_make_gen(None)), patch.object(
             b, "set_done"

@@ -19,6 +19,10 @@
 
 """Tests for the payloads of the IdentifyServiceOwnerAbciApp."""
 
+from typing import Optional
+
+import pytest
+
 from packages.valory.skills.identify_service_owner_abci.payloads import (
     IdentifyServiceOwnerPayload,
 )
@@ -26,19 +30,22 @@ from packages.valory.skills.identify_service_owner_abci.payloads import (
 SENDER = "sender_address"
 
 
-def test_payload_with_owner() -> None:
-    """Test payload with a valid service owner."""
-    payload = IdentifyServiceOwnerPayload(sender=SENDER, service_owner="0xOwnerAddress")
+@pytest.mark.parametrize(
+    "service_owner",
+    [
+        "0xOwnerAddress",
+        None,
+    ],
+)
+def test_payload_attributes(service_owner: Optional[str]) -> None:
+    """Test payload attributes for both valid and None service owner."""
+    kwargs = {"sender": SENDER}
+    if service_owner is not None:
+        kwargs["service_owner"] = service_owner
+    payload = IdentifyServiceOwnerPayload(**kwargs)
     assert payload.sender == SENDER
-    assert payload.service_owner == "0xOwnerAddress"
-    assert payload.data == {"service_owner": "0xOwnerAddress"}
-
-
-def test_payload_with_none() -> None:
-    """Test payload with None (error case)."""
-    payload = IdentifyServiceOwnerPayload(sender=SENDER)
-    assert payload.service_owner is None
-    assert payload.data == {"service_owner": None}
+    assert payload.service_owner == service_owner
+    assert payload.data == {"service_owner": service_owner}
 
 
 def test_payload_serialization_roundtrip() -> None:

@@ -230,61 +230,54 @@ class FundsForwarderBehaviour(FundsForwarderBaseBehaviour):
     ) -> Generator[None, None, List[Dict]]:
         """Build transfer transactions for all tokens exceeding thresholds."""
         transactions: List[Dict] = []
-
         for token_address, limits in self.params.funds_forwarder_token_config.items():
-            retain = limits["retain_balance"]
-            max_transfer = limits["max_transfer"]
-
-            if token_address.lower() == ZERO_ADDRESS.lower():
-                # Native token
-                balance = yield from self._get_native_balance()
-            else:
-                # ERC20 token
-                balance = yield from self._get_erc20_balance(token_address)
-
-            if balance is None:
-                self.context.logger.warning(
-                    f"Could not get balance for {token_address}. Skipping."
-                )
-                continue
-
-            min_transfer = limits.get("min_transfer", 0)
-
-            if balance < retain + min_transfer:
-                continue
-
-            transfer_amount = min(max_transfer, balance - retain)
-
-            self.context.logger.info(
-                f"Token {token_address}: balance={balance}, "
-                f"retain={retain}, transferring={transfer_amount} "
-                f"to {target_address}"
+            tx = yield from self._build_single_token_transfer(
+                token_address, limits, target_address
             )
-
-            if token_address.lower() == ZERO_ADDRESS.lower():
-                # Native transfer
-                transactions.append(
-                    {
-                        "to": target_address,
-                        "value": transfer_amount,
-                        "data": b"",
-                    }
-                )
-            else:
-                # ERC20 transfer
-                tx_data = yield from self._build_erc20_transfer(
-                    token_address, target_address, transfer_amount
-                )
-                if tx_data is not None:
-                    transactions.append(
-                        {
-                            "to": token_address,
-                            "value": ETHER_VALUE,
-                            "data": tx_data,
-                        }
-                    )
-
+            if tx is not None:
+                transactions.append(tx)
         return transactions
+
+    def _build_single_token_transfer(
+        self,
+        token_address: str,
+        limits: Dict,
+        target_address: str,
+    ) -> Generator[None, None, Optional[Dict]]:
+        """Build a transfer tx for a single token if its balance exceeds the threshold."""
+        is_native = token_address.lower() == ZERO_ADDRESS.lower()
+        balance = yield from (
+            self._get_native_balance()
+            if is_native
+            else self._get_erc20_balance(token_address)
+        )
+        if balance is None:
+            self.context.logger.warning(
+                f"Could not get balance for {token_address}. Skipping."
+            )
+            return None
+
+        retain = limits["retain_balance"]
+        min_transfer = limits.get("min_transfer", 0)
+        if balance < retain + min_transfer:
+            return None
+
+        transfer_amount = min(limits["max_transfer"], balance - retain)
+        self.context.logger.info(
+            f"Token {token_address}: balance={balance}, "
+            f"retain={retain}, transferring={transfer_amount} "
+            f"to {target_address}"
+        )
+
+        if is_native:
+            return {"to": target_address, "value": transfer_amount, "data": b""}
+
+        tx_data = yield from self._build_erc20_transfer(
+            token_address, target_address, transfer_amount
+        )
+        if tx_data is None:
+            return None
+        return {"to": token_address, "value": ETHER_VALUE, "data": tx_data}
 
     def _get_native_balance(self) -> Generator[None, None, Optional[int]]:
         """Get the native token balance of the safe."""

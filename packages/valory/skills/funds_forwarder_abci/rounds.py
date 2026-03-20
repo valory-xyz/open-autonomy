@@ -66,6 +66,11 @@ class SynchronizedData(TxSynchronizedData):
         """Get the round that submitted the transaction."""
         return cast(str, self.db.get_strict("tx_submitter"))
 
+    @property
+    def participant_to_funds_forwarder(self) -> dict:
+        """Get the participant_to_funds_forwarder."""
+        return cast(dict, self.db.get_strict("participant_to_funds_forwarder"))
+
 
 class FundsForwarderRound(CollectSameUntilThresholdRound):
     """A round for sweeping excess funds to the service owner."""
@@ -79,7 +84,7 @@ class FundsForwarderRound(CollectSameUntilThresholdRound):
         get_name(SynchronizedData.tx_submitter),
         get_name(SynchronizedData.most_voted_tx_hash),
     )
-    collection_key = "participant_to_funds_forwarder"
+    collection_key = get_name(SynchronizedData.participant_to_funds_forwarder)
 
 
 class FinishedFundsForwarderWithTxRound(DegenerateRound):

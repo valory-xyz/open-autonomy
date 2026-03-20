@@ -19,68 +19,24 @@
 
 """Tests for the funds_forwarder_abci handlers."""
 
-from packages.valory.skills.abstract_round_abci.handlers import (
-    ABCIRoundHandler as BaseABCIRoundHandler,
+import pytest
+
+from packages.valory.skills.abstract_round_abci import handlers as base_handlers
+from packages.valory.skills.funds_forwarder_abci import handlers as skill_handlers
+
+
+@pytest.mark.parametrize(
+    "skill_attr,base_attr",
+    [
+        ("ABCIHandler", "ABCIRoundHandler"),
+        ("HttpHandler", "HttpHandler"),
+        ("SigningHandler", "SigningHandler"),
+        ("LedgerApiHandler", "LedgerApiHandler"),
+        ("ContractApiHandler", "ContractApiHandler"),
+        ("TendermintHandler", "TendermintHandler"),
+        ("IpfsHandler", "IpfsHandler"),
+    ],
 )
-from packages.valory.skills.abstract_round_abci.handlers import (
-    ContractApiHandler as BaseContractApiHandler,
-)
-from packages.valory.skills.abstract_round_abci.handlers import (
-    HttpHandler as BaseHttpHandler,
-)
-from packages.valory.skills.abstract_round_abci.handlers import (
-    IpfsHandler as BaseIpfsHandler,
-)
-from packages.valory.skills.abstract_round_abci.handlers import (
-    LedgerApiHandler as BaseLedgerApiHandler,
-)
-from packages.valory.skills.abstract_round_abci.handlers import (
-    SigningHandler as BaseSigningHandler,
-)
-from packages.valory.skills.abstract_round_abci.handlers import (
-    TendermintHandler as BaseTendermintHandler,
-)
-from packages.valory.skills.funds_forwarder_abci.handlers import (
-    ABCIHandler,
-    ContractApiHandler,
-    HttpHandler,
-    IpfsHandler,
-    LedgerApiHandler,
-    SigningHandler,
-    TendermintHandler,
-)
-
-
-def test_abci_handler_alias() -> None:
-    """Test ABCIHandler alias."""
-    assert ABCIHandler is BaseABCIRoundHandler
-
-
-def test_http_handler_alias() -> None:
-    """Test HttpHandler alias."""
-    assert HttpHandler is BaseHttpHandler
-
-
-def test_signing_handler_alias() -> None:
-    """Test SigningHandler alias."""
-    assert SigningHandler is BaseSigningHandler
-
-
-def test_ledger_api_handler_alias() -> None:
-    """Test LedgerApiHandler alias."""
-    assert LedgerApiHandler is BaseLedgerApiHandler
-
-
-def test_contract_api_handler_alias() -> None:
-    """Test ContractApiHandler alias."""
-    assert ContractApiHandler is BaseContractApiHandler
-
-
-def test_tendermint_handler_alias() -> None:
-    """Test TendermintHandler alias."""
-    assert TendermintHandler is BaseTendermintHandler
-
-
-def test_ipfs_handler_alias() -> None:
-    """Test IpfsHandler alias."""
-    assert IpfsHandler is BaseIpfsHandler
+def test_handler_alias(skill_attr: str, base_attr: str) -> None:
+    """Test that each handler class is a direct alias of the base class."""
+    assert getattr(skill_handlers, skill_attr) is getattr(base_handlers, base_attr)

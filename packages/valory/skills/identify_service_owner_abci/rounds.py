@@ -56,6 +56,11 @@ class SynchronizedData(BaseSynchronizedData):
         """Get the resolved service owner address."""
         return cast(str, self.db.get_strict("service_owner"))
 
+    @property
+    def participant_to_service_owner(self) -> dict:
+        """Get the participant_to_service_owner."""
+        return cast(dict, self.db.get_strict("participant_to_service_owner"))
+
 
 class IdentifyServiceOwnerRound(CollectSameUntilThresholdRound):
     """A round for resolving the real service owner."""
@@ -66,7 +71,7 @@ class IdentifyServiceOwnerRound(CollectSameUntilThresholdRound):
     none_event = Event.ERROR
     no_majority_event = Event.NO_MAJORITY
     selection_key = get_name(SynchronizedData.service_owner)
-    collection_key = "participant_to_service_owner"
+    collection_key = get_name(SynchronizedData.participant_to_service_owner)
 
 
 class FinishedIdentifyServiceOwnerRound(DegenerateRound):

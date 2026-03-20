@@ -127,23 +127,17 @@ class TestDbConditions:
 class TestSynchronizedData:
     """Test SynchronizedData properties."""
 
-    def test_service_owner(self) -> None:
-        """Test service_owner property."""
+    @pytest.mark.parametrize(
+        "prop,expected",
+        [
+            ("service_owner", "0xOwner"),
+            ("most_voted_tx_hash", "0xHash"),
+            ("tx_submitter", "funds_forwarder_round"),
+        ],
+    )
+    def test_property(self, prop: str, expected: str) -> None:
+        """Test SynchronizedData property delegates to db.get_strict."""
         mock_db = MagicMock()
-        mock_db.get_strict.return_value = "0xOwner"
+        mock_db.get_strict.return_value = expected
         data = SynchronizedData(db=mock_db)
-        assert data.service_owner == "0xOwner"
-
-    def test_most_voted_tx_hash(self) -> None:
-        """Test most_voted_tx_hash property."""
-        mock_db = MagicMock()
-        mock_db.get_strict.return_value = "0xHash"
-        data = SynchronizedData(db=mock_db)
-        assert data.most_voted_tx_hash == "0xHash"
-
-    def test_tx_submitter(self) -> None:
-        """Test tx_submitter property."""
-        mock_db = MagicMock()
-        mock_db.get_strict.return_value = "funds_forwarder_round"
-        data = SynchronizedData(db=mock_db)
-        assert data.tx_submitter == "funds_forwarder_round"
+        assert getattr(data, prop) == expected
