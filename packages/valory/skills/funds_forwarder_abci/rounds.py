@@ -138,12 +138,14 @@ class FundsForwarderAbciApp(AbciApp[Event]):
     }
     cross_period_persisted_keys: FrozenSet[str] = frozenset()
     db_pre_conditions: Dict[AppState, Set[str]] = {
-        FundsForwarderRound: {"service_owner"},
+        FundsForwarderRound: {
+            get_name(SynchronizedData.service_owner),
+        },
     }
     db_post_conditions: Dict[AppState, Set[str]] = {
         FinishedFundsForwarderWithTxRound: {
-            "most_voted_tx_hash",
-            "tx_submitter",
+            get_name(SynchronizedData.most_voted_tx_hash),
+            get_name(SynchronizedData.tx_submitter),
         },
         FinishedFundsForwarderNoTxRound: set(),
     }

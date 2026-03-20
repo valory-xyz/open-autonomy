@@ -47,11 +47,7 @@ class FundsForwarderParams(BaseParams):
     """Parameters for the funds_forwarder_abci skill."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the parameters object.
-
-        Note: on_chain_service_id and service_registry_address are inherited
-        from BaseParams as Optional fields.
-        """
+        """Initialize the parameters object."""
         self.expected_service_owner_address: str = self._ensure(
             "expected_service_owner_address", kwargs, type_=str
         )

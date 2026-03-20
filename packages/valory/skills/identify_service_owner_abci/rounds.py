@@ -123,11 +123,15 @@ class IdentifyServiceOwnerAbciApp(AbciApp[Event]):
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys: FrozenSet[str] = frozenset({"service_owner"})
+    cross_period_persisted_keys: FrozenSet[str] = frozenset(
+        {get_name(SynchronizedData.service_owner)}
+    )
     db_pre_conditions: Dict[AppState, Set[str]] = {
         IdentifyServiceOwnerRound: set(),
     }
     db_post_conditions: Dict[AppState, Set[str]] = {
-        FinishedIdentifyServiceOwnerRound: {"service_owner"},
+        FinishedIdentifyServiceOwnerRound: {
+            get_name(SynchronizedData.service_owner),
+        },
         FinishedIdentifyServiceOwnerErrorRound: set(),
     }
