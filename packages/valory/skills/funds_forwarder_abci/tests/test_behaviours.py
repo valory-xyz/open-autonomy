@@ -22,10 +22,12 @@
 # pylint: disable=protected-access,too-few-public-methods
 
 from typing import Any, List
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, PropertyMock, patch
 
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
+from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
+from packages.valory.skills.funds_forwarder_abci import behaviours as behaviours_module
 from packages.valory.skills.funds_forwarder_abci.behaviours import (
     ETHER_VALUE,
     FundsForwarderBehaviour,
@@ -182,8 +184,9 @@ class TestFundsForwarderBehaviour:
             new_callable=_sync_data_mock(),
         ), patch.object(b, "_build_transfer_txs", new=_make_gen([tx])), patch.object(
             b, "_get_safe_tx_hash", new=_make_gen("abcdef")
-        ), patch(
-            "packages.valory.skills.funds_forwarder_abci.behaviours.hash_payload_to_hex",
+        ), patch.object(
+            behaviours_module,
+            "hash_payload_to_hex",
             return_value="0xpayload",
         ):
             gen = b._get_tx_hash()
@@ -478,8 +481,11 @@ class TestFundsForwarderBehaviour:
 
         with patch.object(
             b, "get_contract_api_response", new=_make_gen(mock_ms_response)
-        ), patch.object(b, "_get_safe_tx_hash", new=_make_gen("safehash")), patch(
-            "packages.valory.skills.funds_forwarder_abci.behaviours.hash_payload_to_hex",
+        ), patch.object(
+            b, "_get_safe_tx_hash", new=_make_gen("safehash")
+        ), patch.object(
+            behaviours_module,
+            "hash_payload_to_hex",
             return_value="0xfinal",
         ):
             txs = [{"to": OWNER_ADDRESS, "value": 10**17}]
@@ -519,9 +525,11 @@ class TestFundsForwarderBaseBehaviour:
         """Test synchronized_data property returns cast SynchronizedData."""
         b = _make_behaviour()
         mock_sync = MagicMock()
-        with patch(
-            "packages.valory.skills.abstract_round_abci.behaviours.BaseBehaviour.synchronized_data",
-            new_callable=lambda: property(lambda self: mock_sync),
+        with patch.object(
+            BaseBehaviour,
+            "synchronized_data",
+            new_callable=PropertyMock,
+            return_value=mock_sync,
         ):
             result = b.synchronized_data
         assert result == mock_sync

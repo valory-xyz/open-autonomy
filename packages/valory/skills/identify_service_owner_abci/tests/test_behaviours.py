@@ -22,9 +22,10 @@
 # pylint: disable=protected-access,too-few-public-methods,attribute-defined-outside-init
 
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, PropertyMock, patch
 
 from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
 from packages.valory.skills.identify_service_owner_abci.behaviours import (
     IdentifyServiceOwnerBehaviour,
     IdentifyServiceOwnerRoundBehaviour,
@@ -327,9 +328,11 @@ class TestIdentifyServiceOwnerBaseBehaviour:
         """Test synchronized_data property returns cast SynchronizedData."""
         b = _make_behaviour()
         mock_sync = MagicMock()
-        with patch(
-            "packages.valory.skills.abstract_round_abci.behaviours.BaseBehaviour.synchronized_data",
-            new_callable=lambda: property(lambda self: mock_sync),
+        with patch.object(
+            BaseBehaviour,
+            "synchronized_data",
+            new_callable=PropertyMock,
+            return_value=mock_sync,
         ):
             result = b.synchronized_data
         assert result == mock_sync
