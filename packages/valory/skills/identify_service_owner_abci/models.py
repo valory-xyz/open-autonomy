@@ -22,7 +22,9 @@
 from typing import Type
 
 from packages.valory.skills.abstract_round_abci.base import AbciApp
-from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.models import (
+    BaseParams,
+)
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
@@ -30,7 +32,9 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.identify_service_owner_abci.rounds import IdentifyServiceOwnerAbciApp
+from packages.valory.skills.identify_service_owner_abci.rounds import (
+    IdentifyServiceOwnerAbciApp,
+)
 
 
 class SharedState(BaseSharedState):

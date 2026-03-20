@@ -20,16 +20,18 @@
 """Tests for the funds_forwarder_abci models."""
 
 from packages.valory.skills.abstract_round_abci.models import (
+    BaseParams,
+)
+from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
-from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.funds_forwarder_abci.models import (
-    ZERO_ADDRESS,
     BenchmarkTool,
     FundsForwarderParams,
     Requests,
     SharedState,
+    ZERO_ADDRESS,
 )
 from packages.valory.skills.funds_forwarder_abci.rounds import FundsForwarderAbciApp
 
@@ -83,8 +85,9 @@ class TestFundsForwarderParams:
 
     def test_min_transfer_greater_than_max_transfer_raises(self) -> None:
         """Test that min_transfer > max_transfer raises ValueError."""
-        import pytest
         from unittest.mock import MagicMock, patch
+
+        import pytest
 
         bad_limits = {
             "0xToken": {

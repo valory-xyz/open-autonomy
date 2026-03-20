@@ -45,21 +45,15 @@ def abci_app() -> IdentifyServiceOwnerAbciApp:
 class TestAbciAppInitialization:
     """Test AbciApp initialization."""
 
-    def test_initial_round_cls(
-        self, abci_app: IdentifyServiceOwnerAbciApp
-    ) -> None:
+    def test_initial_round_cls(self, abci_app: IdentifyServiceOwnerAbciApp) -> None:
         """Test initial round class."""
         assert abci_app.initial_round_cls is IdentifyServiceOwnerRound
 
-    def test_initial_states(
-        self, abci_app: IdentifyServiceOwnerAbciApp
-    ) -> None:
+    def test_initial_states(self, abci_app: IdentifyServiceOwnerAbciApp) -> None:
         """Test initial states."""
         assert abci_app.initial_states == {IdentifyServiceOwnerRound}
 
-    def test_final_states(
-        self, abci_app: IdentifyServiceOwnerAbciApp
-    ) -> None:
+    def test_final_states(self, abci_app: IdentifyServiceOwnerAbciApp) -> None:
         """Test final states."""
         assert abci_app.final_states == {
             FinishedIdentifyServiceOwnerRound,
@@ -120,9 +114,7 @@ class TestCrossPeriodPersistedKeys:
 class TestDbConditions:
     """Test db pre/post conditions."""
 
-    def test_pre_conditions(
-        self, abci_app: IdentifyServiceOwnerAbciApp
-    ) -> None:
+    def test_pre_conditions(self, abci_app: IdentifyServiceOwnerAbciApp) -> None:
         """Test pre conditions are empty."""
         assert abci_app.db_pre_conditions[IdentifyServiceOwnerRound] == set()
 
@@ -130,19 +122,14 @@ class TestDbConditions:
         self, abci_app: IdentifyServiceOwnerAbciApp
     ) -> None:
         """Test post conditions for success."""
-        assert abci_app.db_post_conditions[
-            FinishedIdentifyServiceOwnerRound
-        ] == {"service_owner"}
+        assert abci_app.db_post_conditions[FinishedIdentifyServiceOwnerRound] == {
+            "service_owner"
+        }
 
-    def test_post_conditions_error(
-        self, abci_app: IdentifyServiceOwnerAbciApp
-    ) -> None:
+    def test_post_conditions_error(self, abci_app: IdentifyServiceOwnerAbciApp) -> None:
         """Test post conditions for error."""
         assert (
-            abci_app.db_post_conditions[
-                FinishedIdentifyServiceOwnerErrorRound
-            ]
-            == set()
+            abci_app.db_post_conditions[FinishedIdentifyServiceOwnerErrorRound] == set()
         )
 
 

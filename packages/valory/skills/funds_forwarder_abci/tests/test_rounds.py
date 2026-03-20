@@ -45,9 +45,7 @@ def abci_app() -> FundsForwarderAbciApp:
 class TestAbciAppInitialization:
     """Test AbciApp initialization."""
 
-    def test_initial_round_cls(
-        self, abci_app: FundsForwarderAbciApp
-    ) -> None:
+    def test_initial_round_cls(self, abci_app: FundsForwarderAbciApp) -> None:
         """Test initial round class."""
         assert abci_app.initial_round_cls is FundsForwarderRound
 
@@ -110,26 +108,18 @@ class TestDbConditions:
 
     def test_pre_conditions(self, abci_app: FundsForwarderAbciApp) -> None:
         """Test pre conditions require service_owner."""
-        assert abci_app.db_pre_conditions[FundsForwarderRound] == {
-            "service_owner"
+        assert abci_app.db_pre_conditions[FundsForwarderRound] == {"service_owner"}
+
+    def test_post_conditions_with_tx(self, abci_app: FundsForwarderAbciApp) -> None:
+        """Test post conditions for success with tx."""
+        assert abci_app.db_post_conditions[FinishedFundsForwarderWithTxRound] == {
+            "most_voted_tx_hash",
+            "tx_submitter",
         }
 
-    def test_post_conditions_with_tx(
-        self, abci_app: FundsForwarderAbciApp
-    ) -> None:
-        """Test post conditions for success with tx."""
-        assert abci_app.db_post_conditions[
-            FinishedFundsForwarderWithTxRound
-        ] == {"most_voted_tx_hash", "tx_submitter"}
-
-    def test_post_conditions_no_tx(
-        self, abci_app: FundsForwarderAbciApp
-    ) -> None:
+    def test_post_conditions_no_tx(self, abci_app: FundsForwarderAbciApp) -> None:
         """Test post conditions for no tx."""
-        assert (
-            abci_app.db_post_conditions[FinishedFundsForwarderNoTxRound]
-            == set()
-        )
+        assert abci_app.db_post_conditions[FinishedFundsForwarderNoTxRound] == set()
 
 
 class TestSynchronizedData:

@@ -33,8 +33,12 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
 )
-from packages.valory.skills.identify_service_owner_abci.models import IdentifyServiceOwnerParams
-from packages.valory.skills.identify_service_owner_abci.payloads import IdentifyServiceOwnerPayload
+from packages.valory.skills.identify_service_owner_abci.models import (
+    IdentifyServiceOwnerParams,
+)
+from packages.valory.skills.identify_service_owner_abci.payloads import (
+    IdentifyServiceOwnerPayload,
+)
 from packages.valory.skills.identify_service_owner_abci.rounds import (
     IdentifyServiceOwnerAbciApp,
     IdentifyServiceOwnerRound,
@@ -119,9 +123,7 @@ class IdentifyServiceOwnerBehaviour(IdentifyServiceOwnerBaseBehaviour):
         # If registry_owner is a staking contract, getServiceInfo will
         # succeed and return the real owner. If it's not a staking contract,
         # the call will fail and we use registry_owner directly.
-        real_owner = yield from self._get_owner_from_staking(
-            registry_owner, service_id
-        )
+        real_owner = yield from self._get_owner_from_staking(registry_owner, service_id)
         if real_owner is not None:
             self.context.logger.info(
                 f"Service {service_id} registry owner {registry_owner} "

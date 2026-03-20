@@ -159,9 +159,7 @@ class TestFundsForwarderBehaviour:
             type(b),
             "synchronized_data",
             new_callable=_sync_data_mock(),
-        ), patch.object(
-            b, "_build_transfer_txs", new=_make_gen([])
-        ):
+        ), patch.object(b, "_build_transfer_txs", new=_make_gen([])):
             gen = b._get_tx_hash()
             result = _exhaust_gen(gen)
         assert result is None
@@ -178,9 +176,7 @@ class TestFundsForwarderBehaviour:
             type(b),
             "synchronized_data",
             new_callable=_sync_data_mock(),
-        ), patch.object(
-            b, "_build_transfer_txs", new=_make_gen([tx])
-        ), patch.object(
+        ), patch.object(b, "_build_transfer_txs", new=_make_gen([tx])), patch.object(
             b, "_get_safe_tx_hash", new=_make_gen("abcdef")
         ), patch(
             "packages.valory.skills.funds_forwarder_abci.behaviours.hash_payload_to_hex",
@@ -202,9 +198,7 @@ class TestFundsForwarderBehaviour:
             type(b),
             "synchronized_data",
             new_callable=_sync_data_mock(),
-        ), patch.object(
-            b, "_build_transfer_txs", new=_make_gen([tx])
-        ), patch.object(
+        ), patch.object(b, "_build_transfer_txs", new=_make_gen([tx])), patch.object(
             b, "_get_safe_tx_hash", new=_make_gen(None)
         ):
             gen = b._get_tx_hash()
@@ -227,9 +221,7 @@ class TestFundsForwarderBehaviour:
             type(b),
             "synchronized_data",
             new_callable=_sync_data_mock(),
-        ), patch.object(
-            b, "_build_transfer_txs", new=_make_gen(txs)
-        ), patch.object(
+        ), patch.object(b, "_build_transfer_txs", new=_make_gen(txs)), patch.object(
             b, "_to_multisend", new=_make_gen("0xmultisend")
         ):
             gen = b._get_tx_hash()
@@ -247,9 +239,7 @@ class TestFundsForwarderBehaviour:
             type(b),
             "synchronized_data",
             new_callable=_sync_data_mock(),
-        ), patch.object(
-            b, "get_ledger_api_response", new=_make_gen(mock_response)
-        ):
+        ), patch.object(b, "get_ledger_api_response", new=_make_gen(mock_response)):
             gen = b._get_native_balance()
             result = _exhaust_gen(gen)
         assert result == 5 * 10**18
@@ -264,9 +254,7 @@ class TestFundsForwarderBehaviour:
             type(b),
             "synchronized_data",
             new_callable=_sync_data_mock(),
-        ), patch.object(
-            b, "get_ledger_api_response", new=_make_gen(mock_response)
-        ):
+        ), patch.object(b, "get_ledger_api_response", new=_make_gen(mock_response)):
             gen = b._get_native_balance()
             result = _exhaust_gen(gen)
         assert result is None
@@ -282,9 +270,7 @@ class TestFundsForwarderBehaviour:
             type(b),
             "synchronized_data",
             new_callable=_sync_data_mock(),
-        ), patch.object(
-            b, "get_contract_api_response", new=_make_gen(mock_response)
-        ):
+        ), patch.object(b, "get_contract_api_response", new=_make_gen(mock_response)):
             gen = b._get_erc20_balance(TOKEN_ADDRESS)
             result = _exhaust_gen(gen)
         assert result == 10 * 10**18
@@ -299,9 +285,7 @@ class TestFundsForwarderBehaviour:
             type(b),
             "synchronized_data",
             new_callable=_sync_data_mock(),
-        ), patch.object(
-            b, "get_contract_api_response", new=_make_gen(mock_response)
-        ):
+        ), patch.object(b, "get_contract_api_response", new=_make_gen(mock_response)):
             gen = b._get_erc20_balance(TOKEN_ADDRESS)
             result = _exhaust_gen(gen)
         assert result is None
@@ -313,9 +297,7 @@ class TestFundsForwarderBehaviour:
         mock_response.performative = ContractApiMessage.Performative.STATE
         mock_response.state.body = {"data": "0xabcdef"}
 
-        with patch.object(
-            b, "get_contract_api_response", new=_make_gen(mock_response)
-        ):
+        with patch.object(b, "get_contract_api_response", new=_make_gen(mock_response)):
             gen = b._build_erc20_transfer(TOKEN_ADDRESS, OWNER_ADDRESS, 10**17)
             result = _exhaust_gen(gen)
         assert result == bytes.fromhex("abcdef")
@@ -326,9 +308,7 @@ class TestFundsForwarderBehaviour:
         mock_response = MagicMock()
         mock_response.performative = ContractApiMessage.Performative.ERROR
 
-        with patch.object(
-            b, "get_contract_api_response", new=_make_gen(mock_response)
-        ):
+        with patch.object(b, "get_contract_api_response", new=_make_gen(mock_response)):
             gen = b._build_erc20_transfer(TOKEN_ADDRESS, OWNER_ADDRESS, 10**17)
             result = _exhaust_gen(gen)
         assert result is None
@@ -344,9 +324,7 @@ class TestFundsForwarderBehaviour:
             type(b),
             "synchronized_data",
             new_callable=_sync_data_mock(),
-        ), patch.object(
-            b, "_get_native_balance", new=_make_gen(3 * 10**18)
-        ):
+        ), patch.object(b, "_get_native_balance", new=_make_gen(3 * 10**18)):
             gen = b._build_transfer_txs(OWNER_ADDRESS)
             result = _exhaust_gen(gen)
         assert len(result) == 1
@@ -388,9 +366,7 @@ class TestFundsForwarderBehaviour:
             type(b),
             "synchronized_data",
             new_callable=_sync_data_mock(),
-        ), patch.object(
-            b, "_get_erc20_balance", new=_make_gen(5 * 10**17)
-        ):
+        ), patch.object(b, "_get_erc20_balance", new=_make_gen(5 * 10**17)):
             gen = b._build_transfer_txs(OWNER_ADDRESS)
             result = _exhaust_gen(gen)
         assert len(result) == 0
@@ -406,9 +382,7 @@ class TestFundsForwarderBehaviour:
             type(b),
             "synchronized_data",
             new_callable=_sync_data_mock(),
-        ), patch.object(
-            b, "_get_erc20_balance", new=_make_gen(None)
-        ):
+        ), patch.object(b, "_get_erc20_balance", new=_make_gen(None)):
             gen = b._build_transfer_txs(OWNER_ADDRESS)
             result = _exhaust_gen(gen)
         assert len(result) == 0
@@ -444,9 +418,7 @@ class TestFundsForwarderBehaviour:
             type(b),
             "synchronized_data",
             new_callable=_sync_data_mock(),
-        ), patch.object(
-            b, "get_contract_api_response", new=_make_gen(mock_response)
-        ):
+        ), patch.object(b, "get_contract_api_response", new=_make_gen(mock_response)):
             gen = b._get_safe_tx_hash("0xto", b"\x01")
             result = _exhaust_gen(gen)
         assert result == "abcdef1234"
@@ -461,9 +433,7 @@ class TestFundsForwarderBehaviour:
             type(b),
             "synchronized_data",
             new_callable=_sync_data_mock(),
-        ), patch.object(
-            b, "get_contract_api_response", new=_make_gen(mock_response)
-        ):
+        ), patch.object(b, "get_contract_api_response", new=_make_gen(mock_response)):
             gen = b._get_safe_tx_hash("0xto", b"\x01")
             result = _exhaust_gen(gen)
         assert result is None
@@ -474,9 +444,7 @@ class TestFundsForwarderBehaviour:
         mock_response = MagicMock()
         mock_response.performative = ContractApiMessage.Performative.ERROR
 
-        with patch.object(
-            b, "get_contract_api_response", new=_make_gen(mock_response)
-        ):
+        with patch.object(b, "get_contract_api_response", new=_make_gen(mock_response)):
             txs = [{"to": OWNER_ADDRESS, "value": 10**17}]
             gen = b._to_multisend(txs)
             result = _exhaust_gen(gen)
@@ -486,16 +454,12 @@ class TestFundsForwarderBehaviour:
         """Test _to_multisend when safe tx hash fails."""
         b = _make_behaviour()
         mock_ms_response = MagicMock()
-        mock_ms_response.performative = (
-            ContractApiMessage.Performative.RAW_TRANSACTION
-        )
+        mock_ms_response.performative = ContractApiMessage.Performative.RAW_TRANSACTION
         mock_ms_response.raw_transaction.body = {"data": "0xaabb"}
 
         with patch.object(
             b, "get_contract_api_response", new=_make_gen(mock_ms_response)
-        ), patch.object(
-            b, "_get_safe_tx_hash", new=_make_gen(None)
-        ):
+        ), patch.object(b, "_get_safe_tx_hash", new=_make_gen(None)):
             txs = [{"to": OWNER_ADDRESS, "value": 10**17}]
             gen = b._to_multisend(txs)
             result = _exhaust_gen(gen)
@@ -505,16 +469,12 @@ class TestFundsForwarderBehaviour:
         """Test _to_multisend success."""
         b = _make_behaviour()
         mock_ms_response = MagicMock()
-        mock_ms_response.performative = (
-            ContractApiMessage.Performative.RAW_TRANSACTION
-        )
+        mock_ms_response.performative = ContractApiMessage.Performative.RAW_TRANSACTION
         mock_ms_response.raw_transaction.body = {"data": "0xaabb"}
 
         with patch.object(
             b, "get_contract_api_response", new=_make_gen(mock_ms_response)
-        ), patch.object(
-            b, "_get_safe_tx_hash", new=_make_gen("safehash")
-        ), patch(
+        ), patch.object(b, "_get_safe_tx_hash", new=_make_gen("safehash")), patch(
             "packages.valory.skills.funds_forwarder_abci.behaviours.hash_payload_to_hex",
             return_value="0xfinal",
         ):
@@ -526,13 +486,9 @@ class TestFundsForwarderBehaviour:
     def test_async_act_with_tx(self) -> None:
         """Test async_act when tx_hash is not None."""
         b = _make_behaviour()
-        with patch.object(
-            b, "_get_tx_hash", new=_make_gen("0xtxhash")
-        ), patch.object(
+        with patch.object(b, "_get_tx_hash", new=_make_gen("0xtxhash")), patch.object(
             b, "send_a2a_transaction", new=_make_gen(None)
-        ), patch.object(
-            b, "wait_until_round_end", new=_make_gen(None)
-        ), patch.object(
+        ), patch.object(b, "wait_until_round_end", new=_make_gen(None)), patch.object(
             b, "set_done"
         ) as mock_set_done:
             gen = b.async_act()
@@ -542,13 +498,9 @@ class TestFundsForwarderBehaviour:
     def test_async_act_without_tx(self) -> None:
         """Test async_act when tx_hash is None."""
         b = _make_behaviour()
-        with patch.object(
-            b, "_get_tx_hash", new=_make_gen(None)
-        ), patch.object(
+        with patch.object(b, "_get_tx_hash", new=_make_gen(None)), patch.object(
             b, "send_a2a_transaction", new=_make_gen(None)
-        ), patch.object(
-            b, "wait_until_round_end", new=_make_gen(None)
-        ), patch.object(
+        ), patch.object(b, "wait_until_round_end", new=_make_gen(None)), patch.object(
             b, "set_done"
         ) as mock_set_done:
             gen = b.async_act()
@@ -583,13 +535,8 @@ class TestFundsForwarderRoundBehaviour:
 
     def test_abci_app_cls(self) -> None:
         """Test abci_app_cls."""
-        assert (
-            FundsForwarderRoundBehaviour.abci_app_cls
-            is FundsForwarderAbciApp
-        )
+        assert FundsForwarderRoundBehaviour.abci_app_cls is FundsForwarderAbciApp
 
     def test_behaviours(self) -> None:
         """Test behaviours set."""
-        assert FundsForwarderBehaviour in (
-            FundsForwarderRoundBehaviour.behaviours
-        )
+        assert FundsForwarderBehaviour in (FundsForwarderRoundBehaviour.behaviours)

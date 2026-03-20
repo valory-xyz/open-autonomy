@@ -28,9 +28,7 @@ SENDER = "sender_address"
 
 def test_payload_with_owner() -> None:
     """Test payload with a valid service owner."""
-    payload = IdentifyServiceOwnerPayload(
-        sender=SENDER, service_owner="0xOwnerAddress"
-    )
+    payload = IdentifyServiceOwnerPayload(sender=SENDER, service_owner="0xOwnerAddress")
     assert payload.sender == SENDER
     assert payload.service_owner == "0xOwnerAddress"
     assert payload.data == {"service_owner": "0xOwnerAddress"}
@@ -45,7 +43,5 @@ def test_payload_with_none() -> None:
 
 def test_payload_serialization_roundtrip() -> None:
     """Test JSON serialization roundtrip."""
-    payload = IdentifyServiceOwnerPayload(
-        sender=SENDER, service_owner="0xOwnerAddress"
-    )
+    payload = IdentifyServiceOwnerPayload(sender=SENDER, service_owner="0xOwnerAddress")
     assert IdentifyServiceOwnerPayload.from_json(payload.json) == payload  # type: ignore[attr-defined]

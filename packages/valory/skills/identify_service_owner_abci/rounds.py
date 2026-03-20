@@ -31,7 +31,9 @@ from packages.valory.skills.abstract_round_abci.base import (
     DegenerateRound,
     get_name,
 )
-from packages.valory.skills.identify_service_owner_abci.payloads import IdentifyServiceOwnerPayload
+from packages.valory.skills.identify_service_owner_abci.payloads import (
+    IdentifyServiceOwnerPayload,
+)
 
 
 class Event(Enum):

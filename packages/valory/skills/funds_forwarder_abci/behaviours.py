@@ -37,7 +37,10 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
 )
-from packages.valory.skills.funds_forwarder_abci.models import ZERO_ADDRESS, FundsForwarderParams
+from packages.valory.skills.funds_forwarder_abci.models import (
+    FundsForwarderParams,
+    ZERO_ADDRESS,
+)
 from packages.valory.skills.funds_forwarder_abci.payloads import FundsForwarderPayload
 from packages.valory.skills.funds_forwarder_abci.rounds import (
     FundsForwarderAbciApp,

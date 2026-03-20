@@ -69,9 +69,7 @@ def _make_behaviour() -> IdentifyServiceOwnerBehaviour:
     context_mock.agent_address = AGENT_ADDRESS
     context_mock.params.on_chain_service_id = SERVICE_ID
     context_mock.params.service_registry_address = REGISTRY_ADDRESS
-    return IdentifyServiceOwnerBehaviour(
-        name="test", skill_context=context_mock
-    )
+    return IdentifyServiceOwnerBehaviour(name="test", skill_context=context_mock)
 
 
 class TestIdentifyServiceOwnerBehaviour:
@@ -116,9 +114,7 @@ class TestIdentifyServiceOwnerBehaviour:
             self.behaviour,
             "_verify_agent_registration",
             new=_make_gen(True),
-        ), patch.object(
-            self.behaviour, "_get_registry_owner", new=_make_gen(None)
-        ):
+        ), patch.object(self.behaviour, "_get_registry_owner", new=_make_gen(None)):
             gen = self.behaviour._resolve_service_owner()
             result = _exhaust_gen(gen)
         assert result is None
@@ -228,9 +224,7 @@ class TestIdentifyServiceOwnerBehaviour:
             "get_contract_api_response",
             new=_make_gen(mock_response),
         ):
-            gen = self.behaviour._get_registry_owner(
-                SERVICE_ID, REGISTRY_ADDRESS
-            )
+            gen = self.behaviour._get_registry_owner(SERVICE_ID, REGISTRY_ADDRESS)
             result = _exhaust_gen(gen)
         assert result == OWNER_ADDRESS
 
@@ -244,9 +238,7 @@ class TestIdentifyServiceOwnerBehaviour:
             "get_contract_api_response",
             new=_make_gen(mock_response),
         ):
-            gen = self.behaviour._get_registry_owner(
-                SERVICE_ID, REGISTRY_ADDRESS
-            )
+            gen = self.behaviour._get_registry_owner(SERVICE_ID, REGISTRY_ADDRESS)
             result = _exhaust_gen(gen)
         assert result is None
 
@@ -254,18 +246,14 @@ class TestIdentifyServiceOwnerBehaviour:
         """Test _get_owner_from_staking when address is a staking contract."""
         mock_response = MagicMock()
         mock_response.performative = ContractApiMessage.Performative.STATE
-        mock_response.state.body = {
-            "data": ["0xMultisig", OWNER_ADDRESS, [], 0, 0, 0]
-        }
+        mock_response.state.body = {"data": ["0xMultisig", OWNER_ADDRESS, [], 0, 0, 0]}
 
         with patch.object(
             self.behaviour,
             "get_contract_api_response",
             new=_make_gen(mock_response),
         ):
-            gen = self.behaviour._get_owner_from_staking(
-                STAKING_ADDRESS, SERVICE_ID
-            )
+            gen = self.behaviour._get_owner_from_staking(STAKING_ADDRESS, SERVICE_ID)
             result = _exhaust_gen(gen)
         assert result == OWNER_ADDRESS
 
@@ -279,9 +267,7 @@ class TestIdentifyServiceOwnerBehaviour:
             "get_contract_api_response",
             new=_make_gen(mock_response),
         ):
-            gen = self.behaviour._get_owner_from_staking(
-                OWNER_ADDRESS, SERVICE_ID
-            )
+            gen = self.behaviour._get_owner_from_staking(OWNER_ADDRESS, SERVICE_ID)
             result = _exhaust_gen(gen)
         assert result is None
 
