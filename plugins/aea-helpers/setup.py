@@ -37,9 +37,7 @@ setup(
     description="CLI helpers for CI and dependency management in AEA-based projects.",
     long_description="CLI helpers for CI and dependency management in AEA-based projects.",
     long_description_content_type="text/markdown",
-    packages=find_packages(
-        where=".", include=["aea_helpers", "aea_helpers.*"]
-    ),
+    packages=find_packages(where=".", include=["aea_helpers", "aea_helpers.*"]),
     package_data={
         "aea_helpers": [
             "py.typed",

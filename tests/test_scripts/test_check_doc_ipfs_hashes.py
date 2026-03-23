@@ -21,7 +21,7 @@
 
 import re
 
-from scripts.check_doc_ipfs_hashes import AEA_COMMAND_REGEX, FULL_PACKAGE_REGEX
+from aea_helpers.check_doc_hashes import AEA_COMMAND_REGEX, FULL_PACKAGE_REGEX
 
 
 def test_cmd_regex() -> None:

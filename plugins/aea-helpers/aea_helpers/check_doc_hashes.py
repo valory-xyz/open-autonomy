@@ -50,6 +50,12 @@ PACKAGE_TABLE_REGEX = rf"\|\s*{PACKAGE_TYPE_REGEX}\/{VENDOR_REGEX}\/{PACKAGE_REG
 PACKAGE_MAPPING_REGEX = rf"(?P<package_mapping>(?:\"{PACKAGE_TYPE_REGEX}\/{VENDOR_REGEX}\/{PACKAGE_REGEX}\/{VERSION_REGEX}\":)\s*\"(?P<hash>{IPFS_HASH_REGEX})\")"
 
 
+DEFAULT_HASH_SKIPS = [
+    "Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev",  # Testing image used in tutorials/examples.
+    "bafybei0000000000000000000000000000000000000000000000000000",  # Placeholder hash used in tutorials/examples.
+]
+
+
 def read_file(filepath: str) -> str:
     """Loads a file into a string"""
     with open(filepath, "r", encoding="utf-8") as file_:
@@ -180,7 +186,7 @@ class PackageHashManager:
             Package(key, value, root_dir) for key, value in packages.items()
         ]
 
-        for url in (package_json_urls or []):
+        for url in package_json_urls or []:
             packages_from_url = get_packages_from_repository(url)
             new_packages = {
                 key: value
@@ -200,7 +206,8 @@ class PackageHashManager:
             self.package_tree.setdefault(p.vendor, {})
             self.package_tree[p.vendor].setdefault(p.type, {})
             self.package_tree[p.vendor][p.type].setdefault(p.name, p)
-            assert re.match(IPFS_HASH_REGEX, p.hash)  # detect wrong regexes
+            if not re.match(IPFS_HASH_REGEX, p.hash):
+                raise ValueError(f"Invalid IPFS hash for package {p.name}: {p.hash}")
 
     def get_package_by_hash(self, package_hash: str) -> Optional[Package]:
         """Get a package given its hash"""
@@ -298,11 +305,9 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
     """Fix ipfs hashes in the docs"""
 
     paths = paths or [Path("docs")]
-    skip_hashes = skip_hashes or []
+    skip_hashes = list(set(DEFAULT_HASH_SKIPS + (skip_hashes or [])))
 
-    all_md_files = itertools.chain.from_iterable(
-        [path.rglob("*.md") for path in paths]
-    )
+    all_md_files = itertools.chain.from_iterable([path.rglob("*.md") for path in paths])
     errors = False
     hash_mismatches = False
     old_to_new_hashes = {}
@@ -318,9 +323,7 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
         content = read_file(str(md_file))
 
         # Fix full commands in docs
-        for match in [
-            m.groupdict() for m in re.finditer(AEA_COMMAND_REGEX, content)
-        ]:
+        for match in [m.groupdict() for m in re.finditer(AEA_COMMAND_REGEX, content)]:
             matches += 1
             doc_full_cmd = match["full_cmd"]
             doc_cmd = match["cmd"]
@@ -413,9 +416,7 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
     if package_list_file.exists():
         content = read_file(str(package_list_file))
 
-        for match in [
-            m.groupdict() for m in re.finditer(PACKAGE_TABLE_REGEX, content)
-        ]:
+        for match in [m.groupdict() for m in re.finditer(PACKAGE_TABLE_REGEX, content)]:
             expected_hash = package_manager.get_hash_by_attributes(
                 match["package_type"], match["vendor"], match["package"]
             )

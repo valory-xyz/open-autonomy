@@ -165,9 +165,7 @@ class PipfileConfig:
                             dep = Dependency.from_pipfile_string(normalized)
                             sections[section][dep.name] = dep
                         except ValueError:
-                            logging.warning(
-                                f"Could not parse Pipfile line: {line!r}"
-                            )
+                            logging.warning(f"Could not parse Pipfile line: {line!r}")
                             continue
         return sources, sections
 
@@ -292,7 +290,7 @@ class ToxConfig:
                         continue
                     try:
                         dep = Dependency.from_string(dep_str)
-                    except Exception:  # pylint: disable=broad-except
+                    except (ValueError, TypeError):
                         continue
                     deps[dep.name] = {
                         "original": line,
