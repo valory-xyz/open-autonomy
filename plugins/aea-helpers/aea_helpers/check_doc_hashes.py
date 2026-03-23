@@ -280,9 +280,12 @@ class PackageHashManager:
 
     def get_hash_by_attributes(
         self, package_type: str, vendor: str, package_name: str
-    ) -> str:
+    ) -> Optional[str]:
         """Get a package hash give the package information"""
-        return self.package_tree[vendor][package_type][package_name].hash
+        try:
+            return self.package_tree[vendor][package_type][package_name].hash
+        except KeyError:
+            return None
 
 
 def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
@@ -290,6 +293,7 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
     paths: Optional[List[Path]] = None,
     fix: bool = False,
     skip_hashes: Optional[List[str]] = None,
+    package_json_urls: Optional[List[str]] = None,
 ) -> None:
     """Fix ipfs hashes in the docs"""
 
@@ -305,6 +309,7 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
     package_manager = PackageHashManager(
         root_dir=root_dir,
         skip_hashes=skip_hashes,
+        package_json_urls=package_json_urls,
     )
     matches = 0
 
@@ -373,6 +378,13 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
                 match["package_type"], match["vendor"], match["package"]
             )
 
+            if expected_hash is None:
+                print(
+                    f"[{md_file}]: package {match['package_type']}/{match['vendor']}/{match['package']} not found in packages.json"
+                )
+                errors = True
+                continue
+
             if package_hash == expected_hash:
                 continue
 
@@ -408,6 +420,13 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
                 match["package_type"], match["vendor"], match["package"]
             )
             package_hash = match["hash"]
+
+            if expected_hash is None:
+                print(
+                    f"[{package_list_file}]: package {match['package_type']}/{match['vendor']}/{match['package']} not found in packages.json"
+                )
+                errors = True
+                continue
 
             if package_hash == expected_hash:
                 continue
@@ -461,10 +480,17 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
     multiple=True,
     help="Documentation directories to scan (default: docs).",
 )
+@click.option(
+    "--package-json-url",
+    "package_json_urls",
+    multiple=True,
+    help="URLs of remote repos to fetch packages.json from (repeatable).",
+)
 def check_doc_hashes(
     fix: bool,
     skip_hash: tuple,
     doc_paths: tuple,
+    package_json_urls: tuple,
 ) -> None:
     """Check and optionally fix IPFS hashes in documentation files."""
     print("Start checking doc IPFS hashes.")
@@ -475,4 +501,5 @@ def check_doc_hashes(
         paths=paths,
         fix=fix,
         skip_hashes=list(skip_hash),
+        package_json_urls=list(package_json_urls) if package_json_urls else None,
     )

@@ -159,8 +159,16 @@ class PipfileConfig:
                         sections[section][f"comment_{comments}"] = line
                         comments += 1
                     else:
-                        dep = Dependency.from_pipfile_string(line)
-                        sections[section][dep.name] = dep
+                        # Normalize spacing: 'pkg ="ver"' → 'pkg = "ver"'
+                        normalized = re.sub(r'(\S)\s*=\s*"', r'\1 = "', line)
+                        try:
+                            dep = Dependency.from_pipfile_string(normalized)
+                            sections[section][dep.name] = dep
+                        except ValueError:
+                            logging.warning(
+                                f"Could not parse Pipfile line: {line!r}"
+                            )
+                            continue
         return sources, sections
 
     def compile(self) -> str:
@@ -270,13 +278,22 @@ class ToxConfig:
                     line = lines.pop(0)
                     if not line.startswith("    "):
                         break
+                    stripped = line.lstrip()
                     if (
-                        line.startswith("    {")
-                        or line.startswith("    ;")
-                        or line.strip() == ""
+                        stripped.startswith("{")
+                        or stripped.startswith(";")
+                        or stripped.startswith("#")
+                        or stripped == ""
                     ):
                         continue
-                    dep = Dependency.from_string(line.lstrip())
+                    # Strip inline comments (e.g. "pkg==1.0  # comment")
+                    dep_str = stripped.split("  #")[0].split("\t#")[0].strip()
+                    if not dep_str:
+                        continue
+                    try:
+                        dep = Dependency.from_string(dep_str)
+                    except Exception:  # pylint: disable=broad-except
+                        continue
                     deps[dep.name] = {
                         "original": line,
                         "dep": dep,
