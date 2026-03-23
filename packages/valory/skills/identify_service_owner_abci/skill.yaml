@@ -1,0 +1,156 @@
+name: identify_service_owner_abci
+author: valory
+version: 0.1.0
+type: skill
+description: A skill that resolves the real service owner, handling staking contract
+  indirection.
+license: Apache-2.0
+aea_version: '>=2.0.0, <3.0.0'
+fingerprint:
+  README.md: bafybeiemsgnnz2uxrfmq3bnxnbbqujx62otwh7dj63h42dih4y3l5yvv54
+  __init__.py: bafybeifzj5vb6xopmwug4aetixasmykfm2tek3ahsqxbe6qrxswxdgxoza
+  behaviours.py: bafybeiewhmc7v7osf6qvp3xvqflaopokpwb54ojjsq75owpctyjysjzopi
+  dialogues.py: bafybeib2jbaaoasdqak3j6w3fxvetum2rtvikazjr62meab3hzibjhasau
+  fsm_specification.yaml: bafybeiagifua7cmu6c5jvu3szxs76qz7ugpml747wqeqaqe7wdsmhoi3o4
+  handlers.py: bafybeib6k32g6zrgbzu6sdje2yoyfbdqjadtpmyno6iuaoggfgkw7onhwm
+  models.py: bafybeibdaenliv5tmnrrt5zpmqbg3ux7smp2tfzhmofa35peocch4moreq
+  payloads.py: bafybeif7sedqvyzwobhb6nsrkmbs5xcaxtpwz7kabgqmpytidfz6i7gnri
+  rounds.py: bafybeifnt6xgp3dn4fjz5xhwaa7fkhmkk2o3tsrcssczvjc2lupkgorcsi
+  tests/__init__.py: bafybeic737fidp3ubwgvm7z5e5ikrnjbkehisfhsgsao4byqd75ilwesb4
+  tests/conftest.py: bafybeieorpasgwrecqpayvbecwi7yl6idxab564t7ro3z5gypxvqgus3te
+  tests/test_behaviours.py: bafybeiafvo4jdbcsjd2n4ewlx7xaqygrdj7zezsxnsud6fy3gziqzj6sce
+  tests/test_dialogues.py: bafybeietaytl2go75qvvm6zxeiz3envr2apktz4vhi33hpzgfu4q3sa4cq
+  tests/test_handlers.py: bafybeiacw6ujg35d5eukx4poqq5nl63e6367dbcvtjnveu5ene4rpgo4da
+  tests/test_models.py: bafybeicqntzcxv7p4qe55z4xokawrv7gvsdqjfezksmiqz7r6babdwai2e
+  tests/test_payloads.py: bafybeigfzzkg5ad6sp7ag6qcnwrsbbyvcs3ic3ngnun4rq7ve3zovmyhpe
+  tests/test_rounds.py: bafybeicw4q657624slqgobuvjy3mjkyhi2rbvpcy4dwvnbnwc4spo4jbuy
+fingerprint_ignore_patterns: []
+connections: []
+contracts:
+- valory/service_registry:0.1.0:bafybeidiiagh6373ko64z5etk73qgqgfquqqq3av3vsehzpqnhwau5ldja
+- valory/staking_token:0.1.0:bafybeihvkbybplfipbnttsyakbbkaw4sy3uoieahpnnhnxxzrpx26ya6zu
+protocols:
+- valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
+skills:
+- valory/abstract_round_abci:0.1.0:bafybeigzfvbwdm7b3y7s6ft7rwdqmzrafltz7imvczcptfgwah7lfsyupe
+behaviours:
+  main:
+    args: {}
+    class_name: IdentifyServiceOwnerRoundBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: ABCIHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  ipfs:
+    args: {}
+    class_name: IpfsHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+  tendermint:
+    args: {}
+    class_name: TendermintHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  benchmark_tool:
+    args:
+      log_dir: /logs
+    class_name: BenchmarkTool
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  ipfs_dialogues:
+    args: {}
+    class_name: IpfsDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  params:
+    args:
+      on_chain_service_id: null
+      cleanup_history_depth: 1
+      cleanup_history_depth_current: null
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      finalize_timeout: 60.0
+      genesis_config:
+        chain_id: chain-c4daS1
+        consensus_params:
+          block:
+            max_bytes: '22020096'
+            max_gas: '-1'
+            time_iota_ms: '1000'
+          evidence:
+            max_age_duration: '172800000000000'
+            max_age_num_blocks: '100000'
+            max_bytes: '1048576'
+          validator:
+            pub_key_types:
+            - ed25519
+          version: {}
+        genesis_time: '2022-05-20T16:00:21.735122717Z'
+        voting_power: '10'
+      history_check_timeout: 1205
+      ipfs_domain_name: null
+      keeper_allowed_retries: 3
+      keeper_timeout: 30.0
+      max_attempts: 10
+      max_healthcheck: 120
+      ipfs_address: https://gateway.autonolas.tech/ipfs/
+      request_retry_delay: 1.0
+      request_timeout: 10.0
+      reset_pause_duration: 10
+      reset_tendermint_after: 2
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30.0
+      service_id: identify_service_owner_abci
+      service_registry_address: null
+      setup:
+        all_participants:
+        - '0x0000000000000000000000000000000000000000'
+        consensus_threshold: null
+        safe_contract_address: '0x0000000000000000000000000000000000000000'
+      share_tm_config_on_startup: false
+      sleep_time: 1
+      tendermint_check_sleep_delay: 3
+      tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
+      tendermint_p2p_url: localhost:26656
+      tendermint_url: http://localhost:26657
+      tx_timeout: 10.0
+      validate_timeout: 1205
+      use_termination: false
+      use_slashing: false
+      slash_cooldown_hours: 3
+      slash_threshold_amount: 10000000000000000
+      light_slash_unit_amount: 5000000000000000
+      serious_slash_unit_amount: 8000000000000000
+    class_name: IdentifyServiceOwnerParams
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+  tendermint_dialogues:
+    args: {}
+    class_name: TendermintDialogues
+dependencies: {}
+is_abstract: true
