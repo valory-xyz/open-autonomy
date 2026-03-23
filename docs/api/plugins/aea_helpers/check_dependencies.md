@@ -316,6 +316,11 @@ Returns a list of package dependencies.
     help="Validate only, do not update files.",
 )
 @click.option(
+    "--strict",
+    is_flag=True,
+    help="Enable full cross-validation between all dependency files.",
+)
+@click.option(
     "--exclude",
     multiple=True,
     help="Package names to exclude from checks (repeatable).",
@@ -345,6 +350,7 @@ Returns a list of package dependencies.
     help="pyproject.toml path.",
 )
 def check_dependencies(check_only: bool = False,
+                       strict: bool = False,
                        exclude: tuple = (),
                        packages_dir: Optional[Path] = None,
                        tox_path: Optional[Path] = None,

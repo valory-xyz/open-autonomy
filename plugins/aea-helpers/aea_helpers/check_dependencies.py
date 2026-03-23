@@ -527,56 +527,60 @@ def _check(
     tox: ToxConfig,
     pipfile: Optional[PipfileConfig] = None,
     pyproject: Optional[PyProjectTomlConfig] = None,
+    strict: bool = False,
 ) -> None:
     """Check dependencies for consistency."""
 
     fail_check = 0
 
     if pipfile is not None:
-        print("Comparing dependencies from Pipfile and packages")
+        print("Comparing dependencies from packages and Pipfile")
         for dependency in packages_dependencies:
             error, level = pipfile.check(dependency=dependency)
             if error is not None:
                 logging.log(level=level, msg=error)
                 fail_check = level or fail_check
 
-        print("Comparing dependencies from tox and Pipfile")
-        for dependency in pipfile:
-            error, level = tox.check(dependency=dependency)
-            if error is not None:
-                logging.log(level=level, msg=error)
-                fail_check = level or fail_check
+        if strict:
+            print("Comparing dependencies from tox and Pipfile")
+            for dependency in pipfile:
+                error, level = tox.check(dependency=dependency)
+                if error is not None:
+                    logging.log(level=level, msg=error)
+                    fail_check = level or fail_check
 
-        print("Comparing dependencies from Pipfile and tox")
-        for dependency in tox:
-            error, level = pipfile.check(dependency=dependency)
-            if error is not None:
-                logging.log(level=level, msg=error)
-                fail_check = level or fail_check
+            print("Comparing dependencies from Pipfile and tox")
+            for dependency in tox:
+                error, level = pipfile.check(dependency=dependency)
+                if error is not None:
+                    logging.log(level=level, msg=error)
+                    fail_check = level or fail_check
 
     if pyproject is not None:
-        print("Comparing dependencies from pyproject.toml and packages")
+        print("Comparing dependencies from packages and pyproject.toml")
         for dependency in packages_dependencies:
             error, level = pyproject.check(dependency=dependency)
             if error is not None:
                 logging.log(level=level, msg=error)
                 fail_check = level or fail_check
 
-        print("Comparing dependencies from pyproject.toml and tox")
-        for dependency in pyproject:
-            error, level = tox.check(dependency=dependency)
-            if error is not None:
-                logging.log(level=level, msg=error)
-                fail_check = level or fail_check
+        if strict:
+            print("Comparing dependencies from pyproject.toml and tox")
+            for dependency in pyproject:
+                error, level = tox.check(dependency=dependency)
+                if error is not None:
+                    logging.log(level=level, msg=error)
+                    fail_check = level or fail_check
 
-        print("Comparing dependencies from tox and pyproject.toml")
-        for dependency in tox:
-            error, level = pyproject.check(dependency=dependency)
-            if error is not None:
-                logging.log(level=level, msg=error)
-                fail_check = level or fail_check
+        if strict:
+            print("Comparing dependencies from tox and pyproject.toml")
+            for dependency in tox:
+                error, level = pyproject.check(dependency=dependency)
+                if error is not None:
+                    logging.log(level=level, msg=error)
+                    fail_check = level or fail_check
 
-    print("Comparing dependencies from tox and packages")
+    print("Comparing dependencies from packages and tox")
     for dependency in packages_dependencies:
         error, level = tox.check(dependency=dependency)
         if error is not None:
@@ -600,6 +604,11 @@ def _check(
     "check_only",
     is_flag=True,
     help="Validate only, do not update files.",
+)
+@click.option(
+    "--strict",
+    is_flag=True,
+    help="Enable full cross-validation between all dependency files.",
 )
 @click.option(
     "--exclude",
@@ -632,6 +641,7 @@ def _check(
 )
 def check_dependencies(
     check_only: bool = False,
+    strict: bool = False,
     exclude: tuple = (),
     packages_dir: Optional[Path] = None,
     tox_path: Optional[Path] = None,
@@ -646,19 +656,38 @@ def check_dependencies(
     tox_path = tox_path or Path.cwd() / "tox.ini"
     tox = ToxConfig.load(tox_path, exclude=exclude_list)
 
-    pipfile_path = pipfile_path or Path.cwd() / "Pipfile"
-    pipfile = (
-        PipfileConfig.load(pipfile_path, exclude=exclude_list)
-        if pipfile_path.exists()
-        else None
-    )
+    # If user explicitly passed --pipfile or --pyproject, use what they asked for.
+    # Otherwise auto-detect: prefer Pipfile if it exists, fall back to pyproject.toml.
+    # Only use one — not both — to match the original per-repo behavior.
+    user_specified_pipfile = pipfile_path is not None
+    user_specified_pyproject = pyproject_path is not None
 
+    pipfile_path = pipfile_path or Path.cwd() / "Pipfile"
     pyproject_path = pyproject_path or Path.cwd() / "pyproject.toml"
-    pyproject = (
-        PyProjectTomlConfig.load(pyproject_path, exclude=exclude_list)
-        if pyproject_path.exists()
-        else None
-    )
+
+    if user_specified_pipfile or user_specified_pyproject:
+        # Explicit: load only what was requested
+        pipfile = (
+            PipfileConfig.load(pipfile_path, exclude=exclude_list)
+            if user_specified_pipfile and pipfile_path.exists()
+            else None
+        )
+        pyproject = (
+            PyProjectTomlConfig.load(pyproject_path, exclude=exclude_list)
+            if user_specified_pyproject and pyproject_path.exists()
+            else None
+        )
+    elif pipfile_path.exists():
+        # Auto-detect: Pipfile takes precedence
+        pipfile = PipfileConfig.load(pipfile_path, exclude=exclude_list)
+        pyproject = None
+    elif pyproject_path.exists():
+        # Auto-detect: fall back to pyproject.toml
+        pipfile = None
+        pyproject = PyProjectTomlConfig.load(pyproject_path, exclude=exclude_list)
+    else:
+        pipfile = None
+        pyproject = None
 
     packages_dir = packages_dir or Path.cwd() / "packages"
     packages_dependencies = load_packages_dependencies(
@@ -671,6 +700,7 @@ def check_dependencies(
             pipfile=pipfile,
             pyproject=pyproject,
             packages_dependencies=packages_dependencies,
+            strict=strict,
         )
 
     return _update(
