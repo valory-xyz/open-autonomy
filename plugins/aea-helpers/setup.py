@@ -23,7 +23,7 @@ from setuptools import find_packages  # type: ignore
 from setuptools import setup  # type: ignore
 
 base_deps = [
-    "open-autonomy>=0.21.0,<1.0.0",
+    "open-autonomy>=0.21.0,<0.22.0",
     "click>=8.1.0,<9",
     "requests>=2.28.0,<3",
     "toml>=0.10,<1",

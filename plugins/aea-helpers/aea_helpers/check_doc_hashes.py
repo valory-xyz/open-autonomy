@@ -292,6 +292,9 @@ class PackageHashManager:
         try:
             return self.package_tree[vendor][package_type][package_name].hash
         except KeyError:
+            print(
+                f"Package {package_type}/{vendor}/{package_name} not found in packages.json"
+            )
             return None
 
 
