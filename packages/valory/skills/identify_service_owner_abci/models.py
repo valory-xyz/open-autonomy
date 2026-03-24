@@ -43,7 +43,8 @@ class SharedState(BaseSharedState):
     abci_app_cls: Type[AbciApp] = IdentifyServiceOwnerAbciApp
 
 
-IdentifyServiceOwnerParams = BaseParams
+class IdentifyServiceOwnerParams(BaseParams):
+    """Parameters for the identify_service_owner_abci skill."""
 
 
 Requests = BaseRequests
