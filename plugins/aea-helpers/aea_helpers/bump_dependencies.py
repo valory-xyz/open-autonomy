@@ -18,13 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """
-Script for bumping core dependencies.
+Bump core dependencies.
 
-This script
-
-- Fetches the latest core dependency versions from github
-- Updates the tox.ini, packages and Pipfile/pyproject.toml files
-- Performs the packages sync
+Fetches the latest core dependency versions from GitHub, updates
+tox.ini, packages and Pipfile/pyproject.toml files, and optionally
+performs a packages sync.
 """
 
 import os
@@ -55,6 +53,7 @@ VERISON_RE = re.compile(r"(__version__|version)( )?=( )?\"(?P<version>[0-9a-z\.]
 
 OPEN_AEA_REPO = "valory-xyz/open-aea"
 OPEN_AUTONOMY_REPO = "valory-xyz/open-autonomy"
+TIMEOUT = 30.0
 
 DEPENDENCY_SPECS = {
     "open-aea": {
@@ -96,7 +95,7 @@ DEPENDENCY_SPECS = {
 }
 
 _cache_file = Path.home() / ".aea" / ".gitcache"
-_version_cache = {}
+_version_cache: t.Dict[str, str] = {}
 _logger = setup_logger("bump")
 
 
@@ -115,12 +114,12 @@ def dump_git_cache() -> None:
 
 
 def make_git_request(url: str) -> requests.Response:
-    """Make git request"""
+    """Make git request."""
     auth = os.environ.get("GITHUB_AUTH")
     if auth is None:
-        return requests.get(url=url, timeout=30)
+        return requests.get(url=url, timeout=TIMEOUT)
     return requests.get(
-        url=url, headers={"Authorization": f"Bearer {auth}"}, timeout=30
+        url=url, headers={"Authorization": f"Bearer {auth}"}, timeout=TIMEOUT
     )
 
 
@@ -142,7 +141,7 @@ def get_latest_tag(repo: str) -> str:
 
 
 def get_dependency_version(repo: str, file: str) -> str:
-    """Get version spec ."""
+    """Get version spec."""
     response = make_git_request(
         FILE_URL.format(
             repo=repo,
@@ -177,7 +176,7 @@ def get_dependencies() -> t.Dict:
 
 
 def bump_pipfile_or_pyproject(file: Path, dependencies: t.Dict[str, str]) -> None:
-    """Bump Pipfile."""
+    """Bump Pipfile or pyproject.toml."""
     if not file.exists():
         return
 
@@ -252,7 +251,7 @@ def bump_packages(dependencies: t.Dict[str, str]) -> None:
             yaml_dump_all([config, *extra], stream=stream)
 
 
-@click.command(name="bump")
+@click.command(name="bump-dependencies")
 @click.option(
     "-d",
     "--dependency",
@@ -276,13 +275,13 @@ def bump_packages(dependencies: t.Dict[str, str]) -> None:
     default=False,
     help="Avoid using cache to bump.",
 )
-def main(
+def bump_dependencies(
     extra: t.Tuple[Dependency, ...],
     sources: t.Tuple[str, ...],
     sync: bool,
     no_cache: bool,
 ) -> None:
-    """Run the bump script."""
+    """Bump core dependency versions from GitHub."""
 
     if not no_cache:
         load_git_cache()
@@ -311,7 +310,3 @@ def main(
         )
         pm.update_package_hashes()
         pm.dump()
-
-
-if __name__ == "__main__":
-    main()  # pylint: disable=no-value-for-parameter
