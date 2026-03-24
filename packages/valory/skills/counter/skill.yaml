@@ -14,12 +14,12 @@ fingerprint:
   tests/test_counter.py: bafybeihprhdifkp5f72vj5n2z4x7j7fqh2hgtqpkaajlx7ccmh6sbl6t3i
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeidow4c25km7xi4vykecsimautwrdc5mseenx6rlk4qvfhhojfbi5i
+- valory/abci:0.1.0:bafybeia2fpbej2tdklgprvuvgtjwswlluzdkbfbj2tbvguzavexn3ulpai
 contracts: []
 protocols:
 - valory/abci:0.1.0:bafybeiak4pwac3pwjtd7weskxdhkrcopckr32vtazfbuteu6yqjkwarpte
 skills:
-- valory/abstract_abci:0.1.0:bafybeidp7fs4t2vjkrgmtyx4djwgme5rfodx3arl47jlpd4plho37henhy
+- valory/abstract_abci:0.1.0:bafybeidf6cjcl4ra7ryj3xm74x7o7jfpg6wvgutn7lcijcajcdvh33657q
 behaviours: {}
 handlers:
   abci:
