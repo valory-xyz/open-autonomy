@@ -51,7 +51,7 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==2.1.0
   open-aea-test-autonomy:
-    version: ==0.21.14
+    version: ==0.21.15
 default_connection: valory/abci:0.1.0
 customs: []
 ---
