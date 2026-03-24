@@ -38,6 +38,11 @@ jobs:
           pipenv run python setup.py sdist bdist_wheel
           cd ../..
 
+          echo Processing aea-helpers
+          cd plugins/aea-helpers
+          pipenv run python setup.py sdist bdist_wheel
+          cd ../..
+
       - name: Publish open-autonomy Framework to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -53,6 +58,14 @@ jobs:
           password: ${{ secrets.PYPI_API_TOKEN }}
           skip_existing: true
           packages_dir: plugins/aea-test-autonomy/dist/
+
+      - name: Publish aea-helpers Plugin to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          skip_existing: true
+          packages_dir: plugins/aea-helpers/dist/
 
   publish-autonomy-packages:
     name: Push Open Autonomy Packages

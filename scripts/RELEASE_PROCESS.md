@@ -14,7 +14,7 @@
    - `tests/test_base.py`
    - `deployments/Dockerfiles/autonomy-user/requirements.txt`
 
-6. Determine the next `open-aea-test-autonomy` version. Update the version in `plugins/aea-test-autonomy/setup.py` and relevant component configurations. Commit if satisfied.
+6. Determine the next `open-aea-test-autonomy` version. Update the version in `plugins/aea-test-autonomy/setup.py` and relevant component configurations. Also update the `aea-helpers` version in `plugins/aea-helpers/setup.py`. Commit if satisfied.
 
 7. Check the package upgrades are correct by running `tox -e check-packages`. Commit if satisfied.
 
