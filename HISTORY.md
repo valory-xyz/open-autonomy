@@ -1,5 +1,28 @@
 # Release History - `open-autonomy`
 
+# 0.21.15 (2026-03-24)
+
+Autonomy:
+- Adds `aea-helpers` plugin consolidating duplicated CI scripts (`bump.py`, `check_dependencies.py`, `check_doc_ipfs_hashes.py`) from 7 repos into a single installable CLI package #2450
+- Adds `aea-helpers` to the release pipeline for PyPI publishing #2452
+
+Packages:
+- Adds funds forwarder and identify service owner skills #2449
+
+# 0.21.14 (2026-03-19)
+
+Autonomy:
+- Fixes environment variable override validation #2447
+
+Packages:
+- Ensures ABIs have all parameters from explorer #2445
+- Fixes ERC20 transfer transaction #2444
+
+# 0.21.13 (2026-03-10)
+
+Chore:
+- Fixes requests version range to `<2.33.0,>=2.28.1` for compatibility #2443
+
 # 0.21.12 (2026-03-08)
 
 Autonomy:

@@ -5,6 +5,25 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.14` to `v0.21.15`
+
+- The `aea-helpers` plugin is now available as a standalone PyPI package. It consolidates the duplicated CI scripts (`bump.py`, `check_dependencies.py`, `check_doc_ipfs_hashes.py`) that were previously copy-pasted across repositories.
+- If your repository has local copies of these scripts in `scripts/` or `utils/`, you can replace them with the `aea-helpers` CLI commands:
+    - `aea-helpers bump-dependencies` replaces `scripts/bump.py`
+    - `aea-helpers check-dependencies --check` replaces `scripts/check_dependencies.py`
+    - `aea-helpers check-doc-hashes` replaces `scripts/check_doc_ipfs_hashes.py`
+- Add `aea-helpers>=0.1.0` to your project dependencies and `tox.ini` deps to use.
+- Hardcoded package exclusions (e.g. `requests` version hacks, popping `open-aea-ledger-solana`) are now configurable via `--exclude` flags instead.
+
+## `v0.21.12` to `v0.21.14`
+
+- Ensures ABIs have all parameters from explorer #2445
+- Fixes ERC20 transfer transaction handling #2444
+- Fixes environment variable override validation for friendly names #2447
+- Fixes requests version range to `<2.33.0,>=2.28.1` for compatibility #2443
+
+No breaking changes. Bump `open-autonomy` version pin and regenerate package hashes.
+
 ## `v0.21.11` to `v0.21.12`
 
 - Python support is now `3.10-3.14` (previously `3.10-3.11`).
