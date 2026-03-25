@@ -5,7 +5,7 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
-## `v0.21.14` to `v0.21.15`
+## `v0.21.14` to `v0.21.16rc1`
 
 - The `aea-helpers` plugin is now available as a standalone PyPI package. It consolidates the duplicated CI scripts (`bump.py`, `check_dependencies.py`, `check_doc_ipfs_hashes.py`) that were previously copy-pasted across repositories.
 - If your repository has local copies of these scripts in `scripts/` or `utils/`, you can replace them with the `aea-helpers` CLI commands:
