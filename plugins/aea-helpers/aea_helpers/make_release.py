@@ -19,7 +19,7 @@
 
 """Create a git tag and GitHub release."""
 
-import subprocess
+import subprocess  # nosec
 import sys
 
 import click
@@ -27,7 +27,12 @@ import click
 
 @click.command(name="make-release")
 @click.option("--version", required=True, help="Release version (e.g. 1.0.0).")
-@click.option("--env", "environment", required=True, help="Release environment (e.g. prod, staging).")
+@click.option(
+    "--env",
+    "environment",
+    required=True,
+    help="Release environment (e.g. prod, staging).",
+)
 @click.option("--description", required=True, help="Release description.")
 def make_release(version: str, environment: str, description: str) -> None:
     """Create a git tag and GitHub release."""
@@ -42,13 +47,13 @@ def make_release(version: str, environment: str, description: str) -> None:
     title = f"Release {version} ({environment})"
 
     print(f"Creating tag: {tag}")
-    subprocess.run(["git", "tag", "-a", tag, "-m", description], check=True)
+    subprocess.run(["git", "tag", "-a", tag, "-m", description], check=True)  # nosec
 
     print(f"Pushing tag: {tag}")
-    subprocess.run(["git", "push", "origin", tag], check=True)
+    subprocess.run(["git", "push", "origin", tag], check=True)  # nosec
 
     print(f"Creating GitHub release: {title}")
-    subprocess.run(
+    subprocess.run(  # nosec
         [
             "gh",
             "release",

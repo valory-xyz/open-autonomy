@@ -19,7 +19,7 @@
 
 """Python wrapper for run_service.sh shell script."""
 
-import subprocess
+import subprocess  # nosec
 import sys
 from importlib import resources
 
@@ -29,17 +29,29 @@ import click
 @click.command(name="run-service")
 @click.option("--name", required=True, help="Service name (e.g. valory/trader).")
 @click.option("--env-file", default=".env", help="Env file to source (default: .env).")
-@click.option("--keys-file", default="keys.json", help="Keys file (default: keys.json).")
+@click.option(
+    "--keys-file", default="keys.json", help="Keys file (default: keys.json)."
+)
 @click.option("--agents", type=int, default=4, help="Number of agents (default: 4).")
-@click.option("--author", default="valory", help="Author for autonomy init (default: valory).")
+@click.option(
+    "--author", default="valory", help="Author for autonomy init (default: valory)."
+)
 @click.option("--cpu-limit", type=float, default=None, help="Agent CPU limit.")
 @click.option("--memory-limit", type=int, default=None, help="Agent memory limit (MB).")
-@click.option("--memory-request", type=int, default=None, help="Agent memory request (MB).")
+@click.option(
+    "--memory-request", type=int, default=None, help="Agent memory request (MB)."
+)
 @click.option("--detach", is_flag=True, help="Run deployment in detached mode.")
-@click.option("--docker-cleanup", is_flag=True, help="Clean up Docker containers before start.")
+@click.option(
+    "--docker-cleanup", is_flag=True, help="Clean up Docker containers before start."
+)
 @click.option("--skip-init", is_flag=True, help="Skip autonomy init step.")
-@click.option("--pre-deploy-cmd", default=None, help="Command to run before deploy build.")
-@click.option("--post-deploy-cmd", default=None, help="Command to run after deploy build.")
+@click.option(
+    "--pre-deploy-cmd", default=None, help="Command to run before deploy build."
+)
+@click.option(
+    "--post-deploy-cmd", default=None, help="Command to run after deploy build."
+)
 def run_service(**kwargs: object) -> None:
     """Build and deploy an agent service."""
     script = resources.files("aea_helpers.scripts").joinpath("run_service.sh")
@@ -52,5 +64,5 @@ def run_service(**kwargs: object) -> None:
         elif val is not None and not isinstance(val, bool):
             cmd.extend([flag, str(val)])
 
-    result = subprocess.run(cmd, check=False)
+    result = subprocess.run(cmd, check=False)  # nosec
     sys.exit(result.returncode)

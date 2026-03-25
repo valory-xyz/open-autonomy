@@ -24,7 +24,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 import click
 import yaml
@@ -61,7 +61,9 @@ def find_and_replace(config: list, path: list, new_value: Any) -> list:
         old_str_value = sub_dic[path[-1]]
         match = re.match(CONFIG_REGEX, str(old_str_value))
         if match is None:
-            print(f"Warning: value at {path} does not match template pattern: {old_str_value}")
+            print(
+                f"Warning: value at {path} does not match template pattern: {old_str_value}"
+            )
             continue
         old_var_value = match.groups()[0]
         new_str_value = str(old_str_value).replace(old_var_value, new_value)

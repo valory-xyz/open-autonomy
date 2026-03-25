@@ -20,7 +20,6 @@
 """CLI entry point for aea-helpers."""
 
 import click
-
 from aea_helpers.bump_dependencies import bump_dependencies
 from aea_helpers.check_dependencies import check_dependencies
 from aea_helpers.check_doc_hashes import check_doc_hashes
