@@ -22,7 +22,6 @@
 
 import asyncio
 import os
-import platform
 import tempfile
 from typing import Dict, List, Optional
 from unittest import mock
@@ -231,10 +230,6 @@ class TestIpfsConnection:
             assert message is not None
             mock_logger.assert_called_with(expected_log)
 
-    @pytest.mark.skipif(
-        platform.system() == "Windows",
-        reason="PermissionError: [Errno 13] Permission denied",
-    )
     @pytest.mark.parametrize(
         ("extra_files", "download_side_effect"),
         [
@@ -249,29 +244,28 @@ class TestIpfsConnection:
         download_side_effect: Optional[Exception],
     ) -> None:
         """Test _handle_get_files"""
-        with tempfile.NamedTemporaryFile() as tmp_file, mock.patch.object(
-            os,
-            "listdir",
-        ) as mock_listdir, mock.patch.object(
-            IPFSTool, "download", side_effect=download_side_effect
-        ):
-            mock_listdir.side_effect = [extra_files + [tmp_file.name]]
-
+        tmp_file = tempfile.NamedTemporaryFile(delete=False)
+        try:
             tmp_file.write(b"dummy_data")
-            tmp_file.flush()
+            tmp_file.close()  # close before IPFS reads to avoid Windows file lock
 
-            _, ipfs_hash, _ = self.connection.ipfs_tool.add(tmp_file.name)
-            message = IpfsMessage(
-                performative=IpfsMessage.Performative.GET_FILES, ipfs_hash=ipfs_hash  # type: ignore
-            )
-            dialogue = MagicMock()
-            message = self.connection._handle_get_files(message, dialogue)
-            assert message is not None
+            with mock.patch.object(
+                os,
+                "listdir",
+            ) as mock_listdir, mock.patch.object(
+                IPFSTool, "download", side_effect=download_side_effect
+            ):
+                mock_listdir.side_effect = [extra_files + [tmp_file.name]]
+                _, ipfs_hash, _ = self.connection.ipfs_tool.add(tmp_file.name)
+                message = IpfsMessage(
+                    performative=IpfsMessage.Performative.GET_FILES, ipfs_hash=ipfs_hash  # type: ignore
+                )
+                dialogue = MagicMock()
+                message = self.connection._handle_get_files(message, dialogue)
+                assert message is not None
+        finally:
+            os.unlink(tmp_file.name)
 
-    @pytest.mark.skipif(
-        platform.system() == "Windows",
-        reason="PermissionError: [Errno 13] Permission denied",
-    )
     def test_handle_get_files_with_subdirectory(self) -> None:
         """Test _handle_get_files reads files recursively from subdirectories."""
         with tempfile.TemporaryDirectory() as pkg_dir:
@@ -316,10 +310,6 @@ class TestIpfsConnection:
             assert os.path.join("tests", "__init__.py") in files
             assert os.path.join("tests", "test_tool.py") in files
 
-    @pytest.mark.skipif(
-        platform.system() == "Windows",
-        reason="PermissionError: [Errno 13] Permission denied",
-    )
     def test_handle_get_files_with_binary_file(self) -> None:
         """Test _handle_get_files skips binary files with a warning."""
         with tempfile.TemporaryDirectory() as pkg_dir:
@@ -350,10 +340,6 @@ class TestIpfsConnection:
             assert "data.bin" not in files
             mock_warning.assert_any_call("Skipping non-UTF-8 file: data.bin")
 
-    @pytest.mark.skipif(
-        platform.system() == "Windows",
-        reason="PermissionError: [Errno 13] Permission denied",
-    )
     def test_handle_get_files_with_nested_subdirectories(self) -> None:
         """Test _handle_get_files handles deeply nested directories."""
         with tempfile.TemporaryDirectory() as pkg_dir:
@@ -381,10 +367,6 @@ class TestIpfsConnection:
             assert "root.py" in files
             assert os.path.join("a", "b", "c", "deep.py") in files
 
-    @pytest.mark.skipif(
-        platform.system() == "Windows",
-        reason="PermissionError: [Errno 13] Permission denied",
-    )
     def test_handle_get_files_flat_package_unchanged(self) -> None:
         """Test _handle_get_files backwards compatibility with flat packages."""
         with tempfile.TemporaryDirectory() as pkg_dir:
