@@ -65,5 +65,5 @@ DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE = (
 ACN_IMAGE_NAME = os.environ.get("ACN_IMAGE_NAME", "valory/open-acn-node")
 DEFAULT_DOCKER_IMAGE_AUTHOR = "valory"
 OAR_IMAGE = "{image_author}/oar-{agent}:{version}"
-ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeidtjo4yoxmwigy32uolij5tmsuyjx3q2ngbf5iypju5falcfzsh54"
+ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeic6qjxirbq72eh3getkxfj4xhmjy7oc5yhshci7ccocdtnpjxp3ou"
 OLAS_DOCS_URL = "https://stack.olas.network"
