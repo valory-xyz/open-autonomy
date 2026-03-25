@@ -244,7 +244,7 @@ class TestIpfsConnection:
         download_side_effect: Optional[Exception],
     ) -> None:
         """Test _handle_get_files"""
-        tmp_file = tempfile.NamedTemporaryFile(delete=False)
+        tmp_file = tempfile.NamedTemporaryFile(delete=False)  # pylint: disable=consider-using-with
         try:
             tmp_file.write(b"dummy_data")
             tmp_file.close()  # close before IPFS reads to avoid Windows file lock
