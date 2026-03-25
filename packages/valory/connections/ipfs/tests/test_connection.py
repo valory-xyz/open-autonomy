@@ -301,12 +301,12 @@ class TestIpfsConnection:
             )
 
             message = IpfsMessage(
-                performative=IpfsMessage.Performative.GET_FILES,
-                ipfs_hash=ipfs_hash,  # type: ignore
+                performative=IpfsMessage.Performative.GET_FILES,  # type: ignore
+                ipfs_hash=ipfs_hash,
             )
             dialogue = MagicMock()
-            result = self.connection._handle_get_files(message, dialogue)
-            assert result is not None
+            message = self.connection._handle_get_files(message, dialogue)
+            assert message is not None
 
             # Verify the reply was called with files containing subdirectory paths
             call_kwargs = dialogue.reply.call_args[1]
@@ -336,8 +336,8 @@ class TestIpfsConnection:
             )
 
             message = IpfsMessage(
-                performative=IpfsMessage.Performative.GET_FILES,
-                ipfs_hash=ipfs_hash,  # type: ignore
+                performative=IpfsMessage.Performative.GET_FILES,  # type: ignore
+                ipfs_hash=ipfs_hash,
             )
             dialogue = MagicMock()
             with mock.patch.object(self.connection.logger, "warning") as mock_warning:
@@ -369,12 +369,12 @@ class TestIpfsConnection:
             )
 
             message = IpfsMessage(
-                performative=IpfsMessage.Performative.GET_FILES,
-                ipfs_hash=ipfs_hash,  # type: ignore
+                performative=IpfsMessage.Performative.GET_FILES,  # type: ignore
+                ipfs_hash=ipfs_hash,
             )
             dialogue = MagicMock()
-            result = self.connection._handle_get_files(message, dialogue)
-            assert result is not None
+            message = self.connection._handle_get_files(message, dialogue)
+            assert message is not None
 
             call_kwargs = dialogue.reply.call_args[1]
             files = call_kwargs["files"]
@@ -400,12 +400,12 @@ class TestIpfsConnection:
             )
 
             message = IpfsMessage(
-                performative=IpfsMessage.Performative.GET_FILES,
-                ipfs_hash=ipfs_hash,  # type: ignore
+                performative=IpfsMessage.Performative.GET_FILES,  # type: ignore
+                ipfs_hash=ipfs_hash,
             )
             dialogue = MagicMock()
-            result = self.connection._handle_get_files(message, dialogue)
-            assert result is not None
+            message = self.connection._handle_get_files(message, dialogue)
+            assert message is not None
 
             call_kwargs = dialogue.reply.call_args[1]
             files = call_kwargs["files"]
