@@ -14,5 +14,5 @@ CLI entry point for aea-helpers.
 def cli() -> None
 ```
 
-AEA helper utilities for CI and dependency management.
+AEA helper utilities for CI, dependency management, and deployment.
 
