@@ -39,6 +39,11 @@ def find_and_replace(config: list, path: list, new_value: Any) -> list:
     Traverses a multi-document YAML config, finds sections containing
     the specified path, and replaces the template value with new_value.
     Handles ${type:value} format — preserves the type prefix.
+
+    :param config: list of YAML documents from safe_load_all.
+    :param path: list of keys forming the path to the value.
+    :param new_value: the new value to substitute.
+    :return: the updated config list.
     """
     matching_section_indices = []
     for i, section in enumerate(config):

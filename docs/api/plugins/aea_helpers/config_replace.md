@@ -18,6 +18,16 @@ Traverses a multi-document YAML config, finds sections containing
 the specified path, and replaces the template value with new_value.
 Handles ${type:value} format — preserves the type prefix.
 
+**Arguments**:
+
+- `config`: list of YAML documents from safe_load_all.
+- `path`: list of keys forming the path to the value.
+- `new_value`: the new value to substitute.
+
+**Returns**:
+
+the updated config list.
+
 <a id="plugins.aea-helpers.aea_helpers.config_replace.load_mapping"></a>
 
 #### load`_`mapping

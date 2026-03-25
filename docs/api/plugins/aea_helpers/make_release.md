@@ -11,10 +11,12 @@ Create a git tag and GitHub release.
 ```python
 @click.command(name="make-release")
 @click.option("--version", required=True, help="Release version (e.g. 1.0.0).")
-@click.option("--env",
-              "environment",
-              required=True,
-              help="Release environment (e.g. prod, staging).")
+@click.option(
+    "--env",
+    "environment",
+    required=True,
+    help="Release environment (e.g. prod, staging).",
+)
 @click.option("--description", required=True, help="Release description.")
 def make_release(version: str, environment: str, description: str) -> None
 ```
