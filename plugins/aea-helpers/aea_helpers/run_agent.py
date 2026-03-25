@@ -30,7 +30,7 @@ import click
 @click.option("--name", required=True, help="Agent name (e.g. valory/trader).")
 @click.option("--env-file", default=".env", help="Env file to source (default: .env).")
 @click.option(
-    "--agent-env-file", default=None, help="Env file passed to aea run --env."
+    "--agent-env-file", default=None, help="Env file passed to the agent run command."
 )
 @click.option("--config-replace", is_flag=True, help="Run config-replace after fetch.")
 @click.option("--config-mapping", default=None, help="Path to config mapping file.")

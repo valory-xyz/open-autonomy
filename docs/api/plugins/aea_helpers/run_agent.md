@@ -16,7 +16,7 @@ Python wrapper for run_agent.sh shell script.
               help="Env file to source (default: .env).")
 @click.option("--agent-env-file",
               default=None,
-              help="Env file passed to aea run --env.")
+              help="Env file passed to the agent run command.")
 @click.option("--config-replace",
               is_flag=True,
               help="Run config-replace after fetch.")

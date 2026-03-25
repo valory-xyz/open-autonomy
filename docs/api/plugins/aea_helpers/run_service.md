@@ -25,7 +25,7 @@ Python wrapper for run_service.sh shell script.
               help="Number of agents (default: 4).")
 @click.option("--author",
               default="valory",
-              help="Author for autonomy init (default: valory).")
+              help="Author for init step (default: valory).")
 @click.option("--cpu-limit", type=float, default=None, help="Agent CPU limit.")
 @click.option("--memory-limit",
               type=int,
@@ -41,7 +41,7 @@ Python wrapper for run_service.sh shell script.
 @click.option("--docker-cleanup",
               is_flag=True,
               help="Clean up Docker containers before start.")
-@click.option("--skip-init", is_flag=True, help="Skip autonomy init step.")
+@click.option("--skip-init", is_flag=True, help="Skip the init step.")
 @click.option("--pre-deploy-cmd",
               default=None,
               help="Command to run before deploy build.")
