@@ -1,5 +1,18 @@
 # Release History - `open-autonomy`
 
+# 0.21.16 (2026-03-26)
+
+Autonomy:
+- Fixes IPFS connection handler to support directories and binary files #2458
+- Fixes identify service params #2455
+
+Plugins (aea-helpers):
+- Adds 4 new CLI commands: `config-replace`, `run-agent`, `run-service`, `make-release` #2456
+- Adds `--skip-tendermint` flag to `run-agent` for agents using HTTP-based ABCI
+- Fixes `customs` package type handling in `check-doc-hashes`
+- Fixes zero-matches exit behavior in `check-doc-hashes`
+- Bumps `aea-helpers` version to align with framework versioning
+
 # 0.21.15 (2026-03-24)
 
 Autonomy:

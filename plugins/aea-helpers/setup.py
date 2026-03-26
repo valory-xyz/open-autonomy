@@ -33,7 +33,7 @@ base_deps = [
 
 setup(
     name="aea-helpers",
-    version="0.21.16rc2",
+    version="0.21.16",
     author="Valory AG",
     license="Apache-2.0",
     description="CLI helpers for CI and dependency management in AEA-based projects.",
