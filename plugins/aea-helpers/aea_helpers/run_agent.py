@@ -41,7 +41,9 @@ import click
     "--free-ports", is_flag=True, help="Auto-find free ports for tendermint/HTTP."
 )
 @click.option("--skip-make-clean", is_flag=True, help="Skip make clean step.")
-@click.option("--skip-tendermint", is_flag=True, help="Skip tendermint init and startup.")
+@click.option(
+    "--skip-tendermint", is_flag=True, help="Skip tendermint init and startup."
+)
 @click.option("--abci-port", type=int, default=None, help="Explicit ABCI port.")
 @click.option("--rpc-port", type=int, default=None, help="Explicit RPC port.")
 @click.option("--p2p-port", type=int, default=None, help="Explicit P2P port.")
