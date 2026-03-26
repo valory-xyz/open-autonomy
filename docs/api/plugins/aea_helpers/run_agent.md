@@ -30,6 +30,9 @@ Python wrapper for run_agent.sh shell script.
               is_flag=True,
               help="Auto-find free ports for tendermint/HTTP.")
 @click.option("--skip-make-clean", is_flag=True, help="Skip make clean step.")
+@click.option("--skip-tendermint",
+              is_flag=True,
+              help="Skip tendermint init and startup.")
 @click.option("--abci-port",
               type=int,
               default=None,
