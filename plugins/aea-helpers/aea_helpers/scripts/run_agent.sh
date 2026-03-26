@@ -32,6 +32,7 @@ CONFIG_MAPPING=""
 CONNECTION_KEY=false
 FREE_PORTS=false
 SKIP_MAKE_CLEAN=false
+SKIP_TENDERMINT=false
 ABCI_PORT=${TENDERMINT_ABCI_PORT:-26658}
 RPC_PORT=${TENDERMINT_RPC_PORT:-26657}
 P2P_PORT=${TENDERMINT_P2P_PORT:-26656}
@@ -48,6 +49,7 @@ while [[ $# -gt 0 ]]; do
     --connection-key) CONNECTION_KEY=true; shift ;;
     --free-ports) FREE_PORTS=true; shift ;;
     --skip-make-clean) SKIP_MAKE_CLEAN=true; shift ;;
+    --skip-tendermint) SKIP_TENDERMINT=true; shift ;;
     --abci-port) ABCI_PORT="$2"; shift 2 ;;
     --rpc-port) RPC_PORT="$2"; shift 2 ;;
     --p2p-port) P2P_PORT="$2"; shift 2 ;;
@@ -169,17 +171,21 @@ fi
 aea -s issue-certificates
 
 # --- Start tendermint ---
-rm -r ~/.tendermint 2>/dev/null || true
-tendermint init 2>/dev/null
+if [ "$SKIP_TENDERMINT" = false ]; then
+    rm -r ~/.tendermint 2>/dev/null || true
+    tendermint init 2>/dev/null
 
-tendermint node \
-    --proxy_app=tcp://127.0.0.1:$ABCI_PORT \
-    --rpc.laddr=tcp://127.0.0.1:$RPC_PORT \
-    --p2p.laddr=tcp://0.0.0.0:$P2P_PORT \
-    --p2p.seeds= \
-    --consensus.create_empty_blocks=true \
-    > /dev/null 2>&1 &
-tm_subprocess_pid=$!
+    tendermint node \
+        --proxy_app=tcp://127.0.0.1:$ABCI_PORT \
+        --rpc.laddr=tcp://127.0.0.1:$RPC_PORT \
+        --p2p.laddr=tcp://0.0.0.0:$P2P_PORT \
+        --p2p.seeds= \
+        --consensus.create_empty_blocks=true \
+        > /dev/null 2>&1 &
+    tm_subprocess_pid=$!
+else
+    echo "Skipping tendermint startup"
+fi
 
 # --- Run agent ---
 if [ -n "$AGENT_ENV_FILE" ]; then
