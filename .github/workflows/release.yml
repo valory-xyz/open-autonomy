@@ -24,23 +24,23 @@ jobs:
           sudo apt-get autoremove
           sudo apt-get autoclean
           python -m pip install --upgrade pip
-          pip install pipenv twine
+          pip install poetry twine
           python --version
 
       - name: Build wheels and source tarball
         run: |
           echo Processing open-autonomy
-          pipenv run pip install --upgrade setuptools wheel
-          pipenv run make dist
+          poetry install --all-extras --no-interaction
+          poetry run make dist
 
           echo Processing aea-test-autonomy
           cd plugins/aea-test-autonomy
-          pipenv run python setup.py sdist bdist_wheel
+          poetry run python setup.py sdist bdist_wheel
           cd ../..
 
           echo Processing aea-helpers
           cd plugins/aea-helpers
-          pipenv run python setup.py sdist bdist_wheel
+          poetry run python setup.py sdist bdist_wheel
           cd ../..
 
       - name: Publish open-autonomy Framework to PyPI

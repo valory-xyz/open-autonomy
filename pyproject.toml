@@ -4,6 +4,7 @@ version = "0.21.16"
 description = "Open Autonomy Framework"
 authors = ["developer-valory <develope@valory.xyz>"]
 license = "Apache-2.0 license"
+packages = [{include = "autonomy"}, {include = "packages"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -63,5 +64,5 @@ py-eth-sig-utils = "*"
 
 
 [build-system]
-requires = ["setuptools", "wheel", "poetry-core>=1.0.0"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

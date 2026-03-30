@@ -15,7 +15,7 @@ clean-build:
 	find . -name '*.egg-info' -exec rm -fr {} +
 	find . -name '*.egg' -exec rm -fr {} +
 	find . -type d -name __pycache__ -exec rm -rv {} +
-	rm -fr Pipfile.lock
+	rm -fr poetry.lock
 	rm -rf plugins/*/build
 	rm -rf plugins/*/dist
 
@@ -166,13 +166,10 @@ new_env: clean
 
 	if [ -z "$v" ];\
 	then\
-		pipenv --rm;\
-		pipenv --clear;\
-		pipenv --python $(PYTHON_VERSION);\
-		pipenv install --dev --skip-lock;\
-		pipenv run pip install -e .[all];\
-		pipenv run pip install --no-deps file:plugins/aea-test-autonomy;\
-		echo "Enter virtual environment with all development dependencies now: 'pipenv shell'.";\
+		poetry env remove --all || true;\
+		poetry install --all-extras --no-interaction;\
+		poetry run pip install --no-deps file:plugins/aea-test-autonomy;\
+		echo "Enter virtual environment with all development dependencies now: 'poetry shell'.";\
 	else\
 		echo "In a virtual environment! Exit first: 'exit'.";\
 	fi
