@@ -13,25 +13,25 @@ env:
 jobs:
   lock_check:
     runs-on: ${{ matrix.os }}
+
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest-large, windows-latest ]
         python-version: ["3.14"]
-        poetry-version: ["1.8.0"]
+
     timeout-minutes: 18
+
+    defaults:
+      run:
+        shell: bash
+
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install and configure Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: ${{ matrix.poetry-version }}
-        virtualenvs-create: true
-        virtualenvs-in-project: false
-        virtualenvs-path: ~/my-custom-path
-        installer-parallel: true
+    - name: Install Poetry
+      run: pip install poetry==1.8.0
     - name: Check if dependencies can be locked
       run: poetry lock --check
     - name: Poetry install requirements and check they can be locked

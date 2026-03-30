@@ -3009,6 +3009,7 @@ description = "CLI extension for open AEA framework wrapping IPFS functionality.
 optional = false
 python-versions = "*"
 groups = ["main"]
+markers = "extra == \"cli\" or extra == \"all\""
 files = [
     {file = "open_aea_cli_ipfs-2.1.0-py3-none-any.whl", hash = "sha256:dabebcf724f42990c4440ae0d45ef9e393a140c052cfd420298234a56b35e128"},
     {file = "open_aea_cli_ipfs-2.1.0.tar.gz", hash = "sha256:b9a2c4d851a6b8ea7fd0d3b0b29623a3336712392dccd615da0acc710dc472d2"},
@@ -5395,7 +5396,11 @@ idna = ">=2.0"
 multidict = ">=4.0"
 propcache = ">=0.2.1"
 
+[extras]
+all = ["click", "coverage", "open-aea-cli-ipfs", "pytest", "python-dotenv", "texttable"]
+cli = ["click", "coverage", "open-aea-cli-ipfs", "pytest", "python-dotenv", "texttable"]
+
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "19d7e3cd30c77de6291a243aa7b16d77e9dcc96bbf44c4d3738fda7629ff22d2"
+content-hash = "026f8ea434f967581a2d1a2ffcad745d66dc77a001d4cfed397d5a5052508bad"
