@@ -31,9 +31,9 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install Poetry
-      run: pip install poetry==1.8.0
+      run: pip install poetry==2.3.2
     - name: Check if dependencies can be locked
-      run: poetry lock --check
+      run: poetry check --lock
     - name: Poetry install requirements and check they can be locked
       run: poetry install --all-extras --no-interaction -vvv
 
