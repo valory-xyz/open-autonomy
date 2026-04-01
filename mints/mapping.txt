@@ -25,6 +25,8 @@ token_id-"component_id"
 39-"protocol/valory/ipfs/0.1.0"
 50-"connection/valory/ipfs/0.1.0"
 51-"contract/valory/multicall2/0.1.0"
+318-"skill/valory/identify_service_owner_abci/0.1.0"
+319-"skill/valory/funds_forwarder_abci/0.1.0"
 ---
 token_id-"agent_id"
 1-"agent/valory/hello_world:0.1.0"
