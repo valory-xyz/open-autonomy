@@ -21,31 +21,21 @@ jobs:
 
     timeout-minutes: 18
 
+    defaults:
+      run:
+        shell: bash
+
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    - if: matrix.os != 'windows-latest'
-      name: Pipenv install requirements and check it can be locked
-      run: |
-        if [[ "$RUNNER_OS" == "macOS" ]]; then
-          export SDKROOT=$(xcrun --show-sdk-path)
-        fi
-        pip install pipenv==2026.0.3
-        pipenv --clear
-        time pipenv install --verbose --dev --skip-lock
-        time pipenv run pip install -e .[all]
-        time pipenv lock
-    - if: matrix.os == 'windows-latest'
-      name: Pipenv install requirements and check it can be locked
-      run: |
-        choco install ptime
-        pip install pipenv==2026.0.3
-        pipenv --clear
-        ptime pipenv install --verbose --dev --skip-lock
-        ptime pipenv run pip install -e .[all]
-        ptime pipenv lock
+    - name: Install Poetry
+      run: pip install poetry==2.3.2
+    - name: Check if dependencies can be locked
+      run: poetry check --lock
+    - name: Poetry install requirements and check they can be locked
+      run: poetry install --all-extras --no-interaction -vvv
 
   install_check:
     runs-on: ${{ matrix.os }}
