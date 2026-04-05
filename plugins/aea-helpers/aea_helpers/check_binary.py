@@ -55,7 +55,7 @@ def run_binary_check(
     if env_vars:
         env.update(env_vars)
 
-    proc = subprocess.Popen(  # nosec
+    proc = subprocess.Popen(  # nosec  # pylint: disable=consider-using-with
         [binary_abs, "-s", "run"],
         cwd=agent_abs,
         stdout=subprocess.PIPE,

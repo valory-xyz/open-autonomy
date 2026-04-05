@@ -71,8 +71,8 @@ def get_agent_dependency_modules(agent_dir: str) -> List[str]:
     :param agent_dir: path to the agent directory.
     :return: sorted list of module names.
     """
-    from aea.cli.utils.config import try_to_load_agent_config  # type: ignore
-    from aea.cli.utils.context import Context  # type: ignore
+    from aea.cli.utils.config import try_to_load_agent_config  # type: ignore  # isort: skip  # pylint: disable=import-outside-toplevel  # noqa: E402
+    from aea.cli.utils.context import Context  # type: ignore  # isort: skip  # pylint: disable=import-outside-toplevel  # noqa: E402
 
     original_dir = os.getcwd()
     try:

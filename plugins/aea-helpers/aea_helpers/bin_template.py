@@ -17,12 +17,18 @@
 #
 # ------------------------------------------------------------------------------
 
+# pylint: skip-file
+# mypy: ignore-errors
+# type: ignore
+
 """PyInstaller entry point template for agent runner binaries.
 
 Copy this file into your agent repo as ``pyinstaller/agent_bin.py`` and use it
 as the ``--onefile`` entry point for PyInstaller.  It patches AEA's
 configuration path handling for the frozen ``sys._MEIPASS`` environment and
 imports all modules that PyInstaller needs to bundle.
+
+This file is NOT meant to be executed or linted in the aea-helpers context.
 """
 
 import os
@@ -32,7 +38,7 @@ from pathlib import Path
 import aea.configurations.validation as validation_module
 
 # Patch for PyInstaller: redirect config paths to the frozen bundle root.
-validation_module._CUR_DIR = Path(sys._MEIPASS) / validation_module._CUR_DIR  # type: ignore[attr-defined]
+validation_module._CUR_DIR = Path(sys._MEIPASS) / validation_module._CUR_DIR
 validation_module._SCHEMAS_DIR = os.path.join(validation_module._CUR_DIR, "schemas")
 
 # These imports ensure PyInstaller bundles the required modules.
