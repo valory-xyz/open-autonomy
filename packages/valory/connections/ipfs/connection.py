@@ -230,7 +230,8 @@ class IpfsConnection(Connection):
         :returns: a mapping of relative file paths to their contents.
         """
         result: Dict[str, str] = {}
-        for root, _, filenames in os.walk(base_dir):
+        for root, dirs, filenames in os.walk(base_dir):
+            dirs[:] = [d for d in dirs if d != "tests"]
             for fname in filenames:
                 file_path = Path(root) / fname
                 key = str(file_path.relative_to(base_dir))
