@@ -115,6 +115,8 @@ def build_binary_deps(agent_dir: str) -> None:
 
     Reads the agent's aea-config.yaml, resolves all installed dependencies,
     and outputs --hidden-import and --collect-all flags for PyInstaller.
+
+    :param agent_dir: path to the agent directory.
     """
     modules = filter_modules(get_agent_dependency_modules(agent_dir))
     click.echo(build_pyinstaller_flags(modules), nl=False)

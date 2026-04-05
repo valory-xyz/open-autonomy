@@ -116,6 +116,12 @@ def check_binary(
 
     Spawns BINARY_PATH in a subprocess, monitors stdout for the search string,
     and exits 0 on success or 1 on timeout.
+
+    :param binary_path: path to the compiled binary.
+    :param agent_dir: path to agent directory.
+    :param timeout: max seconds to wait for the search string.
+    :param search_string: string indicating successful startup.
+    :param env_vars_raw: extra env vars as KEY=VALUE (repeatable).
     """
     env_vars = {}
     for item in env_vars_raw:
