@@ -72,9 +72,7 @@ def run_binary_check(
                 sys.stdout.write(line)
                 sys.stdout.flush()
             except UnicodeEncodeError:
-                sys.stdout.write(
-                    line.encode("utf-8", errors="ignore").decode("utf-8")
-                )
+                sys.stdout.write(line.encode("utf-8", errors="ignore").decode("utf-8"))
 
             if search_string in line:
                 found = True

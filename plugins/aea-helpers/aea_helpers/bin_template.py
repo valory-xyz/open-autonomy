@@ -45,6 +45,5 @@ from google.protobuf.descriptor_pb2 import FileDescriptorProto  # noqa: E402, F4
 from multiaddr.codecs.idna import to_bytes as _idna  # noqa: E402, F401
 from multiaddr.codecs.uint16be import to_bytes as _uint16be  # noqa: E402, F401
 
-
 if __name__ == "__main__":
     cli(prog_name="aea")  # pragma: no cover
