@@ -23,10 +23,10 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihygetmlgnhawrbyswvpvv3wpztr2hlhxkljmohp4r7qcmvglpwdq
-- valory/registration_abci:0.1.0:bafybeif3gpewppz5wr5mmgyvaowsamjufyons3oif7cb4x5ubvvfb6rtda
-- valory/reset_pause_abci:0.1.0:bafybeidcnf77bc3o7pssa5zesilpbm4ley2k45taii5j5rrvvty7uhu3lq
-- valory/squads_transaction_settlement_abci:0.1.0:bafybeicqkjb7ikzz6xmi4ajcp3cs45hoard5houzlq3a6jhfrvhzwjfipy
+- valory/abstract_round_abci:0.1.0:bafybeiebond5o7d5trllc2abnldttrwkpie6fhrjbx732tq6nond2pxgya
+- valory/registration_abci:0.1.0:bafybeidec42nyl2l6wcde6lc2xsaq2wvqs6w3tnosa5aktf7yszota36xq
+- valory/reset_pause_abci:0.1.0:bafybeif23k54lbheiw4rbpkenvn4sugzgnqvgifgssowc3gpy6obk4g6w4
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeibcvaj365tzkvo7sgvd24l4ympbnqcsuareho24ppbtfh3vqtsc4u
 behaviours:
   main:
     args: {}
