@@ -20,11 +20,10 @@
 """Check that a built agent runner binary starts correctly."""
 
 import os
-import platform
-import shlex
-import subprocess
+import subprocess  # nosec
 import sys
 import time
+from pathlib import Path
 from typing import Dict, Optional
 
 import click
@@ -49,39 +48,21 @@ def run_binary_check(
     :param env_vars: additional environment variables to set.
     :return: True if search string found within timeout.
     """
-    cmd = f"bash -c 'cd ./{agent_dir} && ../{binary_path} -s run'"
+    binary_abs = str(Path(binary_path).resolve())
+    agent_abs = str(Path(agent_dir).resolve())
 
     env = os.environ.copy()
     if env_vars:
         env.update(env_vars)
 
-    system = platform.system()
-    if system == "Windows":
-        parts = shlex.split(cmd)
-        if parts[0] == "cd":
-            cwd = parts[1]
-            exec_cmd = parts[3:]
-        else:
-            exec_cmd = parts
-            cwd = None
-        proc = subprocess.Popen(
-            exec_cmd,
-            cwd=cwd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            env=env,
-            shell=True,
-        )
-    else:
-        proc = subprocess.Popen(
-            cmd,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            env=env,
-        )
+    proc = subprocess.Popen(  # nosec
+        [binary_abs, "-s", "run"],
+        cwd=agent_abs,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        env=env,
+    )
 
     start = time.time()
     found = False
