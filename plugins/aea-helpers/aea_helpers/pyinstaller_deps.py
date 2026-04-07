@@ -120,3 +120,15 @@ def build_binary_deps(agent_dir: str) -> None:
     """
     modules = filter_modules(get_agent_dependency_modules(agent_dir))
     click.echo(build_pyinstaller_flags(modules), nl=False)
+
+
+@click.command(name="bin-template-path")
+def bin_template_path() -> None:
+    """Print the filesystem path to the PyInstaller entry point template.
+
+    Agent repos can pass this directly to pyinstaller's --onefile flag
+    instead of maintaining a local copy of the template.
+    """
+    from aea_helpers import bin_template  # pylint: disable=import-outside-toplevel
+
+    click.echo(bin_template.__file__, nl=False)

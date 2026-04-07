@@ -26,7 +26,7 @@ from aea_helpers.check_dependencies import check_dependencies
 from aea_helpers.check_doc_hashes import check_doc_hashes
 from aea_helpers.config_replace import config_replace
 from aea_helpers.make_release import make_release
-from aea_helpers.pyinstaller_deps import build_binary_deps
+from aea_helpers.pyinstaller_deps import bin_template_path, build_binary_deps
 from aea_helpers.run_agent import run_agent
 from aea_helpers.run_service import run_service
 
@@ -37,6 +37,7 @@ def cli() -> None:
     """AEA helper utilities for CI, dependency management, and deployment."""
 
 
+cli.add_command(bin_template_path)
 cli.add_command(build_binary_deps)
 cli.add_command(bump_dependencies)
 cli.add_command(check_binary)
