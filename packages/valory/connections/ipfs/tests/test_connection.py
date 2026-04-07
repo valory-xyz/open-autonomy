@@ -267,11 +267,10 @@ class TestIpfsConnection:
             os.unlink(tmp_file.name)
 
     def test_handle_get_files_with_subdirectory(self) -> None:
-        """Test _handle_get_files skips tests directories during recursive read."""
+        """Test _handle_get_files reads files recursively from subdirectories."""
         with tempfile.TemporaryDirectory() as pkg_dir:
-            # Create a package with a tests/ subdirectory and a utils/ subdirectory
+            # Create a package with a subdirectory
             os.makedirs(os.path.join(pkg_dir, "tests"))
-            os.makedirs(os.path.join(pkg_dir, "utils"))
             with open(
                 os.path.join(pkg_dir, "component.yaml"), "w", encoding="utf-8"
             ) as f:
@@ -290,12 +289,6 @@ class TestIpfsConnection:
                 encoding="utf-8",
             ) as f:
                 f.write("def test_run(): pass")
-            with open(
-                os.path.join(pkg_dir, "utils", "helpers.py"),
-                "w",
-                encoding="utf-8",
-            ) as f:
-                f.write("def helper(): pass")
 
             _, ipfs_hash, _ = self.connection.ipfs_tool.add(
                 pkg_dir, wrap_with_directory=False
@@ -309,14 +302,13 @@ class TestIpfsConnection:
             message = self.connection._handle_get_files(message, dialogue)
             assert message is not None
 
-            # Verify tests/ directory is skipped but other subdirectories are included
+            # Verify the reply was called with files containing subdirectory paths
             call_kwargs = dialogue.reply.call_args[1]
             files = call_kwargs["files"]
             assert "component.yaml" in files
             assert "tool.py" in files
-            assert os.path.join("utils", "helpers.py") in files
-            assert os.path.join("tests", "__init__.py") not in files
-            assert os.path.join("tests", "test_tool.py") not in files
+            assert os.path.join("tests", "__init__.py") in files
+            assert os.path.join("tests", "test_tool.py") in files
 
     def test_handle_get_files_with_binary_file(self) -> None:
         """Test _handle_get_files skips binary files with a warning."""
