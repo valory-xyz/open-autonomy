@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+# 0.21.17 (2026-04-08)
+
+Plugins (aea-helpers):
+- Adds `build-binary-deps` and `check-binary` commands centralizing PyInstaller build infrastructure previously duplicated across agent repos (optimus, meme-ooorr, trader) #2463
+- Adds `bin-template-path` command and `bin_template.py` as a reference PyInstaller entry point template 
+
 # 0.21.16 (2026-03-26)
 
 Autonomy:

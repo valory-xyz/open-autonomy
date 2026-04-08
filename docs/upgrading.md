@@ -5,6 +5,14 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.16` to `v0.21.17`
+
+- The `aea-helpers` plugin now includes PyInstaller build utilities, centralizing infrastructure that was previously duplicated across agent repos (optimus, meme-ooorr, trader):
+    - `aea-helpers build-binary-deps` — generates PyInstaller hidden imports and data files for an agent project
+    - `aea-helpers check-binary` — validates a built PyInstaller binary against the expected dependency set
+    - `aea-helpers bin-template-path` — prints the path to the bundled `bin_template.py` reference entry point so downstream repos can copy it as the basis for their PyInstaller spec
+- No breaking changes. Bump `open-autonomy` version pin and regenerate package hashes.
+
 ## `v0.21.15` to `v0.21.16`
 
 - The `aea-helpers` plugin now includes 4 new commands for deployment and release management:
