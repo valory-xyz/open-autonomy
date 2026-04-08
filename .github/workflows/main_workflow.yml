@@ -390,7 +390,6 @@ jobs:
       - install_check
       - copyright_doc_and_dependencies_check
       - linter_checks
-      - test
     runs-on: ${{ matrix.os }}
 
     strategy:
