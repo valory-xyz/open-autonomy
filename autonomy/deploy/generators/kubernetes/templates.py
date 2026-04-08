@@ -107,36 +107,7 @@ status:
 """
 
 
-CLUSTER_CONFIGURATION_TEMPLATE: str = """apiVersion: batch/v1
-kind: Job
-metadata:
-  name: config-nodes
-spec:
-  template:
-    spec:
-      imagePullSecrets:
-      - name: regcred
-      containers:
-      - name: config-nodes
-        image: {tendermint_image_name}:{tendermint_image_version}
-        command: ['/usr/bin/tendermint']
-        args: ["testnet",
-         "--config",
-         "/etc/tendermint/config-template.toml",
-         "--o",  ".", {host_names},
-         "--v", "{number_of_validators}"
-         ]
-        volumeMounts:
-          - mountPath: /tendermint
-            name: nodes
-      volumes:
-        - name: nodes
-          persistentVolumeClaim:
-            claimName: 'nodes'
-      restartPolicy: Never
-  backoffLimit: 3
----
-apiVersion: v1
+CLUSTER_CONFIGURATION_TEMPLATE: str = """apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: logs-pvc
@@ -325,14 +296,38 @@ spec:
           name: local-tendermint
 {volume_claims}
       initContainers:
-        - name: copy-tendermint-configuration
-          image: "ubuntu:20.04"
-          command: ["bash", "-c"]
+        - name: generate-tendermint-config
+          image: {tendermint_image_name}:{tendermint_image_version}
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-c"]
           args:
-          - "while [ ! -d /tendermint/node{validator_ix} ]; do sleep 1; done; cp -r /tendermint/node{validator_ix}/* /tm/"
+          - |
+            if [ ! -d /tendermint/node0 ]; then
+              echo "Generating tendermint testnet configuration..."
+              /usr/bin/tendermint testnet \
+                --config /etc/tendermint/config-template.toml \
+                --o . {host_names} \
+                --v {number_of_validators}
+              echo "Configuration generated successfully."
+            else
+              echo "Configuration already exists, skipping generation."
+            fi
           volumeMounts:
             - name: nodes
               mountPath: /tendermint
+        - name: copy-tendermint-configuration
+          image: "busybox:1.36"
+          command: ["sh", "-c"]
+          args:
+          - |
+            echo "Waiting for node{validator_ix} config..."
+            while [ ! -d /tendermint/node{validator_ix} ]; do sleep 1; done
+            cp -r /tendermint/node{validator_ix}/* /tm/
+            echo "Config copied for node{validator_ix}."
+          volumeMounts:
+            - name: nodes
+              mountPath: /tendermint
+              readOnly: true
             - name: local-tendermint
               mountPath: /tm
 """
