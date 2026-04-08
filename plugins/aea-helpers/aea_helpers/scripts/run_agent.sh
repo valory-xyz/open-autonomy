@@ -143,7 +143,9 @@ autonomy fetch --local --agent "$AGENT_NAME" --alias agent
 
 # --- Source env and run config replace ---
 if [ -f "$ENV_FILE" ]; then
+    set -a
     source "$ENV_FILE"
+    set +a
 fi
 
 if [ "$CONFIG_REPLACE" = true ]; then

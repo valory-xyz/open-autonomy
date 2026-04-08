@@ -27,9 +27,9 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
+- valory/erc20:0.1.0:bafybeifq6zn2p5nafi6bmtf4xo3ctgymazr2udtlwyiwjf5g5mpndsthfy
 - valory/gnosis_safe:0.1.0:bafybeice337zvg3ol4cwpw2iikxcukmthwmw32ytwtdnkcju222qfc323y
 - valory/multisend:0.1.0:bafybeihx7c3xj6c5v4tgvu3ipnj7seyc4dkmovoyzu4isgbwdrhj2oo6uq
-- valory/erc20:0.1.0:bafybeifq6zn2p5nafi6bmtf4xo3ctgymazr2udtlwyiwjf5g5mpndsthfy
 protocols:
 - valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
@@ -44,12 +44,12 @@ handlers:
   abci:
     args: {}
     class_name: ABCIHandler
-  http:
-    args: {}
-    class_name: HttpHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
+  http:
+    args: {}
+    class_name: HttpHandler
   ipfs:
     args: {}
     class_name: IpfsHandler
@@ -84,14 +84,12 @@ models:
     class_name: LedgerApiDialogues
   params:
     args:
-      on_chain_service_id: null
-      service_registry_address: null
-      expected_service_owner_address: '0x0000000000000000000000000000000000000000'
-      funds_forwarder_token_config: {}
       cleanup_history_depth: 1
       cleanup_history_depth_current: null
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      expected_service_owner_address: '0x0000000000000000000000000000000000000000'
       finalize_timeout: 60.0
+      funds_forwarder_token_config: {}
       genesis_config:
         chain_id: chain-c4daS1
         consensus_params:
@@ -110,13 +108,15 @@ models:
         genesis_time: '2022-05-20T16:00:21.735122717Z'
         voting_power: '10'
       history_check_timeout: 1205
+      ipfs_address: https://gateway.autonolas.tech/ipfs/
       ipfs_domain_name: null
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
+      light_slash_unit_amount: 5000000000000000
       max_attempts: 10
       max_healthcheck: 120
       multisend_address: '0x0000000000000000000000000000000000000000'
-      ipfs_address: https://gateway.autonolas.tech/ipfs/
+      on_chain_service_id: null
       request_retry_delay: 1.0
       request_timeout: 10.0
       reset_pause_duration: 10
@@ -124,13 +124,17 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
+      serious_slash_unit_amount: 8000000000000000
       service_id: funds_forwarder_abci
+      service_registry_address: null
       setup:
         all_participants:
         - '0x0000000000000000000000000000000000000000'
         consensus_threshold: null
         safe_contract_address: '0x0000000000000000000000000000000000000000'
       share_tm_config_on_startup: false
+      slash_cooldown_hours: 3
+      slash_threshold_amount: 10000000000000000
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
@@ -138,13 +142,9 @@ models:
       tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
       tx_timeout: 10.0
-      validate_timeout: 1205
-      use_termination: false
       use_slashing: false
-      slash_cooldown_hours: 3
-      slash_threshold_amount: 10000000000000000
-      light_slash_unit_amount: 5000000000000000
-      serious_slash_unit_amount: 8000000000000000
+      use_termination: false
+      validate_timeout: 1205
     class_name: FundsForwarderParams
   requests:
     args: {}
@@ -160,3 +160,4 @@ models:
     class_name: TendermintDialogues
 dependencies: {}
 is_abstract: true
+customs: []
