@@ -28,22 +28,82 @@ Phased rollout plan for the changes described in `SCRIPTS_CONSOLIDATION_REPORT.m
 
 ---
 
-## Phase 1: tomte
+## Phase 1: tomte enhancements
 
-**Scope:** Ensure tomte covers all the scripts we want to delegate to it. If any gaps exist (different CLI flags, missing features), fix them in tomte first.
+**Scope:** Enhance tomte to close the feature gaps identified during comparison. Three enhancements are needed before tomte can replace the local scripts.
 
 **Repo:** `valory-xyz/tomte`
 
+### Gap analysis (completed)
+
+| Script | Gap | Status |
+|--------|-----|--------|
+| `check-copyright` | Only supports single author ("Valory AG"). open-aea has 751 files with dual "Valory AG" + "Fetch.AI Limited" headers. Also hardcodes scan paths. | Needs enhancement |
+| `check-doc-links` | open-aea's version is fundamentally different (validates internal links, images, markdown). open-autonomy's is close to tomte's but has repo-specific skip lists hardcoded. | Needs `--http-skips` / `--url-skips` already exist as CLI options — sufficient for open-autonomy. open-aea keeps its own script (different tool). |
+| `freeze-dependencies` | Tomte doesn't filter out the framework package itself. open-aea filters `aea`, open-autonomy filters `open-autonomy`. Without filtering, liccheck checks the framework against itself. | Needs enhancement |
+| `check-spelling` | Tomte's version is sufficient. | No changes needed |
+
+### Enhancement 1: `check-copyright` — multiple authors + configurable scan paths
+
+**Current:** `tomte check-copyright --author "Valory AG"`
+
+**Proposed:**
+```bash
+# Multiple authors (repeatable flag)
+tomte check-copyright --author "Valory AG" --author "Fetch.AI Limited"
+
+# Configurable scan paths (repeatable flag, overrides defaults)
+tomte check-copyright --author "Valory AG" --scan-path aea --scan-path packages --scan-path plugins
+
+# Combined (for open-aea)
+tomte check-copyright \
+  --author "Valory AG" \
+  --author "Fetch.AI Limited" \
+  --scan-path aea --scan-path packages --scan-path plugins \
+  --scan-path scripts --scan-path tests --scan-path benchmark --scan-path examples
+```
+
+**Implementation:**
+- [ ] Make `--author` repeatable (`multiple=True` in Click)
+- [ ] Support multiple copyright header patterns (one per author)
+- [ ] In check mode: validate that at least one recognized author header is present
+- [ ] In fix mode: update year ranges for all recognized author lines
+- [ ] Add `--scan-path` repeatable option (defaults to `packages/{author}`, `tests`, `scripts` if not provided)
+- [ ] Support mixed headers (Valory + FetchAI on same file) without error
+- [ ] Tests for multi-author scenarios
+
+### Enhancement 2: `freeze-dependencies` — exclude package filter
+
+**Current:** `tomte freeze-dependencies --output-path requirements.txt`
+
+**Proposed:**
+```bash
+# Exclude framework package from output
+tomte freeze-dependencies --output-path requirements.txt --exclude-package open-autonomy
+tomte freeze-dependencies --output-path requirements.txt --exclude-package open-aea
+```
+
+**Implementation:**
+- [ ] Add `--exclude-package` repeatable option
+- [ ] Filter out matching lines from pip freeze output (regex: `^{package}(==.*| .*)?$`)
+- [ ] Tests for exclusion
+
+### Enhancement 3: `check-doc-links` — no code changes needed
+
+Tomte's `check-doc-links` already accepts `--http-skips` and `--url-skips` as CLI options. open-autonomy can pass its repo-specific skip lists via tox.ini. No tomte changes required.
+
+**Note:** open-aea's `check_doc_links.py` is a fundamentally different tool (validates internal links, images, markdown structure) and will NOT be replaced by tomte. It moves to `open-aea-ci-helpers` instead.
+
 ### Tasks
 
-- [ ] Compare `tomte check-copyright` vs `open-aea/scripts/check_copyright_notice.py` — verify feature parity (author detection, year updating, exclude patterns)
-- [ ] Compare `tomte check-doc-links` vs `open-aea/scripts/check_doc_links.py` — verify feature parity (retry logic, skip patterns, timeout handling)
-- [ ] Compare `tomte freeze-dependencies` vs `open-aea/scripts/freeze_dependencies.py` — verify feature parity
-- [ ] Compare `tomte check-spelling` vs `open-aea/scripts/spell-check.sh` — verify feature parity
-- [ ] If any gaps: submit PRs to tomte, get them released
-- [ ] Release new tomte version if needed (e.g., `0.6.3`)
+- [ ] Implement Enhancement 1 (check-copyright multi-author + scan paths)
+- [ ] Implement Enhancement 2 (freeze-dependencies exclude filter)
+- [ ] Add/update tests for both enhancements
+- [ ] Run tomte's own CI locally and confirm it passes
+- [ ] Create draft PR for tomte
+- [ ] Release new tomte version (e.g., `0.6.3`)
 
-**Duration:** 1 day (if no gaps) / 2-3 days (if gaps need fixing)
+**Duration:** 2-3 days
 
 ---
 

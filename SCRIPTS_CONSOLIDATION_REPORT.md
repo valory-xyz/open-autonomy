@@ -73,17 +73,19 @@ The problem is that `open-aea` and `open-autonomy` themselves still have `script
 
 `tomte` already provides its own standalone implementations of these tools (inside `tomte.tools.*`). The local `scripts/` copies in both repos are near-identical duplicates. Downstream repos already use `tomte` for these successfully.
 
-**Scripts to replace with tomte:**
+**Scripts to replace with tomte (after tomte enhancements):**
 
 | Local script | Replace with | Notes |
 |-------------|-------------|-------|
-| `check_copyright_notice.py` (open-aea) | `tomte check-copyright` | Downstream repos already use this |
-| `check_copyright.py` (open-autonomy) | `tomte check-copyright` | Same |
-| `check_doc_links.py` (both repos) | `tomte check-doc-links` | Same |
-| `freeze_dependencies.py` (both repos) | `tomte freeze-dependencies` | Same |
-| `spell-check.sh` (open-aea) | `tomte check-spelling` | Same |
+| `check_copyright_notice.py` (open-aea) | `tomte check-copyright --author "Valory AG" --author "Fetch.AI Limited" --scan-path ...` | Requires tomte enhancement: multi-author + configurable scan paths |
+| `check_copyright.py` (open-autonomy) | `tomte check-copyright --author "Valory AG" --scan-path ...` | Same enhancement, single author |
+| `check_doc_links.py` (open-autonomy only) | `tomte check-doc-links --url-skips ...` | Already supported via CLI options |
+| `freeze_dependencies.py` (both repos) | `tomte freeze-dependencies --exclude-package open-aea` / `--exclude-package open-autonomy` | Requires tomte enhancement: exclude filter |
+| `spell-check.sh` (open-aea) | `tomte check-spelling` | No changes needed |
 
-**Action:** Update `tox.ini` in both repos to call `tomte <command>` instead of `scripts/<script>.py`, then delete the local copies.
+**Note:** open-aea's `check_doc_links.py` is a fundamentally different tool (validates internal links, images, markdown structure — not just URL availability). It does NOT move to tomte; it moves to `open-aea-ci-helpers` instead.
+
+**Action:** First enhance tomte (multi-author copyright, freeze-deps exclude filter), release new tomte version, then update `tox.ini` in both repos to use tomte.
 
 ### Step 2: Create `open-aea-ci-helpers` plugin
 
