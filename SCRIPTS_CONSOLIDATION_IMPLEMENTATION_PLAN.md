@@ -2,6 +2,18 @@
 
 Phased rollout plan for the changes described in `SCRIPTS_CONSOLIDATION_REPORT.md`.
 
+### Ground rules
+
+1. **Local CI first.** Every phase must pass the repo's full CI suite locally before creating a draft PR. Run the full common/main workflow checks (linters, hash checks, copyright, tests) locally via `tox` or `make` and confirm they pass. Do not rely on remote CI to catch issues — fix them before pushing.
+
+2. **Fresh branch from latest main.** For every repo (except the 5 agent repos which have existing cleanup branches), always start from a clean state:
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b <branch-name>
+   ```
+   Agent repos (optimus, trader, meme-ooorr, IEKit, market-creator) already have `chore/repo-cleanup` branches — rebase those onto latest main instead of creating new branches.
+
 ---
 
 ## Phase 0: Preparation
@@ -83,8 +95,25 @@ Phased rollout plan for the changes described in `SCRIPTS_CONSOLIDATION_REPORT.m
 - [ ] Delete `scripts/check_doc_ipfs_hashes.py` (-> aea-helpers `check-doc-hashes`)
 - [ ] Delete `scripts/check_dependencies.py` (-> aea-helpers `check-dependencies`)
 
-### Step 2d: Release
+### Step 2d: Local CI verification
 
+Run the full CI suite locally before creating the PR:
+
+```bash
+make clean
+make formatters
+make code-checks
+make security
+make common-checks-1
+make common-checks-2
+make test
+```
+
+Fix any failures before pushing.
+
+### Step 2e: Release
+
+- [ ] Create draft PR, confirm remote CI passes
 - [ ] Release `open-aea-ci-helpers` to PyPI (initial version, e.g., `0.1.0`)
 - [ ] Release `open-aea` with the tox.ini changes (patch version bump)
 
@@ -126,8 +155,26 @@ Phased rollout plan for the changes described in `SCRIPTS_CONSOLIDATION_REPORT.m
 - [ ] Publish `open-aea-helpers` to PyPI (same version as current `aea-helpers`, e.g., `0.21.17`)
 - [ ] Publish a final `aea-helpers` version on PyPI that depends on `open-aea-helpers` (bridge package for backwards compat, optional)
 
-### Step 3d: Release
+### Step 3d: Local CI verification
 
+Run the full CI suite locally before creating the PR:
+
+```bash
+make clean
+tomte format-code
+tomte check-code
+make security
+make common-checks-1
+make common-checks-2
+make test
+```
+
+Fix any failures before pushing.
+
+### Step 3e: Release
+
+- [ ] Create draft PR, confirm remote CI passes
+- [ ] Release `open-aea-helpers` to PyPI (renamed from `aea-helpers`)
 - [ ] Release `open-autonomy` with all changes
 - [ ] Delete `SCRIPTS_CONSOLIDATION_REPORT.md` and `SCRIPTS_CONSOLIDATION_IMPLEMENTATION_PLAN.md` from repo
 
@@ -152,8 +199,8 @@ Phased rollout plan for the changes described in `SCRIPTS_CONSOLIDATION_REPORT.m
 - [ ] Update `pyproject.toml`: `aea-helpers==X.Y.Z` -> `open-aea-helpers==X.Y.Z`
 - [ ] Update `tox.ini`: any `aea-helpers` references
 - [ ] Bump `open-aea` and `open-autonomy` version pins if needed
-- [ ] Verify CI passes
-- [ ] Create PR per repo
+- [ ] Run full CI locally (`make all-checks` or equivalent) and fix any failures
+- [ ] Create draft PR per repo only after local CI passes
 
 **Duration:** 1 day (batch all 6)
 
@@ -173,8 +220,8 @@ Phased rollout plan for the changes described in `SCRIPTS_CONSOLIDATION_REPORT.m
 - [ ] Update `pyproject.toml`: `aea-helpers==X.Y.Z` -> `open-aea-helpers==X.Y.Z`
 - [ ] Update `tox.ini`: any `aea-helpers` references
 - [ ] Bump `open-aea` and `open-autonomy` version pins if needed
-- [ ] Verify CI passes
-- [ ] Create PR per repo
+- [ ] Run full CI locally and fix any failures
+- [ ] Create draft PR per repo only after local CI passes
 
 **Duration:** 0.5 day (batch all 3)
 
@@ -198,8 +245,8 @@ Phased rollout plan for the changes described in `SCRIPTS_CONSOLIDATION_REPORT.m
 - [ ] Update `Makefile`: any `aea-helpers` CLI invocations (these already use `aea-helpers` CLI — the binary name doesn't change, only the pip package name)
 - [ ] Bump `open-aea` and `open-autonomy` version pins if needed
 - [ ] Rebase existing cleanup PRs if still open
-- [ ] Verify CI passes
-- [ ] Create PR per repo
+- [ ] Run full CI locally (`make all-checks` or equivalent) and fix any failures
+- [ ] Create draft PR per repo only after local CI passes
 
 **Duration:** 1 day (batch all 5)
 
