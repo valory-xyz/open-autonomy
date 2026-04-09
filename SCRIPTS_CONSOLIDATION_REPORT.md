@@ -146,15 +146,42 @@ open-aea/
 ```
 tomte                       (independent, MIT licensed, no aea/autonomy dep)
 open-aea-ci-helpers     ->  open-aea (only)
-aea-helpers             ->  open-autonomy -> open-aea
+open-aea-helpers        ->  open-autonomy -> open-aea    (renamed from aea-helpers)
 open-aea-test-autonomy  ->  open-autonomy -> open-aea
 
 open-aea uses:         tomte + open-aea-ci-helpers (no circular dep)
-open-autonomy uses:    tomte + open-aea-ci-helpers + aea-helpers + open-aea-test-autonomy
-downstream repos use:  tomte + open-aea-ci-helpers (optional) + aea-helpers + open-aea-test-autonomy
+open-autonomy uses:    tomte + open-aea-ci-helpers + open-aea-helpers + open-aea-test-autonomy
+downstream repos use:  tomte + open-aea-ci-helpers (optional) + open-aea-helpers + open-aea-test-autonomy
 ```
 
 No circular dependencies.
+
+---
+
+## Rename `aea-helpers` -> `open-aea-helpers`
+
+The existing `aea-helpers` plugin is the **only** plugin across both repos that does not follow the `open-` prefix PyPI naming convention:
+
+| Plugin dir | Current PyPI name | Convention-compliant? |
+|---|---|---|
+| All 8 open-aea plugins | `open-aea-*` | Yes |
+| `aea-test-autonomy` | `open-aea-test-autonomy` | Yes |
+| **`aea-helpers`** | **`aea-helpers`** | **No** |
+
+**Proposed rename:**
+
+| | Current | After |
+|---|---|---|
+| Plugin directory | `aea-helpers` | `aea-helpers` (no change) |
+| Python package | `aea_helpers` | `aea_helpers` (no change — avoids breaking imports) |
+| **PyPI package** | `aea-helpers` | **`open-aea-helpers`** |
+| CLI command | `aea-helpers` | `aea-helpers` (no change) |
+
+Only the PyPI `name` field in `setup.py` changes. Python imports (`from aea_helpers import ...`) and the CLI command (`aea-helpers run-agent`) remain the same.
+
+**Migration for downstream repos:** Update `pyproject.toml` / `tox.ini` from `aea-helpers==X.Y.Z` to `open-aea-helpers==X.Y.Z`. This can be done in the same release cycle as the other changes.
+
+**Affected repos:** optimus, trader, meme-ooorr, IEKit, market-creator, and any other repo that depends on `aea-helpers`.
 
 ---
 
@@ -194,4 +221,5 @@ No circular dependencies.
 | Step 2: Create open-aea-ci-helpers | 2-3 days | None |
 | Step 3: Remove OA duplicates | 1 day | Step 2 |
 | Step 4: Delete obsolete | 1 hour | Step 1 |
-| **Total** | **4-5 days** | |
+| Step 5: Rename aea-helpers -> open-aea-helpers | 0.5 day | Coordinate with downstream repos |
+| **Total** | **5-6 days** | |
