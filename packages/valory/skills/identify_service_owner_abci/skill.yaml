@@ -27,12 +27,12 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/service_registry:0.1.0:bafybeigefenwg3lj4nvwc3cs5zxyhv4nvwnwbw5x7afwyijkjbbgbf2l7e
-- valory/staking_token:0.1.0:bafybeicze2hv5vybey2mtvw65dkshgpofxxcfphqya2euemhho36hbqa7q
+- valory/service_registry:0.1.0:bafybeieiuxfdikqqsewnsf5rme6igll3qug5w5rzi3ftuow6ps3sniwe7q
+- valory/staking_token:0.1.0:bafybeibbbtfgeadn72bu2jhvv7e7xdgg36yw6ulngvkncx36mqjwvry3pq
 protocols:
 - valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihygetmlgnhawrbyswvpvv3wpztr2hlhxkljmohp4r7qcmvglpwdq
+- valory/abstract_round_abci:0.1.0:bafybeiepz6rsdjx4r67bifzhx5ecpwpicwr7cogdann7jvptqd4lwijusy
 behaviours:
   main:
     args: {}
