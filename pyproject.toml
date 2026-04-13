@@ -74,7 +74,7 @@ all = [
 autonomy = "autonomy.cli:cli"
 
 [tool.poetry.group.dev.dependencies]
-tomte = { extras = ["tox", "docs"], version = "==0.6.1" }
+tomte = { extras = ["tox", "docs"], version = "==0.6.5" }
 mkdocs-monorepo-plugin = "^1.0.5"
 
 

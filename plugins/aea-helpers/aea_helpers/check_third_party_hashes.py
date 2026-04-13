@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
@@ -25,17 +24,14 @@ import re
 import sys
 from pathlib import Path
 
+import click
 import requests
 
-ROOT_DIR = Path(__file__).parent.parent
-SETUP_PY = ROOT_DIR / "setup.py"
-PACKAGES_JSON = ROOT_DIR / "packages" / "packages.json"
-OPEN_AEA_REPO = "valory-xyz/open-aea"
 
-
-def get_open_aea_version() -> str:
+def get_open_aea_version(root_dir: Path) -> str:
     """Extract the pinned open-aea version from setup.py."""
-    content = SETUP_PY.read_text(encoding="utf-8")
+    setup_py = root_dir / "setup.py"
+    content = setup_py.read_text(encoding="utf-8")
     match = re.search(r'"open-aea\[all\]==(\S+)"', content)
     if not match:
         print("ERROR: Could not find open-aea version in setup.py")
@@ -43,10 +39,12 @@ def get_open_aea_version() -> str:
     return match.group(1)
 
 
-def get_remote_packages(version: str) -> dict:
+def get_remote_packages(
+    version: str, open_aea_repo: str = "valory-xyz/open-aea"
+) -> dict:
     """Fetch packages.json from open-aea repo at the tag matching version."""
     tag = f"v{version}"
-    url = f"https://raw.githubusercontent.com/{OPEN_AEA_REPO}/{tag}/packages/packages.json"
+    url = f"https://raw.githubusercontent.com/{open_aea_repo}/{tag}/packages/packages.json"
     response = requests.get(url, timeout=30)
     if response.status_code != 200:
         print(
@@ -59,20 +57,21 @@ def get_remote_packages(version: str) -> dict:
     return data
 
 
-def get_local_third_party() -> dict:
+def get_local_third_party(root_dir: Path) -> dict:
     """Read third-party packages from local packages.json."""
-    with open(PACKAGES_JSON, "r", encoding="utf-8") as f:
+    packages_json = root_dir / "packages" / "packages.json"
+    with open(packages_json, "r", encoding="utf-8") as f:
         data = json.load(f)
     return data.get("third_party", {})
 
 
-def main() -> None:
+def main(root_dir: Path) -> None:
     """Run the check."""
-    version = get_open_aea_version()
+    version = get_open_aea_version(root_dir)
     print(f"open-aea version from setup.py: {version}")
 
     remote_packages = get_remote_packages(version)
-    local_third_party = get_local_third_party()
+    local_third_party = get_local_third_party(root_dir)
 
     mismatches = []
     missing_remote = []
@@ -105,5 +104,8 @@ def main() -> None:
     )
 
 
-if __name__ == "__main__":
-    main()
+@click.command(name="check-third-party-hashes")
+def check_third_party_hashes() -> None:
+    """Check that third-party package hashes match the open-aea repository."""
+    root_dir = Path.cwd()
+    main(root_dir)
