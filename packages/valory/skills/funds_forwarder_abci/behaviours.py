@@ -76,6 +76,7 @@ class FundsForwarderBaseBehaviour(BaseBehaviour, ABC):
         operation: int = SafeOperation.CALL.value,
     ) -> Generator[None, None, Optional[str]]:
         """Prepares and returns the safe tx hash."""
+        chain_id = self.params.default_chain_id
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.synchronized_data.safe_contract_address,
@@ -86,6 +87,7 @@ class FundsForwarderBaseBehaviour(BaseBehaviour, ABC):
             data=data,
             safe_tx_gas=SAFE_TX_GAS,
             operation=operation,
+            chain_id=chain_id,
         )
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
@@ -111,12 +113,14 @@ class FundsForwarderBaseBehaviour(BaseBehaviour, ABC):
             }
             multi_send_txs.append(transaction)
 
+        chain_id = self.params.default_chain_id
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.params.multisend_address,
             contract_id=str(MultiSendContract.contract_id),
             contract_callable="get_tx_data",
             multi_send_txs=multi_send_txs,
+            chain_id=chain_id,
         )
         if response.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
             self.context.logger.error(
@@ -285,6 +289,7 @@ class FundsForwarderBehaviour(FundsForwarderBaseBehaviour):
             performative=LedgerApiMessage.Performative.GET_STATE,  # type: ignore
             ledger_callable="get_balance",
             account=self.synchronized_data.safe_contract_address,
+            chain_id=self.params.default_chain_id,
         )
         if ledger_api_response.performative != LedgerApiMessage.Performative.STATE:
             self.context.logger.error(
@@ -306,6 +311,7 @@ class FundsForwarderBehaviour(FundsForwarderBaseBehaviour):
             contract_id=str(ERC20TokenContract.contract_id),
             contract_callable="check_balance",
             account=self.synchronized_data.safe_contract_address,
+            chain_id=self.params.default_chain_id,
         )
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
@@ -325,6 +331,7 @@ class FundsForwarderBehaviour(FundsForwarderBaseBehaviour):
             contract_callable="get_transfer_tx_data",
             receiver=to_address,
             amount=amount,
+            chain_id=self.params.default_chain_id,
         )
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(

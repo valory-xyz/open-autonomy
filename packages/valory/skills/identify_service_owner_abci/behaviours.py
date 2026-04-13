@@ -147,6 +147,7 @@ class IdentifyServiceOwnerBehaviour(IdentifyServiceOwnerBaseBehaviour):
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="get_agent_instances",
             service_id=service_id,
+            chain_id=self.params.default_chain_id,
         )
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
@@ -179,6 +180,7 @@ class IdentifyServiceOwnerBehaviour(IdentifyServiceOwnerBaseBehaviour):
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="get_service_owner",
             service_id=service_id,
+            chain_id=self.params.default_chain_id,
         )
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
@@ -203,6 +205,7 @@ class IdentifyServiceOwnerBehaviour(IdentifyServiceOwnerBaseBehaviour):
             contract_id=str(StakingTokenContract.contract_id),
             contract_callable="get_service_info",
             service_id=service_id,
+            chain_id=self.params.default_chain_id,
         )
         if response.performative != ContractApiMessage.Performative.STATE:
             # Call failed — address is not a staking contract
