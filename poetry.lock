@@ -1977,6 +1977,40 @@ python-dateutil = ">=2.8.1"
 dev = ["flake8", "markdown", "twine", "wheel"]
 
 [[package]]
+name = "gitdb"
+version = "4.0.12"
+description = "Git Object Database"
+optional = false
+python-versions = ">=3.7"
+groups = ["dev"]
+files = [
+    {file = "gitdb-4.0.12-py3-none-any.whl", hash = "sha256:67073e15955400952c6565cc3e707c554a4eea2e428946f7a4c162fab9bd9bcf"},
+    {file = "gitdb-4.0.12.tar.gz", hash = "sha256:5ef71f855d191a3326fcfbc0d5da835f26b13fbcba60c32c21091c349ffdb571"},
+]
+
+[package.dependencies]
+smmap = ">=3.0.1,<6"
+
+[[package]]
+name = "gitpython"
+version = "3.1.46"
+description = "GitPython is a Python library used to interact with Git repositories"
+optional = false
+python-versions = ">=3.7"
+groups = ["dev"]
+files = [
+    {file = "gitpython-3.1.46-py3-none-any.whl", hash = "sha256:79812ed143d9d25b6d176a10bb511de0f9c67b1fa641d82097b0ab90398a2058"},
+    {file = "gitpython-3.1.46.tar.gz", hash = "sha256:400124c7d0ef4ea03f7310ac2fbf7151e09ff97f2a3288d64a440c584a29c37f"},
+]
+
+[package.dependencies]
+gitdb = ">=4.0.1,<5"
+
+[package.extras]
+doc = ["sphinx (>=7.1.2,<7.2)", "sphinx-autodoc-typehints", "sphinx_rtd_theme"]
+test = ["coverage[toml]", "ddt (>=1.1.1,!=1.4.3)", "mock ; python_version < \"3.8\"", "mypy (==1.18.2) ; python_version >= \"3.9\"", "pre-commit", "pytest (>=7.3.1)", "pytest-cov", "pytest-instafail", "pytest-mock", "pytest-sugar", "typing-extensions ; python_version < \"3.11\""]
+
+[[package]]
 name = "googleapis-common-protos"
 version = "1.73.1"
 description = "Common protobufs used in Google APIs"
@@ -2954,7 +2988,7 @@ version = "2.2.0"
 description = "Open AEA Framework"
 optional = false
 python-versions = "<3.15,>=3.10"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "open_aea-2.2.0-py3-none-any.whl", hash = "sha256:fc1c6ff775cdfc7b60c61923574c6bcf329fe9e1a1a3ef873d28318545269bc1"},
     {file = "open_aea-2.2.0.tar.gz", hash = "sha256:0aab98f5a9dc8193d76d4117cc89a6449a7da04aea5468500bf82c9ed521fcc0"},
@@ -2975,17 +3009,36 @@ cli = ["click (>=8.1.0,<8.4.0)", "coverage (>=6.4.4,<9)", "packaging (>=22.0,<27
 test-tools = ["click (>=8.1.0,<8.4.0)", "coverage (>=6.4.4,<9)", "packaging (>=22.0,<27)", "pytest (>=7.0,<10)", "pyyaml (>=6.0.1,<7)"]
 
 [[package]]
+name = "open-aea-ci-helpers"
+version = "2.2.0"
+description = "CI helper utilities for AEA-based projects."
+optional = false
+python-versions = "<3.15,>=3.10"
+groups = ["dev"]
+files = [
+    {file = "open_aea_ci_helpers-2.2.0-py3-none-any.whl", hash = "sha256:9be569874ca537e41d7f3ec99cce6def23e447eb462ebeab9b2370cc50405827"},
+    {file = "open_aea_ci_helpers-2.2.0.tar.gz", hash = "sha256:ebdf27eddef237078fc424ad2fee856c7dbd33729a9be3a723087ba7a5ba3328"},
+]
+
+[package.dependencies]
+click = ">=8.1.0,<8.4.0"
+packaging = ">=22.0,<27"
+pyyaml = ">=6.0.1,<7"
+tomli = {version = "*", markers = "python_version < \"3.11\""}
+tomli-w = "*"
+
+[[package]]
 name = "open-aea-cli-ipfs"
 version = "2.2.0"
 description = "CLI extension for open AEA framework wrapping IPFS functionality."
 optional = false
 python-versions = "<3.15,>=3.10"
-groups = ["main"]
-markers = "extra == \"cli\" or extra == \"all\""
+groups = ["main", "dev"]
 files = [
     {file = "open_aea_cli_ipfs-2.2.0-py3-none-any.whl", hash = "sha256:7856a0dadda31022496b816fa418b0979d0e5e2f183cfd601e43bb26e572bb2b"},
     {file = "open_aea_cli_ipfs-2.2.0.tar.gz", hash = "sha256:2638e77a0a2fd41333186f2d29b697b6f8b235f418f737b2220414ff712fd965"},
 ]
+markers = {main = "extra == \"cli\" or extra == \"all\""}
 
 [package.dependencies]
 click = ">=8.1.0,<8.4.0"
@@ -2993,6 +3046,25 @@ open-aea = ">=2.0.0,<3.0.0"
 
 [package.extras]
 test-tools = ["pytest (>=7.0,<10)"]
+
+[[package]]
+name = "open-aea-dev-helpers"
+version = "2.2.0"
+description = "Development and release helper utilities for AEA-based projects."
+optional = false
+python-versions = "<3.15,>=3.10"
+groups = ["dev"]
+files = [
+    {file = "open_aea_dev_helpers-2.2.0-py3-none-any.whl", hash = "sha256:72e0fedcd9a5dbaac0435b782dae723455c7bbf33f680dcc586ea1d6f2782105"},
+    {file = "open_aea_dev_helpers-2.2.0.tar.gz", hash = "sha256:89f9c445963979c7faea767fc79901e02a892c0bff2e6196332706fc05b6af05"},
+]
+
+[package.dependencies]
+click = ">=8.1.0,<8.4.0"
+gitpython = ">=3.1.37,<4"
+open-aea-cli-ipfs = ">=2.0.0,<3.0.0"
+packaging = ">=22.0,<27"
+pyyaml = ">=6.0.1,<7"
 
 [[package]]
 name = "open-aea-ledger-cosmos"
@@ -3390,7 +3462,7 @@ version = "5.29.6"
 description = ""
 optional = false
 python-versions = ">=3.8"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "protobuf-5.29.6-cp310-abi3-win32.whl", hash = "sha256:62e8a3114992c7c647bce37dcc93647575fc52d50e48de30c6fcb28a6a291eb1"},
     {file = "protobuf-5.29.6-cp310-abi3-win_amd64.whl", hash = "sha256:7e6ad413275be172f67fdee0f43484b6de5a904cc1c3ea9804cb6fe2ff366eda"},
@@ -4001,8 +4073,7 @@ version = "311"
 description = "Python for Window Extensions"
 optional = false
 python-versions = "*"
-groups = ["main"]
-markers = "sys_platform == \"win32\" or platform_system == \"Windows\""
+groups = ["main", "dev"]
 files = [
     {file = "pywin32-311-cp310-cp310-win32.whl", hash = "sha256:d03ff496d2a0cd4a5893504789d4a15399133fe82517455e78bad62efbb7f0a3"},
     {file = "pywin32-311-cp310-cp310-win_amd64.whl", hash = "sha256:797c2772017851984b97180b0bebe4b620bb86328e8a884bb626156295a63b3b"},
@@ -4025,6 +4096,7 @@ files = [
     {file = "pywin32-311-cp39-cp39-win_amd64.whl", hash = "sha256:e0c4cfb0621281fe40387df582097fd796e80430597cb9944f0ae70447bacd91"},
     {file = "pywin32-311-cp39-cp39-win_arm64.whl", hash = "sha256:62ea666235135fee79bb154e695f3ff67370afefd71bd7fea7512fc70ef31e3d"},
 ]
+markers = {main = "sys_platform == \"win32\" or platform_system == \"Windows\"", dev = "sys_platform == \"win32\""}
 
 [[package]]
 name = "pyyaml"
@@ -4458,6 +4530,18 @@ groups = ["main", "dev"]
 files = [
     {file = "six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274"},
     {file = "six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81"},
+]
+
+[[package]]
+name = "smmap"
+version = "5.0.3"
+description = "A pure Python implementation of a sliding window memory map manager"
+optional = false
+python-versions = ">=3.7"
+groups = ["dev"]
+files = [
+    {file = "smmap-5.0.3-py3-none-any.whl", hash = "sha256:c106e05d5a61449cf6ba9a1e650227ecfb141590d2a98412103ff35d89fc7b2f"},
+    {file = "smmap-5.0.3.tar.gz", hash = "sha256:4d9debb8b99007ae47165abc08670bd74cb74b5227dda7f643eccc4e9eb5642c"},
 ]
 
 [[package]]
@@ -5283,4 +5367,4 @@ cli = ["click", "coverage", "open-aea-cli-ipfs", "pytest", "python-dotenv", "tex
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "2ac9d2786866ec67296b1378b0b649f6c7998e90db72bf149da4efe95ff9f525"
+content-hash = "2d465ffedd2c6f9abc7fd4f168931e755a926bae47a97238de033f6145650a37"

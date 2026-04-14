@@ -76,6 +76,8 @@ autonomy = "autonomy.cli:cli"
 [tool.poetry.group.dev.dependencies]
 tomte = { extras = ["tox", "docs"], version = "==0.6.5" }
 mkdocs-monorepo-plugin = "^1.0.5"
+open-aea-ci-helpers = "==2.2.0"
+open-aea-dev-helpers = "==2.2.0"
 
 
 [build-system]
