@@ -151,7 +151,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     def generate_config_tendermint(self) -> "KubernetesGenerator":
         """Generate PVC configuration for the deployment."""
 
-        if self.tendermint_job_config is not None:  # pragma: no cover
+        if self.cluster_config is not None:  # pragma: no cover
             return self
 
         pvcs = ""
@@ -166,7 +166,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             )
             host_path.mkdir(exist_ok=True, parents=True)
 
-        self.tendermint_job_config = CLUSTER_CONFIGURATION_TEMPLATE.format(
+        self.cluster_config = CLUSTER_CONFIGURATION_TEMPLATE.format(
             pvcs=pvcs,
         )
 
@@ -226,7 +226,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     ) -> "KubernetesGenerator":
         """Write output to build dir"""
 
-        output = "---\n".join([self.output, cast(str, self.tendermint_job_config)])
+        output = "---\n".join([self.output, cast(str, self.cluster_config)])
         if not self.build_dir.is_dir():  # pragma: no cover
             self.build_dir.mkdir()
         with open(

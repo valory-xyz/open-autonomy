@@ -301,17 +301,36 @@ spec:
           imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           args:
-          - |
-            if [ ! -d /tendermint/node0 ]; then
-              echo "Generating tendermint testnet configuration..."
-              /usr/bin/tendermint testnet \
-                --config /etc/tendermint/config-template.toml \
-                --o . {host_names} \
-                --v {number_of_validators}
-              echo "Configuration generated successfully."
-            else
-              echo "Configuration already exists, skipping generation."
-            fi
+            - |
+              LOCK_DIR=/tendermint/.config-lock
+              while true; do
+                if [ -d /tendermint/node0 ]; then
+                  echo "Configuration already exists, skipping generation."
+                  break
+                fi
+
+                if mkdir "${{LOCK_DIR}}" 2>/dev/null; then
+                  trap 'rmdir "${{LOCK_DIR}}"' EXIT
+
+                  if [ ! -d /tendermint/node0 ]; then
+                    echo "Generating tendermint testnet configuration..."
+                    /usr/bin/tendermint testnet \
+                      --config /etc/tendermint/config-template.toml \
+                      --o /tendermint {host_names} \
+                      --v {number_of_validators}
+                    echo "Configuration generated successfully."
+                  else
+                    echo "Configuration already exists, skipping generation."
+                  fi
+
+                  rmdir "${{LOCK_DIR}}"
+                  trap - EXIT
+                  break
+                fi
+
+                echo "Another pod is generating the tendermint configuration, waiting..."
+                sleep 1
+              done
           volumeMounts:
             - name: nodes
               mountPath: /tendermint
@@ -319,11 +338,11 @@ spec:
           image: "busybox:1.36"
           command: ["sh", "-c"]
           args:
-          - |
-            echo "Waiting for node{validator_ix} config..."
-            while [ ! -d /tendermint/node{validator_ix} ]; do sleep 1; done
-            cp -r /tendermint/node{validator_ix}/* /tm/
-            echo "Config copied for node{validator_ix}."
+            - |
+              echo "Waiting for node{validator_ix} config..."
+              while [ ! -d /tendermint/node{validator_ix} ]; do sleep 1; done
+              cp -r /tendermint/node{validator_ix}/* /tm/
+              echo "Config copied for node{validator_ix}."
           volumeMounts:
             - name: nodes
               mountPath: /tendermint
