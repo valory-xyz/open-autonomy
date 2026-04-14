@@ -298,32 +298,42 @@ spec:
       initContainers:
         - name: generate-tendermint-config
           image: {tendermint_image_name}:{tendermint_image_version}
-          imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           args:
             - |
+              SENTINEL=/tendermint/.config-complete
               LOCK_DIR=/tendermint/.config-lock
               while true; do
-                if [ -d /tendermint/node0 ]; then
+                if [ -f "${{SENTINEL}}" ]; then
                   echo "Configuration already exists, skipping generation."
                   break
                 fi
 
-                if mkdir "${{LOCK_DIR}}" 2>/dev/null; then
-                  trap 'rmdir "${{LOCK_DIR}}"' EXIT
+                # Reclaim stale locks older than 5 minutes (SIGKILL recovery)
+                if [ -d "${{LOCK_DIR}}" ]; then
+                  lock_age=$(( $(date +%s) - $(date -r "${{LOCK_DIR}}" +%s 2>/dev/null || echo 0) ))
+                  if [ "$lock_age" -gt 300 ]; then
+                    echo "Reclaiming stale lock (age: ${{lock_age}}s)..."
+                    rmdir "${{LOCK_DIR}}" 2>/dev/null
+                  fi
+                fi
 
-                  if [ ! -d /tendermint/node0 ]; then
+                if mkdir "${{LOCK_DIR}}" 2>/dev/null; then
+                  trap 'rmdir "${{LOCK_DIR}}" 2>/dev/null' EXIT
+
+                  if [ ! -f "${{SENTINEL}}" ]; then
                     echo "Generating tendermint testnet configuration..."
                     /usr/bin/tendermint testnet \
                       --config /etc/tendermint/config-template.toml \
                       --o /tendermint {host_names} \
                       --v {number_of_validators}
+                    touch "${{SENTINEL}}"
                     echo "Configuration generated successfully."
                   else
                     echo "Configuration already exists, skipping generation."
                   fi
 
-                  rmdir "${{LOCK_DIR}}"
+                  rmdir "${{LOCK_DIR}}" 2>/dev/null
                   trap - EXIT
                   break
                 fi
@@ -340,7 +350,7 @@ spec:
           args:
             - |
               echo "Waiting for node{validator_ix} config..."
-              while [ ! -d /tendermint/node{validator_ix} ]; do sleep 1; done
+              while [ ! -f /tendermint/.config-complete ]; do sleep 1; done
               cp -r /tendermint/node{validator_ix}/* /tm/
               echo "Config copied for node{validator_ix}."
           volumeMounts:

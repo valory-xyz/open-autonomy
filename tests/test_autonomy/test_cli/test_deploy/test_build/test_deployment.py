@@ -916,11 +916,15 @@ class TestKubernetesBuild(BaseDeployBuildTest):
         )
 
         # Verify tendermint config generation is handled via initContainer
-        # (no separate config-nodes Job)
+        # (no separate config-nodes Job or any Job kind)
         assert not any(
             resource.get("metadata", {}).get("name") == "config-nodes"
             for resource in kubernetes_config
         )
+        assert not any(
+            resource.get("kind") == "Job"
+            for resource in kubernetes_config
+        ), "No Job resources should exist — config generation uses initContainers"
         # Verify agent deployments have the generate-tendermint-config initContainer
         agent_deployments = [
             r for r in kubernetes_config if r.get("kind") == "Deployment"
