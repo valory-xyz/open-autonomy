@@ -922,8 +922,7 @@ class TestKubernetesBuild(BaseDeployBuildTest):
             for resource in kubernetes_config
         )
         assert not any(
-            resource.get("kind") == "Job"
-            for resource in kubernetes_config
+            resource.get("kind") == "Job" for resource in kubernetes_config
         ), "No Job resources should exist — config generation uses initContainers"
         # Verify agent deployments have the generate-tendermint-config initContainer
         agent_deployments = [
