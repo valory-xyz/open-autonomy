@@ -105,7 +105,12 @@ def main(root_dir: Path) -> None:
 
 
 @click.command(name="check-third-party-hashes")
-def check_third_party_hashes() -> None:
+@click.option(
+    "--root-dir",
+    type=click.Path(exists=True, file_okay=False),
+    default=".",
+    help="Repository root directory (default: current working directory).",
+)
+def check_third_party_hashes(root_dir: str) -> None:
     """Check that third-party package hashes match the open-aea repository."""
-    root_dir = Path.cwd()
-    main(root_dir)
+    main(Path(root_dir).resolve())

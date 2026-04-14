@@ -1561,14 +1561,14 @@ test = ["black", "pytest"]
 
 [[package]]
 name = "ecdsa"
-version = "0.16.1"
+version = "0.19.2"
 description = "ECDSA cryptographic signature library (pure python)"
 optional = false
-python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,>=2.6"
 groups = ["main"]
 files = [
-    {file = "ecdsa-0.16.1-py2.py3-none-any.whl", hash = "sha256:881fa5e12bb992972d3d1b3d4dfbe149ab76a89f13da02daa5ea1ec7dea6e747"},
-    {file = "ecdsa-0.16.1.tar.gz", hash = "sha256:cfc046a2ddd425adbd1a78b3c46f0d1325c657811c0f45ecc3a0a6236c1e50ff"},
+    {file = "ecdsa-0.19.2-py2.py3-none-any.whl", hash = "sha256:840f5dc5e375c68f36c1a7a5b9caad28f95daa65185c9253c0c08dd952bb7399"},
+    {file = "ecdsa-0.19.2.tar.gz", hash = "sha256:62635b0ac1ca2e027f82122b5b81cb706edc38cd91c63dda28e4f3455a2bf930"},
 ]
 
 [package.dependencies]
@@ -2705,17 +2705,6 @@ files = [
 mkdocs = ">=1.1.1"
 
 [[package]]
-name = "morphys"
-version = "1.0"
-description = "Smart conversions between unicode and bytes types for common cases"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "morphys-1.0-py2.py3-none-any.whl", hash = "sha256:76d6dbaa4d65f597e59d332c81da786d83e4669387b9b2a750cfec74e7beec20"},
-]
-
-[[package]]
 name = "multiaddr"
 version = "0.0.9"
 description = "Python implementation of jbenet's multiaddr"
@@ -2961,122 +2950,109 @@ typing-extensions = ">=3.0.0"
 
 [[package]]
 name = "open-aea"
-version = "2.1.0"
-description = "Open Autonomous Economic Agent framework (without vendor lock-in)"
+version = "2.2.0"
+description = "Open AEA Framework"
 optional = false
-python-versions = ">=3.10"
+python-versions = "<3.15,>=3.10"
 groups = ["main"]
 files = [
-    {file = "open_aea-2.1.0-py3-none-any.whl", hash = "sha256:265f12f47fff15b68cb8250772b662c07aea1ed83375d1026af5bba6b411b49b"},
-    {file = "open_aea-2.1.0-py3-none-macosx_10_9_x86_64.whl", hash = "sha256:a36db8ac275efa75e177de4b9c27233a20615724aa02d6690e95cc9c45034c79"},
-    {file = "open_aea-2.1.0-py3-none-manylinux1_x86_64.whl", hash = "sha256:f2f8ce89ae10d717d139af659d244b2978bf41fb6e0f2ebfd105ed7860fe1af6"},
-    {file = "open_aea-2.1.0-py3-none-manylinux2014_aarch64.whl", hash = "sha256:b6b90c8a06e0ca53d8a86d7880f207b3fc66c10020252feb6a3ea5c70bf901a9"},
-    {file = "open_aea-2.1.0-py3-none-win32.whl", hash = "sha256:c67fa0b77fe1195376078cd1bf2b64ec77b82505e83e610a6ae1ab884043dfea"},
-    {file = "open_aea-2.1.0-py3-none-win_amd64.whl", hash = "sha256:cace2e62682aa6f4bcf023306e878917b4008ab7a9d9f30c12adbbcc1da7900c"},
-    {file = "open_aea-2.1.0.tar.gz", hash = "sha256:b5a40bcc7fbc6a78ed9a42a1aea0855d736849f9327a1a417fa136a0ab195cae"},
+    {file = "open_aea-2.2.0-py3-none-any.whl", hash = "sha256:fc1c6ff775cdfc7b60c61923574c6bcf329fe9e1a1a3ef873d28318545269bc1"},
+    {file = "open_aea-2.2.0.tar.gz", hash = "sha256:0aab98f5a9dc8193d76d4117cc89a6449a7da04aea5468500bf82c9ed521fcc0"},
 ]
 
 [package.dependencies]
-base58 = ">=1.0.3,<3.0.0"
-click = {version = ">=8.1.0,<8.4.0", optional = true, markers = "extra == \"all\""}
-coverage = {version = ">=6.4.4,<8.0.0", optional = true, markers = "extra == \"all\""}
-ecdsa = ">=0.15,<0.17.0"
-jsonschema = ">=4.3.0,<4.24.0"
-morphys = ">=1.0"
-packaging = "26"
-protobuf = ">=5,<6"
-py-multibase = ">=1.0.0"
-py-multicodec = ">=0.2.0"
-pymultihash = "0.8.2"
-pytest = {version = ">=8.2,<10", optional = true, markers = "extra == \"all\""}
-python-dotenv = ">=0.14.0,<1.0.1"
-pyyaml = [
-    {version = ">=6.0.1,<7"},
-    {version = ">=6.0.1,<7", optional = true, markers = "extra == \"all\""},
-]
-requests = ">=2.32.5,<3"
-semver = ">=2.9.1,<3.0.0"
+click = {version = ">=8.1.0,<8.4.0", optional = true, markers = "extra == \"cli\" or extra == \"test-tools\" or extra == \"all\""}
+coverage = {version = ">=6.4.4,<9", optional = true, markers = "extra == \"cli\" or extra == \"test-tools\" or extra == \"all\""}
+packaging = {version = ">=22.0,<27", optional = true, markers = "extra == \"cli\" or extra == \"test-tools\" or extra == \"all\""}
+protobuf = ">=5,<7"
+pytest = {version = ">=7.0,<10", optional = true, markers = "extra == \"cli\" or extra == \"test-tools\" or extra == \"all\""}
+pywin32 = {version = ">=304", markers = "sys_platform == \"win32\""}
+pyyaml = {version = ">=6.0.1,<7", optional = true, markers = "extra == \"cli\" or extra == \"test-tools\" or extra == \"all\""}
 
 [package.extras]
-all = ["click (>=8.1.0,<8.4.0)", "coverage (>=6.4.4,<8.0.0)", "jsonschema (>=4.3.0,<4.24.0)", "packaging (==26)", "pytest (>=8.2,<10)", "pyyaml (>=6.0.1,<9)", "semver (>=2.9.1,<3.0.0)"]
-cli = ["click (>=8.1.0,<8.4.0)", "coverage (>=6.4.4,<8.0.0)", "jsonschema (>=4.3.0,<4.24.0)", "packaging (==26)", "pytest (>=8.2,<10)", "pyyaml (>=6.0.1,<9)", "semver (>=2.9.1,<3.0.0)"]
-test-tools = ["click (>=8.1.0,<8.4.0)", "coverage (>=6.4.4,<8.0.0)", "jsonschema (>=4.3.0,<4.24.0)", "packaging (==26)", "pytest (>=8.2,<10)", "pyyaml (>=6.0.1,<9)", "semver (>=2.9.1,<3.0.0)"]
+all = ["click (>=8.1.0,<8.4.0)", "coverage (>=6.4.4,<9)", "packaging (>=22.0,<27)", "pytest (>=7.0,<10)", "pyyaml (>=6.0.1,<7)"]
+cli = ["click (>=8.1.0,<8.4.0)", "coverage (>=6.4.4,<9)", "packaging (>=22.0,<27)", "pytest (>=7.0,<10)", "pyyaml (>=6.0.1,<7)"]
+test-tools = ["click (>=8.1.0,<8.4.0)", "coverage (>=6.4.4,<9)", "packaging (>=22.0,<27)", "pytest (>=7.0,<10)", "pyyaml (>=6.0.1,<7)"]
 
 [[package]]
 name = "open-aea-cli-ipfs"
-version = "2.1.0"
+version = "2.2.0"
 description = "CLI extension for open AEA framework wrapping IPFS functionality."
 optional = false
-python-versions = "*"
+python-versions = "<3.15,>=3.10"
 groups = ["main"]
 markers = "extra == \"cli\" or extra == \"all\""
 files = [
-    {file = "open_aea_cli_ipfs-2.1.0-py3-none-any.whl", hash = "sha256:dabebcf724f42990c4440ae0d45ef9e393a140c052cfd420298234a56b35e128"},
-    {file = "open_aea_cli_ipfs-2.1.0.tar.gz", hash = "sha256:b9a2c4d851a6b8ea7fd0d3b0b29623a3336712392dccd615da0acc710dc472d2"},
+    {file = "open_aea_cli_ipfs-2.2.0-py3-none-any.whl", hash = "sha256:7856a0dadda31022496b816fa418b0979d0e5e2f183cfd601e43bb26e572bb2b"},
+    {file = "open_aea_cli_ipfs-2.2.0.tar.gz", hash = "sha256:2638e77a0a2fd41333186f2d29b697b6f8b235f418f737b2220414ff712fd965"},
 ]
 
 [package.dependencies]
-ipfshttpclient = ">=0.8.0a2"
+click = ">=8.1.0,<8.4.0"
 open-aea = ">=2.0.0,<3.0.0"
+
+[package.extras]
+test-tools = ["pytest (>=7.0,<10)"]
 
 [[package]]
 name = "open-aea-ledger-cosmos"
-version = "2.1.0"
+version = "2.2.0"
 description = "Python package wrapping the public and private key cryptography and ledger api of Cosmos."
 optional = false
-python-versions = "*"
+python-versions = "<3.15,>=3.10"
 groups = ["main"]
 files = [
-    {file = "open_aea_ledger_cosmos-2.1.0-py3-none-any.whl", hash = "sha256:0b93b19691e6cfc5a92dd2447e4a2dbc0c5f065ac4d04d961d927be97a7a0178"},
-    {file = "open_aea_ledger_cosmos-2.1.0.tar.gz", hash = "sha256:59d36720d3d34c3e440a14a1048cbd62782960abbb29742694a409bb1defad71"},
+    {file = "open_aea_ledger_cosmos-2.2.0-py3-none-any.whl", hash = "sha256:4f17449012a652a5bcf1c82c8507eec0fc2e8277d0ecd79c17f4ba53e942cbd8"},
+    {file = "open_aea_ledger_cosmos-2.2.0.tar.gz", hash = "sha256:a13673cba15811cd340d2082b07621804d76b74144d716c2e9841d9e83ca1766"},
 ]
 
 [package.dependencies]
 bech32 = ">=1.2.0,<2"
 cosmpy = ">=0.11.0,<0.12"
-ecdsa = ">=0.15,<0.17.0"
+ecdsa = ">=0.19.2,<0.20"
 open-aea = ">=2.0.0,<3.0.0"
 pycryptodome = ">=3.10.1,<4.0.0"
+requests = ">=2.32.5,<3"
 
 [[package]]
 name = "open-aea-ledger-ethereum"
-version = "2.1.0"
+version = "2.2.0"
 description = "Python package wrapping the public and private key cryptography and ledger api of Ethereum."
 optional = false
-python-versions = "*"
+python-versions = "<3.15,>=3.10"
 groups = ["main"]
 files = [
-    {file = "open_aea_ledger_ethereum-2.1.0-py3-none-any.whl", hash = "sha256:04670f26a86670052af9e4e2e675631d2ac8e40b5cae5143d9808ca36e96172d"},
-    {file = "open_aea_ledger_ethereum-2.1.0.tar.gz", hash = "sha256:56f6ca96036e7afa5ae69958455ad23087d712fbc04a0c05c23704e7449a4bd3"},
+    {file = "open_aea_ledger_ethereum-2.2.0-py3-none-any.whl", hash = "sha256:853eea949ed96050ee0290c15224bc9179ba5dc28566363a1f58f4635b2f6c5a"},
+    {file = "open_aea_ledger_ethereum-2.2.0.tar.gz", hash = "sha256:bafc4d56e6102406d2d128b36ce5106910aec0989b152b10ce6c8a284ef91d62"},
 ]
 
 [package.dependencies]
 eth-account = ">=0.13.0,<0.14.0"
-ipfshttpclient = "0.8.0a2"
 open-aea = ">=2.0.0,<3.0.0"
+requests = ">=2.32.5,<3"
 web3 = ">=7.0.0,<8"
+
+[package.extras]
+test-tools = ["docker (==7.1.0)", "pytest (>=7.0,<10)"]
 
 [[package]]
 name = "open-aea-ledger-ethereum-hwi"
-version = "2.1.0"
+version = "2.2.0"
 description = "Python package wrapping the public and private key cryptography and support for hardware wallet interactions."
 optional = false
-python-versions = "*"
+python-versions = "<3.15,>=3.10"
 groups = ["main"]
 files = [
-    {file = "open_aea_ledger_ethereum_hwi-2.1.0-py3-none-any.whl", hash = "sha256:fd4e0a39a76f0d587f109eb29d281797480a64630dfbc9e666df668905227428"},
-    {file = "open_aea_ledger_ethereum_hwi-2.1.0.tar.gz", hash = "sha256:b540bf9460cd5ab25b3bb8d9b0e5922202113a7c16d6601b4efe89d2f8692139"},
+    {file = "open_aea_ledger_ethereum_hwi-2.2.0-py3-none-any.whl", hash = "sha256:46858b71599f04f4e011e3ac64f04dc9289069f650ed3faf2839772c83a34940"},
+    {file = "open_aea_ledger_ethereum_hwi-2.2.0.tar.gz", hash = "sha256:8c5d8447b9306147d72e3758ff7232dc232ef466ac5c57b5cdf8eac4e62fa76e"},
 ]
 
 [package.dependencies]
 construct = "<=2.10.61"
 eth-account = ">=0.13.0,<0.14.0"
-ipfshttpclient = "0.8.0a2"
 ledgerwallet = "0.1.3"
 open-aea = ">=2.0.0,<3.0.0"
-open-aea-ledger-ethereum = ">=2.1.0,<2.2.0"
-protobuf = ">=5,<6"
-web3 = ">=7.0.0,<8"
+open-aea-ledger-ethereum = ">=2.2.0,<2.3.0"
 
 [[package]]
 name = "packaging"
@@ -3469,44 +3445,6 @@ pycryptodome = ">=3.4.7"
 rlp = ">=1.1.0"
 
 [[package]]
-name = "py-multibase"
-version = "2.0.0"
-description = "Multibase implementation for Python"
-optional = false
-python-versions = "<4.0,>=3.10"
-groups = ["main"]
-files = [
-    {file = "py_multibase-2.0.0-py3-none-any.whl", hash = "sha256:b29ce489b556134e73998a11712c406b70950812955df64084754e0774e40900"},
-    {file = "py_multibase-2.0.0.tar.gz", hash = "sha256:58c1a264195fa1ae29ea707c6fc8196446f4bdb92e0f9a0f131e0f280b238839"},
-]
-
-[package.dependencies]
-morphys = ">=1.0,<2.0"
-python-baseconv = ">=1.2.0,<2.0"
-six = ">=1.10.0,<2.0"
-
-[package.extras]
-dev = ["Sphinx (>=5.0.0)", "build (>=0.9.0)", "bump-my-version (>=1.2.0)", "mypy", "pre-commit", "pytest", "pytest-runner", "ruff", "towncrier (>=24,<25)", "tox (>=4.10.0)", "twine", "watchdog (>=3.0.0)", "wheel (>=0.31.0)"]
-
-[[package]]
-name = "py-multicodec"
-version = "1.0.0"
-description = "Multicodec implementation in Python"
-optional = false
-python-versions = "<4.0,>=3.10"
-groups = ["main"]
-files = [
-    {file = "py_multicodec-1.0.0-py3-none-any.whl", hash = "sha256:ae2e687bac8fdf54e3f5b3feded36b61a304d5e3c3af9438f7481f543ec15b8d"},
-    {file = "py_multicodec-1.0.0.tar.gz", hash = "sha256:78e4e3e47b6288cf635c3ca987152e6cb5510bdcdab307e7690c76ec3d5bbfeb"},
-]
-
-[package.dependencies]
-varint = ">=1.0.2,<2.0.0"
-
-[package.extras]
-dev = ["Sphinx (>=5.0.0)", "build (>=0.9.0)", "bump-my-version (>=1.2.0)", "mypy", "pre-commit", "pytest", "pytest-runner", "ruff", "towncrier (>=24,<25)", "tox (>=4.10.0)", "twine", "watchdog (>=3.0.0)", "wheel (>=0.31.0)"]
-
-[[package]]
 name = "pycparser"
 version = "3.0"
 description = "C parser in Python"
@@ -3798,22 +3736,6 @@ pyyaml = "*"
 extra = ["pygments (>=2.19.1)"]
 
 [[package]]
-name = "pymultihash"
-version = "0.8.2"
-description = "Python implementation of the multihash specification"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "pymultihash-0.8.2-py3-none-any.whl", hash = "sha256:f7fa840b24bd6acbd6b073fcd330f10e15619387297babf1dd13ca4dae6e8209"},
-    {file = "pymultihash-0.8.2.tar.gz", hash = "sha256:49c75a1ae9ecc6d22d259064d4597b3685da3f0258f4ded632e03a3a79af215b"},
-]
-
-[package.extras]
-blake2 = ["pyblake2"]
-sha3 = ["pysha3"]
-
-[[package]]
 name = "pynacl"
 version = "1.6.0"
 description = "Python binding to the Networking and Cryptography (NaCl) library"
@@ -3926,17 +3848,6 @@ docs = ["sphinx (>=5.3)", "sphinx-rtd-theme (>=1)"]
 testing = ["coverage (>=6.2)", "hypothesis (>=5.7.1)"]
 
 [[package]]
-name = "python-baseconv"
-version = "1.2.2"
-description = "Convert numbers from base 10 integers to base X strings and back again."
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "python-baseconv-1.2.2.tar.gz", hash = "sha256:0539f8bd0464013b05ad62e0a1673f0ac9086c76b43ebf9f833053527cd9931b"},
-]
-
-[[package]]
 name = "python-dateutil"
 version = "2.9.0.post0"
 description = "Extensions to the standard Python datetime module"
@@ -3978,6 +3889,7 @@ description = "Read key-value pairs from a .env file and set them as environment
 optional = false
 python-versions = ">=3.7"
 groups = ["main"]
+markers = "extra == \"cli\" or extra == \"all\""
 files = [
     {file = "python-dotenv-0.21.1.tar.gz", hash = "sha256:1c93de8f636cde3ce377292818d0e440b6e45a82f215c3744979151fa8151c49"},
     {file = "python_dotenv-0.21.1-py3-none-any.whl", hash = "sha256:41e12e0318bebc859fcc4d97d4db8d20ad21721a6aa5047dd59f090391cb549a"},
@@ -4534,18 +4446,6 @@ files = [
     {file = "rpds_py-0.30.0-pp311-pypy311_pp73-musllinux_1_2_i686.whl", hash = "sha256:1b151685b23929ab7beec71080a8889d4d6d9fa9a983d213f07121205d48e2c4"},
     {file = "rpds_py-0.30.0-pp311-pypy311_pp73-musllinux_1_2_x86_64.whl", hash = "sha256:ac37f9f516c51e5753f27dfdef11a88330f04de2d564be3991384b2f3535d02e"},
     {file = "rpds_py-0.30.0.tar.gz", hash = "sha256:dd8ff7cf90014af0c0f787eea34794ebf6415242ee1d6fa91eaba725cc441e84"},
-]
-
-[[package]]
-name = "semver"
-version = "2.13.0"
-description = "Python helper for Semantic Versioning (http://semver.org/)"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-groups = ["main"]
-files = [
-    {file = "semver-2.13.0-py2.py3-none-any.whl", hash = "sha256:ced8b23dceb22134307c1b8abfa523da14198793d9787ac838e70e29e77458d4"},
-    {file = "semver-2.13.0.tar.gz", hash = "sha256:fa0fe2722ee1c3f57eac478820c3a5ae2f624af8264cbdf9000c980ff7f75e3f"},
 ]
 
 [[package]]
@@ -5382,5 +5282,5 @@ cli = ["click", "coverage", "open-aea-cli-ipfs", "pytest", "python-dotenv", "tex
 
 [metadata]
 lock-version = "2.1"
-python-versions = "^3.10"
-content-hash = "397e20cc6401d213d0bc7f90586c2af4860f24b7082236bf10a6e25db641f3b4"
+python-versions = ">=3.10,<3.15"
+content-hash = "2ac9d2786866ec67296b1378b0b649f6c7998e90db72bf149da4efe95ff9f525"
