@@ -26,6 +26,7 @@ from aea_helpers.check_dependencies import check_dependencies
 from aea_helpers.check_doc_hashes import check_doc_hashes
 from aea_helpers.check_third_party_hashes import check_third_party_hashes
 from aea_helpers.config_replace import config_replace
+from aea_helpers.generate_api_docs import main as generate_api_docs_main
 from aea_helpers.generate_contract_list import generate_contract_list
 from aea_helpers.make_release import make_release
 from aea_helpers.pyinstaller_deps import bin_template_path, build_binary_deps
@@ -51,3 +52,13 @@ cli.add_command(generate_contract_list)
 cli.add_command(make_release)
 cli.add_command(run_agent)
 cli.add_command(run_service)
+
+
+@click.command(name="generate-api-docs")
+@click.option("--check", "check_clean", is_flag=True, help="Check docs are up to date.")
+def generate_api_docs_cmd(check_clean: bool) -> None:
+    """Generate API documentation from source."""
+    generate_api_docs_main(check_clean=check_clean)
+
+
+cli.add_command(generate_api_docs_cmd)
