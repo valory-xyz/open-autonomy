@@ -107,36 +107,7 @@ status:
 """
 
 
-CLUSTER_CONFIGURATION_TEMPLATE: str = """apiVersion: batch/v1
-kind: Job
-metadata:
-  name: config-nodes
-spec:
-  template:
-    spec:
-      imagePullSecrets:
-      - name: regcred
-      containers:
-      - name: config-nodes
-        image: {tendermint_image_name}:{tendermint_image_version}
-        command: ['/usr/bin/tendermint']
-        args: ["testnet",
-         "--config",
-         "/etc/tendermint/config-template.toml",
-         "--o",  ".", {host_names},
-         "--v", "{number_of_validators}"
-         ]
-        volumeMounts:
-          - mountPath: /tendermint
-            name: nodes
-      volumes:
-        - name: nodes
-          persistentVolumeClaim:
-            claimName: 'nodes'
-      restartPolicy: Never
-  backoffLimit: 3
----
-apiVersion: v1
+CLUSTER_CONFIGURATION_TEMPLATE: str = """apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: logs-pvc
@@ -325,14 +296,67 @@ spec:
           name: local-tendermint
 {volume_claims}
       initContainers:
-        - name: copy-tendermint-configuration
-          image: "ubuntu:20.04"
-          command: ["bash", "-c"]
+        - name: generate-tendermint-config
+          image: {tendermint_image_name}:{tendermint_image_version}
+          command: ["/bin/sh", "-c"]
           args:
-          - "while [ ! -d /tendermint/node{validator_ix} ]; do sleep 1; done; cp -r /tendermint/node{validator_ix}/* /tm/"
+            - |
+              SENTINEL=/tendermint/.config-complete
+              LOCK_DIR=/tendermint/.config-lock
+              while true; do
+                if [ -f "${{SENTINEL}}" ]; then
+                  echo "Configuration already exists, skipping generation."
+                  break
+                fi
+
+                # Reclaim stale locks older than 5 minutes (SIGKILL recovery)
+                if [ -d "${{LOCK_DIR}}" ]; then
+                  lock_age=$(( $(date +%s) - $(date -r "${{LOCK_DIR}}" +%s 2>/dev/null || echo 0) ))
+                  if [ "$lock_age" -gt 300 ]; then
+                    echo "Reclaiming stale lock (age: ${{lock_age}}s)..."
+                    rmdir "${{LOCK_DIR}}" 2>/dev/null
+                  fi
+                fi
+
+                if mkdir "${{LOCK_DIR}}" 2>/dev/null; then
+                  trap 'rmdir "${{LOCK_DIR}}" 2>/dev/null' EXIT
+
+                  if [ ! -f "${{SENTINEL}}" ]; then
+                    echo "Generating tendermint testnet configuration..."
+                    /usr/bin/tendermint testnet \
+                      --config /etc/tendermint/config-template.toml \
+                      --o /tendermint {host_names} \
+                      --v {number_of_validators}
+                    touch "${{SENTINEL}}"
+                    echo "Configuration generated successfully."
+                  else
+                    echo "Configuration already exists, skipping generation."
+                  fi
+
+                  rmdir "${{LOCK_DIR}}" 2>/dev/null
+                  trap - EXIT
+                  break
+                fi
+
+                echo "Another pod is generating the tendermint configuration, waiting..."
+                sleep 1
+              done
           volumeMounts:
             - name: nodes
               mountPath: /tendermint
+        - name: copy-tendermint-configuration
+          image: "busybox:1.36"
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "Waiting for node{validator_ix} config..."
+              while [ ! -f /tendermint/.config-complete ]; do sleep 1; done
+              cp -r /tendermint/node{validator_ix}/* /tm/
+              echo "Config copied for node{validator_ix}."
+          volumeMounts:
+            - name: nodes
+              mountPath: /tendermint
+              readOnly: true
             - name: local-tendermint
               mountPath: /tm
 """

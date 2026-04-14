@@ -356,7 +356,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 for k in range(self.service_builder.service.number_of_agents)
             ]
         )
-        self.tendermint_job_config = TENDERMINT_CONFIG_TEMPLATE.format(
+        self.cluster_config = TENDERMINT_CONFIG_TEMPLATE.format(
             validators=self.service_builder.service.number_of_agents,
             hosts=hosts,
             user=os.environ.get("UID", "1000"),
@@ -367,7 +367,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         run_log = client.containers.run(
             image=image,
             volumes={f"{self.build_dir}/nodes": {"bind": "/tendermint", "mode": "z"}},
-            entrypoint=self.tendermint_job_config,
+            entrypoint=self.cluster_config,
             remove=True,
         )
         print(run_log.decode())
