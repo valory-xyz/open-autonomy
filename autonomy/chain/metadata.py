@@ -82,7 +82,7 @@ def publish_metadata(
         nft_image_hash=nft_image_hash,
     )
 
-    metadata_hash = ipfs_tool.client.add_str(metadata_string)
+    metadata_hash = ipfs_tool.client.add_bytes(metadata_string.encode())
     metadata_hash = (
         CID.from_string(metadata_hash)
         .to_v1()
