@@ -59,7 +59,7 @@ jobs:
           skip_existing: true
           packages_dir: plugins/aea-test-autonomy/dist/
 
-      - name: Publish aea-helpers Plugin to PyPI
+      - name: Publish open-aea-helpers Plugin to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
