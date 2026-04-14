@@ -494,10 +494,15 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
 
         return dict.fromkeys(others_addresses)
 
+    @property
+    def params(self) -> BaseParams:
+        """Get the parameters from the context."""
+        return self.context.params
+
     def setup(self) -> None:
         """Set up the model."""
         self._round_sequence = RoundSequence(self.context, self.abci_app_cls)
-        setup_params = cast(BaseParams, self.context.params).setup_params
+        setup_params = self.params.setup_params
         self.round_sequence.setup(
             BaseSynchronizedData(
                 AbciAppDB(
@@ -512,6 +517,11 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
             self.initial_tm_configs = dict.fromkeys(
                 self.synchronized_data.all_participants
             )
+        if self.synchronized_data.no_tm and self.params.share_tm_config_on_startup:
+            self.context.logger.warning(
+                "No need to share Tendermint configuration on startup if not using Tendermint. Ignoring."
+            )
+            self.params.share_tm_config_on_startup = False
 
     @property
     def round_sequence(self) -> RoundSequence:

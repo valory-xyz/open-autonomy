@@ -709,14 +709,32 @@ class BaseBehaviour(
         :param: resetting: flag indicating if we are resetting Tendermint nodes in this round.
         :yield: the responses
         """
-        stop_condition = self.is_round_ended(self.matching_round.auto_round_id())
         round_count = self.synchronized_data.round_count
         object.__setattr__(payload, "round_count", round_count)
+
+        if self.synchronized_data.no_tm:
+            self.round_sequence.current_round.process_payload(payload)
+            return
+
+        stop_condition = self.is_round_ended(self.matching_round.auto_round_id())
         yield from self._send_transaction(
             payload,
             resetting,
             stop_condition=stop_condition,
         )
+
+    def __async_act_no_tm(self) -> Generator:
+        self.round_sequence.progress_blocks_without_tm()
+        act = self.async_act()
+        value = next(act)  # pylint: disable=stop-iteration-return
+        while True:
+            try:
+                sent = yield value
+            except Exception as exc:  # pylint: disable=broad-exception-caught
+                value = act.throw(exc)
+            else:
+                value = act.send(sent)
+                self.round_sequence.progress_blocks_without_tm()
 
     def async_act_wrapper(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
@@ -726,6 +744,8 @@ class BaseBehaviour(
         try:
             if self.round_sequence.syncing_up:
                 yield from self._check_sync()
+            elif self.synchronized_data.no_tm:
+                yield from self.__async_act_no_tm()
             else:
                 yield from self.async_act()
         except StopIteration:
