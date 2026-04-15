@@ -763,7 +763,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
     deployment_type: str
     build_dir: Path
     output: str
-    tendermint_job_config: Optional[str]
+    cluster_config: Optional[str]
     dev_mode: bool
     use_tm_testnet_setup: bool
 
@@ -793,7 +793,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
         self.packages_dir = packages_dir
         self.open_aea_dir = open_aea_dir
 
-        self.tendermint_job_config: Optional[str] = None
+        self.cluster_config: Optional[str] = None
         self.image_author = image_author or DEFAULT_DOCKER_IMAGE_AUTHOR
         self.resources = resources if resources is not None else DEFAULT_RESOURCE_VALUES
         self.custom_props = custom_props or {}

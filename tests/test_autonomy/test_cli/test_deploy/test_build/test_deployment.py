@@ -915,10 +915,27 @@ class TestKubernetesBuild(BaseDeployBuildTest):
             path=build_dir,
         )
 
-        assert any(
-            resource["metadata"]["name"] == "config-nodes"
+        # Verify tendermint config generation is handled via initContainer
+        # (no separate config-nodes Job or any Job kind)
+        assert not any(
+            resource.get("metadata", {}).get("name") == "config-nodes"
             for resource in kubernetes_config
         )
+        assert not any(
+            resource.get("kind") == "Job" for resource in kubernetes_config
+        ), "No Job resources should exist — config generation uses initContainers"
+        # Verify agent deployments have the generate-tendermint-config initContainer
+        agent_deployments = [
+            r for r in kubernetes_config if r.get("kind") == "Deployment"
+        ]
+        assert len(agent_deployments) > 0
+        for deployment in agent_deployments:
+            init_containers = deployment["spec"]["template"]["spec"].get(
+                "initContainers", []
+            )
+            init_names = [c["name"] for c in init_containers]
+            assert "generate-tendermint-config" in init_names
+            assert "copy-tendermint-configuration" in init_names
 
     def test_kubernetes_build_image_author_default(
         self,

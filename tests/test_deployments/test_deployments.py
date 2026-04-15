@@ -332,7 +332,7 @@ class TestTendermintDeploymentGenerators(BaseDeploymentTests):
                 )
                 res = deployer_instance.generate_config_tendermint()  # type: ignore
                 assert (
-                    len(cast(str, res.tendermint_job_config)) >= 1
+                    len(cast(str, res.cluster_config)) >= 1
                 ), "Failed to generate Tendermint Config"
 
 
