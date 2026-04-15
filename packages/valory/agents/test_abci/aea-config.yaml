@@ -23,8 +23,8 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 skills:
 - valory/abstract_abci:0.1.0:bafybeict6h3wfmddpvam5gmmanqzuokup6ppoev3t4j5uyl7xxahjaols4
-- valory/abstract_round_abci:0.1.0:bafybeicyhiwzzknkvfn4ttptxikx5ksrinpw4e4ltrxwqrhkqg2cauascy
-- valory/test_abci:0.1.0:bafybeihsorwfeswqu6q333viahqegrgvh7zkkrvfo6lvsy7ve552bvypg4
+- valory/abstract_round_abci:0.1.0:bafybeidgxb7yeogz4nl3skvs3ti3izpue54jnf5ntt54c5366geuaixtie
+- valory/test_abci:0.1.0:bafybeihjzcx4lldom7clb3rlgflwrk23dwxa7gwuhi254ovwxkgrzpe4ge
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -49,7 +49,7 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.1.0
+    version: ==2.2.1
 customs: []
 default_connection: null
 ---

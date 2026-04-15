@@ -35,10 +35,10 @@ protocols:
 - valory/ipfs:0.1.0:bafybeibz5xqhxdbuvba7nuw2w6ardjermtcoqercopnypdplnaekf3joam
 skills:
 - valory/abstract_abci:0.1.0:bafybeict6h3wfmddpvam5gmmanqzuokup6ppoev3t4j5uyl7xxahjaols4
-- valory/abstract_round_abci:0.1.0:bafybeicyhiwzzknkvfn4ttptxikx5ksrinpw4e4ltrxwqrhkqg2cauascy
-- valory/register_reset_abci:0.1.0:bafybeifkoghg5behu455k2qbkdjyrspuiacufp6xi65wdci2iu6fkdigza
-- valory/registration_abci:0.1.0:bafybeifr7ypprt4he5ajzidqaltvufa2lra4quegy65svq42gabnn3iieq
-- valory/reset_pause_abci:0.1.0:bafybeidvabzdrnnilu7gfpfdp5win3oc6m65jxnjnlsmfbeyy3b4iz3rke
+- valory/abstract_round_abci:0.1.0:bafybeidgxb7yeogz4nl3skvs3ti3izpue54jnf5ntt54c5366geuaixtie
+- valory/register_reset_abci:0.1.0:bafybeibojyodattv7wxtksernjxiwr7542nikf5zudgdia2tpylznnsdei
+- valory/registration_abci:0.1.0:bafybeiatstyfzbniurw5owttu3k2vly7ytlafo6ojn7cvlgzezg3bq2kwm
+- valory/reset_pause_abci:0.1.0:bafybeifcz5flei3u66hxwnvscvzlplkxss6mqo4bq64fnoikaflxe7o3ou
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -69,7 +69,7 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.1.0
+    version: ==2.2.1
   open-aea-test-autonomy:
     version: ==0.21.16
 customs: []

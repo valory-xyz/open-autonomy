@@ -83,7 +83,12 @@ jobs:
         pip install tomte[tox,cli]==0.6.5
         pip install --user --upgrade setuptools
     - name: Check copyright headers
-      run: tomte format-copyright --author valory --author fetchai
+      # tomte 0.6.5 matches author strings literally against file headers.
+      # Pass the full names that actually appear in source headers —
+      # the short slugs "valory"/"fetchai" cause tomte to treat headers
+      # with "Valory AG"/"Fetch.AI Limited" as missing and prepend a
+      # second (wrong) copyright block, making the working tree dirty.
+      run: tomte format-copyright --author "Valory AG" --author "Fetch.AI Limited"
     - name: License compatibility check
       run: tox -e liccheck
     - name: Check docs
@@ -91,7 +96,7 @@ jobs:
     # - name: Check doc links
     #   run: tomte check-doc-links --http-skips http://host.docker.internal:8545 --http-skips http://www.fipa.org/repository/ips.php3 --url-skips "https://gateway.autonolas.tech/ipfs/<hash>" --url-skips "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure" --url-skips "http://host.docker.internal:8545" --url-skips "https://github.com/valory-xyz/open-operator"
     - name: Check doc IPFS hashes
-      run: tox -e check-doc-hashes
+      run: tox -e check-doc-links-hashes
     - name: Check dependencies
       run: tox -e check-dependencies
     - name: Check third-party hashes
