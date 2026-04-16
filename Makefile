@@ -138,8 +138,7 @@ eject-contracts:
 
 .PHONY: dist
 dist: clean eject-contracts
-	python setup.py sdist
-	python setup.py bdist_wheel
+	python -m build --sdist --wheel
 
 h := $(shell git rev-parse --abbrev-ref HEAD)
 
