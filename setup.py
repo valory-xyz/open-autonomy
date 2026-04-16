@@ -37,12 +37,20 @@ def get_all_extras() -> Dict:
         "coverage>=6.4.4,<8.0.0",
     ]
 
+    hwi_deps = [
+        "open-aea-ledger-ethereum-hwi==2.2.1",
+    ]
+
     extras = {
         "cli": cli_deps,
+        "hwi": hwi_deps,
     }
 
-    # add "all" extras
-    extras["all"] = list(set(dep for e in extras.values() for dep in e))
+    # [all] intentionally excludes [hwi] — HWI's transitive deps
+    # (hidapi, Pillow via ledgerwallet) have no armv7 wheels, breaking
+    # multi-platform Docker builds. Use pip install open-autonomy[hwi]
+    # explicitly for hardware wallet support.
+    extras["all"] = list(set(dep for k, e in extras.items() for dep in e if k != "hwi"))
     return extras
 
 
