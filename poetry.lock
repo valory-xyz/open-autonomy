@@ -989,9 +989,10 @@ markers = {main = "platform_system == \"Windows\" or sys_platform == \"win32\""}
 name = "construct"
 version = "2.10.61"
 description = "A powerful declarative symmetric parser/builder for binary data"
-optional = false
+optional = true
 python-versions = ">=3.6"
 groups = ["main"]
+markers = "extra == \"hwi\" or extra == \"all\""
 files = [
     {file = "construct-2.10.61.tar.gz", hash = "sha256:d75384a04cb36ae5417dd34ce230c392e6085d872ab8a99ebd756c34bac0dff5"},
 ]
@@ -1149,9 +1150,10 @@ toml = ["tomli ; python_full_version <= \"3.11.0a6\""]
 name = "cryptography"
 version = "46.0.6"
 description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
-optional = false
+optional = true
 python-versions = "!=3.9.0,!=3.9.1,>=3.8"
 groups = ["main"]
+markers = "extra == \"hwi\" or extra == \"all\""
 files = [
     {file = "cryptography-46.0.6-cp311-abi3-macosx_10_9_universal2.whl", hash = "sha256:64235194bad039a10bb6d2d930ab3323baaec67e2ce36215fd0952fad0930ca8"},
     {file = "cryptography-46.0.6-cp311-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:26031f1e5ca62fcb9d1fcb34b2b60b390d1aacaa15dc8b895a9ed00968b97b30"},
@@ -2167,9 +2169,10 @@ test = ["eth_utils (>=2.0.0)", "hypothesis (>=3.44.24)", "pytest (>=7.0.0)", "py
 name = "hidapi"
 version = "0.15.0"
 description = "A Cython interface to the hidapi from https://github.com/libusb/hidapi"
-optional = false
+optional = true
 python-versions = "*"
 groups = ["main"]
+markers = "extra == \"hwi\" or extra == \"all\""
 files = [
     {file = "hidapi-0.15.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:b0e1781f7fb8b4015e318d839d66fa79e98900d53900e31d04edb336e0103846"},
     {file = "hidapi-0.15.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:1fa3e792987d4b7ed66d785491307e23d4f09d3636f8a23665a9694c43e92409"},
@@ -2329,9 +2332,10 @@ files = [
 name = "intelhex"
 version = "2.3.0"
 description = "Python library for Intel HEX files manipulations"
-optional = false
+optional = true
 python-versions = "*"
 groups = ["main"]
+markers = "extra == \"hwi\" or extra == \"all\""
 files = [
     {file = "intelhex-2.3.0-py2.py3-none-any.whl", hash = "sha256:87cc5225657524ec6361354be928adfd56bcf2a3dcc646c40f8f094c39c07db4"},
     {file = "intelhex-2.3.0.tar.gz", hash = "sha256:892b7361a719f4945237da8ccf754e9513db32f5628852785aea108dcd250093"},
@@ -2424,9 +2428,10 @@ referencing = ">=0.31.0"
 name = "ledgerwallet"
 version = "0.1.3"
 description = "Python client and library to communicate with Ledger devices"
-optional = false
+optional = true
 python-versions = ">=3.6"
 groups = ["main"]
+markers = "extra == \"hwi\" or extra == \"all\""
 files = [
     {file = "ledgerwallet-0.1.3-py3-none-any.whl", hash = "sha256:d02e9b3952fd5281785e73de77f253d6228f598fccd5265773e5c7c78675643c"},
     {file = "ledgerwallet-0.1.3.tar.gz", hash = "sha256:34126b9559c9a80f171db305677d24094ff0a1e835a3c8ac2ebdb1c72dcc2d75"},
@@ -3111,9 +3116,10 @@ test-tools = ["docker (==7.1.0)", "pytest (>=7.0,<10)"]
 name = "open-aea-ledger-ethereum-hwi"
 version = "2.2.1"
 description = "Python package wrapping the public and private key cryptography and support for hardware wallet interactions."
-optional = false
+optional = true
 python-versions = "<3.15,>=3.10"
 groups = ["main"]
+markers = "extra == \"hwi\" or extra == \"all\""
 files = [
     {file = "open_aea_ledger_ethereum_hwi-2.2.1-py3-none-any.whl", hash = "sha256:24d81aa7fc5a6fbad157011b982bb47f9986b555e23a6081d0f7d80c85203fc5"},
     {file = "open_aea_ledger_ethereum_hwi-2.2.1.tar.gz", hash = "sha256:44ad35bb0cb9bc00be50b3e8fc61a3c2e16ba79b0f87985e76402792ebf5522c"},
@@ -3191,9 +3197,10 @@ tests = ["pytest (>=9)", "typing-extensions (>=4.15)"]
 name = "pillow"
 version = "12.1.1"
 description = "Python Imaging Library (fork)"
-optional = false
+optional = true
 python-versions = ">=3.10"
 groups = ["main"]
+markers = "extra == \"hwi\" or extra == \"all\""
 files = [
     {file = "pillow-12.1.1-cp310-cp310-macosx_10_10_x86_64.whl", hash = "sha256:1f1625b72740fdda5d77b4def688eb8fd6490975d06b909fd19f13f391e077e0"},
     {file = "pillow-12.1.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:178aa072084bd88ec759052feca8e56cbb14a60b39322b99a049e58090479713"},
@@ -4602,9 +4609,10 @@ test = ["pytest (>=7.0)", "pyyaml", "rich"]
 name = "tabulate"
 version = "0.10.0"
 description = "Pretty-print tabular data"
-optional = false
+optional = true
 python-versions = ">=3.10"
 groups = ["main"]
+markers = "extra == \"hwi\" or extra == \"all\""
 files = [
     {file = "tabulate-0.10.0-py3-none-any.whl", hash = "sha256:f0b0622e567335c8fabaaa659f1b33bcb6ddfe2e496071b743aa113f8774f2d3"},
     {file = "tabulate-0.10.0.tar.gz", hash = "sha256:e2cfde8f79420f6deeffdeda9aaec3b6bc5abce947655d17ac662b126e48a60d"},
@@ -5361,10 +5369,11 @@ multidict = ">=4.0"
 propcache = ">=0.2.1"
 
 [extras]
-all = ["click", "coverage", "open-aea-cli-ipfs", "pytest", "python-dotenv", "texttable"]
+all = ["click", "coverage", "open-aea-cli-ipfs", "open-aea-ledger-ethereum-hwi", "pytest", "python-dotenv", "texttable"]
 cli = ["click", "coverage", "open-aea-cli-ipfs", "pytest", "python-dotenv", "texttable"]
+hwi = ["open-aea-ledger-ethereum-hwi"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "7e9b238a1c8d6ce8190182a98d9b17ba78163d57bf3f745b02932049cd157b20"
+content-hash = "e0d804ef192221d2e446e13d30d0d42ad8b6a6758e470af651595b0afc7e39a9"

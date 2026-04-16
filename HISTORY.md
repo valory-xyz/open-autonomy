@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.21.18 (2026-04-16)
+
+Autonomy:
+- Moves `open-aea-ledger-ethereum-hwi` from a hard runtime dependency to an optional `[hwi]` extra. The HWI plugin's transitive deps (`hidapi`, `Pillow` via `ledgerwallet`) have no pre-built armv7 wheels, which broke multi-platform Docker image builds in v0.21.17. Install with `pip install open-autonomy[hwi]` if hardware wallet support is needed.
+
 # 0.21.17 (2026-04-16)
 
 Autonomy:

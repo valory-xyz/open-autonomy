@@ -5,6 +5,10 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.17` to `v0.21.18`
+
+- `open-aea-ledger-ethereum-hwi` is now an optional extra instead of a hard dependency. If you use hardware wallet support (`--hwi` flag), install with `pip install open-autonomy[hwi]`. This change fixes multi-platform Docker image builds on armv7 which failed due to missing pre-built wheels for `hidapi` and `Pillow`.
+
 ## `v0.21.16` to `v0.21.17`
 
 This release bumps `open-aea` from `2.1.0` to `2.2.1`, migrates scripts to CLI commands, and removes the unmaintained `open-aea-ledger-ethereum-flashbots` plugin.
