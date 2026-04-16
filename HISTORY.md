@@ -1,5 +1,38 @@
 # Release History - `open-autonomy`
 
+# 0.21.17 (2026-04-16)
+
+Autonomy:
+- Bumps `open-aea` from `2.1.0` to `2.2.1` and `tomte` from `0.6.1` to `0.6.5` across the entire framework, all plugins, package yamls, Dockerfiles, and skaffold #2470
+- Removes `open-aea-ledger-ethereum-flashbots` plugin references from deployment scripts (`run.sh`, `start.sh`), Docker images, Pipfile, and bump-dependencies config. Skill-level `use_flashbots` API intentionally preserved to avoid on-chain payload wire-format break #2470
+- Fixes `autonomy/chain/metadata.py` to use `add_bytes` instead of removed `add_str` (open-aea-cli-ipfs 2.2.1 API change) #2470
+- Updates `ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH` constant to match regenerated package hashes #2470
+
+Scripts:
+- Migrates all 8 Python scripts from `scripts/` to CLI commands in `tomte`, upstream `aea-ci-helpers`, or OA-local `aea-helpers` #2470
+- Deletes `check_copyright.py`, `check_doc_links.py`, `freeze_dependencies.py`, `generate_api_documentation.py`, `generate_package_list.py`, `check_third_party_hashes.py`, `check_ipfs_hashes_pushed.py`, `generate_contract_list.py`
+- `check_third_party_hashes` and `generate_api_docs` promoted to upstream `open-aea-ci-helpers` (configurable, generic) — OA-local forks deleted #2470
+
+Plugins (aea-helpers):
+- Renames PyPI package from `aea-helpers` to `open-aea-helpers`
+- Removes `check-third-party-hashes` and `generate-api-docs` commands (migrated upstream to `aea-ci`)
+- Retains `generate-contract-list` (OA-specific Olas registry address table)
+- Removes `open-aea-flashbots` from dependency ignore lists
+
+Kubernetes:
+- Fixes k8s initContainer race condition — replaces config-nodes Job with per-pod initContainer using sentinel files and atomic locking #2461
+
+CI:
+- Adds "All checks passed" aggregate gate job #2471
+- Reduces test matrix from 15 to 9 cells #2466
+- Fixes `tomte format-copyright` author strings for tomte 0.6.5 compatibility
+- Fixes `main_workflow.yml` to call `check-doc-links-hashes` (was referencing non-existent `check-doc-hashes` env)
+- Adds flaky external URL skips (modescan.io, gameprogrammingpatterns.com, cointelegraph.com, etc.)
+
+Packages:
+- Updates funds forwarder skill #2468
+- Mints components #2462
+
 # 0.21.16 (2026-03-26)
 
 Autonomy:

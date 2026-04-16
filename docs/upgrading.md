@@ -5,6 +5,56 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.16` to `v0.21.17`
+
+This release bumps `open-aea` from `2.1.0` to `2.2.1`, migrates scripts to CLI commands, and removes the unmaintained `open-aea-ledger-ethereum-flashbots` plugin.
+
+Main dependency updates to account for:
+
+- `open-aea: ==2.1.0 -> ==2.2.1`
+- `open-aea-ledger-ethereum: ==2.1.0 -> ==2.2.1`
+- `open-aea-ledger-ethereum-hwi: ==2.1.0 -> ==2.2.1`
+- `open-aea-ledger-cosmos: ==2.1.0 -> ==2.2.1`
+- `open-aea-cli-ipfs: ==2.1.0 -> ==2.2.1`
+- `tomte: ==0.6.1 -> ==0.6.5`
+
+### `open-aea-ledger-ethereum-flashbots` removed upstream
+
+The `open-aea-ledger-ethereum-flashbots` plugin was removed from open-aea in 2.2.1. The last published `2.2.0` wheel remains on PyPI but receives no further releases.
+
+Impact on downstream repos:
+
+- **Remove `open-aea-ledger-ethereum-flashbots` from dependency pins** in `pyproject.toml`, `Pipfile`, `tox.ini`, or `setup.py`.
+- **Drop any `ethereum_flashbots` block** from the `valory/ledger` connection config (the upstream `connection.yaml` no longer declares it — use plain `ethereum` instead).
+- **Remove `aea_ledger_ethereum_flashbots` PyInstaller flags** (`--collect-all`, `--hidden-import`) from release workflows.
+- **Audit `aea-config.yaml`** in agent packages for references to `open-aea-ledger-ethereum-flashbots` and drop them.
+- **`autonomy replay` flows** no longer provision an `ethereum_flashbots_private_key.txt` or register the `ethereum-flashbots` key. Replays that relied on the flashbots ledger being set up implicitly will fail at `aea run`. Switch to plain `ethereum` in replay fixtures, or pin `open-aea<=2.2.0` + the frozen flashbots plugin.
+- The skill-level `use_flashbots` parameter on `send_raw_transaction` is intentionally preserved (default `False`) to avoid a payload wire-format change. Agents with `use_flashbots=False` keep working unchanged; agents that explicitly set `use_flashbots=True` will fail at runtime.
+
+### Scripts → CLI migration
+
+All Python scripts in `scripts/` have been migrated to CLI commands:
+
+- `check_copyright.py` → `tomte check-copyright`
+- `check_doc_links.py` → `tomte check-doc-links`
+- `freeze_dependencies.py` → `tomte freeze-dependencies`
+- `generate_package_list.py` → `aea-ci generate-pkg-list`
+- `check_ipfs_hashes_pushed.py` → `aea-ci check-ipfs-pushed`
+- `check_third_party_hashes.py` → `aea-ci check-third-party-hashes --upstream valory-xyz/open-aea@2.2.1`
+- `generate_api_documentation.py` → `aea-ci generate-api-docs --source-dir autonomy ...`
+- `generate_contract_list.py` → `aea-helpers generate-contract-list`
+
+If your CI invokes any of these scripts directly, update to the corresponding CLI command.
+
+### Concrete upgrade steps
+
+1. Bump `open-autonomy` pin to `==0.21.17`.
+2. Bump all `open-aea*` pins to `==2.2.1`.
+3. Drop `open-aea-ledger-ethereum-flashbots` from dependencies and configs as described above.
+4. Run `autonomy packages sync --update-packages` to pull the updated third-party packages.
+5. Run `autonomy packages lock` to regenerate downstream package hashes.
+6. Replace any direct `scripts/` invocations with the corresponding CLI commands.
+
 ## `v0.21.15` to `v0.21.16`
 
 - The `aea-helpers` plugin now includes 4 new commands for deployment and release management:
