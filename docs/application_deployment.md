@@ -1,4 +1,4 @@
-# Agent service deployment
+# AI Agent deployment
 
 !!! info
     This section is under review and will be updated soon.
@@ -6,7 +6,7 @@
 
 Tooling has been provided to allow for the automatic generation of deployments via deployment specifications.
 
-Agent service deployments can be built on the fly.
+AI agent deployments can be built on the fly.
 
 ## Generate deployment configuration
 
@@ -29,8 +29,6 @@ Options:
                                   Logging level for runtime.
   --packages-dir PATH             Path to packages dir (Use with dev mode)
   --open-aea-dir PATH             Path to open-aea repo (Use with dev mode)
-  --open-autonomy-dir PATH        Path to open-autonomy repo (Use with dev
-                                  mode)
   --aev                           Apply environment variable when loading
                                   service config.
   -ltm, --local-tm-setup          Use local tendermint chain setup.
@@ -38,7 +36,6 @@ Options:
   --remote                        To use a remote registry.
   --local                         To use a local registry.
   -p                              Ask for password interactively
-  --password PASSWORD             Set password for key encryption/decryption
   --help                          Show this message and exit.
 
 ```
@@ -51,8 +48,8 @@ Usage: autonomy build-image [OPTIONS] [PUBLIC_ID_OR_HASH]
   Build image using skaffold.
 
 Options:
-  --service-dir PATH  Path to service dir.
-  --dev               Build developement image.
+  --service-dir PATH  Path to AI agent dir.
+  --dev               Build development image.
   --pull              Pull latest dependencies.
   --help              Show this message and exit.
 
@@ -60,7 +57,7 @@ Options:
 
 For example, in order to build a deployment from scratch for oracle abci, first ensure you have a clean build environment and then build the images:
 ```bash
-rm -rf abci_build
+rm -rf abci_build_*
 autonomy build-image valory/oracle_hardhat
 ```
 
@@ -69,12 +66,12 @@ Next, run the command to generate the relevant build configuration:
 autonomy deploy build deployments/keys/hardhat_keys.json
 ```
 
-A build configuration will be output to `./abci_build`.
+A build configuration will be output to `./abci_build_*/`.
 
 This can then be launched using the appropriate tool. For example, to launch a deployment using docker-compose.
 
 ```bash
-cd abci_build/
+cd abci_build_*/
 docker-compose up --force-recreate
 ```
 
@@ -88,14 +85,14 @@ The logs of a single AEA or node can then be inspected with `docker logs {contai
 ## Building & tagging local images
 
 ```bash
-export SERVICE_ID=author_name/service_name
+export AI_AGENT_ID=author_name/ai_agent_name
 export VERSION=0.1.0
-autonomy build-image ${SERVICE_ID}
+autonomy build-image ${AI_AGENT_ID}
 ```
 
 Conceptually, the image to be used within a deployment should contain all required dependencies and packages.
 
-Configuration of containers and agents is done via environment variables.
+Configuration of containers and agent instances is done via environment variables.
 
 ### Required dependencies
 

@@ -1,3 +1,92 @@
+[tool.poetry]
+name = "open-autonomy"
+version = "0.21.18"
+description = "Open Autonomy Framework"
+authors = ["developer-valory <develope@valory.xyz>"]
+license = "Apache-2.0 license"
+packages = [{include = "autonomy"}, {include = "packages"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.15"
+aiohttp = ">=3.8.5,<4.0.0"
+docker = "==7.1.0"
+Flask = ">=3.1.0,<4.0.0"
+open-aea = { version = "==2.2.1", extras = ["all"] }
+open-aea-ledger-ethereum = "==2.2.1"
+open-aea-ledger-cosmos = "==2.2.1"
+# HWI is optional — only needed when using --hwi flag for hardware
+# wallet interactions. Kept out of base deps because its transitive
+# chain (ledgerwallet -> hidapi + Pillow) has no pre-built armv7
+# wheels, breaking multi-platform Docker image builds.
+open-aea-ledger-ethereum-hwi = {version = "==2.2.1", optional = true}
+open-aea-cli-ipfs = "==2.2.1"
+ipfshttpclient = "==0.8.0a2"
+multiaddr = "==0.0.9"
+Werkzeug = ">=3.1.0,<4.0.0"
+watchdog = ">=2.1.6"
+pytest = "==8.4.2"
+click = ">=8.1.0,<9"
+requests-toolbelt = "==1.0.0"
+requests = ">=2.28.1,<2.33.0"
+typing_extensions = ">=3.10.0.2,<=4.15.0"
+hexbytes = "*"
+jsonschema = ">=4.3.0,<4.24.0"
+protobuf = ">=5,<6"
+gql = "==3.5.0"
+texttable = "==1.6.7"
+python-dotenv = ">=0.14.5,<0.22.0"
+asn1crypto = ">=1.4.0,<1.5.0"
+ecdsa = ">=0.15"
+web3 = "<8,>=7.0.0"
+certifi = "*"
+multidict = "*"
+eth_typing = "*"
+eth-account = ">=0.13.0,<0.14.0"
+packaging = "*"
+pytest-asyncio = "*"
+grpcio = "==1.78.0"
+hypothesis = "==6.21.6"
+pytz = "==2022.2.1"
+py-ecc = "==8.0.0"
+toml = "==0.10.2"
+eth-utils = "==5.3.0"
+eth-abi = "==5.2.0"
+pycryptodome = "==3.20.0"
+py-eth-sig-utils = "*"
+# Optional deps for extras
+coverage = {version = ">=6.4.4,<8.0.0", optional = true}
+
+[tool.poetry.extras]
+cli = [
+    "click",
+    "open-aea-cli-ipfs",
+    "texttable",
+    "python-dotenv",
+    "pytest",
+    "coverage",
+]
+hwi = [
+    "open-aea-ledger-ethereum-hwi",
+]
+all = [
+    "click",
+    "open-aea-cli-ipfs",
+    "texttable",
+    "python-dotenv",
+    "pytest",
+    "coverage",
+]
+
+[tool.poetry.scripts]
+autonomy = "autonomy.cli:cli"
+
+[tool.poetry.group.dev.dependencies]
+tomte = { extras = ["tox", "docs"], version = "==0.6.5" }
+mkdocs-monorepo-plugin = "^1.0.5"
+open-aea-ci-helpers = "==2.2.1"
+open-aea-dev-helpers = "==2.2.1"
+
+
 [build-system]
-requires = ["setuptools", "wheel"]
-build_backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,5 +1,5 @@
-# Registration start-up ABCI Agent
+# Registration start-up ABCI Agent Blueprint
 
-This agent uses the `abci` connection, `http_client` connection, and `p2p_libp2p_client` connection,
-as part of the `registration_abci` skill to demonstrate how agents use `RegistrationStartUpBehaviour`
+This agent blueprint uses the `abci` connection, `http_client` connection, and `p2p_libp2p_client` connection,
+as part of the `registration_abci` skill to demonstrate how agent blueprints use `RegistrationStartUpBehaviour`
 during the initialization of an application.

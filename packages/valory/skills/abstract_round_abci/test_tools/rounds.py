@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ from typing import (
     Optional,
     Tuple,
     Type,
+    Union,
 )
 from unittest import mock
 
@@ -54,7 +55,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     TransactionNotValidError,
     VotingRound,
 )
-
 
 MAX_PARTICIPANTS: int = 4
 
@@ -134,25 +134,47 @@ class DummyCollectDifferentUntilThresholdRound(
 ):
     """Dummy Class for CollectDifferentUntilThresholdRound"""
 
+    done_event: Enum = DummyEvent.DONE
+    collection_key: str = "dummy_collection_key"
+    required_block_confirmations: int = 0
+
 
 class DummyCollectSameUntilThresholdRound(CollectSameUntilThresholdRound, DummyRound):
     """Dummy Class for CollectSameUntilThresholdRound"""
+
+    done_event: Enum = DummyEvent.DONE
+    no_majority_event: Enum = DummyEvent.NO_MAJORITY
+    none_event: Enum = DummyEvent.NONE
+    collection_key: str = "dummy_collection_key"
+    selection_key: Union[str, Tuple[str, ...]] = "dummy_selection_key"
 
 
 class DummyOnlyKeeperSendsRound(OnlyKeeperSendsRound, DummyRound):
     """Dummy Class for OnlyKeeperSendsRound"""
 
+    keeper_payload: Optional[BaseTxPayload] = None
+    done_event: Enum = DummyEvent.DONE
     fail_event = "FAIL_EVENT"
+    payload_key: str = "dummy_payload_key"
 
 
 class DummyVotingRound(VotingRound, DummyRound):
     """Dummy Class for VotingRound"""
+
+    done_event: Enum = DummyEvent.DONE
+    negative_event: Enum = DummyEvent.NEGATIVE
+    none_event: Enum = DummyEvent.NONE
+    no_majority_event: Enum = DummyEvent.NO_MAJORITY
+    collection_key: str = "dummy_collection_key"
 
 
 class DummyCollectNonEmptyUntilThresholdRound(
     CollectNonEmptyUntilThresholdRound, DummyRound
 ):
     """Dummy Class for `CollectNonEmptyUntilThresholdRound`"""
+
+    none_event: Enum = DummyEvent.NONE
+    selection_key: Union[str, Tuple[str, ...]] = "dummy_selection_key"
 
 
 class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
@@ -164,7 +186,7 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
     _synchronized_data_class: Type[BaseSynchronizedData]
     _event_class: Any
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test class."""
@@ -266,7 +288,7 @@ class BaseCollectSameUntilAllRoundTest(
 ):  # pylint: disable=too-few-public-methods
     """Tests for rounds derived from CollectSameUntilAllRound."""
 
-    def _test_round(  # pylint: disable=too-many-arguments,too-many-locals
+    def _test_round(  # pylint: disable=too-many-locals
         self,
         test_round: CollectSameUntilAllRound,
         round_payloads: Mapping[str, BaseTxPayload],
@@ -322,7 +344,7 @@ class BaseCollectSameUntilThresholdRoundTest(  # pylint: disable=too-few-public-
 ):
     """Tests for rounds derived from CollectSameUntilThresholdRound."""
 
-    def _test_round(  # pylint: disable=too-many-arguments,too-many-locals
+    def _test_round(  # pylint: disable=too-many-locals
         self,
         test_round: CollectSameUntilThresholdRound,
         round_payloads: Mapping[str, BaseTxPayload],
@@ -411,7 +433,7 @@ class BaseOnlyKeeperSendsRoundTest(  # pylint: disable=too-few-public-methods
 class BaseVotingRoundTest(BaseRoundTestClass):  # pylint: disable=too-few-public-methods
     """Tests for rounds derived from VotingRound."""
 
-    def _test_round(  # pylint: disable=too-many-arguments,too-many-locals
+    def _test_round(  # pylint: disable=too-many-locals
         self,
         test_round: VotingRound,
         round_payloads: Mapping[str, BaseTxPayload],
@@ -569,12 +591,12 @@ class _BaseRoundTestClass(BaseRoundTestClass):  # pylint: disable=too-few-public
 
     _synchronized_data_class = DummySynchronizedData
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test class."""
 
-        super().setup()
+        super().setup_method()
         self.tx_payloads = get_dummy_tx_payloads(self.participants)
 
     @staticmethod

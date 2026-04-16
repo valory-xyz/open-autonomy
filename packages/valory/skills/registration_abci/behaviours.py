@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -49,7 +49,6 @@ from packages.valory.skills.registration_abci.rounds import (
     RegistrationRound,
     RegistrationStartupRound,
 )
-
 
 NODE = "node_{address}"
 WAIT_FOR_BLOCK_TIMEOUT = 60.0  # 1 minute
@@ -174,6 +173,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             contract_address=service_registry_address,
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="verify_contract",
+            chain_id=self.params.default_chain_id,
         )
         contract_api_response = yield from self.get_contract_api_response(**kwargs)  # type: ignore
         if (
@@ -206,6 +206,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="get_agent_instances",
             service_id=on_chain_service_id,
+            chain_id=self.params.default_chain_id,
         )
         contract_api_response = yield from self.get_contract_api_response(**kwargs)  # type: ignore
         if contract_api_response.performative != ContractApiMessage.Performative.STATE:
@@ -219,7 +220,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         self.context.logger.info(f"{log_message}: {contract_api_response}")
         return cast(dict, contract_api_response.state.body)
 
-    def get_addresses(self) -> Generator:  # pylint: disable=too-many-return-statements
+    def get_addresses(  # pylint: disable=too-many-return-statements
+        self,
+    ) -> Generator[None, None, bool]:  # pylint: disable=too-many-return-statements
         """Get addresses of agents registered for the service"""
 
         service_registry_address = self.params.service_registry_address
@@ -315,6 +318,11 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         if all(self.initial_tm_configs.values()):
             log_message = self.LogMessages.collection_complete
             self.context.logger.info(f"{log_message}: {self.initial_tm_configs}")
+            validator_to_agent = {
+                config["address"]: agent
+                for agent, config in self.initial_tm_configs.items()
+            }
+            self.context.state.setup_slashing(validator_to_agent)
             self.collection_complete = True
         return self.collection_complete
 

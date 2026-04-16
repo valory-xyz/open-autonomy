@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint manager."""
+
 import json
 import logging
 import os
@@ -28,7 +29,6 @@ from logging import Logger
 from pathlib import Path
 from threading import Event, Thread
 from typing import Any, Dict, List, Optional
-
 
 ENCODING = "utf-8"
 DEFAULT_P2P_LISTEN_ADDRESS = "tcp://0.0.0.0:26656"
@@ -56,7 +56,7 @@ class StoppableThread(Thread):
 class TendermintParams:  # pylint: disable=too-few-public-methods
     """Tendermint node parameters."""
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         proxy_app: str,
         rpc_laddr: str = DEFAULT_RPC_LISTEN_ADDRESS,
@@ -120,7 +120,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
     @staticmethod
     def get_node_command_kwargs(monitoring: bool = False) -> Dict:
         """Get the node command kwargs"""
-        kwargs = {
+        kwargs: Dict = {
             "bufsize": 1,
             "universal_newlines": True,
         }
@@ -133,7 +133,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         if platform.system() == "Windows":  # pragma: nocover
             kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
         else:
-            kwargs["preexec_fn"] = os.setsid  # type: ignore
+            kwargs["start_new_session"] = True
 
         return kwargs
 
@@ -151,6 +151,7 @@ class TendermintNode:
         self.params = params
         self._process: Optional[subprocess.Popen] = None
         self._monitoring: Optional[StoppableThread] = None
+        self._stopping = False
         self.logger = logger or logging.getLogger()
         self.log_file = os.environ.get("LOG_FILE", DEFAULT_TENDERMINT_LOG_FILE)
 
@@ -179,7 +180,7 @@ class TendermintNode:
 
     def _start_tm_process(self, monitoring: bool = False, debug: bool = False) -> None:
         """Start a Tendermint node process."""
-        if self._process is not None:  # pragma: nocover
+        if self._process is not None or self._stopping:  # pragma: nocover
             return
         cmd = self.params.build_node_command(debug)
         kwargs = self.params.get_node_command_kwargs(monitoring)
@@ -198,9 +199,10 @@ class TendermintNode:
 
     def _stop_tm_process(self) -> None:
         """Stop a Tendermint node process."""
-        if self._process is None:
+        if self._process is None or self._stopping:
             return
 
+        self._stopping = True
         if platform.system() == "Windows":
             os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
             try:
@@ -215,6 +217,10 @@ class TendermintNode:
                 self._process.terminate()
                 self._process.wait(3)
 
+        self._stopping = False
+        # Close stdout to unblock the monitoring thread's readline()
+        if self._process is not None and self._process.stdout is not None:
+            self._process.stdout.close()
         self._process = None
         self.write_line("Tendermint process stopped\n")
 
@@ -222,12 +228,12 @@ class TendermintNode:
         """Stop a monitoring process."""
         if self._monitoring is not None:
             self._monitoring.stop()  # set stop event
-            self._monitoring.join()
+            self._monitoring.join(timeout=10)
 
     def stop(self) -> None:
         """Stop a Tendermint node process."""
-        self._stop_monitoring_thread()
         self._stop_tm_process()
+        self._stop_monitoring_thread()
 
     def prune_blocks(self) -> int:
         """Prune blocks from the Tendermint state"""
@@ -253,12 +259,15 @@ class TendermintNode:
                     break  # break from the loop immediately.
                 if self._process is not None and self._process.stdout is not None:
                     line = self._process.stdout.readline()
+                    if not line:
+                        # EOF: process exited and stdout pipe closed
+                        break
                     self.write_line(line)
                     for trigger in [
                         # this occurs when we lose connection from the tm side
                         "RPC HTTP server stopped",
                         # this occurs when we lose connection from the AEA side.
-                        "Stopping abci.socketClient for error: read message: EOF module=abci-client connection=",
+                        "Stopping abci.socketClient for error: read message: ",
                     ]:
                         if line.find(trigger) >= 0:
                             self._stop_tm_process()

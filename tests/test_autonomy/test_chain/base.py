@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,37 +22,28 @@
 import os
 import re
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
+from unittest import mock
 
 import pytest
 from aea.configurations.data_types import PackageId, PackageType, PublicId
 from aea.crypto.base import Crypto, LedgerApi
 from aea.helpers.base import IPFSHash
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
-from aea_test_autonomy.docker.base import skip_docker_tests
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 
 from autonomy.chain.base import registry_contracts
-from autonomy.chain.config import ChainType
-from autonomy.chain.constants import (
-    AGENT_REGISTRY_ADDRESS_LOCAL,
-    COMPONENT_REGISTRY_ADDRESS_LOCAL,
-    SERVICE_REGISTRY_ADDRESS_LOCAL,
-)
+from autonomy.chain.config import ChainType, ContractConfigs, OnChainHelper
 from autonomy.chain.metadata import publish_metadata
-from autonomy.chain.mint import (
-    DEFAULT_NFT_IMAGE_HASH,
-    UnitType,
-    mint_component,
-    mint_service,
-)
+from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH, MintManager, UnitType
+from autonomy.chain.service import ServiceManager
+from autonomy.chain.subgraph.client import SubgraphClient
 from autonomy.chain.utils import parse_public_id_from_metadata, resolve_component_id
-from autonomy.cli.helpers.chain import get_ledger_and_crypto_objects
+from autonomy.cli.helpers.chain import MintHelper
 from autonomy.cli.packages import get_package_manager
 
-from tests.conftest import DATA_DIR
+from tests.conftest import DATA_DIR, skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
-
 
 PACKAGES_DIR = DATA_DIR / "dummy_packages"
 DUMMY_PACKAGE_MANAGER = get_package_manager(packages_dir=PACKAGES_DIR)
@@ -100,6 +91,32 @@ DEFAULT_SERVICE_MINT_PARAMETERS = (
 )
 
 
+def patch_subgraph(
+    response: List,
+    method: str = "get_component_by_token",
+) -> Any:
+    """Patch subgraph client."""
+    return mock.patch.object(
+        SubgraphClient,
+        attribute=method,
+        return_value={"units": response},
+    )
+
+
+def _fetch_component_dependencies(cls: Any) -> Any:
+    cls.dependencies = [1, 2]
+    return cls
+
+
+def patch_component_verification() -> Any:
+    """Patch component verificaation."""
+    return mock.patch.object(
+        MintHelper,
+        "fetch_component_dependencies",
+        new=_fetch_component_dependencies,
+    )
+
+
 @skip_docker_tests
 @pytest.mark.usefixtures("registries_scope_class")
 class BaseChainInteractionTest(BaseCliTest):
@@ -108,22 +125,33 @@ class BaseChainInteractionTest(BaseCliTest):
     ledger_api: LedgerApi
     crypto: Crypto
     chain_type: ChainType = ChainType.LOCAL
+    mint_manager: MintManager
+    service_manager: ServiceManager
 
     key_file: Path = ETHEREUM_KEY_DEPLOYER
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
-        self.cli_runner.mix_stderr = False
+        super().setup_method()
 
     @classmethod
     def setup_class(cls) -> None:
         """Setup class."""
         super().setup_class()
 
-        cls.ledger_api, cls.crypto = get_ledger_and_crypto_objects(
+        cls.ledger_api, cls.crypto = OnChainHelper.get_ledger_and_crypto_objects(
             chain_type=cls.chain_type,
             key=cls.key_file,
+        )
+        cls.mint_manager = MintManager(
+            ledger_api=cls.ledger_api,
+            crypto=cls.crypto,
+            chain_type=cls.chain_type,
+        )
+        cls.service_manager = ServiceManager(
+            ledger_api=cls.ledger_api,
+            crypto=cls.crypto,
+            chain_type=cls.chain_type,
         )
 
     @staticmethod
@@ -145,7 +173,9 @@ class BaseChainInteractionTest(BaseCliTest):
             on_chain_owner = (
                 registry_contracts.service_registry.get_instance(
                     ledger_api=self.ledger_api,
-                    contract_address=SERVICE_REGISTRY_ADDRESS_LOCAL,
+                    contract_address=ContractConfigs.service_registry.contracts[
+                        ChainType.LOCAL
+                    ],
                 )
                 .functions.ownerOf(token_id)
                 .call()
@@ -154,7 +184,9 @@ class BaseChainInteractionTest(BaseCliTest):
             on_chain_owner = (
                 registry_contracts.component_registry.get_instance(
                     ledger_api=self.ledger_api,
-                    contract_address=AGENT_REGISTRY_ADDRESS_LOCAL,
+                    contract_address=ContractConfigs.agent_registry.contracts[
+                        ChainType.LOCAL
+                    ],
                 )
                 .functions.ownerOf(token_id)
                 .call()
@@ -163,7 +195,9 @@ class BaseChainInteractionTest(BaseCliTest):
             on_chain_owner = (
                 registry_contracts.component_registry.get_instance(
                     ledger_api=self.ledger_api,
-                    contract_address=COMPONENT_REGISTRY_ADDRESS_LOCAL,
+                    contract_address=ContractConfigs.component_registry.contracts[
+                        ChainType.LOCAL
+                    ],
                 )
                 .functions.ownerOf(token_id)
                 .call()
@@ -180,11 +214,15 @@ class BaseChainInteractionTest(BaseCliTest):
         is_service = package_id.package_type == PackageType.SERVICE
 
         if is_service:
-            contract_address = SERVICE_REGISTRY_ADDRESS_LOCAL
+            contract_address = ContractConfigs.service_registry.contracts[
+                ChainType.LOCAL
+            ]
         elif is_agent:
-            contract_address = AGENT_REGISTRY_ADDRESS_LOCAL
+            contract_address = ContractConfigs.agent_registry.contracts[ChainType.LOCAL]
         else:
-            contract_address = COMPONENT_REGISTRY_ADDRESS_LOCAL
+            contract_address = ContractConfigs.component_registry.contracts[
+                ChainType.LOCAL
+            ]
 
         metadata = resolve_component_id(
             ledger_api=self.ledger_api,
@@ -229,19 +267,13 @@ class BaseChainInteractionTest(BaseCliTest):
             assert (
                 service_mint_parameters is not None
             ), "Please provide service mint parameters"
-            token_id = mint_service(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
+            token_id = self.mint_manager.mint_service(
                 metadata_hash=metadata_hash,
-                chain_type=ChainType.LOCAL,
                 **service_mint_parameters,
             )
         else:
-            token_id = mint_component(
-                ledger_api=self.ledger_api,
-                crypto=self.crypto,
+            token_id = self.mint_manager.mint_component(
                 metadata_hash=metadata_hash,
-                chain_type=ChainType.LOCAL,
                 component_type=(
                     UnitType.AGENT
                     if package_id.package_type == PackageType.AGENT

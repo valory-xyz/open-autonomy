@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 import re
 from enum import Enum
 from typing import FrozenSet, List, Optional, Tuple, Union, cast
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -54,13 +55,15 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
 class TestCollectionRound(_BaseRoundTestClass):
     """Test class for CollectionRound."""
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
 
-        self.test_round = DummyCollectionRound(synchronized_data=self.synchronized_data)
+        self.test_round = DummyCollectionRound(
+            synchronized_data=self.synchronized_data, context=MagicMock()
+        )
 
     def test_serialized_collection(self) -> None:
         """Test `serialized_collection` property."""
@@ -148,6 +151,7 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
 
         test_round = DummyCollectDifferentUntilAllRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
         round_id = DummyCollectDifferentUntilAllRound.auto_round_id()
 
@@ -198,6 +202,7 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
 
         test_round = DummyCollectSameUntilAllRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
         round_id = DummyCollectSameUntilAllRound.auto_round_id()
 
@@ -271,6 +276,7 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
 
         test_round = DummyCollectSameUntilThresholdRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
         test_round.collection_key = "dummy_collection_key"
         test_round.selection_key = selection_key
@@ -323,6 +329,7 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
 
         test_round = DummyCollectSameUntilThresholdRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
 
         first_payload, *payloads = get_dummy_tx_payloads(
@@ -359,6 +366,7 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
             synchronized_data=self.synchronized_data.update(
                 most_voted_keeper_address="agent_0"
             ),
+            context=MagicMock(),
         )
 
         assert test_round.keeper_payload is None
@@ -421,6 +429,7 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
                     synchronized_data=self.synchronized_data.update(
                         most_voted_keeper_address=keeper,
                     ),
+                    context=MagicMock(),
                 ),
                 keeper_payloads=DummyTxPayload(keeper, None),
                 synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data,
@@ -437,6 +446,7 @@ class TestVotingRound(_BaseRoundTestClass):
         """Setup test voting round"""
         return DummyVotingRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
 
     def test_vote_count(self) -> None:
@@ -529,11 +539,12 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
 
         test_round = DummyCollectDifferentUntilThresholdRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
         test_round.block_confirmations = 0
         test_round.required_block_confirmations = required_confirmations
         test_round.collection_key = "collection_key"
-        test_round.done_event = 0
+        test_round.done_event = DummyEvent.DONE
         assert (
             test_round.synchronized_data.consensus_threshold <= required_confirmations
         ), "Incorrect test parametrization: required confirmations cannot be set with a smalled value than the consensus threshold"
@@ -568,6 +579,7 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
 
         test_round = DummyCollectDifferentUntilThresholdRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
         test_round.collection_key = "dummy_collection_key"
         test_round.done_event = DummyEvent.DONE
@@ -587,6 +599,7 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
         """Test `_get_non_empty_values`."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
         payloads = get_dummy_tx_payloads(self.participants)
         none_payload_idx = 3
@@ -596,9 +609,9 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
 
         non_empty_values = test_round._get_non_empty_values()
         assert non_empty_values == {
-            tuple(sorted(self.participants))[i]: (f"agent_{i}", False)
-            if i != none_payload_idx
-            else (False,)
+            tuple(sorted(self.participants))[i]: (
+                (f"agent_{i}", False) if i != none_payload_idx else (False,)
+            )
             for i in range(4)
         }
 
@@ -608,6 +621,7 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
         """Test `process_payload`."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
         first_payload, *payloads = get_dummy_tx_payloads(self.participants)
         test_round.process_payload(first_payload)
@@ -635,6 +649,7 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
         """Test `end_block` when collection threshold is reached."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
         test_round.selection_key = selection_key
         payloads = get_dummy_tx_payloads(

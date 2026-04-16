@@ -11,10 +11,33 @@ Deployment helpers.
 ```python
 def run_deployment(build_dir: Path,
                    no_recreate: bool = False,
-                   remove_orphans: bool = False) -> None
+                   remove_orphans: bool = False,
+                   detach: bool = False,
+                   project_name: Optional[str] = None) -> None
 ```
 
 Run deployment.
+
+<a id="autonomy.cli.helpers.deployment.run_host_deployment"></a>
+
+#### run`_`host`_`deployment
+
+```python
+def run_host_deployment(build_dir: Path, detach: bool = False) -> None
+```
+
+Run host deployment.
+
+<a id="autonomy.cli.helpers.deployment.stop_deployment"></a>
+
+#### stop`_`deployment
+
+```python
+def stop_deployment(build_dir: Path,
+                    project_name: Optional[str] = None) -> None
+```
+
+Stop running deployment.
 
 <a id="autonomy.cli.helpers.deployment.build_deployment"></a>
 
@@ -26,10 +49,8 @@ def build_deployment(keys_file: Path,
                      deployment_type: str,
                      dev_mode: bool,
                      number_of_agents: Optional[int] = None,
-                     password: Optional[str] = None,
                      packages_dir: Optional[Path] = None,
                      open_aea_dir: Optional[Path] = None,
-                     open_autonomy_dir: Optional[Path] = None,
                      agent_instances: Optional[List[str]] = None,
                      multisig_address: Optional[str] = None,
                      consensus_threshold: Optional[int] = None,
@@ -39,7 +60,11 @@ def build_deployment(keys_file: Path,
                      use_hardhat: bool = False,
                      use_acn: bool = False,
                      use_tm_testnet_setup: bool = False,
-                     image_author: Optional[str] = None) -> None
+                     image_author: Optional[str] = None,
+                     resources: Optional[Resources] = None,
+                     service_hash_id: Optional[str] = None,
+                     service_offset: int = 0,
+                     mkdir: Optional[List[str]] = None) -> None
 ```
 
 Build deployment.
@@ -56,8 +81,9 @@ def build_and_deploy_from_token(token_id: int,
                                 n: Optional[int],
                                 deployment_type: str,
                                 aev: bool = False,
-                                password: Optional[str] = None,
-                                no_deploy: bool = False) -> None
+                                no_deploy: bool = False,
+                                detach: bool = False,
+                                resources: Optional[Resources] = None) -> None
 ```
 
 Build and run deployment from tokenID.

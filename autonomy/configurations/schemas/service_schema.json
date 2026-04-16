@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "Schema for the deployment configuration file.",
-  "additionalProperties": false,
+  "additionalProperties": true,
   "type": "object",
   "required": [
     "name",

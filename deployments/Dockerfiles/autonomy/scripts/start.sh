@@ -1,0 +1,96 @@
+#! /bin/bash
+
+# ensure hard exit on any failure
+set -e
+export PYTHONWARNINGS="ignore"
+
+# Debug mode
+if [ "$DEBUG" == "1" ]; then
+    echo "Debugging..."
+    while true; do
+        echo "waiting"
+        sleep 2
+    done
+fi
+
+function generateKey() {
+    if [ "$AEA_PASSWORD" != "" ]; then
+        echo "Generating key $1 with a password!"
+        echo "y" | aea generate-key $1 --password $AEA_PASSWORD
+    else
+        echo "Generating key $1 without a password!"
+        echo "y" | aea generate-key $1
+    fi
+}
+
+function checkKey() {
+    export FILE=/agent_key/$(echo $1)_private_key.txt
+    echo "Checking to see if $FILE exists"
+    if [ -f "$FILE" ]; then
+        echo "AEA key provided. Copying to agent."
+        cp $FILE .
+    else
+        # we now check the dependecies, and generate keys we need, if not present.
+        if grep open-aea-ledger-$1 aea-config.yaml -q; then
+            echo "AEA key not provided yet is required. Generating."
+            generateKey $1
+        fi
+    fi
+    addKey $1
+}
+
+function handleCosmosConnectionKeyAndCerts() {
+    echo "Generating cosmos key for libp2p connection"
+    if [ ! -f "cosmos_private_key.txt" ]; then
+        generateKey cosmos
+    fi
+
+    if [[ "$AEA_PASSWORD" != "" ]]; then
+        echo "Issuing certificates with password"
+        aea add-key cosmos --connection --password $AEA_PASSWORD 2>&1 | grep -v "already present!" || true
+        aea issue-certificates --password $AEA_PASSWORD
+    else
+        echo "Issuing certificates without password"
+        aea add-key cosmos --connection 2>&1 | grep -v "already present!" || true
+        aea issue-certificates
+    fi
+}
+
+function runAgent() {
+    if [[ "$AEA_PASSWORD" != "" ]]; then
+        aea run --password $AEA_PASSWORD
+    else
+        aea run
+    fi
+}
+
+function addKey() {
+    FILE=$(echo $1)_private_key.txt
+    if [ -f "$FILE" ]; then
+        echo "$1 key provided. Adding to agent."
+        if [[ "$AEA_PASSWORD" != "" ]]; then
+            aea add-key $1 --password $AEA_PASSWORD 2>&1 | grep -v "already present!" || true
+            aea add-key $1 --password $AEA_PASSWORD --connection 2>&1 | grep -v "already present!" || true
+        else
+            aea add-key $1 2>&1 | grep -v "already present!" || true
+        fi
+    fi
+}
+
+function main() {
+    echo "Running the aea with $(aea --version)"
+
+    echo "Checking keys"
+    checkKey ethereum
+    checkKey cosmos
+    checkKey solana
+
+    echo "Checking autonomy specific connection keys"
+    handleCosmosConnectionKeyAndCerts
+
+    echo "Running the aea"
+    runAgent
+}
+
+cd /home/agent
+main

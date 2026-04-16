@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ from aea.skills.base import Handler
 class MyScaffoldHandler(Handler):
     """This class scaffolds a handler."""
 
-    SUPPORTED_PROTOCOL = None  # type: Optional[PublicId]
+    SUPPORTED_PROTOCOL: Optional[PublicId] = None
 
     def setup(self) -> None:
         """Implement the setup."""

@@ -1,3 +1,265 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="551px" height="440px" viewBox="-0.5 -0.5 551 440"><defs/><g><rect x="330" y="126" width="140" height="60" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe flex-end; width: 138px; height: 1px; padding-top: 156px; margin-left: 330px;"><div data-drawio-colors="color: #7200D6; " style="box-sizing: border-box; font-size: 0px; text-align: right;"><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(114, 0, 214); line-height: 1.2; pointer-events: all; font-weight: bold; white-space: normal; overflow-wrap: normal;">On-chain world<br /><br /><br />Off-chain world</div></div></div></foreignObject><text x="468" y="160" fill="#7200D6" font-family="Helvetica" font-size="12px" text-anchor="end" font-weight="bold">On-chain world...</text></switch></g><path d="M 30 151 L 70 161 L 110 151 L 150 161 L 190 151 L 230 161 L 270 151 L 310 161 L 350 151 L 390 161 L 430 151 L 470 161" fill="none" stroke="#7200d6" stroke-width="3" stroke-miterlimit="10" stroke-dasharray="9 9" pointer-events="stroke"/><path d="M 10 6 L 50 56 L 90 76 L 110 136 L 170 156 L 170 206 L 217 236 L 220 306 L 250 326 L 240 376 L 270 396 L 260 436" fill="none" stroke="#ff6700" stroke-width="3" stroke-miterlimit="10" stroke-dasharray="9 9" pointer-events="stroke"/><path d="M 202.89 36 L 220.79 44.59 L 220.79 63.19 L 202.89 71.79 L 185 63.19 L 185 44.59 Z" fill="#e0e0e0" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><path d="M 185 44.59 L 202.89 53.18 L 220.79 44.59 M 202.89 53.18 L 202.89 71.79" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><path d="M 229.74 68.21 L 211.84 59.26" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><path d="M 235.11 52.1 L 253 60.7 L 253 79.3 L 235.11 87.89 L 217.21 79.3 L 217.21 60.7 Z" fill="#e0e0e0" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><path d="M 217.21 60.7 L 235.11 69.29 L 253 60.7 M 235.11 69.29 L 235.11 87.89" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><path d="M 263.74 84.31 L 245.84 75.36" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><path d="M 269.11 68.15 L 287 76.75 L 287 95.35 L 269.11 103.94 L 251.21 95.35 L 251.21 76.75 Z" fill="#e0e0e0" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><path d="M 251.21 76.75 L 269.11 85.34 L 287 76.75 M 269.11 85.34 L 269.11 103.94" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe flex-start; width: 138px; height: 1px; padding-top: 31px; margin-left: 267px;"><div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: left;"><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: none; white-space: normal; overflow-wrap: normal;"><b style="color: rgb(0, 0, 0); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">Decentralized on-chain services<br /></b><span style="color: rgb(0, 0, 0); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;">E.g., DeFi</span></div></div></div></foreignObject><text x="267" y="35" fill="rgb(0, 0, 0)" font-family="Helvetica" font-size="12px">Decentralized on-chain...</text></switch></g><g transform="translate(-0.5 -0.5)"><switch><foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 139px; height: 1px; padding-top: 376px; margin-left: 21px;"><div data-drawio-colors="color: #000000; " style="box-sizing: border-box; font-size: 0px; text-align: center;"><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: none; white-space: normal; overflow-wrap: normal;"><b>Traditional, centralized off-chain service<br /></b>E.g., Centralized oracle</div></div></div></foreignObject><text x="91" y="380" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Traditional, centralize...</text></switch></g><g transform="translate(-0.5 -0.5)"><switch><foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 268px; height: 1px; padding-top: 376px; margin-left: 281px;"><div data-drawio-colors="color: #7200D6; " style="box-sizing: border-box; font-size: 0px; text-align: center;"><div style="display: inline-block; font-size: 17px; font-family: Helvetica; color: rgb(114, 0, 214); line-height: 1.2; pointer-events: none; white-space: normal; overflow-wrap: normal;"><b style="font-family: Helvetica; font-size: 17px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">Autonomous (agent) services<br style="font-size: 17px;" /></b><span style="font-family: Helvetica; font-size: 17px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;"><font>E.g., Oracle Agent Service</font></span></div></div></div></foreignObject><text x="415" y="381" fill="#7200D6" font-family="Helvetica" font-size="17px" text-anchor="middle">Autonomous (agent) services...</text></switch></g><path d="M 235.06 171.52 L 245.56 171.55 L 230 190.5 L 214.56 171.45 L 225.06 171.48 L 225.19 130.48 L 214.69 130.45 L 230.25 111.5 L 245.69 130.55 L 235.19 130.52 Z" fill="#ffffff" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/><path d="M 139.41 290.67 L 144.62 299.78 L 120.43 295.75 L 129.24 272.87 L 134.45 281.98 L 170.59 261.33 L 165.38 252.22 L 189.57 256.25 L 180.76 279.13 L 175.55 270.02 Z" fill="#ffffff" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/><path d="M 325.55 281.98 L 330.76 272.87 L 339.57 295.75 L 315.38 299.78 L 320.59 290.67 L 284.45 270.02 L 279.24 279.13 L 270.43 256.25 L 294.62 252.22 L 289.41 261.33 Z" fill="#ffffff" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/><path d="M 363.07 257.1 L 371.73 251.15 L 369.72 275.59 L 346.18 268.71 L 354.83 262.76 L 266.93 134.9 L 258.27 140.85 L 260.28 116.41 L 283.82 123.29 L 275.17 129.24 Z" fill="#ffffff" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)rotate(40 18.201422314010415 21.48695802920747)"><switch><foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe flex-start; width: 141px; height: 1px; padding-top: 21px; margin-left: 18px;"><div data-drawio-colors="color: #FF6700; " style="box-sizing: border-box; font-size: 0px; text-align: left;"><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(255, 103, 0); line-height: 1.2; pointer-events: none; font-weight: bold; white-space: normal; overflow-wrap: normal;">Decentralized world<br /><br /><br />Centralized world</div></div></div></foreignObject><text x="18" y="25" fill="#FF6700" font-family="Helvetica" font-size="12px" font-weight="bold">Decentralized world...</text></switch></g><path d="M 105.17 262.76 L 113.82 268.71 L 90.28 275.59 L 88.27 251.15 L 96.93 257.1 L 184.83 129.24 L 176.18 123.29 L 199.72 116.41 L 201.73 140.85 L 193.07 134.9 Z" fill="#ffffff" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none"/><ellipse cx="230" cy="235" rx="40" ry="40" fill-opacity="0.6" fill="#00ff85" stroke="none" pointer-events="none"/><path d="M 235.31 217.95 C 235.31 214.77 237.94 212.18 241.18 212.18 C 244.42 212.18 247.05 214.77 247.05 217.95 C 247.05 221.13 244.42 223.71 241.18 223.71 C 237.94 223.71 235.31 221.13 235.31 217.95 Z M 247.88 225.64 C 247.18 225.2 246.43 224.84 245.66 224.55 C 247.81 223.12 249.23 220.69 249.23 217.95 C 249.23 213.57 245.62 210 241.18 210 C 236.74 210 233.13 213.57 233.13 217.95 C 233.13 220.69 234.54 223.11 236.68 224.54 C 235.28 225.06 233.97 225.83 232.81 226.83 L 234.23 228.48 C 236.18 226.82 238.64 225.9 241.16 225.9 C 243.12 225.9 245.05 226.45 246.73 227.49 C 249.72 229.35 251.68 232.61 252.02 236.18 L 241.16 236.18 L 241.16 238.36 L 253.16 238.36 C 253.76 238.36 254.25 237.88 254.25 237.27 C 254.25 232.53 251.81 228.08 247.88 225.64 Z M 213.49 217.95 C 213.49 214.77 216.12 212.18 219.36 212.18 C 222.6 212.18 225.23 214.77 225.23 217.95 C 225.23 221.13 222.6 223.71 219.36 223.71 C 216.12 223.71 213.49 221.13 213.49 217.95 Z M 219.34 236.18 L 208.48 236.18 C 209.01 230.42 213.68 225.9 219.34 225.9 C 221.31 225.9 223.23 226.45 224.91 227.49 C 225.39 227.78 225.84 228.12 226.27 228.48 L 227.69 226.83 C 227.18 226.39 226.63 225.99 226.06 225.64 C 225.36 225.2 224.61 224.84 223.84 224.55 C 225.99 223.12 227.41 220.69 227.41 217.95 C 227.41 213.57 223.8 210 219.36 210 C 214.92 210 211.31 213.57 211.31 217.95 C 211.31 220.69 212.73 223.12 214.88 224.54 C 209.85 226.44 206.25 231.42 206.25 237.27 C 206.25 237.88 206.74 238.36 207.34 238.36 L 219.34 238.36 Z M 219.39 255.82 C 219.92 250.05 224.59 245.53 230.25 245.53 C 232.22 245.53 234.14 246.08 235.82 247.13 C 238.81 248.98 240.77 252.25 241.11 255.82 Z M 224.4 237.58 C 224.4 234.4 227.03 231.82 230.27 231.82 C 233.51 231.82 236.14 234.4 236.14 237.58 C 236.14 240.76 233.51 243.35 230.27 243.35 C 227.03 243.35 224.4 240.76 224.4 237.58 Z M 236.97 245.27 C 236.27 244.83 235.52 244.47 234.75 244.18 C 236.9 242.75 238.32 240.33 238.32 237.58 C 238.32 233.2 234.71 229.64 230.27 229.64 C 225.83 229.64 222.22 233.2 222.22 237.58 C 222.22 240.33 223.64 242.75 225.78 244.18 C 220.76 246.08 217.16 251.06 217.16 256.91 C 217.16 257.51 217.65 258 218.25 258 L 242.25 258 C 242.85 258 243.34 257.51 243.34 256.91 C 243.34 252.17 240.9 247.71 236.97 245.27 Z" fill="#232f3e" stroke="none" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-start; justify-content: unsafe center; width: 1px; height: 1px; padding-top: 271px; margin-left: 230px;"><div data-drawio-colors="color: #232F3E; " style="box-sizing: border-box; font-size: 0px; text-align: center;"><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(35, 47, 62); line-height: 1.2; pointer-events: none; white-space: nowrap;"><b>USERS</b></div></div></div></foreignObject><text x="230" y="283" fill="#232F3E" font-family="Helvetica" font-size="12px" text-anchor="middle">USERS</text></switch></g><rect x="70" y="290" width="26" height="52" fill="#ffffff" stroke="rgb(0, 0, 0)" stroke-width="2" pointer-events="none"/><path d="M 75 331 L 91 331" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/><path d="M 75 336 L 91 336" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/><path d="M 75 299 L 91 299" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/><path d="M 85 326.6 C 85 324.06 89.48 322 95 322 C 97.65 322 100.2 322.48 102.07 323.35 C 103.95 324.21 105 325.38 105 326.6 L 105 343.4 C 105 345.94 100.52 348 95 348 C 89.48 348 85 345.94 85 343.4 Z" fill="#ffffff" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/><path d="M 105 326.6 C 105 329.14 100.52 331.2 95 331.2 C 89.48 331.2 85 329.14 85 326.6" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none"/><rect x="350" y="300.17" width="2.08" height="33.33" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="350" y="300.17" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="352.08" y="298.08" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="354.17" y="296" width="16.67" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="372.92" y="300.17" width="2.08" height="33.33" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="368.75" y="298.08" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="370.83" y="300.17" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="352.08" y="333.5" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="354.17" y="335.58" width="16.67" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="350" y="331.42" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="368.75" y="333.5" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="370.83" y="331.42" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="355.21" y="304.33" width="4.17" height="4.17" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="365.63" y="304.33" width="4.17" height="4.17" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="355.21" y="310.58" width="2.08" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="367.71" y="310.58" width="2.08" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="357.29" y="312.67" width="10.42" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="350" y="343.92" width="125" height="2.08" fill="#000000" stroke="none" pointer-events="none"/><rect x="361.46" y="337.67" width="2.08" height="8.33" fill="#000000" stroke="none" pointer-events="none"/><rect x="394.79" y="337.67" width="2.08" height="8.33" fill="#000000" stroke="none" pointer-events="none"/><rect x="428.13" y="337.67" width="2.08" height="8.33" fill="#000000" stroke="none" pointer-events="none"/><rect x="461.46" y="337.67" width="2.08" height="8.33" fill="#000000" stroke="none" pointer-events="none"/><rect x="383.33" y="300.17" width="2.08" height="33.33" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="383.33" y="300.17" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="385.42" y="298.08" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="387.5" y="296" width="16.67" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="406.25" y="300.17" width="2.08" height="33.33" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="402.08" y="298.08" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="404.17" y="300.17" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="385.42" y="333.5" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="387.5" y="335.58" width="16.67" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="383.33" y="331.42" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="402.08" y="333.5" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="404.17" y="331.42" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="388.54" y="304.33" width="4.17" height="4.17" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="398.96" y="304.33" width="4.17" height="4.17" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="388.54" y="310.58" width="2.08" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="401.04" y="310.58" width="2.08" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="390.63" y="312.67" width="10.42" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="416.67" y="300.17" width="2.08" height="33.33" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="416.67" y="300.17" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="418.75" y="298.08" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="420.83" y="296" width="16.67" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="439.58" y="300.17" width="2.08" height="33.33" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="435.42" y="298.08" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="437.5" y="300.17" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="418.75" y="333.5" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="420.83" y="335.58" width="16.67" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="416.67" y="331.42" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="435.42" y="333.5" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="437.5" y="331.42" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="421.88" y="304.33" width="4.17" height="4.17" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="432.29" y="304.33" width="4.17" height="4.17" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="421.88" y="310.58" width="2.08" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="434.38" y="310.58" width="2.08" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="423.96" y="312.67" width="10.42" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="450" y="300.17" width="2.08" height="33.33" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="450" y="300.17" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="452.08" y="298.08" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="454.17" y="296" width="16.67" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="472.92" y="300.17" width="2.08" height="33.33" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="468.75" y="298.08" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="470.83" y="300.17" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="452.08" y="333.5" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="454.17" y="335.58" width="16.67" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="450" y="331.42" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="468.75" y="333.5" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="470.83" y="331.42" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="455.21" y="304.33" width="4.17" height="4.17" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="465.63" y="304.33" width="4.17" height="4.17" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="455.21" y="310.58" width="2.08" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="467.71" y="310.58" width="2.08" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/><rect x="457.29" y="312.67" width="10.42" height="2.08" fill="#7200d6" stroke="none" pointer-events="none"/></g><switch><g requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"/><a transform="translate(0,-5)" xlink:href="https://www.diagrams.net/doc/faq/svg-export-text-problems" target="_blank"><text text-anchor="middle" font-size="10px" x="50%" y="100%">Text is not SVG - cannot display</text></a></switch></svg>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="551px"
+    height="440px" viewBox="-0.5 -0.5 551 440">
+    <defs />
+    <g>
+        <rect x="330" y="126" width="140" height="60" fill="none" stroke="none" pointer-events="all" />
+        <g transform="translate(-0.5 -0.5)">
+            <switch>
+                <foreignObject pointer-events="none" width="100%" height="100%"
+                    requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+                    style="overflow: visible; text-align: left;">
+                    <div xmlns="http://www.w3.org/1999/xhtml"
+                        style="display: flex; align-items: unsafe center; justify-content: unsafe flex-end; width: 138px; height: 1px; padding-top: 156px; margin-left: 330px;">
+                        <div data-drawio-colors="color: #7200D6; "
+                            style="box-sizing: border-box; font-size: 0px; text-align: right;">
+                            <div
+                                style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(114, 0, 214); line-height: 1.2; pointer-events: all; font-weight: bold; white-space: normal; overflow-wrap: normal;">
+                                On-chain world<br /><br /><br />Off-chain world</div>
+                        </div>
+                    </div>
+                </foreignObject><text x="468" y="160" fill="#7200D6" font-family="Helvetica" font-size="12px"
+                    text-anchor="end" font-weight="bold">On-chain world...</text>
+            </switch>
+        </g>
+        <path
+            d="M 30 151 L 70 161 L 110 151 L 150 161 L 190 151 L 230 161 L 270 151 L 310 161 L 350 151 L 390 161 L 430 151 L 470 161"
+            fill="none" stroke="#7200d6" stroke-width="3" stroke-miterlimit="10" stroke-dasharray="9 9"
+            pointer-events="stroke" />
+        <path
+            d="M 10 6 L 50 56 L 90 76 L 110 136 L 170 156 L 170 206 L 217 236 L 220 306 L 250 326 L 240 376 L 270 396 L 260 436"
+            fill="none" stroke="#ff6700" stroke-width="3" stroke-miterlimit="10" stroke-dasharray="9 9"
+            pointer-events="stroke" />
+        <path d="M 202.89 36 L 220.79 44.59 L 220.79 63.19 L 202.89 71.79 L 185 63.19 L 185 44.59 Z" fill="#e0e0e0"
+            stroke="#000000" stroke-miterlimit="10" pointer-events="none" />
+        <path d="M 185 44.59 L 202.89 53.18 L 220.79 44.59 M 202.89 53.18 L 202.89 71.79" fill="none" stroke="#000000"
+            stroke-miterlimit="10" pointer-events="none" />
+        <path d="M 229.74 68.21 L 211.84 59.26" fill="none" stroke="#000000" stroke-miterlimit="10"
+            pointer-events="none" />
+        <path d="M 235.11 52.1 L 253 60.7 L 253 79.3 L 235.11 87.89 L 217.21 79.3 L 217.21 60.7 Z" fill="#e0e0e0"
+            stroke="#000000" stroke-miterlimit="10" pointer-events="none" />
+        <path d="M 217.21 60.7 L 235.11 69.29 L 253 60.7 M 235.11 69.29 L 235.11 87.89" fill="none" stroke="#000000"
+            stroke-miterlimit="10" pointer-events="none" />
+        <path d="M 263.74 84.31 L 245.84 75.36" fill="none" stroke="#000000" stroke-miterlimit="10"
+            pointer-events="none" />
+        <path d="M 269.11 68.15 L 287 76.75 L 287 95.35 L 269.11 103.94 L 251.21 95.35 L 251.21 76.75 Z" fill="#e0e0e0"
+            stroke="#000000" stroke-miterlimit="10" pointer-events="none" />
+        <path d="M 251.21 76.75 L 269.11 85.34 L 287 76.75 M 269.11 85.34 L 269.11 103.94" fill="none" stroke="#000000"
+            stroke-miterlimit="10" pointer-events="none" />
+        <g transform="translate(-0.5 -0.5)">
+            <switch>
+                <foreignObject pointer-events="none" width="100%" height="100%"
+                    requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+                    style="overflow: visible; text-align: left;">
+                    <div xmlns="http://www.w3.org/1999/xhtml"
+                        style="display: flex; align-items: unsafe center; justify-content: unsafe flex-start; width: 138px; height: 1px; padding-top: 31px; margin-left: 267px;">
+                        <div data-drawio-colors="color: rgb(0, 0, 0); "
+                            style="box-sizing: border-box; font-size: 0px; text-align: left;">
+                            <div
+                                style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: none; white-space: normal; overflow-wrap: normal;">
+                                <b
+                                    style="color: rgb(0, 0, 0); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">Decentralized
+                                    on-chain services<br /></b><span
+                                    style="color: rgb(0, 0, 0); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;">E.g.,
+                                    DeFi</span>
+                            </div>
+                        </div>
+                    </div>
+                </foreignObject><text x="267" y="35" fill="rgb(0, 0, 0)" font-family="Helvetica"
+                    font-size="12px">Decentralized on-chain...</text>
+            </switch>
+        </g>
+        <g transform="translate(-0.5 -0.5)">
+            <switch>
+                <foreignObject pointer-events="none" width="100%" height="100%"
+                    requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+                    style="overflow: visible; text-align: left;">
+                    <div xmlns="http://www.w3.org/1999/xhtml"
+                        style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 139px; height: 1px; padding-top: 376px; margin-left: 21px;">
+                        <div data-drawio-colors="color: #000000; "
+                            style="box-sizing: border-box; font-size: 0px; text-align: center;">
+                            <div
+                                style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: none; white-space: normal; overflow-wrap: normal;">
+                                <b>Traditional, centralized off-chain service<br /></b>E.g., Centralized oracle
+                            </div>
+                        </div>
+                    </div>
+                </foreignObject><text x="91" y="380" fill="#000000" font-family="Helvetica" font-size="12px"
+                    text-anchor="middle">Traditional, centralize...</text>
+            </switch>
+        </g>
+        <g transform="translate(-0.5 -0.5)">
+            <switch>
+                <foreignObject pointer-events="none" width="100%" height="100%"
+                    requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+                    style="overflow: visible; text-align: left;">
+                    <div xmlns="http://www.w3.org/1999/xhtml"
+                        style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 268px; height: 1px; padding-top: 376px; margin-left: 281px;">
+                        <div data-drawio-colors="color: #7200D6; "
+                            style="box-sizing: border-box; font-size: 0px; text-align: center;">
+                            <div
+                                style="display: inline-block; font-size: 17px; font-family: Helvetica; color: rgb(114, 0, 214); line-height: 1.2; pointer-events: none; white-space: normal; overflow-wrap: normal;">
+                                <b
+                                    style="font-family: Helvetica; font-size: 17px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">Autonomous
+                                    AI agents<br style="font-size: 17px;" /></b><span
+                                    style="font-family: Helvetica; font-size: 17px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;">
+                                    <font>E.g., Oracle AI agent</font>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </foreignObject><text x="415" y="381" fill="#7200D6" font-family="Helvetica" font-size="17px"
+                    text-anchor="middle">Autonomous AI agents...</text>
+            </switch>
+        </g>
+        <path
+            d="M 235.06 171.52 L 245.56 171.55 L 230 190.5 L 214.56 171.45 L 225.06 171.48 L 225.19 130.48 L 214.69 130.45 L 230.25 111.5 L 245.69 130.55 L 235.19 130.52 Z"
+            fill="#ffffff" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none" />
+        <path
+            d="M 139.41 290.67 L 144.62 299.78 L 120.43 295.75 L 129.24 272.87 L 134.45 281.98 L 170.59 261.33 L 165.38 252.22 L 189.57 256.25 L 180.76 279.13 L 175.55 270.02 Z"
+            fill="#ffffff" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none" />
+        <path
+            d="M 325.55 281.98 L 330.76 272.87 L 339.57 295.75 L 315.38 299.78 L 320.59 290.67 L 284.45 270.02 L 279.24 279.13 L 270.43 256.25 L 294.62 252.22 L 289.41 261.33 Z"
+            fill="#ffffff" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none" />
+        <path
+            d="M 363.07 257.1 L 371.73 251.15 L 369.72 275.59 L 346.18 268.71 L 354.83 262.76 L 266.93 134.9 L 258.27 140.85 L 260.28 116.41 L 283.82 123.29 L 275.17 129.24 Z"
+            fill="#ffffff" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none" />
+        <g transform="translate(-0.5 -0.5)rotate(40 18.201422314010415 21.48695802920747)">
+            <switch>
+                <foreignObject pointer-events="none" width="100%" height="100%"
+                    requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+                    style="overflow: visible; text-align: left;">
+                    <div xmlns="http://www.w3.org/1999/xhtml"
+                        style="display: flex; align-items: unsafe center; justify-content: unsafe flex-start; width: 141px; height: 1px; padding-top: 21px; margin-left: 18px;">
+                        <div data-drawio-colors="color: #FF6700; "
+                            style="box-sizing: border-box; font-size: 0px; text-align: left;">
+                            <div
+                                style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(255, 103, 0); line-height: 1.2; pointer-events: none; font-weight: bold; white-space: normal; overflow-wrap: normal;">
+                                Decentralized world<br /><br /><br />Centralized world</div>
+                        </div>
+                    </div>
+                </foreignObject><text x="18" y="25" fill="#FF6700" font-family="Helvetica" font-size="12px"
+                    font-weight="bold">Decentralized world...</text>
+            </switch>
+        </g>
+        <path
+            d="M 105.17 262.76 L 113.82 268.71 L 90.28 275.59 L 88.27 251.15 L 96.93 257.1 L 184.83 129.24 L 176.18 123.29 L 199.72 116.41 L 201.73 140.85 L 193.07 134.9 Z"
+            fill="#ffffff" stroke="rgb(0, 0, 0)" stroke-miterlimit="10" pointer-events="none" />
+        <ellipse cx="230" cy="235" rx="40" ry="40" fill-opacity="0.6" fill="#00ff85" stroke="none"
+            pointer-events="none" />
+        <path
+            d="M 235.31 217.95 C 235.31 214.77 237.94 212.18 241.18 212.18 C 244.42 212.18 247.05 214.77 247.05 217.95 C 247.05 221.13 244.42 223.71 241.18 223.71 C 237.94 223.71 235.31 221.13 235.31 217.95 Z M 247.88 225.64 C 247.18 225.2 246.43 224.84 245.66 224.55 C 247.81 223.12 249.23 220.69 249.23 217.95 C 249.23 213.57 245.62 210 241.18 210 C 236.74 210 233.13 213.57 233.13 217.95 C 233.13 220.69 234.54 223.11 236.68 224.54 C 235.28 225.06 233.97 225.83 232.81 226.83 L 234.23 228.48 C 236.18 226.82 238.64 225.9 241.16 225.9 C 243.12 225.9 245.05 226.45 246.73 227.49 C 249.72 229.35 251.68 232.61 252.02 236.18 L 241.16 236.18 L 241.16 238.36 L 253.16 238.36 C 253.76 238.36 254.25 237.88 254.25 237.27 C 254.25 232.53 251.81 228.08 247.88 225.64 Z M 213.49 217.95 C 213.49 214.77 216.12 212.18 219.36 212.18 C 222.6 212.18 225.23 214.77 225.23 217.95 C 225.23 221.13 222.6 223.71 219.36 223.71 C 216.12 223.71 213.49 221.13 213.49 217.95 Z M 219.34 236.18 L 208.48 236.18 C 209.01 230.42 213.68 225.9 219.34 225.9 C 221.31 225.9 223.23 226.45 224.91 227.49 C 225.39 227.78 225.84 228.12 226.27 228.48 L 227.69 226.83 C 227.18 226.39 226.63 225.99 226.06 225.64 C 225.36 225.2 224.61 224.84 223.84 224.55 C 225.99 223.12 227.41 220.69 227.41 217.95 C 227.41 213.57 223.8 210 219.36 210 C 214.92 210 211.31 213.57 211.31 217.95 C 211.31 220.69 212.73 223.12 214.88 224.54 C 209.85 226.44 206.25 231.42 206.25 237.27 C 206.25 237.88 206.74 238.36 207.34 238.36 L 219.34 238.36 Z M 219.39 255.82 C 219.92 250.05 224.59 245.53 230.25 245.53 C 232.22 245.53 234.14 246.08 235.82 247.13 C 238.81 248.98 240.77 252.25 241.11 255.82 Z M 224.4 237.58 C 224.4 234.4 227.03 231.82 230.27 231.82 C 233.51 231.82 236.14 234.4 236.14 237.58 C 236.14 240.76 233.51 243.35 230.27 243.35 C 227.03 243.35 224.4 240.76 224.4 237.58 Z M 236.97 245.27 C 236.27 244.83 235.52 244.47 234.75 244.18 C 236.9 242.75 238.32 240.33 238.32 237.58 C 238.32 233.2 234.71 229.64 230.27 229.64 C 225.83 229.64 222.22 233.2 222.22 237.58 C 222.22 240.33 223.64 242.75 225.78 244.18 C 220.76 246.08 217.16 251.06 217.16 256.91 C 217.16 257.51 217.65 258 218.25 258 L 242.25 258 C 242.85 258 243.34 257.51 243.34 256.91 C 243.34 252.17 240.9 247.71 236.97 245.27 Z"
+            fill="#232f3e" stroke="none" pointer-events="none" />
+        <g transform="translate(-0.5 -0.5)">
+            <switch>
+                <foreignObject pointer-events="none" width="100%" height="100%"
+                    requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+                    style="overflow: visible; text-align: left;">
+                    <div xmlns="http://www.w3.org/1999/xhtml"
+                        style="display: flex; align-items: unsafe flex-start; justify-content: unsafe center; width: 1px; height: 1px; padding-top: 271px; margin-left: 230px;">
+                        <div data-drawio-colors="color: #232F3E; "
+                            style="box-sizing: border-box; font-size: 0px; text-align: center;">
+                            <div
+                                style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(35, 47, 62); line-height: 1.2; pointer-events: none; white-space: nowrap;">
+                                <b>USERS</b>
+                            </div>
+                        </div>
+                    </div>
+                </foreignObject><text x="230" y="283" fill="#232F3E" font-family="Helvetica" font-size="12px"
+                    text-anchor="middle">USERS</text>
+            </switch>
+        </g>
+        <rect x="70" y="290" width="26" height="52" fill="#ffffff" stroke="rgb(0, 0, 0)" stroke-width="2"
+            pointer-events="none" />
+        <path d="M 75 331 L 91 331" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10"
+            pointer-events="none" />
+        <path d="M 75 336 L 91 336" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10"
+            pointer-events="none" />
+        <path d="M 75 299 L 91 299" fill="none" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10"
+            pointer-events="none" />
+        <path
+            d="M 85 326.6 C 85 324.06 89.48 322 95 322 C 97.65 322 100.2 322.48 102.07 323.35 C 103.95 324.21 105 325.38 105 326.6 L 105 343.4 C 105 345.94 100.52 348 95 348 C 89.48 348 85 345.94 85 343.4 Z"
+            fill="#ffffff" stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none" />
+        <path d="M 105 326.6 C 105 329.14 100.52 331.2 95 331.2 C 89.48 331.2 85 329.14 85 326.6" fill="none"
+            stroke="rgb(0, 0, 0)" stroke-width="2" stroke-miterlimit="10" pointer-events="none" />
+        <rect x="350" y="300.17" width="2.08" height="33.33" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="350" y="300.17" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="352.08" y="298.08" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="354.17" y="296" width="16.67" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="372.92" y="300.17" width="2.08" height="33.33" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="368.75" y="298.08" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="370.83" y="300.17" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="352.08" y="333.5" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="354.17" y="335.58" width="16.67" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="350" y="331.42" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="368.75" y="333.5" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="370.83" y="331.42" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="355.21" y="304.33" width="4.17" height="4.17" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="365.63" y="304.33" width="4.17" height="4.17" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="355.21" y="310.58" width="2.08" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="367.71" y="310.58" width="2.08" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="357.29" y="312.67" width="10.42" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="350" y="343.92" width="125" height="2.08" fill="#000000" stroke="none" pointer-events="none" />
+        <rect x="361.46" y="337.67" width="2.08" height="8.33" fill="#000000" stroke="none" pointer-events="none" />
+        <rect x="394.79" y="337.67" width="2.08" height="8.33" fill="#000000" stroke="none" pointer-events="none" />
+        <rect x="428.13" y="337.67" width="2.08" height="8.33" fill="#000000" stroke="none" pointer-events="none" />
+        <rect x="461.46" y="337.67" width="2.08" height="8.33" fill="#000000" stroke="none" pointer-events="none" />
+        <rect x="383.33" y="300.17" width="2.08" height="33.33" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="383.33" y="300.17" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="385.42" y="298.08" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="387.5" y="296" width="16.67" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="406.25" y="300.17" width="2.08" height="33.33" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="402.08" y="298.08" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="404.17" y="300.17" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="385.42" y="333.5" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="387.5" y="335.58" width="16.67" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="383.33" y="331.42" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="402.08" y="333.5" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="404.17" y="331.42" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="388.54" y="304.33" width="4.17" height="4.17" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="398.96" y="304.33" width="4.17" height="4.17" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="388.54" y="310.58" width="2.08" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="401.04" y="310.58" width="2.08" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="390.63" y="312.67" width="10.42" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="416.67" y="300.17" width="2.08" height="33.33" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="416.67" y="300.17" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="418.75" y="298.08" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="420.83" y="296" width="16.67" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="439.58" y="300.17" width="2.08" height="33.33" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="435.42" y="298.08" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="437.5" y="300.17" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="418.75" y="333.5" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="420.83" y="335.58" width="16.67" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="416.67" y="331.42" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="435.42" y="333.5" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="437.5" y="331.42" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="421.88" y="304.33" width="4.17" height="4.17" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="432.29" y="304.33" width="4.17" height="4.17" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="421.88" y="310.58" width="2.08" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="434.38" y="310.58" width="2.08" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="423.96" y="312.67" width="10.42" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="450" y="300.17" width="2.08" height="33.33" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="450" y="300.17" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="452.08" y="298.08" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="454.17" y="296" width="16.67" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="472.92" y="300.17" width="2.08" height="33.33" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="468.75" y="298.08" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="470.83" y="300.17" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="452.08" y="333.5" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="454.17" y="335.58" width="16.67" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="450" y="331.42" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="468.75" y="333.5" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="470.83" y="331.42" width="4.17" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="455.21" y="304.33" width="4.17" height="4.17" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="465.63" y="304.33" width="4.17" height="4.17" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="455.21" y="310.58" width="2.08" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="467.71" y="310.58" width="2.08" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+        <rect x="457.29" y="312.67" width="10.42" height="2.08" fill="#7200d6" stroke="none" pointer-events="none" />
+    </g>
+    <switch>
+        <g requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" /><a transform="translate(0,-5)"
+            xlink:href="https://www.diagrams.net/doc/faq/svg-export-text-problems" target="_blank"><text
+                text-anchor="middle" font-size="10px" x="50%" y="100%">Text is not SVG - cannot display</text></a>
+    </switch>
+</svg>

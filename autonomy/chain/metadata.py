@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ from aea.helpers.base import IPFSHash
 from aea.helpers.cid import CID, to_v1
 from aea.helpers.ipfs.base import IPFSHashOnly
 from aea_cli_ipfs.ipfs_utils import IPFSTool
-
 
 IPFS_URI_PREFIX = "ipfs://"
 BASE16_HASH_PREFIX = "f01701220"
@@ -83,7 +82,7 @@ def publish_metadata(
         nft_image_hash=nft_image_hash,
     )
 
-    metadata_hash = ipfs_tool.client.add_str(metadata_string)
+    metadata_hash = ipfs_tool.client.add_bytes(metadata_string.encode())
     metadata_hash = (
         CID.from_string(metadata_hash)
         .to_v1()

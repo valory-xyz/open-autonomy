@@ -1,9 +1,552 @@
-This page provides some tips on how to upgrade agent services between different versions of the {{open_autonomy}} framework. For full release notes check the <a href="https://github.com/valory-xyz/open-autonomy/tags" target="_blank">Open-Autonomy repo</a>.
+This page provides some tips on how to upgrade AI agent between different versions of the {{open_autonomy}} framework. For full release notes check the <a href="https://github.com/valory-xyz/open-autonomy/tags" target="_blank">Open-Autonomy repo</a>.
 
-Below we describe the additional manual steps required to upgrade between different versions:
+Below, we describe the additional manual steps required to upgrade between different versions:
 
 
 # Open Autonomy
+
+## `v0.21.17` to `v0.21.18`
+
+- `open-aea-ledger-ethereum-hwi` is now an optional extra instead of a hard dependency. If you use hardware wallet support (`--hwi` flag), install with `pip install open-autonomy[hwi]`. This change fixes multi-platform Docker image builds on armv7 which failed due to missing pre-built wheels for `hidapi` and `Pillow`.
+
+## `v0.21.16` to `v0.21.17`
+
+This release bumps `open-aea` from `2.1.0` to `2.2.1`, migrates scripts to CLI commands, and removes the unmaintained `open-aea-ledger-ethereum-flashbots` plugin.
+
+Main dependency updates to account for:
+
+- `open-aea: ==2.1.0 -> ==2.2.1`
+- `open-aea-ledger-ethereum: ==2.1.0 -> ==2.2.1`
+- `open-aea-ledger-ethereum-hwi: ==2.1.0 -> ==2.2.1`
+- `open-aea-ledger-cosmos: ==2.1.0 -> ==2.2.1`
+- `open-aea-cli-ipfs: ==2.1.0 -> ==2.2.1`
+- `tomte: ==0.6.1 -> ==0.6.5`
+
+### `open-aea-ledger-ethereum-flashbots` removed upstream
+
+The `open-aea-ledger-ethereum-flashbots` plugin was removed from open-aea in 2.2.1. The last published `2.2.0` wheel remains on PyPI but receives no further releases.
+
+Impact on downstream repos:
+
+- **Remove `open-aea-ledger-ethereum-flashbots` from dependency pins** in `pyproject.toml`, `Pipfile`, `tox.ini`, or `setup.py`.
+- **Drop any `ethereum_flashbots` block** from the `valory/ledger` connection config (the upstream `connection.yaml` no longer declares it — use plain `ethereum` instead).
+- **Remove `aea_ledger_ethereum_flashbots` PyInstaller flags** (`--collect-all`, `--hidden-import`) from release workflows.
+- **Audit `aea-config.yaml`** in agent packages for references to `open-aea-ledger-ethereum-flashbots` and drop them.
+- **`autonomy replay` flows** no longer provision an `ethereum_flashbots_private_key.txt` or register the `ethereum-flashbots` key. Replays that relied on the flashbots ledger being set up implicitly will fail at `aea run`. Switch to plain `ethereum` in replay fixtures, or pin `open-aea<=2.2.0` + the frozen flashbots plugin.
+- The skill-level `use_flashbots` parameter on `send_raw_transaction` is intentionally preserved (default `False`) to avoid a payload wire-format change. Agents with `use_flashbots=False` keep working unchanged; agents that explicitly set `use_flashbots=True` will fail at runtime.
+
+### Scripts → CLI migration
+
+All Python scripts in `scripts/` have been migrated to CLI commands:
+
+- `check_copyright.py` → `tomte check-copyright`
+- `check_doc_links.py` → `tomte check-doc-links`
+- `freeze_dependencies.py` → `tomte freeze-dependencies`
+- `generate_package_list.py` → `aea-ci generate-pkg-list`
+- `check_ipfs_hashes_pushed.py` → `aea-ci check-ipfs-pushed`
+- `check_third_party_hashes.py` → `aea-ci check-third-party-hashes --upstream valory-xyz/open-aea@2.2.1`
+- `generate_api_documentation.py` → `aea-ci generate-api-docs --source-dir autonomy ...`
+- `generate_contract_list.py` → `aea-helpers generate-contract-list`
+
+If your CI invokes any of these scripts directly, update to the corresponding CLI command.
+
+### Concrete upgrade steps
+
+1. Bump `open-autonomy` pin to `==0.21.17`.
+2. Bump all `open-aea*` pins to `==2.2.1`.
+3. Drop `open-aea-ledger-ethereum-flashbots` from dependencies and configs as described above.
+4. Run `autonomy packages sync --update-packages` to pull the updated third-party packages.
+5. Run `autonomy packages lock` to regenerate downstream package hashes.
+6. Replace any direct `scripts/` invocations with the corresponding CLI commands.
+
+## `v0.21.15` to `v0.21.16`
+
+- The `aea-helpers` plugin now includes 4 new commands for deployment and release management:
+    - `aea-helpers config-replace --mapping config-mapping.json` — replaces `scripts/aea-config-replace.py` with a generic YAML config substitution using a mapping file
+    - `aea-helpers run-agent --name <agent>` — replaces `run_agent.sh` with built-in port management (`--free-ports`), config replacement, and tendermint lifecycle
+    - `aea-helpers run-service --name <service>` — replaces `run_service.sh` with parameterized deployment (agent count, resource limits, pre/post hooks)
+    - `aea-helpers make-release --version <ver> --env <env>` — replaces `make_release.sh` for creating git tags and GitHub releases
+- New `--skip-tendermint` flag on `run-agent` for agents configured with `use_tendermint: false` (e.g. IEKit)
+- Fixes `customs` package type handling in `check-doc-hashes` (no longer crashes on mech tool packages)
+- Fixes IPFS connection handler to support directories and binary files
+- To migrate deployment scripts: extract your `PATH_TO_VAR` dict from `aea-config-replace.py` into a `config-mapping.json` file, then delete `aea-config-replace.py`, `run_agent.sh`, and `run_service.sh`
+- Mech repos should use the `mech` CLI from `mech-server` instead of `run_agent.sh`/`run_service.sh`
+
+## `v0.21.14` to `v0.21.15`
+
+- The `aea-helpers` plugin is now available as a standalone PyPI package. It consolidates the duplicated CI scripts (`bump.py`, `check_dependencies.py`, `check_doc_ipfs_hashes.py`) that were previously copy-pasted across repositories.
+- If your repository has local copies of these scripts in `scripts/` or `utils/`, you can replace them with the `aea-helpers` CLI commands:
+    - `aea-helpers bump-dependencies` replaces `scripts/bump.py`
+    - `aea-helpers check-dependencies --check` replaces `scripts/check_dependencies.py`
+    - `aea-helpers check-doc-hashes` replaces `scripts/check_doc_ipfs_hashes.py`
+- Add `aea-helpers>=0.1.0` to your project dependencies and `tox.ini` deps to use.
+- Hardcoded package exclusions (e.g. `requests` version hacks, popping `open-aea-ledger-solana`) are now configurable via `--exclude` flags instead.
+
+## `v0.21.12` to `v0.21.14`
+
+- Ensures ABIs have all parameters from explorer #2445
+- Fixes ERC20 transfer transaction handling #2444
+- Fixes environment variable override validation for friendly names #2447
+- Fixes requests version range to `<2.33.0,>=2.28.1` for compatibility #2443
+
+No breaking changes. Bump `open-autonomy` version pin and regenerate package hashes.
+
+## `v0.21.11` to `v0.21.12`
+
+- Python support is now `3.10-3.14` (previously `3.10-3.11`).
+- Regenerate your environment and lock files when upgrading, as several toolchain and runtime dependencies were bumped to support newer Python versions.
+
+Main dependency updates to account for:
+
+- `open-aea: ==2.0.8 -> ==2.1.0`
+- `tomte: ==0.4.0 -> ==0.6.1`
+- `click: >=8.1.0,<8.3.0 -> >=8.1.0,<9`
+- `pytest: ==7.4.4 -> ==8.4.2`
+- `protobuf: >=4.21.6,<4.25.0 -> >=5,<6`
+- `requests: >=2.28.1,<2.32.5 -> >=2.28.1,<2.33.0`
+- `docker: 4.2.0 -> 7.1.0`
+- `typing_extensions`: `<4.15.0,>=3.10.0.2` -> `<=4.15.0,>=3.10.0.2`
+- `grpcio`: `==1.53.0` -> `==1.78.0`
+
+Exact APIs/functions to check:
+
+### 1) Click `flag_value` default handling
+
+If your downstream CLI uses Click options with `flag_value`, audit these exact patterns against Open Autonomy fixes:
+
+- `autonomy/cli/deploy.py::build_deployment_command`
+- `autonomy/cli/deploy.py::run`
+- `autonomy/cli/deploy.py::run_deployment_from_token`
+- `autonomy/cli/fetch.py::fetch`
+- `autonomy/cli/analyse.py::abci_app_specs`
+- `autonomy/cli/analyse.py::abci_app_specs`
+- `autonomy/cli/mint.py::mint`
+- `autonomy/cli/service.py::service`
+
+Required behaviour:
+
+- Do **not** rely on decorator order to select defaults when multiple flags write to the same parameter.
+- Use explicit normalization in code for unset values (e.g. `if sync_type is None: sync_type = SyncTypes.THIRD_PARTY`).
+- Ensure upgrade command handlers consume a single `registry: str` mode rather than split boolean flags (`local` / `remote`).
+
+### 2) Python 3.13/3.14 asyncio/multiprocessing compatibility
+
+Audit downstream code for these exact anti-patterns and replacements:
+
+- `multiprocessing.Manager()` without explicit context on Python 3.14+.
+  - Required fix pattern: use `multiprocessing.get_context("spawn").Manager()` where process-manager context must be controlled.
+- Accessing private queue loop internals (e.g. `queue._loop`).
+  - Required fix pattern: store/use explicit event loop references instead of private attributes.
+- Removed/unsupported asyncio APIs in modern Python:
+  - `asyncio.StreamReader(loop=...)`
+  - `asyncio.ensure_future(..., loop=...)`
+  - unconditional `asyncio.get_child_watcher()` / child-watcher usage on Python 3.14+
+- Ready-awaitable internals relying on module-level coroutine/future objects.
+  - Required fix pattern: use a lightweight awaitable object/factory that is loop-safe across Python 3.10-3.14.
+
+### 3) Plugin dependency compatibility (Ethereum + Flashbots)
+
+If you install both plugins, verify dependency constraints in your lock/constraints files:
+
+- The Flashbots plugin package must be compatible with the same 2.1.x line of the Ethereum plugin package.
+- Reject locks where Flashbots still constrains Ethereum to `<2.1.0`.
+
+Run after upgrade:
+
+```bash
+make new_env
+```
+
+### API compatibility notes
+
+- CLI/API-surface changes:
+  - `autonomy.cli.deploy.py::build_deployment_command` and `autonomy.cli.deploy.py::run_deployment_from_token` 
+     now always prompt on `-p` and support `AEA_PASSWORD` for `--password`.
+
+## `v0.21.10` to `v0.21.11`
+
+No backwards incompatible changes.
+
+## `v0.21.9` to `v0.21.10`
+
+No backwards incompatible changes.
+
+## `v0.21.8` to `v0.21.9`
+
+No backwards incompatible changes.
+
+## `v0.21.7` to `v0.21.8`
+
+No backwards incompatible changes.
+
+## `v0.21.6` to `v0.21.7`
+
+No backwards incompatible changes.
+
+## `v0.21.5` to `v0.21.6`
+
+No backwards incompatible changes.
+
+## `v0.21.4` to `v0.21.5`
+
+No backwards incompatible changes.
+
+## `v0.21.3` to `v0.21.4`
+
+No backwards incompatible changes.
+
+## `v0.21.2` to `v0.21.3`
+
+No backwards incompatible changes.
+
+## `v0.21.1` to `v0.21.2`
+
+No backwards incompatible changes.
+
+## `v0.21.0` to `v0.21.1`
+
+No backwards incompatible changes.
+
+## `v0.20.1` to `v0.21.0`
+
+Breaking changes (open-autonomy)
+- `autonomy analyse logs` will now throw `ValueError` if the agent's name is not valid for a SQL query.
+  - Action required: Agent's name must comply with the regex `^[a-zA-Z_][a-zA-Z0-9_-]*$`.
+- Web requests made by open-autonomy will now timeout in 30 seconds if no response is received.
+  - Action required: Handle the `Timeout` error if not already.
+- `get_origin` and `get_args` are now removed.
+  - Action required: Import them directly from `typing`.
+
+Notable dependency upgrades
+- `open-aea` v1.65.0→v2.0.0
+  - Link: https://github.com/valory-xyz/open-aea/blob/main/docs/upgrading.md#v1650-to-v200
+  - Important changes: (Coming from `click`)
+    - `get_metavar` now requires a new parameter, `ctx: Context`.
+    - `aea`, `autonomy`, and their subcommands that expect some arguments (for example `aea`, `aea ipfs`, etc.), when used without any arguments will now finish with exit code 2 instead of 0, and print their usage help in stderr.
+- `web3` v6→v7
+  - Link: https://web3py.readthedocs.io/en/stable/migration.html#migrating-from-v6-to-v7
+  - Important changes:
+    - Contract instances will now have `encode_abi` function instead of `encodeABI`.
+    - `fn_name` parameter of `encode_abi` is changed to `abi_element_identifier`.
+    - Transaction related instances will now have attributes in snake_case instead of camelCase. For example, `raw_transaction` instead of `rawTransaction`. (Coming from `eth-account` also)
+    - `HexBytes` instances' `.hex()` method will not return a string with `0x` prefix. Use `.to_0x_hex()` instead. (Coming from `hexbytes`)
+
+## `v0.20.1` to `v0.20.2`
+
+No backwards incompatible changes.
+
+## `v0.20.0` to `v0.20.1`
+
+No backwards incompatible changes.
+
+## `v0.19.11` to `v0.20.0`
+
+- The `Chain` and `ChainType` now have the `OPTIMISM` enum value. And the `OPTIMISTIC` enum value has been removed.
+
+## `v0.19.10` to `v0.19.11`
+
+No backwards incompatible changes.
+
+## `v0.19.9` to `v0.19.10`
+
+No backwards incompatible changes.
+
+## `v0.19.8` to `v0.19.9`
+
+No backwards incompatible changes.
+
+## `v0.19.7` to `v0.19.8`
+
+No backwards incompatible changes.
+
+## `v0.19.6` to `v0.19.7`
+
+No backwards incompatible changes.
+
+## `v0.19.5` to `v0.19.6`
+
+No backwards incompatible changes.
+
+## `v0.19.4` to `v0.19.5`
+
+No backwards incompatible changes.
+
+## `v0.19.3` to `v0.19.4`
+
+No backwards incompatible changes.
+
+## `v0.19.2` to `v0.19.3`
+
+No backwards incompatible changes.
+
+## `v0.19.1` to `v0.19.2`
+
+No backwards incompatible changes.
+
+## `v0.19.0` to `v0.19.1`
+
+No backwards incompatible changes.
+
+## `v0.18.4` to `v0.19.0`
+
+- The ledger has introduced a new configuration, called `min_allowed_tip`. 
+  The value is set to 1GWEI. However, this limit only applies for Gnosis.
+  This is not expected to cause important differences in the calculated tip for the rest of the chains,
+  because there is an outlier detection mechanism.
+  However, the best practice would be to override this value to `0` for any chain other than Gnosis.
+  This is planned to be changed in the next `open-aea` version to improve DevX and make this a non-breaking change.
+- The agent now performs an early failure check when attributes for rounds are missing. 
+  This check is implemented in the metaclass using a specialized attribute named `extended_requirements`. 
+  To customize the attributes being checked for a specific round, 
+  developers must modify the `extended_requirements` attribute.
+
+## `v0.18.3` to `v0.18.4`
+
+No backwards incompatible changes.
+
+## `v0.18.2` to `v0.18.3`
+
+No backwards incompatible changes.
+
+## `v0.18.1` to `v0.18.2`
+
+No backwards incompatible changes.
+
+## `v0.18.0` to `v0.18.1`
+
+No backwards incompatible changes.
+
+## `v0.17.0` to `v0.18.0`
+
+- The agent and service configurations for dictionaries should now be in the following form: 
+  `${dict:{"some_key": "some_value"}`. 
+  For more information, please take a look at an example upgrade in https://github.com/valory-xyz/trader/pull/311. 
+- The generated builds do not include the environment variables of the agents inside the compose file anymore.
+  Instead, they exist in a separate environment file per agent and are referenced in the compose file.
+
+## `v0.16.1` to `v0.17.0`
+
+- The structure of the build folder has been updated. 
+  The folder is now named `abci_build_{uuid}`, 
+  where `{uuid}` is a 4-character random hash, 
+  replacing the previous format of `abci_build`.
+- The naming convention for service containers has been revised. 
+  Previously, containers were named `{trimmed_service_name}_{abci|tm}_{index}`. 
+  Now, the format has changed to `{trimmed_service_name}{uuid}_{abci|tm}_{index}`, 
+  where `{uuid}` is a unique identifier.
+
+## `v0.16.0` to `v0.16.1`
+
+No backwards incompatible changes.
+
+## `v0.15.2` to `v0.16.0`
+
+- The `priority_fee_estimation_trigger` has been removed from the `eip1559` configuration of the ledger connection.
+- The `default_priority_fee` is now optional. 
+  If it is set to `None`, dynamic pricing will be applied. 
+  Otherwise, the specified value will be used.
+
+## `v0.15.1` to `v0.15.2`
+
+No backwards incompatible changes.
+
+## `v0.15.0` to `v0.15.1`
+
+No backwards incompatible changes.
+
+## `v0.14.14.post2` to `v0.15.0`
+
+- After this release, developers do not need to make sure that cross-period persisted keys preexist in the database
+  before the first period ends anymore. 
+  You may remove any additional logic you had in place to protect from that (#2131).
+- The cross-period persisted keys are now initialized by the framework during startup. 
+  The corresponding property is used to get the value. 
+  If a property with the same name does not exist, then the pre-existing value in the db is used, otherwise `None`.
+- You need to keep the above in mind when:
+  1. Reading cross-period values from the db.
+  2. Implementing properties for cross-period keys, 
+     as the returned value will end up being the one that will be writen to the db during startup.
+
+## `v0.14.14` to `v0.14.14.post2`
+
+No backwards incompatible changes.
+
+## `v0.14.14.post1` to `v0.14.14.post2`
+
+The breaking feature introduced in `v0.14.14` and `v0.14.14.post1` has been removed.
+For more information please check the `HISTORY.md` file.
+
+## `v0.14.14` to `v0.14.14.post1`
+
+A breaking feature was introduced. 
+We suggest using the `v0.14.14.post2` release instead.
+For more information please check the `HISTORY.md` file.
+
+## `v0.14.13` to `v0.14.14`
+
+A breaking feature was introduced. 
+We suggest using the `v0.14.14.post2` release instead.
+For more information please check the `HISTORY.md` file.
+
+## `v0.14.12` to `v0.14.13`
+
+No backwards incompatible changes
+
+## `v0.14.11.post1` to `v0.14.12`
+
+- This release pins `click>=8.1.0,<9` so update your environments to avoid dependency conflicts
+
+## `v0.14.11` to `v0.14.11.post1`
+
+No backwards incompatible changes
+
+## `v0.14.10` to `v0.14.11`
+
+No backwards incompatible changes
+
+## `v0.14.9` to `v0.14.10`
+
+No backwards incompatible changes
+
+## `v0.14.8` to `v0.14.9`
+
+No backwards incompatible changes
+
+## `v0.14.7` to `v0.14.8`
+
+No backwards incompatible changes
+
+## `v0.14.6` to `v0.14.7`
+
+No backwards incompatible changes
+
+## `v0.14.5` to `v0.14.6`
+
+No backwards incompatible changes
+
+## `v0.14.4` to `v0.14.5`
+
+No backwards incompatible changes
+
+## `v0.14.3.post1` to `v0.14.4`
+
+No backwards incompatible changes
+
+## `v0.14.3` to `v0.14.3.post1`
+
+No backwards incompatible changes
+
+## `v0.14.2` to `v0.14.3`
+
+No backwards incompatible changes
+
+## `v0.14.1` to `v0.14.2`
+
+No backwards incompatible changes
+
+## `v0.14.0` to `v0.14.1`
+
+No backwards incompatible changes
+
+## `v0.13.10` to `v0.14.0`
+
+- This release introduces automated dependency verification on the minting tools, this means when minting a package you will have to mint all of the dependencies beforehand. The minting tools uses a subgraph to verify dependencies so you might have to wait for a small amount of time before you can mint the package after you mint the dependencies. 
+- Since the dependency verification is automated the `--skip-hash-check` and `--skip-dependencies-check` flags have been deprecated on the `autonomy mint/service` command groups
+
+## `v0.13.9.post1` to `v0.13.10`
+
+No backwards incompatible changes
+
+## `v0.13.9` to `v0.13.9.post1`
+
+No backwards incompatible changes
+
+## `v0.13.8` to `v0.13.9`
+
+No backwards incompatible changes
+
+## `v0.13.7` to `v0.13.8`
+
+No backwards incompatible changes
+
+## `v0.13.6` to `v0.13.7`
+
+No backwards incompatible changes
+
+## `v0.13.5` to `v0.13.6`
+
+No backwards incompatible changes
+
+## `v0.13.4` to `v0.13.5`
+
+No backwards incompatible changes
+
+## `v0.13.3` to `v0.13.4`
+
+No backwards incompatible changes
+
+## `v0.13.2` to `v0.13.3`
+
+No backwards incompatible changes
+
+## `v0.13.1` to `v0.13.2`
+
+- The usage `--password` of flag has been deprecated on `autonomy deploy` command group. Use `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` environment variable to export the private key password string when running `autonomy deploy build/run` commands.
+
+## `v0.13.1` to `v0.13.1.post1`
+
+No backwards incompatible changes
+
+## `v0.13.0` to `v0.13.1`
+
+- This release introduces support for defining service level dependencies, which means you can define python dependencies at the service level which will take priority over the agent or component level dependencies. The `dependencies` parameter is currently optional to make the upgrading easier. But this will be required in the next release, so please update your services accordingly.
+
+## `v0.12.1.post4` to `v0.13.0`
+
+- `open-aea-web3` has been replaced with `web3py`
+- `protobuf` has been bumped to `protobuf>=4.21.6,<5.0.0`, this means you will have to bump your protocol generator to `v24.3` and generate your protocol packages again.
+- The `valory/open-autonomy` image will use Python 3.11 as default interpreter for running agents
+
+## `v0.12.1.post3` to `v0.12.1.post4`
+
+No backwards incompatible changes
+
+## `v0.12.1.post2` to `v0.12.1.post3`
+
+No backwards incompatible changes
+
+## `v0.12.1.post1` to `v0.12.1.post2`
+
+No backwards incompatible changes
+
+## `v0.12.1` to `v0.12.1.post1`
+
+- Environment variable names have changed for custom contract address, refer to the `mint/service` CLI tools documentation regarding the changes.
+
+## `v0.12.0` to `v0.12.1`
+
+No backwards incompatible changes
+
+## `v0.11.1` to `v0.12.0`
+
+- Renamed the `background_behaviour_cls` in `AbstractRoundBehaviour` to `termination_behaviour_cls`. 
+ *Should be taken into consideration for all the apps that are utilizing the termination.*
+- Renamed the `background_behaviour` in `AbstractRoundBehaviour` to `termination_behaviour`.
+- Renamed the `is_background_behaviour_set` property in `AbstractRoundBehaviour` to `is_termination_set`.
+- Renamed the `background_round_cls` argument of the `add_termination` method in `AbciApp` to `termination_round_cls`. 
+ *Should be taken into consideration for all the apps that are utilizing the termination.*
+- Renamed the `background_round_cls` attribute of the `AbciApp` to `termination_round_cls`.
+- Renamed the `_background_round` attribute of the `AbciApp` to `_termination_round`.
+- Renamed the `background_round` property of the `AbciApp` to `termination_round`.
+- The `AbstractRound` class now requires a `SkillContext` positional argument. 
+ To accommodate this change, 
+ all round tests will need to be modified to include a mocked context in addition to the synchronized data.
+
+1 && 4 should be taken into consideration for all the apps that are utilizing the termination.
+
+## `v0.11.0` to `v0.11.1`
+
+The `autonomy deploy run` command now handles the exists from deployment and to do this we're running the deployments in detached mode and waiting for the user to cancel what that means is from now on when running the deployments the logs won't be printed out by default. If you want to check out the logs for containers you can use `docker logs` command.
 
 ## `v0.10.11.post1` to `v0.11.0`
 

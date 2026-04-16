@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -57,7 +57,6 @@ from packages.valory.contracts.gnosis_safe_proxy_factory.tests.test_contract imp
     PACKAGE_DIR as PROXY_DIR,
 )
 
-
 PACKAGE_DIR = Path(__file__).parent.parent
 
 DEFAULT_GAS = 1000000
@@ -101,6 +100,8 @@ class BaseContractTest(BaseGanacheContractTest):
             owners=cls.owners(),
             threshold=int(cls.threshold()),
             gas=DEFAULT_GAS,
+            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
+            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
 
     @classmethod
@@ -156,6 +157,8 @@ class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
             owners=cls.owners(),
             threshold=int(cls.threshold()),
             gas=DEFAULT_GAS,
+            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
+            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
 
     @classmethod
@@ -353,7 +356,10 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
                 self.ledger_api, "contract_address", cast(TxData, tx)
             )
             assert "revert_reason" in reason
-            assert reason["revert_reason"] == "ContractLogicError('reason')"
+            assert (
+                reason["revert_reason"] == "ContractLogicError('reason')"
+                or reason["revert_reason"] == "ContractLogicError('reason', None)"
+            )
 
         with mock.patch.object(self.ledger_api.api.eth, "call"), pytest.raises(
             ValueError, match=f"The given transaction has not been reverted!\ntx: {tx}"
@@ -378,7 +384,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             self.contract.get_ingoing_transfers(
                 ledger_api=self.ledger_api,
                 contract_address=cast(str, self.contract_address),
-                from_block=hex(from_block),
+                from_block=from_block,
             ),
         )
         data = cast(List[JSONLike], res["data"])
@@ -408,7 +414,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
         res = self.contract.get_ingoing_transfers(
             ledger_api=self.ledger_api,
             contract_address=cast(str, self.contract_address),
-            from_block=hex(from_block),
+            from_block=from_block,
         )
         data = cast(List[JSONLike], res["data"])
 
@@ -577,7 +583,7 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
         return_value=AttributeDict(
             {
                 "accessList": [],
-                "blockHash": HexBytes(
+                "block_hash": HexBytes(
                     "0x8543592f08d1d9e6d722ba9d600270d7e7789ecc9b66f27ca81b104df9c5dd4a"
                 ),
                 "blockNumber": 31190129,
@@ -627,7 +633,7 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
         EthereumApi,
         "get_transaction_receipt",
         return_value={
-            "blockHash": "0x8543592f08d1d9e6d722ba9d600270d7e7789ecc9b66f27ca81b104df9c5dd4a",
+            "block_hash": "0x8543592f08d1d9e6d722ba9d600270d7e7789ecc9b66f27ca81b104df9c5dd4a",
             "blockNumber": 31190129,
             "contractAddress": None,
             "cumulativeGasUsed": 5167853,
@@ -637,7 +643,7 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             "logs": [
                 {
                     "address": "0x0000000000000000000000000000000000001010",
-                    "blockHash": "0x8543592f08d1d9e6d722ba9d600270d7e7789ecc9b66f27ca81b104df9c5dd4a",
+                    "block_hash": "0x8543592f08d1d9e6d722ba9d600270d7e7789ecc9b66f27ca81b104df9c5dd4a",
                     "blockNumber": 31190129,
                     "data": "0x00000000000000000000000000000000000000000000000000064b5dcc9920c1000000000000000000000000"
                     "00000000000000000000000032116d529b00f7490000000000000000000000000000000000000000000004353d"

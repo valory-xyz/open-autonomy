@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,42 +18,91 @@
 # ------------------------------------------------------------------------------
 
 """Deployment helpers."""
+
+import json
 import os
+import platform
+import shutil
+import subprocess  # nosec
+import sys
+import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 import click
+from aea.configurations.constants import AGENT
 from aea.configurations.data_types import PublicId
 from aea.helpers.base import cd
-from compose.cli import main as docker_compose
-from compose.config.errors import ConfigurationError
-from docker.errors import NotFound
 
-from autonomy.chain.config import ChainType, ContractConfigs
+from autonomy.chain.config import ChainType, ContractConfigs, OnChainHelper
 from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
 from autonomy.chain.service import get_agent_instances, get_service_info
 from autonomy.chain.utils import resolve_component_id
-from autonomy.cli.helpers.chain import get_ledger_and_crypto_objects
 from autonomy.cli.helpers.registry import fetch_service_ipfs
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
 from autonomy.configurations.loader import load_service_config
 from autonomy.constants import DEFAULT_BUILD_FOLDER
+from autonomy.deploy.base import Resources, build_hash_id
 from autonomy.deploy.build import generate_deployment
 from autonomy.deploy.constants import (
     AGENT_KEYS_DIR,
+    AGENT_VARS_CONFIG_FILE,
     BENCHMARKS_DIR,
+    DEATTACH_WINDOWS_FLAG,
     INFO,
     LOG_DIR,
     PERSISTENT_DATA_DIR,
+    TENDERMINT_FLASK_APP_PATH,
+    TENDERMINT_VARS_CONFIG_FILE,
     TM_STATE_DIR,
     VENVS_DIR,
 )
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
+from autonomy.deploy.generators.localhost.utils import check_tendermint_version
 from autonomy.deploy.image import build_image
 
 
-def _build_dirs(build_dir: Path) -> None:
-    """Build necessary directories."""
+def _compose_base_command(project_name: Optional[str]) -> List[str]:
+    """Build docker compose command."""
+
+    cmd = ["docker", "compose"]
+    if project_name:
+        cmd += ["--project-name", project_name]
+    return cmd
+
+
+def _run_compose_command(
+    build_dir: Path,
+    args: List[str],
+    project_name: Optional[str] = None,
+    capture_output: bool = False,
+) -> subprocess.CompletedProcess:
+    """Execute docker compose command."""
+
+    cmd = _compose_base_command(project_name) + args
+    try:
+        return subprocess.run(  # type: ignore[call-overload] # nosec
+            cmd,
+            check=True,
+            cwd=build_dir,
+            capture_output=capture_output,
+            text=capture_output,
+        )
+    except FileNotFoundError as exc:  # pragma: no cover
+        raise click.ClickException(
+            "Docker CLI with compose plugin is required but was not found in PATH."
+        ) from exc
+    except subprocess.CalledProcessError as exc:
+        output = (exc.stderr or exc.stdout or "").strip()
+        raise click.ClickException(
+            f"`{' '.join(cmd)}` failed with exit code {exc.returncode}: {output}"
+        ) from exc
+
+
+def _build_dirs(build_dir: Path, mkdir: Optional[List[str]] = None) -> None:
+    """Build the necessary directories."""
+
+    mkdirs = [(new_dir_name,) for new_dir_name in mkdir] if mkdir else []
 
     for dir_path in [
         (PERSISTENT_DATA_DIR,),
@@ -62,9 +111,9 @@ def _build_dirs(build_dir: Path) -> None:
         (PERSISTENT_DATA_DIR, BENCHMARKS_DIR),
         (PERSISTENT_DATA_DIR, VENVS_DIR),
         (AGENT_KEYS_DIR,),
-    ]:
+    ] + mkdirs:
         path = Path(build_dir, *dir_path)
-        path.mkdir()
+        path.mkdir(exist_ok=True, parents=True)
         # TOFIX: remove this safely
         try:
             os.chown(path, 1000, 1000)
@@ -72,63 +121,153 @@ def _build_dirs(build_dir: Path) -> None:
             click.echo(
                 f"Updating permissions failed for {path}, please do it manually."
             )
+        except AttributeError:  # pragma: no cover
+            continue
+
+
+def _print_log(build_dir: Path, project_name: Optional[str]) -> None:
+    """Print docker compose logs."""
+
+    terminal_width, _ = shutil.get_terminal_size()
+    try:
+        result = _run_compose_command(
+            build_dir,
+            ["logs", "--no-color"],
+            project_name=project_name,
+            capture_output=True,
+        )
+    except click.ClickException as exc:
+        click.echo(f"Failed to fetch docker compose logs: {exc}")
+        return
+    click.echo("=" * terminal_width)
+    click.echo(result.stdout)
+
+
+def _kill_containers(build_dir: Path, project_name: Optional[str]) -> None:
+    """Kill active containers before exiting."""
+
+    try:
+        _run_compose_command(
+            build_dir,
+            ["kill"],
+            project_name=project_name,
+            capture_output=False,
+        )
+    except click.ClickException as exc:
+        click.echo(f"Failed to kill containers: {exc}")
 
 
 def run_deployment(
-    build_dir: Path, no_recreate: bool = False, remove_orphans: bool = False
+    build_dir: Path,
+    no_recreate: bool = False,
+    remove_orphans: bool = False,
+    detach: bool = False,
+    project_name: Optional[str] = None,
 ) -> None:
     """Run deployment."""
-
-    click.echo(f"Running build @ {build_dir}")
     try:
-        project = docker_compose.project_from_options(build_dir, {})
-    except ConfigurationError as e:  # pragma: no cover
-        if "Invalid interpolation format" in e.msg:
-            raise click.ClickException(
-                "Provided docker compose file contains environment placeholders, "
-                "please use `--aev` flag if you intend to use environment variables."
-            )
+        compose_args = ["up", "--detach", "--build"]
+        if remove_orphans:
+            compose_args.append("--remove-orphans")
+        compose_args.append("--no-recreate" if no_recreate else "--force-recreate")
+        _run_compose_command(build_dir, compose_args, project_name=project_name)
+        if detach:
+            click.echo("The service is running...")
+            return
+        click.echo("The service is running, press CTRL + C to stop...")
+        while True:
+            time.sleep(1)
+    except click.ClickException:  # pragma: no cover
+        click.echo("Error occurred bringing up the project")
+        _print_log(build_dir, project_name)
+        _kill_containers(build_dir, project_name)
         raise
+    except KeyboardInterrupt:  # pragma: no cover
+        stop_deployment(build_dir=build_dir, project_name=project_name)
 
+
+def _get_deattached_creation_flags() -> int:
+    """Get Popen creation flag based on the platform."""
+    return DEATTACH_WINDOWS_FLAG if platform.system() == "Windows" else 0
+
+
+def _start_localhost_agent(working_dir: Path, detach: bool) -> None:
+    """Start localhost agent process."""
+    env = json.loads((working_dir / AGENT_VARS_CONFIG_FILE).read_text())
+    process_fn: Callable = subprocess.Popen if detach else subprocess.run  # type: ignore[assignment]
+    process = process_fn(  # pylint: disable=subprocess-run-check # nosec
+        args=[sys.executable, "-m", "aea.cli", "run"],
+        cwd=working_dir / AGENT,
+        env={**os.environ, **env},
+        creationflags=_get_deattached_creation_flags(),  # Detach process from the main process
+    )
+    (working_dir / "agent.pid").write_text(
+        data=str(process.pid),
+    )
+
+
+def _start_localhost_tendermint(working_dir: Path) -> subprocess.Popen:
+    """Start localhost tendermint process."""
+    check_tendermint_version()
+    env = json.loads((working_dir / TENDERMINT_VARS_CONFIG_FILE).read_text())
+    flask_app_path = Path(__file__).parents[3] / TENDERMINT_FLASK_APP_PATH
+    process = subprocess.Popen(  # pylint: disable=consider-using-with # nosec
+        args=[
+            "flask",
+            "run",
+            "--host",
+            "localhost",
+            "--port",
+            "8080",
+        ],
+        cwd=working_dir,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        env={**os.environ, **env, "FLASK_APP": f"{flask_app_path}:create_server"},
+        creationflags=_get_deattached_creation_flags(),  # Detach process from the main process
+    )
+    (working_dir / "tendermint.pid").write_text(
+        data=str(process.pid),
+    )
+    return process
+
+
+def run_host_deployment(build_dir: Path, detach: bool = False) -> None:
+    """Run host deployment."""
+    tm_process = _start_localhost_tendermint(build_dir)
     try:
-        commands = docker_compose.TopLevelCommand(project=project)
-        commands.up(
-            {
-                "--detach": False,
-                "--no-color": False,
-                "--quiet-pull": False,
-                "--no-deps": False,
-                "--force-recreate": not no_recreate,
-                "--always-recreate-deps": False,
-                "--no-recreate": no_recreate,
-                "--no-build": False,
-                "--no-start": False,
-                "--build": True,
-                "--abort-on-container-exit": False,
-                "--attach-dependencies": False,
-                "--timeout": None,
-                "--renew-anon-volumes": False,
-                "--remove-orphans": remove_orphans,
-                "--exit-code-from": None,
-                "--scale": [],
-                "--no-log-prefix": False,
-                "SERVICE": None,
-            }
+        _start_localhost_agent(build_dir, detach)
+    except Exception as e:  # pylint: disable=broad-except
+        click.echo(e)
+        tm_process.terminate()
+    finally:
+        if not detach:
+            tm_process.terminate()
+
+
+def stop_deployment(build_dir: Path, project_name: Optional[str] = None) -> None:
+    """Stop running deployment."""
+    click.echo("\nDon't cancel while stopping services...")
+    try:
+        _run_compose_command(
+            build_dir,
+            ["down", "--remove-orphans"],
+            project_name=project_name,
         )
-    except NotFound as e:  # pragma: no cover
-        raise click.ClickException(e.explanation)
+    except click.ClickException as exc:  # pragma: no cover
+        click.echo(f"Failed to stop deployment cleanly: {exc}")
+    finally:
+        _kill_containers(build_dir, project_name)
 
 
-def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
+def build_deployment(  # pylint: disable=too-many-locals
     keys_file: Path,
     build_dir: Path,
     deployment_type: str,
     dev_mode: bool,
     number_of_agents: Optional[int] = None,
-    password: Optional[str] = None,
     packages_dir: Optional[Path] = None,
     open_aea_dir: Optional[Path] = None,
-    open_autonomy_dir: Optional[Path] = None,
     agent_instances: Optional[List[str]] = None,
     multisig_address: Optional[str] = None,
     consensus_threshold: Optional[int] = None,
@@ -139,6 +278,10 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     use_acn: bool = False,
     use_tm_testnet_setup: bool = False,
     image_author: Optional[str] = None,
+    resources: Optional[Resources] = None,
+    service_hash_id: Optional[str] = None,
+    service_offset: int = 0,
+    mkdir: Optional[List[str]] = None,
 ) -> None:
     """Build deployment."""
 
@@ -152,19 +295,21 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
 
     click.echo(f"Building deployment @ {build_dir}")
     build_dir.mkdir()
-    _build_dirs(build_dir)
+    if service_hash_id is None:
+        service_hash_id = build_hash_id()
+    _build_dirs(build_dir, mkdir)
 
     report = generate_deployment(
+        service_hash_id=service_hash_id,
+        service_offset=service_offset,
         service_path=Path.cwd(),
         type_of_deployment=deployment_type,
         keys_file=keys_file,
-        private_keys_password=password,
         number_of_agents=number_of_agents,
         build_dir=build_dir,
         dev_mode=dev_mode,
         packages_dir=packages_dir,
         open_aea_dir=open_aea_dir,
-        open_autonomy_dir=open_autonomy_dir,
         agent_instances=agent_instances,
         multisig_address=multisig_address,
         consensus_threshold=consensus_threshold,
@@ -175,7 +320,9 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         use_acn=use_acn,
         use_tm_testnet_setup=use_tm_testnet_setup,
         image_author=image_author,
+        resources=resources,
     )
+
     click.echo(report)
 
 
@@ -185,14 +332,17 @@ def _resolve_on_chain_token_id(
 ) -> Tuple[Dict[str, str], List[str], str, int]:
     """Resolve service metadata from tokenID"""
 
-    ledger_api, _ = get_ledger_and_crypto_objects(chain_type=chain_type)
+    ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(chain_type=chain_type)
     contract_address = ContractConfigs.service_registry.contracts[chain_type]
 
     click.echo(f"Fetching service metadata using chain type {chain_type.value}")
 
     try:
         metadata = resolve_component_id(
-            ledger_api=ledger_api, contract_address=contract_address, token_id=token_id
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+            token_id=token_id,
+            is_service=True,
         )
         info = get_agent_instances(
             ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
@@ -217,7 +367,7 @@ def _resolve_on_chain_token_id(
     return metadata, agent_instances, multisig_address, consensus_threshold
 
 
-def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many-locals
+def build_and_deploy_from_token(  # pylint: disable=too-many-locals
     token_id: int,
     keys_file: Path,
     chain_type: ChainType,
@@ -225,8 +375,9 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
     n: Optional[int],
     deployment_type: str,
     aev: bool = False,
-    password: Optional[str] = None,
     no_deploy: bool = False,
+    detach: bool = False,
+    resources: Optional[Resources] = None,
 ) -> None:
     """Build and run deployment from tokenID."""
 
@@ -245,7 +396,7 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
     *_, service_hash = service_metadata["code_uri"].split("//")
     public_id = PublicId(author="valory", name="service", package_hash=service_hash)
     service_path = fetch_service_ipfs(public_id)
-    build_dir = service_path / DEFAULT_BUILD_FOLDER
+    build_dir = service_path / DEFAULT_BUILD_FOLDER.format(build_hash_id())
 
     with cd(service_path):
         build_deployment(
@@ -258,7 +409,7 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
             multisig_address=multisig_address,
             consensus_threshold=consensus_threshold,
             apply_environment_variables=aev,
-            password=password,
+            resources=resources,
         )
         if not skip_image:
             click.echo("Building required images.")
@@ -270,4 +421,4 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
         return
 
     click.echo("Running deployment")
-    run_deployment(build_dir)
+    run_deployment(build_dir, detach=detach)

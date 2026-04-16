@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains class representations corresponding to every custom type in the protocol specification."""
+
 import datetime
 from enum import Enum
 from typing import List, Optional
@@ -851,7 +852,7 @@ class BlockID:
 class Header:  # pylint: disable=too-many-instance-attributes
     """This class represents an instance of Header."""
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         version: ConsensusVersion,
         chain_id: str,

@@ -1,4 +1,4 @@
-When developing your service (and its required components, including the {{fsm_app}}), it is important to ensure that the code is exhaustively tested and adheres to best practices. This will not only help identify and fix any bugs or errors early, but also ensure your code is reliable, efficient, and maintainable.
+When developing your AI agent (and its required components, including the {{fsm_app}}), it is important to ensure that the code is exhaustively tested and adheres to best practices. This will not only help identify and fix any bugs or errors early, but also ensure your code is reliable, efficient, and maintainable.
 
 ## Static code analysis
 
@@ -25,7 +25,7 @@ Make target: `make code-checks`
 
 ### Framework-specific tools
 
-In addition, the framework comes with a number of dedicated tools that you might find useful for analysing your service and component packages.
+In addition, the framework comes with a number of dedicated tools that you might find useful for analysing your AI agent and component packages.
 
 `autonomy check-packages`
 : Performs several consistency checks on the component packages to make sure there are no issues with the component configurations (including checking that every package has existing dependencies and a non-empty description).
@@ -37,7 +37,7 @@ In addition, the framework comes with a number of dedicated tools that you might
 : This command verifies that all the {{fsm_app}} skills in a local registry (except the explicitly excluded ones) have defined the specified dialogues. See the command documentation [here](../advanced_reference/commands/autonomy_analyse.md#autonomy-analyse-dialogues).
 
 [`autonomy analyse service`](../advanced_reference/commands/autonomy_analyse.md#autonomy-analyse-service)
-: This command verifies a service configuration to see if there is any potential issue with it which can cause issues when running the service deployment. See the command documentation [here](../advanced_reference/commands/autonomy_analyse.md#autonomy-analyse-service) and the [on-chain deployment checklist](./on-chain_deployment_checklist.md) for more information.
+: This command verifies an AI agent configuration to see if there is any potential issue with it which can cause issues when running the AI agent deployment. See the command documentation [here](../advanced_reference/commands/autonomy_analyse.md#autonomy-analyse-service) and the [on-chain deployment checklist](./on-chain_deployment_checklist.md) for more information.
 
 ## Testing
 
@@ -47,11 +47,10 @@ The `valory/abstract_round_abci` skill packages come with a number of testing to
 
 ???+ example
 
-    Fetch the `hello_world` agent, which comes with the `hello_world_abci` {{fsm_app}} skill within:
+    Fetch the `hello_world` agent blueprint, which comes with the `hello_world_abci` {{fsm_app}} skill within:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeie7rsyd4jdgckt7bduxlvypi73cy4kj5ndflb4cmidkjaoaad3xem
-    mv hello_world hello_world_agent
+    autonomy fetch valory/hello_world:0.1.0:bafybeieifur6f2wzp36jt3pslo2xwg3utylb2fvm7rwsw2lorwghzxoone --alias hello_world_agent
     ```
 
     Look at the unit tests for the `hello_world_abci` skill, located in the folder
@@ -70,15 +69,14 @@ The `open-aea-test-autonomy` plugin provides several test classes which can be u
 
 ### End-to-end testing
 
-The same plugin also provides tools for writing end-to-end tests for agents. The `aea_test_autonomy.base_test_classes.agents.BaseTestEnd2End` class provides an environment for testing agents end to end.
+The same plugin also provides tools for writing end-to-end tests for agent blueprints. The `aea_test_autonomy.base_test_classes.agents.BaseTestEnd2End` class provides an environment for testing agent instances end to end.
 
 ???+ example
 
-    Fetch the `hello_world` agent:
+    Fetch the `hello_world` agent blueprint:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeie7rsyd4jdgckt7bduxlvypi73cy4kj5ndflb4cmidkjaoaad3xem
-    mv hello_world hello_world_agent
+    autonomy fetch valory/hello_world:0.1.0:bafybeieifur6f2wzp36jt3pslo2xwg3utylb2fvm7rwsw2lorwghzxoone --alias hello_world_agent
     ```
 
     Look at the end-to-end tests, located in the folder

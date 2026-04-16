@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 
 from copy import deepcopy
 from typing import FrozenSet, cast
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -37,7 +38,6 @@ from packages.valory.skills.termination_abci.rounds import (
     TerminationRound,
 )
 
-
 MAX_PARTICIPANTS: int = 4
 
 
@@ -52,7 +52,7 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
     synchronized_data: SynchronizedData
     participants: FrozenSet[str]
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup the test class."""
@@ -79,6 +79,11 @@ class TestBackgroundRound(BaseRoundTestClass):
 
         test_round = BackgroundRound(
             synchronized_data=deepcopy(self.synchronized_data),
+            context=MagicMock(
+                params=MagicMock(
+                    default_chain_id=1,
+                )
+            ),
         )
         payload_data = "0xdata"
         first_payload, *payloads = [
@@ -115,6 +120,7 @@ class TestBackgroundRound(BaseRoundTestClass):
         """Tests the background round when bad payloads are sent."""
         test_round = BackgroundRound(
             synchronized_data=deepcopy(self.synchronized_data),
+            context=MagicMock(),
         )
         payload_data = "0xdata"
         bad_participant = "non_existent"
@@ -165,6 +171,7 @@ class TestTerminationRound(BaseRoundTestClass):
 
         test_round = TerminationRound(
             synchronized_data=deepcopy(self.synchronized_data),
+            context=MagicMock(),
         )
         res = test_round.end_block()  # pylint: disable=assignment-from-none
         assert res is None

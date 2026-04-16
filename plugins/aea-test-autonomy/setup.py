@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,17 +22,16 @@
 from setuptools import find_packages  # type: ignore
 from setuptools import setup  # type: ignore
 
-
 base_deps = [
-    "open-aea[all]>=1.38.0,<2.0.0",
-    "pytest==7.2.1",
-    "open-aea-ledger-ethereum>=1.38.0,<2.0.0",
-    "docker==6.1.2",
+    "open-aea[all]>=2.2.0,<3.0.0",
+    "pytest==8.4.2",
+    "open-aea-ledger-ethereum>=2.2.0,<3.0.0",
+    "docker==7.1.0",
 ]
 
 setup(
     name="open-aea-test-autonomy",
-    version="0.11.0",
+    version="0.21.18",
     author="Valory AG",
     license="Apache-2.0",
     description="Plugin containing test tools for open-autonomy packages.",
@@ -59,10 +58,11 @@ setup(
         "Operating System :: MacOS",
         "Operating System :: Microsoft",
         "Operating System :: Unix",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
         "Topic :: Communications",
         "Topic :: Internet",
         "Topic :: Software Development",

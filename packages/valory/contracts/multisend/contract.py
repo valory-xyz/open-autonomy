@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the class to connect to an Gnosis Safe contract."""
+
 # heavily borrows from https://github.com/gnosis/gnosis-py/blob/51b41f5a8577a96e296b9b7e037491632cda9d8c/gnosis/safe/multi_send.py
 import logging
 from enum import Enum
@@ -29,7 +30,6 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from hexbytes import HexBytes
 from web3 import Web3
-
 
 PUBLIC_ID = PublicId.from_str("valory/multisend:0.1.0")
 MIN_GAS = MIN_GASPRICE = 1
@@ -150,6 +150,27 @@ class MultiSendContract(Contract):
                 encoded_multisend_data
             ).build_transaction({"gas": MIN_GAS, "gasPrice": MIN_GASPRICE})["data"]
         }
+
+    @classmethod
+    def get_multisend_tx(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        txs: List[Dict],
+    ) -> Optional[JSONLike]:
+        """
+        Get a multisend transaction data from list.
+
+        :param ledger_api: ledger API object.
+        :param contract_address: the contract address.
+        :param txs: the multisend transaction list.
+        :return: an optional JSON-like object.
+        """
+        multisend_contract = cls.get_instance(ledger_api, contract_address)
+        encoded_multisend_data = to_bytes(txs)
+        return multisend_contract.functions.multiSend(
+            encoded_multisend_data
+        ).build_transaction({"gas": MIN_GAS, "gasPrice": MIN_GASPRICE})
 
     @classmethod
     def get_tx_list(

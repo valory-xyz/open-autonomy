@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,11 +19,8 @@
 # ------------------------------------------------------------------------------
 
 import os
-import platform
 import re
 from typing import Dict
-
-from setuptools import find_packages, setup  # type: ignore
 
 
 PACKAGE_NAME = "autonomy"
@@ -32,18 +29,28 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 def get_all_extras() -> Dict:
     cli_deps = [
-        "click==8.0.2",
-        "open-aea-cli-ipfs==1.38.0",
+        "click>=8.1.0,<9",
+        "open-aea-cli-ipfs==2.2.1",
         "texttable==1.6.7",
-        "python-dotenv>=0.14.0,<0.18.0",
+        "python-dotenv>=0.14.5,<0.22.0",
+        "pytest>=8.0.0,<8.5.0",
+        "coverage>=6.4.4,<8.0.0",
+    ]
+
+    hwi_deps = [
+        "open-aea-ledger-ethereum-hwi==2.2.1",
     ]
 
     extras = {
         "cli": cli_deps,
+        "hwi": hwi_deps,
     }
 
-    # add "all" extras
-    extras["all"] = list(set(dep for e in extras.values() for dep in e))
+    # [all] intentionally excludes [hwi] — HWI's transitive deps
+    # (hidapi, Pillow via ledgerwallet) have no armv7 wheels, breaking
+    # multi-platform Docker builds. Use pip install open-autonomy[hwi]
+    # explicitly for hardware wallet support.
+    extras["all"] = list(set(dep for k, e in extras.items() for dep in e if k != "hwi"))
     return extras
 
 
@@ -51,14 +58,21 @@ all_extras = get_all_extras()
 
 
 base_deps = [
-    "Flask>=2.0.2,<3.0.0",
-    "open-aea[all]==1.38.0",
-    "pandas>=1.5.3",
+    "Flask>=3.1.0,<4.0.0",
+    "open-aea[all]==2.2.1",
     "watchdog>=2.1.6",
-    "pytest==7.2.1",
-    "valory-docker-compose==1.29.3",
-    "werkzeug==2.0.3",
-    "docker==6.1.2",
+    "pytest==8.4.2",
+    "werkzeug>=3.1.0,<4.0.0",
+    "docker==7.1.0",
+    "hexbytes",
+    "jsonschema<4.24.0,>=4.3.0",
+    "protobuf<6,>=5",
+    "gql==3.5.0",
+    "requests<2.33.0,>=2.28.1",
+    "requests-toolbelt==1.0.0",  # Required for graphql client
+    "aiohttp<4.0.0,>=3.8.5",
+    "typing_extensions<=4.15.0,>=3.10.0.2",
+    "multiaddr==0.0.9"
 ]
 base_deps.extend(all_extras["cli"])
 
@@ -80,6 +94,8 @@ def parse_readme():
 
 
 if __name__ == "__main__":
+    from setuptools import find_packages, setup
+
     setup(
         name=about["__title__"],
         description=about["__description__"],
@@ -110,8 +126,9 @@ if __name__ == "__main__":
                 "data/contracts/service_manager/build/*",
                 "test_tools/data/*",
             ],
+            "packages": ["packages/valory/contracts/service_registry/*"],
         },
-        packages=find_packages(include=["autonomy*"]),
+        packages=find_packages(include=["autonomy*", "packages*"]),
         classifiers=[
             "Environment :: Console",
             "Environment :: Web Environment",
@@ -122,10 +139,11 @@ if __name__ == "__main__":
             "Operating System :: MacOS",
             "Operating System :: Microsoft",
             "Operating System :: Unix",
-            "Programming Language :: Python :: 3.8",
-            "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",
             "Programming Language :: Python :: 3.11",
+            "Programming Language :: Python :: 3.12",
+            "Programming Language :: Python :: 3.13",
+            "Programming Language :: Python :: 3.14",
             "Topic :: Communications",
             "Topic :: Internet",
             "Topic :: Scientific/Engineering",
@@ -139,7 +157,7 @@ if __name__ == "__main__":
         zip_safe=False,
         include_package_data=True,
         license=about["__license__"],
-        python_requires=">=3.8",
+        python_requires=">=3.10",
         keywords="autonomy open-autonomy aea open-aea autonomous-economic-agents agent-framework multi-agent-systems multi-agent cryptocurrency cryptocurrencies dezentralized dezentralized-network",
         project_urls={
             "Bug Reports": "https://github.com/valory-xyz/open-autonomy/issues",

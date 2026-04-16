@@ -1,0 +1,17 @@
+alphabet_in:
+- DONE
+- NO_MAJORITY
+- ROUND_TIMEOUT
+default_start_state: SolanaRound
+final_states:
+- FinishedWithTransactionRound
+label: SolanaTestAbciApp
+start_states:
+- SolanaRound
+states:
+- FinishedWithTransactionRound
+- SolanaRound
+transition_func:
+    (SolanaRound, DONE): FinishedWithTransactionRound
+    (SolanaRound, NO_MAJORITY): SolanaRound
+    (SolanaRound, ROUND_TIMEOUT): SolanaRound

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 # pylint: disable=unused-import
 
 """Test the models.py module of the skill."""
+
 from typing import Any, Dict
 from unittest.mock import MagicMock
 
@@ -46,7 +47,7 @@ class TestTransactionParams:  # pylint: disable=too-few-public-methods
             skill = yaml.safe_load(skill_file)
         self.default_config = skill["models"]["params"]["args"]
 
-    def test_ensure_validate_timeout(  # pylint: disable=no-self-use
+    def test_ensure_validate_timeout(
         self,
     ) -> None:
         """Test that `_ensure_validate_timeout` raises when `validate_timeout` is lower than the allowed minimum."""

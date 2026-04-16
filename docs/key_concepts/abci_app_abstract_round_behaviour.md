@@ -2,7 +2,7 @@
     For clarity, the snippets of code presented here are a simplified version of the actual
     implementation. We refer the reader to the {{open_autonomy_api}} for the complete details.
 
-Whereas the `AbciApp` class defines the model of the FSM for the {{fsm_app}}, the `AbstractRoundBehaviour` is a [`Behaviour`](https://open-aea.docs.autonolas.tech/api/skills/base/#behaviour-objects) that takes care of the processing of the current round
+Whereas the `AbciApp` class defines the model of the FSM for the {{fsm_app}}, the `AbstractRoundBehaviour` is a [`Behaviour`](https://stack.olas.network/open-aea/api/skills/base/#behaviour-objects) that takes care of the processing of the current round
 and transition to the subsequent round, implementation of which resides in the
 `act()` method. Whenever the {{fsm_app}} detects a round change, the
 `AbstractRoundBehaviour` schedules the state behaviour associated with the

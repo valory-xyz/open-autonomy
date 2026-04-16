@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the termination behaviour classes."""
+
 import sys
 from typing import Callable, Dict, Generator, List, Optional, Set, Type, cast
 
@@ -53,7 +54,6 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
 )
-
 
 # setting the safe gas to 0 means that all available gas will be used
 # which is what we want in most cases
@@ -140,7 +140,7 @@ class BackgroundBehaviour(BaseBehaviour):
         This method checks for the termination signal.
 
         We check for the signal by looking at the "SafeReceived" events on the safe contract.
-        https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/common/EtherPaymentFallback.sol#L10
+        https://github.com/safe-global/safe-smart-account/tree/v1.3.0/contracts/common/EtherPaymentFallback.sol#L10
         In order for an SafeReceived event to qualify as a termination signal it has to fulfill the following:
             1. It MUST be sent by the service owner (self._service_owner).
             2. It MUST be 0 value tx.
@@ -192,6 +192,8 @@ class BackgroundBehaviour(BaseBehaviour):
             contract_callable="get_removed_owner_events",
             contract_address=self.synchronized_data.safe_contract_address,
             removed_owner=self._service_owner_address,
+            from_block=self.params.termination_from_block,
+            chain_id=self.params.default_chain_id,
         )
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
@@ -216,12 +218,17 @@ class BackgroundBehaviour(BaseBehaviour):
 
     def _get_latest_termination_signal(self) -> Generator[None, None, Optional[Dict]]:
         """Get the latest termination signal sent by the service owner."""
+        self.context.logger.info(
+            f"Retrieving termination events on chain '{self.params.default_chain_id}' from block {self.params.termination_from_block}"
+        )
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_zero_transfer_events",
             contract_address=self.synchronized_data.safe_contract_address,
             sender_address=self._service_owner_address,
+            from_block=self.params.termination_from_block,
+            chain_id=self.params.default_chain_id,
         )
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
@@ -252,6 +259,7 @@ class BackgroundBehaviour(BaseBehaviour):
             contract_callable="get_service_owner",
             contract_address=self.params.service_registry_address,
             service_id=self.params.on_chain_service_id,
+            chain_id=self.params.default_chain_id,
         )
 
         if response.performative != ContractApiMessage.Performative.STATE:
@@ -294,6 +302,7 @@ class BackgroundBehaviour(BaseBehaviour):
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_owners",
             contract_address=self.synchronized_data.safe_contract_address,
+            chain_id=self.params.default_chain_id,
         )
 
         if response.performative != ContractApiMessage.Performative.STATE:
@@ -324,6 +333,7 @@ class BackgroundBehaviour(BaseBehaviour):
             contract_address=self.synchronized_data.safe_contract_address,
             owner=owner,
             threshold=threshold,
+            chain_id=self.params.default_chain_id,
         )
 
         if response.performative != ContractApiMessage.Performative.STATE:
@@ -355,6 +365,7 @@ class BackgroundBehaviour(BaseBehaviour):
             contract_address=self.synchronized_data.safe_contract_address,
             old_owner=old_owner,
             new_owner=new_owner,
+            chain_id=self.params.default_chain_id,
         )
 
         if response.performative != ContractApiMessage.Performative.STATE:
@@ -386,6 +397,7 @@ class BackgroundBehaviour(BaseBehaviour):
             data=data,
             safe_tx_gas=_SAFE_GAS,
             operation=SafeOperation.DELEGATE_CALL.value,
+            chain_id=self.params.default_chain_id,
         )
 
         if response.performative != ContractApiMessage.Performative.STATE:
@@ -454,6 +466,7 @@ class BackgroundBehaviour(BaseBehaviour):
             contract_id=str(MultiSendContract.contract_id),
             contract_callable="get_tx_data",
             multi_send_txs=transactions,
+            chain_id=self.params.default_chain_id,
         )
         if response.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
             self.context.logger.error(
@@ -540,7 +553,7 @@ class TerminationBehaviour(BaseBehaviour):
         """Logs termination and terminates."""
         self.context.logger.info("Terminating the agent.")
         sys.exit()
-        yield
+        yield  # pylint: disable=unreachable
 
 
 class TerminationAbciBehaviours(AbstractRoundBehaviour):

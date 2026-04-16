@@ -1,3 +1,3 @@
-# Register Reset ABCI Agent
+# Register Reset ABCI Agent Blueprint
 
-This agent uses the registration and reset skills to debug the Tendermint issue.
+This agent blueprint uses the registration and reset skills to debug the Tendermint issue.

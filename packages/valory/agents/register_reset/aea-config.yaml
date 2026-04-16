@@ -3,42 +3,42 @@ author: valory
 version: 0.1.0
 license: Apache-2.0
 description: Register reset to replicate Tendermint issue.
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeicocdojplie5z4kbs7cn7apunfydbxui2nigp6ci2osuvv3mybzfm
+  README.md: bafybeiba4g47xhi5l6555iixngld5pj4jrcubi2hfvz7ubdac7j6agz3wa
   __init__.py: bafybeihgxrmmp63exxkdmvlu565kehvuucg4iivnejwutaehb2p7xzxu4q
   tests/__init__.py: bafybeigkkq3hon4wuyrazwnt5tiu23idpelf6a7kzbmawty7zfrpqnmnhi
   tests/helpers/__init__.py: bafybeigwjcrcn35vqa57l6j7bhrraurvnls5rc6iuoncvp7an5rhhrnfoe
-  tests/helpers/conftest.py: bafybeigyhefebvmlco4tfuclneracsljsr6xtoy6oo7ckj2njciidavpo4
+  tests/helpers/conftest.py: bafybeiezrieqjmmmhz3mxuhaaliy4lo77h4i5zajvgakluuw5tjlmmpj4y
   tests/helpers/docker/__init__.py: bafybeid5bzd6ebfglfmvm44rnnrib7qvonxac2w337qyeihpkbucby7fdi
-  tests/helpers/docker/docker.py: bafybeid6n36kkub2vfswnpqffebuhg67mxrukp3jignihrz4v2hn2mmrwi
-  tests/helpers/slow_tendermint_server/Dockerfile: bafybeihextohv7h5z3rowlrkl5egi7h5yuuwtdsn5jhuxqwejjozk2feky
+  tests/helpers/docker/docker.py: bafybeiet3ohbcjqxgaxiu2edvahgwur2nvouffbbuc3qrtklkgkd5kqezy
+  tests/helpers/slow_tendermint_server/Dockerfile: bafybeia66jdvsevawudnw56t7q4ygu72ayeyakow5mwoffmrxyxl3kusl4
   tests/helpers/slow_tendermint_server/__init__.py: bafybeieosq65nub4bhueyjug3auh36fpcqcwtyrjkomffyi4jyrrvirlnm
-  tests/helpers/slow_tendermint_server/app.py: bafybeifa22ks3tvq34dcnvwmxunwafevg344c2dc64eaia3d3js2sw3pqa
+  tests/helpers/slow_tendermint_server/app.py: bafybeia7zqjro6vz5fquvnqcvwq37co55pjs6cx43ce5lu6koxwbz7migi
   tests/helpers/slow_tendermint_server/config-template.toml: bafybeibzoxwjjn5cacrtx4p2gov75ktg467xoyglistwjn5xt5l6d6tpea
-  tests/helpers/slow_tendermint_server/tendermint.py: bafybeibdtbgu3yb7cczxnuui5ewp2npdxmpunjzoeqoqfv5itq567qw2em
+  tests/helpers/slow_tendermint_server/tendermint.py: bafybeihcvomstsgofnbc25o22tpbqmzva2pp56p3b6xu7q2i2efrgi4vfu
   tests/helpers/slow_tendermint_server/wrapper.sh: bafybeif2wssashoaw7ifz6q3ocmejkuz32ycwta4w5dcjunns4g2awkv2y
-  tests/test_hard_reset_race_condition.py: bafybeidc2m5hb3ajnzghbuvrrpvuyvftbkch75tumtxeg244jko2bwj5uu
-  tests/test_register_reset.py: bafybeiecdipytoorhfpecbzd5pyx7e5zjpxsjc6yyqxezq2q6bhz7yuk7i
+  tests/test_hard_reset_race_condition.py: bafybeihasdkkdvputmwgvzipojfywjpqw7ydrvyzfgd2h64xz6ahopidfe
+  tests/test_register_reset.py: bafybeicnugiccs4525czzqmyx2ewh26bep56osw64cqutsbyid2tct7amq
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeihczvjnki5kxhyixkh4lxuxkqsuhqmpn63tneyj76p7cmgaxqo7pu
-- valory/http_client:0.23.0:bafybeieoeuy4brzimtnubmokwirhrx27ezls6cdnl5qik4rkykfle3nn2y
-- valory/ipfs:0.1.0:bafybeihr5kvz2oj4uxpiqcbjwfx5hpftm4drubugwcabdcht4gpna3l6ja
-- valory/ledger:0.19.0:bafybeigfoz7d7si7s4jehvloq2zmiiocpbxcaathl3bxkyarxoerxq7g3a
-- valory/p2p_libp2p_client:0.1.0:bafybeihdnfdth3qgltefgrem7xyi4b3ejzaz67xglm2hbma2rfvpl2annq
+- valory/abci:0.1.0:bafybeihgtguy5ljj2rwgwoxeor5d565alwfggnuevss7malhzdats6nfqi
+- valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
+- valory/ipfs:0.1.0:bafybeiddxbjccmzkknny5pbfupxgexp4w4pwiu2rny4a6vnlxwqs3mmfo4
+- valory/ledger:0.19.0:bafybeidqf5dmueqm655z3bkw36mviobpcpuek4bhha7iq2nnz6sfu32kva
+- valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:bafybeifuxs7gdg2okbn7uofymenjlmnih2wxwkym44lsgwmklgwuckxm2m
-- valory/abci:0.1.0:bafybeigootsvqpk6th5xpdtzanxum3earifrrezfyhylfrit7yvqdrtgpe
-- valory/http:1.0.0:bafybeia5bxdua2i6chw6pg47bvoljzcpuqxzy4rdrorbdmcbnwmnfdobtu
-- valory/ipfs:0.1.0:bafybeibjzhsengtxfofqpxy6syamplevp35obemwfp4c5lhag3v2bvgysa
+- open_aea/signing:1.0.0:bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye
+- valory/abci:0.1.0:bafybeiak4pwac3pwjtd7weskxdhkrcopckr32vtazfbuteu6yqjkwarpte
+- valory/http:1.0.0:bafybeidxkp3vga7t6x2pbt2tpkgyaxa5bgpdgryao54py7w3yxyzr7neoy
+- valory/ipfs:0.1.0:bafybeibz5xqhxdbuvba7nuw2w6ardjermtcoqercopnypdplnaekf3joam
 skills:
-- valory/abstract_abci:0.1.0:bafybeibcemiz3qxoordadxwkxkjp7g7rerbfwap6wqxiepcms22ocb3v7i
-- valory/abstract_round_abci:0.1.0:bafybeicyy4g3x6ol6x2ayzcdkg2wstubqecp6ycgo6f2c2bhjnhwdjs3qa
-- valory/register_reset_abci:0.1.0:bafybeiepmwq5cderjyik5q4bnlkzqf7cc3yjydolbj5bs6gpve57xnxa2i
-- valory/registration_abci:0.1.0:bafybeigexg5mw5sh35qkhlaeegycgtkd2ym5o4marjc5o7gl7t352hohiu
-- valory/reset_pause_abci:0.1.0:bafybeigabcdz5en52zuxzxa6a4p5c7z4qyi3fcfp7lodqusjh32z5obcqy
+- valory/abstract_abci:0.1.0:bafybeif4jcv22xrmkwiaecyyli7iknmdhtkg6dmzqmwpqekmvxyr7ba3xy
+- valory/abstract_round_abci:0.1.0:bafybeihgbc5geup3ljdfgyontr2p5e4myxjkthaplm5ei727uw2pawstcy
+- valory/register_reset_abci:0.1.0:bafybeihv633h6pvcfjewdm7mobyefv7nsojmzykrzdofvz62occysgt6ju
+- valory/registration_abci:0.1.0:bafybeib7midws7obgz34tqsebowa73z46pm34hhsssa3rjet2npp5ekvwm
+- valory/reset_pause_abci:0.1.0:bafybeiezqq76bdcrlgshyo2e544sm3u57amerpwla3sacosle5zivaij24
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -69,9 +69,10 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.38.0
+    version: ==2.2.1
   open-aea-test-autonomy:
-    version: ==0.11.0
+    version: ==0.21.18
+customs: []
 default_connection: null
 ---
 public_id: valory/abci:0.1.0
@@ -103,8 +104,8 @@ cert_requests:
 - identifier: acn
   ledger_id: ethereum
   message_format: '{public_key}'
-  not_after: '2023-01-01'
-  not_before: '2022-01-01'
+  not_after: '2025-01-01'
+  not_before: '2024-01-01'
   public_key: ${P2P_PUBLIC_KEY:str:03c74dbfbe7bbc1b42429f78778017a3cd7eaf9d59d1634c9505a3f7c1a9350e71}
   save_path: .certs/acn_cosmos_11000.txt
 is_abstract: false

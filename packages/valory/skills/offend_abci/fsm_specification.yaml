@@ -1,0 +1,17 @@
+alphabet_in:
+- DONE
+- NO_MAJORITY
+- ROUND_TIMEOUT
+default_start_state: OffendRound
+final_states:
+- FinishedOffendRound
+label: OffendAbciApp
+start_states:
+- OffendRound
+states:
+- FinishedOffendRound
+- OffendRound
+transition_func:
+    (OffendRound, DONE): FinishedOffendRound
+    (OffendRound, NO_MAJORITY): OffendRound
+    (OffendRound, ROUND_TIMEOUT): OffendRound

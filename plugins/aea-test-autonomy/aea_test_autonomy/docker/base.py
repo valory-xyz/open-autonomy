@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains testing utilities."""
+
 import logging
 import platform
 import re
@@ -31,7 +32,6 @@ import docker
 import pytest
 from docker.errors import ImageNotFound, NotFound
 from docker.models.containers import Container
-
 
 SEPARATOR = ("\n" + "*" * 40) * 3 + "\n"
 logger = logging.getLogger(__name__)
@@ -93,12 +93,35 @@ class DockerImage(ABC):
         """Return the image name."""
 
     def stop_if_already_running(self) -> None:
-        """Stop the running images with the same tag, if any."""
+        """Stop running containers with the same image or conflicting ports."""
         client = docker.from_env()
         for container in client.containers.list():
+            should_stop = False
             if self.image in container.image.tags:
-                logger.info(f"Stopping image {self.image}...")
+                logger.info(f"Stopping container with matching image {self.image}...")
+                should_stop = True
+            elif self._is_port_conflict(container):
+                logger.info(
+                    f"Stopping container {container.name} due to port conflict..."
+                )
+                should_stop = True
+            if should_stop:
                 container.stop()
+                container.remove()
+
+    def _is_port_conflict(self, container: Container) -> bool:
+        """Check if a container binds to a port this image needs."""
+        host_port = getattr(self, "port", None) or getattr(self, "_port", None)
+        if host_port is None:
+            return False
+        ports = container.attrs.get("NetworkSettings", {}).get("Ports") or {}
+        for bindings in ports.values():
+            if bindings is None:
+                continue
+            for binding in bindings:
+                if int(binding.get("HostPort", 0)) == host_port:
+                    return True
+        return False
 
     @abstractmethod
     def create(self) -> Container:

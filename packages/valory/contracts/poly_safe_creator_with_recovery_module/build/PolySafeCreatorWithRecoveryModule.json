@@ -1,0 +1,695 @@
+{
+    "abi": [
+        {
+            "type": "constructor",
+            "inputs": [
+                {
+                    "name": "_polySafeProxyFactory",
+                    "type": "address",
+                    "internalType": "address"
+                },
+                {
+                    "name": "_recoveryModule",
+                    "type": "address",
+                    "internalType": "address"
+                },
+                {
+                    "name": "_polySafeProxyBytecodeHash",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                }
+            ],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
+            "name": "CREATE_PROXY_TYPEHASH",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "DOMAIN_SEPARATOR_TYPEHASH",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "SAFE_TX_TYPEHASH",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "create",
+            "inputs": [
+                {
+                    "name": "owners",
+                    "type": "address[]",
+                    "internalType": "address[]"
+                },
+                {
+                    "name": "threshold",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                },
+                {
+                    "name": "data",
+                    "type": "bytes",
+                    "internalType": "bytes"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "multisig",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
+            "name": "getEnableModuleTransactionHash",
+            "inputs": [
+                {
+                    "name": "owner",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "getPolySafeCreateTransactionHash",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "polySafeProxyBytecodeHash",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "polySafeProxyFactory",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "polySafeProxyFactoryDomainSeparator",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "recoveryModule",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "event",
+            "name": "MultisigCreated",
+            "inputs": [
+                {
+                    "name": "multisig",
+                    "type": "address",
+                    "indexed": true,
+                    "internalType": "address"
+                },
+                {
+                    "name": "owner",
+                    "type": "address",
+                    "indexed": true,
+                    "internalType": "address"
+                }
+            ],
+            "anonymous": false
+        },
+        {
+            "type": "error",
+            "name": "MultisigAlreadyExists",
+            "inputs": [
+                {
+                    "name": "multisig",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ]
+        },
+        {
+            "type": "error",
+            "name": "UnauthorizedMultisig",
+            "inputs": [
+                {
+                    "name": "multisig",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ]
+        },
+        {
+            "type": "error",
+            "name": "WrongNumOwners",
+            "inputs": [
+                {
+                    "name": "expected",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                },
+                {
+                    "name": "provided",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ]
+        },
+        {
+            "type": "error",
+            "name": "WrongOwner",
+            "inputs": [
+                {
+                    "name": "provided",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ]
+        },
+        {
+            "type": "error",
+            "name": "WrongThreshold",
+            "inputs": [
+                {
+                    "name": "expected",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                },
+                {
+                    "name": "provided",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                }
+            ]
+        },
+        {
+            "type": "error",
+            "name": "ZeroAddress",
+            "inputs": []
+        },
+        {
+            "type": "error",
+            "name": "ZeroValue",
+            "inputs": []
+        }
+    ],
+    "bytecode": "0x610100604052348015610010575f5ffd5b5060405161114a38038061114a83398101604081905261002f91610124565b6001600160a01b038316158061004c57506001600160a01b038216155b1561006a5760405163d92e233d60e01b815260040160405180910390fd5b5f81900361008b57604051637c946ed760e01b815260040160405180910390fd5b826001600160a01b031663f698da256040518163ffffffff1660e01b8152600401602060405180830381865afa1580156100c7573d5f5f3e3d5ffd5b505050506040513d601f19601f820116820180604052508101906100eb9190610160565b6080526001600160a01b0392831660c052911660e05260a052610177565b80516001600160a01b038116811461011f575f5ffd5b919050565b5f5f5f60608486031215610136575f5ffd5b61013f84610109565b925061014d60208501610109565b6040949094015192959394509192915050565b5f60208284031215610170575f5ffd5b5051919050565b60805160a05160c05160e051610f706101da5f395f8181610106015281816102de01526108c501525f818160c20152818161036b0152818161052e015261065601525f81816102af01526106b701525f81816101c501526102140152610f705ff3fe608060405234801561000f575f5ffd5b50600436106100b9575f3560e01c8063936325bd11610072578063ccafc38711610058578063ccafc38714610270578063f398dba814610297578063ff236fd9146102aa575f5ffd5b8063936325bd1461023657806398827e2914610249575f5ffd5b80631db61b54116100a25780631db61b541461012857806361d1d0151461015d5780636450a9b31461020f575f5ffd5b80630e88dd0f146100bd5780630ee9bf1414610101575b5f5ffd5b6100e47f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b0390911681526020015b60405180910390f35b6100e47f000000000000000000000000000000000000000000000000000000000000000081565b61014f7f47e79534a245952e8b16893a336b85a3d9ea9fa8c573f3d803afb92a7946921881565b6040519081526020016100f8565b604080517fdee5f5588156b735c3bff14a54c9acefc845807cec91b7fd0809fa3deccab3636020808301919091525f828401819052606083018190526080808401919091528351808403909101815260a08301845280519082012061190160f01b60c08401527f000000000000000000000000000000000000000000000000000000000000000060c284015260e28084019190915283518084039091018152610102909201909252805191012061014f565b61014f7f000000000000000000000000000000000000000000000000000000000000000081565b61014f610244366004610a31565b6102d1565b61014f7fdee5f5588156b735c3bff14a54c9acefc845807cec91b7fd0809fa3deccab36381565b61014f7fbb8310d486368db6bd6f849402fdd73ad53d316b5a4b2644ad6efe0f941286d881565b6100e46102a5366004610b5d565b6104dd565b61014f7f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b037f00000000000000000000000000000000000000000000000000000000000000001660248201525f90819060440160408051601f198184030181529181526020820180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff1663610b592560e01b17905251636b0029cd60e11b81526001600160a01b0385811660048301529192505f917f0000000000000000000000000000000000000000000000000000000000000000169063d600539a90602401602060405180830381865afa1580156103b0573d5f5f3e3d5ffd5b505050506040513d601f19601f820116820180604052508101906103d49190610c2a565b604080517f47e79534a245952e8b16893a336b85a3d9ea9fa8c573f3d803afb92a79469218602082015246918101919091526001600160a01b03821660608201529091505f9060800160408051601f198184030181529082905280516020918201208551868301209093505f9261047f927fbb8310d486368db6bd6f849402fdd73ad53d316b5a4b2644ad6efe0f941286d89287928692839182918291829182918291829101610c65565b60408051601f198184030181528282528051602091820120601960f81b82850152600160f81b602185015260228401959095526042808401959095528151808403909501855260629092019052825192019190912095945050505050565b5f835160011461051257835160405163f720290d60e01b81526001600482015260248101919091526044015b60405180910390fd5b5f5f838060200190518101906105289190610ce2565b915091507f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663d600539a875f8151811061056d5761056d610d9d565b60200260200101516040518263ffffffff1660e01b81526004016105a091906001600160a01b0391909116815260200190565b602060405180830381865afa1580156105bb573d5f5f3e3d5ffd5b505050506040513d601f19601f820116820180604052508101906105df9190610c2a565b92506001600160a01b0383163b156106155760405163f6349f0360e01b81526001600160a01b0384166004820152602401610509565b60408051632862134b60e21b81525f60048201819052602482018190526044820152835160ff166064820152602084015160848201529083015160a48201527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03169063a1884d2c9060c4015f604051808303815f87803b15801561069f575f5ffd5b505af11580156106b1573d5f5f3e3d5ffd5b505050507f0000000000000000000000000000000000000000000000000000000000000000836001600160a01b03163f146107095760405162a2307960e51b81526001600160a01b0384166004820152602401610509565b5f836001600160a01b031663a0e67e2b6040518163ffffffff1660e01b81526004015f60405180830381865afa158015610745573d5f5f3e3d5ffd5b505050506040513d5f823e601f3d908101601f1916820160405261076c9190810190610db1565b90505f846001600160a01b031663e75235b86040518163ffffffff1660e01b8152600401602060405180830381865afa1580156107ab573d5f5f3e3d5ffd5b505050506040513d601f19601f820116820180604052508101906107cf9190610e4b565b90508087146107fb57604051635372461560e01b81526004810182905260248101889052604401610509565b815188511461082a578751825160405163f720290d60e01b815260048101929092526024820152604401610509565b815f8151811061083c5761083c610d9d565b60200260200101516001600160a01b0316885f8151811061085f5761085f610d9d565b60200260200101516001600160a01b0316146108b857875f8151811061088757610887610d9d565b60200260200101516040516374dba67360e01b815260040161050991906001600160a01b0391909116815260200190565b6040516001600160a01b037f00000000000000000000000000000000000000000000000000000000000000001660248201525f9060440160405160208183030381529060405263610b592560e01b6020820180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff83818316178352505050509050856001600160a01b0316636a761202875f845f5f5f5f5f5f8e6040518b63ffffffff1660e01b81526004016109749a99989796959493929190610e90565b6020604051808303815f875af1158015610990573d5f5f3e3d5ffd5b505050506040513d601f19601f820116820180604052508101906109b49190610f1b565b50885f815181106109c7576109c7610d9d565b60200260200101516001600160a01b0316866001600160a01b03167f38b56a7814c1a51663dba0756bf5ece28e95bcf82cf63a76479424baf9c680f960405160405180910390a350505050509392505050565b6001600160a01b0381168114610a2e575f5ffd5b50565b5f60208284031215610a41575f5ffd5b8135610a4c81610a1a565b9392505050565b634e487b7160e01b5f52604160045260245ffd5b6040516060810167ffffffffffffffff81118282101715610a8a57610a8a610a53565b60405290565b604051601f8201601f1916810167ffffffffffffffff81118282101715610ab957610ab9610a53565b604052919050565b5f67ffffffffffffffff821115610ada57610ada610a53565b5060051b60200190565b5f67ffffffffffffffff821115610afd57610afd610a53565b50601f01601f191660200190565b5f82601f830112610b1a575f5ffd5b8135610b2d610b2882610ae4565b610a90565b818152846020838601011115610b41575f5ffd5b816020850160208301375f918101602001919091529392505050565b5f5f5f60608486031215610b6f575f5ffd5b833567ffffffffffffffff811115610b85575f5ffd5b8401601f81018613610b95575f5ffd5b8035610ba3610b2882610ac1565b8082825260208201915060208360051b850101925088831115610bc4575f5ffd5b6020840193505b82841015610bef578335610bde81610a1a565b825260209384019390910190610bcb565b955050505060208401359150604084013567ffffffffffffffff811115610c14575f5ffd5b610c2086828701610b0b565b9150509250925092565b5f60208284031215610c3a575f5ffd5b8151610a4c81610a1a565b60028110610c6157634e487b7160e01b5f52602160045260245ffd5b9052565b8b81526001600160a01b038b16602082015260ff8a166040820152606081018990526101608101610c99608083018a610c45565b60ff97881660a083015295871660c082015293861660e08501526001600160a01b0392831661010085015291166101208301529092166101409092019190915295945050505050565b5f5f8284036080811215610cf4575f5ffd5b6060811215610d01575f5ffd5b50610d0a610a67565b835160ff81168114610d1a575f5ffd5b81526020848101519082015260408085015190820152606084015190925067ffffffffffffffff811115610d4c575f5ffd5b8301601f81018513610d5c575f5ffd5b8051610d6a610b2882610ae4565b818152866020838501011115610d7e575f5ffd5b8160208401602083015e5f602083830101528093505050509250929050565b634e487b7160e01b5f52603260045260245ffd5b5f60208284031215610dc1575f5ffd5b815167ffffffffffffffff811115610dd7575f5ffd5b8201601f81018413610de7575f5ffd5b8051610df5610b2882610ac1565b8082825260208201915060208360051b850101925086831115610e16575f5ffd5b6020840193505b82841015610e41578351610e3081610a1a565b825260209384019390910190610e1d565b9695505050505050565b5f60208284031215610e5b575f5ffd5b5051919050565b5f81518084528060208401602086015e5f602082860101526020601f19601f83011685010191505092915050565b6001600160a01b038b16815289602082015261014060408201525f610eb961014083018b610e62565b610ec6606084018b610c45565b8860808401528760a08401528660c08401526001600160a01b03861660e08401526001600160a01b038516610100840152828103610120840152610f0a8185610e62565b9d9c50505050505050505050505050565b5f60208284031215610f2b575f5ffd5b81518015158114610a4c575f5ffdfea2646970667358221220f77e9fe73afb5a17fa54bd709f8938a7a0062c27137d6409c4f13b7d33694ea964736f6c634300081e0033",
+    "deployedBytecode": "0x608060405234801561000f575f5ffd5b50600436106100b9575f3560e01c8063936325bd11610072578063ccafc38711610058578063ccafc38714610270578063f398dba814610297578063ff236fd9146102aa575f5ffd5b8063936325bd1461023657806398827e2914610249575f5ffd5b80631db61b54116100a25780631db61b541461012857806361d1d0151461015d5780636450a9b31461020f575f5ffd5b80630e88dd0f146100bd5780630ee9bf1414610101575b5f5ffd5b6100e47f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b0390911681526020015b60405180910390f35b6100e47f000000000000000000000000000000000000000000000000000000000000000081565b61014f7f47e79534a245952e8b16893a336b85a3d9ea9fa8c573f3d803afb92a7946921881565b6040519081526020016100f8565b604080517fdee5f5588156b735c3bff14a54c9acefc845807cec91b7fd0809fa3deccab3636020808301919091525f828401819052606083018190526080808401919091528351808403909101815260a08301845280519082012061190160f01b60c08401527f000000000000000000000000000000000000000000000000000000000000000060c284015260e28084019190915283518084039091018152610102909201909252805191012061014f565b61014f7f000000000000000000000000000000000000000000000000000000000000000081565b61014f610244366004610a31565b6102d1565b61014f7fdee5f5588156b735c3bff14a54c9acefc845807cec91b7fd0809fa3deccab36381565b61014f7fbb8310d486368db6bd6f849402fdd73ad53d316b5a4b2644ad6efe0f941286d881565b6100e46102a5366004610b5d565b6104dd565b61014f7f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b037f00000000000000000000000000000000000000000000000000000000000000001660248201525f90819060440160408051601f198184030181529181526020820180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff1663610b592560e01b17905251636b0029cd60e11b81526001600160a01b0385811660048301529192505f917f0000000000000000000000000000000000000000000000000000000000000000169063d600539a90602401602060405180830381865afa1580156103b0573d5f5f3e3d5ffd5b505050506040513d601f19601f820116820180604052508101906103d49190610c2a565b604080517f47e79534a245952e8b16893a336b85a3d9ea9fa8c573f3d803afb92a79469218602082015246918101919091526001600160a01b03821660608201529091505f9060800160408051601f198184030181529082905280516020918201208551868301209093505f9261047f927fbb8310d486368db6bd6f849402fdd73ad53d316b5a4b2644ad6efe0f941286d89287928692839182918291829182918291829101610c65565b60408051601f198184030181528282528051602091820120601960f81b82850152600160f81b602185015260228401959095526042808401959095528151808403909501855260629092019052825192019190912095945050505050565b5f835160011461051257835160405163f720290d60e01b81526001600482015260248101919091526044015b60405180910390fd5b5f5f838060200190518101906105289190610ce2565b915091507f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031663d600539a875f8151811061056d5761056d610d9d565b60200260200101516040518263ffffffff1660e01b81526004016105a091906001600160a01b0391909116815260200190565b602060405180830381865afa1580156105bb573d5f5f3e3d5ffd5b505050506040513d601f19601f820116820180604052508101906105df9190610c2a565b92506001600160a01b0383163b156106155760405163f6349f0360e01b81526001600160a01b0384166004820152602401610509565b60408051632862134b60e21b81525f60048201819052602482018190526044820152835160ff166064820152602084015160848201529083015160a48201527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03169063a1884d2c9060c4015f604051808303815f87803b15801561069f575f5ffd5b505af11580156106b1573d5f5f3e3d5ffd5b505050507f0000000000000000000000000000000000000000000000000000000000000000836001600160a01b03163f146107095760405162a2307960e51b81526001600160a01b0384166004820152602401610509565b5f836001600160a01b031663a0e67e2b6040518163ffffffff1660e01b81526004015f60405180830381865afa158015610745573d5f5f3e3d5ffd5b505050506040513d5f823e601f3d908101601f1916820160405261076c9190810190610db1565b90505f846001600160a01b031663e75235b86040518163ffffffff1660e01b8152600401602060405180830381865afa1580156107ab573d5f5f3e3d5ffd5b505050506040513d601f19601f820116820180604052508101906107cf9190610e4b565b90508087146107fb57604051635372461560e01b81526004810182905260248101889052604401610509565b815188511461082a578751825160405163f720290d60e01b815260048101929092526024820152604401610509565b815f8151811061083c5761083c610d9d565b60200260200101516001600160a01b0316885f8151811061085f5761085f610d9d565b60200260200101516001600160a01b0316146108b857875f8151811061088757610887610d9d565b60200260200101516040516374dba67360e01b815260040161050991906001600160a01b0391909116815260200190565b6040516001600160a01b037f00000000000000000000000000000000000000000000000000000000000000001660248201525f9060440160405160208183030381529060405263610b592560e01b6020820180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff83818316178352505050509050856001600160a01b0316636a761202875f845f5f5f5f5f5f8e6040518b63ffffffff1660e01b81526004016109749a99989796959493929190610e90565b6020604051808303815f875af1158015610990573d5f5f3e3d5ffd5b505050506040513d601f19601f820116820180604052508101906109b49190610f1b565b50885f815181106109c7576109c7610d9d565b60200260200101516001600160a01b0316866001600160a01b03167f38b56a7814c1a51663dba0756bf5ece28e95bcf82cf63a76479424baf9c680f960405160405180910390a350505050509392505050565b6001600160a01b0381168114610a2e575f5ffd5b50565b5f60208284031215610a41575f5ffd5b8135610a4c81610a1a565b9392505050565b634e487b7160e01b5f52604160045260245ffd5b6040516060810167ffffffffffffffff81118282101715610a8a57610a8a610a53565b60405290565b604051601f8201601f1916810167ffffffffffffffff81118282101715610ab957610ab9610a53565b604052919050565b5f67ffffffffffffffff821115610ada57610ada610a53565b5060051b60200190565b5f67ffffffffffffffff821115610afd57610afd610a53565b50601f01601f191660200190565b5f82601f830112610b1a575f5ffd5b8135610b2d610b2882610ae4565b610a90565b818152846020838601011115610b41575f5ffd5b816020850160208301375f918101602001919091529392505050565b5f5f5f60608486031215610b6f575f5ffd5b833567ffffffffffffffff811115610b85575f5ffd5b8401601f81018613610b95575f5ffd5b8035610ba3610b2882610ac1565b8082825260208201915060208360051b850101925088831115610bc4575f5ffd5b6020840193505b82841015610bef578335610bde81610a1a565b825260209384019390910190610bcb565b955050505060208401359150604084013567ffffffffffffffff811115610c14575f5ffd5b610c2086828701610b0b565b9150509250925092565b5f60208284031215610c3a575f5ffd5b8151610a4c81610a1a565b60028110610c6157634e487b7160e01b5f52602160045260245ffd5b9052565b8b81526001600160a01b038b16602082015260ff8a166040820152606081018990526101608101610c99608083018a610c45565b60ff97881660a083015295871660c082015293861660e08501526001600160a01b0392831661010085015291166101208301529092166101409092019190915295945050505050565b5f5f8284036080811215610cf4575f5ffd5b6060811215610d01575f5ffd5b50610d0a610a67565b835160ff81168114610d1a575f5ffd5b81526020848101519082015260408085015190820152606084015190925067ffffffffffffffff811115610d4c575f5ffd5b8301601f81018513610d5c575f5ffd5b8051610d6a610b2882610ae4565b818152866020838501011115610d7e575f5ffd5b8160208401602083015e5f602083830101528093505050509250929050565b634e487b7160e01b5f52603260045260245ffd5b5f60208284031215610dc1575f5ffd5b815167ffffffffffffffff811115610dd7575f5ffd5b8201601f81018413610de7575f5ffd5b8051610df5610b2882610ac1565b8082825260208201915060208360051b850101925086831115610e16575f5ffd5b6020840193505b82841015610e41578351610e3081610a1a565b825260209384019390910190610e1d565b9695505050505050565b5f60208284031215610e5b575f5ffd5b5051919050565b5f81518084528060208401602086015e5f602082860101526020601f19601f83011685010191505092915050565b6001600160a01b038b16815289602082015261014060408201525f610eb961014083018b610e62565b610ec6606084018b610c45565b8860808401528760a08401528660c08401526001600160a01b03861660e08401526001600160a01b038516610100840152828103610120840152610f0a8185610e62565b9d9c50505050505050505050505050565b5f60208284031215610f2b575f5ffd5b81518015158114610a4c575f5ffdfea2646970667358221220f77e9fe73afb5a17fa54bd709f8938a7a0062c27137d6409c4f13b7d33694ea964736f6c634300081e0033",
+    "linkReferences": {},
+    "immutableReferences": {
+        "11787": [
+            {
+                "start": 453,
+                "length": 32
+            },
+            {
+                "start": 532,
+                "length": 32
+            }
+        ],
+        "11789": [
+            {
+                "start": 687,
+                "length": 32
+            },
+            {
+                "start": 1719,
+                "length": 32
+            }
+        ],
+        "11791": [
+            {
+                "start": 194,
+                "length": 32
+            },
+            {
+                "start": 875,
+                "length": 32
+            },
+            {
+                "start": 1326,
+                "length": 32
+            },
+            {
+                "start": 1622,
+                "length": 32
+            }
+        ],
+        "11793": [
+            {
+                "start": 262,
+                "length": 32
+            },
+            {
+                "start": 734,
+                "length": 32
+            },
+            {
+                "start": 2245,
+                "length": 32
+            }
+        ]
+    },
+    "methodIdentifiers": {
+        "CREATE_PROXY_TYPEHASH()": "98827e29",
+        "DOMAIN_SEPARATOR_TYPEHASH()": "1db61b54",
+        "SAFE_TX_TYPEHASH()": "ccafc387",
+        "create(address[],uint256,bytes)": "f398dba8",
+        "getEnableModuleTransactionHash(address)": "936325bd",
+        "getPolySafeCreateTransactionHash()": "61d1d015",
+        "polySafeProxyBytecodeHash()": "ff236fd9",
+        "polySafeProxyFactory()": "0e88dd0f",
+        "polySafeProxyFactoryDomainSeparator()": "6450a9b3",
+        "recoveryModule()": "0ee9bf14"
+    },
+    "rawMetadata": "{\"compiler\":{\"version\":\"0.8.30+commit.73712a01\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_polySafeProxyFactory\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_recoveryModule\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"_polySafeProxyBytecodeHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"multisig\",\"type\":\"address\"}],\"name\":\"MultisigAlreadyExists\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"multisig\",\"type\":\"address\"}],\"name\":\"UnauthorizedMultisig\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"expected\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"provided\",\"type\":\"uint256\"}],\"name\":\"WrongNumOwners\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"provided\",\"type\":\"address\"}],\"name\":\"WrongOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"expected\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"provided\",\"type\":\"uint256\"}],\"name\":\"WrongThreshold\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ZeroAddress\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ZeroValue\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"multisig\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"MultisigCreated\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"CREATE_PROXY_TYPEHASH\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"DOMAIN_SEPARATOR_TYPEHASH\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"SAFE_TX_TYPEHASH\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"owners\",\"type\":\"address[]\"},{\"internalType\":\"uint256\",\"name\":\"threshold\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"create\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"multisig\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"getEnableModuleTransactionHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getPolySafeCreateTransactionHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"polySafeProxyBytecodeHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"polySafeProxyFactory\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"polySafeProxyFactoryDomainSeparator\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"recoveryModule\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"Aleksandr Kuperman - <aleksandr.kuperman@valory.xyz>Andrey Lebedev - <andrey.lebedev@valory.xyz>Mariapia Moscatiello - <mariapia.moscatiello@valory.xyz>\",\"errors\":{\"MultisigAlreadyExists(address)\":[{\"details\":\"Multisig already exists.\",\"params\":{\"multisig\":\"Multisig address.\"}}],\"UnauthorizedMultisig(address)\":[{\"details\":\"Multisig proxy bytecode hash is incorrect.\",\"params\":{\"multisig\":\"Address of a multisig proxy.\"}}],\"WrongNumOwners(uint256,uint256)\":[{\"details\":\"Provided incorrect number of owners.\",\"params\":{\"expected\":\"Expected number of owners.\",\"provided\":\"Provided number of owners.\"}}],\"WrongOwner(address)\":[{\"details\":\"Provided incorrect multisig owner.\",\"params\":{\"provided\":\"Provided owner address.\"}}],\"WrongThreshold(uint256,uint256)\":[{\"details\":\"Provided incorrect multisig threshold.\",\"params\":{\"expected\":\"Expected threshold.\",\"provided\":\"Provided threshold.\"}}],\"ZeroAddress()\":[{\"details\":\"Provided zero address.\"}],\"ZeroValue()\":[{\"details\":\"Provided zero value.\"}]},\"kind\":\"dev\",\"methods\":{\"constructor\":{\"details\":\"PolySafeCreator constructor.\",\"params\":{\"_polySafeProxyFactory\":\"Poly Safe proxy factory address.\",\"_recoveryModule\":\"Recovery Module address.\"}},\"create(address[],uint256,bytes)\":{\"details\":\"Creates Poly Safe multisig.\",\"params\":{\"data\":\"Packed data related to the creation of a chosen multisig.\",\"owners\":\"Set of multisig owners.\",\"threshold\":\"Number of required confirmations for a multisig transaction.\"},\"returns\":{\"multisig\":\"Address of a created multisig.\"}},\"getEnableModuleTransactionHash(address)\":{\"details\":\"Gets hash that is required to be signed by multisig owner in order to enable Recovery Module.\",\"params\":{\"owner\":\"Multisig owner.\"},\"returns\":{\"_0\":\"Transaction hash bytes.\"}},\"getPolySafeCreateTransactionHash()\":{\"details\":\"Gets hash that is required to be signed by multisig owner in order to create Poly Safe multisig proxy.\"}},\"title\":\"PolySafeCreatorWithRecoveryModule - Smart contract for Poly Safe multisig implementation with Recovery Module\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"create(address[],uint256,bytes)\":{\"notice\":\"Number of owners and threshold is required to be 1.\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/multisigs/PolySafeCreatorWithRecoveryModule.sol\":\"PolySafeCreatorWithRecoveryModule\"},\"evmVersion\":\"prague\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":750},\"remappings\":[\":@gnosis.pm/=node_modules/@gnosis.pm/\",\":ds-test/=lib/solmate/lib/ds-test/src/\",\":forge-std/=lib/forge-std/src/\",\":solmate/=lib/solmate/src/\"]},\"sources\":{\"contracts/multisigs/PolySafeCreatorWithRecoveryModule.sol\":{\"keccak256\":\"0x214501a0e21eca0ea0334efbed1cbaab79c3a5b8193195f45e58fb4ad29db555\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://915131f87215f1f37d461f8e8813f330097e371a649faa2aa84ae365612542ad\",\"dweb:/ipfs/QmZR6kNmgab2wX57Umo4XmZiAoRsw3M84PJkhYKZBcbeNJ\"]}},\"version\":1}",
+    "metadata": {
+        "compiler": {
+            "version": "0.8.30+commit.73712a01"
+        },
+        "language": "Solidity",
+        "output": {
+            "abi": [
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "_polySafeProxyFactory",
+                            "type": "address"
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "_recoveryModule",
+                            "type": "address"
+                        },
+                        {
+                            "internalType": "bytes32",
+                            "name": "_polySafeProxyBytecodeHash",
+                            "type": "bytes32"
+                        }
+                    ],
+                    "stateMutability": "nonpayable",
+                    "type": "constructor"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "multisig",
+                            "type": "address"
+                        }
+                    ],
+                    "type": "error",
+                    "name": "MultisigAlreadyExists"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "multisig",
+                            "type": "address"
+                        }
+                    ],
+                    "type": "error",
+                    "name": "UnauthorizedMultisig"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint256",
+                            "name": "expected",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "provided",
+                            "type": "uint256"
+                        }
+                    ],
+                    "type": "error",
+                    "name": "WrongNumOwners"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "provided",
+                            "type": "address"
+                        }
+                    ],
+                    "type": "error",
+                    "name": "WrongOwner"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint256",
+                            "name": "expected",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "provided",
+                            "type": "uint256"
+                        }
+                    ],
+                    "type": "error",
+                    "name": "WrongThreshold"
+                },
+                {
+                    "inputs": [],
+                    "type": "error",
+                    "name": "ZeroAddress"
+                },
+                {
+                    "inputs": [],
+                    "type": "error",
+                    "name": "ZeroValue"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "multisig",
+                            "type": "address",
+                            "indexed": true
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "owner",
+                            "type": "address",
+                            "indexed": true
+                        }
+                    ],
+                    "type": "event",
+                    "name": "MultisigCreated",
+                    "anonymous": false
+                },
+                {
+                    "inputs": [],
+                    "stateMutability": "view",
+                    "type": "function",
+                    "name": "CREATE_PROXY_TYPEHASH",
+                    "outputs": [
+                        {
+                            "internalType": "bytes32",
+                            "name": "",
+                            "type": "bytes32"
+                        }
+                    ]
+                },
+                {
+                    "inputs": [],
+                    "stateMutability": "view",
+                    "type": "function",
+                    "name": "DOMAIN_SEPARATOR_TYPEHASH",
+                    "outputs": [
+                        {
+                            "internalType": "bytes32",
+                            "name": "",
+                            "type": "bytes32"
+                        }
+                    ]
+                },
+                {
+                    "inputs": [],
+                    "stateMutability": "view",
+                    "type": "function",
+                    "name": "SAFE_TX_TYPEHASH",
+                    "outputs": [
+                        {
+                            "internalType": "bytes32",
+                            "name": "",
+                            "type": "bytes32"
+                        }
+                    ]
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address[]",
+                            "name": "owners",
+                            "type": "address[]"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "threshold",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "bytes",
+                            "name": "data",
+                            "type": "bytes"
+                        }
+                    ],
+                    "stateMutability": "nonpayable",
+                    "type": "function",
+                    "name": "create",
+                    "outputs": [
+                        {
+                            "internalType": "address",
+                            "name": "multisig",
+                            "type": "address"
+                        }
+                    ]
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "owner",
+                            "type": "address"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function",
+                    "name": "getEnableModuleTransactionHash",
+                    "outputs": [
+                        {
+                            "internalType": "bytes32",
+                            "name": "",
+                            "type": "bytes32"
+                        }
+                    ]
+                },
+                {
+                    "inputs": [],
+                    "stateMutability": "view",
+                    "type": "function",
+                    "name": "getPolySafeCreateTransactionHash",
+                    "outputs": [
+                        {
+                            "internalType": "bytes32",
+                            "name": "",
+                            "type": "bytes32"
+                        }
+                    ]
+                },
+                {
+                    "inputs": [],
+                    "stateMutability": "view",
+                    "type": "function",
+                    "name": "polySafeProxyBytecodeHash",
+                    "outputs": [
+                        {
+                            "internalType": "bytes32",
+                            "name": "",
+                            "type": "bytes32"
+                        }
+                    ]
+                },
+                {
+                    "inputs": [],
+                    "stateMutability": "view",
+                    "type": "function",
+                    "name": "polySafeProxyFactory",
+                    "outputs": [
+                        {
+                            "internalType": "address",
+                            "name": "",
+                            "type": "address"
+                        }
+                    ]
+                },
+                {
+                    "inputs": [],
+                    "stateMutability": "view",
+                    "type": "function",
+                    "name": "polySafeProxyFactoryDomainSeparator",
+                    "outputs": [
+                        {
+                            "internalType": "bytes32",
+                            "name": "",
+                            "type": "bytes32"
+                        }
+                    ]
+                },
+                {
+                    "inputs": [],
+                    "stateMutability": "view",
+                    "type": "function",
+                    "name": "recoveryModule",
+                    "outputs": [
+                        {
+                            "internalType": "address",
+                            "name": "",
+                            "type": "address"
+                        }
+                    ]
+                }
+            ],
+            "devdoc": {
+                "kind": "dev",
+                "methods": {
+                    "constructor": {
+                        "details": "PolySafeCreator constructor.",
+                        "params": {
+                            "_polySafeProxyFactory": "Poly Safe proxy factory address.",
+                            "_recoveryModule": "Recovery Module address."
+                        }
+                    },
+                    "create(address[],uint256,bytes)": {
+                        "details": "Creates Poly Safe multisig.",
+                        "params": {
+                            "data": "Packed data related to the creation of a chosen multisig.",
+                            "owners": "Set of multisig owners.",
+                            "threshold": "Number of required confirmations for a multisig transaction."
+                        },
+                        "returns": {
+                            "multisig": "Address of a created multisig."
+                        }
+                    },
+                    "getEnableModuleTransactionHash(address)": {
+                        "details": "Gets hash that is required to be signed by multisig owner in order to enable Recovery Module.",
+                        "params": {
+                            "owner": "Multisig owner."
+                        },
+                        "returns": {
+                            "_0": "Transaction hash bytes."
+                        }
+                    },
+                    "getPolySafeCreateTransactionHash()": {
+                        "details": "Gets hash that is required to be signed by multisig owner in order to create Poly Safe multisig proxy."
+                    }
+                },
+                "version": 1
+            },
+            "userdoc": {
+                "kind": "user",
+                "methods": {
+                    "create(address[],uint256,bytes)": {
+                        "notice": "Number of owners and threshold is required to be 1."
+                    }
+                },
+                "version": 1
+            }
+        },
+        "settings": {
+            "remappings": [
+                "@gnosis.pm/=node_modules/@gnosis.pm/",
+                "ds-test/=lib/solmate/lib/ds-test/src/",
+                "forge-std/=lib/forge-std/src/",
+                "solmate/=lib/solmate/src/"
+            ],
+            "optimizer": {
+                "enabled": true,
+                "runs": 750
+            },
+            "metadata": {
+                "bytecodeHash": "ipfs"
+            },
+            "compilationTarget": {
+                "contracts/multisigs/PolySafeCreatorWithRecoveryModule.sol": "PolySafeCreatorWithRecoveryModule"
+            },
+            "evmVersion": "prague",
+            "libraries": {}
+        },
+        "sources": {
+            "contracts/multisigs/PolySafeCreatorWithRecoveryModule.sol": {
+                "keccak256": "0x214501a0e21eca0ea0334efbed1cbaab79c3a5b8193195f45e58fb4ad29db555",
+                "urls": [
+                    "bzz-raw://915131f87215f1f37d461f8e8813f330097e371a649faa2aa84ae365612542ad",
+                    "dweb:/ipfs/QmZR6kNmgab2wX57Umo4XmZiAoRsw3M84PJkhYKZBcbeNJ"
+                ],
+                "license": "MIT"
+            }
+        },
+        "version": 1
+    },
+    "id": 22
+}

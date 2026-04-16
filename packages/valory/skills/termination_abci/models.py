@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,7 +32,9 @@ from packages.valory.skills.termination_abci.rounds import TerminationAbciApp
 from packages.valory.skills.transaction_settlement_abci.models import (
     RandomnessApi as TransactionSettlementRandomness,
 )
-from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
+from packages.valory.skills.transaction_settlement_abci.models import (
+    TransactionParams,
+)
 
 
 class SharedState(BaseSharedState):
@@ -48,6 +50,9 @@ class TerminationParams(TransactionParams):
         """Set up the termination parameters."""
         self.termination_sleep: int = self._ensure("termination_sleep", kwargs, int)
         self.multisend_address: str = self._ensure("multisend_address", kwargs, str)
+        self.termination_from_block: int = self._ensure(
+            "termination_from_block", kwargs, int
+        )
         super().__init__(*args, **kwargs)
 
 

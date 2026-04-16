@@ -1,0 +1,519 @@
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------------------------
+#
+#   Copyright 2026 Valory AG
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ------------------------------------------------------------------------------
+
+"""Tests for FundsForwarderBehaviour."""
+
+# pylint: disable=protected-access,too-few-public-methods
+
+from contextlib import ExitStack
+from typing import Any, Dict, List, Optional
+from unittest.mock import MagicMock, PropertyMock, patch
+
+import pytest
+
+from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.protocols.ledger_api import LedgerApiMessage
+from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
+from packages.valory.skills.funds_forwarder_abci import behaviours as behaviours_module
+from packages.valory.skills.funds_forwarder_abci.behaviours import (
+    ETHER_VALUE,
+    FundsForwarderBehaviour,
+    FundsForwarderRoundBehaviour,
+)
+from packages.valory.skills.funds_forwarder_abci.models import ZERO_ADDRESS
+from packages.valory.skills.funds_forwarder_abci.rounds import (
+    FundsForwarderAbciApp,
+    FundsForwarderRound,
+)
+
+AGENT_ADDRESS = "0x1234567890123456789012345678901234567890"
+OWNER_ADDRESS = "0xOwner567890123456789012345678901234567890"
+SAFE_ADDRESS = "0xSafe5678901234567890123456789012345678901"
+TOKEN_ADDRESS = "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d"  # nosec B105
+
+
+def _make_gen(return_value: Any) -> Any:
+    """Create a no-yield generator returning the given value."""
+
+    def gen(*_args: Any, **_kwargs: Any) -> Any:
+        return return_value
+        yield  # noqa: unreachable
+
+    return gen
+
+
+def _exhaust_gen(gen: Any) -> Any:
+    """Exhaust a generator and return its StopIteration value."""
+    result = None
+    try:
+        while True:
+            next(gen)
+    except StopIteration as exc:
+        result = exc.value
+    return result
+
+
+def _make_behaviour(
+    token_limits: Any = None,
+    expected_owner: str = OWNER_ADDRESS,
+) -> FundsForwarderBehaviour:
+    """Create a FundsForwarderBehaviour with mocked context."""
+    context_mock = MagicMock()
+    context_mock.logger = MagicMock()
+    context_mock.params = MagicMock()
+    context_mock.state.round_sequence = MagicMock()
+    context_mock.benchmark_tool = MagicMock()
+    context_mock.agent_address = AGENT_ADDRESS
+    context_mock.params.expected_service_owner_address = expected_owner
+    context_mock.params.funds_forwarder_token_config = (
+        token_limits if token_limits is not None else {}
+    )
+    context_mock.params.multisend_address = "0xMultisend"
+    return FundsForwarderBehaviour(name="test", skill_context=context_mock)
+
+
+def _sync_data_mock(
+    service_owner: str = OWNER_ADDRESS,
+    safe_address: str = SAFE_ADDRESS,
+) -> Any:
+    """Create a synchronized_data property mock."""
+    return lambda: property(
+        lambda self: MagicMock(
+            service_owner=service_owner,
+            safe_contract_address=safe_address,
+        )
+    )
+
+
+class TestFundsForwarderBehaviour:
+    """Test FundsForwarderBehaviour."""
+
+    def test_matching_round(self) -> None:
+        """Test matching_round is correctly set."""
+        b = _make_behaviour()
+        assert b.matching_round == FundsForwarderRound
+
+    @pytest.mark.parametrize(
+        "service_owner,expected_owner,token_limits,description",
+        [
+            (ZERO_ADDRESS, OWNER_ADDRESS, None, "zero address owner"),
+            ("", OWNER_ADDRESS, None, "empty string owner"),
+            (OWNER_ADDRESS, "0xDifferentOwner", None, "owner mismatch"),
+            (OWNER_ADDRESS, OWNER_ADDRESS, {}, "empty token limits"),
+        ],
+    )
+    def test_get_tx_hash_returns_none(
+        self,
+        service_owner: str,
+        expected_owner: str,
+        token_limits: Optional[Dict],
+        description: str,
+    ) -> None:
+        """Test _get_tx_hash returns None for invalid/empty configurations."""
+        b = _make_behaviour(
+            token_limits=token_limits if token_limits is not None else {},
+            expected_owner=expected_owner,
+        )
+        with patch.object(
+            type(b),
+            "synchronized_data",
+            new_callable=_sync_data_mock(service_owner=service_owner),
+        ):
+            gen = b._get_tx_hash()
+            result = _exhaust_gen(gen)
+        assert result is None, f"Expected None for case: {description}"
+
+    def test_get_tx_hash_no_excess(self) -> None:
+        """Test _get_tx_hash when no token exceeds threshold."""
+        b = _make_behaviour(
+            token_limits={
+                TOKEN_ADDRESS: {"retain_balance": 10**18, "max_transfer": 10**17}
+            }
+        )
+        with patch.object(
+            type(b),
+            "synchronized_data",
+            new_callable=_sync_data_mock(),
+        ), patch.object(b, "_build_transfer_txs", new=_make_gen([])):
+            gen = b._get_tx_hash()
+            result = _exhaust_gen(gen)
+        assert result is None
+
+    def test_get_tx_hash_single_tx(self) -> None:
+        """Test _get_tx_hash with a single transfer."""
+        b = _make_behaviour(
+            token_limits={
+                TOKEN_ADDRESS: {"retain_balance": 10**18, "max_transfer": 10**17}
+            }
+        )
+        tx = {"to": OWNER_ADDRESS, "value": 10**17, "data": b"\x01"}
+        with patch.object(
+            type(b),
+            "synchronized_data",
+            new_callable=_sync_data_mock(),
+        ), patch.object(b, "_build_transfer_txs", new=_make_gen([tx])), patch.object(
+            b, "_get_safe_tx_hash", new=_make_gen("abcdef")
+        ), patch.object(
+            behaviours_module,
+            "hash_payload_to_hex",
+            return_value="0xpayload",
+        ):
+            gen = b._get_tx_hash()
+            result = _exhaust_gen(gen)
+        assert result == "0xpayload"
+
+    def test_get_tx_hash_single_tx_safe_hash_none(self) -> None:
+        """Test _get_tx_hash when safe tx hash fails for single tx."""
+        b = _make_behaviour(
+            token_limits={
+                TOKEN_ADDRESS: {"retain_balance": 10**18, "max_transfer": 10**17}
+            }
+        )
+        tx = {"to": OWNER_ADDRESS, "value": 10**17, "data": b"\x01"}
+        with patch.object(
+            type(b),
+            "synchronized_data",
+            new_callable=_sync_data_mock(),
+        ), patch.object(b, "_build_transfer_txs", new=_make_gen([tx])), patch.object(
+            b, "_get_safe_tx_hash", new=_make_gen(None)
+        ):
+            gen = b._get_tx_hash()
+            result = _exhaust_gen(gen)
+        assert result is None
+
+    def test_get_tx_hash_multisend(self) -> None:
+        """Test _get_tx_hash with multiple transfers."""
+        b = _make_behaviour(
+            token_limits={
+                ZERO_ADDRESS: {"retain_balance": 10**18, "max_transfer": 10**17},
+                TOKEN_ADDRESS: {"retain_balance": 10**18, "max_transfer": 10**17},
+            }
+        )
+        txs = [
+            {"to": OWNER_ADDRESS, "value": 10**17, "data": b""},
+            {"to": TOKEN_ADDRESS, "value": 0, "data": b"\x01"},
+        ]
+        with patch.object(
+            type(b),
+            "synchronized_data",
+            new_callable=_sync_data_mock(),
+        ), patch.object(b, "_build_transfer_txs", new=_make_gen(txs)), patch.object(
+            b, "_to_multisend", new=_make_gen("0xmultisend")
+        ):
+            gen = b._get_tx_hash()
+            result = _exhaust_gen(gen)
+        assert result == "0xmultisend"
+
+    @pytest.mark.parametrize(
+        "performative,body,expected",
+        [
+            (
+                LedgerApiMessage.Performative.STATE,
+                {"get_balance_result": 5 * 10**18},
+                5 * 10**18,
+            ),
+            (LedgerApiMessage.Performative.ERROR, None, None),
+        ],
+    )
+    def test_get_native_balance(
+        self, performative: Any, body: Any, expected: Any
+    ) -> None:
+        """Test _get_native_balance for success and error cases."""
+        b = _make_behaviour()
+        mock_response = MagicMock()
+        mock_response.performative = performative
+        if body is not None:
+            mock_response.state.body = body
+
+        with patch.object(
+            type(b),
+            "synchronized_data",
+            new_callable=_sync_data_mock(),
+        ), patch.object(b, "get_ledger_api_response", new=_make_gen(mock_response)):
+            gen = b._get_native_balance()
+            result = _exhaust_gen(gen)
+        assert result == expected
+
+    @pytest.mark.parametrize(
+        "performative,body,expected",
+        [
+            (
+                ContractApiMessage.Performative.STATE,
+                {"token": 10 * 10**18},
+                10 * 10**18,
+            ),
+            (ContractApiMessage.Performative.ERROR, None, None),
+        ],
+    )
+    def test_get_erc20_balance(
+        self, performative: Any, body: Any, expected: Any
+    ) -> None:
+        """Test _get_erc20_balance for success and error cases."""
+        b = _make_behaviour()
+        mock_response = MagicMock()
+        mock_response.performative = performative
+        if body is not None:
+            mock_response.state.body = body
+
+        with patch.object(
+            type(b),
+            "synchronized_data",
+            new_callable=_sync_data_mock(),
+        ), patch.object(b, "get_contract_api_response", new=_make_gen(mock_response)):
+            gen = b._get_erc20_balance(TOKEN_ADDRESS)
+            result = _exhaust_gen(gen)
+        assert result == expected
+
+    @pytest.mark.parametrize(
+        "performative,body,expected",
+        [
+            (
+                ContractApiMessage.Performative.STATE,
+                {"data": "0xabcdef"},
+                bytes.fromhex("abcdef"),
+            ),
+            (ContractApiMessage.Performative.ERROR, None, None),
+        ],
+    )
+    def test_build_erc20_transfer(
+        self, performative: Any, body: Any, expected: Any
+    ) -> None:
+        """Test _build_erc20_transfer for success and error cases."""
+        b = _make_behaviour()
+        mock_response = MagicMock()
+        mock_response.performative = performative
+        if body is not None:
+            mock_response.state.body = body
+
+        with patch.object(b, "get_contract_api_response", new=_make_gen(mock_response)):
+            gen = b._build_erc20_transfer(TOKEN_ADDRESS, OWNER_ADDRESS, 10**17)
+            result = _exhaust_gen(gen)
+        assert result == expected
+
+    def test_build_transfer_txs_native_excess(self) -> None:
+        """Test _build_transfer_txs with native token above threshold."""
+        b = _make_behaviour(
+            token_limits={
+                ZERO_ADDRESS: {"retain_balance": 10**18, "max_transfer": 5 * 10**17}
+            }
+        )
+        with patch.object(
+            type(b),
+            "synchronized_data",
+            new_callable=_sync_data_mock(),
+        ), patch.object(b, "_get_native_balance", new=_make_gen(3 * 10**18)):
+            gen = b._build_transfer_txs(OWNER_ADDRESS)
+            result: List = _exhaust_gen(gen)
+        assert len(result) == 1
+        assert result[0]["to"] == OWNER_ADDRESS
+        assert result[0]["value"] == 5 * 10**17  # min(max_transfer, excess)
+        assert result[0]["data"] == b""
+
+    def test_build_transfer_txs_erc20_excess(self) -> None:
+        """Test _build_transfer_txs with ERC20 above threshold."""
+        b = _make_behaviour(
+            token_limits={
+                TOKEN_ADDRESS: {"retain_balance": 10**18, "max_transfer": 5 * 10**17}
+            }
+        )
+        with patch.object(
+            type(b),
+            "synchronized_data",
+            new_callable=_sync_data_mock(),
+        ), patch.object(
+            b, "_get_erc20_balance", new=_make_gen(3 * 10**18)
+        ), patch.object(
+            b, "_build_erc20_transfer", new=_make_gen(b"\x01\x02")
+        ):
+            gen = b._build_transfer_txs(OWNER_ADDRESS)
+            result: List = _exhaust_gen(gen)
+        assert len(result) == 1
+        assert result[0]["to"] == TOKEN_ADDRESS
+        assert result[0]["value"] == ETHER_VALUE
+        assert result[0]["data"] == b"\x01\x02"
+
+    @pytest.mark.parametrize(
+        "balance,transfer_result,description",
+        [
+            (5 * 10**17, None, "balance below retain threshold"),
+            (None, None, "balance check fails"),
+            (3 * 10**18, None, "ERC20 transfer build fails"),
+        ],
+    )
+    def test_build_transfer_txs_no_transfers(
+        self,
+        balance: Optional[int],
+        transfer_result: Any,
+        description: str,
+    ) -> None:
+        """Test _build_transfer_txs returns empty list for various failure cases."""
+        b = _make_behaviour(
+            token_limits={
+                TOKEN_ADDRESS: {"retain_balance": 10**18, "max_transfer": 5 * 10**17}
+            }
+        )
+        patches = [
+            patch.object(
+                type(b),
+                "synchronized_data",
+                new_callable=_sync_data_mock(),
+            ),
+            patch.object(b, "_get_erc20_balance", new=_make_gen(balance)),
+        ]
+        # Only add transfer patch when balance exceeds threshold
+        if balance is not None and balance > 10**18:
+            patches.append(
+                patch.object(b, "_build_erc20_transfer", new=_make_gen(transfer_result))
+            )
+        with ExitStack() as stack:
+            for p in patches:
+                stack.enter_context(p)
+            gen = b._build_transfer_txs(OWNER_ADDRESS)
+            result = _exhaust_gen(gen)
+        assert len(result) == 0, f"Expected empty for case: {description}"
+
+    @pytest.mark.parametrize(
+        "performative,body,expected",
+        [
+            (
+                ContractApiMessage.Performative.STATE,
+                {"tx_hash": "0xabcdef1234"},
+                "abcdef1234",
+            ),
+            (ContractApiMessage.Performative.ERROR, None, None),
+        ],
+    )
+    def test_get_safe_tx_hash(
+        self, performative: Any, body: Any, expected: Any
+    ) -> None:
+        """Test _get_safe_tx_hash for success and error cases."""
+        b = _make_behaviour()
+        mock_response = MagicMock()
+        mock_response.performative = performative
+        if body is not None:
+            mock_response.state.body = body
+
+        with patch.object(
+            type(b),
+            "synchronized_data",
+            new_callable=_sync_data_mock(),
+        ), patch.object(b, "get_contract_api_response", new=_make_gen(mock_response)):
+            gen = b._get_safe_tx_hash("0xto", b"\x01")
+            result = _exhaust_gen(gen)
+        assert result == expected
+
+    def test_to_multisend_error(self) -> None:
+        """Test _to_multisend when multisend compilation fails."""
+        b = _make_behaviour()
+        mock_response = MagicMock()
+        mock_response.performative = ContractApiMessage.Performative.ERROR
+
+        with patch.object(b, "get_contract_api_response", new=_make_gen(mock_response)):
+            txs = [{"to": OWNER_ADDRESS, "value": 10**17}]
+            gen = b._to_multisend(txs)
+            result = _exhaust_gen(gen)
+        assert result is None
+
+    def test_to_multisend_safe_hash_none(self) -> None:
+        """Test _to_multisend when safe tx hash fails."""
+        b = _make_behaviour()
+        mock_ms_response = MagicMock()
+        mock_ms_response.performative = ContractApiMessage.Performative.RAW_TRANSACTION
+        mock_ms_response.raw_transaction.body = {"data": "0xaabb"}
+
+        with patch.object(
+            b, "get_contract_api_response", new=_make_gen(mock_ms_response)
+        ), patch.object(b, "_get_safe_tx_hash", new=_make_gen(None)):
+            txs = [{"to": OWNER_ADDRESS, "value": 10**17}]
+            gen = b._to_multisend(txs)
+            result = _exhaust_gen(gen)
+        assert result is None
+
+    def test_to_multisend_success(self) -> None:
+        """Test _to_multisend success."""
+        b = _make_behaviour()
+        mock_ms_response = MagicMock()
+        mock_ms_response.performative = ContractApiMessage.Performative.RAW_TRANSACTION
+        mock_ms_response.raw_transaction.body = {"data": "0xaabb"}
+
+        with patch.object(
+            b, "get_contract_api_response", new=_make_gen(mock_ms_response)
+        ), patch.object(
+            b, "_get_safe_tx_hash", new=_make_gen("safehash")
+        ), patch.object(
+            behaviours_module,
+            "hash_payload_to_hex",
+            return_value="0xfinal",
+        ):
+            txs = [{"to": OWNER_ADDRESS, "value": 10**17}]
+            gen = b._to_multisend(txs)
+            result = _exhaust_gen(gen)
+        assert result == "0xfinal"
+
+    @pytest.mark.parametrize(
+        "tx_hash",
+        ["0xtxhash", None],
+    )
+    def test_async_act(self, tx_hash: Optional[str]) -> None:
+        """Test async_act with and without tx_hash."""
+        b = _make_behaviour()
+        with patch.object(b, "_get_tx_hash", new=_make_gen(tx_hash)), patch.object(
+            b, "send_a2a_transaction", new=_make_gen(None)
+        ), patch.object(b, "wait_until_round_end", new=_make_gen(None)), patch.object(
+            b, "set_done"
+        ) as mock_set_done:
+            gen = b.async_act()
+            _exhaust_gen(gen)
+            mock_set_done.assert_called_once()
+
+
+class TestFundsForwarderBaseBehaviour:
+    """Test base behaviour properties."""
+
+    def test_synchronized_data_property(self) -> None:
+        """Test synchronized_data property returns cast SynchronizedData."""
+        b = _make_behaviour()
+        mock_sync = MagicMock()
+        with patch.object(
+            BaseBehaviour,
+            "synchronized_data",
+            new_callable=PropertyMock,
+            return_value=mock_sync,
+        ):
+            result = b.synchronized_data
+        assert result == mock_sync
+
+
+class TestFundsForwarderRoundBehaviour:
+    """Test FundsForwarderRoundBehaviour."""
+
+    def test_initial_behaviour_cls(self) -> None:
+        """Test initial_behaviour_cls."""
+        assert (
+            FundsForwarderRoundBehaviour.initial_behaviour_cls
+            is FundsForwarderBehaviour
+        )
+
+    def test_abci_app_cls(self) -> None:
+        """Test abci_app_cls."""
+        assert FundsForwarderRoundBehaviour.abci_app_cls is FundsForwarderAbciApp
+
+    def test_behaviours(self) -> None:
+        """Test behaviours set."""
+        assert FundsForwarderBehaviour in (FundsForwarderRoundBehaviour.behaviours)

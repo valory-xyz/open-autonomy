@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -31,17 +31,19 @@ from hypothesis import strategies as st
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 from packages.valory.skills.abstract_round_abci.utils import (
     DEFAULT_TENDERMINT_P2P_PORT,
+    KeyType,
     MAX_UINT64,
+    ValueType,
     VerifyDrand,
     consensus_threshold,
     filter_negative,
     get_data_from_nested_dict,
     get_value_with_type,
+    inverse,
     is_json_serializable,
     is_primitive_or_none,
     parse_tendermint_p2p_url,
 )
-
 
 settings.load_profile(profile_name)
 
@@ -49,7 +51,9 @@ settings.load_profile(profile_name)
 # pylint: skip-file
 
 
-DRAND_PUBLIC_KEY: str = "868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31"
+DRAND_PUBLIC_KEY: str = (
+    "868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31"
+)
 
 DRAND_VALUE = {
     "round": 1416669,
@@ -72,7 +76,7 @@ class TestVerifyDrand:
 
     drand_check: VerifyDrand
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test."""
@@ -192,7 +196,7 @@ def test_get_value_with_type(type_name: str, type_: Type, value: Any) -> None:
         return
 
     actual = get_value_with_type(value, type_name)
-    assert type(actual) == type_
+    assert type(actual) is type_
     assert actual == value
 
 
@@ -269,3 +273,36 @@ def test_filter_negative(positive: Dict[str, int], negative: Dict[str, int]) -> 
 def test_consensus_threshold(nb: int, threshold: int) -> None:
     """Test `consensus_threshold`."""
     assert consensus_threshold(nb) == threshold
+
+
+@pytest.mark.parametrize(
+    "dict_, expected",
+    (
+        ({}, {}),
+        (
+            {"test": "this", "which?": "this"},
+            {"this": ["test", "which?"]},
+        ),
+        (
+            {"test": "this", "which?": "this", "hm": "ok"},
+            {"this": ["test", "which?"], "ok": ["hm"]},
+        ),
+        (
+            {"test": "this", "hm": "ok"},
+            {"this": ["test"], "ok": ["hm"]},
+        ),
+        (
+            {"test": "this", "hm": "ok", "ok": "ok"},
+            {"this": ["test"], "ok": ["hm", "ok"]},
+        ),
+        (
+            {"test": "this", "which?": "this", "hm": "ok", "ok": "ok"},
+            {"this": ["test", "which?"], "ok": ["hm", "ok"]},
+        ),
+    ),
+)
+def test_inverse(
+    dict_: Dict[KeyType, ValueType], expected: Dict[ValueType, List[KeyType]]
+) -> None:
+    """Test `inverse`."""
+    assert inverse(dict_) == expected

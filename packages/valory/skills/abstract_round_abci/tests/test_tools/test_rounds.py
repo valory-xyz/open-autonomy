@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -56,7 +56,6 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
 )
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 from packages.valory.skills.abstract_round_abci.tests.test_common import last_iteration
-
 
 settings.load_profile(profile_name)
 
@@ -238,13 +237,13 @@ class BaseTestBase:
     base_round_test_cls: Type[BaseRoundTestClass]
     test_method_name = "_test_round"
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup that is run before each test."""
         self.base_round_test = self.base_round_test_cls()
         self.base_round_test._synchronized_data_class = (  # pylint: disable=protected-access
             DummySynchronizedData
         )
-        self.base_round_test.setup()
+        self.base_round_test.setup_method()
         self.base_round_test._event_class = (  # pylint: disable=protected-access
             DummyEvent
         )
@@ -305,6 +304,7 @@ class TestBaseCollectDifferentUntilAllRoundTest(BaseTestBase):
         test_round = DummyCollectDifferentUntilAllRoundWithEndBlock(
             exit_event,
             self.base_round_test.synchronized_data,
+            context=MagicMock(),
         )
         round_payloads = [
             DummyTxPayload(f"agent_{i}", str(i)) for i in range(MAX_PARTICIPANTS)
@@ -353,9 +353,9 @@ class TestBaseCollectSameUntilAllRoundTest(BaseTestBase):
     """Test `BaseCollectSameUntilAllRoundTest`."""
 
     base_round_test: BaseCollectSameUntilAllRoundTest
-    base_round_test_cls: Type[
+    base_round_test_cls: Type[BaseCollectSameUntilAllRoundTest] = (
         BaseCollectSameUntilAllRoundTest
-    ] = BaseCollectSameUntilAllRoundTest
+    )
 
     @given(
         st.sampled_from(DummyEvent),
@@ -369,6 +369,7 @@ class TestBaseCollectSameUntilAllRoundTest(BaseTestBase):
         test_round = DummyCollectSameUntilAllRoundWithEndBlock(
             exit_event,
             self.base_round_test.synchronized_data,
+            context=MagicMock(),
         )
         round_payloads = {
             f"test{i}": DummyTxPayload(f"agent_{i}", common_value)
@@ -424,9 +425,9 @@ class TestBaseCollectSameUntilThresholdRoundTest(BaseTestBase):
     """Test `BaseCollectSameUntilThresholdRoundTest`."""
 
     base_round_test: BaseCollectSameUntilThresholdRoundTest
-    base_round_test_cls: Type[
+    base_round_test_cls: Type[BaseCollectSameUntilThresholdRoundTest] = (
         BaseCollectSameUntilThresholdRoundTest
-    ] = BaseCollectSameUntilThresholdRoundTest
+    )
 
     @given(
         st.sampled_from(DummyEvent),
@@ -437,6 +438,7 @@ class TestBaseCollectSameUntilThresholdRoundTest(BaseTestBase):
         test_round = DummyCollectSameUntilThresholdRoundWithEndBlock(
             exit_event,
             self.base_round_test.synchronized_data,
+            context=MagicMock(),
         )
         round_payloads = {
             f"test{i}": DummyTxPayload(f"agent_{i}", most_voted_payload)
@@ -487,14 +489,14 @@ class TestBaseOnlyKeeperSendsRoundTest(BaseTestBase):
     """Test `BaseOnlyKeeperSendsRoundTest`."""
 
     base_round_test: BaseOnlyKeeperSendsRoundTest
-    base_round_test_cls: Type[
+    base_round_test_cls: Type[BaseOnlyKeeperSendsRoundTest] = (
         BaseOnlyKeeperSendsRoundTest
-    ] = BaseOnlyKeeperSendsRoundTest
+    )
     most_voted_keeper_address: str = "agent_0"
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup that is run before each test."""
-        super().setup()
+        super().setup_method()
         self.base_round_test.synchronized_data.update(
             most_voted_keeper_address=self.most_voted_keeper_address
         )
@@ -508,6 +510,7 @@ class TestBaseOnlyKeeperSendsRoundTest(BaseTestBase):
         test_round = DummyOnlyKeeperSendsRoundTest(
             exit_event,
             self.base_round_test.synchronized_data,
+            context=MagicMock(),
         )
         keeper_payload = DummyTxPayload(self.most_voted_keeper_address, keeper_value)
         synchronized_data_attr_checks = [
@@ -572,6 +575,7 @@ class TestBaseVotingRoundTest(BaseTestBase):
 
         test_round = DummyBaseVotingRoundTestWithEndBlock(
             self.base_round_test.synchronized_data,
+            context=MagicMock(),
         )
         round_payloads = {
             f"test{i}": DummyTxPayload(f"agent_{i}", value="", vote=is_keeper_set)
@@ -621,9 +625,9 @@ class TestBaseCollectDifferentUntilThresholdRoundTest(BaseTestBase):
     """Test `BaseCollectDifferentUntilThresholdRoundTest`."""
 
     base_round_test: BaseCollectDifferentUntilThresholdRoundTest
-    base_round_test_cls: Type[
+    base_round_test_cls: Type[BaseCollectDifferentUntilThresholdRoundTest] = (
         BaseCollectDifferentUntilThresholdRoundTest
-    ] = BaseCollectDifferentUntilThresholdRoundTest
+    )
 
     @given(st.sampled_from(DummyEvent))
     def test_test_round(self, exit_event: DummyEvent) -> None:
@@ -631,6 +635,7 @@ class TestBaseCollectDifferentUntilThresholdRoundTest(BaseTestBase):
         test_round = DummyCollectDifferentUntilThresholdRoundWithEndBlock(
             exit_event,
             self.base_round_test.synchronized_data,
+            context=MagicMock(),
         )
         round_payloads = {
             f"test{i}": DummyTxPayload(f"agent_{i}", str(i))

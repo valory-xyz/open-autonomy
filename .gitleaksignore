@@ -40,3 +40,4 @@ e59579bc428f1d2880b1332ae012dd65ce4d11ee:examples/price_estimation_dev/env_confi
 187c534cdddf8352b0ca62e7e91f6df3d8e519e7:examples/price_estimation/infra/terraform.tfstate.backup:generic-api-key:1989
 187c534cdddf8352b0ca62e7e91f6df3d8e519e7:examples/price_estimation/infra/terraform.tfstate.backup:generic-api-key:2289
 187c534cdddf8352b0ca62e7e91f6df3d8e519e7:examples/price_estimation/infra/terraform.tfstate.backup:generic-api-key:2347
+3a4665bea748a0c95cb57fa90070a9cb301a64e6:packages/valory/skills/test_solana_tx_abci/skill.yaml:generic-api-key:158

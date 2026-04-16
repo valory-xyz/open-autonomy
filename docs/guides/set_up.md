@@ -4,16 +4,20 @@ The purpose of this guide is to set up your system to work with the {{open_auton
 
 Ensure that your machine satisfies the following requirements:
 
-- [Python](https://www.python.org/) `>= 3.8` (recommended `>= 3.10`)
+- [Python](https://www.python.org/) `>= 3.10`
 - [Pip](https://pip.pypa.io/en/stable/installation/)
-- [Pipenv](https://pipenv.pypa.io/en/latest/installation/) `>=2021.x.xx`
+- [Pipenv](https://pipenv.pypa.io/en/latest/installation.html) `>=2021.x.xx`
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
-Additionally, if you wish to deploy your service in a Kubernetes cluster:
+Additionally, if you wish to deploy your AI agent in a Kubernetes cluster:
 
 - [Kubernetes CLI](https://kubernetes.io/docs/tasks/tools/)
 - [minikube](https://minikube.sigs.k8s.io/docs/)
+
+
+!!! note
+    On raspberry-pi currently `Raspberry Pi OS (Legacy, 64-bit, Debian Bullseye)` is tested and supported, The base requirements are same as [above](#requirements).
 
 !!! tip
 	Although we will use these tools for demonstration purposes only, you might as well consider other local Kubernetes cluster options like [kind](https://kind.sigs.k8s.io/docs/user/quick-start/), or even additional tools like [Skaffold](https://skaffold.dev/) or [Helm](https://helm.sh/) to help you with your cluster deployments.
@@ -33,19 +37,20 @@ Additionally, if you wish to deploy your service in a Kubernetes cluster:
     touch Pipfile && pipenv --python 3.10 && pipenv shell
     ```
 
-2. **Install the {{open_autonomy}} framework:**
+2. **Install the {{open_autonomy}} framework and the [Open AEA Ethereum Ledger Plugin](https://pypi.org/project/open-aea-ledger-ethereum):**
 
     ```bash
     pip install open-autonomy[all]
+    pip install open-aea-ledger-ethereum
     ```
 
 3. **Initialize the framework** to work with the remote [IPFS](https://ipfs.io) registry by default. This means that when the framework will be fetching a component, it will do so from the remote registry:
 
     ```bash
-    autonomy init --remote --ipfs
+    autonomy init --remote --ipfs --author your_name
     ```
 
-    If you had previously initialized the framework, you need to use the flag `--reset` to change the configuration.
+    If you had previously initialized the framework, you need to use the flag `--reset` to change the configuration. Use only letters, numbers or underscores to specify your author handle.
 
 4. **Initialize the local registry:**
 
@@ -53,7 +58,7 @@ Additionally, if you wish to deploy your service in a Kubernetes cluster:
     autonomy packages init
     ```
 
-    This will create an empty local registry in the `./packages` folder. If you plan to execute the tutorial guides, you need to [populate the local registry](#populate-the-local-registry-for-the-guides) with a number of default components.
+    This will create an empty local registry in the `./packages` folder. If you plan to execute the tutorial guides, you need to [populate the local registry](./overview_of_the_development_process.md#populate-the-local-registry-for-the-guides) with a number of default components.
 
 ## The registries and runtime folders
 
@@ -62,7 +67,7 @@ As seen above, the framework works with two registries:
 * The **remote registry**, where developers publish finalized software packages, similarly as Docker Hub images.
 * The **local registry**, which stores packages being developed (`dev`), or fetched from the remote registry (`third_party`) to be used locally.
 
-Additionally, when running agents or service deployments locally, we recommend that you fetch them outside the local registry. This is because the framework will download any required component (or create auxiliary files and folders) within the **runtime folders** of agents and services. Therefore, we recommend that you keep the copies on the local registry clean to avoid publishing unintended files (e.g., private keys) on the remote registry.
+Additionally, when running agent instances or AI agent deployments locally, we recommend that you fetch them outside the local registry. This is because the framework will download any required component (or create auxiliary files and folders) within the **runtime folders** of agent instances and AI agents. Therefore, we recommend that you keep the copies on the local registry clean to avoid publishing unintended files (e.g., private keys) on the remote registry.
 
 This is roughly how your workspace should look like:
 
@@ -72,10 +77,10 @@ This is roughly how your workspace should look like:
 
 !!! tip
 
-    You can override the default registry in use (set up with `autonomy init`) for a particular command through the flags `--registry-path` and `--local`. For example, if the framework was initialized with the remote registry, the following command will fetch a runtime folder for the `hello_world` agent from the remote registry:
+    You can override the default registry in use (set up with `autonomy init`) for a particular command through the flags `--registry-path` and `--local`. For example, if the framework was initialized with the remote registry, the following command will fetch a runtime folder for the `hello_world` agent blueprint from the remote registry:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeie7rsyd4jdgckt7bduxlvypi73cy4kj5ndflb4cmidkjaoaad3xem
+    autonomy fetch valory/hello_world:0.1.0:bafybeieifur6f2wzp36jt3pslo2xwg3utylb2fvm7rwsw2lorwghzxoone
     ```
 
     On the other hand, if you want to fetch the copy stored in your local registry, then you can use:
@@ -96,43 +101,3 @@ The **Dev template** comes with:
 * a preconfigured Pipenv environment with required dependencies,
 * an empty local registry,
 * a number of preconfigured linters via [Tox](https://tox.wiki/en/latest/).
-
-## Populate the local registry for the guides
-
-If you plan to follow the guides in the next sections, you need to populate the local registry with a number of [packages shipped with the framework](../package_list.md). To do so, edit the local registry index file (`./packages/packages.json`) and ensure that it has the following `third_party` entries:
-
-```json
-{
-    "dev": {
-    },
-    "third_party": {
-        "service/valory/hello_world/0.1.0": "bafybeifsn6pnrqm5pgcwzloaeid3pqlb53jcsjf73juqmdgopuzoprfexa",
-        "agent/valory/hello_world/0.1.0": "bafybeie7rsyd4jdgckt7bduxlvypi73cy4kj5ndflb4cmidkjaoaad3xem",
-        "connection/valory/abci/0.1.0": "bafybeihczvjnki5kxhyixkh4lxuxkqsuhqmpn63tneyj76p7cmgaxqo7pu",
-        "connection/valory/http_client/0.23.0": "bafybeieoeuy4brzimtnubmokwirhrx27ezls6cdnl5qik4rkykfle3nn2y",
-        "connection/valory/ipfs/0.1.0": "bafybeihr5kvz2oj4uxpiqcbjwfx5hpftm4drubugwcabdcht4gpna3l6ja",
-        "connection/valory/ledger/0.19.0": "bafybeigfoz7d7si7s4jehvloq2zmiiocpbxcaathl3bxkyarxoerxq7g3a",
-        "contract/valory/service_registry/0.1.0": "bafybeihi2tfcf4l7j6tzwb6vptrctkj57zye2oqxmyfwxc4u7gb2v3fmwa",
-        "protocol/open_aea/signing/1.0.0": "bafybeifuxs7gdg2okbn7uofymenjlmnih2wxwkym44lsgwmklgwuckxm2m",
-        "protocol/valory/abci/0.1.0": "bafybeigootsvqpk6th5xpdtzanxum3earifrrezfyhylfrit7yvqdrtgpe",
-        "protocol/valory/acn/1.1.0": "bafybeiapa5ilsobggnspoqhspftwolrx52udrwmaxdxgrk26heuvl4oooa",
-        "protocol/valory/contract_api/1.0.0": "bafybeiasywsvax45qmugus5kxogejj66c5taen27h4voriodz7rgushtqa",
-        "protocol/valory/http/1.0.0": "bafybeia5bxdua2i6chw6pg47bvoljzcpuqxzy4rdrorbdmcbnwmnfdobtu",
-        "protocol/valory/ipfs/0.1.0": "bafybeibjzhsengtxfofqpxy6syamplevp35obemwfp4c5lhag3v2bvgysa",
-        "protocol/valory/ledger_api/1.0.0": "bafybeigsvceac33asd6ecbqev34meyyjwu3rangenv6xp5rkxyz4krvcby",
-        "protocol/valory/tendermint/0.1.0": "bafybeidjqmwvgi4rqgp65tbkhmi45fwn2odr5ecezw6q47hwitsgyw4jpa",
-        "skill/valory/abstract_abci/0.1.0": "bafybeibcemiz3qxoordadxwkxkjp7g7rerbfwap6wqxiepcms22ocb3v7i",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeicyy4g3x6ol6x2ayzcdkg2wstubqecp6ycgo6f2c2bhjnhwdjs3qa",
-        "skill/valory/hello_world_abci/0.1.0": "bafybeia4jfcjcavyw7zcpspm3bo3aoqrhs335vzynpuxjyf2us7wjdf4jy",
-        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihdnfdth3qgltefgrem7xyi4b3ejzaz67xglm2hbma2rfvpl2annq"
-    }
-}
-```
-
-Execute the following command after updating the `packages.json` file:
-
-```bash
-autonomy packages sync
-```
-
-The framework will fetch components from the remote registry into the local registry.

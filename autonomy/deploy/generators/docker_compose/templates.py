@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,8 +19,14 @@
 
 """Deployment Templates."""
 
+import textwrap
+from typing import Dict
 
-TENDERMINT_CONFIG_TEMPLATE: str = """/usr/bin/tendermint testnet --config /etc/tendermint/config-template.toml --v {validators} --o . {hosts}"""
+import yaml
+
+TENDERMINT_CONFIG_TEMPLATE: str = (
+    """bash /app/build.sh "{validators}" "{hosts}" "{user}" """
+)
 
 DOCKER_COMPOSE_TEMPLATE: str = """version: "2.4"
 services:
@@ -38,6 +44,10 @@ ACN_NODE_TEMPLATE: str = """  acn:
     container_name: acn
     image: "{acn_image_name}:{acn_image_version}"
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
     environment:
       - AEA_P2P_ID=d9e43d3f0266d14b3af8627a626fa734450b1c0fcdec6f88f79bcf5543b4668c
       - AEA_P2P_URI_PUBLIC=0.0.0.0:5000
@@ -61,10 +71,15 @@ HARDHAT_NODE_TEMPLATE: str = """  hardhat:
     networks:
       {network_name}:
         ipv4_address: {network_address}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
 """
 
 TENDERMINT_NODE_TEMPLATE: str = """
   {container_name}:
+    user: "{user}"
     mem_limit: 1024m
     mem_reservation: 256M
     cpus: 0.5
@@ -72,6 +87,10 @@ TENDERMINT_NODE_TEMPLATE: str = """
     hostname: {container_name}
     image: "{tendermint_image_name}:{tendermint_image_version}"
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
     environment:
       - ID={node_id}
       - PROXY_APP=tcp://{abci_node}:26658
@@ -80,6 +99,7 @@ TENDERMINT_NODE_TEMPLATE: str = """
       - DEV_MODE=0
       - LOG_FILE=/logs/node_{node_id}.txt
       - LOG_LEVEL={log_level}
+      - WRITE_TO_LOG={write_to_log}
     working_dir: /tendermint
     command: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080",]
     depends_on:
@@ -95,15 +115,18 @@ TENDERMINT_NODE_TEMPLATE: str = """
 
 ABCI_NODE_TEMPLATE: str = """
   {container_name}:
-    mem_limit: 1024m
-    mem_reservation: 256M
-    cpus: 1
+    mem_reservation: {agent_memory_request}M
+    mem_limit: {agent_memory_limit}M
+    cpus: {agent_cpu_limit}
     container_name: {container_name}
     image: {runtime_image}
-    environment:
-      - PYTHONHASHSEED=0
-      - LOG_FILE=/logs/aea_{node_id}.txt
-{agent_vars}
+    env_file: {env_file}
+    user: "{user}"
+{custom_props}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
     networks:
       {network_name}:
         ipv4_address: {network_address}
@@ -117,3 +140,9 @@ ABCI_NODE_TEMPLATE: str = """
 PORTS = "    ports:"
 
 PORT_MAPPING_CONFIG = "      - {host_port}:{container_port}"
+
+
+def indent_yaml(data: Dict[str, str], level: int = 4) -> str:
+    """Convert dict to YAML and indent it properly."""
+    yaml_str = yaml.dump(data, default_flow_style=False).rstrip()
+    return textwrap.indent(yaml_str, " " * level)

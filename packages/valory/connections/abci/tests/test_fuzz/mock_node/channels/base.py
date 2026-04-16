@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,7 +16,11 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+
+# pylint: disable=no-member
+
 """BaseChannel for MockNode"""
+
 from typing import Dict
 
 import packages.valory.connections.abci.tendermint.abci.types_pb2 as abci_types  # type: ignore
@@ -42,7 +46,7 @@ class BaseChannel:
         By default, it is a no-op.
         """
 
-    def send_info(self, request: abci_types.RequestInfo) -> abci_types.ResponseInfo:
+    def send_info(self, request: abci_types.RequestInfo) -> abci_types.ResponseInfo:  # type: ignore
         """
         Sends an info request.
 
@@ -50,7 +54,7 @@ class BaseChannel:
         """
         raise NotImplementedError
 
-    def send_echo(self, request: abci_types.RequestEcho) -> abci_types.ResponseEcho:
+    def send_echo(self, request: abci_types.RequestEcho) -> abci_types.ResponseEcho:  # type: ignore
         """
         Sends an echo request.
 
@@ -58,7 +62,7 @@ class BaseChannel:
         """
         raise NotImplementedError
 
-    def send_flush(self, request: abci_types.RequestFlush) -> abci_types.ResponseFlush:
+    def send_flush(self, request: abci_types.RequestFlush) -> abci_types.ResponseFlush:  # type: ignore
         """
         Sends an flush request.
 
@@ -67,8 +71,8 @@ class BaseChannel:
         raise NotImplementedError
 
     def send_set_option(
-        self, request: abci_types.RequestSetOption
-    ) -> abci_types.ResponseSetOption:
+        self, request: abci_types.RequestSetOption  # type: ignore
+    ) -> abci_types.ResponseSetOption:  # type: ignore
         """
         Sends an setOption request.
 
@@ -77,8 +81,8 @@ class BaseChannel:
         raise NotImplementedError
 
     def send_deliver_tx(
-        self, request: abci_types.RequestDeliverTx
-    ) -> abci_types.ResponseDeliverTx:
+        self, request: abci_types.RequestDeliverTx  # type: ignore
+    ) -> abci_types.ResponseDeliverTx:  # type: ignore
         """
         Sends an deliverTx request.
 
@@ -87,8 +91,8 @@ class BaseChannel:
         raise NotImplementedError
 
     def send_check_tx(
-        self, request: abci_types.RequestCheckTx
-    ) -> abci_types.ResponseCheckTx:
+        self, request: abci_types.RequestCheckTx  # type: ignore
+    ) -> abci_types.ResponseCheckTx:  # type: ignore
         """
         Sends an checkTx request.
 
@@ -96,7 +100,7 @@ class BaseChannel:
         """
         raise NotImplementedError
 
-    def send_query(self, request: abci_types.RequestQuery) -> abci_types.ResponseQuery:
+    def send_query(self, request: abci_types.RequestQuery) -> abci_types.ResponseQuery:  # type: ignore
         """
         Sends an query request.
 
@@ -105,8 +109,8 @@ class BaseChannel:
         raise NotImplementedError
 
     def send_commit(
-        self, request: abci_types.RequestCommit
-    ) -> abci_types.ResponseCommit:
+        self, request: abci_types.RequestCommit  # type: ignore
+    ) -> abci_types.ResponseCommit:  # type: ignore
         """
         Sends an commit request.
 
@@ -115,8 +119,8 @@ class BaseChannel:
         raise NotImplementedError
 
     def send_init_chain(
-        self, request: abci_types.RequestInitChain
-    ) -> abci_types.ResponseInitChain:
+        self, request: abci_types.RequestInitChain  # type: ignore
+    ) -> abci_types.ResponseInitChain:  # type: ignore
         """
         Sends an initChain request.
 
@@ -125,8 +129,8 @@ class BaseChannel:
         raise NotImplementedError
 
     def send_begin_block(
-        self, request: abci_types.RequestBeginBlock
-    ) -> abci_types.ResponseBeginBlock:
+        self, request: abci_types.RequestBeginBlock  # type: ignore
+    ) -> abci_types.ResponseBeginBlock:  # type: ignore
         """
         Sends an beginBlock request.
 
@@ -135,8 +139,8 @@ class BaseChannel:
         raise NotImplementedError
 
     def send_end_block(
-        self, request: abci_types.RequestEndBlock
-    ) -> abci_types.ResponseEndBlock:
+        self, request: abci_types.RequestEndBlock  # type: ignore
+    ) -> abci_types.ResponseEndBlock:  # type: ignore
         """
         Sends an endBlock request.
 
@@ -145,8 +149,8 @@ class BaseChannel:
         raise NotImplementedError
 
     def send_list_snapshots(
-        self, request: abci_types.RequestListSnapshots
-    ) -> abci_types.ResponseListSnapshots:
+        self, request: abci_types.RequestListSnapshots  # type: ignore
+    ) -> abci_types.ResponseListSnapshots:  # type: ignore
         """
         Sends an listSnapshots request.
 
@@ -155,8 +159,8 @@ class BaseChannel:
         raise NotImplementedError
 
     def send_offer_snapshot(
-        self, request: abci_types.RequestOfferSnapshot
-    ) -> abci_types.ResponseOfferSnapshot:
+        self, request: abci_types.RequestOfferSnapshot  # type: ignore
+    ) -> abci_types.ResponseOfferSnapshot:  # type: ignore
         """
         Sends an offerSnapshot request.
 
@@ -165,8 +169,8 @@ class BaseChannel:
         raise NotImplementedError
 
     def send_load_snapshot_chunk(
-        self, request: abci_types.RequestLoadSnapshotChunk
-    ) -> abci_types.ResponseLoadSnapshotChunk:
+        self, request: abci_types.RequestLoadSnapshotChunk  # type: ignore
+    ) -> abci_types.ResponseLoadSnapshotChunk:  # type: ignore
         """
         Sends an loadSnapshotChunk request.
 
@@ -175,8 +179,8 @@ class BaseChannel:
         raise NotImplementedError
 
     def send_apply_snapshot_chunk(
-        self, request: abci_types.RequestApplySnapshotChunk
-    ) -> abci_types.ResponseApplySnapshotChunk:
+        self, request: abci_types.RequestApplySnapshotChunk  # type: ignore
+    ) -> abci_types.ResponseApplySnapshotChunk:  # type: ignore
         """
         Sends an applySnapshotChunk request.
 

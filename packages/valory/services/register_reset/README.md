@@ -1,3 +1,3 @@
 ## Register reset
 
-A simple service where agents register and immediately reset after that.
+A simple AI agent where agent blueprints register and immediately reset after that.

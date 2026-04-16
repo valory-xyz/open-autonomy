@@ -4,6 +4,16 @@
 
 Image building.
 
+<a id="autonomy.deploy.image.generate_dependency_flag_var"></a>
+
+#### generate`_`dependency`_`flag`_`var
+
+```python
+def generate_dependency_flag_var(dependencies: Tuple[Dependency, ...]) -> str
+```
+
+Generate dependency flag env var
+
 <a id="autonomy.deploy.image.ImageProfiles"></a>
 
 ## ImageProfiles Objects
@@ -21,9 +31,14 @@ Image build profiles.
 ```python
 def build_image(agent: PublicId,
                 pull: bool = False,
-                dev: bool = False,
                 version: Optional[str] = None,
-                image_author: Optional[str] = None) -> None
+                image_author: Optional[str] = None,
+                extra_dependencies: Optional[Tuple[Dependency, ...]] = None,
+                dockerfile: Optional[Path] = None,
+                platform: Optional[str] = None,
+                push: bool = False,
+                builder: Optional[str] = None,
+                pre_install_command: Optional[str] = None) -> None
 ```
 
 Command to build images from for skaffold deployment.

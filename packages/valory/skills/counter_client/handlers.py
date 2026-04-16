@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the handlers for the 'counter_client' skill."""
+
 # isort: skip_file # noqa
 from typing import Optional, cast
 
@@ -35,7 +36,7 @@ from packages.valory.skills.counter_client.utils import curdatetime, decode_valu
 class HttpHandler(Handler):
     """The HTTP response handler."""
 
-    SUPPORTED_PROTOCOL = HttpMessage.protocol_id  # type: Optional[PublicId]
+    SUPPORTED_PROTOCOL: Optional[PublicId] = HttpMessage.protocol_id
 
     def setup(self) -> None:
         """Set up the handler."""

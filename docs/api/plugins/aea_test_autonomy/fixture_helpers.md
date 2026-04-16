@@ -50,7 +50,7 @@ def tendermint(tendermint_port: int,
                max_attempts: int = 10) -> Generator
 ```
 
-Launch the Ganache image.
+Launch the Tendermint image.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseTendermint"></a>
 
@@ -358,7 +358,7 @@ def acn_node(acn_config: Dict,
              max_attempts: int = 10) -> Generator
 ```
 
-Launch the Ganache image.
+Launch the ACN node image.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseACNNode"></a>
 

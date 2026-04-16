@@ -2,7 +2,7 @@
 
 # autonomy.cli.utils.click`_`utils
 
-Usefule click utils.
+Useful click utils.
 
 <a id="autonomy.cli.utils.click_utils.image_profile_flag"></a>
 
@@ -89,7 +89,7 @@ NFT parameter for minting tools.
 #### get`_`metavar
 
 ```python
-def get_metavar(param: click.Parameter) -> str
+def get_metavar(param: click.Parameter, *args: Any, **kwargs: Any) -> str
 ```
 
 Get metavar
@@ -114,4 +114,34 @@ def image_author_option(fn: Callable) -> Callable
 ```
 
 Wrap function with clik option for image-author
+
+<a id="autonomy.cli.utils.click_utils.PublicIdOrHashOrTokenId"></a>
+
+## PublicIdOrHashOrTokenId Objects
+
+```python
+class PublicIdOrHashOrTokenId(PublicIdParameter)
+```
+
+A click parameter that can be a public id, an IPFS hash or a token id.
+
+<a id="autonomy.cli.utils.click_utils.PublicIdOrHashOrTokenId.get_metavar"></a>
+
+#### get`_`metavar
+
+```python
+def get_metavar(param: Any, ctx: click.Context) -> str
+```
+
+Return the metavar default for this param if it provides one.
+
+<a id="autonomy.cli.utils.click_utils.PublicIdOrHashOrTokenId.convert"></a>
+
+#### convert
+
+```python
+def convert(value: str, param: Any, ctx: Optional[click.Context]) -> PublicId
+```
+
+Returns integer token id if value is numeric, else try to parse public id or hash.
 

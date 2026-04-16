@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -34,15 +34,23 @@ from aea.configurations.base import (
 from aea.configurations.base import (
     PACKAGE_TYPE_TO_CONFIG_CLASS as _PACKAGE_TYPE_TO_CONFIG_CLASS,
 )
-from aea.configurations.base import PackageConfiguration, ProtocolConfig, SkillConfig
-from aea.configurations.data_types import PackageType, PublicId
+from aea.configurations.base import (
+    PackageConfiguration,
+    ProtocolConfig,
+    SkillConfig,
+)
+from aea.configurations.data_types import (
+    Dependencies,
+    Dependency,
+    PackageType,
+    PublicId,
+)
 from aea.exceptions import AEAValidationError
 from aea.helpers.base import SimpleIdOrStr
 from aea.helpers.env_vars import apply_env_variables, generate_env_vars_recursively
 
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE, SCHEMAS_DIR
 from autonomy.configurations.validation import ConfigValidator
-
 
 COMPONENT_CONFIGS: Dict = {
     component.package_type.value: component  # type: ignore
@@ -53,6 +61,13 @@ COMPONENT_CONFIGS: Dict = {
         ConnectionConfig,
     ]
 }
+
+
+def load_dependencies(dependencies: Dict) -> Dependencies:
+    """Load dependencies."""
+    return {
+        name: Dependency.from_json({name: spec}) for name, spec in dependencies.items()
+    }
 
 
 class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attributes
@@ -75,6 +90,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         "agent",
         "number_of_agents",
         "description",
+        "dependencies",
         "deployment_config",
         "_aea_version",
         "_aea_version_specifiers",
@@ -82,7 +98,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         "_overrides",
     )
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         name: SimpleIdOrStr,
         author: SimpleIdOrStr,
@@ -97,6 +113,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         build_entrypoint: Optional[str] = None,
         overrides: Optional[List] = None,
         deployment: Optional[Dict] = None,
+        dependencies: Optional[Dependencies] = None,
     ) -> None:
         """Initialise object."""
 
@@ -115,6 +132,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         self.description = description
         self.number_of_agents = number_of_agents
         self.deployment_config = deployment or {}
+        self.dependencies = dependencies or {}
 
         self._overrides = [] if overrides is None else overrides
 
@@ -130,7 +148,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
     def overrides(self, obj: List) -> None:
         """Set overrides."""
 
-        self.check_overrides_valid(obj)
+        self.check_overrides_valid(obj, env_vars_friendly=True)
         self._overrides = obj
 
     @property
@@ -203,7 +221,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             )
             if component_id in processed:
                 raise AEAValidationError(
-                    f"Overrides for component {component_id} are defined more than once"
+                    f"Overrides for component {component_id} are defined more than once in the service `{self.public_id}`"
                 )
             if has_multiple_overrides:
                 for idx in range(self.number_of_agents):

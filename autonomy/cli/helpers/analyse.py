@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -54,10 +54,9 @@ from autonomy.analyse.logs.base import (
 from autonomy.analyse.logs.collection import FromDirectory, LogCollection
 from autonomy.analyse.logs.db import AgentLogsDB
 from autonomy.analyse.service import ServiceAnalyser, ServiceValidationFailed
-from autonomy.chain.config import ChainType, ContractConfigs
+from autonomy.chain.config import ChainType, ContractConfigs, OnChainHelper
 from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
 from autonomy.chain.utils import resolve_component_id
-from autonomy.cli.helpers.chain import get_ledger_and_crypto_objects
 from autonomy.cli.utils.click_utils import sys_path_patch
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS, Service
 from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
@@ -161,7 +160,7 @@ class ParseLogs:
 
         return self
 
-    def select(  # pylint: disable=too-many-arguments
+    def select(
         self,
         agents: List[str],
         start_time: Optional[datetime],
@@ -255,7 +254,7 @@ def _get_content_from_ipfs(package_id: PackageId, file: str) -> bytes:
             f"{package_id.package_hash}/{package_id.name}/{file}"
         )
     except Exception as e:
-        message, *_ = e.args
+        message = str(e.args[0]) if e.args else str(e)
         if "merkledag: not found" in message:
             message = "File does not exist on the IPFS registry"
 
@@ -402,7 +401,7 @@ def check_service_readiness(  # pylint: disable=too-many-locals
     """Check deployment readiness of a service."""
 
     is_on_chain_check = token_id is not None
-    ledger_api, _ = get_ledger_and_crypto_objects(chain_type=chain_type)
+    ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(chain_type=chain_type)
     package_manager = PackageManagerV1.from_dir(packages_dir=packages_dir)
     ipfs_pins = _get_ipfs_pins(is_on_chain_check=is_on_chain_check)
 

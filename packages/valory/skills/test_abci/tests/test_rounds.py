@@ -23,6 +23,7 @@
 
 import logging  # noqa: F401
 from typing import cast
+from unittest.mock import MagicMock
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciAppDB,
@@ -48,6 +49,7 @@ class TestDummyRound(BaseRoundTestClass):
 
         test_round = DummyRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
 
         first_payload, *payloads = [

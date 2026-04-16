@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests package for the 'deployments' functionality."""
+
 import json
 import os
 import re
@@ -27,13 +28,14 @@ from abc import ABC
 from contextlib import suppress
 from glob import glob
 from pathlib import Path
-from typing import Any, List, Tuple, cast
+from typing import Any, List, Tuple, Type, cast
 from unittest import mock
 
 import pytest
 import yaml
 from aea.configurations.data_types import PublicId
 from aea.exceptions import AEAValidationError
+from docker.errors import DockerException
 
 from autonomy.configurations.base import Service
 from autonomy.configurations.validation import ConfigValidator
@@ -47,11 +49,13 @@ from autonomy.deploy.base import (
     NotValidKeysFile,
     ServiceBuilder,
 )
-from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
+from autonomy.deploy.generators.docker_compose.base import (
+    DockerComposeGenerator,
+    get_docker_client,
+)
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
-
 
 deployment_generators: List[Any] = [
     DockerComposeGenerator,
@@ -66,7 +70,7 @@ BASE_DEPLOYMENT: str = """name: "deployment_case"
 author: "valory"
 version: 0.1.0
 description: Description
-aea_version: ">=1.0.0, <2.0.0"
+aea_version: ">=2.0.0, <3.0.0"
 license: Apache-2.0
 agent: valory/oracle:0.1.0:bafybeihurloujnbugvvrv5xegyrdnsgl6z6at5xilq7f5ynjdekijapt6q
 number_of_agents: 1
@@ -162,7 +166,7 @@ class CleanDirectoryClass:
     deployment_path = Path(ROOT_DIR) / "deployments"
     old_cwd = None
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Sets up the working directory for the test method."""
         self.old_cwd = os.getcwd()
         with tempfile.TemporaryDirectory() as path:
@@ -170,7 +174,7 @@ class CleanDirectoryClass:
         shutil.copytree(self.deployment_path, self.working_dir)
         os.chdir(self.working_dir)
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Removes the over-ride"""
         shutil.rmtree(str(self.working_dir), ignore_errors=True)
         os.chdir(str(self.old_cwd))
@@ -208,14 +212,16 @@ class BaseDeploymentTests(ABC, CleanDirectoryClass):
         return str(self.working_dir / TEST_DEPLOYMENT_PATH)
 
     def load_deployer_and_app(
-        self, app: str, deployer: BaseDeploymentGenerator, **kwargs: Any
+        self, app: str, deployer: Type[BaseDeploymentGenerator], **kwargs: Any
     ) -> Tuple[BaseDeploymentGenerator, ServiceBuilder]:
         """Handles loading the 2 required instances"""
         app_instance = ServiceBuilder.from_dir(
             path=Path(app).parent,
             keys_file=DEFAULT_KEY_PATH,
         )
-        instance = deployer(service_builder=app_instance, build_dir=self.temp_dir.name, **kwargs)  # type: ignore
+        instance = deployer(
+            service_builder=app_instance, build_dir=Path(self.temp_dir.name), **kwargs
+        )
         return instance, app_instance
 
 
@@ -281,7 +287,6 @@ class TestDeploymentGenerators(BaseDeploymentTests):
         builder = ServiceBuilder(
             service=service,
             keys=None,
-            private_keys_password=None,
             agent_instances=list("abcdefg"),
         )
         assert builder.service.number_of_agents == 1_000_000
@@ -327,7 +332,7 @@ class TestTendermintDeploymentGenerators(BaseDeploymentTests):
                 )
                 res = deployer_instance.generate_config_tendermint()  # type: ignore
                 assert (
-                    len(cast(str, res.tendermint_job_config)) >= 1
+                    len(cast(str, res.cluster_config)) >= 1
                 ), "Failed to generate Tendermint Config"
 
 
@@ -445,3 +450,18 @@ class TestOverrideTypes(BaseDeploymentTests):
             app_instance.service.check_overrides_valid(app_instance.service.overrides)
             app_instance.generate_agents()
             deployment_instance.generate()
+
+
+@skip_docker_tests
+def test_get_docker_client() -> None:
+    """Test get_docker_client method."""
+
+    client = get_docker_client()
+    assert client.api.base_url == "http+docker://localhost"
+
+    with mock.patch(
+        "autonomy.deploy.generators.docker_compose.base.from_env",
+        side_effect=DockerException,
+    ):
+        with pytest.raises(DockerException, match="No such file or directory"):
+            client = get_docker_client()

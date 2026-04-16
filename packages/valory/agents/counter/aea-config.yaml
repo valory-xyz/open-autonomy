@@ -3,23 +3,23 @@ author: valory
 version: 0.1.0
 description: The ABCI Counter example as an AEA
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeib7it5qaocb3ixf64gb576dmvovd4ehsvbdd5tiilrb75do6q3hre
+  README.md: bafybeigwd2qrq4e5rtsr4pqm22f3ev765hixoa5gi7tp3sxhatppkp7xdm
   __init__.py: bafybeifhegkalvgxfovnld7ni72nzyfeys6p27bgvt6hr2rzcn4zfise4i
   tests/__init__.py: bafybeie2owisfwjo4bkoz2dur64wzfzodyybjoe75acehwuiswu4jqtopy
-  tests/test_counter.py: bafybeiafaruvutgm65f6wnc4u5z37cyiizuttbpelgs4bpmimnjyp5tnj4
+  tests/test_counter.py: bafybeidiyw3o3gie73lhxlnw2hd25zbdnpxdhdmoz4um6vnxv7becrzufu
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeihczvjnki5kxhyixkh4lxuxkqsuhqmpn63tneyj76p7cmgaxqo7pu
-- valory/p2p_libp2p_client:0.1.0:bafybeihdnfdth3qgltefgrem7xyi4b3ejzaz67xglm2hbma2rfvpl2annq
+- valory/abci:0.1.0:bafybeihgtguy5ljj2rwgwoxeor5d565alwfggnuevss7malhzdats6nfqi
+- valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:bafybeifuxs7gdg2okbn7uofymenjlmnih2wxwkym44lsgwmklgwuckxm2m
-- valory/abci:0.1.0:bafybeigootsvqpk6th5xpdtzanxum3earifrrezfyhylfrit7yvqdrtgpe
+- open_aea/signing:1.0.0:bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye
+- valory/abci:0.1.0:bafybeiak4pwac3pwjtd7weskxdhkrcopckr32vtazfbuteu6yqjkwarpte
 skills:
-- valory/abstract_abci:0.1.0:bafybeibcemiz3qxoordadxwkxkjp7g7rerbfwap6wqxiepcms22ocb3v7i
-- valory/counter:0.1.0:bafybeifebdgijpp4hkqpmiqliayiumneh2y7d5orn7wxggxuzeu3mprixe
+- valory/abstract_abci:0.1.0:bafybeif4jcv22xrmkwiaecyyli7iknmdhtkg6dmzqmwpqekmvxyr7ba3xy
+- valory/counter:0.1.0:bafybeidn45xdohqngisn7wffk7s3p6lktwai6scepu2zmzi4zpbu4cbi2a
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -50,9 +50,10 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.38.0
+    version: ==2.2.1
   open-aea-test-autonomy:
-    version: ==0.11.0
+    version: ==0.21.18
+customs: []
 default_connection: null
 ---
 public_id: valory/abci:0.1.0
@@ -67,23 +68,23 @@ public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
 config:
   nodes:
-  - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9005}
+  - uri: ${P2P_URI:str:acn.autonolas.tech:9005}
     public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
-  - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9006}
+  - uri: ${P2P_URI:str:acn.autonolas.tech:9006}
     public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
 cert_requests:
 - identifier: acn
   ledger_id: ethereum
   message_format: '{public_key}'
-  not_after: '2023-01-01'
-  not_before: '2022-01-01'
+  not_after: '2025-01-01'
+  not_before: '2024-01-01'
   public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
   save_path: .certs/acn_cosmos_9005.txt
 - identifier: acn
   ledger_id: ethereum
   message_format: '{public_key}'
-  not_after: '2023-01-01'
-  not_before: '2022-01-01'
+  not_after: '2025-01-01'
+  not_before: '2024-01-01'
   public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
   save_path: .certs/acn_cosmos_9006.txt
 is_abstract: true

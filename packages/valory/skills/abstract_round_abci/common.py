@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
 
-
 RandomnessObservation = Optional[Dict[str, Union[str, int]]]
 
 
@@ -54,7 +53,7 @@ def random_selection(elements: List[Any], randomness: float) -> str:
 
 
 class RandomnessBehaviour(BaseBehaviour, ABC):
-    """Check whether Tendermint nodes are running."""
+    """Behaviour to collect randomness values from DRAND service for keeper agent selection."""
 
     payload_class: Type[BaseTxPayload]
 
@@ -71,6 +70,7 @@ class RandomnessBehaviour(BaseBehaviour, ABC):
             performative=LedgerApiMessage.Performative.GET_STATE,  # type: ignore
             ledger_callable="get_block",
             block_identifier="latest",
+            chain_id=self.params.default_chain_id,
         )
 
         if (
@@ -96,12 +96,12 @@ class RandomnessBehaviour(BaseBehaviour, ABC):
         )
         observation = self.context.randomness_api.process_response(response)
         if observation is not None:
-            self.context.logger.info("Verifying DRAND values.")
+            self.context.logger.info("Verifying DRAND values...")
             check, error = drand_check.verify(observation, self.params.drand_public_key)
             if check:
                 self.context.logger.info("DRAND check successful.")
             else:
-                self.context.logger.info(f"DRAND check failed, {error}.")
+                self.context.logger.error(f"DRAND check failed, {error}.")
                 return None
         return observation
 
@@ -116,16 +116,16 @@ class RandomnessBehaviour(BaseBehaviour, ABC):
         """
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             if self.context.randomness_api.is_retries_exceeded():
-                self.context.logger.info("Cannot retrieve randomness from api.")
-                self.context.logger.info("Generating randomness from chain.")
+                self.context.logger.warning("Cannot retrieve randomness from api.")
+                self.context.logger.info("Generating randomness from chain...")
                 observation = yield from self.failsafe_randomness()
                 if observation is None:
                     self.context.logger.error(
-                        "Could not generate randomness from chain."
+                        "Could not generate randomness from chain!"
                     )
                     return
             else:
-                self.context.logger.info("Retrieving DRAND values from api.")
+                self.context.logger.info("Retrieving DRAND values from api...")
                 observation = yield from self.get_randomness_from_api()
                 self.context.logger.info(f"Retrieved DRAND values: {observation}.")
 

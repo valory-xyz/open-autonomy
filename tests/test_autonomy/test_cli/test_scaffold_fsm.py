@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,16 +32,18 @@ from typing import Dict, List, Optional
 
 import click.testing
 import pytest
+import yaml
 from aea.cli.utils.config import get_default_author_from_cli_config
 from aea.package_manager.base import PACKAGES_FILE
 from aea.test_tools.test_cases import AEATestCaseMany
 
-# trigger population of autonomy commands
 import autonomy.cli.core  # noqa
+
+# trigger population of autonomy commands
+from autonomy.analyse.abci.app_spec import DFASpecificationError
 
 from packages.valory import skills
 from packages.valory.skills.abstract_round_abci.base import _MetaPayload
-
 
 VALORY_SKILLS_PATH = Path(os.path.join(*skills.__package__.split("."))).absolute()
 fsm_specifications = list(VALORY_SKILLS_PATH.glob("**/fsm_specification.yaml"))
@@ -62,7 +64,7 @@ class BaseScaffoldFSMTest(AEATestCaseMany):
 
         cls.author = get_default_author_from_cli_config()
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test."""
@@ -83,7 +85,7 @@ class BaseScaffoldFSMTest(AEATestCaseMany):
             self.author,
         )
 
-    def teardown(
+    def teardown_method(
         self,
     ) -> None:
         """Teardown test."""
@@ -96,12 +98,14 @@ class BaseScaffoldFSMTest(AEATestCaseMany):
         fsm_spec_file: Path,
         scaffold_args: Optional[List] = None,
         cli_args: Optional[List] = None,
+        skill_name: Optional[str] = None,
     ) -> click.testing.Result:
         """Scaffold FSM."""
         scaffold_args = scaffold_args or []
         cli_args = cli_args or []
-        *_, skill_name, _ = fsm_spec_file.parts
-        skill_name = f"test_skill_{skill_name}"
+        if skill_name is None:
+            *_, skill_name, _ = fsm_spec_file.parts
+            skill_name = f"test_skill_{skill_name}"
         scaffold_args = [
             *cli_args,
             "scaffold",
@@ -146,6 +150,33 @@ class TestScaffoldFSM(BaseScaffoldFSMTest):
         assert (
             self.t / self.agent_name / "skills" / skill_name / fsm_spec_file.name
         ).exists(), "spec file not copied in scaffolded skill"
+
+    def test_failure_cleanup(self) -> None:
+        """Test that directory doesn't exist if scaffold fails."""
+        with open(fsm_specifications[0], "r") as f:
+            original_raw_spec = f.read()
+            f.seek(0)
+            spec = yaml.safe_load(f)
+
+        spec["final_states"].append(spec["start_states"][0])  # making the spec wrong
+
+        with open(fsm_specifications[0], "w") as f:
+            yaml.dump(spec, f)
+
+        with pytest.raises(DFASpecificationError):
+            self.scaffold_fsm(fsm_specifications[0], skill_name="test_skill_abci")
+
+        assert not (self.t / self.agent_name / "skills" / "test_skill_abci").exists()
+
+        with open(fsm_specifications[0], "w") as f:
+            f.write(original_raw_spec)
+
+    def test_failure_due_to_name(self) -> None:
+        """Test failure due to name."""
+        with pytest.raises(click.ClickException):
+            self.scaffold_fsm(
+                fsm_specifications[0], skill_name="test"  # without `_abci`
+            )
 
 
 class TestScaffoldFSMAutonomyTests(BaseScaffoldFSMTest):

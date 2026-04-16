@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,10 +26,10 @@ from pathlib import Path
 from typing import Dict, Union, cast
 
 import click
+from aea_helpers.check_doc_hashes import read_file
 from click.core import Command, Group, Option
 
 from autonomy.cli import cli as autonomy_cli
-from scripts.check_doc_ipfs_hashes import read_file
 
 
 def get_cmd_data(cmd: Union[Command, Group]) -> Dict:
@@ -152,8 +152,10 @@ def test_validate_doc_commands() -> None:
     skips = [
         "autonomy tests/ --cov",
         "aea -- /bin/sh",
+        "aea --version",
         "autonomy deploy --env-file <path_to_dotenv> COMMAND",
         "autonomy deploy --env-file <path_to_json> COMMAND",
+        "aea init --reset --remote --ipfs --author ${AUTHOR}",
     ]
     # Validate all matches
     for file_ in target_files:
@@ -166,7 +168,8 @@ def test_validate_doc_commands() -> None:
 
             if cmd in skips:
                 continue
-            assert validator.validate(cmd, str(file_))
+            print(cmd)
+            assert validator.validate(cmd, str(file_)), cmd
 
 
 def test_validator() -> None:

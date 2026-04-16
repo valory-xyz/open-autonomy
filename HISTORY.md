@@ -1,5 +1,713 @@
 # Release History - `open-autonomy`
 
+# 0.21.18 (2026-04-16)
+
+Autonomy:
+- Moves `open-aea-ledger-ethereum-hwi` from a hard runtime dependency to an optional `[hwi]` extra. The HWI plugin's transitive deps (`hidapi`, `Pillow` via `ledgerwallet`) have no pre-built armv7 wheels, which broke multi-platform Docker image builds in v0.21.17. Install with `pip install open-autonomy[hwi]` if hardware wallet support is needed.
+
+# 0.21.17 (2026-04-16)
+
+Autonomy:
+- Bumps `open-aea` from `2.1.0` to `2.2.1` and `tomte` from `0.6.1` to `0.6.5` across the entire framework, all plugins, package yamls, Dockerfiles, and skaffold #2470
+- Removes `open-aea-ledger-ethereum-flashbots` plugin references from deployment scripts (`run.sh`, `start.sh`), Docker images, Pipfile, and bump-dependencies config. Skill-level `use_flashbots` API intentionally preserved to avoid on-chain payload wire-format break #2470
+- Fixes `autonomy/chain/metadata.py` to use `add_bytes` instead of removed `add_str` (open-aea-cli-ipfs 2.2.1 API change) #2470
+- Updates `ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH` constant to match regenerated package hashes #2470
+
+Scripts:
+- Migrates all 8 Python scripts from `scripts/` to CLI commands in `tomte`, upstream `aea-ci-helpers`, or OA-local `aea-helpers` #2470
+- Deletes `check_copyright.py`, `check_doc_links.py`, `freeze_dependencies.py`, `generate_api_documentation.py`, `generate_package_list.py`, `check_third_party_hashes.py`, `check_ipfs_hashes_pushed.py`, `generate_contract_list.py`
+- `check_third_party_hashes` and `generate_api_docs` promoted to upstream `open-aea-ci-helpers` (configurable, generic) — OA-local forks deleted #2470
+
+Plugins (aea-helpers):
+- Renames PyPI package from `aea-helpers` to `open-aea-helpers`
+- Removes `check-third-party-hashes` and `generate-api-docs` commands (migrated upstream to `aea-ci`)
+- Retains `generate-contract-list` (OA-specific Olas registry address table)
+- Removes `open-aea-flashbots` from dependency ignore lists
+
+Kubernetes:
+- Fixes k8s initContainer race condition — replaces config-nodes Job with per-pod initContainer using sentinel files and atomic locking #2461
+
+CI:
+- Adds "All checks passed" aggregate gate job #2471
+- Reduces test matrix from 15 to 9 cells #2466
+- Fixes `tomte format-copyright` author strings for tomte 0.6.5 compatibility
+- Fixes `main_workflow.yml` to call `check-doc-links-hashes` (was referencing non-existent `check-doc-hashes` env)
+- Adds flaky external URL skips (modescan.io, gameprogrammingpatterns.com, cointelegraph.com, etc.)
+
+Packages:
+- Updates funds forwarder skill #2468
+- Mints components #2462
+
+# 0.21.16 (2026-03-26)
+
+Autonomy:
+- Fixes IPFS connection handler to support directories and binary files #2458
+- Fixes identify service params #2455
+
+Plugins (aea-helpers):
+- Adds 4 new CLI commands: `config-replace`, `run-agent`, `run-service`, `make-release` #2456
+- Adds `--skip-tendermint` flag to `run-agent` for agents using HTTP-based ABCI
+- Fixes `customs` package type handling in `check-doc-hashes`
+- Fixes zero-matches exit behavior in `check-doc-hashes`
+- Bumps `aea-helpers` version to align with framework versioning
+
+# 0.21.15 (2026-03-24)
+
+Autonomy:
+- Adds `aea-helpers` plugin consolidating duplicated CI scripts (`bump.py`, `check_dependencies.py`, `check_doc_ipfs_hashes.py`) from 7 repos into a single installable CLI package #2450
+- Adds `aea-helpers` to the release pipeline for PyPI publishing #2452
+
+Packages:
+- Adds funds forwarder and identify service owner skills #2449
+
+# 0.21.14 (2026-03-19)
+
+Autonomy:
+- Fixes environment variable override validation #2447
+
+Packages:
+- Ensures ABIs have all parameters from explorer #2445
+- Fixes ERC20 transfer transaction #2444
+
+# 0.21.13 (2026-03-10)
+
+Chore:
+- Fixes requests version range to `<2.33.0,>=2.28.1` for compatibility #2443
+
+# 0.21.12 (2026-03-08)
+
+Autonomy:
+- Adds aea key to connection also in docker deployment #2408
+- Updates defaults for click commands options #2427
+- Fixes `protobuf` version conflict in docker image #2429
+- Introduces ERC8004 for Celo #2431
+- Fixes localhost password propagation #2434
+- Fixes critical audit issues #2435
+
+Packages:
+- Adds acn data share package #2403
+- Refactors packages' dependencies #2411
+- Fixes dependency version conflict #2413
+- Adds FSM core and test infrastructure audit #2436
+
+CI:
+- Sets up Snyk #2406
+- Unblocks Python 3.14 packaging flow #2424
+- Installs local source in package-publish job #2425
+
+Docs:
+- Adds testing behaviours #2409
+
+Chore:
+- Bumps tomte==0.6.1, updates code based on the linters, resolves dependency conflicts #2412
+- Bumps open-aea #2414
+- Adds support for Python 3.12, 3.13, and 3.14 #2410
+- Improves Python3.14 compatibility #2416 && #2423
+- Bumps base image to `python:3.14-slim-trixie` #2428
+- Pins grpcio to 1.78.0 (1.78.1 was yanked from PyPI) #2432
+
+Tests:
+- Fixes tests for Python 3.14 #2415
+- Fixes TestSlashing flaky rerun #2430
+- Replaces incorrect `assert any` with `assert all` #2419
+
+# 0.21.11 (2026-02-11)
+
+Autonomy:
+- Support both gas and its price multipliers in TxSettler #2398
+- Add ERC8004 contract addresses for Arbitrum and Optimism #2400
+
+# 0.21.10 (2026-02-09)
+
+Packages:
+- Fix handling `LateArrivingTransaction` error from tendermint in `abstract_round_abci` #2397
+
+# 0.21.9 (2026-02-05)
+
+Autonomy:
+- Adds support for setting custom gas multiplier in the TxSettler #2394
+
+Autonomy && Packages:
+- Adds the contracts for supporting agent wallets in ERC8004 registry #2395
+
+# 0.21.8 (2026-01-22)
+
+Autonomy:
+- Fixes the tendermint node to reset on connection failure with the ABCI app #2390
+- Fixes docker deployment of agent to self-recover on container restart #2390
+
+# 0.21.7 (2026-01-20)
+
+Autonomy:
+- Updates a link in the docs to the new domain `stack.olas.network` #2379
+- Fixes the `TxSettler` retry mechanism for Polygon RPCs #2388
+
+Packages:
+- Bumps `open-aea` to `2.0.8` #2389
+
+# 0.21.6 (2026-01-14)
+
+Autonomy:
+- Adds missing `chain_id` to the ledger message to fix the `failsafe_randomness` for agents using non-default chains. #2377
+- Adds internal support for PolySafe multisig contract #2378
+
+Packages:
+- Bumps `open-aea` to `2.0.7` in `gnosis_safe` contract #2384
+- Bumps `pycryptodome` to `3.20.0` in `gnosis_safe` contract #2383
+
+# 0.21.5 (2025-12-10)
+
+Autonomy:
+- TxSettler will now wait for an unsynced RPC to sync when settling a transaction #2374
+- `open-autonomy` now uses the contract addresses from `autonolas-registries@v1.3.0` #2375
+
+# 0.21.4 (2025-11-26)
+
+Autonomy:
+- TxSettler will now retry transaction if the RPC is unsynced #2371
+- `open-autonomy` is no longer dependent on `valory-docker-compose` package #2371
+
+# 0.21.3 (2025-10-20)
+
+Docs:
+- Updates the docs to use the new naming convention for Agent blueprints and AI agents #2364
+
+Autonomy:
+- Support repricing on `gas too low` RPC error in `TxSettler` #2365
+- Add helper methods in `ChainType` and `LedgerType` enums #2366
+
+# 0.21.2 (2025-10-01)
+
+Docs:
+- Change old docs domain to `stack.olas.network` #2355
+
+Packages:
+- Update `open-aea` to `2.0.6` #2359
+
+Autonomy:
+- Add support for setting custom props in `docker-compose.yaml` deployment #2358
+- Redesign the `TxSettler` for cleaner code #2356
+
+# 0.21.1 (2025-08-25)
+
+Autonomy && Packages && Docs:
+- Bumps `open-aea` from `2.0.4` to `2.0.5` #2354
+
+# 0.21.0 (2025-08-14)
+
+Autonomy && Packages && Docs:
+- End of support for Python 3.8 and 3.9 #2340
+- Dependency updates #2340
+  - Bumps `open-aea[all]` from `1.65.0` to `2.0.4`
+  - Bumps `open-aea-ledger-ethereum` from `1.65.0` to `2.0.4`
+  - Bumps `open-aea-ledger-ethereum-hwi` from `1.65.0` to `2.0.4`
+  - Bumps `open-aea-ledger-cosmos` from `1.65.0` to `2.0.4`
+  - Bumps `open-aea-cli-ipfs` from `1.65.0` to `2.0.4`
+  - Bumps `pytest` from `7.2.1` to `7.4.4`
+  - Bumps `py-ecc` from `6.0.0` to `8.0.0`
+  - Bumps `docker` from `6.1.2` to `7.1.0`
+  - Bumps `tomte` from `0.2.17` to `0.4.0`
+  - Bumps `eth-utils` from `2.2.0` to `5.3.0`
+  - Bumps `eth-abi` from `4.0.0` to `5.2.0`
+  - Bumps `web3` from `<7,>=6.0.0` to `<8,>=7.0.0`
+  - Bumps `eth-account` from `>=0.8.0,<0.9.0` to `>=0.13.0,<0.14.0`
+  - Loosens the `click` version constraint from `>=8.1.0,<8.2.0` to `>=8.1.0,<9`
+  - Loosens the `requests` version constraint from `<2.31.2,>=2.28.1` to `<2.32.5,>=2.28.1`
+  - Loosens the `pytest` version constraint from `>=7.0.0,<7.3.0` to `>=7.0.0,<7.5.0`
+- Updates the default URI `acn.staging.autonolas.tech` to `acn.autonolas.tech` #2346
+
+# 0.20.2 (2025-08-13)
+
+Autonomy:
+- Configures the generated `docker-compose.yaml` files to rotate the docker logs #2345
+- Adds support for service deployment with recovery module (by default) #2343
+
+# 0.20.1 (2025-07-30)
+
+Autonomy:
+- Pins the `open-aea-user` docker image to `1.65.0` to keep it compatible with major releases of `open-aea`. #2342
+
+# 0.20.0 (2025-07-29)
+
+Autonomy:
+- Updates the `Chain` and `ChainType` to include `OPTIMISM` enum value, and removes the `OPTIMISTIC` enum value #2336
+- Fixes the `autonomy deploy build` command to make the mounting directories #2338
+- Avoids host and docker resources conflicts when generating multiple docker deployments #2341
+
+# 0.19.11 (2025-06-19)
+
+Autonomy && Packages && Docs:
+- Rotates logs of tendermint #2333
+
+Chores:
+- Reverts temporary skip of test #2332
+
+# 0.19.10 (2025-06-16)
+
+Packages:
+- Fixes incorrect use of `TypedDict` #2331
+- Replaces deleted fork repo #2329
+- Limits `typing_extensions` up to `4.13.2` as the next version introduces a breaking change #2326
+
+# 0.19.9 (2025-05-28)
+
+Autonomy:
+- Handles the rebuilding of the transaction when getting "nonce too low" from the RPC #2324
+- Runs the docker deployment with the current user #2322
+
+Packages:
+- Removes `eth_newFilter` #2323
+
+# 0.19.8 (2025-04-14)
+
+Autonomy:
+- Increases the timeout for installing agent's dependencies while building its docker image #2320
+
+# 0.19.7 (2025-03-27)
+
+Autonomy:
+- Fixes `build-image` command in `open-autonomy-user` docker image and improves it to take `--pre-install-command` and `---builder` flags #2318
+
+# 0.19.6 (2025-03-19)
+
+Autonomy:
+- Adds support for building multi-arch docker images #2314
+
+# 0.19.5 (2025-03-14)
+
+Chores:
+- Bumps `open-aea@1.65.0` #2315
+
+# 0.19.4 (2025-02-18)
+
+Autonomy:
+- Fixes infinite loop in dev mode #2304
+- Fixes autonomy deploy build command #2305
+- Fixes the regressed CLI tests #2306
+
+Packages:
+- Fixes typo in `gas_pricing` #2308
+- Fixes the regressed packages' tests #2310
+
+CI:
+- Removes `continue-on-error` so the default applies #2303
+
+# 0.19.3 (2025-02-13)
+
+Chores:
+- Bumps `open-aea@1.64.0` #2307
+
+# 0.19.2 (2025-02-05)
+
+Packages:
+- Fixes char encodings for Windows #2300
+
+# 0.19.1 (2025-02-04)
+
+Autonomy:
+- Temporarily works around an issue with the path directory when using the build command #2292
+
+Chores:
+- Bumps `open-aea@1.63.0` #2299
+
+# 0.19.0 (2025-01-30)
+
+Docs:
+- Performs general improvements #2291
+- Fixes broken links #2293
+
+Packages:
+- Fails early when rounds' attributes are missing #2294
+
+Chores:
+- Bumps `open-aea@1.62.0` #2297
+
+CI:
+- Fixes the release flow #2298
+
+# 0.18.4 (2025-01-08)
+
+Autonomy:
+- Fixes the contract addresses of gnosis safe proxy factory on Optimism and Base chains #2285
+- Adds the option to build and deploy an agent locally without using docker #2258
+
+Packages:
+- IPFS connection now handles the HTTPError exception #2284
+
+Chores:
+- Upgrades macOS version in the workflow #2281
+
+# 0.18.3 (2024-11-18)
+
+Packages:
+- Strictly check if the required properties are defined in derived classes from AbstractRound #2276
+
+Chores:
+- Bumps `open-aea@1.60.0` #2280
+
+# 0.18.2 (2024-10-29)
+
+Autonomy:
+- Improves the flow when fetching from a TokenID #2273
+- Bumps `open-aea@1.59.0` #2275
+
+# 0.18.1 (2024-10-22)
+
+Autonomy:
+- Updates the chain configuration to include Mode #2272
+
+# 0.18.0 (2024-10-18)
+
+Autonomy:
+- Fixes the cleanup on scaffolding validation failure #2269
+- Adds support for dictionary overrides #2270
+- Bumps `open-aea@1.58.0` #2271
+
+# 0.17.0 (2024-10-17)
+
+Autonomy:
+- Checks the names of skills at the time of scaffolding and analysing #2260
+- Fixes the services' stopping when running `autonomy deploy stop` #2265
+- Deprecates the Görli chain #2266
+- Introduces support for running multiple services on docker #2265, #2267
+
+Docs:
+- Adds information about the naming of skills in the documentation #2260
+- Updates the service docs to add the available options for chain profiles (same as in autonomy mint) #2261, #2262
+
+# 0.16.1 (2024-09-24)
+
+- Bumps `open-aea@1.57.0` #2257
+
+# 0.16.0 (2024-09-17)
+
+- Bumps `open-aea@1.56.0` #2256
+
+# 0.15.2 (2024-08-06)
+
+- Bumps `open-aea@1.55.0` #2253
+
+# 0.15.1 (2024-07-22)
+
+- Bumps `open-aea@1.54.0` #2252
+
+# 0.15.0 (2024-07-10)
+
+Autonomy:
+- Reintroduces the breaking feature from PRs #2236, #2241, #2244.
+
+# 0.14.14.post2 (2024-07-10)
+
+Autonomy:
+- Reverts the breaking change introduced in the latest release, and more specifically in PRs #2236, #2241, #2244.
+
+# 0.14.14.post1 (2024-06-13)
+
+Autonomy:
+- fix for 0.14.14 issue with _get_synced_value
+
+# 0.14.14 (2024-06-04)
+
+Autonomy:
+- fix: crashing when a cross-period persisted key is not set
+- fix: pin requests to >=2.28.1,<2.31.2
+- documentation on release process updated
+- some fixes
+
+# 0.14.13 (2024-05-27)
+
+Autonomy:
+- Adds support for `transaction not found` error on the transaction settlment tool
+
+Packages:
+- Adds a test for testing the usage of nested directories with the `IPFS` connection 
+
+# 0.14.12 (2024-05-08)
+
+Autonomy:
+- Adds more chain profiles to reduce `on-chain` interaction complexity
+- Updates the develop mode to use a pre-built image for better user experience
+- Pins click to `>=8.1.0,<9`
+
+Packages:
+- Updates the `abstract_round_abci` skill so that the offence status changes are only stored in the DB if slashing is enabled
+
+# 0.14.11.post1 (2024-04-11)
+
+Packages:
+- Fixes third party package hashes
+
+# 0.14.11 (2024-04-11)
+
+Autonomy:
+- Adds support for mounting custom volumes on the service deployments
+- Make threshold argument optional when minting a service
+
+Packages:
+- Updates the contract API calls to utilise the `chain_id` parameter
+Add support for specifying `chain_id` on `get_transaction_receipt`
+
+
+# 0.14.10 (2024-03-21)
+
+Packages:
+- Fixes the recovery logic on the `abstract_round_abci` skill
+
+# 0.14.9 (2024-03-20)
+
+Autonomy:
+- Adds support for loading docker client from `docker-desktop` context
+
+# 0.14.8 (2024-03-06)
+
+Autonomy:
+- Pins `python-dotenv>=0.14.5,<0.22.0` and `typing_extensions>=3.10.0.2`
+
+Chore:
+- Skips data packages from the API generator script
+
+# 0.14.7 (2024-02-27)
+
+Autonomy:
+- Updates the Tendermint image to run the Tendermint node as a non-root user
+  
+Docs:
+- Updates `hello-world` hashes
+- Updates the ledger plugin installation instructions
+
+# 0.14.6 (2024-02-22)
+
+Autonomy:
+- Adds support for custom packages
+
+Packages:
+- Fixes a flay E2E test on the registration start up agent
+
+# 0.14.5 (2024-02-19)
+
+Autonomy:
+- Fixes incompatibility issue with the latest docker release on the network generator
+
+# 0.14.4 (2024-02-15)
+
+Autonomy:
+- Updates the subgraph client to use synchronous transport
+- Updates the kubernetes build generators to use `loopback` address instead of `localhost`
+- Adds support for rebuilding the transaction on `OldNonce` error
+
+Packages:
+- Adds support for transaction settlements on `solana`
+- Adds agent for testing transaction settlement on `solana`
+- Updates the termination logic for tendermint node to handle timeout error on windows
+- Updates the logging strategies to hide unnecessary debugging information
+
+# 0.14.3.post1 (2024-01-31)
+
+Autonomy:
+- Fixes the default value handling for the resource specifier flags on the `autonomy deploy build/from-token` commands
+
+# 0.14.3 (2024-01-30)
+
+Autonomy:
+- Updates the transaction settlement to reprice transaction when running into `ReplacementNotAllowed`
+- Adds support for specifying resources on the deployment builds using CLI flags and framework level environment variables
+
+# 0.14.2 (2024-01-29)
+
+Autonomy:
+- Adds support for using multiple ledgers in `keys.json`
+- Fixes single agent override indexing
+
+Packages:
+- Adds support for custom offence amounts
+
+# 0.14.1 (2024-01-23)
+
+Autonomy:
+- Pins `aiohttp<4.0.0,>=3.8.5`
+- Updates the deployment builder to use ledger identifier property in the `keys.json` to write the private key files in a deployment setup
+
+Packages:
+- Ports multi-ledger support on termination skill from `IEKIT`
+
+# 0.14.0 (2024-01-19)
+
+Autonomy:
+- Extends the list of retriable errors on transaction settlement
+- Integrates the autonolas subgraph to automate the dependency verification on the minting tools
+
+# 0.13.10 (2024-01-09)
+
+Packages:
+- Updates protocol packages to contain latest copyright headers
+
+# 0.13.9.post1 (2023-12-26)
+
+- Bumps `open-aea@1.43.0.post2`
+
+# 0.13.9 (2023-12-19)
+
+Autonomy:
+- Updates the tendermint image to support arm platforms
+- Updates the autonomy image to use `--timeout` flag on `aea install` command to avoid timeout failures on machines with limited resources
+
+Docs:
+- Fixes `hello-world` hash in the quick start guide
+- Adds requirements for developing and running on `raspberry-pi`
+
+# 0.13.8 (2023-11-30)
+
+Autonomy:
+- Implements transaction settlement on the `mint/service` command groups
+  - Adds support for retrying transaction on known error
+  - Adds support for repricing under priced transactions
+- Adds support for performing dry-run on on-chain interaction tools
+
+Chore:
+- Adds a script for bumping services
+
+# 0.13.7 (2023-11-23)
+
+Autonomy:
+- Adds support for logging to console on tendermint server
+
+# 0.13.6 (2023-11-21)
+
+Autonomy:
+- Fixes the start.sh script to use password if provided when issuing certificates
+
+Packages:
+- Renames the `chain_name` parameter to `chain_id` on transaction settlement skill
+
+Docs:
+- Updates the documentation on private key security in deployments
+
+# 0.13.5 (2023-11-14)
+
+Autonomy:
+- Pins `protobuf<4.25.0,>=4.21.6`
+
+Packages:
+- Ports changes on transaction settlement skill from `IEKit` and `agent-academy-2`
+- Updates the transaction settlement ABCI to handle safe-nonce reuse
+
+# 0.13.4 (2023-11-01)
+
+Autonomy:
+- Updates the mint tools to propagate `token` address to update service transactions
+
+# 0.13.3 (2023-11-01)
+
+- Synchronises the `on-chain` addresses with the latest protocol release
+
+# 0.13.2 (2023-10-30)
+
+- Adds support for specifying custom `Dockerfile` for building agent images
+- Deprecates `--password` flag on `autonomy deploy build/from-token` commands
+- Introduces `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` as environment variable for providing private key passwords to deployments
+- Updates the service analyser to skip `abci` connection since it's not required to be manually overridden
+
+# 0.13.1.post1 (2023-10-24)
+
+Chore:
+- Bumps `open-aea@1.41.0.post1`
+
+# 0.13.1 (2023-10-11)
+
+Autonomy:
+- Updates the on-chain tools to use service manager token contract for managing services on gnosis
+- Makes fallback handler address configurable when deploying a service
+- Updates the log parser to use `utf-8` encoding to avoid decoding issues on windows
+- Fixes the log parser multiline parsing
+- Fixes the deployment exits on windows
+- Updates error handling for invalid private keys
+- Fixes error messages for unreferenced events in the FSM check
+- Updates the environment variable validation to
+  - Validate data type
+  - Validate default value
+- Updates the service analyser to warn if the termination skill or the slashing skill is missing as a dependency
+- Adds support for service level dependencies
+
+Packages:
+- Moves the hypothesis imports to test modules to avoid import errors at runtime
+- Removes the hello world service
+
+# 0.13.0 (2023-09-27)
+
+Autonomy:
+- Replaces `open-aea-web3` with `web3py<7,>=6.0.0`
+- Bumps `protobuf<5.0.0,>=4.21.6`
+- Fixes `protobuf` incompatibility issue when importing hardware wallet plugin
+- Refactors autonomy and agent images to
+  - Include install and build scripts in the base image
+  - Remove unwanted layers
+  - Remove unwanted data files
+
+Packages:
+- Generates protocols using the latest compatible `protobuf` compiler
+- Compiles the tendermint connection protocol buffers using the latest compatible `protobuf` compiler
+
+Chores:
+- Bumps `protobuf` compiler to `24.3`
+
+# 0.12.1.post4 (2023-09-25)
+
+Autonomy:
+
+- Update the reuse multisig transaction builder to account for services with only one operator
+
+# 0.12.1.post3 (2023-09-21)
+
+Autonomy:
+
+- Pins `jsonschema<=4.19.0,>=4.16.0`
+
+# 0.12.1.post2 (2023-09-20)
+
+Autonomy:
+
+- Adds missing contract packages to the `eject-contracts` make target
+- Adds check to make sure service is in `pre-registration` before updating the service hash
+- Adds check to make sure all required environment variables are present for on-chain interactions
+
+# 0.12.1.post1 (2023-09-14)
+
+Autonomy:
+
+- Pin `hexbytes` as framework dependency
+
+# 0.12.1 (2023-09-12)
+
+Autonomy:
+
+- Adds support for updating already minted components with latest hashes
+- Adds support for using ERC20 tokens for securing autonomous services
+- Adds support for reusing the same multisig for on-chain service redeployment
+
+Docs:
+- Updates documentation for the latest features
+- Adds a list of addresses across various chains in documentation
+
+# 0.12.0 (2023-08-24)
+
+Autonomy:
+- Fixes deployment build bug on windows #2039
+
+Packages:
+- Adds slashing functionality #1927
+- Adds support for checking the safe nonce before re-sending a transaction #2040
+
+# 0.11.1 (2023-08-18)
+
+Autonomy:
+- Adds support for `arm/v7` docker images
+- Adds support for running the service in background using `--detach` flag in the `autonomy deploy run` command
+- Adds support for stopping the service running in background using `autonomy deploy stop`
+- Implements clean exists from `docker-compose` deployments
+
+Packages:
+- Reverts #1996, because it introduced some instability
+
 # 0.11.0 (2023-08-14)
 
 Autonomy:
@@ -11,7 +719,7 @@ Packages:
 
 Chore:
 - Replaces the `web3py` with `open-aea-web3`
-- Bumps `py-ecc@6.0.0`, `numpy@>=1.21.6` and `pandas@1.5.3` 
+- Bumps `py-ecc@6.0.0`, `numpy@>=1.21.6` and `pandas@1.5.3`
 
 # 0.10.11.post1 (2023-08-10)
 

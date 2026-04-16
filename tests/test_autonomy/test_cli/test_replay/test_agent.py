@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2024-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 
 """Test agent runner."""
 
-
 import os
 import shutil
 from pathlib import Path
@@ -27,12 +26,16 @@ from typing import Any, Tuple
 from unittest import mock
 
 from autonomy.cli import cli
-from autonomy.deploy.base import TENDERMINT_COM_URL_PARAM, TENDERMINT_URL_PARAM
+from autonomy.constants import DEFAULT_BUILD_FOLDER
+from autonomy.deploy.base import (
+    TENDERMINT_COM_URL_PARAM,
+    TENDERMINT_URL_PARAM,
+    build_hash_id,
+)
 from autonomy.replay.agent import AgentRunner
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
-
 
 OS_ENV_PATCH = mock.patch.dict(
     os.environ, values={**os.environ, "ALL_PARTICIPANTS": "[]"}, clear=True
@@ -89,19 +92,20 @@ class TestAgentRunner(BaseCliTest):
     output_dir: Path = ROOT_DIR
     keys_path: Path = ROOT_DIR / "deployments" / "keys" / "hardhat_keys.json"
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
-        super().setup()
+        super().setup_method()
 
         shutil.copytree(
-            self.packages_dir / "valory" / "services" / "hello_world",
-            self.t / "hello_world",
+            self.packages_dir / "valory" / "services" / "register_reset",
+            self.t / "register_reset",
         )
-        os.chdir(self.t / "hello_world")
+        os.chdir(self.t / "register_reset")
 
     def test_run(self) -> None:
         """Test run."""
 
+        build_dir = self.t / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.cli_runner.invoke(
                 cli,
@@ -111,13 +115,12 @@ class TestAgentRunner(BaseCliTest):
                     str(self.keys_path),
                     "--local",
                     "--o",
-                    str(self.t / "abci_build"),
+                    str(build_dir),
                 ),
             )
 
         assert result.exit_code == 0, result.output
 
-        build_dir = self.t / "abci_build"
         with mock.patch.object(AgentRunner, "start", new=ctrl_c), mock.patch.object(
             AgentRunner, "stop"
         ) as stop_mock, mock.patch(

@@ -1,10 +1,10 @@
 The [Application BlockChain Interface (ABCI)](https://github.com/tendermint/spec/tree/95cf253b6df623066ff7cd4074a94e7a3f147c7a/spec/abci) defines the boundary between the consensus engine (the blockchain) and an application to be replicated across a number of platforms.
-The ABCI lets the application logic communicate with the consensus engine in a transparent way so that all agents' internal state are synchronized. The application to be replicated can be written in any programming language, and it communicates with the consensus engine of each agent through a variety of methods, e.g., Unix or TCP sockets. In our case, we leverage the ABCI to replicate the sate of the {{fsm_app}} within the agents of an agent service.
+The ABCI lets the application logic communicate with the consensus engine in a transparent way so that all agent instances' internal state are synchronized. The application to be replicated can be written in any programming language, and it communicates with the consensus engine of each agent instance through a variety of methods, e.g., Unix or TCP sockets. In our case, we leverage the ABCI to replicate the sate of the {{fsm_app}} within the agent instances of an AI agent.
 
 The ABCI standard was introduced with the
 [Tendermint project](https://docs.tendermint.com/v0.34/introduction/what-is-tendermint.html). Nevertheless,
 an ABCI App can work with any consensus engine
-that is ABCI-compatible, e.g., [Fantom](https://fantom.foundation/about/).
+that is ABCI-compatible, e.g., [Fantom](https://docs.fantom.foundation/).
 In the remaining of this section, we will consider [Tendermint](https://tendermint.com/) as the consensus engine.
 
 !!! note

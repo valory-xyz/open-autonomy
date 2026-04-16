@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -41,7 +41,6 @@ from autonomy.configurations.base import Service
 
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
-
 DUMMY_SERVICE_HASH = "bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vj"
 DUMMY_AGENT_HASH = "bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vm"
 DUMMY_LEDGER_CONNECTION_HASH = (
@@ -60,7 +59,7 @@ def get_dummy_service_config() -> Dict:
         "author": "valory",
         "version": "0.1.0",
         "description": "A dummy service config file with sigular overrides.",
-        "aea_version": ">=1.0.0, <2.0.0",
+        "aea_version": ">=2.0.0, <3.0.0",
         "license": "Apache-2.0",
         "fingerprint": {
             "README.md": "bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm"
@@ -187,7 +186,7 @@ def get_dummy_agent_config() -> Dict:
         "version": "0.1.0",
         "license": "Apache-2.0",
         "description": "agent",
-        "aea_version": ">=1.0.0, <2.0.0",
+        "aea_version": ">=2.0.0, <3.0.0",
         "fingerprint": {},
         "fingerprint_ignore_patterns": [],
         "connections": [
@@ -222,7 +221,7 @@ def get_dummy_skill_config() -> Dict:
         "type": "skill",
         "description": "Hello World ABCI application.",
         "license": "Apache-2.0",
-        "aea_version": ">=1.0.0, <2.0.0",
+        "aea_version": ">=2.0.0, <3.0.0",
         "fingerprint": {},
         "fingerprint_ignore_patterns": [],
         "connections": [],
@@ -268,6 +267,11 @@ def get_dummy_skill_config() -> Dict:
                     "tendermint_url": "http://localhost:26657",
                     "tx_timeout": 10,
                     "use_termination": False,
+                    "use_slashing": False,
+                    "slash_cooldown_hours": 3,
+                    "slash_threshold_amount": 10_000_000_000_000_000,
+                    "light_slash_unit_amount": 5_000_000_000_000_000,
+                    "serious_slash_unit_amount": 8_000_000_000_000_000,
                 },
                 "class_name": "Params",
             },
@@ -288,8 +292,6 @@ class BaseAnalyseServiceTest(BaseCliTest):
     def setup_class(cls) -> None:
         """Setup class."""
         super().setup_class()
-
-        cls.cli_runner.mix_stderr = False
 
     @staticmethod
     def patch_check_agent_dependencies_published(**kwargs: Any) -> mock._patch:
@@ -540,7 +542,11 @@ class TestCheckRequiredServiceOverrides(BaseAnalyseServiceTest):
                 get_dummy_overrides_skill(env_vars_with_name=True),
                 connection_config,
             ],
-            agent_data=[get_dummy_agent_config(), get_dummy_overrides_skill()],
+            agent_data=[
+                get_dummy_agent_config(),
+                get_dummy_overrides_skill(),
+                get_dummy_overrides_ledger_connection(),
+            ],
             skill_data=get_dummy_skill_config(),
         ), self.patch_ipfs_tool([]):
             result = self.run_cli(commands=self.public_id_option)
@@ -568,12 +574,16 @@ class TestCheckRequiredServiceOverrides(BaseAnalyseServiceTest):
                 get_dummy_overrides_skill(env_vars_with_name=True),
                 connection_config,
             ],
-            agent_data=[get_dummy_agent_config(), get_dummy_overrides_skill()],
+            agent_data=[
+                get_dummy_agent_config(),
+                get_dummy_overrides_skill(),
+                get_dummy_overrides_ledger_connection(),
+            ],
             skill_data=get_dummy_skill_config(),
         ), self.patch_ipfs_tool([]), caplog.at_level(logging.WARNING):
             result = self.run_cli(commands=self.public_id_option)
 
-        assert result.exit_code == 1, result.stdout
+        assert result.exit_code == 0, result.stderr
         assert (
             "Following unknown ledgers found in the (connection, valory/ledger:0.1.0) override\n\t- solana\n"
             in caplog.text
@@ -591,7 +601,11 @@ class TestCheckRequiredServiceOverrides(BaseAnalyseServiceTest):
                 get_dummy_overrides_skill(),
                 connection_config,
             ],
-            agent_data=[get_dummy_agent_config(), get_dummy_overrides_skill()],
+            agent_data=[
+                get_dummy_agent_config(),
+                get_dummy_overrides_skill(),
+                get_dummy_overrides_ledger_connection(),
+            ],
             skill_data=get_dummy_skill_config(),
         ), self.patch_ipfs_tool([]):
             result = self.run_cli(commands=self.public_id_option)
@@ -615,7 +629,11 @@ class TestCheckRequiredServiceOverrides(BaseAnalyseServiceTest):
                 get_dummy_overrides_skill(),
                 connection_config,
             ],
-            agent_data=[get_dummy_agent_config(), get_dummy_overrides_skill()],
+            agent_data=[
+                get_dummy_agent_config(),
+                get_dummy_overrides_skill(),
+                get_dummy_overrides_abci_connection(),
+            ],
             skill_data=get_dummy_skill_config(),
         ), self.patch_ipfs_tool([]):
             result = self.run_cli(commands=self.public_id_option)
@@ -669,8 +687,8 @@ class TestEnvVarValidation(BaseAnalyseServiceTest):
 
         assert result.exit_code == 1, result.stdout
         assert (
-            "(skill, valory/abci_skill:0.1.0) envrionment variable validation failed with following error"
-            "\n\t- `models.params.args.message` needs to be defined as a environment variable"
+            "(skill, valory/abci_skill:0.1.0) environment variable validation failed with following error\n\t- "
+            "`models.params.args.message` needs environment variable defined in following format ${ENV_VAR_NAME:DATA_TYPE:DEFAULT_VALUE}\n"
             in result.stderr
         ), result.stdout
 
@@ -692,7 +710,7 @@ class TestEnvVarValidation(BaseAnalyseServiceTest):
 
         assert result.exit_code == 1, result.stdout
         assert (
-            "(skill, valory/abci_skill:0.1.0) envrionment variable validation failed with following error"
+            "(skill, valory/abci_skill:0.1.0) environment variable validation failed with following error"
             "\n\t- `models.params.args.tendermint_url` needs to be defined as a environment variable"
             in result.stderr
         ), result.stdout
@@ -715,7 +733,7 @@ class TestEnvVarValidation(BaseAnalyseServiceTest):
 
         assert result.exit_code == 1, result.stdout
         assert (
-            "(skill, valory/abci_skill:0.1.0) envrionment variable validation failed with following error"
+            "(skill, valory/abci_skill:0.1.0) environment variable validation failed with following error"
             "\n\t- `models.params.args.tendermint_url` validation failed with following error; Cannot convert string `hello` to type `int`"
             in result.stderr
         ), result.stdout
@@ -850,7 +868,7 @@ class TestCheckOnChainState(BaseAnalyseServiceTest):
 class TestCheckSuccessful(BaseAnalyseServiceTest):
     """Test a successful check"""
 
-    def test_run(self) -> None:
+    def test_run(self, caplog: Any) -> None:
         """Test run."""
 
         skill_config = get_dummy_overrides_skill(env_vars_with_name=True)
@@ -895,8 +913,14 @@ class TestCheckSuccessful(BaseAnalyseServiceTest):
         ), self.patch_get_on_chain_service_id(), mock.patch(
             "autonomy.analyse.service.get_service_info",
             return_value=(None, 4, None),
+        ), caplog.at_level(
+            logging.WARNING
         ):
             result = self.run_cli(commands=self.token_id_option)
 
         assert result.exit_code == 0, result.stderr
         assert "Service is ready to be deployed" in result.output
+        assert (
+            "valory/termination_abci:any is not defined as a dependency" in caplog.text
+        )
+        assert "valory/slashing_abci:any is not defined as a dependency" in caplog.text

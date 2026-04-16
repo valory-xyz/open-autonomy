@@ -4,17 +4,17 @@ version: 0.1.0
 type: connection
 description: A connection responsible for uploading and downloading files from IPFS.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeiercvjoct4tygo4oif5y4chnst2y7b6mhdgdj3zvoeakstbn4m7g4
-  connection.py: bafybeifnjyjqmhlxenw7m4rfnjw2b6mwaevdl3hrcalefptd2tpm5lrbcy
+  connection.py: bafybeid56fp3n2r4jvuszsoiwthmkbwhfsb2kydavht6ejc7gurn5sfuc4
   readme.md: bafybeihdrtloo2stz7frhfhtl5m7ewwigdeehnujf6julwj6c5pzr7iefu
   tests/__init__.py: bafybeicqjmce5v5ympy2rcryfh644rxrtujvbcuzk7ylmfmzynoh6wujx4
-  tests/test_connection.py: bafybeicloh5qckpfbggemscbji4czk774wjcjod3liej3hxjyvecl4zxiq
+  tests/test_connection.py: bafybeidgyt7orpchckvoigguprfhmmouf2psctnu6idv4kvlmf65qbbfo4
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
-- valory/ipfs:0.1.0:bafybeibjzhsengtxfofqpxy6syamplevp35obemwfp4c5lhag3v2bvgysa
+- valory/ipfs:0.1.0:bafybeibz5xqhxdbuvba7nuw2w6ardjermtcoqercopnypdplnaekf3joam
 class_name: IpfsConnection
 config:
   ipfs_domain: null
@@ -24,8 +24,8 @@ dependencies:
   ipfshttpclient:
     version: ==0.8.0a2
   open-aea-cli-ipfs:
-    version: ==1.38.0
+    version: ==2.2.1
   requests:
-    version: ==2.28.1
+    version: <2.33.0,>=2.28.1
 is_abstract: false
 cert_requests: []

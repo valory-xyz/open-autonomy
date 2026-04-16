@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint Docker image."""
+
 import logging
 import time
 from typing import Dict, List, Optional
@@ -27,7 +28,6 @@ import requests
 from aea.exceptions import enforce
 from aea_test_autonomy.docker.base import DockerImage
 from docker.models.containers import Container
-
 
 DEFAULT_HARDHAT_ADDR = "http://127.0.0.1"
 DEFAULT_HARDHAT_PORT = 8545
@@ -39,10 +39,10 @@ AGENT_REGISTRY = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"  # nosec
 REGISTRIES_MANAGER = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"  # nosec
 GNOSIS_SAFE_MULTISIG = "0x0E801D84Fa97b50751Dbf25036d067dCf18858bF"  # nosec
 SERVICE_REGISTRY = "0x998abeb3E57409262aE5b751f60747921B33613E"  # nosec
-SERVICE_REGISTRY_TOKEN_UTILITY = "0x36C02dA8a0983159322a80FFE9F24b1acfF8B570"  # nosec
-SERVICE_MANAGER_TOKEN = "0x4c5859f0F772848b2D91F1D83E2Fe57935348029"  # nosec
+SERVICE_REGISTRY_TOKEN_UTILITY = "0x70e0bA845a1A0F2DA3359C97E0285013525FFC49"  # nosec
+SERVICE_MANAGER_PROXY = "0x4c5859f0F772848b2D91F1D83E2Fe57935348029"  # nosec
 SERVICE_REGISTRY_L2 = "0x5eb3Bc0a489C5A8288765d2336659EbCA68FCd00"  # nosec
-SERVICE_MANAGER = "0x70e0bA845a1A0F2DA3359C97E0285013525FFC49"  # nosec
+SERVICE_MANAGER = "0x36C02dA8a0983159322a80FFE9F24b1acfF8B570"  # nosec
 OPERATOR_WHITELIST = "0x809d550fca64d94Bd9F66E60752A544199cfAC3D"  # nosec
 ERC20_TOKEN = "0x1291Be112d480055DaFd8a610b7d1e203891C274"  # nosec
 GNOSIS_SAFE_MASTER_COPY = "0x4826533B4897376654Bb4d4AD88B7faFD0C98528"  # nosec
@@ -51,8 +51,8 @@ GNOSIS_SAFE_MULTISIG_WITH_SAME_ADDRESS = (
     "0x8f86403A4DE0BB5791fa46B8e795C547942fE4Cf"  # nosec
 )
 GNOSIS_SAFE_MULTISEND = "0x9d4454B023096f34B160D6B654540c56A1F81688"  # nosec
-SERVICE_MULTISIG_1 = "0x77b783e911F4398D75908Cc60C7138Bd1eFe35Fd"  # nosec
-SERVICE_MULTISIG_2 = "0x89CB72532402144C3f4dbF61ed9b0779E30091F5"  # nosec
+SERVICE_MULTISIG_1 = "0x42B4Ef74f1E1E13b3132687bCa9308A89B3D81b2"  # nosec
+SERVICE_MULTISIG_2 = "0x44b2B7F7E42A36b3195Cc874098937c7dA320cC6"  # nosec
 DEFAULT_SERVICE_CONFIG_HASH = (
     "0xd913b5bf68193dfacb941538d5900466c449c9ec8121153f152de2e026fa7f3a"
 )
@@ -112,7 +112,7 @@ class RegistriesDockerImage(DockerImage):
         """
         for i in range(max_attempts):
             try:
-                response = requests.get(f"{self.addr}:{self.port}")
+                response = requests.get(f"{self.addr}:{self.port}", timeout=30)
                 enforce(response.status_code == 200, "")
                 return True
             except Exception as e:  # pylint: disable=broad-except

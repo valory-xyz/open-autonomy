@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/abstract_round_abci skill's behaviours."""
+
 import json
 from abc import ABC
 from copy import copy
@@ -59,7 +60,6 @@ from packages.valory.skills.abstract_round_abci.handlers import (
     SigningHandler,
     TendermintHandler,
 )
-
 
 # pylint: disable=protected-access,too-few-public-methods,consider-using-with
 
@@ -135,7 +135,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
             for param_name, param_value in kwargs["param_overrides"].items():
                 cls.behaviour.context.params.__dict__[param_name] = param_value
 
-    def setup(self, **kwargs: Any) -> None:
+    def setup_method(self, **kwargs: Any) -> None:
         """
         Set up the test method.
 
@@ -143,7 +143,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
 
         :param kwargs: the keyword arguments passed to _prepare_skill
         """
-        super().setup(**kwargs)
+        super().setup_method(**kwargs)
         self.behaviour.setup()
         self._skill.skill_context.state.setup()
         self._skill.skill_context.state.round_sequence.end_sync()
@@ -396,7 +396,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
         abci_app._last_round = old_round
         abci_app._current_round = abci_app.transition_function[
             current_behaviour.matching_round
-        ][done_event](abci_app.synchronized_data)
+        ][done_event](abci_app.synchronized_data, context=MagicMock())
         abci_app._previous_rounds.append(old_round)
         abci_app._current_round_height += 1
         self.behaviour._process_current_round()
@@ -420,9 +420,9 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
         if getattr(cls, "old_tx_type_to_payload_cls", False):
             _MetaPayload.registry = cls.old_tx_type_to_payload_cls
 
-    def teardown(self, **kwargs: Any) -> None:
+    def teardown_method(self, **kwargs: Any) -> None:
         """Teardown."""
-        super().teardown(**kwargs)
+        super().teardown_method(**kwargs)
         self.benchmark_dir.cleanup()
 
 
@@ -435,6 +435,7 @@ class DummyContext:
         round_timeout_seconds: float = 1.0
 
     _skill: MagicMock = MagicMock()
+    logger: MagicMock = MagicMock()
     skill_id = "dummy_skill_id"
 
     @property

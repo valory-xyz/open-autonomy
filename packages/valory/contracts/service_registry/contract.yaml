@@ -4,14 +4,14 @@ version: 0.1.0
 type: contract
 description: Service Registry contract
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeidey4syohls5hxmso6qsp5p4uhtzle5txv2mlbym6ktjzknich6oa
   build/ServiceRegistry.json: bafybeia4qi2vstrutejzrxfpbb6eift7va5cjs7bparaal2fafiiczuiyy
   build/ServiceRegistryL2.json: bafybeic2jylwfod4nmdtbs4izyxyi246pd3f35aoqyahnmyrvzn7j3sv4e
-  contract.py: bafybeifkygq4kgo3wtznbp6rlwabfrd6v6y4ezyd3gauu2xmfudrsquq34
+  contract.py: bafybeifdanqkam5jnhvlz64cymfxsrsn6cb3ubtumaslcynjh3i6e7bwve
   tests/__init__.py: bafybeicl2oklx774jomlt6wwwegfdzrxh6iazjxwcyc7h4gepjljkpl4ji
-  tests/test_contract.py: bafybeiho4uospyvh7mjuhuzvoouxxmpa4ucwa652fqivdj62hea62dgcya
+  tests/test_contract.py: bafybeicu3ryinmqtesak66qwcopl24nb5zammhq7ehvr4pjnqu7nnvkywi
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: ServiceRegistryContract
@@ -19,6 +19,8 @@ contract_interface_paths:
   ethereum: build/ServiceRegistry.json
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.38.0
+    version: ==2.2.1
   open-aea-test-autonomy:
-    version: ==0.11.0
+    version: ==0.21.18
+  web3:
+    version: <8,>=7.0.0

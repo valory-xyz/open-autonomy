@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ class BaseImageBuildTest:
 
         cls.client = docker.from_env()
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
         self.running_containers = []
 
@@ -54,6 +54,7 @@ class BaseImageBuildTest:
         path: Path,
         tag: str,
         buildargs: Optional[Dict[str, str]] = None,
+        dockerfile: Optional[str] = None,
     ) -> Tuple[bool, str]:
         """Build docker image."""
 
@@ -62,6 +63,7 @@ class BaseImageBuildTest:
             tag=tag,
             nocache=True,
             buildargs=(buildargs or {}),
+            dockerfile=dockerfile,
         )
         output = ""
         for stream_obj in stream:
@@ -73,7 +75,7 @@ class BaseImageBuildTest:
                 if "stream" in stream_data:
                     output += stream_data["stream"]
                 elif "errorDetail" in stream_data:
-                    return False, stream_data["errorDetail"]["message"]
+                    return False, output + stream_data["errorDetail"]["message"]
                 elif "aux" in stream_data:
                     output += stream_data["aux"]["ID"]
                 elif "status" in stream_data:
@@ -81,7 +83,7 @@ class BaseImageBuildTest:
 
         return True, output
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown test."""
 
         for container in self.running_containers:

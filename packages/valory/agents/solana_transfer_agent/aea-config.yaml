@@ -1,0 +1,123 @@
+agent_name: solana_transfer_agent
+author: valory
+version: 0.1.0
+license: Apache-2.0
+description: Register terminate to test the termination feature.
+aea_version: '>=2.0.0, <3.0.0'
+fingerprint:
+  README.md: bafybeigogzuikulxmaitsy45aa2e7hcl456jyhuayj7sxs3g3st5xnxsdm
+  __init__.py: bafybeigixtbve7in5q3mkbasn2lcu47pqzc23vhxugli2akg6ucw6roo3u
+  tests/__init__.py: bafybeiduyc727gdkavmsrslb22ixlehadyzjnfimikqeasuf6orkew32fa
+  tests/base.py: bafybeid6wfg4hsyh6hy3qhc7gnvur5kzzzeg3cuai4pvo6kgbzsqilvkdy
+  tests/test_register_reset.py: bafybeigjimvueefuumi7jbiclscf3k2fag4qoy5hluoxbv6fiakyroyv3m
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0:bafybeihgtguy5ljj2rwgwoxeor5d565alwfggnuevss7malhzdats6nfqi
+- valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
+- valory/ipfs:0.1.0:bafybeiddxbjccmzkknny5pbfupxgexp4w4pwiu2rny4a6vnlxwqs3mmfo4
+- valory/ledger:0.19.0:bafybeidqf5dmueqm655z3bkw36mviobpcpuek4bhha7iq2nnz6sfu32kva
+- valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
+contracts:
+- valory/service_registry:0.1.0:bafybeib6lrxpbhsrg32bueif53vnb3xecyjxzk6rhd2t2xot27qtbeyvjm
+- valory/squads_multisig:0.1.0:bafybeigzpgf3spp7ckm5k3a6dla7wops744wnvk4ksixig3yjlerkp5yxe
+protocols:
+- open_aea/signing:1.0.0:bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye
+- valory/abci:0.1.0:bafybeiak4pwac3pwjtd7weskxdhkrcopckr32vtazfbuteu6yqjkwarpte
+- valory/acn:1.1.0:bafybeiea66z4k6cgcazxd6qzvnkllulyjzbnxufkoenge7qzh4qfogrvoa
+- valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
+- valory/http:1.0.0:bafybeidxkp3vga7t6x2pbt2tpkgyaxa5bgpdgryao54py7w3yxyzr7neoy
+- valory/ipfs:0.1.0:bafybeibz5xqhxdbuvba7nuw2w6ardjermtcoqercopnypdplnaekf3joam
+- valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
+- valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
+skills:
+- valory/abstract_abci:0.1.0:bafybeif4jcv22xrmkwiaecyyli7iknmdhtkg6dmzqmwpqekmvxyr7ba3xy
+- valory/abstract_round_abci:0.1.0:bafybeihgbc5geup3ljdfgyontr2p5e4myxjkthaplm5ei727uw2pawstcy
+- valory/registration_abci:0.1.0:bafybeib7midws7obgz34tqsebowa73z46pm34hhsssa3rjet2npp5ekvwm
+- valory/reset_pause_abci:0.1.0:bafybeiezqq76bdcrlgshyo2e544sm3u57amerpwla3sacosle5zivaij24
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeifeihfvv7p46q4vvqfpphcwtretmyrqcfzi7lj52sgl4mzvx3xglm
+- valory/test_solana_tx_abci:0.1.0:bafybeiborcusdq3meainte2jvektr57upkdbcqmqpoaa3ivkiornxtu4au
+default_ledger: solana
+required_ledgers:
+- solana
+default_routing: {}
+connection_private_key_paths: {}
+private_key_paths: {}
+logging_config:
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    standard:
+      format: '[%(asctime)s] [%(levelname)s] %(message)s'
+  handlers:
+    logfile:
+      class: logging.FileHandler
+      formatter: standard
+      filename: ${LOG_FILE:str:log.txt}
+      level: INFO
+    console:
+      class: logging.StreamHandler
+      formatter: standard
+      stream: ext://sys.stdout
+  loggers:
+    aea:
+      handlers:
+      - logfile
+      - console
+      propagate: false
+dependencies:
+  open-aea-ledger-ethereum:
+    version: ==2.2.1
+  open-aea-ledger-solana:
+    version: ==2.2.1
+  open-aea-test-autonomy:
+    version: ==0.21.18
+customs: []
+default_connection: null
+---
+public_id: valory/abci:0.1.0
+type: connection
+config:
+  target_skill_id: valory/test_solana_tx_abci:0.1.0
+  host: ${ABCI_HOST:str:localhost}
+  port: ${ABCI_PORT:int:26658}
+  use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
+---
+public_id: valory/test_solana_tx_abci:0.1.0
+type: skill
+models:
+  benchmark_tool:
+    args:
+      log_dir: ${SKILL_REGISTER_RESET_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
+  params:
+    args:
+      tendermint_url: ${str:http://localhost:26657}
+      tendermint_com_url: ${str:http://localhost:8080}
+      use_termination: ${bool:True}
+      squad_vault: ${str:492Ss1D6BSKtfFGZHbRq8ot5X8FcPcfP4EW9tKkYrQJn}
+      transfer_lamports: ${int:100}
+      transfer_to_pubkey: ${str:5Mh8XPnMjveUs8mXWofXpgw1seMZUfT2A6fEhdBgaRRW}
+---
+public_id: valory/p2p_libp2p_client:0.1.0
+type: connection
+config:
+  nodes:
+  - uri: ${P2P_URI:str:acn.autonolas.tech:9005}
+    public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
+  - uri: ${P2P_URI:str:acn.autonolas.tech:9006}
+    public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
+cert_requests:
+- identifier: acn
+  ledger_id: ethereum
+  message_format: '{public_key}'
+  not_after: '2025-01-01'
+  not_before: '2024-01-01'
+  public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
+  save_path: .certs/acn_cosmos_9005.txt
+- identifier: acn
+  ledger_id: ethereum
+  message_format: '{public_key}'
+  not_after: '2025-01-01'
+  not_before: '2024-01-01'
+  public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
+  save_path: .certs/acn_cosmos_9006.txt
+is_abstract: true

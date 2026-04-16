@@ -1,3 +1,3 @@
-# Test ABCI Agent
+# Test ABCI Agent Blueprint
 
-This agent is used to test the `abci` connection.
+This agent blueprint is used to test the `abci` connection.

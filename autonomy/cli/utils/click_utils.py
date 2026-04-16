@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,15 +17,18 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Usefule click utils."""
+"""Useful click utils."""
+
 import contextlib
 import copy
 import sys
 from pathlib import Path
-from typing import Any, Callable, Generator, Optional, Union, cast
+from typing import Any, Callable, Dict, Generator, Optional, Union, cast
 
 import click
+from aea.cli.utils.click_utils import PublicIdParameter
 from aea.cli.utils.config import get_default_author_from_cli_config
+from aea.configurations.data_types import PublicId
 from aea.helpers.base import IPFSHash, SimpleId
 
 from autonomy.analyse.abci.app_spec import FSMSpecificationLoader
@@ -39,13 +42,14 @@ def image_profile_flag(
     """Choice of one flag between: '--local/--remote'."""
 
     def wrapper(f: Callable) -> Callable:
+        option_default = default if mark_default else None
         for profile in ImageProfiles.ALL:
             f = click.option(
                 f"--{profile}",
                 "profile",
                 flag_value=profile,
                 help=f"To use the {profile} profile.",
-                default=(profile == default) and mark_default,
+                default=option_default,
             )(f)
 
         return f
@@ -59,13 +63,17 @@ def abci_spec_format_flag(
     """Flags for abci spec outputs formats."""
 
     def wrapper(f: Callable) -> Callable:
+        option_default = default if mark_default else None
         for of in FSMSpecificationLoader.OutputFormats.ALL:
+            option_kwargs: Dict[str, Any] = dict(
+                flag_value=of,
+                help=f"{of.title()} file.",
+                default=option_default,
+            )
             f = click.option(
                 f"--{of}",
                 "spec_format",
-                flag_value=of,
-                help=f"{of.title()} file.",
-                default=(of == default) and mark_default,
+                **option_kwargs,
             )(f)
 
         return f
@@ -81,14 +89,18 @@ def chain_selection_flag(
     """Flags for abci spec outputs formats."""
 
     def wrapper(f: Callable) -> Callable:
+        option_default = default.value if mark_default else None
         for chain_type in ChainType:
             chain_name = cast(str, chain_type.value).replace("_", "-")
+            option_kwargs: Dict[str, Any] = dict(
+                flag_value=chain_type.value,
+                help=help_string_format.format(chain_name),
+                default=option_default,
+            )
             f = click.option(
                 f"--use-{chain_name}",
                 "chain_type",
-                flag_value=chain_type.value,
-                help=help_string_format.format(chain_name),
-                default=(chain_type == default) and mark_default,
+                **option_kwargs,
             )(f)
         return f
 
@@ -120,7 +132,12 @@ class NFTArgument(click.ParamType):
 
     METAVAR = "IPFS_HASH_OR_IMAGE_PATH"
 
-    def get_metavar(self, param: click.Parameter) -> str:  # pragma: nocover
+    def get_metavar(
+        self,  # pylint: disable=unused-argument
+        param: click.Parameter,
+        *args: Any,
+        **kwargs: Any,
+    ) -> str:  # pragma: nocover
         """Get metavar"""
         return self.METAVAR
 
@@ -158,3 +175,19 @@ def image_author_option(fn: Callable) -> Callable:
         default=None,
         callback=_validate,
     )(fn)
+
+
+class PublicIdOrHashOrTokenId(PublicIdParameter):
+    """A click parameter that can be a public id, an IPFS hash or a token id."""
+
+    def get_metavar(self, param: Any, ctx: click.Context) -> str:
+        """Return the metavar default for this param if it provides one."""
+        return "PUBLIC_ID_OR_HASH_OR_TOKEN_ID"
+
+    def convert(self, value: str, param: Any, ctx: Optional[click.Context]) -> PublicId:
+        """Returns integer token id if value is numeric, else try to parse public id or hash."""
+
+        if value.isnumeric():
+            return int(value)
+
+        return super().convert(value, param, ctx)

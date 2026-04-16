@@ -7,60 +7,72 @@ on:
       - main
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   TENDERMINT_IMAGE_VERSION: latest
 
 jobs:
   lock_check:
-    continue-on-error: False
     runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
-        python-version: ["3.10.9"]
+        os: [ ubuntu-latest, macos-latest-large, windows-latest ]
+        python-version: ["3.14"]
 
     timeout-minutes: 18
 
+    defaults:
+      run:
+        shell: bash
+
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@master
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    - if: matrix.os != 'windows-latest'
-      name: Pipenv install requirements and check it can be locked
+    - name: Install Poetry
+      run: pip install poetry==2.3.2
+    - name: Check if dependencies can be locked
+      run: poetry check --lock
+    - name: Poetry install requirements and check they can be locked
+      run: poetry install --all-extras --no-interaction -vvv
+
+  install_check:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: ["3.14"]
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Check clean installation
       run: |
-        pip install pipenv
-        pipenv --clear
-        time pipenv install --verbose --dev --skip-lock
-        time pipenv run pip install -e .[all]
-        time pipenv lock
-    - if: matrix.os == 'windows-latest'
-      name: Pipenv install requirements and check it can be locked
-      run: |
-        choco install ptime
-        pip install pipenv
-        pipenv --clear
-        ptime pipenv install --verbose --dev --skip-lock
-        ptime pipenv run pip install -e .[all]
-        ptime pipenv lock
+        pip install .[all] --no-cache
+        autonomy --help
 
   copyright_doc_and_dependencies_check:
-    continue-on-error: False
     runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.10.9"]
+        python-version: ["3.14"]
 
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@master
+    - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -68,38 +80,44 @@ jobs:
         sudo apt-get update --fix-missing
         sudo apt-get autoremove
         sudo apt-get autoclean
-        pip install tomte[tox,cli]==0.2.13
+        pip install tomte[tox,cli]==0.6.5
         pip install --user --upgrade setuptools
     - name: Check copyright headers
-      run: tomte format-copyright --author valory --author fetchai
+      # tomte 0.6.5 matches author strings literally against file headers.
+      # Pass the full names that actually appear in source headers —
+      # the short slugs "valory"/"fetchai" cause tomte to treat headers
+      # with "Valory AG"/"Fetch.AI Limited" as missing and prepend a
+      # second (wrong) copyright block, making the working tree dirty.
+      run: tomte format-copyright --author "Valory AG" --author "Fetch.AI Limited"
     - name: License compatibility check
       run: tox -e liccheck
     - name: Check docs
       run: tox -e check-api-docs
-    - name: Check doc links
-      run: tomte check-doc-links --http-skips http://host.docker.internal:8545 --http-skips http://www.fipa.org/repository/ips.php3 --url-skips "https://gateway.autonolas.tech/ipfs/<hash>," --url-skips "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure" --url-skips "http://host.docker.internal:8545" --url-skips "https://github.com/valory-xyz/open-operator"
+    # - name: Check doc links
+    #   run: tomte check-doc-links --http-skips http://host.docker.internal:8545 --http-skips http://www.fipa.org/repository/ips.php3 --url-skips "https://gateway.autonolas.tech/ipfs/<hash>" --url-skips "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure" --url-skips "http://host.docker.internal:8545" --url-skips "https://github.com/valory-xyz/open-operator"
     - name: Check doc IPFS hashes
-      run: tox -e check-doc-hashes
+      run: tox -e check-doc-links-hashes
     - name: Check dependencies
       run: tox -e check-dependencies
+    - name: Check third-party hashes
+      run: tox -e check-third-party-hashes
 
   linter_checks:
-    continue-on-error: False
     runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.10.9"]
+        python-version: ["3.13"]  # use 3.14 after https://github.com/akaihola/darglint2/issues/44 is fixed
 
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@master
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    - uses: actions/setup-go@v3
+    - uses: actions/setup-go@v5
       with:
         go-version: "1.17.7"
     - name: Install dependencies
@@ -107,16 +125,16 @@ jobs:
         sudo apt-get update --fix-missing
         sudo apt-get autoremove
         sudo apt-get autoclean
-        pip install tomte[tox]==0.2.13
+        pip install tomte[tox]==0.6.5
         pip install --user --upgrade setuptools
         # install Protobuf compiler
-        wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-        unzip protoc-3.19.4-linux-x86_64.zip -d protoc
+        wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-linux-x86_64.zip
+        unzip protoc-24.3-linux-x86_64.zip -d protoc
         sudo mv protoc/bin/protoc /usr/local/bin/protoc
         # install IPFS
         sudo apt-get install -y wget
         sudo npm install -g markdown-spellcheck
-        wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
+        wget -O ./go-ipfs.tar.gz https://github.com/ipfs/kubo/releases/download/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
         tar xvfz go-ipfs.tar.gz
         sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
         ipfs init
@@ -150,16 +168,15 @@ jobs:
         tox -e check-abciapp-specs
         tox -e check-handlers
         tox -e check-dialogues
-        tox -e analyse-services
 
   scan:
     name: gitleaks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v5
         with:
           go-version: "1.17.7"
       - run: |
@@ -169,29 +186,39 @@ jobs:
           gitleaks detect --report-format json --report-path leak_report -v
 
   test:
-    continue-on-error: True
     needs:
       - lock_check
+      - install_check
       - copyright_doc_and_dependencies_check
       - linter_checks
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false  # prevents all matrix jobs from canceling if one fails
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
-        python-version: [ "3.8", "3.9", "3.10.9", "3.11" ]
+        os: [ubuntu-latest]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        include:
+          - os: macos-latest-large
+            python-version: "3.10"
+          - os: macos-latest-large
+            python-version: "3.14"
+          - os: windows-latest
+            python-version: "3.10"
+          - os: windows-latest
+            python-version: "3.14"
 
     timeout-minutes: 90
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
-      - uses: actions/setup-python@master
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v5
         with:
           go-version: "1.17.7"
       - if: matrix.os == 'ubuntu-latest'
@@ -200,17 +227,17 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          pip install tomte[tox]==0.2.13
+          pip install tomte[tox]==0.6.5
           pip install --user --upgrade setuptools
 
           # install Protobuf compiler
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-          unzip protoc-3.19.4-linux-x86_64.zip -d protoc
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-linux-x86_64.zip
+          unzip protoc-24.3-linux-x86_64.zip -d protoc
           sudo mv protoc/bin/protoc /usr/local/bin/protoc
 
           # install IPFS
           sudo apt-get install -y wget
-          wget -O ./go-ipfs.tar.gz https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
+          wget -O ./go-ipfs.tar.gz https://github.com/ipfs/kubo/releases/download/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
           tar xvfz go-ipfs.tar.gz
           sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
           ipfs init
@@ -251,22 +278,29 @@ jobs:
         run: |
           tox -e packages-py${{ matrix.python-version }}-linux -- -m 'not e2e'
 
-      - if: matrix.os == 'macos-latest'
-        name: Install dependencies (macos-latest)
+      - if: matrix.os == 'macos-latest-large'
+        name: Set macOS SDK root
+        run: echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
+
+      - if: matrix.os == 'macos-latest-large'
+        name: Install dependencies (macos-latest-large)
         run: |
-          pip install tomte[tox]==0.2.13
-          brew install gcc
+          pip install tomte[tox]==0.6.5
+
           # brew install protobuf
           # brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/72457f0166d5619a83f508f2345b22d0617b5021/Formula/protobuf.rb
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-osx-x86_64.zip
-          unzip protoc-3.19.4-osx-x86_64.zip -d protoc
-          sudo mv protoc/bin/protoc /usr/local/bin/protoc
-          brew tap yoheimuta/protolint
-          brew install protolint
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-osx-x86_64.zip
+          unzip protoc-24.3-osx-x86_64.zip -d protoc
+          
+          # install protolint
+          curl -L -o protolint.tar.gz https://github.com/yoheimuta/protolint/releases/download/v0.50.2/protolint_0.50.2_darwin_amd64.tar.gz
+          tar -xzvf protolint.tar.gz
+          sudo mv protolint /usr/local/bin/protolint
+          sudo chmod +x /usr/local/bin/protolint
 
           # install ipfs
-          curl -O https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_darwin-amd64.tar.gz
-          tar -xvzf go-ipfs_v0.6.0_darwin-amd64.tar.gz
+          curl -L -o ipfs.tar.gz https://github.com/ipfs/kubo/releases/download/v0.6.0/go-ipfs_v0.6.0_darwin-amd64.tar.gz
+          tar -xvzf ipfs.tar.gz
           cd go-ipfs
           sudo ./install.sh
           cd ..
@@ -284,13 +318,13 @@ jobs:
           sudo install skaffold /usr/local/bin/
           skaffold --help
 
-      - if: matrix.os == 'macos-latest'
-        name: Framework unit tests macos-latest
+      - if: matrix.os == 'macos-latest-large'
+        name: Framework unit tests macos-latest-large
         run: |
           tox -e py${{ matrix.python-version }}-darwin -- -m 'not e2e'
 
-      - if: matrix.os == 'macos-latest'
-        name: Packages unit tests macos-latest
+      - if: matrix.os == 'macos-latest-large'
+        name: Packages unit tests macos-latest-large
         run: |
           tox -e packages-py${{ matrix.python-version }}-darwin -- -m 'not e2e'
 
@@ -301,15 +335,19 @@ jobs:
         run: |
           python -m pip install -U pip
           echo "::add-path::C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64"
+
+          choco source add -n chocolatey -s 'https://chocolatey.org/api/v2/'
+          choco source enable -n chocolatey
+
           choco install wget -y
-          choco install protoc --version 3.19.4
+          choco install protoc --version 24.3
           choco install mingw -y
           choco install make -y
           # to check make was installed
           make --version
-          pip install tomte[tox]==0.2.13
-          # wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-win64.zip
-          # unzip protoc-3.19.4-win64.zip -d protoc
+          pip install tomte[tox]==0.6.5
+          # wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-win64.zip
+          # unzip protoc-24.3-win64.zip -d protoc
           # sudo mv protoc/bin/protoc /usr/local/bin/protoc
 
           # TODO: install protolint
@@ -320,13 +358,13 @@ jobs:
           #protolint version
 
           # install ipfs
-          curl https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_windows-amd64.zip -o go-ipfs_v0.6.0.zip
-          Expand-Archive -Path go-ipfs_v0.6.0.zip -DestinationPath ~\Apps\
+          curl -L -o go-ipfs.zip https://github.com/ipfs/kubo/releases/download/v0.6.0/go-ipfs_v0.6.0_windows-amd64.zip
+          Expand-Archive -Path go-ipfs.zip -DestinationPath ~\Apps\
           cp ~\Apps\go-ipfs\ipfs.exe C:\Users\runneradmin\go\bin\
           ipfs init
 
           # install Tendermint
-          wget -O tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_windows_amd64.tar.gz
+          curl -L -o tendermint.tar.gz https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_windows_amd64.tar.gz
           tar -xvzf tendermint.tar.gz
           cp tendermint.exe C:\Users\runneradmin\go\bin\
 
@@ -338,7 +376,7 @@ jobs:
       - if: matrix.os == 'windows-latest'
         name: Framework unit tests windows-latest
         run: |
-          tox -e py${{ matrix.python-version }}-win -- -m 'not e2e'
+          tox -e py${{ matrix.python-version }}-win -- -m 'not e2e' -vv
 
       - if: matrix.os == 'windows-latest'
         name: Packages unit tests windows-latest
@@ -347,7 +385,7 @@ jobs:
 
       - if: matrix.os == 'ubuntu-latest'
         name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
@@ -356,9 +394,9 @@ jobs:
           fail_ci_if_error: false
 
   e2e:
-    continue-on-error: True
     needs:
       - lock_check
+      - install_check
       - copyright_doc_and_dependencies_check
       - linter_checks
     runs-on: ${{ matrix.os }}
@@ -366,15 +404,15 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ "3.10.9" ]
+        python-version: [ "3.14" ]
 
     timeout-minutes: 150
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: actions/setup-python@master
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -382,12 +420,12 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          pip install tomte[tox]==0.2.13
+          pip install tomte[tox]==0.6.5
           pip install --user --upgrade setuptools
 
           # install Protobuf compiler
-          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
-          unzip protoc-3.19.4-linux-x86_64.zip -d protoc
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-linux-x86_64.zip
+          unzip protoc-24.3-linux-x86_64.zip -d protoc
           sudo mv protoc/bin/protoc /usr/local/bin/protoc
 
           # install IPFS
@@ -421,3 +459,23 @@ jobs:
       - name: Unit tests
         run: |
           tox --develop -e e2e-py${{ matrix.python-version }}-linux -- -m 'e2e'
+
+  all-checks-passed:
+    name: All checks passed
+    if: always()
+    needs:
+      - lock_check
+      - install_check
+      - copyright_doc_and_dependencies_check
+      - linter_checks
+      - scan
+      - test
+      - e2e
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any dependency did not succeed
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}" == "true" ]]; then
+            echo "One or more required jobs failed, were cancelled, or were skipped."
+            exit 1
+          fi

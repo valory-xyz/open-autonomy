@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ from packages.valory.contracts.registries_manager.contract import (
     RegistriesManagerContract,
 )
 
-
 PACKAGE_DIR = Path(__file__).parent.parent
 
 METADATA_HASH = "0xaaca27f6156089376fd85900d511c7570b6c9b0f6afc64576aac5aa0da8de92d"
@@ -52,6 +51,35 @@ class TestRegistriesManager(BaseRegistriesContractsTest):
             metadata_hash=METADATA_HASH,
             component_type=RegistriesManagerContract.UnitType.COMPONENT,
             owner=self.deployer_crypto.address,
+            sender=self.deployer_crypto.address,
+        )
+
+        assert all(
+            [
+                key
+                in [
+                    "chainId",
+                    "nonce",
+                    "value",
+                    "gas",
+                    "maxFeePerGas",
+                    "maxPriorityFeePerGas",
+                    "to",
+                    "data",
+                ]
+                for key in tx.keys()
+            ]
+        )
+
+    def test_get_update_hash_transaction(self) -> None:
+        """Test `get_update_hash_transaction` method."""
+
+        tx = self.contract.get_update_hash_transaction(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            metadata_hash=METADATA_HASH,
+            component_type=RegistriesManagerContract.UnitType.COMPONENT,
+            unit_id=3,
             sender=self.deployer_crypto.address,
         )
 

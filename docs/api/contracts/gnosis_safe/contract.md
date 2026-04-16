@@ -14,6 +14,16 @@ def checksum_address(agent_address: str) -> ChecksumAddress
 
 Get the checksum address.
 
+<a id="packages.valory.contracts.gnosis_safe.contract.pad_address_for_topic"></a>
+
+#### pad`_`address`_`for`_`topic
+
+```python
+def pad_address_for_topic(address: str) -> HexBytes
+```
+
+Left-pad an Ethereum address to 32 bytes for use in a topic.
+
 <a id="packages.valory.contracts.gnosis_safe.contract.SafeOperation"></a>
 
 ## SafeOperation Objects
@@ -142,6 +152,18 @@ Note, because safe_nonce is included in the tx_hash the agents implicitly agree 
 **Returns**:
 
 the hash of the raw Safe transaction
+
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_packed_signatures"></a>
+
+#### get`_`packed`_`signatures
+
+```python
+@classmethod
+def get_packed_signatures(cls, owners: Tuple[str],
+                          signatures_by_owner: Dict[str, str]) -> bytes
+```
+
+Get the packed signatures.
 
 <a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_raw_safe_transaction"></a>
 
@@ -326,8 +348,8 @@ the safe nonce
 def get_ingoing_transfers(cls,
                           ledger_api: EthereumApi,
                           contract_address: str,
-                          from_block: Optional[str] = None,
-                          to_block: Optional[str] = "latest") -> JSONLike
+                          from_block: Optional[BlockIdentifier] = None,
+                          to_block: BlockIdentifier = "latest") -> JSONLike
 ```
 
 A list of transfers into the contract.
@@ -336,7 +358,7 @@ A list of transfers into the contract.
 
 - `ledger_api`: the ledger API object
 - `contract_address`: the contract address,
-- `from_block`: from which block to start tje search
+- `from_block`: from which block to start the search
 - `to_block`: at which block to end the search
 
 **Returns**:
@@ -460,7 +482,10 @@ Get all zero transfer events from a given sender to the safe address.
 - `sender_address`: the owner of the service, ie the address that triggers termination
 - `from_block`: from which block to search for events
 - `to_block`: to which block to search for events
-:return: the zero transfer events
+
+**Returns**:
+
+the zero transfer events
 
 <a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_remove_owner_data"></a>
 
@@ -475,7 +500,7 @@ def get_remove_owner_data(cls, ledger_api: EthereumApi, contract_address: str,
 Get a removeOwner() encoded tx.
 
 This method acts as a wrapper for `removeOwner()`
-https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L70
+https://github.com/safe-global/safe-smart-account/tree/v1.3.0/contracts/base/OwnerManager.sol#L70
 
 **Arguments**:
 
@@ -501,7 +526,7 @@ def get_swap_owner_data(cls, ledger_api: EthereumApi, contract_address: str,
 Get a swapOwner() encoded tx.
 
 This method acts as a wrapper for `swapOwner()`
-https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L94
+https://github.com/safe-global/safe-smart-account/tree/v1.3.0/contracts/base/OwnerManager.sol#L94
 
 **Arguments**:
 
@@ -529,6 +554,40 @@ Get the safe owners.
 **Arguments**:
 
 - `ledger_api`: the ledger API object
+- `contract_address`: the contract address
+
+**Returns**:
+
+the safe owners
+
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_approve_hash_tx"></a>
+
+#### get`_`approve`_`hash`_`tx
+
+```python
+@classmethod
+def get_approve_hash_tx(cls, ledger_api: EthereumApi, contract_address: str,
+                        tx_hash: str, sender: str) -> JSONLike
+```
+
+Get approve has tx.
+
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.is_module_enabled"></a>
+
+#### is`_`module`_`enabled
+
+```python
+@classmethod
+def is_module_enabled(cls, ledger_api: EthereumApi, contract_address: str,
+                      module_address: str) -> JSONLike
+```
+
+Check if a module is enabled in the Safe.
+
+**Arguments**:
+
+- `ledger_api`: the ledger API object
+- `module_address`: the module address
 - `contract_address`: the contract address
 
 **Returns**:

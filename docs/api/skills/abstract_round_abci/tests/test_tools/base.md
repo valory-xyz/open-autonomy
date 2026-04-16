@@ -36,22 +36,22 @@ def teardown_class(cls) -> None
 
 Teardown class
 
-<a id="packages.valory.skills.abstract_round_abci.tests.test_tools.base.FSMBehaviourTestToolSetup.setup"></a>
+<a id="packages.valory.skills.abstract_round_abci.tests.test_tools.base.FSMBehaviourTestToolSetup.setup_method"></a>
 
-#### setup
+#### setup`_`method
 
 ```python
-def setup() -> None
+def setup_method() -> None
 ```
 
 Setup test
 
-<a id="packages.valory.skills.abstract_round_abci.tests.test_tools.base.FSMBehaviourTestToolSetup.teardown"></a>
+<a id="packages.valory.skills.abstract_round_abci.tests.test_tools.base.FSMBehaviourTestToolSetup.teardown_method"></a>
 
-#### teardown
+#### teardown`_`method
 
 ```python
-def teardown() -> None
+def teardown_method() -> None
 ```
 
 Teardown test

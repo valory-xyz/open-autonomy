@@ -5,21 +5,21 @@ protocol_specification_id: valory/abci:0.1.0
 type: protocol
 description: A protocol for ABCI requests and responses.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeia5y34dgznojhabsw7js2auxzmwxoubs2yacvscvoqkmt323d3npq
-  __init__.py: bafybeidyj3jxy544bgbo45v4tox4rz5msrqmwgnn26hbtoqoiwvvgwzf54
+  README.md: bafybeiamfbhk3aez5w7j6kyzkoka3irptmag4i2qwgyyvius6x3b4lntw4
+  __init__.py: bafybeidhin6vo35aadxvnkpf2ouzjd6d4oztpaj4iwjuw7xi3dibbjzjf4
   abci.proto: bafybeid2kv4fy6xx453apqxashnqfjymhbrvtxj3uq2vdtqr45lvlfjzm4
-  abci_pb2.py: bafybeiewkqame5ggll3awihbcacqswcjgd6lnml77k62pfaebqxugnqv2m
-  custom_types.py: bafybeihpkluue4c7cunrcaxze3pqexhmwxkybrv4c3bzmkkakze7n6v44a
-  dialogues.py: bafybeiatyk6bgdw36clk5q6pqzoow7owjppwgmjyn7ofamg5urcwdu7mqy
-  message.py: bafybeib3iyxwrkq3f3qpfhm6bsfhsjdkrnjfvyoeqg35s46h2uafvrlvxq
-  serialization.py: bafybeifralovb766v2sl5gmxaqr7xz7srbrzsixrr4nzseptkwgddph5e4
+  abci_pb2.py: bafybeie7qzpnojbuj4dmbvxfkwjb46daho25qaiwohyguuulzzcsp54tum
+  custom_types.py: bafybeibto5sdbfmaro4tbj4pulmmatqhsnys4eeidtzoxr6u7p6m6qavpi
+  dialogues.py: bafybeibpxogxj3lnbgi2en4wx2xcrgdyxwhxgguzeadv7irpozgsqb4ddi
+  message.py: bafybeibyxvo2llrspxk2tw6qvta2bour2goutur3tcoymh75y3zrhzco6a
+  serialization.py: bafybeicgz6zoegs6qgy4gjktthzzt2zt3bzxejvbrs2qnjuaoselgotzra
   tests/__init__.py: bafybeie4cd5xo7o4teyfjclaju3zoguuahjvkpsbshda3x23jcph53fdpi
   tests/conftest.py: bafybeidomydt6bdji22rndrdb5w773vvdja55o5m5n4pbfslx7ey5euot4
-  tests/test_abci.py: bafybeig4gex7e62uxca7riaetmr2pu5xekxg3d7xjvck72zjd3uxny4v64
+  tests/test_abci.py: bafybeibogoy33mu7rlanbqzrunermybj6bbiwwxuhb5cmu4pv5gvxcj2tu
   tests/test_abci_dialogues.py: bafybeiby6ahpj6dnvjagnyyew3hgncstay37tt3xqu5x2c2yx3nldwvzzi
-  tests/test_abci_messages.py: bafybeidbec7g3gvyr4jon57m6pfcobslj3nvnnynzeib3mgvm46d3ywdgi
+  tests/test_abci_messages.py: bafybeifill6beeish5fupag4febiiwslbsoo7er4pxnav6gzc7tfwlksdm
 fingerprint_ignore_patterns: []
 dependencies:
   protobuf: {}

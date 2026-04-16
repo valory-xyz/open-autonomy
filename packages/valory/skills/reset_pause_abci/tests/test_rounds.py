@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 import hashlib
 import logging  # noqa: F401
 from typing import Dict, FrozenSet
+from unittest.mock import MagicMock
 
 from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData as ResetSynchronizedSata,
@@ -34,7 +35,6 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
 from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetEvent
 from packages.valory.skills.reset_pause_abci.rounds import ResetAndPauseRound
-
 
 MAX_PARTICIPANTS: int = 4
 DUMMY_RANDOMNESS = hashlib.sha256("hash".encode() + str(0).encode()).hexdigest()
@@ -67,7 +67,10 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
         synchronized_data._db._cross_period_persisted_keys = frozenset(
             {"most_voted_randomness"}
         )
-        test_round = ResetAndPauseRound(synchronized_data=synchronized_data)
+        test_round = ResetAndPauseRound(
+            synchronized_data=synchronized_data,
+            context=MagicMock(),
+        )
         next_period_count = 1
         self._complete_run(
             self._test_round(
@@ -82,6 +85,14 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
             )
         )
 
+    def test_no_majority_event(self) -> None:
+        """Test the NO_MAJORITY event."""
+        test_round = ResetAndPauseRound(
+            synchronized_data=self.synchronized_data,
+            context=MagicMock(),
+        )
+        self._test_no_majority_event(test_round)
+
     def test_accepting_payloads_from(self) -> None:
         """Test accepting payloads from"""
 
@@ -93,7 +104,10 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
             participants=participants, all_participants=all_participants
         )
 
-        test_round = ResetAndPauseRound(synchronized_data=synchronized_data)
+        test_round = ResetAndPauseRound(
+            synchronized_data=synchronized_data,
+            context=MagicMock(),
+        )
 
         assert test_round.accepting_payloads_from != participants
         assert test_round.accepting_payloads_from == frozenset(all_participants)

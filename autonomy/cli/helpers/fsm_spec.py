@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -107,6 +107,11 @@ def check_one(
 ) -> None:
     """Check for one."""
 
+    if not package_path.name.endswith("_abci"):
+        raise ValueError(  # pragma: no cover
+            f"The name of the skill '{package_path.name}' must end with `_abci`."
+        )
+
     spec_file = package_path / cast(
         Path, FSMSpecificationLoader.OutputFormats.default_output_files.get(spec_format)
     )
@@ -121,7 +126,7 @@ def check_one(
 
     module = import_and_validate_app_class(package_path, app_class)
     if not hasattr(module, app_class):  # pragma: no cover
-        raise Exception(f'Class "{app_class}" is not in "{module}".')
+        raise ValueError(f'Class "{app_class}" is not in "{module}".')
 
     abci_app_class = getattr(module, app_class)
     dfa_from_object = DFA.abci_to_dfa(abci_app_class, app_class)
@@ -130,8 +135,13 @@ def check_one(
 
     dfa_check = dfa_from_file != dfa_from_object
     if len(error_strings) > 0:
-        errors = "\n".join(error_strings)
-        raise DFASpecificationError(f"Event reference check failed with \n{errors}")
+        errors = "\n- ".join(
+            [
+                f"Unreferenced events found in `{abci_app_class.__name__}`",
+                *error_strings,
+            ]
+        )
+        raise DFASpecificationError(errors)
 
     if dfa_check:
         raise DFASpecificationError(

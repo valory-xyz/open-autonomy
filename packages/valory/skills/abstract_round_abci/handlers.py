@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,9 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the handler for the 'abstract_round_abci' skill."""
+
 import ipaddress
 import json
 from abc import ABC
+from calendar import timegm
 from dataclasses import asdict
 from enum import Enum
 from typing import Any, Callable, Dict, FrozenSet, List, Optional, cast
@@ -46,9 +48,12 @@ from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AddBlockError,
+    DEFAULT_PENDING_OFFENCE_TTL,
     ERROR_CODE,
     LateArrivingTransaction,
     OK_CODE,
+    OffenseType,
+    PendingOffense,
     SignatureNotValidError,
     Transaction,
     TransactionNotValidError,
@@ -73,9 +78,7 @@ class ABCIRoundHandler(ABCIHandler):
 
     SUPPORTED_PROTOCOL = AbciMessage.protocol_id
 
-    def info(  # pylint: disable=no-self-use,useless-super-delegation
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def info(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """
         Handle the 'info' request.
 
@@ -143,16 +146,14 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
-    def begin_block(  # pylint: disable=no-self-use
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def begin_block(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """Handle the 'begin_block' request."""
-        cast(SharedState, self.context.state).round_sequence.begin_block(message.header)
+        cast(SharedState, self.context.state).round_sequence.begin_block(
+            message.header, message.byzantine_validators, message.last_commit_info
+        )
         return super().begin_block(message, dialogue)
 
-    def check_tx(  # pylint: disable=no-self-use
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def check_tx(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """Handle the 'check_tx' request."""
         transaction_bytes = message.tx
         # check we can decode the transaction
@@ -190,23 +191,56 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
-    def deliver_tx(  # pylint: disable=no-self-use
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def settle_pending_offence(
+        self, accused_agent_address: Optional[str], invalid: bool
+    ) -> None:
+        """Add an invalid pending offence or a no-offence for the given accused agent address, if possible."""
+        if accused_agent_address is None:
+            # only add the offence if we know and can verify the sender,
+            # otherwise someone could pretend to be someone else, which may lead to wrong punishments
+            return
+
+        round_sequence = cast(SharedState, self.context.state).round_sequence
+
+        try:
+            last_round_transition_timestamp = timegm(
+                round_sequence.last_round_transition_timestamp.utctimetuple()
+            )
+        except ValueError:  # pragma: no cover
+            # do not add an offence if no round transition has been completed yet
+            return
+
+        offence_type = (
+            OffenseType.INVALID_PAYLOAD if invalid else OffenseType.NO_OFFENCE
+        )
+        pending_offense = PendingOffense(
+            accused_agent_address,
+            round_sequence.current_round_height,
+            offence_type,
+            last_round_transition_timestamp,
+            DEFAULT_PENDING_OFFENCE_TTL,
+        )
+        round_sequence.add_pending_offence(pending_offense)
+
+    def deliver_tx(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """Handle the 'deliver_tx' request."""
         transaction_bytes = message.tx
-        shared_state = cast(SharedState, self.context.state)
+        round_sequence = cast(SharedState, self.context.state).round_sequence
+        payload_sender: Optional[str] = None
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify(self.context.default_ledger_id)
-            shared_state.round_sequence.check_is_finished()
-            shared_state.round_sequence.deliver_tx(transaction)
+            payload_sender = transaction.payload.sender
+            round_sequence.check_is_finished()
+            round_sequence.deliver_tx(transaction)
         except (
             SignatureNotValidError,
             TransactionNotValidError,
             TransactionTypeNotRecognizedError,
         ) as exception:
             self._log_exception(exception)
+            # the transaction is invalid, it's potentially an offence, so we add it to the list of pending offences
+            self.settle_pending_offence(payload_sender, invalid=True)
             return self._deliver_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
@@ -215,6 +249,9 @@ class ABCIRoundHandler(ABCIHandler):
             return self._deliver_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
+
+        # the invalid payloads' availability window needs to be populated with the negative values as well
+        self.settle_pending_offence(payload_sender, invalid=False)
 
         # return deliver_tx success
         reply = dialogue.reply(
@@ -231,17 +268,13 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
-    def end_block(  # pylint: disable=no-self-use
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def end_block(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """Handle the 'end_block' request."""
         self.context.state.round_sequence.tm_height = message.height
         cast(SharedState, self.context.state).round_sequence.end_block()
         return super().end_block(message, dialogue)
 
-    def commit(  # pylint: disable=no-self-use
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def commit(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """
         Handle the 'commit' request.
 
@@ -421,8 +454,8 @@ class AbstractResponseHandler(Handler, ABC):
     def _handle_missing_dialogues(self) -> None:
         """Handle missing dialogues in context."""
         expected_attribute_name = self._get_dialogues_attribute_name()
-        self.context.logger.info(
-            "cannot find Dialogues object in skill context with attribute name: %s",
+        self.context.logger.warning(
+            "Cannot find Dialogues object in skill context with attribute name: %s",
             expected_attribute_name,
         )
 
@@ -432,8 +465,8 @@ class AbstractResponseHandler(Handler, ABC):
 
         :param message: the unidentified message to be handled
         """
-        self.context.logger.info(
-            "received invalid message: unidentified dialogue. message=%s", message
+        self.context.logger.warning(
+            "Received invalid message: unidentified dialogue. message=%s", message
         )
 
     def _handle_unallowed_performative(self, message: Message) -> None:
@@ -446,13 +479,13 @@ class AbstractResponseHandler(Handler, ABC):
         :param message: the message
         """
         self.context.logger.warning(
-            "received invalid message: unallowed performative. message=%s.", message
+            "Received invalid message: unallowed performative. message=%s.", message
         )
 
     def _log_message_handling(self, message: Message) -> None:
         """Log the handling of the message."""
         self.context.logger.debug(
-            "calling registered callback with message=%s", message
+            "Calling registered callback with message=%s", message
         )
 
 
@@ -576,18 +609,20 @@ class TendermintHandler(Handler):
 
         if dialogue is None:
             log_message = self.LogMessages.unidentified_dialogue.value
-            self.context.logger.info(f"{log_message}: {message}")
+            self.context.logger.error(f"{log_message}: {message}")
             return
 
         message = cast(TendermintMessage, message)
         handler_name = f"_{message.performative.value}"
         handler = getattr(self, handler_name, None)
-        if handler is None:
+        if handler is None or not callable(handler):
             log_message = self.LogMessages.performative_not_recognized.value
-            self.context.logger.info(f"{log_message}: {message}")
+            self.context.logger.error(f"{log_message}: {message}")
             return
 
-        handler(message, dialogue)
+        handler(  # pylint:disable=not-callable  # callability is checked above
+            message, dialogue
+        )
 
     def _reply_with_tendermint_error(
         self,
@@ -606,7 +641,7 @@ class TendermintHandler(Handler):
         self.context.outbox.put_message(response)
         log_message = self.LogMessages.sending_error_response.value
         log_message += f". Received: {message}, replied: {response}"
-        self.context.logger.info(log_message)
+        self.context.logger.error(log_message)
 
     def _not_registered_error(
         self, message: TendermintMessage, dialogue: TendermintDialogue
@@ -614,7 +649,7 @@ class TendermintHandler(Handler):
         """Check if sender is among on-chain registered addresses"""
         # do not respond to errors to avoid loops
         log_message = self.LogMessages.not_in_registered_addresses.value
-        self.context.logger.info(f"{log_message}: {message}")
+        self.context.logger.error(f"{log_message}: {message}")
         self._reply_with_tendermint_error(message, dialogue, log_message)
 
     def _check_registered(
@@ -710,9 +745,9 @@ class TendermintHandler(Handler):
         try:
             recovery_params = json.loads(message.params)
             shared_state = cast(SharedState, self.context.state)
-            shared_state.address_to_acn_deliverable[
-                message.sender
-            ] = TendermintRecoveryParams(**recovery_params)
+            shared_state.address_to_acn_deliverable[message.sender] = (
+                TendermintRecoveryParams(**recovery_params)
+            )
         except (json.JSONDecodeError, TypeError) as exc:
             log_message = self.LogMessages.failed_to_parse_params.value
             self.context.logger.error(f"{log_message}: {exc} {message}")
@@ -732,12 +767,12 @@ class TendermintHandler(Handler):
         target_message = dialogue.get_message_by_id(message.target)
         if not target_message:
             log_message = self.LogMessages.received_error_without_target_message.value
-            self.context.logger.info(log_message)
+            self.context.logger.error(log_message)
             return
 
         log_message = self.LogMessages.received_error_response.value
         log_message += f". Received: {message}, in reply to: {target_message}"
-        self.context.logger.info(log_message)
+        self.context.logger.error(log_message)
         dialogues = cast(TendermintDialogues, self.dialogues)
         dialogues.dialogue_stats.add_dialogue_endstate(
             TendermintDialogue.EndState.NOT_COMMUNICATED, dialogue.is_self_initiated

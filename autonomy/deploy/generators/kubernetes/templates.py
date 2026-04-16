@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,31 @@
 
 """Kubernetes Templates module."""
 
+VOLUME_MOUNT_TEMPLATE = """
+          - mountPath: {mount_path}
+            name: {name}
+"""
+
+VOLUME_CLAIM_TEMPLATE = """
+        - name: {name}
+          persistentVolumeClaim:
+            claimName: '{name}'
+"""
+
+PVC_TEMPLATE = """
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {name}
+spec:
+  storageClassName: nfs-ephemeral
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1000M
+"""
 
 HARDHAT_TEMPLATE: str = """apiVersion: apps/v1
 kind: Deployment
@@ -82,36 +107,7 @@ status:
 """
 
 
-CLUSTER_CONFIGURATION_TEMPLATE: str = """apiVersion: batch/v1
-kind: Job
-metadata:
-  name: config-nodes
-spec:
-  template:
-    spec:
-      imagePullSecrets:
-      - name: regcred
-      containers:
-      - name: config-nodes
-        image: {tendermint_image_name}:{tendermint_image_version}
-        command: ['/usr/bin/tendermint']
-        args: ["testnet",
-         "--config",
-         "/etc/tendermint/config-template.toml",
-         "--o",  ".", {host_names},
-         "--v", "{number_of_validators}"
-         ]
-        volumeMounts:
-          - mountPath: /tendermint
-            name: nodes
-      volumes:
-        - name: nodes
-          persistentVolumeClaim:
-            claimName: 'nodes'
-      restartPolicy: Never
-  backoffLimit: 3
----
-apiVersion: v1
+CLUSTER_CONFIGURATION_TEMPLATE: str = """apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: logs-pvc
@@ -158,11 +154,17 @@ spec:
   resources:
     requests:
       storage: 1000M
+{pvcs}
 """
 
 PORTS_CONFIG_DEPLOYMENT = "        ports:"
 
 PORT_CONFIG_DEPLOYMENT = "          - containerPort: {port}"
+
+SECRET_KEY_TEMPLATE = (  # nosec
+    """            - key: {ledger}_private_key.txt\n"""
+    """              path: {ledger}_private_key.txt\n"""
+)
 
 AGENT_NODE_TEMPLATE: str = """apiVersion: v1
 kind: Service
@@ -231,6 +233,8 @@ spec:
             value: "/logs/node_{validator_ix}.txt"
           - name: LOG_LEVEL
             value: {log_level}
+          - name: WRITE_TO_LOG
+            value: "{write_to_log}"
         args: ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]
         volumeMounts:
           - mountPath: /tm_state
@@ -245,11 +249,11 @@ spec:
         imagePullPolicy: Always
         resources:
           limits:
-            memory: "1512Mi"
-            cpu: "0.5"
+            memory: "{agent_memory_limit}Mi"
+            cpu: "{agent_cpu_limit}"
           requests:
-            cpu: "0.5"
-            memory: "1512Mi"
+            memory: "{agent_memory_request}Mi"
+            cpu: "{agent_cpu_request}"
         env:
           - name: HOSTNAME
             value: "agent-node-{validator_ix}"
@@ -268,14 +272,14 @@ spec:
             name: nodes
           - mountPath: /agent_key
             name: agent-key
+{volume_mounts}
 {agent_ports_deployment}
       volumes:
         - name: agent-key
           secret:
             secretName: agent-validator-{validator_ix}-key
             items:
-            - key: {ledger}_private_key.txt
-              path: {ledger}_private_key.txt
+{keys}
         - name: persistent-data
           persistentVolumeClaim:
             claimName: 'logs-pvc'
@@ -290,26 +294,81 @@ spec:
             claimName: 'nodes'
         - emptyDir: {{}}
           name: local-tendermint
+{volume_claims}
       initContainers:
-        - name: copy-tendermint-configuration
-          image: "ubuntu:20.04"
-          command: ["bash", "-c"]
+        - name: generate-tendermint-config
+          image: {tendermint_image_name}:{tendermint_image_version}
+          command: ["/bin/sh", "-c"]
           args:
-          - "while [ ! -d /tendermint/node{validator_ix} ]; do sleep 1; done; cp -r /tendermint/node{validator_ix}/* /tm/"
+            - |
+              SENTINEL=/tendermint/.config-complete
+              LOCK_DIR=/tendermint/.config-lock
+              while true; do
+                if [ -f "${{SENTINEL}}" ]; then
+                  echo "Configuration already exists, skipping generation."
+                  break
+                fi
+
+                # Reclaim stale locks older than 5 minutes (SIGKILL recovery)
+                if [ -d "${{LOCK_DIR}}" ]; then
+                  lock_age=$(( $(date +%s) - $(date -r "${{LOCK_DIR}}" +%s 2>/dev/null || echo 0) ))
+                  if [ "$lock_age" -gt 300 ]; then
+                    echo "Reclaiming stale lock (age: ${{lock_age}}s)..."
+                    rmdir "${{LOCK_DIR}}" 2>/dev/null
+                  fi
+                fi
+
+                if mkdir "${{LOCK_DIR}}" 2>/dev/null; then
+                  trap 'rmdir "${{LOCK_DIR}}" 2>/dev/null' EXIT
+
+                  if [ ! -f "${{SENTINEL}}" ]; then
+                    echo "Generating tendermint testnet configuration..."
+                    /usr/bin/tendermint testnet \
+                      --config /etc/tendermint/config-template.toml \
+                      --o /tendermint {host_names} \
+                      --v {number_of_validators}
+                    touch "${{SENTINEL}}"
+                    echo "Configuration generated successfully."
+                  else
+                    echo "Configuration already exists, skipping generation."
+                  fi
+
+                  rmdir "${{LOCK_DIR}}" 2>/dev/null
+                  trap - EXIT
+                  break
+                fi
+
+                echo "Another pod is generating the tendermint configuration, waiting..."
+                sleep 1
+              done
           volumeMounts:
             - name: nodes
               mountPath: /tendermint
+        - name: copy-tendermint-configuration
+          image: "busybox:1.36"
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "Waiting for node{validator_ix} config..."
+              while [ ! -f /tendermint/.config-complete ]; do sleep 1; done
+              cp -r /tendermint/node{validator_ix}/* /tm/
+              echo "Config copied for node{validator_ix}."
+          volumeMounts:
+            - name: nodes
+              mountPath: /tendermint
+              readOnly: true
             - name: local-tendermint
               mountPath: /tm
 """
 
-AGENT_SECRET_TEMPLATE: str = """
-apiVersion: v1
+
+SECRET_STRING_DATA_TEMPLATE = "    {ledger}_private_key.txt: '{private_key}'\n"  # nosec
+AGENT_SECRET_TEMPLATE: str = """apiVersion: v1
 stringData:
-    {ledger}_private_key.txt: '{private_key}'
+{string_data}
 kind: Secret
 metadata:
-  annotations:
+  annotations: {{}}
   name: agent-validator-{validator_ix}-key
 type: Opaque
 """

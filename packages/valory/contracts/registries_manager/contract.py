@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
-
 
 PUBLIC_ID = PublicId.from_str("valory/registries_manager:0.1.0")
 
@@ -69,7 +68,7 @@ class RegistriesManagerContract(Contract):
         raise NotImplementedError  # pragma: nocover
 
     @classmethod
-    def get_create_transaction(  # pylint: disable=too-many-arguments
+    def get_create_transaction(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
@@ -81,7 +80,7 @@ class RegistriesManagerContract(Contract):
         raise_on_try: bool = False,
     ) -> JSONLike:
         """Create a component."""
-
+        dependencies = list(sorted(dependencies or []))
         tx_params = ledger_api.build_transaction(
             contract_instance=cls.get_instance(
                 ledger_api=ledger_api, contract_address=contract_address
@@ -91,7 +90,37 @@ class RegistriesManagerContract(Contract):
                 "unitType": component_type.value,
                 "unitOwner": owner,
                 "unitHash": metadata_hash,
-                "dependencies": (dependencies or []),
+                "dependencies": dependencies,
+            },
+            tx_args={
+                "sender_address": sender,
+            },
+            raise_on_try=raise_on_try,
+        )
+        return tx_params
+
+    @classmethod
+    def get_update_hash_transaction(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        component_type: UnitType,
+        unit_id: int,
+        metadata_hash: str,
+        sender: str,
+        raise_on_try: bool = False,
+    ) -> JSONLike:
+        """Create a component."""
+
+        tx_params = ledger_api.build_transaction(
+            contract_instance=cls.get_instance(
+                ledger_api=ledger_api, contract_address=contract_address
+            ),
+            method_name="updateHash",
+            method_args={
+                "unitType": component_type.value,
+                "unitId": unit_id,
+                "unitHash": metadata_hash,
             },
             tx_args={
                 "sender_address": sender,

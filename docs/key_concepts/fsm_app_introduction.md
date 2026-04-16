@@ -6,7 +6,7 @@ Departing from the notions of [AEA](./aea.md), [FSM](./fsm.md), and [ABCI](./abc
 An {{fsm_app}} is a replicated application which uses
 an underlying consensus engine implementing the [ABCI](./abci.md).
 Its internal state takes the form of an FSM, and it exhibits proactive behaviours in each of such states.
-{{fsm_app}}s constitute a core part in the {{open_autonomy}} framework to implement agent services.
+{{fsm_app}}s constitute a core part in the {{open_autonomy}} framework to implement AI agent.
 
 The figure below depicts an sketch of the internal workings of an {{fsm_app}}, composed of six states (A-F) and six events (1-6):
 
@@ -21,15 +21,15 @@ Note that in an {{fsm_app}}, the responsibility of a state is distributed across
   states. It is a concrete implementation of the `AbstractRound` class. It usually involves
   interactions between participants, although this is not enforced
   at this level of abstraction. A round can validate, store and aggregate data
-  coming from different agents by means of transactions. The actual meaning of
+  coming from different agent instances by means of transactions. The actual meaning of
   the data depends on the implementation of the specific round. This component
   produces the `Events` that will enable the FSM transit from one state to another, that is, capturing the role of the transition function.
 
 - Each round has an associated _Behaviour_, which is the component that defines the proactive actions to be executed at
   a particular state. It is a concrete implementation of the `BaseBehaviour` class, and contains the application logic for each state. It is scheduled for
-  execution by the agents.
+  execution by the agent instances.
 
-We will sometimes use indistinctly the terms "state" or "round" in the context of the {{open_autonomy}} framework.  We also define the concept of _synchronized data_, which is the component that stores persistent data and is accessible from any state. The consensus mechanism ensures that the synchronized data is consistently shared by all the agents. It is updated at the end of each round, where its contents can be updated. It is a concrete implementation of the `BaseSynchronizedData` class.
+We will sometimes use indistinctly the terms "state" or "round" in the context of the {{open_autonomy}} framework.  We also define the concept of _synchronized data_, which is the component that stores persistent data and is accessible from any state. The consensus mechanism ensures that the synchronized data is consistently shared by all the agent instances. It is updated at the end of each round, where its contents can be updated. It is a concrete implementation of the `BaseSynchronizedData` class.
 
 The framework defines a concept of "period" for the `SynchronizedData`. When a new period starts, the `SynchronizedData` allocates a new slot to store new values for the variables stored within it. This way, the developer has access to the historic values that the {{fsm_app}} has stored (which can be pruned out). New periods are automatically created for the `SynchronizedData` when an {{fsm_app}} traverses the `ResetAndPauseRound` inside _Reset and pause_.
 
@@ -46,12 +46,12 @@ Due to the variety of FSMs that can be defined, the framework does not enforce t
     The developer could define the concept of "period" for their FSM as the sequence of stages in the FSM state flow that achieve a specific objective defined by the {{fsm_app}}. Consider the price oracle demo, which aggregates asset prices from different data sources and submits the aggregated result to an L1/L2 blockchain. In this example, the developer could define a period as follows:
 
     1. Collect observations from external APIs or prior rounds.
-    2. Reach consensus on the set of collected observations (i.e., 2/3 of the agents must agree).
+    2. Reach consensus on the set of collected observations (i.e., 2/3 of the agent instances must agree).
     3. Compute a function (e.g., mean) on the set of collected observations, and reach consensus on the computed result.
     4. Construct a transaction that contains the aggregated result.
-    5. Sign the transaction (2/3 of the agents must agree to sign).
-    6. A single agent, randomly nominated as the keeper, sends the transaction to the chain. If it does not do this before a
-    timeout event occurs, another agent is selected to be the
+    5. Sign the transaction (2/3 of the agent instances must agree to sign).
+    6. A single agent instance, randomly nominated as the keeper, sends the transaction to the chain. If it does not do this before a
+    timeout event occurs, another agent instance is selected to be the
     keeper.
     7. Go to Step 1.
 
@@ -91,13 +91,13 @@ The figure above depicts an excerpt of a composition of three FSMs into a single
 
 
 ## Considerations to Develop FSM Apps
-- agent services and their associated {{fsm_app}}s must be designed with **determinism at their core**. For this reason, in each  round, agents must agree upon their execution outputs in order to make progress. Any source of "uncontrolled" randomness or code inconsistency that leads to non-determinism will undermine the {{fsm_app}}'s ability to achieve its goal. Sources of non-determinism include but not limited to:
+- AI agents and their associated {{fsm_app}}s must be designed with **determinism at their core**. For this reason, in each  round, agent instances must agree upon their execution outputs in order to make progress. Any source of "uncontrolled" randomness or code inconsistency that leads to non-determinism will undermine the {{fsm_app}}'s ability to achieve its goal. Sources of non-determinism include but not limited to:
     - Non-verifiable randomness libraries.
     - Non deterministic libraries, like ML frameworks that do not guarantee exact same results under the same initial conditions.
-    - Using the agent's local time  to make decisions along the execution flow. Agents synchronize using the consensus engine, and that is the only reliable source of "time" that should be used. Sometimes, block timestamp can be a handy property common to all agents and can be used as a `time.now()` equivalent.
-    - Using local resources that are not synchronized among all agents to make decisions.
+    - Using the agent instance's local time to make decisions along the execution flow. Agent instances synchronize using the consensus engine, and that is the only reliable source of "time" that should be used. Sometimes, block timestamp can be a handy property common to all agent instances and can be used as a `time.now()` equivalent.
+    - Using local resources that are not synchronized among all agent instances to make decisions.
     - Using data serialization, e.g., [`json.dump`](https://docs.python.org/3/library/json.html#json.dump) without sorting the keys and inputs. Try to work with sorted data structures whenever possible (e.g., sorted lists instead of arbitrary lists).
     - Using block metrics in a `Behaviour`, other than those determining round transitions. All other blocks read from behaviours might involve race conditions.
-- Sometimes it is required to **retry interactions with external services**. There are generally two ways retries can be implemented: On the behaviour level and on the round level. The default retry should be implemented via round transitions. For instance, when agents cannot finish their behaviour level activities because of failure of an external service they can signal this via the payload (e.g., sending an explicit "None"). Then at the round level the agents can coordinate transition to the next state: either retrying the current state or transitioning to another state. Behaviour level retries should be limited when making calls to external services where the agent is the only one retrieving such information. For example, in an oracle service, each agent interacts with a different external API and the retries are naturally timed out by the round timeout.
-- It is desirable that agent `Skills` have their own unit tests. The {{open_aea}} framework offers tools to make easier for developers to write tests for their Skills. Beware that the AEA skill testing framework might have some limitations with respect to idiomatic Python testing. For example, it is a known issue that [patching skill module-level components does not work](https://github.com/valory-xyz/open-autonomy/issues/289), but only instance-based patching is effective (e.g. using [`patch.object`](https://docs.python.org/3/library/unittest.mock.html#unittest.mock.patch.object)).
-- When developing agent applications raise exceptions for all branches which are currently unhandled and would cause inconsistencies in the app. These exceptions can then be surgically addressed in separate PRs. Example: on the happy path a file is loaded properly, on the unhappy path an exception is raised by the file not being present. In production handling this can get involved. During development it is best to "park" this issue and focus on the happy case. But the unhappy case should raise so we can capture its prevalence in tests. Logging is the worst approach as it hides this issue!
+- Sometimes it is required to **retry interactions with external services**. There are generally two ways retries can be implemented: On the behaviour level and on the round level. The default retry should be implemented via round transitions. For instance, when agent instances cannot finish their behaviour level activities because of failure of an external service they can signal this via the payload (e.g., sending an explicit "None"). Then at the round level the agent instances can coordinate transition to the next state: either retrying the current state or transitioning to another state. Behaviour level retries should be limited when making calls to external services where the agent instance is the only one retrieving such information. For example, in an oracle AI agent, each agent instance interacts with a different external API and the retries are naturally timed out by the round timeout.
+- It is desirable that agent blueprint `Skills` have their own unit tests. The {{open_aea}} framework offers tools to make easier for developers to write tests for their Skills. Beware that the AEA skill testing framework might have some limitations with respect to idiomatic Python testing. For example, it is a known issue that [patching skill module-level components does not work](https://github.com/valory-xyz/open-autonomy/issues/289), but only instance-based patching is effective (e.g. using [`patch.object`](https://docs.python.org/3/library/unittest.mock.html#unittest.mock.patch.object)).
+- When developing agent blueprint, applications raise exceptions for all branches which are currently unhandled and would cause inconsistencies in the app. These exceptions can then be surgically addressed in separate PRs. Example: on the happy path a file is loaded properly, on the unhappy path an exception is raised by the file not being present. In production handling this can get involved. During development it is best to "park" this issue and focus on the happy case. But the unhappy case should raise so we can capture its prevalence in tests. Logging is the worst approach as it hides this issue!

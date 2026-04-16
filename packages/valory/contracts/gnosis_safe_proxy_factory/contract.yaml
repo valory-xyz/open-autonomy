@@ -4,14 +4,14 @@ version: 0.1.0
 type: contract
 description: Gnosis Safe proxy factory (GnosisSafeProxyFactory) contract
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeibobgyzn3kozckup5uxbugbgkiqrc7d5okmj6gahctccqfifu7e4e
   __init__.py: bafybeif32mykzila23udgceziog2zr4tkreij6zn43ybbtzonojsfmy5ee
   build/ProxyFactory_V1_3_0.json: bafybeibmhgw6us3nzg5d4vb3krg3udxgnux66vuz26pjcigdjc7zn5jrxm
-  contract.py: bafybeidtzl7j6z5a4v4d2afff7p62tdnvmqaablpqmszt6nfiym2ftj3wq
+  contract.py: bafybeibxdbldmuhsdfc5m5avtnwmaam6yjvsgmdza67cigxvudrgzcwje4
   tests/__init__.py: bafybeied5o76k2pgmpqlofnfo2mhoncecnigkm24t26qrnhhqzvtg3g3b4
-  tests/test_contract.py: bafybeidgcxvkl4xjg5dbjzl3o6ffoylkdewrpni6lxm3624qrebbwmqeay
+  tests/test_contract.py: bafybeie277ip3rjqvjhqoi55mfyp4ln2656gu7rzmeztehtlensir4qn2e
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: GnosisSafeProxyFactoryContract
@@ -19,8 +19,8 @@ contract_interface_paths:
   ethereum: build/ProxyFactory_V1_3_0.json
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.38.0
+    version: ==2.2.1
   open-aea-test-autonomy:
-    version: ==0.11.0
-  open-aea-web3:
-    version: ==6.0.1
+    version: ==0.21.18
+  web3:
+    version: <8,>=7.0.0

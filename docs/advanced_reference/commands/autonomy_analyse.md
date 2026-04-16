@@ -1,6 +1,6 @@
-Tools for analysing and verifying agent services.
+Tools for analysing and verifying AI agents.
 
-This command group consists of a number of functionalities to analyse and verify agent services, including {{fsm_app}} skill consistency checks. See the appropriate subcommands for more information.
+This command group consists of a number of functionalities to analyse and verify AI agents, including {{fsm_app}} skill consistency checks. See the appropriate subcommands for more information.
 
 
 
@@ -12,7 +12,7 @@ This command verifies that the [`AbciApp` class](../../key_concepts/abci_app_cla
 
 ??? example
 
-    The docstring corresponding to the [Hello World agent service](../../demos/hello_world_demo.md) is
+    The docstring corresponding to the [Hello World AI agent](https://stack.olas.network/demos/hello-world/) is
 
 
     ```python
@@ -23,20 +23,20 @@ This command verifies that the [`AbciApp` class](../../key_concepts/abci_app_cla
     Initial states: {RegistrationRound}
 
     Transition states:
-        0. RegistrationRound
+        1. RegistrationRound
             - done: 1.
-        1. CollectRandomnessRound
+        2. CollectRandomnessRound
             - done: 2.
             - no majority: 1.
             - round timeout: 1.
-        2. SelectKeeperRound
+        3. SelectKeeperRound
             - done: 3.
             - no majority: 0.
             - round timeout: 0.
-        3. PrintMessageRound
+        4. PrintMessageRound
             - done: 4.
             - round timeout: 0.
-        4. ResetAndPauseRound
+        5. ResetAndPauseRound
             - done: 1.
             - no majority: 0.
             - reset timeout: 0.
@@ -212,7 +212,7 @@ autonomy analyse dialogues -d abci -d http -i excluded_skill_1 -i excluded_skill
 Since the command will automatically append the `_dialogues` postfix if not provided by the user.
 
 ## `autonomy analyse logs`
-Parse logs of an agent service.
+Parse logs of an AI agent.
 
 ### Usage
 ```bash
@@ -260,15 +260,50 @@ autonomy analyse logs [OPTIONS]
 :   Show the help message and exit.
 
 ### Examples
-!!! info
-    This section will be added soon.
 
+Analyze logs from the build directory `./abci_build_hAsH/persistent_data/logs` for 2 agents:
+
+```bash   
+autonomy analyse logs --from-dir ./abci_build_hAsH/persistent_data/logs -a 'aea_0' -a 'aea_1'
+```
+
+View logs for 2 agents between specific times:
+
+```bash   
+autonomy analyse logs --from-dir ./abci_build_hAsH/persistent_data/logs -a 'aea_0' --start-time "2024-01-20 10:00:00,000" --end-time "2024-01-20 11:00:00,000"
+```
+
+View logs for period `2` and round `RegistrationRound`:
+
+```bash
+autonomy analyse logs --from-dir ./abci_build_hAsH/persistent_data/logs -a 'aea_0' --period 2 --round RegistrationRound
+```
+
+View only the FSM state transitions:
+
+```bash   
+autonomy analyse logs --from-dir ./abci_build_hAsH/persistent_data/logs -a 'aea_0' --fsm
+```
+
+Filter by log level `ERROR` and behaviour `RegistrationBehaviour`:
+
+```bash   
+autonomy analyse logs --from-dir ./abci_build_hAsH/persistent_data/logs -a 'aea_0' --log-level ERROR --behaviour RegistrationBehaviour
+```
+
+Use regex patterns to filter logs, include lines with `consensus` and exclude lines with `debug`
+
+```bash
+autonomy analyse logs --from-dir ./abci_build_hAsH/persistent_data/logs -a 'aea_0' -ir ".*consensus.*" -er ".*debug.*"
+```
+
+These examples demonstrate various ways to filter and analyze AI agent logs. You can combine multiple options to narrow down the log output to exactly what you need for debugging or analysis.
 
 ## `autonomy analyse benchmarks`
 
-Aggregate benchmark results from agent service deployments.
+Aggregate benchmark results from AI agent deployments.
 
-This tool requires the benchmark data generated from service agent's runtime.
+This tool requires the benchmark data generated from agent blueprint's runtime.
 By default the tool will aggregate the output for all the periods and code block types but you can restrict the aggregation to a specific period and/or a specific block type.
 
 Read the [guide on how to use the benchmarking tool](../developer_tooling/benchmarking.md) for more information.
@@ -298,25 +333,25 @@ autonomy analyse benchmarks [OPTIONS] PATH
 
 ### Examples
 
-The benchmark data will be stored in the folder `<service_folder>/abci_build/persistent_data/benchmarks`.
+The benchmark data will be stored in the folder `<service_folder>/abci_build_hAsH/persistent_data/benchmarks`.
 
 To aggregate stats for all periods, execute:
 
 ```bash
-autonomy analyse benchmarks abci_build/persistent_data/benchmarks
+autonomy analyse benchmarks abci_build_hAsH/persistent_data/benchmarks
 ```
 
 To aggregate stats for `consensus` block type in the second period, execute:
 
 ```bash
-    autonomy analyse benchmarks abci_build/persistent_data/benchmarks --period 2 --block-type consensus
+    autonomy analyse benchmarks abci_build_hAsH/persistent_data/benchmarks --period 2 --block-type consensus
 ```
 
 ## `autonomy analyse service`
 
-Analyse if the service is ready to be deployed or not.
+Analyse if the AI agent is ready to be deployed or not.
 
-This tool can be used to analyse a service definition and see if there are any potential issues with configuration which can cause issues when running the deployment.
+This tool can be used to analyse an AI agent definition and see if there are any potential issues with configuration which can cause issues when running the deployment.
 
 Read the [guide on deployment readiness](../../configure_service/on-chain_deployment_checklist.md) for more information.
 
@@ -328,35 +363,51 @@ autonomy analyse service [OPTIONS]
 ### Options
 
 `--token-id INTEGER`
-:  Token ID of the service
+:  Token ID of the AI agent
 
 `--public-id PUBLIC_ID_OR_HASH`
-:   Public ID of the service
+:   Public ID of the AI agent
 
-`--use-ethereum`
-:  To use `ethereum` chain profile to interact with the contracts
+`--use-celo`                      
+:   To use `celo` chain profile to interact with the contracts
 
-`--use-goerli`
-:  To use `goerli` chain profile to interact with the contracts
+`--use-base`                      
+:   To use `base` chain profile to interact with the contracts
 
-`--use-custom-chain`
-:  To use `custom-chain` chain profile to interact with the contracts
+`--use-optimism`                
+:   To use `optimism` chain profile to interact with the contracts
 
-`--use-local`
-:  To use local chain profile to interact with the contracts
+`--use-arbitrum-one`              
+:   To use `arbitrum-one` chain profile to interact with the contracts
+
+`--use-gnosis`                    
+:   To use `gnosis` chain profile to interact with the contracts
+
+`--use-polygon`                   
+:   To use `polygon` chain profile to interact with the contracts
+
+`--use-ethereum`                  
+:   To use `ethereum` chain profile to interact with the contracts
+
+`--use-custom-chain`              
+:   To use `custom-chain` chain profile to interact with the contracts
+
+`--use-local`                     
+:   To use `local` chain profile to interact with the contracts
+
 
 `--help`
 :  Show the help message and exit.
 
 ### Examples
 
-Analyse the service `valory/hello_world` using
+Analyse the AI agent `valory/hello_world` using
 
 ```bash
 autonomy analyse service --public-id valory/hello_world
 ```
 
-Analyse an on-chain service with token ID `1` using
+Analyse an on-chain AI agent with token ID `1` using
 
 ```bash
 autonomy analyse service --token-id 1

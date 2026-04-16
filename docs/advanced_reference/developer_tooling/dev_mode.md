@@ -1,79 +1,48 @@
-The {{open_autonomy}} framework comes with *developer mode* (`dev` mode) tooling to enable faster service developing and debugging. The `dev` mode supports running agent services with a number of functionalities enabled:
+The {{open_autonomy}} framework comes with *developer mode* (`dev` mode) tooling to enable faster AI agent developing and debugging. The `dev` mode supports running AI agents with a number of functionalities enabled:
 
-* **Hot reload**, which enables hot code swapping and reflects changes on the agent code as well as on the local `open-aea` repository without rebuilding or restarting the containers manually.
+* **Hot reload**, which enables hot code swapping and reflects changes on the agent blueprint code as well as on the local `open-aea` repository without rebuilding or restarting the containers manually.
 * **Hardhat Instance**, which enables the inclusion of a pre-configured Hardhat Instance image in the deployment, which can be used as a test blockchain.
 * **ACN Instance**, which enables inclusion of a pre-configured ACN Instance image, which can be used to test various agent communication functionalities, for example establishing the Tendermint network at the startup.
-* **Execution replay** of a previous agent in the service.
-* **Benchmark** the performance of an agent service.
+* **Execution replay** of a previous agent instance in the AI agent.
+* **Benchmark** the performance of an AI agent.
 
 Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](../../guides/set_up.md). As a result you should have a Pipenv workspace folder.
 
-## Build and run an agent service in `dev` mode
+## Build and run an AI agent in `dev` mode
 
-1. **Fetch the service.** Fetch the Price Oracle service from the remote registry.
+1. **Fetch the AI agent.** Fetch the Price Oracle AI agent from the remote registry.
 
     ```bash
     autonomy fetch valory/oracle_hardhat:0.1.0:<hash> --service
     ```
 
-2. **Build the agents' image.** Navigate to the local folder of the service, and build the Docker image of the service agents in `dev` mode.
+2. **Build the deployment.** Within the AI agent folder, execute the command below to build the AI agent deployment in `dev` mode, including a pre-configured Hardhat instance.
 
     ```bash
-    cd oracle_hardhat
-    autonomy build-image --dev
+    autonomy deploy build --dev --packages-dir ~/service/packages --open-aea-dir ~/git/open-aea/ --use-hardhat -ltm
     ```
 
-    After the command finishes building the image, you can see that it has been created by executing:
-
-    ```bash
-    docker image ls | grep oracle_hardhat
-    ```
-
-3. **Prepare the keys file.** Within the service folder, prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that make up the service.
-
-    ??? example "Example of a `keys.json` file"
-
-        <span style="color:red">**WARNING: Use this file for testing purposes only. Never use the keys or addresses provided in this example in a production environment or for personal use.**</span>
-
-        ```json
-        [
-        {
-            "address": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-            "private_key": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-        },
-        {
-            "address": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-            "private_key": "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
-        },
-        {
-            "address": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-            "private_key": "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a"
-        },
-        {
-            "address": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-            "private_key": "0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6"
-        }
-        ]
-        ```
-
-4. **Build the deployment.** Within the service folder, execute the command below to build the service deployment in `dev` mode, including a pre-configured Hardhat instance.
-
-    ```bash
-    autonomy deploy build keys.json --dev --packages-dir ~/git/open-autonomy/packages --open-autonomy-dir ~/git/open-aea/ --open-aea-dir ~/git/open-autonomy/ --use-hardhat -ltm
-    ```
-
+    This will create a deployment environment in `dev` mode within the `./abci_build_*` folder.
+  
     You must modify the paths in the command above appropriately, pointing to:
 
     * the path to the local registry (/packages directory),
-    * the path to the local {{open_autonomy_repository}},
     * the path to the local {{open_aea_repository}}.
-
-    This will create a deployment environment in `dev` mode within the `./abci_build` folder.
-
-5. **Run the service.** Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally.
+  
+    If you don't want to specify the `open-aea` repository manually, you can install the `open-aea` in editable mode using
 
     ```bash
-    cd abci_build
+    pip3 install -e PATH_TO_OPEN_AEA_REPOSITORY
+    ```
+
+    Same thing goes for packages, if you're already in the `packages/` directory (eg. running the command from `packages/author/services/ai_agent`) you don't have to specify the value for `--packages-dir` flag explicitly.
+
+    > Note: When building development deployments you don't have to define keys manually, `autonomy` generates the keys automatically in development mode. You can still specify the keys file if you already have one and you're planning on using it.
+
+3. **Run the AI agent.** Navigate to the deployment environment folder (`./abci_build_*`) and run the deployment locally.
+
+    ```bash
+    cd abci_build_*
     autonomy deploy run
     ```
 
@@ -81,17 +50,17 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 ## Hot reload
 
-Once the agents are running, you can make changes to the agent's code as well as the local {{open_aea_repository}}, and it will trigger the service restart.
+Once the agent instances are running, you can make changes to the agent blueprint's code as well as the local {{open_aea_repository}}, and it will trigger the AI agent restart.
 
-The trigger is caused by any Python file closing in either the `open-autonomy/packages` or the `open-aea/` directory. So even if you haven't made any change and still want to restart the service, just open any Python file press `Ctrl+S` or save it from the file menu and it will trigger the restart.
+The trigger is caused by any Python file closing in either the `service/packages` or the `open-aea/` directory. So even if you haven't made any change and still want to restart the AI agent, just open any Python file press `Ctrl+S` or save it from the file menu and it will trigger the restart.
 
 
 ## Hardhat instance
 
-By default the command that builds the service deployment (`autonomy deploy build`) only includes the agent nodes and the Tendermint nodes. If you want to include a local Hardhat node as a test blockchain for the ledger connection, you can do so by using the `--use-hardhat` flag in that command.
+By default the command that builds the AI agent deployment (`autonomy deploy build`) only includes the agent instance nodes and the Tendermint nodes. If you want to include a local Hardhat node as a test blockchain for the ledger connection, you can do so by using the `--use-hardhat` flag in that command.
 
-The deployment setup will include a Hardhat node (image `valory/open-autonomy-hardhat`) using `hardhat` as container name. Therefore, in order to use this node, you must set a [service-level override](../../configure_service/service_configuration_file.md#service-level-overrides) so that the `valory/ledger` connection address is set to `http://hardhat:8545`.
-You can achieve this by editing the service configuration file `service.yaml` as follows:
+The deployment setup will include a Hardhat node (image `valory/open-autonomy-hardhat`) using `hardhat` as container name. Therefore, in order to use this node, you must set a [ai-agent-level override](../../configure_service/service_configuration_file.md#ai-agent-level-overrides) so that the `valory/ledger` connection address is set to `http://hardhat:8545`.
+You can achieve this by editing the AI agent configuration file `service.yaml` as follows:
 
 ```yaml title="service.yaml"
 # (...)
@@ -121,14 +90,14 @@ config:
 export LEDGER_RPC = http://hardhat:8545
 ```
 
-If you require specific custom contracts to test your service, read the [guide to include custom contracts](https://github.com/valory-xyz/autonolas-registries/blob/main/docs/running_with_custom_contracts.md).
+If you require specific custom contracts to test your AI agent, read the [guide to include custom contracts](https://github.com/valory-xyz/autonolas-registries/blob/main/docs/running_with_custom_contracts.md).
 
 ## ACN instance
 
 You can also include an ACN node for agent communication using the `--use-acn` flag in `autonomy deploy build`.
 
-The deployment setup will include an ACN node (image `valory/open-acn-node`) using `acn` as container name. Similarly as above, in order to use this node you must set a [service-level override](../../configure_service/service_configuration_file.md#service-level-overrides) so that the `valory/p2p_libp2p_client` connection parameters are set to the appropriate values.
-You can achieve this by editing the service configuration file `service.yaml` as follows:
+The deployment setup will include an ACN node (image `valory/open-acn-node`) using `acn` as container name. Similarly as above, in order to use this node you must set a [ai-agent-level override](../../configure_service/service_configuration_file.md#ai-agent-level-overrides) so that the `valory/p2p_libp2p_client` connection parameters are set to the appropriate values.
+You can achieve this by editing the AI agent configuration file `service.yaml` as follows:
 
 ```yaml title="service.yaml"
 # (...)
@@ -143,8 +112,8 @@ cert_requests:
 - identifier: acn
   ledger_id: ethereum
   message_format: '{public_key}'
-  not_after: '2024-01-01'
-  not_before: '2023-01-01'
+  not_after: '2025-01-01'
+  not_before: '2024-01-01'
   public_key: 03c74dbfbe7bbc1b42429f78778017a3cd7eaf9d59d1634c9505a3f7c1a9350e71
   save_path: .certs/acn_cosmos_11000.txt
 is_abstract: false

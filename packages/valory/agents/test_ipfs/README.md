@@ -1,3 +1,3 @@
-# Test ipfs Agent
+# Test ipfs Agent Blueprint
 
-This agent is used to test the `ipfs` connection.
+This agent blueprint is used to test the `ipfs` connection.

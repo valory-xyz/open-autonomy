@@ -54,8 +54,9 @@ Create logs database.
 
 ```python
 @staticmethod
-def get_next_log_block(fp: TextIO,
-                       prev_line: str) -> Tuple[Optional[str], Optional[str]]
+def get_next_log_block(
+        fp: TextIO,
+        prev_line: Optional[str]) -> Tuple[Optional[str], Optional[str]]
 ```
 
 Get next log block.

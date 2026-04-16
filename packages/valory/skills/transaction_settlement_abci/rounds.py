@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,12 +32,15 @@ from packages.valory.skills.abstract_round_abci.base import (
     AppState,
     BaseSynchronizedData,
     BaseTxPayload,
+    COLLECTION_KEY_ATTRIBUTE,
     CollectDifferentUntilThresholdRound,
     CollectNonEmptyUntilThresholdRound,
     CollectSameUntilThresholdRound,
     CollectionRound,
     DegenerateRound,
+    NONE_EVENT_ATTRIBUTE,
     OnlyKeeperSendsRound,
+    SELECTION_KEY_ATTRIBUTE,
     TransactionNotValidError,
     VALUE_NOT_PROVIDED,
     VotingRound,
@@ -58,7 +61,6 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     SynchronizeLateMessagesPayload,
     ValidatePayload,
 )
-
 
 ADDRESS_LENGTH = 42
 TX_HASH_LENGTH = 66
@@ -241,9 +243,13 @@ class SynchronizedData(
         self,
     ) -> Mapping[str, SynchronizeLateMessagesPayload]:  # pragma: no cover
         """Get the mapping from participants to checks."""
-        serialized = self.db.get_strict("participant_to_late_message")
+        serialized = self.db.get_strict("participant_to_late_messages")
         deserialized = CollectionRound.deserialize_collection(serialized)
         return cast(Mapping[str, SynchronizeLateMessagesPayload], deserialized)
+
+    def get_chain_id(self, default_chain_id: str) -> str:
+        """Get the chain id."""
+        return cast(str, self.db.get("chain_id", default_chain_id))
 
 
 class FailedRound(DegenerateRound, ABC):
@@ -266,6 +272,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
     keeper_payload: Optional[FinalizationTxPayload] = None
     payload_class = FinalizationTxPayload
     synchronized_data_class = SynchronizedData
+    extended_requirements = ()
 
     def end_block(  # pylint: disable=too-many-return-statements
         self,
@@ -336,6 +343,7 @@ class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
     payload_class = RandomnessPayload
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
+    none_event = Event.NONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = get_name(SynchronizedData.participant_to_randomness)
     selection_key = (
@@ -353,6 +361,12 @@ class SelectKeeperTransactionSubmissionARound(CollectSameUntilThresholdRound):
     no_majority_event = Event.NO_MAJORITY
     collection_key = get_name(SynchronizedData.participant_to_selection)
     selection_key = get_name(SynchronizedData.keepers)
+    # the none event is not required because the `SelectKeeperPayload` does not allow for `None` values
+    extended_requirements = tuple(
+        attribute
+        for attribute in CollectSameUntilThresholdRound.extended_requirements
+        if attribute != NONE_EVENT_ATTRIBUTE
+    )
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
@@ -457,8 +471,14 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
     synchronized_data_class = SynchronizedData
     collection_key = get_name(SynchronizedData.participant_to_check)
     selection_key = get_name(SynchronizedData.most_voted_check_result)
+    extended_requirements: Tuple[str, ...] = (
+        COLLECTION_KEY_ATTRIBUTE,
+        SELECTION_KEY_ATTRIBUTE,
+    )
 
-    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
+    def end_block(  # pylint: disable=too-many-return-statements
+        self,
+    ) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         if self.threshold_reached:
             return_status, return_tx_hash = tx_hist_hex_to_payload(
@@ -495,6 +515,9 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                 return synchronized_data, Event.CHECK_LATE_ARRIVING_MESSAGE
             if return_status == VerificationStatus.NOT_VERIFIED:
                 return synchronized_data, Event.NEGATIVE
+            if return_status == VerificationStatus.BAD_SAFE_NONCE:
+                # in case a bad nonce was used, we need to recreate the tx from scratch
+                return synchronized_data, Event.NONE
 
             return synchronized_data, Event.NONE
 
@@ -593,6 +616,7 @@ class ResetRound(CollectSameUntilThresholdRound):
 
     payload_class = ResetPayload
     synchronized_data_class = SynchronizedData
+    extended_requirements = ()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
@@ -644,6 +668,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     Transition states:
         0. RandomnessTransactionSubmissionRound
             - done: 1.
+            - none: 0.
             - round timeout: 0.
             - no majority: 0.
         1. SelectKeeperTransactionSubmissionARound
@@ -666,7 +691,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - done: 11.
             - negative: 5.
             - none: 6.
-            - validate timeout: 6.
+            - validate timeout: 5.
             - no majority: 4.
         5. CheckTransactionHistoryRound
             - done: 11.
@@ -721,6 +746,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         RandomnessTransactionSubmissionRound: {
             Event.DONE: SelectKeeperTransactionSubmissionARound,
+            Event.NONE: RandomnessTransactionSubmissionRound,
             Event.ROUND_TIMEOUT: RandomnessTransactionSubmissionRound,
             Event.NO_MAJORITY: RandomnessTransactionSubmissionRound,
         },
@@ -747,7 +773,9 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: CheckTransactionHistoryRound,
             Event.NONE: SelectKeeperTransactionSubmissionBRound,
-            Event.VALIDATE_TIMEOUT: SelectKeeperTransactionSubmissionBRound,
+            # even in case of timeout we might've sent the transaction
+            # so we need to check the history
+            Event.VALIDATE_TIMEOUT: CheckTransactionHistoryRound,
             Event.NO_MAJORITY: ValidateTransactionRound,
         },
         CheckTransactionHistoryRound: {

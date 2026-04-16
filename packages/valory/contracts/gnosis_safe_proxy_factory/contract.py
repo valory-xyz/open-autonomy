@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the class to connect to an Gnosis Safe Proxy Factory contract."""
+
 import logging
 from typing import Any, Optional, Tuple, cast
 
@@ -27,7 +28,6 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
 from web3.types import Nonce, TxParams, Wei
-
 
 PUBLIC_ID = PublicId.from_str("valory/gnosis_safe_proxy_factory:0.1.0")
 MIN_GAS = 1
@@ -83,7 +83,7 @@ class GnosisSafeProxyFactoryContract(Contract):
         return super().get_deploy_transaction(ledger_api, deployer_address, **kwargs)
 
     @classmethod
-    def build_tx_deploy_proxy_contract_with_nonce(  # pylint: disable=too-many-arguments,too-many-locals
+    def build_tx_deploy_proxy_contract_with_nonce(  # pylint: disable=too-many-locals
         cls,
         ledger_api: EthereumApi,
         proxy_factory_address: str,
@@ -172,7 +172,7 @@ class GnosisSafeProxyFactoryContract(Contract):
         :return: the verified status
         """
         ledger_api = cast(EthereumApi, ledger_api)
-        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
+        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).to_0x_hex()
         local_bytecode = cls.contract_interface["ethereum"]["deployedBytecode"]
         verified = deployed_bytecode == local_bytecode
         return dict(verified=verified)

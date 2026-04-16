@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 # pylint: disable=unused-import
 
 """Integration tests for the valory/register_termination skill."""
+
 from pathlib import Path
 
 import pytest
@@ -37,7 +38,6 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     tendermint_port,
 )
 
-
 TARGET_AGENT = "valory/test_ipfs:0.1.0"
 TARGET_SKILL = "valory/test_ipfs_abci:0.1.0"
 TIME_TO_FINISH = 60  # 1 minute
@@ -46,7 +46,7 @@ TIME_TO_FINISH = 60  # 1 minute
 @pytest.mark.e2e
 @pytest.mark.integration
 @pytest.mark.parametrize("nb_nodes", (1,))
-class TestIpfs(
+class TestIpfs(  # pylint: disable=too-few-public-methods
     BaseTestEnd2EndExecution,
 ):
     """Test whether uploading and receiving from IPFS works.."""

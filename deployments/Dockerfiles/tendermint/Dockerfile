@@ -1,5 +1,4 @@
-FROM alpine:3.7
-MAINTAINER Valory AG
+FROM alpine:3.20
 
 ENV TENDERMINT_VERSION=0.34.19
 ENV USE_GRPC=false
@@ -13,20 +12,20 @@ COPY wait-for-it.sh .
 RUN  chmod u+x wait-for-it.sh
 RUN  mv wait-for-it.sh /usr/local/bin
 
-# Download Tendermint
-RUN curl -L https://github.com/tendermint/tendermint/releases/download/v${TENDERMINT_VERSION}/tendermint_${TENDERMINT_VERSION}_linux_amd64.tar.gz > tendermint.tar.gz &&\
-    tar -xf tendermint.tar.gz &&\
-    mv tendermint /usr/bin &&\
-    rm -fr tendermint.tar.gz
+COPY install.sh .
+RUN  chmod u+x install.sh
+
+# Install Tendermint
+RUN bash install.sh
 
 RUN mkdir -p /app /tm_state
 
 COPY app.py /app/
 COPY tendermint.py /app/
+COPY build.sh /app/
 
 WORKDIR /app
-RUN pip3 install Flask==2.0.2 requests==2.27.1 Werkzeug==2.0.3
-
+RUN pip3 install --break-system-packages "Flask>=3.1.0,<4.0.0" "requests==2.28.1" "Werkzeug>=3.1.0,<4.0.0"
 
 VOLUME /tendermint
 VOLUME /tm_state
@@ -39,13 +38,11 @@ ENV FLASK_ENV=production
 STOPSIGNAL SIGTERM
 WORKDIR /tendermint
 
-COPY wrapper.sh /usr/bin/wrapper.sh
 COPY config-template.toml /etc/tendermint/config-template.toml
 
 RUN chmod 777 -R /app
 RUN chmod 777 -R /tendermint
 RUN chmod 777 -R /tm_state
-
 
 ENTRYPOINT ["/usr/bin/flask"]
 CMD ["run", "--no-reload", "--host=0.0.0.0", "--port=8080"]

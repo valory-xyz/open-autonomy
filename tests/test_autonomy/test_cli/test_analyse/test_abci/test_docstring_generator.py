@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 
 """Tests for docstring generator."""
 
-
 import os
 from pathlib import Path
 from typing import Tuple
@@ -27,7 +26,7 @@ from unittest import mock
 
 from aea.configurations.constants import PACKAGES
 
-from packages.valory.skills.hello_world_abci import rounds
+from packages.valory.skills.offend_abci import rounds
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
@@ -38,15 +37,15 @@ class TestDocstrings(BaseCliTest):
 
     rounds_file_original: Path
     rounds_file_temp: Path
-    skill_name: str = "hello_world_abci"
+    skill_name: str = "offend_abci"
     cli_options: Tuple[str, ...] = ("analyse", "docstrings")
     rounds_file = Path(PACKAGES, "valory", "skills", skill_name, "rounds.py")
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test method."""
-        super().setup()
+        super().setup_method()
 
         os.chdir(self.t)
 
@@ -76,10 +75,7 @@ class TestDocstrings(BaseCliTest):
     ) -> None:
         """Corrupt a round file."""
 
-        string_to_replace = """4. ResetAndPauseRound
-            - done: 1.
-            - no majority: 0.
-            - reset timeout: 0.\n"""
+        string_to_replace = """1. FinishedOffendRound\n"""
 
         rounds_file_content = self.rounds_file_original.read_text()
         rounds_file_content = rounds_file_content.replace(string_to_replace, "")

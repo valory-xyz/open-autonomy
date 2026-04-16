@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Ganache Docker Image."""
+
 import logging
 import time
 from typing import Dict, List, Optional
@@ -27,7 +28,6 @@ from aea.exceptions import enforce
 from aea_test_autonomy.docker.base import DockerImage
 from docker import DockerClient
 from docker.models.containers import Container
-
 
 DEFAULT_GANACHE_ADDR = "http://127.0.0.1"
 DEFAULT_GANACHE_PORT = 8545
@@ -96,7 +96,9 @@ class GanacheDockerImage(DockerImage):
         request = dict(jsonrpc=2.0, method="web3_clientVersion", params=[], id=1)
         for i in range(max_attempts):
             try:
-                response = requests.post(f"{self._addr}:{self._port}", json=request)
+                response = requests.post(
+                    f"{self._addr}:{self._port}", json=request, timeout=30
+                )
                 enforce(response.status_code == 200, "")
                 return True
             except Exception:  # pylint: disable=broad-except
@@ -123,3 +125,7 @@ class GanacheForkDockerImage(GanacheDockerImage):
         ]
 
         return cmd
+
+    def create_many(self, nb_containers: int) -> List[Container]:
+        """Instantiate the image in many containers, parametrized."""
+        raise NotImplementedError()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -68,12 +68,18 @@ class SynchronizedData(BaseSynchronizedData):
         """Get the most_voted_tx_hash."""
         return cast(str, self.db.get_strict("most_voted_tx_hash"))  # pragma: no cover
 
+    @property
+    def chain_id(self) -> Optional[str]:
+        """Get the chain name where to send the transactions to."""
+        return cast(str, self.db.get("chain_id", None))
+
 
 class BackgroundRound(CollectSameUntilThresholdRound):
     """Defines the background round, which runs concurrently with other rounds."""
 
     payload_class = BackgroundPayload
     synchronized_data_class = SynchronizedData
+    extended_requirements = ()
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
@@ -119,6 +125,9 @@ class BackgroundRound(CollectSameUntilThresholdRound):
                     get_name(
                         SynchronizedData.most_voted_tx_hash
                     ): self.most_voted_payload,
+                    get_name(
+                        SynchronizedData.chain_id
+                    ): self.context.params.default_chain_id,
                 },
             )
             return state, Event.TERMINATE

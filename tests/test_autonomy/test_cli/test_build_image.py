@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test build image."""
-import json
+
 import os
 from pathlib import Path
 from random import choices
@@ -34,7 +34,7 @@ from aea.helpers.io import open_file
 from autonomy.configurations.base import Service
 from autonomy.constants import DEFAULT_DOCKER_IMAGE_AUTHOR
 
-from tests.conftest import get_file_from_tag, skip_docker_tests
+from tests.conftest import skip_docker_tests
 from tests.test_autonomy.base import get_dummy_service_config
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
@@ -49,9 +49,9 @@ class TestBuildImage(BaseCliTest):
     package_hash: str
     package_id: PackageId
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup class."""
-        super().setup()
+        super().setup_method()
 
         self.docker_api = docker.APIClient()
         self.package_id = PackageId(
@@ -59,8 +59,8 @@ class TestBuildImage(BaseCliTest):
             public_id=PublicId(author="valory", name="test_abci", version="0.1.0"),
         )
 
-        packages_json = json.loads(get_file_from_tag("packages/packages.json"))
-        package_hash = packages_json["dev"][self.package_id.to_uri_path]
+        # TODO: Revert after release
+        package_hash = "bafybeibrtivwdgciwoa4yzdcetafjhxzddy6npulbtugfx2gexepnu5khy"
         self.package_id = self.package_id.with_hash(package_hash=package_hash)
 
         os.chdir(self.t)
@@ -85,23 +85,6 @@ class TestBuildImage(BaseCliTest):
             len(
                 self.docker_api.images(
                     name=f"{get_default_author_from_cli_config() or DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-{self.package_id.name}:{self.package_id.package_hash}"
-                )
-            )
-            == 1
-        )
-
-    def test_build_dev(
-        self,
-    ) -> None:
-        """Test prod build."""
-
-        result = self.run_cli(("--dev",))
-
-        assert result.exit_code == 0, result.output
-        assert (
-            len(
-                self.docker_api.images(
-                    name=f"{get_default_author_from_cli_config() or DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-{self.package_id.name}:dev"
                 )
             )
             == 1
@@ -197,11 +180,11 @@ class TestBuildImageFailures(BaseCliTest):
     def test_image_build_fail(self) -> None:
         """Test prod build."""
 
-        result = self.run_cli(
+        exit_code, stdout, stderr = self.run_cli_subprocess(
             commands=(
                 "valory/agent:bafybeihyasfforsfualp6jnhh2jj7nreqmws2ygyfnh4p3idmfkm5yxu11",
             )
         )
 
-        assert result.exit_code == 1, result.output
-        assert "Error occured while downloading agent" in result.output
+        assert exit_code == 1, stdout
+        assert "Error occured while downloading agent" in stderr

@@ -4,6 +4,16 @@
 
 Docker-compose Deployment Generator.
 
+<a id="autonomy.deploy.generators.docker_compose.base.get_docker_client"></a>
+
+#### get`_`docker`_`client
+
+```python
+def get_docker_client() -> DockerClient
+```
+
+Load docker client.
+
 <a id="autonomy.deploy.generators.docker_compose.base.build_tendermint_node_config"></a>
 
 #### build`_`tendermint`_`node`_`config
@@ -22,22 +32,35 @@ def build_tendermint_node_config(
 
 Build tendermint node config for docker compose.
 
+<a id="autonomy.deploy.generators.docker_compose.base.to_env_file"></a>
+
+#### to`_`env`_`file
+
+```python
+def to_env_file(agent_vars: Dict, node_id: int, build_dir: Path) -> None
+```
+
+Create a env file under the `agent_build` folder.
+
 <a id="autonomy.deploy.generators.docker_compose.base.build_agent_config"></a>
 
 #### build`_`agent`_`config
 
 ```python
 def build_agent_config(node_id: int,
+                       build_dir: Path,
                        container_name: str,
                        agent_vars: Dict,
                        runtime_image: str,
                        network_name: str,
                        network_address: str,
                        dev_mode: bool = False,
-                       package_dir: Path = DEFAULT_PACKAGES_PATH,
-                       open_aea_dir: Path = DEFAULT_OPEN_AEA_DIR,
-                       open_autonomy_dir: Path = DEFAULT_OPEN_AUTONOMY_DIR,
-                       agent_ports: Optional[Dict[int, int]] = None) -> str
+                       package_dir: Optional[Path] = None,
+                       open_aea_dir: Optional[Path] = None,
+                       agent_ports: Optional[Dict[int, int]] = None,
+                       extra_volumes: Optional[Dict[str, str]] = None,
+                       resources: Optional[Resources] = None,
+                       custom_props: Optional[Dict[str, str]] = None) -> str
 ```
 
 Build agent config.
@@ -57,7 +80,9 @@ Class to represent network of the service.
 #### `__`init`__`
 
 ```python
-def __init__(name: str, base: ipaddress.IPv4Network = BASE_SUBNET) -> None
+def __init__(name: str,
+             base: ipaddress.IPv4Network = BASE_SUBNET,
+             used_subnets: Optional[Set[str]] = None) -> None
 ```
 
 Initialize.
@@ -93,6 +118,47 @@ def next_address() -> str
 ```
 
 Returns the next IP address string.
+
+<a id="autonomy.deploy.generators.docker_compose.base.Port"></a>
+
+## Port Objects
+
+```python
+class Port()
+```
+
+Class to find host port for a service.
+
+<a id="autonomy.deploy.generators.docker_compose.base.Port.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__() -> None
+```
+
+Initialize.
+
+<a id="autonomy.deploy.generators.docker_compose.base.Port.is_port_available"></a>
+
+#### is`_`port`_`available
+
+```python
+@staticmethod
+def is_port_available(port: int) -> bool
+```
+
+Check if the port is available.
+
+<a id="autonomy.deploy.generators.docker_compose.base.Port.get_next_port"></a>
+
+#### get`_`next`_`port
+
+```python
+def get_next_port(from_port: int) -> int
+```
+
+Get the next available port from the given from_port.
 
 <a id="autonomy.deploy.generators.docker_compose.base.DockerComposeGenerator"></a>
 

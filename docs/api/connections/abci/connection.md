@@ -22,6 +22,12 @@ Max we'll consume on a read stream (1 MiB)
 
 Max size of varint we support
 
+<a id="packages.valory.connections.abci.connection.DEFAULT_LOG_FILE_MAX_BYTES"></a>
+
+#### DEFAULT`_`LOG`_`FILE`_`MAX`_`BYTES
+
+50MB
+
 <a id="packages.valory.connections.abci.connection.DecodeVarintError"></a>
 
 ## DecodeVarintError Objects
@@ -760,7 +766,7 @@ Build the 'node' command.
 
 ```python
 @staticmethod
-def get_node_command_kwargs(monitoring: bool = False) -> Dict
+def get_node_command_kwargs() -> Dict
 ```
 
 Get the node command kwargs
@@ -780,7 +786,9 @@ A class to manage a Tendermint node.
 #### `__`init`__`
 
 ```python
-def __init__(params: TendermintParams, logger: Optional[Logger] = None)
+def __init__(params: TendermintParams,
+             logger: Optional[Logger] = None,
+             write_to_log: bool = False)
 ```
 
 Initialize a Tendermint node.
@@ -789,6 +797,7 @@ Initialize a Tendermint node.
 
 - `params`: the parameters.
 - `logger`: the logger.
+- `write_to_log`: Write to log file.
 
 <a id="packages.valory.connections.abci.connection.TendermintNode.init"></a>
 
@@ -805,7 +814,7 @@ Initialize Tendermint node.
 #### start
 
 ```python
-def start(start_monitoring: bool = False, debug: bool = False) -> None
+def start(debug: bool = False) -> None
 ```
 
 Start a Tendermint node process.
@@ -820,6 +829,16 @@ def stop() -> None
 
 Stop a Tendermint node process.
 
+<a id="packages.valory.connections.abci.connection.TendermintNode.log"></a>
+
+#### log
+
+```python
+def log(line: str) -> None
+```
+
+Open and write a line to the log file.
+
 <a id="packages.valory.connections.abci.connection.TendermintNode.prune_blocks"></a>
 
 #### prune`_`blocks
@@ -829,26 +848,6 @@ def prune_blocks() -> int
 ```
 
 Prune blocks from the Tendermint state
-
-<a id="packages.valory.connections.abci.connection.TendermintNode.write_line"></a>
-
-#### write`_`line
-
-```python
-def write_line(line: str) -> None
-```
-
-Open and write a line to the log file.
-
-<a id="packages.valory.connections.abci.connection.TendermintNode.check_server_status"></a>
-
-#### check`_`server`_`status
-
-```python
-def check_server_status() -> None
-```
-
-Check server status.
 
 <a id="packages.valory.connections.abci.connection.TendermintNode.reset_genesis_file"></a>
 

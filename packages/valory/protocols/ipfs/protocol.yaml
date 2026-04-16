@@ -5,15 +5,15 @@ protocol_specification_id: valory/ipfs:0.1.0
 type: protocol
 description: A protocol specification for IPFS requests and responses.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  README.md: bafybeidv64ed7ljvsggruwj3onb7dj7b5nyx4ngohacztdreujjztsuns4
-  __init__.py: bafybeibxzovsffa3l2ac5h7yrhmbq2oplsteqtlhsgzvu2wvx7qvkyrkle
-  dialogues.py: bafybeihlnjaqvq5765hqttoqe3aeql572veyfbawsrcyko4wvds5wv7gwe
+  README.md: bafybeif42b47nzix2qrlzjjlpan6qalikctvqun2snnji5cawkjsk7ivfy
+  __init__.py: bafybeic74qnsqb4m77pt7svxnf5cv7sfrchgc2zwnwh64iveyccztbos4y
+  dialogues.py: bafybeigawfraizyx3hyfgcil5kcd3qg7okqqh74puxgf4ynnkswnjok75y
   ipfs.proto: bafybeifpe6szd3m2zjlvn5zwiy7mbimur7pu46lobxvyyarozabxpmhcs4
-  ipfs_pb2.py: bafybeiatedc2qk3p3rwfritjw6uloohsvvao2vnknalwpkluz7owqt6tla
-  message.py: bafybeihufe4v6jlwrzz5doeesr3tdsjgksi2shymrcdngfhmi3h6rsqoie
-  serialization.py: bafybeifi5snrp4knrxwftskyjb5zuipjfqeipqw6nxn4mbk42vdwkstxd4
+  ipfs_pb2.py: bafybeiflbvhimfecjkzemeajzxiszyns35c3x5h5bpwgeugt5udmhzxqom
+  message.py: bafybeieyksftl7b2tuublzdlwhdvrchkozmdkqo672sgxf33n5mjimbfa4
+  serialization.py: bafybeigjz6rzlxg5k5djegxt7g4khjelpqbmcfugojttaiv5xt76r3ch7m
   tests/test_ipfs_dialogues.py: bafybeigqi2cal5m252qf3ry75mldfd5kyqj3bgstvyzpjgpjgxhi2otpoa
   tests/test_ipfs_messages.py: bafybeiasgajluoijzuln3s4gcbv5xenzazejt5kgbs54momozsntzrudw4
 fingerprint_ignore_patterns: []

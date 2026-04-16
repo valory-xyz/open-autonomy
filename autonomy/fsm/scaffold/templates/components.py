@@ -32,7 +32,7 @@ class ROUNDS:
     \"\"\"This package contains the rounds of {AbciApp}.\"\"\"
 
     from enum import Enum
-    from typing import Dict, List, Optional, Set, Tuple
+    from typing import Dict, FrozenSet, List, Optional, Set, Tuple
 
     from packages.valory.skills.abstract_round_abci.base import (
         AbciApp,
@@ -103,7 +103,7 @@ class ROUNDS:
         transition_function: AbciAppTransitionFunction = {transition_function}
         final_states: Set[AppState] = {final_states}
         event_to_timeout: EventToTimeout = {{}}
-        cross_period_persisted_keys: Set[str] = []
+        cross_period_persisted_keys: FrozenSet[str] = frozenset()
         db_pre_conditions: Dict[AppState, Set[str]] = {{
             {db_pre_conditions}
         }}

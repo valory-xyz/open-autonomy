@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -60,7 +60,6 @@ from aea_test_autonomy.docker.tendermint import (
 )
 from eth_account import Account
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -95,7 +94,7 @@ def tendermint(
     timeout: float = 2.0,
     max_attempts: int = 10,
 ) -> Generator:
-    """Launch the Ganache image."""
+    """Launch the Tendermint image."""
     client = docker.from_env()
     logging.info(f"Launching Tendermint at port {tendermint_port}")
     image = TendermintDockerImage(client, abci_host, abci_port, tendermint_port)
@@ -289,24 +288,26 @@ class UseGanache:
 
     key_pairs: List[Tuple[str, str]] = []
 
-    @classmethod
     @pytest.fixture(autouse=True, scope="class")
     def _start_ganache(
-        cls,
+        self,
         ganache_scope_class: GanacheDockerImage,  # pylint: disable=redefined-outer-name
         ganache_configuration: Dict,  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start Ganache instance."""
+        cls = type(self)
         cls.key_pairs = cast(
             List[Tuple[str, str]],
             [
-                key
-                if type(key) == tuple  # pylint: disable=unidiomatic-typecheck
-                else (
-                    Account.from_key(  # pylint: disable=no-value-for-parameter
-                        key
-                    ).address,
-                    key,
+                (
+                    key
+                    if type(key) is tuple  # pylint: disable=unidiomatic-typecheck
+                    else (
+                        Account.from_key(  # pylint: disable=no-value-for-parameter
+                            key
+                        ).address,
+                        key,
+                    )
                 )
                 for key, _ in ganache_configuration.get("accounts_balances", [])
             ],
@@ -341,13 +342,15 @@ class GanacheBaseTest(DockerBaseTest):
         key_pairs_ = cast(
             List[Tuple[str, str]],
             [
-                key
-                if type(key) == tuple  # pylint: disable=unidiomatic-typecheck
-                else (
-                    Account.from_key(  # pylint: disable=no-value-for-parameter
-                        key
-                    ).address,
-                    key,
+                (
+                    key
+                    if type(key) is tuple  # pylint: disable=unidiomatic-typecheck
+                    else (
+                        Account.from_key(  # pylint: disable=no-value-for-parameter
+                            key
+                        ).address,
+                        key,
+                    )
                 )
                 for key, _ in cls.configuration.get("accounts_balances", [])
             ],
@@ -377,7 +380,7 @@ def acn_node(
     timeout: float = 2.0,
     max_attempts: int = 10,
 ) -> Generator:
-    """Launch the Ganache image."""
+    """Launch the ACN node image."""
     client = docker.from_env()
     logging.info(f"Launching ACNNode with the following config: {acn_config}")
     image = ACNNodeDockerImage(client, acn_config)
@@ -390,14 +393,14 @@ class UseACNNode:
 
     _acn_node_image: ACNNodeDockerImage
 
-    @classmethod
     @pytest.fixture(autouse=True)
     def _start_acn(
-        cls,
+        self,
         acn_node: ACNNodeDockerImage,  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start an ACN instance."""
-        cls._acn_node_image = acn_node
+        cls = type(self)
+        cls._acn_node_image = acn_node  # pylint: disable=protected-access
 
 
 class ACNNodeBaseTest(DockerBaseTest):
@@ -496,15 +499,15 @@ class UseRegistries:
 
     key_pairs: List[Tuple[str, str]] = KEY_PAIRS
 
-    @classmethod
     @pytest.fixture(autouse=True)
     def _start_gnosis_and_registries(
-        cls,
+        self,
         registries_scope_class: Any,  # pylint: disable=redefined-outer-name
         hardhat_port: int,  # pylint: disable=redefined-outer-name
         key_pairs: List[Tuple[str, str]],  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start a Hardhat instance, with registries contracts deployed."""
+        cls = type(self)
         cls.key_pairs = key_pairs
 
 
@@ -547,15 +550,15 @@ class UseGnosisSafeHardHatNet:
 
     key_pairs: List[Tuple[str, str]] = KEY_PAIRS
 
-    @classmethod
     @pytest.fixture(autouse=True)
     def _start_hardhat(
-        cls,
+        self,
         gnosis_safe_hardhat_scope_function: Any,  # pylint: disable=redefined-outer-name
         hardhat_port: int,  # pylint: disable=redefined-outer-name
         key_pairs: List[Tuple[str, str]],  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start an HardHat instance."""
+        cls = type(self)
         cls.key_pairs = key_pairs
 
 
@@ -627,12 +630,12 @@ class UseLocalIpfs:
 
     ipfs_domain: str
 
-    @classmethod
     @pytest.fixture(autouse=True)
     def _start_ipfs_daemon(
-        cls,
+        self,
         ipfs_daemon: Any,  # pylint: disable=redefined-outer-name
         ipfs_domain: str,  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start IPFS daemon."""
+        cls = type(self)
         cls.ipfs_domain = ipfs_domain

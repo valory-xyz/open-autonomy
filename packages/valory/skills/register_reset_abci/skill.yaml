@@ -4,16 +4,16 @@ version: 0.1.0
 type: skill
 description: ABCI application for dummy skill that registers and resets
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeigoqyrvnxe6rk7jbbuqia73wym2gckucwr2dut2erivmzp3ypm7p4
-  __init__.py: bafybeidkwdyziihk46z6bghnf25lqnbse2glybnty7bwia5sey5nundfq4
+  __init__.py: bafybeigi2errhm5qixiv5jl2tk4dxxsjph6e5iu4cvtb2d2vgpxxxwudz4
   behaviours.py: bafybeierwaykvll6vrzd5ck55ts7k4xlyyjp7uwvtzwk3qxiiickplkyjq
-  composition.py: bafybeihbka7osaxcvevlsletvvy6qecnzeoro5gl74u75l3maxzqkcg4ui
-  dialogues.py: bafybeigabhaykiyzbluu4mk6bbrmqhzld2kyp32pg24bvjmzrrb74einwm
+  composition.py: bafybeih42ofvwip6me3c7kxddkhpiae7wkqciabfs2qljls5lxb5m36aue
+  dialogues.py: bafybeiafgwadv6kzts6yx5gtjyuvaftnofyn3rrwvczfd5seihpydzukju
   fsm_specification.yaml: bafybeiabsy6pmiv6bd2jvn3gagbv6sm553vsm3krfpejcjiyrrlsgphkqi
-  handlers.py: bafybeiasrimz6o3db4egqyjrpckt7f6ob4unphfcb5vyisger4sohfwopu
-  models.py: bafybeiea6ceqicak4okblv5kwjd6ystuyxsyvmomeklcsns33bovfua6ki
+  handlers.py: bafybeif77byb45buljvgijerp3bhba7nglzdp5uxi2kpzoanevudscyo3m
+  models.py: bafybeiacsgkqlmfq2jrly32rnctskjv4g4k3uxeolmyvxemj6phqo6u3gu
   tests/__init__.py: bafybeifyyzb3rbknjnqrdsp34pya3koxyihbbvoiiuh3rxttehoolzch5e
   tests/test_behaviours.py: bafybeiev3itsy23bwnjqvsxgnsk4ivmrfwzusy626dj67tdprg6ig3vw3m
   tests/test_dialogues.py: bafybeiduhiqmywlfls2rlhtzrikurbapvivscr6wbvr4lvdsegnernet34
@@ -24,9 +24,9 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeicyy4g3x6ol6x2ayzcdkg2wstubqecp6ycgo6f2c2bhjnhwdjs3qa
-- valory/registration_abci:0.1.0:bafybeigexg5mw5sh35qkhlaeegycgtkd2ym5o4marjc5o7gl7t352hohiu
-- valory/reset_pause_abci:0.1.0:bafybeigabcdz5en52zuxzxa6a4p5c7z4qyi3fcfp7lodqusjh32z5obcqy
+- valory/abstract_round_abci:0.1.0:bafybeihgbc5geup3ljdfgyontr2p5e4myxjkthaplm5ei727uw2pawstcy
+- valory/registration_abci:0.1.0:bafybeib7midws7obgz34tqsebowa73z46pm34hhsssa3rjet2npp5ekvwm
+- valory/reset_pause_abci:0.1.0:bafybeiezqq76bdcrlgshyo2e544sm3u57amerpwla3sacosle5zivaij24
 behaviours:
   main:
     args: {}
@@ -97,6 +97,7 @@ models:
         voting_power: '10'
       ipfs_domain_name: null
       keeper_timeout: 30.0
+      light_slash_unit_amount: 5000000000000000
       max_attempts: 10
       max_healthcheck: 120
       on_chain_service_id: null
@@ -107,6 +108,7 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 15.0
+      serious_slash_unit_amount: 8000000000000000
       service_id: register_reset_abci
       service_registry_address: null
       setup:
@@ -115,6 +117,8 @@ models:
         safe_contract_address: '0x0000000000000000000000000000000000000000'
         consensus_threshold: null
       share_tm_config_on_startup: false
+      slash_cooldown_hours: 3
+      slash_threshold_amount: 10000000000000000
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
@@ -122,6 +126,7 @@ models:
       tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
       tx_timeout: 10.0
+      use_slashing: false
       use_termination: false
     class_name: Params
   requests:
@@ -138,3 +143,4 @@ models:
     class_name: TendermintDialogues
 dependencies: {}
 is_abstract: false
+customs: []

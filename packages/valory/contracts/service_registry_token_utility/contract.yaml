@@ -1,0 +1,17 @@
+name: service_registry_token_utility
+author: valory
+version: 0.1.0
+type: contract
+description: The scaffold contract scaffolds a contract to be implemented by the developer.
+license: Apache-2.0
+aea_version: '>=2.0.0, <3.0.0'
+fingerprint:
+  __init__.py: bafybeifuv5yh7fc2oy5wgfq2bdvetn7hxg3rhsdrxmlkppj4ns2y6il4e4
+  build/ServiceRegistryTokenUtility.json: bafybeifdugnfcq45yqu3b555ivsaxmuu6u7vwjbxavxgo3drsmo6572gju
+  contract.py: bafybeidbz6nwtci7rqdkpi4kxhz6oou65gtpjf22jtzcnuhogh3jx3obq4
+fingerprint_ignore_patterns: []
+class_name: ServiceRegistryTokenUtilityContract
+contract_interface_paths:
+  ethereum: build/ServiceRegistryTokenUtility.json
+dependencies: {}
+contracts: []

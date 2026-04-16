@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -56,7 +56,6 @@ from packages.valory.skills.registration_abci.behaviours import (
 )
 from packages.valory.skills.registration_abci.rounds import RegistrationStartupRound
 
-
 log_messages = RegistrationStartupBehaviour.LogMessages
 
 
@@ -78,7 +77,8 @@ STRICT_CHECK_STRINGS = (
     log_messages.collection_complete.value,
     log_messages.request_update.value,
     log_messages.response_update.value,
-    "local height == remote height; continuing execution...",
+    "local height == remote height == ",
+    "; continuing execution...",
 )
 
 

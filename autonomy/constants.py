@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,12 +17,12 @@
 #
 # ------------------------------------------------------------------------------
 """Constants"""
+
 import os
 
 from autonomy.__version__ import __version__ as DEFAULT_AUTONOMY_VERSION
 
-
-DEFAULT_BUILD_FOLDER = "abci_build"
+DEFAULT_BUILD_FOLDER = "abci_build_{}"
 DEFAULT_KEYS_FILE = "keys.json"
 DEFAULT_IMAGE_VERSION = "latest"
 SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME = "autonolas-registries"
@@ -31,6 +31,9 @@ VALORY = "valory"
 
 AUTONOMY_IMAGE_VERSION = os.environ.get(
     "AUTONOMY_IMAGE_VERSION", DEFAULT_AUTONOMY_VERSION
+)
+DEVELOPMENT_IMAGE_VERSION = os.environ.get(
+    "DEVELOPMENT_IMAGE_VERSION", DEFAULT_AUTONOMY_VERSION
 )
 TENDERMINT_IMAGE_VERSION = os.environ.get(
     "TENDERMINT_IMAGE_VERSION", DEFAULT_AUTONOMY_VERSION
@@ -42,6 +45,9 @@ SERVICE_REGISTRY_IMAGE_VERSION = os.environ.get(
 ACN_IMAGE_VERSION = os.environ.get("ACN_IMAGE_VERSION", DEFAULT_IMAGE_VERSION)
 
 AUTONOMY_IMAGE_NAME = os.environ.get("AUTONOMY_IMAGE_NAME", "valory/open-autonomy")
+DEVELOPMENT_IMAGE_NAME = os.environ.get(
+    "AUTONOMY_IMAGE_NAME", "valory/open-autonomy-dev"
+)
 TENDERMINT_IMAGE_NAME = os.environ.get(
     "TENDERMINT_IMAGE_NAME", "valory/open-autonomy-tendermint"
 )
@@ -51,6 +57,7 @@ HARDHAT_IMAGE_NAME = os.environ.get(
 SERVICE_REGISTRY_IMAGE_NAME = os.environ.get(
     "SERVICE_REGISTRY_IMAGE_NAME", f"valory/{SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME}"
 )
+DEVELOPMENT_IMAGE = f"{DEVELOPMENT_IMAGE_NAME}:{DEVELOPMENT_IMAGE_VERSION}"
 
 DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE = (
     f"{SERVICE_REGISTRY_IMAGE_NAME}:{SERVICE_REGISTRY_IMAGE_VERSION}"
@@ -58,4 +65,5 @@ DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE = (
 ACN_IMAGE_NAME = os.environ.get("ACN_IMAGE_NAME", "valory/open-acn-node")
 DEFAULT_DOCKER_IMAGE_AUTHOR = "valory"
 OAR_IMAGE = "{image_author}/oar-{agent}:{version}"
-ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeicyy4g3x6ol6x2ayzcdkg2wstubqecp6ycgo6f2c2bhjnhwdjs3qa"
+ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeihgbc5geup3ljdfgyontr2p5e4myxjkthaplm5ei727uw2pawstcy"
+OLAS_DOCS_URL = "https://stack.olas.network"

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/multicall2 contract."""
+
 from pathlib import Path
 from typing import Any, Dict, cast
 
@@ -27,8 +28,9 @@ from aea_test_autonomy.docker.base import skip_docker_tests
 
 from packages.valory.contracts.multicall2.contract import Multicall2Contract
 
-
 DEFAULT_GAS = 10000000
+DEFAULT_MAX_FEE_PER_GAS = 10**10
+DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10**10
 
 
 @skip_docker_tests
@@ -43,6 +45,8 @@ class TestTokenSettingsFactory(BaseGanacheContractTest):
         """Get deployment kwargs."""
         return dict(
             gas=DEFAULT_GAS,
+            max_fee_per_gas=DEFAULT_MAX_FEE_PER_GAS,
+            max_priority_fee_per_gas=DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
         )
 
     def test_aggregate(self) -> None:
@@ -55,7 +59,7 @@ class TestTokenSettingsFactory(BaseGanacheContractTest):
         call = self.contract.encode_function_call(
             self.ledger_api,
             multicall_instance,
-            fn_name="getEthBalance",
+            abi_element_identifier="getEthBalance",
             args=[address],
         )
         # make the same call 3 times

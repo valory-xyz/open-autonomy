@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 """Test `service-registry-network` command."""
 
 import multiprocessing
+import multiprocessing.process
 import os
 import time
 from typing import Tuple, cast
@@ -47,11 +48,11 @@ class TestRunServiceLocally(BaseCliTest):
         "service-registry-network",
     )
     expected_network_address = "http://localhost:8545"
-    running_process: multiprocessing.Process
+    running_process: multiprocessing.process.BaseProcess
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
         os.chdir(self.t)
 
     def test_run_service_locally(
@@ -70,7 +71,7 @@ class TestRunServiceLocally(BaseCliTest):
             "AgentRegistry deployed to: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
             "RegistriesManager deployed to: 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
             "ServiceRegistry deployed to: 0x998abeb3E57409262aE5b751f60747921B33613E",
-            "ServiceManager deployed to: 0x70e0bA845a1A0F2DA3359C97E0285013525FFC49",
+            "ServiceManager deployed to: 0x36C02dA8a0983159322a80FFE9F24b1acfF8B570",
             "Gnosis Safe master copy deployed to: 0x4826533B4897376654Bb4d4AD88B7faFD0C98528",
             "Gnosis Safe proxy factory deployed to: 0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf",
             "Gnosis Safe Multisig deployed to: 0x0E801D84Fa97b50751Dbf25036d067dCf18858bF",
@@ -80,7 +81,7 @@ class TestRunServiceLocally(BaseCliTest):
 
         for _ in range(max_retries):
             try:
-                res = requests.get(self.expected_network_address)
+                res = requests.get(self.expected_network_address, timeout=30)
                 assert res.status_code == 200, "bad response from the network"
                 # we return in this case
                 self._stop_cli_process()
@@ -105,8 +106,17 @@ class TestRunServiceLocally(BaseCliTest):
             client.containers.get(CONTAINER_NAME).kill()
             client.containers.get(CONTAINER_NAME).remove()
 
-    def _invoke_command(self) -> multiprocessing.Process:
-        """Run the command on a different process, as it blocks."""
-        process = multiprocessing.Process(target=self.run_cli)
+    def _invoke_command(self) -> multiprocessing.process.BaseProcess:
+        """Run the command on a different process, as it blocks.
+
+        Uses 'fork' context explicitly because the target (self.run_cli)
+        requires inheriting parent state (cli_runner, fixtures) which
+        cannot be pickled as required by 'spawn'/'forkserver' start methods.
+        Python 3.14 changed the default from 'fork' to 'forkserver' on Linux.
+
+        :return: the started process.
+        """
+        ctx = multiprocessing.get_context("fork")
+        process = ctx.Process(target=self.run_cli)
         process.start()
         return process

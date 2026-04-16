@@ -96,6 +96,17 @@ def check_tx(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
 
 Handle the 'check_tx' request.
 
+<a id="packages.valory.skills.abstract_round_abci.handlers.ABCIRoundHandler.settle_pending_offence"></a>
+
+#### settle`_`pending`_`offence
+
+```python
+def settle_pending_offence(accused_agent_address: Optional[str],
+                           invalid: bool) -> None
+```
+
+Add an invalid pending offence or a no-offence for the given accused agent address, if possible.
+
 <a id="packages.valory.skills.abstract_round_abci.handlers.ABCIRoundHandler.deliver_tx"></a>
 
 #### deliver`_`tx

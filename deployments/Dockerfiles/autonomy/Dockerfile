@@ -1,26 +1,16 @@
-ARG AEA_VERSION=latest
+ARG AEA_VERSION=2.2.1
 
 FROM valory/open-aea-user:${AEA_VERSION}
 
+VOLUME /var/run/docker.sock
+RUN apt update
 
-WORKDIR /home/ubuntu
-ENV PATH=$PATH:/home/ubuntu/.local/bin
+RUN apt install git net-tools sudo curl -y
 
-RUN sudo apt-get update --fix-missing
-RUN sudo apt-get autoremove
-RUN sudo apt-get autoclean
-RUN sudo apt-get install python3.10 python3.10-dev git -y
-RUN cd /usr/bin && sudo rm python3 && sudo ln -s python3.10 python3 && sudo ln -s python3.10 python
+RUN curl -sSL https://get.docker.com/ | sh
 
-# used in Docker-compose to wait until Hardhat node is up
-RUN sudo apt-get install net-tools -y
-RUN python -m pip install --upgrade pip
+COPY scripts /root/scripts
 
-COPY openssl.cnf /etc/ssl
-COPY requirements.txt /home/ubuntu
+RUN chmod -R a+x /root
 
-WORKDIR /home/ubuntu
-
-RUN pip3 install -r requirements.txt
-
-ENTRYPOINT [ "/bin/bash" ]
+ENTRYPOINT ["/bin/bash", "-c"]

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utilities for AbciApps."""
+
 import logging
 from copy import deepcopy
 from typing import Any, Dict, FrozenSet, List, Optional, Set, Tuple, Type
@@ -31,7 +32,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     EventToTimeout,
     EventType,
 )
-
 
 _default_logger = logging.getLogger(
     "aea.packages.valory.skills.abstract_round_abci.abci_app_chain"
@@ -164,9 +164,9 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
                 paths.append([element] + path)
         return paths if paths else default
 
-    all_paths: List[
-        List[Tuple[AppState, Type[AbciApp], Optional[AppState]]]
-    ] = get_paths(abci_apps[0].initial_round_cls, abci_apps[0])
+    all_paths: List[List[Tuple[AppState, Type[AbciApp], Optional[AppState]]]] = (
+        get_paths(abci_apps[0].initial_round_cls, abci_apps[0])
+    )
     new_db_post_conditions: Dict[AppState, Set[str]] = {}
     for path in all_paths:
         current_initial_state, current_app, current_final_state = path[0]
@@ -212,8 +212,9 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
         if len(apps) > 1:
             apps_str = "\n".join(apps)
             _default_logger.warning(
-                f"The same event '{event}' has been found in several apps:\n{apps_str}\nIt will be interpreted as the same event."
-                " If this is not the intented behaviour, please rename it to enforce its uniqueness."
+                f"The same event '{event}' has been found in several apps:\n{apps_str}\n"
+                "It will be interpreted as the same event. "
+                "If this is not the intended behaviour, please rename it to enforce its uniqueness."
             )
 
     new_initial_round_cls = abci_apps[0].initial_round_cls

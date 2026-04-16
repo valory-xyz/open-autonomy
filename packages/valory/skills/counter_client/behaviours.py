@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 """This module contains the behaviours for the 'counter_client' skill."""
+
 # isort:skip_file  # noqa
 import json
 from abc import ABC
@@ -74,9 +75,11 @@ class BaseBehaviour(Behaviour, ABC):
             url=url,
             headers="",
             version="",
-            body=b""
-            if content is None
-            else json.dumps(content, sort_keys=True).encode("utf-8"),
+            body=(
+                b""
+                if content is None
+                else json.dumps(content, sort_keys=True).encode("utf-8")
+            ),
         )
         # send
         self.context.outbox.put_message(message=request_http_message)

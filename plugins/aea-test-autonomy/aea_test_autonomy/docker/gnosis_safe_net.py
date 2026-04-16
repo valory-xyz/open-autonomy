@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint Docker image."""
+
 import logging
 import time
 from typing import List
@@ -28,10 +29,8 @@ from aea.exceptions import enforce
 from aea_test_autonomy.docker.base import DockerImage
 from docker.models.containers import Container
 
-
 DEFAULT_HARDHAT_ADDR = "http://127.0.0.1"
 DEFAULT_HARDHAT_PORT = 8545
-GNOSIS_SAFE_CONTRACTS_DIR = "safe-contracts"
 CONFIG_FILE = "hardhat.config.ts"
 
 _SLEEP_TIME = 1
@@ -90,7 +89,7 @@ class GnosisSafeNetDockerImage(DockerImage):
         """
         for i in range(max_attempts):
             try:
-                response = requests.get(f"{self.addr}:{self.port}")
+                response = requests.get(f"{self.addr}:{self.port}", timeout=30)
                 enforce(response.status_code == 200, "")
                 return True
             except Exception as e:  # pylint: disable=broad-except

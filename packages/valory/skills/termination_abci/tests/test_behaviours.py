@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -50,7 +50,6 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
     TransactionSettlementRoundBehaviour,
 )
 
-
 SERVICE_REGISTRY_ADDRESS = "0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA"
 SAFE_ADDRESS = "0x0"
 MULTISEND_ADDRESS = "0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761"
@@ -85,9 +84,9 @@ class BaseTerminationTest(FSMBehaviourBaseCase):
 
     behaviour: TerminationAbciBehaviours
     behaviour_class: Type[BaseBehaviour]
-    next_behaviour_class: Type[
-        BaseBehaviour
-    ] = TransactionSettlementRoundBehaviour.initial_behaviour_cls
+    next_behaviour_class: Type[BaseBehaviour] = (
+        TransactionSettlementRoundBehaviour.initial_behaviour_cls
+    )
     synchronized_data: SynchronizedData
     done_event = Event.TERMINATE
 

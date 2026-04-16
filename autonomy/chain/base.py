@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 """Chain interaction base classes."""
 
 from enum import Enum
-from typing import Optional
+from typing import Dict, Optional
 
 from aea.configurations.data_types import PublicId
 from aea.contracts.base import Contract
@@ -30,10 +30,22 @@ from autonomy.chain.constants import (
     COMPONENT_REGISTRY_CONTRACT,
     CONTRACTS_DIR_FRAMEWORK,
     CONTRACTS_DIR_LOCAL,
+    ERC20_CONTRACT,
+    ERC8004_IDENTITY_REGISTRY_BRIDGER_CONTRACT,
+    ERC8004_IDENTITY_REGISTRY_CONTRACT,
+    GNOSIS_SAFE_CONTRACT,
+    GNOSIS_SAFE_PROXY_FACTORY_CONTRACT,
+    MULTISEND_CONTRACT,
+    POLY_SAFE_CREATOR_WITH_RECOVERY_MODULE_CONTRACT,
+    RECOVERY_MODULE_CONTRACT,
     REGISTRIES_MANAGER_CONTRACT,
     SERVICE_MANAGER_CONTRACT,
     SERVICE_REGISTRY_CONTRACT,
+    SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT,
+    SIGN_MESSAGE_LIB_CONTRACT,
 )
+
+_contract_registry_cache: Dict[PublicId, Contract] = {}
 
 
 class UnitType(Enum):
@@ -62,23 +74,39 @@ class ServiceState(Enum):
     TERMINATED_BONDED = 5
 
 
-class RegistryContracts:
+class RegistryContracts:  # pylint: disable=too-many-instance-attributes
     """On chain registry contracts helper"""
 
+    _erc20: Optional[Contract] = None
     _registries_manager: Optional[Contract] = None
     _service_manager: Optional[Contract] = None
     _component_registry: Optional[Contract] = None
     _agent_registry: Optional[Contract] = None
     _service_registry: Optional[Contract] = None
+    _service_registry_token_utility: Optional[Contract] = None
+    _gnosis_safe: Optional[Contract] = None
+    _gnosis_safe_proxy_factory: Optional[Contract] = None
+    _recovery_module: Optional[Contract] = None
+    _poly_safe_creator_with_recovery_module: Optional[Contract] = None
+    _multisend: Optional[Contract] = None
+    _sign_message_lib: Optional[Contract] = None
+    _erc8004_identity_registry: Optional[Contract] = None
+    _erc8004_identity_registry_bridger: Optional[Contract] = None
 
     @staticmethod
-    def get_contract(public_id: PublicId) -> Contract:
+    def get_contract(public_id: PublicId, cache: bool = True) -> Contract:
         """Load contract for given public id."""
+
+        if cache and public_id.name in _contract_registry_cache:
+            return _contract_registry_cache[public_id.name]
 
         # check if a local package is available
         contract_dir = CONTRACTS_DIR_LOCAL / public_id.name
         if contract_dir.exists():
-            return Contract.from_dir(directory=contract_dir)
+            _contract_registry_cache[public_id.name] = Contract.from_dir(
+                directory=contract_dir
+            )
+            return _contract_registry_cache[public_id.name]
 
         # if local package is not available use one from the data directory
         contract_dir = CONTRACTS_DIR_FRAMEWORK / public_id.name
@@ -87,7 +115,10 @@ class RegistryContracts:
                 f"Contract package {public_id} not found in the open-autonomy installation, "
                 "please reinstall the package"
             )
-        return Contract.from_dir(directory=contract_dir)
+        _contract_registry_cache[public_id.name] = Contract.from_dir(
+            directory=contract_dir
+        )
+        return _contract_registry_cache[public_id.name]
 
     @property
     def registries_manager(
@@ -105,7 +136,7 @@ class RegistryContracts:
     def service_manager(
         self,
     ) -> Contract:
-        """Returns an instance of the registries manager contract."""
+        """Returns an instance of the service manager contract."""
         if self._service_manager is None:
             self._service_manager = self.get_contract(
                 public_id=SERVICE_MANAGER_CONTRACT
@@ -117,7 +148,7 @@ class RegistryContracts:
     def component_registry(
         self,
     ) -> Contract:
-        """Returns an instance of the registries manager contract."""
+        """Returns an instance of the component registry contract."""
         if self._component_registry is None:
             self._component_registry = self.get_contract(
                 public_id=COMPONENT_REGISTRY_CONTRACT
@@ -129,7 +160,7 @@ class RegistryContracts:
     def agent_registry(
         self,
     ) -> Contract:
-        """Returns an instance of the registries manager contract."""
+        """Returns an instance of the agent registry contract."""
         if self._agent_registry is None:
             self._agent_registry = self.get_contract(
                 public_id=AGENT_REGISTRY_CONTRACT,
@@ -141,13 +172,134 @@ class RegistryContracts:
     def service_registry(
         self,
     ) -> Contract:
-        """Returns an instance of the registries manager contract."""
+        """Returns an instance of the service registry contract."""
         if self._service_registry is None:
             self._service_registry = self.get_contract(
                 public_id=SERVICE_REGISTRY_CONTRACT,
             )
 
         return self._service_registry
+
+    @property
+    def service_registry_token_utility(
+        self,
+    ) -> Contract:
+        """Returns an instance of the service registry token utility contract."""
+        if self._service_registry_token_utility is None:
+            self._service_registry_token_utility = self.get_contract(
+                public_id=SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT,
+            )
+
+        return self._service_registry_token_utility
+
+    @property
+    def erc20(
+        self,
+    ) -> Contract:
+        """Returns an instance of the erc20 contract."""
+        if self._erc20 is None:
+            self._erc20 = self.get_contract(
+                public_id=ERC20_CONTRACT,
+            )
+
+        return self._erc20
+
+    @property
+    def gnosis_safe(
+        self,
+    ) -> Contract:
+        """Returns an instance of the gnosis safe contract."""
+        if self._gnosis_safe is None:
+            _ = self.gnosis_safe_proxy_factory
+            self._gnosis_safe = self.get_contract(
+                public_id=GNOSIS_SAFE_CONTRACT,
+            )
+
+        return self._gnosis_safe
+
+    @property
+    def gnosis_safe_proxy_factory(
+        self,
+    ) -> Contract:
+        """Returns an instance of the gnosis safe proxy factory contract."""
+        if self._gnosis_safe_proxy_factory is None:
+            self._gnosis_safe_proxy_factory = self.get_contract(
+                public_id=GNOSIS_SAFE_PROXY_FACTORY_CONTRACT,
+            )
+
+        return self._gnosis_safe_proxy_factory
+
+    @property
+    def recovery_module(
+        self,
+    ) -> Contract:
+        """Returns an instance of the recovery module contract."""
+        if self._recovery_module is None:
+            self._recovery_module = self.get_contract(
+                public_id=RECOVERY_MODULE_CONTRACT,
+            )
+
+        return self._recovery_module
+
+    @property
+    def poly_safe_creator_with_recovery_module(
+        self,
+    ) -> Contract:
+        """Returns an instance of the recovery module contract."""
+        if self._poly_safe_creator_with_recovery_module is None:
+            self._poly_safe_creator_with_recovery_module = self.get_contract(
+                public_id=POLY_SAFE_CREATOR_WITH_RECOVERY_MODULE_CONTRACT,
+            )
+
+        return self._poly_safe_creator_with_recovery_module
+
+    @property
+    def multisend(
+        self,
+    ) -> Contract:
+        """Returns an instance of the multisend contract."""
+        if self._multisend is None:
+            self._multisend = self.get_contract(
+                public_id=MULTISEND_CONTRACT,
+            )
+
+        return self._multisend
+
+    @property
+    def sign_message_lib(
+        self,
+    ) -> Contract:
+        """Returns an instance of the sign message lib contract."""
+        if self._sign_message_lib is None:
+            self._sign_message_lib = self.get_contract(
+                public_id=SIGN_MESSAGE_LIB_CONTRACT,
+            )
+
+        return self._sign_message_lib
+
+    @property
+    def erc8004_identity_registry(
+        self,
+    ) -> Contract:
+        """Returns an instance of the ERC8004 identity registry contract."""
+        if self._erc8004_identity_registry is None:
+            self._erc8004_identity_registry = self.get_contract(
+                public_id=ERC8004_IDENTITY_REGISTRY_CONTRACT,
+            )
+
+        return self._erc8004_identity_registry
+
+    @property
+    def erc8004_identity_registry_bridger(
+        self,
+    ) -> Contract:
+        """Returns an instance of the ERC8004 identity registry bridger contract."""
+        if self._erc8004_identity_registry_bridger is None:
+            self._erc8004_identity_registry_bridger = self.get_contract(
+                public_id=ERC8004_IDENTITY_REGISTRY_BRIDGER_CONTRACT,
+            )
+
+        return self._erc8004_identity_registry_bridger
 
 
 registry_contracts = RegistryContracts()

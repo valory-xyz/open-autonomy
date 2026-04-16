@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for the valory/register_reset skill."""
-
 
 from pathlib import Path
 
@@ -47,7 +46,6 @@ from packages.valory.agents.register_reset_recovery.tests.base import (
 )
 from packages.valory.skills.registration_abci.rounds import RegistrationStartupRound
 
-
 HAPPY_PATH = (RoundChecks(RegistrationStartupRound.auto_round_id()),)
 
 # the string used to trigger the breaking of the 3rd tm node (node3).
@@ -61,7 +59,7 @@ STRICT_CHECK_STRINGS = ("Current round count is 25.",)
 @pytest.mark.e2e
 @pytest.mark.integration
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestRegisterResetRecoverStartup(
+class TestRegisterResetRecoverStartup(  # pylint: disable=too-few-public-methods
     UseRegistries, UseACNNode, BaseTestRegisterResetRecoveryEnd2End
 ):
     """Test the ABCI register-reset skill with 4 agents starting up."""

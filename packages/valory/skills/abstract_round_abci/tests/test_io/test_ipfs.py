@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,7 +21,9 @@
 
 # pylint: skip-file
 
-from typing import Dict, cast
+import os
+from pathlib import PosixPath
+from typing import Any, Dict, cast
 from unittest import mock
 
 import pytest
@@ -37,14 +39,13 @@ from packages.valory.skills.abstract_round_abci.io_.store import (
     SupportedFiletype,
 )
 
-
 use_ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
 
 
 class TestIPFSInteract:
     """Test `IPFSInteract`."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test class."""
         self.ipfs_interact = IPFSInteract()
 
@@ -54,6 +55,7 @@ class TestIPFSInteract:
         multiple: bool,
         dummy_obj: StoredJSONType,
         dummy_multiple_obj: Dict[str, StoredJSONType],
+        tmp_path: PosixPath,
     ) -> None:
         """Test store -> send -> download -> read of objects."""
         obj: StoredJSONType
@@ -64,12 +66,13 @@ class TestIPFSInteract:
             obj = dummy_obj
             filepath = "test_file.json"
 
+        filepath = str(tmp_path / filepath)
         serialized_objects = self.ipfs_interact.store(
             filepath, obj, multiple, SupportedFiletype.JSON
         )
         expected_objects = obj
         actual_objects = cast(
-            Dict[str, str],
+            Dict[str, Any],
             self.ipfs_interact.load(
                 serialized_objects,
                 SupportedFiletype.JSON,
@@ -78,10 +81,7 @@ class TestIPFSInteract:
         if multiple:
             # here we manually remove the trailing the dir from the name.
             # This is done by the IPFS connection under normal circumstances.
-            actual_objects = {
-                k.lstrip(filepath).lstrip("/").lstrip("\\"): v
-                for k, v in actual_objects.items()
-            }
+            actual_objects = {os.path.basename(k): v for k, v in actual_objects.items()}
 
         assert actual_objects == expected_objects
 

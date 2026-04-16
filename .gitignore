@@ -389,6 +389,9 @@ Pipfile.lock
 !packages/valory/contracts/component_registry/build
 !packages/valory/contracts/agent_registry/build
 !packages/valory/contracts/service_manager/build
+!packages/valory/contracts/erc20/build
+!packages/valory/contracts/service_registry_token_utility/build
+!packages/valory/contracts/recovery_module/build
 
 packages/open_aea
 
@@ -401,20 +404,28 @@ packages/valory/protocols/contract_api
 packages/valory/protocols/http
 packages/valory/protocols/ledger_api
 
-autonomy/data/contracts/registries_manager
-autonomy/data/contracts/component_registry
-autonomy/data/contracts/service_registry
 autonomy/data/contracts/agent_registry
+autonomy/data/contracts/component_registry
+autonomy/data/contracts/erc20
+autonomy/data/contracts/gnosis_safe
+autonomy/data/contracts/gnosis_safe_proxy_factory
+autonomy/data/contracts/multisend
+autonomy/data/contracts/registries_manager
 autonomy/data/contracts/service_manager
+autonomy/data/contracts/service_registry
+autonomy/data/contracts/service_registry_token_utility
+autonomy/data/contracts/recovery_module
 
 .vscode/
 
 generate_abciapp_spec.py
 generate_abci_docstrings
-abci_build/
+abci_build_*
 keys.json
 leak_report
 temp/
 
 logs.db
+benchmarks.html
 agent/
+.claude/

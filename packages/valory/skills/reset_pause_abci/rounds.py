@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
     payload_class = ResetPausePayload
     _allow_rejoin_payloads = True
     synchronized_data_class = BaseSynchronizedData
+    extended_requirements: Tuple[str, ...] = tuple()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
@@ -86,7 +87,6 @@ class ResetPauseAbciApp(AbciApp[Event]):
     Final states: {FinishedResetAndPauseErrorRound, FinishedResetAndPauseRound}
 
     Timeouts:
-        round timeout: 30.0
         reset and pause timeout: 30.0
     """
 
@@ -105,7 +105,6 @@ class ResetPauseAbciApp(AbciApp[Event]):
         FinishedResetAndPauseErrorRound,
     }
     event_to_timeout: Dict[Event, float] = {
-        Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_AND_PAUSE_TIMEOUT: 30.0,
     }
     db_pre_conditions: Dict[AppState, Set[str]] = {ResetAndPauseRound: set()}

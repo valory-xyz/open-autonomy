@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -41,14 +41,7 @@ class Event(Enum):
 
 
 class DummyRound(CollectDifferentUntilAllRound):
-    """
-    This class represents the registration round.
-
-    Input: None
-    Output: a synchronized data with the set of participants.
-
-    It schedules the SelectKeeperARound.
-    """
+    """A dummy round used for testing the ABCI framework."""
 
     payload_class = DummyPayload
     synchronized_data_class = BaseSynchronizedData

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,12 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """Helpers for Pytest tests with asynchronous programming."""
+
 import asyncio
 import logging
 import time
 from asyncio import AbstractEventLoop
 from threading import Thread
-from typing import Any, Callable, Coroutine, Generator, Optional, Union
+from typing import Any, Callable, Coroutine, Optional, Union
 
 
 def wait_for_condition(
@@ -50,7 +51,7 @@ class AnotherThreadTask:
 
     def __init__(
         self,
-        coro: Union[Coroutine[Any, Any, Any], Generator[Any, None, Any]],
+        coro: Union[Coroutine[Any, Any, Any]],
         loop: AbstractEventLoop,
     ) -> None:
         """
@@ -122,9 +123,7 @@ class ThreadedAsyncRunner(Thread):
         self._loop.run_forever()
         logging.debug("Asyncio loop has been stopped.")
 
-    def call(
-        self, coro: Union[Coroutine[Any, Any, Any], Generator[Any, None, Any]]
-    ) -> Any:
+    def call(self, coro: Union[Coroutine[Any, Any, Any]]) -> Any:
         """
         Run a coroutine inside the event loop.
 
@@ -156,21 +155,21 @@ class BaseThreadedAsyncLoop:
     loop: ThreadedAsyncRunner
     thread: Thread
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the class."""
         self.loop = ThreadedAsyncRunner()
         self.loop.start()
 
     def execute(
         self,
-        coro: Union[Coroutine[Any, Any, Any], Generator[Any, None, Any]],
+        coro: Union[Coroutine[Any, Any, Any]],
         timeout: float = DEFAULT_ASYNC_TIMEOUT,
     ) -> Any:
         """Execute a coroutine and wait its completion."""
         task: AnotherThreadTask = self.loop.call(coro)
         return task.result(timeout=timeout)
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown the class."""
-        self.loop.start()
+        self.loop.stop()
         self.loop.join(5.0)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ from autonomy.deploy.base import (
     ENV_VAR_ID,
     ENV_VAR_LOG_LEVEL,
     KUBERNETES_DEPLOYMENT,
-    LOCALHOST,
+    LOOPBACK,
     NotValidKeysFile,
     ServiceBuilder,
     TENDERMINT_COM,
@@ -55,7 +55,6 @@ from autonomy.deploy.base import (
 )
 
 from tests.test_autonomy.base import get_dummy_service_config
-
 
 COMMON_VARS = (
     ENV_VAR_ID,
@@ -96,7 +95,7 @@ class TestServiceBuilder:
         """Setup test class."""
         cls.cwd = Path.cwd()
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test."""
@@ -125,7 +124,6 @@ class TestServiceBuilder:
             self.keys_path,
         )
 
-        assert spec.private_keys_password is None
         assert spec.agent_instances is None
         assert len(spec.keys) == 1
 
@@ -144,11 +142,29 @@ class TestServiceBuilder:
         assert len(agents) == 1, agents
 
         agent = spec.generate_agent(0)
-        assert len(agent.keys()) == 10, agent
+        assert len(agent.keys()) == 11, agent
 
         spec.service.overrides = []
         agent = spec.generate_agent(0)
-        assert len(agent.keys()) == 3, agent
+        assert len(agent.keys()) == 4, agent
+
+    def test_get_maximum_participants(
+        self,
+    ) -> None:
+        """Test get_maximum_participants."""
+        self._write_service(get_dummy_service_config(file_number=0))
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+            self.keys_path,
+        )
+
+        spec._all_participants = list(map(str, range(2)))
+        assert spec.get_maximum_participants() == 2
+
+        with mock.patch.object(spec, attribute="verify_agent_instances"):
+            spec._all_participants = []
+            spec.agent_instances = list(map(str, range(3)))
+            assert spec.get_maximum_participants() == 3
 
     def test_generate_common_vars(
         self,
@@ -165,11 +181,7 @@ class TestServiceBuilder:
         assert all(var in common_vars_without_password for var in COMMON_VARS[:-1])
         assert common_vars_without_password[ENV_VAR_AEA_AGENT] == spec.service.agent
 
-        spec = ServiceBuilder.from_dir(  # nosec
-            self.service_path,
-            self.keys_path,
-            private_keys_password="some_password",
-        )
+        spec = ServiceBuilder.from_dir(self.service_path, self.keys_path)  # nosec
         common_vars_without_password = spec.generate_common_vars(agent_n=0)
         assert all(var in common_vars_without_password for var in COMMON_VARS)
 
@@ -361,7 +373,7 @@ class TestServiceBuilder:
             self.keys_path,
         )
 
-        spec.deplopyment_type = KUBERNETES_DEPLOYMENT
+        spec.deployment_type = KUBERNETES_DEPLOYMENT
         spec.try_update_runtime_params()
         skill_config, *_ = spec.service.overrides
 
@@ -422,7 +434,7 @@ class TestServiceBuilder:
         spec = ServiceBuilder.from_dir(
             self.service_path,
         )
-        spec.deplopyment_type = KUBERNETES_DEPLOYMENT
+        spec.deployment_type = KUBERNETES_DEPLOYMENT
 
         spec.try_update_abci_connection_params()
         (conn_config,) = [
@@ -432,7 +444,7 @@ class TestServiceBuilder:
         ]
 
         for idx in range(spec.service.number_of_agents):
-            assert conn_config[idx]["config"]["host"] == LOCALHOST
+            assert conn_config[idx]["config"]["host"] == LOOPBACK
             assert conn_config[idx]["config"]["port"] == DEFAULT_ABCI_PORT
 
     def test_verify_agent_instances(
@@ -447,11 +459,14 @@ class TestServiceBuilder:
                 "Key file contains keys which are not registered as instances; invalid keys={'0xaddress0'}"
             ),
         ):
-            ServiceBuilder.verify_agent_instances([{"address": "0xaddress0"}], [])
+            ServiceBuilder.verify_agent_instances(
+                {"0xaddress0"},
+                [],
+            )
 
         with caplog.at_level(logging.WARNING):
             ServiceBuilder.verify_agent_instances(
-                [{"address": "0xaddress0"}], ["0xaddress0", "0xaddress1"]
+                {"0xaddress0"}, ["0xaddress0", "0xaddress1"]
             )
             assert (
                 "Key file does not contain key pair for following instances {'0xaddress1'}"
@@ -459,9 +474,7 @@ class TestServiceBuilder:
             )
 
         with caplog.at_level(logging.INFO):
-            ServiceBuilder.verify_agent_instances(
-                [{"address": "0xaddress0"}], ["0xaddress0"]
-            )
+            ServiceBuilder.verify_agent_instances({"0xaddress0"}, ["0xaddress0"])
             assert (
                 "Found following keys with registered instances {'0xaddress0'}"
                 in caplog.text
@@ -618,7 +631,7 @@ class TestServiceBuilder:
             == '"Hello from agent 1"'
         )
 
-    def teardown(
+    def teardown_method(
         self,
     ) -> None:
         """Teardown test."""

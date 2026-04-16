@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ from typing import (
     cast,
 )
 from unittest import mock
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -97,7 +98,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     TX_HASH_LENGTH,
     ValidateTransactionRound,
 )
-
 
 MAX_PARTICIPANTS: int = 4
 RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
@@ -262,6 +262,7 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
 
         test_round = self.test_class(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
 
         self._complete_run(
@@ -287,6 +288,7 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
 
         test_round = self.test_class(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
 
         self._complete_run(
@@ -310,6 +312,7 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
 
         test_round = self.test_class(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
 
         self._complete_run(
@@ -353,6 +356,7 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
             synchronized_data=self.synchronized_data.update(
                 keepers=keepers,
             ),
+            context=MagicMock(),
         )
 
         self._complete_run(
@@ -369,9 +373,11 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
                     )
                 ),
                 synchronized_data_attr_checks=[
-                    lambda _synchronized_data: _synchronized_data.participant_to_selection.keys()
-                    if exit_event is None
-                    else None
+                    lambda _synchronized_data: (
+                        _synchronized_data.participant_to_selection.keys()
+                        if exit_event is None
+                        else None
+                    )
                 ],
                 most_voted_payload=most_voted_payload,
                 exit_event=self._event_class.DONE if exit_event is None else exit_event,
@@ -618,6 +624,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
 
         test_round = self._round_class(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
 
         self._complete_run(
@@ -667,6 +674,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
 
         test_round = self._round_class(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
 
         self._complete_run(
@@ -702,6 +710,7 @@ class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
 
         test_round = CollectSignatureRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
 
         self._complete_run(
@@ -751,6 +760,12 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                 TransactionSettlementEvent.NONE,
             ),
             (
+                "0000000000000000000000000000000000000000000000000000000000000007",
+                "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                {},
+                TransactionSettlementEvent.NONE,
+            ),
+            (
                 "0000000000000000000000000000000000000000000000000000000000000002",
                 "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                 {"test": 1},
@@ -771,6 +786,7 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
 
         test_round = CheckTransactionHistoryRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
 
         self._complete_run(
@@ -790,20 +806,22 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                     keepers=keepers,
                     final_tx_hash="0xb0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
                 ),
-                synchronized_data_attr_checks=[
-                    lambda _synchronized_data: _synchronized_data.final_verification_status,
-                    lambda _synchronized_data: _synchronized_data.final_tx_hash,
-                    lambda _synchronized_data: _synchronized_data.keepers,
-                ]
-                if expected_event
-                not in {
-                    TransactionSettlementEvent.NEGATIVE,
-                    TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
-                }
-                else [
-                    lambda _synchronized_data: _synchronized_data.final_verification_status,
-                    lambda _synchronized_data: _synchronized_data.keepers,
-                ],
+                synchronized_data_attr_checks=(
+                    [
+                        lambda _synchronized_data: _synchronized_data.final_verification_status,
+                        lambda _synchronized_data: _synchronized_data.final_tx_hash,
+                        lambda _synchronized_data: _synchronized_data.keepers,
+                    ]
+                    if expected_event
+                    not in {
+                        TransactionSettlementEvent.NEGATIVE,
+                        TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
+                    }
+                    else [
+                        lambda _synchronized_data: _synchronized_data.final_verification_status,
+                        lambda _synchronized_data: _synchronized_data.keepers,
+                    ]
+                ),
                 most_voted_payload=expected_status + expected_tx_hash,
                 exit_event=expected_event,
             )
@@ -833,6 +851,7 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
         self.synchronized_data.update(missed_messages=missed_messages)
         test_round = SynchronizeLateMessagesRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
         late_arriving_tx_hashes = {
             p: "".join(("1" * TX_HASH_LENGTH, "2" * TX_HASH_LENGTH))
@@ -847,9 +866,11 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
                 ),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     late_arriving_tx_hashes=late_arriving_tx_hashes,
-                    suspects=tuple()
-                    if expected_event == TransactionSettlementEvent.DONE
-                    else tuple(sorted(late_arriving_tx_hashes.keys())),
+                    suspects=(
+                        tuple()
+                        if expected_event == TransactionSettlementEvent.DONE
+                        else tuple(sorted(late_arriving_tx_hashes.keys()))
+                    ),
                 ),
                 synchronized_data_attr_checks=[
                     lambda _synchronized_data: _synchronized_data.late_arriving_tx_hashes,
@@ -865,6 +886,7 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
 
         test_round = SynchronizeLateMessagesRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
         sender = list(test_round.accepting_payloads_from).pop()
         hash_length = TX_HASH_LENGTH
@@ -987,7 +1009,10 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
         synchronized_data._db._cross_period_persisted_keys = frozenset(
             {"most_voted_randomness"}
         )
-        test_round = ResetRound(synchronized_data=synchronized_data)
+        test_round = ResetRound(
+            synchronized_data=synchronized_data,
+            context=MagicMock(),
+        )
         next_period_count = 1
         self._complete_run(
             self._test_round(

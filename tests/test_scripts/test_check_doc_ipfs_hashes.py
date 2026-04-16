@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 
 import re
 
-from scripts.check_doc_ipfs_hashes import AEA_COMMAND_REGEX, FULL_PACKAGE_REGEX
+from aea_helpers.check_doc_hashes import AEA_COMMAND_REGEX, FULL_PACKAGE_REGEX
 
 
 def test_cmd_regex() -> None:

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,10 @@
 
 """This module contains the shared state for the 'test_abci' application."""
 
-from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
+from packages.valory.skills.abstract_round_abci.models import (
+    ApiSpecs,
+    BaseParams,
+)
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
@@ -28,7 +31,6 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.test_abci.rounds import Event, TestAbciApp
-
 
 MARGIN = 5
 
@@ -45,9 +47,9 @@ class SharedState(BaseSharedState):
     def setup(self) -> None:
         """Set up."""
         super().setup()
-        TestAbciApp.event_to_timeout[
-            Event.ROUND_TIMEOUT
-        ] = self.context.params.round_timeout_seconds
+        TestAbciApp.event_to_timeout[Event.ROUND_TIMEOUT] = (
+            self.context.params.round_timeout_seconds
+        )
         TestAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
             self.context.params.reset_pause_duration + MARGIN
         )

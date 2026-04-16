@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ Implement a scaffold sub-command to scaffold ABCI skills.
 This module patches the 'aea scaffold' command so to add a new subcommand for scaffolding a skill
  starting from FSM specification.
 """
-
 
 from pathlib import Path
 
@@ -88,7 +87,15 @@ def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
 @pass_ctx
 def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None:
     """Add an ABCI skill scaffolding from an FSM specification."""
+    click.echo(
+        "`autonomy scaffold fsm` is deprecated, use `open-autonomy-compose` to scaffold FSM applications"
+    )
+
+    if not skill_name.endswith("_abci"):
+        raise click.ClickException("Skill name must end with '_abci'")
+
     ctx.registry_type = registry
+    scaffold_fsm = ScaffoldABCISkill(ctx, skill_name, Path(spec))
 
     # check abstract_round_abci is in dependencies; if not, add it
     _add_abstract_round_abci_if_not_present(ctx)
@@ -98,8 +105,6 @@ def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None:
     preserve_cwd = ctx.cwd
     scaffold_item(ctx, SKILL, skill_name)
     ctx.cwd = preserve_cwd
-
-    scaffold_fsm = ScaffoldABCISkill(ctx, skill_name, Path(spec))
     scaffold_fsm.do_scaffolding()
 
     if ctx.config[TO_LOCAL_REGISTRY_FLAG]:

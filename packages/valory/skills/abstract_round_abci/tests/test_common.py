@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -47,7 +47,6 @@ from packages.valory.skills.abstract_round_abci.common import (
 from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.abstract_round_abci.tests.conftest import irrelevant_config
 from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
-
 
 ReturnValueType = TypeVar("ReturnValueType")
 
@@ -191,8 +190,8 @@ class TestRandomnessBehaviour(BaseDummyBehaviour):
     ) -> None:
         """Test `get_randomness_from_api`."""
         # create a dummy `process_response` for `MagicMock`ed `randomness_api`
-        self.behaviour.context.randomness_api.process_response = (
-            lambda res: res + "_processed" if res is not None else None
+        self.behaviour.context.randomness_api.process_response = lambda res: (
+            res + "_processed" if res is not None else None
         )
         gen = self.behaviour.get_randomness_from_api()
 
@@ -292,7 +291,7 @@ class TestRandomnessBehaviour(BaseDummyBehaviour):
         self.behaviour.clean_up()
         self.behaviour.context.randomness_api.reset_retries.assert_called_once()
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown run after each test method."""
         self.behaviour.context.randomness_api.increment_retries.reset_mock()
 

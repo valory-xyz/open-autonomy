@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ def fix_address_books(build_dir: Path) -> None:
         for i in range(len(addr_data["addrs"])):
             *_, post_fix = addr_data["addrs"][i]["addr"]["ip"].split(".")
             addr_data["addrs"][i]["addr"]["ip"] = "127.0.0.1"
-            addr_data["addrs"][i]["addr"]["port"] = int(f"2663{int(post_fix)-3}")
+            addr_data["addrs"][i]["addr"]["port"] = int(f"2663{int(post_fix) - 3}")
 
         addr_file.write_text(json.dumps(addr_data, indent=4))
         print(f"Updated {addr_file}")

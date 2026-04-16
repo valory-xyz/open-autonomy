@@ -4,6 +4,16 @@
 
 Base configurations.
 
+<a id="autonomy.configurations.base.load_dependencies"></a>
+
+#### load`_`dependencies
+
+```python
+def load_dependencies(dependencies: Dict) -> Dependencies
+```
+
+Load dependencies.
+
 <a id="autonomy.configurations.base.Service"></a>
 
 ## Service Objects
@@ -31,7 +41,8 @@ def __init__(name: SimpleIdOrStr,
              number_of_agents: int = 4,
              build_entrypoint: Optional[str] = None,
              overrides: Optional[List] = None,
-             deployment: Optional[Dict] = None) -> None
+             deployment: Optional[Dict] = None,
+             dependencies: Optional[Dependencies] = None) -> None
 ```
 
 Initialise object.

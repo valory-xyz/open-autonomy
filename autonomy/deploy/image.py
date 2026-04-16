@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,13 +19,12 @@
 
 """Image building."""
 
-
-import json
-from typing import Dict, Optional
+import subprocess  # nosec
+from pathlib import Path
+from typing import Optional, Tuple
 
 from aea.cli.utils.config import get_default_author_from_cli_config
-from aea.configurations.utils import PublicId
-from docker import from_env
+from aea.configurations.data_types import Dependency, PublicId
 
 from autonomy.constants import (
     AUTONOMY_IMAGE_NAME,
@@ -37,6 +36,16 @@ from autonomy.data import DATA_DIR
 from autonomy.deploy.constants import DOCKERFILES
 
 
+def generate_dependency_flag_var(dependencies: Tuple[Dependency, ...]) -> str:
+    """Generate dependency flag env var"""
+    args = []
+    for dep in dependencies:
+        # Flag for `aea install` command
+        args += ["-e"]
+        args += dep.get_pip_install_args()
+    return " ".join(args)
+
+
 class ImageProfiles:  # pylint: disable=too-few-public-methods
     """Image build profiles."""
 
@@ -46,69 +55,71 @@ class ImageProfiles:  # pylint: disable=too-few-public-methods
     ALL = (CLUSTER, DEVELOPMENT, PRODUCTION)
 
 
-def build_image(
+def build_image(  # pylint: disable=too-many-locals
     agent: PublicId,
     pull: bool = False,
-    dev: bool = False,
     version: Optional[str] = None,
     image_author: Optional[str] = None,
+    extra_dependencies: Optional[Tuple[Dependency, ...]] = None,
+    dockerfile: Optional[Path] = None,
+    platform: Optional[str] = None,
+    push: bool = False,
+    builder: Optional[str] = None,
+    pre_install_command: Optional[str] = None,
 ) -> None:
     """Command to build images from for skaffold deployment."""
 
     tag: str
     path: str
-    buildargs: Dict[str, str]
 
-    docker_client = from_env()
+    image_version = version or agent.hash
+    path = str(DATA_DIR / DOCKERFILES / "agent")
+    if dockerfile is not None:  # pragma: nocover
+        path = str(Path(dockerfile).parent)
 
-    if dev:
-        path = str(DATA_DIR / DOCKERFILES / "dev")
-        buildargs = {
-            "AUTONOMY_IMAGE_NAME": AUTONOMY_IMAGE_NAME,
-            "AUTONOMY_IMAGE_VERSION": AUTONOMY_IMAGE_VERSION,
-            "AEA_AGENT": str(agent),
-            "AUTHOR": get_default_author_from_cli_config(),
-        }
-
-    else:
-        image_version = version or agent.hash
-        path = str(DATA_DIR / DOCKERFILES / "agent")
-        buildargs = {
-            "AUTONOMY_IMAGE_NAME": AUTONOMY_IMAGE_NAME,
-            "AUTONOMY_IMAGE_VERSION": AUTONOMY_IMAGE_VERSION,
-            "AEA_AGENT": str(agent),
-            "AUTHOR": get_default_author_from_cli_config(),
-        }
     tag = OAR_IMAGE.format(
         image_author=image_author or DEFAULT_DOCKER_IMAGE_AUTHOR,
         agent=agent.name,
-        version="dev" if dev else image_version,
+        version=image_version,
     )
 
-    stream = docker_client.api.build(
-        path=path,
-        tag=tag,
-        buildargs=buildargs,
-        pull=pull,
+    build_process = subprocess.run(  # nosec # pylint: disable=subprocess-run-check
+        [
+            "docker",
+            "build",
+            "--build-arg",
+            f"AUTONOMY_IMAGE_NAME={AUTONOMY_IMAGE_NAME}",
+            "--build-arg",
+            f"AUTONOMY_IMAGE_VERSION={AUTONOMY_IMAGE_VERSION}",
+            "--build-arg",
+            f"AUTHOR={get_default_author_from_cli_config()}",
+            "--build-arg",
+            f"AEA_AGENT={str(agent)}",
+            "--tag",
+            tag,
+            "--no-cache",
+        ]
+        + (
+            [
+                "--build-arg",
+                f"EXTRA_DEPENDENCIES={generate_dependency_flag_var(extra_dependencies)}",
+            ]
+            if extra_dependencies
+            else []
+        )
+        + (
+            ["--build-arg", f"PRE_INSTALL_COMMAND={pre_install_command}"]
+            if pre_install_command
+            else []
+        )
+        + (["--platform", platform] if platform else [])
+        + (["--push"] if push else [])
+        + (["--pull"] if pull else [])
+        + (["--builder", builder] if builder else [])
+        + [path]
     )
 
-    for stream_obj in stream:
-        for line in stream_obj.decode().split("\n"):
-            line = line.strip()
-            if not line:
-                continue
-            stream_data = json.loads(line)
-            if "stream" in stream_data:
-                print("[docker]" + stream_data["stream"], end="")
-            elif "errorDetail" in stream_data:
-                raise ImageBuildFailed(
-                    "Image build failed with error "
-                    + stream_data["errorDetail"]["message"]
-                )
-            elif "aux" in stream_data:
-                print("[docker]" + stream_data["aux"]["ID"], end="")
-            elif "status" in stream_data:  # pragma: no cover
-                print("[docker]" + stream_data["status"], end="")
+    build_process.check_returncode()
 
 
 class ImageBuildFailed(Exception):

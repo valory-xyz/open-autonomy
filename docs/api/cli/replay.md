@@ -26,7 +26,7 @@ Replay tools for agent services.
     "--build",
     "build_path",
     type=click.Path(exists=True, dir_okay=True),
-    default=BUILD_DIR,
+    default=Path(DEFAULT_BUILD_FOLDER.format(build_hash_id())),
     help="Path to build dir.",
 )
 @click.option(
@@ -51,7 +51,7 @@ Agent runner.
     "--build",
     "build_dir",
     type=click.Path(dir_okay=True, exists=True),
-    default=BUILD_DIR,
+    default=Path(DEFAULT_BUILD_FOLDER.format(build_hash_id())),
     help="Path to build directory.",
 )
 def run_tendermint(build_dir: Path) -> None

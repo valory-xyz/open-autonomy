@@ -36,7 +36,7 @@ from tests.test_autonomy.test_images.base import BaseImageBuildTest
 
 
 @skip_docker_tests
-class TestOpenAutonomyBaseImage(BaseImageBuildTest):
+class TestTendermintImage(BaseImageBuildTest):
     """Test image build and run."""
 
     client: docker.DockerClient
@@ -89,7 +89,10 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
 
             def _check_for_outputs() -> bool:
                 """Check for required outputs."""
-                return "abci.socketClient failed to connect" in log_file.read_text()
+                return (
+                    "abci.socketClient failed to connect"
+                    in tm_container.logs().decode()
+                )
 
             try:
                 wait_for_condition(

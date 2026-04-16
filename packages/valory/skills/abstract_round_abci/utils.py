@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
 """This module contains utility functions for the 'abstract_round_abci' skill."""
 
 import builtins
-import collections
 import dataclasses
 import sys
 import types
@@ -40,14 +39,15 @@ from typing import (
     TypeVar,
     Union,
     cast,
+    get_args,
+    get_origin,
 )
 from unittest.mock import MagicMock
 
 import typing_extensions
 from eth_typing.bls import BLSPubkey, BLSSignature
 from py_ecc.bls import G2Basic as bls
-from typing_extensions import Literal, TypeGuard, TypedDict
-
+from typing_extensions import Literal, TypeGuard
 
 MAX_UINT64 = 2**64 - 1
 DEFAULT_TENDERMINT_P2P_PORT = 26656
@@ -161,75 +161,13 @@ def parse_tendermint_p2p_url(url: str) -> Tuple[str, int]:
 
 
 ##
-# Typing utils - to be extracted to open-aea
-##
-
-
-try:
-    # Python >=3.8 should have these functions already
-    from typing import get_args as _get_args  # pylint: disable=ungrouped-imports
-    from typing import get_origin as _get_origin  # pylint: disable=ungrouped-imports
-except ImportError:  # pragma: nocover
-    # Python 3.7
-    def _get_origin(tp):  # type: ignore
-        """Copied from the Python 3.8 typing module"""
-        if isinstance(tp, typing._GenericAlias):  # pylint: disable=protected-access
-            return tp.__origin__
-        if tp is typing.Generic:
-            return typing.Generic
-        return None
-
-    def _get_args(tp):  # type: ignore
-        """Copied from the Python 3.8 typing module"""
-        if isinstance(tp, typing._GenericAlias):  # pylint: disable=protected-access
-            res = tp.__args__
-            if get_origin(tp) is collections.abc.Callable and res[0] is not Ellipsis:
-                res = (list(res[:-1]), res[-1])
-            return res
-        return ()
-
-
-def get_origin(tp):  # type: ignore
-    """
-    Get the unsubscripted version of a type.
-
-    This supports generic types, Callable, Tuple, Union, Literal, Final and
-    ClassVar. Returns None for unsupported types.
-    Examples:
-        get_origin(Literal[42]) is Literal
-        get_origin(int) is None
-        get_origin(ClassVar[int]) is ClassVar
-        get_origin(Generic) is Generic
-        get_origin(Generic[T]) is Generic
-        get_origin(Union[T, int]) is Union
-        get_origin(List[Tuple[T, T]][int]) == list
-    """
-    return _get_origin(tp)
-
-
-def get_args(tp):  # type: ignore
-    """
-    Get type arguments with all substitutions performed.
-
-    For unions, basic simplifications used by Union constructor are performed.
-    Examples:
-        get_args(Dict[str, int]) == (str, int)
-        get_args(int) == ()
-        get_args(Union[int, Union[T, int], str][int]) == (int, str)
-        get_args(Union[int, Tuple[T, int]][str]) == (int, Tuple[str, int])
-        get_args(Callable[[], T][int]) == ([], int)
-    """
-    return _get_args(tp)
-
-
-##
 # The following is borrowed from https://github.com/tamuhey/dataclass_utils/blob/81580d2c0c285081db06be02b4ecdd125532bef5/dataclass_utils/type_checker.py#L152
 ##
 
 
 def is_pep604_union(ty: Type[Any]) -> bool:
     """Check if a type is a PEP 604 union."""
-    return sys.version_info >= (3, 10) and ty is types.UnionType  # type: ignore # noqa: E721
+    return sys.version_info >= (3, 10) and ty is types.UnionType  # type: ignore # noqa: E721 # pylint: disable=no-member
 
 
 def _path_to_str(path: List[str]) -> str:
@@ -440,7 +378,7 @@ def is_error(ret: Result) -> TypeGuard[AutonomyTypeError]:
     return ret is not None
 
 
-def is_typeddict(ty: Type[Any]) -> TypeGuard[Type[TypedDict]]:  # type: ignore
+def is_typeddict(ty: Type[Any]) -> TypeGuard:  # type: ignore
     """Check typeddict."""
     # TODO: Should use `typing.is_typeddict` in future
     #       or, use publich API
@@ -490,3 +428,15 @@ def consensus_threshold(nb: int) -> int:
     :return: the consensus threshold
     """
     return ceil((2 * nb + 1) / 3)
+
+
+KeyType = TypeVar("KeyType")
+ValueType = TypeVar("ValueType")
+
+
+def inverse(dict_: Dict[KeyType, ValueType]) -> Dict[ValueType, List[KeyType]]:
+    """Get the inverse of a dictionary."""
+    inverse_: Dict[ValueType, List[KeyType]] = {val: [] for val in dict_.values()}
+    for key, value in dict_.items():
+        inverse_[value].append(key)
+    return inverse_

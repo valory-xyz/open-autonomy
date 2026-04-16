@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,11 +19,14 @@
 
 """Deploy CLI module."""
 
+import os
 import shutil
+from itertools import chain
 from pathlib import Path
-from typing import Optional, cast
+from typing import List, Optional, cast
 
 import click
+from aea import AEA_DIR
 from aea.cli.registry.settings import REGISTRY_REMOTE
 from aea.cli.utils.click_utils import (
     password_option,
@@ -31,13 +34,16 @@ from aea.cli.utils.click_utils import (
     reraise_as_click_exception,
 )
 from aea.cli.utils.context import Context
-from aea.configurations.constants import DEFAULT_ENV_DOTFILE
+from aea.configurations.constants import DEFAULT_ENV_DOTFILE, PACKAGES
+from aea.package_manager.base import PACKAGES_FILE
 
 from autonomy.chain.config import ChainType
 from autonomy.cli.helpers.deployment import (
     build_and_deploy_from_token,
     build_deployment,
     run_deployment,
+    run_host_deployment,
+    stop_deployment,
 )
 from autonomy.cli.helpers.env import load_env_file
 from autonomy.cli.utils.click_utils import (
@@ -46,15 +52,40 @@ from autonomy.cli.utils.click_utils import (
     image_author_option,
 )
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_KEYS_FILE
-from autonomy.deploy.base import NotValidKeysFile
+from autonomy.deploy.base import (
+    DEFAULT_AGENT_CPU_LIMIT,
+    DEFAULT_AGENT_CPU_REQUEST,
+    DEFAULT_AGENT_MEMORY_LIMIT,
+    DEFAULT_AGENT_MEMORY_REQUEST,
+    NotValidKeysFile,
+    build_hash_id,
+)
 from autonomy.deploy.constants import INFO, LOGGING_LEVELS
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
+from autonomy.deploy.generators.localhost.base import HostDeploymentGenerator
 
 
-PACKAGES_DIR = "packages_dir"
-OPEN_AEA_DIR = "open_aea_dir"
-OPEN_AUTONOMY_DIR = "open_autonomy_dir"
+def _validate_packages_path(path: Optional[Path] = None) -> Path:
+    """Find the 'packages' directory for development mode by traversing up the path."""
+    path = (path or Path.cwd()).resolve()
+    for current_path in chain({path}, path.parents):
+        if current_path.name == PACKAGES and (current_path / PACKAGES_FILE).is_file():
+            return current_path
+    raise click.ClickException(
+        "Please provide a valid path to the `packages` directory for development mode."
+    )
+
+
+def _validate_open_aea_dir(path: Optional[Path] = None) -> Path:
+    """Validate open-aea directory."""
+    path = Path(path or Path(AEA_DIR).parent).resolve()
+    for child in ("aea", "plugins", "setup.py"):
+        if not (path / child).exists():
+            raise click.ClickException(
+                "Please provide valid open-aea repository path for development mode"
+            )
+    return path
 
 
 @click.group(name="deploy")
@@ -96,16 +127,31 @@ def deploy_group(
     help="Number of agents.",
 )
 @click.option(
+    "--number-of-services",
+    "number_of_services",
+    type=int,
+    default=1,
+    help="Number of services.",
+)
+@click.option(
+    "--localhost",
+    "deployment_type",
+    flag_value=HostDeploymentGenerator.deployment_type,
+    default=DockerComposeGenerator.deployment_type,
+    help="Use localhost as a backend.",
+)
+@click.option(
     "--docker",
     "deployment_type",
     flag_value=DockerComposeGenerator.deployment_type,
-    default=True,
-    help="Use docker as a backend.",
+    default=DockerComposeGenerator.deployment_type,
+    help="Use docker as a backend. (default)",
 )
 @click.option(
     "--kubernetes",
     "deployment_type",
     flag_value=KubernetesGenerator.deployment_type,
+    default=DockerComposeGenerator.deployment_type,
     help="Use kubernetes as a backend.",
 )
 @click.option(
@@ -128,11 +174,6 @@ def deploy_group(
     "--open-aea-dir",
     type=click.Path(),
     help="Path to open-aea repo (Use with dev mode)",
-)
-@click.option(
-    "--open-autonomy-dir",
-    type=click.Path(),
-    help="Path to open-autonomy repo (Use with dev mode)",
 )
 @click.option(
     "--aev",
@@ -161,22 +202,54 @@ def deploy_group(
     help="Use local tendermint chain setup.",
 )
 @click.option("--image-version", type=str, help="Define runtime image version.")
+@click.option(
+    "--agent-cpu-request",
+    type=float,
+    help="Set agent CPU usage request.",
+    default=DEFAULT_AGENT_CPU_REQUEST,
+)
+@click.option(
+    "--agent-memory-request",
+    type=int,
+    help="Set agent memory usage request.",
+    default=DEFAULT_AGENT_MEMORY_REQUEST,
+)
+@click.option(
+    "--agent-cpu-limit",
+    type=float,
+    help="Set agent CPU usage limit.",
+    default=DEFAULT_AGENT_CPU_LIMIT,
+)
+@click.option(
+    "--agent-memory-limit",
+    type=int,
+    help="Set agent memory usage limit.",
+    default=DEFAULT_AGENT_MEMORY_LIMIT,
+)
+@click.option(
+    "--mkdir",
+    type=str,
+    help="Directory names to create in the build directory.",
+    default=[],
+    multiple=True,
+)
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @image_author_option
 @click.pass_context
-def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-locals
+def build_deployment_command(  # pylint: disable=too-many-locals
     click_context: click.Context,
     keys_file: Optional[Path],
     deployment_type: str,
     output_dir: Optional[Path],
     dev_mode: bool,
     registry: str,
+    mkdir: List[str],
     number_of_agents: Optional[int] = None,
+    number_of_services: int = 1,
     password: Optional[str] = None,
     open_aea_dir: Optional[Path] = None,
     packages_dir: Optional[Path] = None,
-    open_autonomy_dir: Optional[Path] = None,
     log_level: str = INFO,
     aev: bool = False,
     image_version: Optional[str] = None,
@@ -184,64 +257,79 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     use_acn: bool = False,
     use_tm_testnet_setup: bool = False,
     image_author: Optional[str] = None,
+    agent_cpu_limit: Optional[float] = None,
+    agent_memory_limit: Optional[int] = None,
+    agent_cpu_request: Optional[float] = None,
+    agent_memory_request: Optional[int] = None,
 ) -> None:
     """Build deployment setup for n agents."""
+    if password is not None:  # pragma: nocover
+        click.echo(
+            "WARNING: `--password` flag has been deprecated, "
+            "use `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` to export the password value"
+        )
 
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
-    if not keys_file.exists():
+    if not keys_file.exists() and not dev_mode:
         message = f"No such file or directory: {keys_file}. Please provide valid path for keys file."
         raise click.ClickException(message)
 
-    build_dir = Path(output_dir or DEFAULT_BUILD_FOLDER).absolute()
-    packages_dir = Path(packages_dir or Path.cwd() / "packages").absolute()
-    open_aea_dir = Path(open_aea_dir or Path.home() / "open-aea").absolute()
-    open_autonomy_dir = Path(
-        open_autonomy_dir or Path.home() / "open-autonomy"
-    ).absolute()
-
     if dev_mode:
-        for name, path in (
-            (PACKAGES_DIR, packages_dir),
-            (OPEN_AEA_DIR, open_aea_dir),
-            (OPEN_AUTONOMY_DIR, open_autonomy_dir),
-        ):
-            if not path.exists():
-                flag = "--" + "-".join(name.split("_"))
-                raise click.ClickException(
-                    f"Path does not exist @ {path} for {name}; Please provide proper value for {flag}"
-                )
+        packages_dir = _validate_packages_path(path=packages_dir)
+        open_aea_dir = _validate_open_aea_dir(path=open_aea_dir)
 
     ctx = cast(Context, click_context.obj)
     ctx.registry_type = registry
 
-    try:
-        build_deployment(
-            keys_file=keys_file,
-            build_dir=build_dir,
-            deployment_type=deployment_type,
-            dev_mode=dev_mode,
-            number_of_agents=number_of_agents,
-            password=password,
-            packages_dir=packages_dir,
-            open_aea_dir=open_aea_dir,
-            open_autonomy_dir=open_autonomy_dir,
-            log_level=log_level,
-            apply_environment_variables=aev,
-            image_version=image_version,
-            use_hardhat=use_hardhat,
-            use_acn=use_acn,
-            use_tm_testnet_setup=use_tm_testnet_setup,
-            image_author=image_author,
-        )
-    except (NotValidKeysFile, FileNotFoundError, FileExistsError) as e:
-        shutil.rmtree(build_dir)
-        raise click.ClickException(str(e)) from e
+    abci_build_count = len(
+        [name for name in os.listdir() if name.startswith("abci_build_")]
+    )
+
+    for service_index in range(number_of_services):
+        service_hash_id = build_hash_id()
+        build_dir = Path(
+            output_dir or DEFAULT_BUILD_FOLDER.format(service_hash_id)
+        ).absolute()
+
+        try:
+            build_deployment(
+                service_hash_id=service_hash_id,
+                service_offset=abci_build_count + service_index,
+                keys_file=keys_file,
+                build_dir=build_dir,
+                deployment_type=deployment_type,
+                dev_mode=dev_mode,
+                number_of_agents=number_of_agents,
+                packages_dir=packages_dir,
+                open_aea_dir=open_aea_dir,
+                log_level=log_level,
+                apply_environment_variables=aev,
+                image_version=image_version,
+                use_hardhat=use_hardhat,
+                use_acn=use_acn,
+                use_tm_testnet_setup=use_tm_testnet_setup,
+                image_author=image_author,
+                mkdir=mkdir,
+                resources={
+                    "agent": {
+                        "limit": {"cpu": agent_cpu_limit, "memory": agent_memory_limit},
+                        "requested": {
+                            "cpu": agent_cpu_request,
+                            "memory": agent_memory_request,
+                        },
+                    }
+                },
+            )
+        except (NotValidKeysFile, FileNotFoundError, FileExistsError) as e:
+            shutil.rmtree(build_dir, ignore_errors=True)
+            raise click.ClickException(str(e)) from e
 
 
 @deploy_group.command(name="run")
 @click.option(
     "--build-dir",
     type=click.Path(),
+    help="Path to the deployment build directory.",
 )
 @click.option(
     "--no-recreate",
@@ -255,16 +343,65 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     default=False,
     help="Remove containers for services not defined in the Compose file.",
 )
-def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
+@click.option(
+    "--detach",
+    is_flag=True,
+    default=False,
+    help="Run service in the background.",
+)
+@click.option(
+    "--localhost",
+    "deployment_type",
+    flag_value="localhost",
+    default="docker",
+    help="Use localhost as a backend.",
+)
+@click.option(
+    "--docker",
+    "deployment_type",
+    flag_value="docker",
+    help="Use docker as a backend. (default)",
+    default="docker",
+)
+def run(
+    build_dir: Path,
+    no_recreate: bool,
+    remove_orphans: bool,
+    detach: bool,
+    deployment_type: str,
+) -> None:
     """Run deployment."""
     build_dir = Path(build_dir or Path.cwd()).absolute()
+    deployment = (
+        HostDeploymentGenerator
+        if deployment_type == "localhost"
+        else DockerComposeGenerator
+    )
+    if not (build_dir / deployment.output_name).exists():
+        raise click.ClickException(
+            f"Deployment configuration does not exist @ {build_dir}"
+        )
+    click.echo(f"Running build @ {build_dir}")
+    if deployment_type == "localhost":
+        run_host_deployment(build_dir, detach)
+    else:
+        run_deployment(build_dir, no_recreate, remove_orphans, detach=detach)
 
+
+@deploy_group.command(name="stop")
+@click.option(
+    "--build-dir",
+    type=click.Path(),
+    help="Path to the deployment build directory.",
+)
+def stop(build_dir: Path) -> None:
+    """Stop a running deployment."""
+    build_dir = Path(build_dir or Path.cwd()).absolute()
     if not (build_dir / DockerComposeGenerator.output_name).exists():
         raise click.ClickException(
             f"Deployment configuration does not exist @ {build_dir}"
         )
-
-    run_deployment(build_dir, no_recreate, remove_orphans)
+    stop_deployment(build_dir=build_dir)
 
 
 @deploy_group.command(name="from-token")
@@ -282,13 +419,14 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
     "--docker",
     "deployment_type",
     flag_value=DockerComposeGenerator.deployment_type,
-    default=True,
+    default=DockerComposeGenerator.deployment_type,
     help="Use docker as a backend.",
 )
 @click.option(
     "--kubernetes",
     "deployment_type",
     flag_value=KubernetesGenerator.deployment_type,
+    default=DockerComposeGenerator.deployment_type,
     help="Use kubernetes as a backend.",
 )
 @click.option(
@@ -296,10 +434,40 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
     is_flag=True,
     help="If set to true, the deployment won't run automatically",
 )
+@click.option(
+    "--detach",
+    is_flag=True,
+    default=False,
+    help="Run service in the background.",
+)
+@click.option(
+    "--agent-cpu-request",
+    type=float,
+    help="Set agent CPU usage request.",
+    default=DEFAULT_AGENT_CPU_REQUEST,
+)
+@click.option(
+    "--agent-memory-request",
+    type=int,
+    help="Set agent memory usage request.",
+    default=DEFAULT_AGENT_MEMORY_REQUEST,
+)
+@click.option(
+    "--agent-cpu-limit",
+    type=float,
+    help="Set agent CPU usage limit.",
+    default=DEFAULT_AGENT_CPU_LIMIT,
+)
+@click.option(
+    "--agent-memory-limit",
+    type=int,
+    help="Set agent memory usage limit.",
+    default=DEFAULT_AGENT_MEMORY_LIMIT,
+)
 @chain_selection_flag(help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 @password_option(confirmation_prompt=True)
-def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-locals
+def run_deployment_from_token(  # pylint: disable=too-many-locals
     click_context: click.Context,
     token_id: int,
     keys_file: Path,
@@ -308,15 +476,30 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     n: Optional[int],
     deployment_type: str,
     no_deploy: bool,
+    detach: bool,
     aev: bool = False,
     password: Optional[str] = None,
+    agent_cpu_limit: Optional[float] = None,
+    agent_memory_limit: Optional[int] = None,
+    agent_cpu_request: Optional[float] = None,
+    agent_memory_request: Optional[int] = None,
 ) -> None:
     """Run service deployment."""
+    if password is not None:  # pragma: nocover
+        click.echo(
+            "WARNING: `--password` flag has been deprecated, "
+            "use `OPEN_AUTONOMY_PRIVATE_KEY_PASSWORD` to export the password value"
+        )
+
+    click.echo(
+        "DEPRECATION WARNING: `autonomy deploy from-token` is being deprecated.\n"
+        "Please use `autonomy fetch <token_id>` instead to fetch the service, "
+        "followed by `build-image`, `deploy build`, and `deploy run` as usual."
+    )
 
     ctx = cast(Context, click_context.obj)
     ctx.registry_type = REGISTRY_REMOTE
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
-
     with reraise_as_click_exception(
         NotValidKeysFile, FileNotFoundError, FileExistsError
     ):
@@ -328,6 +511,15 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
             n=n,
             deployment_type=deployment_type,
             aev=aev,
-            password=password,
             no_deploy=no_deploy,
+            detach=detach,
+            resources={
+                "agent": {
+                    "limit": {"cpu": agent_cpu_limit, "memory": agent_memory_limit},
+                    "requested": {
+                        "cpu": agent_cpu_request,
+                        "memory": agent_memory_request,
+                    },
+                }
+            },
         )

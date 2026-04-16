@@ -20,7 +20,7 @@ looks as follows:
    round, by checking read-only attributes of the `ABCIApp` accessible through
    the AEAs' skill context. Concrete implementations of `AbstractRoundBehaviour`
    cannot update the state the of ABCIApp directly, only through an agreed
-   upon update with other agents via the consensus engine node.
+   upon update with other agent instances via the consensus engine node.
 
 3. Once the transaction gets added to a block accepted by the consensus engine,
    the consensus engine node delivers the block and transactions contained in

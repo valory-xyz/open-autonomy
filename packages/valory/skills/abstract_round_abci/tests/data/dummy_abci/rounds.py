@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -63,6 +63,8 @@ class DummyMixinRound(AbstractRound, ABC):
 
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
+    none_event = Event.DONE
+    fail_event = Event.DONE
 
     @property
     def synchronized_data(self) -> SynchronizedData:
@@ -116,6 +118,7 @@ class DummyFinalRound(OnlyKeeperSendsRound, DummyMixinRound):
     """DummyFinalRound"""
 
     round_id: str = "dummy_final"
+    payload_key = "dummy_key"
     payload_class = DummyFinalPayload
     payload_attribute: str = "dummy_final"
     synchronized_data_class = SynchronizedData

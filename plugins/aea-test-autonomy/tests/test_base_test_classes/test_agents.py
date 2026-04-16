@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -38,12 +38,12 @@ class BaseTest:
     test_cls: Type[BaseTestEnd2End]
     setup_class_called: bool
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test"""
 
         self.setup_class_called = False
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown test"""
 
         if self.setup_class_called:
@@ -78,14 +78,14 @@ class TestBaseTestEnd2End(BaseTest):
         assert self.test_cls.cli_log_options == ["-v", "DEBUG"]
 
         # default values likely to change
-        assert self.test_cls.happy_path == ()
-        assert self.test_cls.strict_check_strings == ()
+        assert not self.test_cls.happy_path
+        assert not self.test_cls.strict_check_strings
 
     def test_defaults_test_instance(self) -> None:
         """Test defaults, after setup_class"""
 
         assert self.test_cls.agents == set()
-        assert self.test_cls.subprocesses == []
+        assert not self.test_cls.subprocesses
 
         # no setup -> no tests needed for setup
         assert not hasattr(self.test_cls, "setup")
@@ -138,7 +138,7 @@ class TestBaseTestEnd2EndExecution(BaseTest):
         with pytest.raises(click.exceptions.ClickException, match=expected):
             test_instance.test_run(nb_nodes)
 
-        wrong_version = "valory/hello_world:0.0.0"
+        wrong_version = "valory/offend_slash:0.0.0"
         expected = "Wrong agent version in public ID: specified 0.0.0, found"
         setattr(test_instance, attribute, wrong_version)
         with pytest.raises(click.exceptions.ClickException, match=expected):
@@ -151,13 +151,13 @@ class TestBaseTestEnd2EndExecution(BaseTest):
         test_instance = self.setup_test()
         self.set_mocked_flask_tendermint_image(test_instance, nb_nodes)
 
-        test_instance.agent_package = "valory/hello_world:0.1.0"
+        test_instance.agent_package = "valory/offend_slash:0.1.0"
         attribute = "skill_package"
 
         with pytest.raises(AttributeError, match=f"has no attribute '{attribute}'"):
             test_instance.test_run(nb_nodes)
 
-        for item in ("", "author/package", "valory/hello_world:0.0.0"):
+        for item in ("", "author/package", "valory/offend_abci:0.0.0"):
             setattr(test_instance, attribute, item)  # same for "author/package"
             expected = 'Item "agent_00000" already exists in target folder "."'
             with pytest.raises(click.exceptions.ClickException, match=expected):
@@ -171,8 +171,8 @@ class TestBaseTestEnd2EndExecution(BaseTest):
         self.set_mocked_flask_tendermint_image(test_instance, nb_nodes)
         test_instance.wait_to_finish = mock.Mock()
 
-        test_instance.agent_package = "valory/hello_world:0.1.0"
-        test_instance.skill_package = "valory/hello_world_abci:0.1.0"
+        test_instance.agent_package = "valory/offend_slash:0.1.0"
+        test_instance.skill_package = "valory/offend_abci:0.1.0"
 
         mocked_missing_from_output = as_context(
             mock.patch.object(
@@ -183,6 +183,7 @@ class TestBaseTestEnd2EndExecution(BaseTest):
             ),
         )
 
+        test_instance.ipfs_domain = ""
         with mock.patch.object(test_instance, "run_agent") as mocked_run_agent:
             with mock.patch.object(
                 test_instance, "health_check"

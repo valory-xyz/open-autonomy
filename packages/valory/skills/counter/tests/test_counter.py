@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ class TestCounterHandler(BaseSkillTestCase):
             AbciDialogues, cls._skill.skill_context.abci_dialogues
         )
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test."""

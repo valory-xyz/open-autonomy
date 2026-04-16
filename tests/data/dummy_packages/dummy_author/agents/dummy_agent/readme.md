@@ -1,1 +1,1 @@
-# Dummy agent
+# Dummy agent blueprint

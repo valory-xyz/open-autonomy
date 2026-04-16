@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 
 """Tests for specs commands."""
 
-
 import copy
 import importlib
 import os
@@ -31,6 +30,9 @@ from typing import Tuple, cast
 from unittest import mock
 
 import pytest
+import yaml
+from aea.cli.registry.settings import REGISTRY_LOCAL
+from aea.cli.utils.constants import CLI_CONFIG_PATH, DEFAULT_CLI_CONFIG
 from aea.configurations.constants import PACKAGES
 from jsonschema.exceptions import ValidationError
 
@@ -54,12 +56,12 @@ class TestGenerateSpecs(BaseCliTest):
     app_name: str
     skill_path: Path
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
-        super().setup()
+        super().setup_method()
 
-        self.app_name = "HelloWorldAbciApp"
-        self.skill_path = Path(PACKAGES, "valory", "skills", "hello_world_abci")
+        self.app_name = "OffendAbciApp"
+        self.skill_path = Path(PACKAGES, "valory", "skills", "offend_abci")
 
         module_name = ".".join((*self.skill_path.parts, "rounds"))
         module = importlib.import_module(module_name)
@@ -145,14 +147,14 @@ class TestGenerateSpecs(BaseCliTest):
                 "--app-class",
                 "SOME_CLASS_NAME",
                 "--package",
-                str(Path(*self.skill_path.parts, "dummy")),
+                str(Path(*self.skill_path.parts, "dummy_abci")),
                 "--yaml",
             )
         )
 
         assert result.exit_code == 1, result.output
         assert (
-            "Cannot find the rounds module or the composition module" in result.stdout
+            "Cannot find the rounds module or the composition module" in result.stderr
         ), result.output
 
         result = self.run_cli(
@@ -166,24 +168,31 @@ class TestGenerateSpecs(BaseCliTest):
         )
 
         assert result.exit_code == 1, result.output
-        assert 'Class "SomeAppName" is not in' in result.stdout, result.output
+        assert 'Class "SomeAppName" is not in' in result.stderr, result.output
+
+        self.skill_path = self.skill_path.rename(self.skill_path.parent / "offend")
+        result = self.run_cli(("--package", str(self.skill_path)))
+        assert result.exit_code == 1, result.output
+        assert (
+            "The name of the skill 'offend' must end with `_abci`." in result.stderr
+        ), result.output
 
 
 class TestCheckSpecs(BaseCliTest):
     """Test `check-app-specs` command."""
 
     cli_options: Tuple[str, ...] = ("analyse", "fsm-specs")
-    skill_path = Path(PACKAGES, "valory", "skills", "hello_world_abci")
+    skill_path = Path(PACKAGES, "valory", "skills", "offend_abci")
     module_name = ".".join(skill_path.parts)
-    app_name = "HelloWorldAbciApp"
+    app_name = "OffendAbciApp"
     cls_name = ".".join([module_name, app_name])
 
     packages_dir: Path
     specification_path: Path
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup class."""
-        super().setup()
+        super().setup_method()
 
         self.packages_dir = self.t / PACKAGES
         shutil.copytree(ROOT_DIR / PACKAGES, self.packages_dir)
@@ -201,15 +210,26 @@ class TestCheckSpecs(BaseCliTest):
 
         self.specification_path = self.t / self.skill_path / "fsm_specification.yaml"
         os.chdir(self.t)
+        DEFAULT_CLI_CONFIG["registry_config"]["settings"][REGISTRY_LOCAL][
+            "default_packages_path"
+        ] = (self.t / PACKAGES).as_posix()
+        Path(CLI_CONFIG_PATH).write_text(yaml.dump(DEFAULT_CLI_CONFIG))
+
+    def teardown_method(self) -> None:
+        """Teardown class."""
+        super().teardown_method()
+        DEFAULT_CLI_CONFIG["registry_config"]["settings"][REGISTRY_LOCAL][
+            "default_packages_path"
+        ] = None
+        Path(CLI_CONFIG_PATH).write_text(yaml.dump(DEFAULT_CLI_CONFIG))
 
     def _corrupt_spec_file(
         self,
     ) -> None:
         """Corrupt spec file to fail the check."""
         content = self.specification_path.read_text()
-        content = content.replace(
-            "(SelectKeeperRound, ROUND_TIMEOUT): RegistrationRound\n", ""
-        )
+        content = content.replace("(OffendRound, ROUND_TIMEOUT): OffendRound\n", "")
+        content = content.replace("- ROUND_TIMEOUT\n", "")
         self.specification_path.write_text(content)
 
     def test_one_pass(
@@ -238,19 +258,19 @@ class TestCheckSpecs(BaseCliTest):
             in stderr
         )
 
-    def test_check_all(
+    def test_analyse_fsm_specs(
         self,
     ) -> None:
-        """Test --check-all flag."""
+        """Test the `analyse fsm-specs` command."""
         return_code, stdout, stderr = self.run_cli_subprocess(())
 
         assert return_code == 0, stderr
         assert "Done" in stdout
 
-    def test_check_all_when_packages_is_not_in_working_dir(
+    def test_analyse_fsm_specs_when_packages_is_not_in_working_dir(
         self,
     ) -> None:
-        """Test --check-all flag when the packages directory is not in the working directory."""
+        """Test `analyse fsm-specs` command when the packages directory is not in the working directory."""
         return_code, stdout, stderr = self.run_cli_subprocess(())
 
         assert return_code == 0
@@ -260,7 +280,7 @@ class TestCheckSpecs(BaseCliTest):
     def test_check_fail_when_packages_dir_is_not_named_packages(
         self,
     ) -> None:
-        """Test --check-all flag when the packages directory is not named 'packages'."""
+        """Test `analyse fsm-specs` command when the packages directory is not named 'packages'."""
         wrong_dir = self.t / "some-directory"
         wrong_dir.mkdir(exist_ok=True)
 
@@ -275,21 +295,15 @@ class TestCheckSpecs(BaseCliTest):
         assert return_code == 1, stderr
         assert f"packages directory {wrong_dir} is not named '{PACKAGES}'" in stderr
 
-    def test_check_all_fail(
+    def test_analyse_fsm_specs_fail(
         self,
     ) -> None:
-        """Test --check-all flag."""
+        """Test `analyse fsm-specs` command failure."""
         self._corrupt_spec_file()
         return_code, stdout, stderr = self.run_cli_subprocess(())
 
         assert return_code == 1
         assert "Specifications check for following packages failed" in stderr
-
-    def teardown(
-        self,
-    ) -> None:
-        """Tear down the test."""
-        super().teardown()
 
 
 class TestDFA:

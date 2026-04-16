@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2025 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ class TestAnalyseDialogues(BaseAnalyseDialoguesTest):
         assert result.exit_code == exit_code, result.stdout
 
         for check in stdout_checks:
-            assert check in result.stdout
+            assert check in result.stdout + result.stderr
 
     def test_analyse_default(self) -> None:
         """Test analyse."""

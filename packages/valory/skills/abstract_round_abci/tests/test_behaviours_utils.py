@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -104,7 +104,6 @@ from packages.valory.skills.abstract_round_abci.models import (
     TendermintRecoveryParams,
 )
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
-
 
 _DEFAULT_REQUEST_TIMEOUT = 10.0
 _DEFAULT_REQUEST_RETRY_DELAY = 1.0
@@ -263,31 +262,11 @@ def test_async_behaviour_wait_for_message_raises_timeout_exception() -> None:
         behaviour = AsyncBehaviourTest()
         gen = behaviour.wait_for_message(lambda _: False, timeout=0.01)
         # trigger function
-        try_send(gen)
+        try_send(cast(Generator[Any, None, None], gen))
         # sleep so to run out the timeout
         time.sleep(0.02)
         # trigger function and make the exception to raise
-        try_send(gen)
-
-
-def test_async_behaviour_wait_for_message_raises_timeout_exception_when_no_message() -> (
-    None
-):
-    """Test 'wait_for_message' when it raises TimeoutException."""
-
-    with pytest.raises(TimeoutException):
-        behaviour = AsyncBehaviourTest()
-        behaviour.act()
-        gen = behaviour.wait_for_message(lambda _: False, timeout=0.01)
-        # simulate the generator is waiting for a message
-        behaviour._AsyncBehaviour__generator_act = gen  # type: ignore
-        behaviour._AsyncBehaviour__state = AsyncBehaviour.AsyncState.WAITING_MESSAGE  # type: ignore
-        # the message never arrives, a timeout exception should be raised
-        behaviour.act()
-        # sleep so to run out the timeout
-        time.sleep(0.02)
-        # trigger function and make the exception to raise
-        behaviour.act()
+        try_send(cast(Generator[Any, None, None], gen))
 
 
 def test_async_behaviour_wait_for_condition() -> None:
@@ -509,7 +488,7 @@ def _wait_until_transaction_delivered_patch(
 def dummy_generator_wrapper(return_value: Any = None) -> Callable[[Any], Generator]:
     """A wrapper around a dummy generator that yields nothing and returns the given return value."""
 
-    def dummy_generator(*_: Any) -> Generator[None, None, Any]:
+    def dummy_generator(*_: Any, **__: Any) -> Generator[None, None, Any]:
         """A dummy generator that yields nothing and returns the given return value."""
         yield
         return return_value
@@ -522,7 +501,7 @@ class TestBaseBehaviour:
 
     _DUMMY_CONSENSUS_THRESHOLD = 3
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         self.context_mock = MagicMock()
         self.context_params_mock = MagicMock(
@@ -571,7 +550,7 @@ class TestBaseBehaviour:
                 MagicMock(
                     ipfs_hash="test", performative=IpfsMessage.Performative.IPFS_HASH
                 ),
-                "Successfully stored with IPFS hash: test",
+                "Successfully stored dummy_filename to IPFS with hash: test",
             ),
             (
                 MagicMock(
@@ -604,7 +583,7 @@ class TestBaseBehaviour:
             BaseBehaviour, "_do_ipfs_request", side_effect=dummy_do_ipfs_req
         ) as do_req:
             generator = self.behaviour.send_to_ipfs("dummy_filename", {})
-            try_send(generator)
+            try_send(cast(Generator[Any, None, None], generator))
             build_req.assert_called()
             do_req.assert_called()
             assert expected_log in caplog.text
@@ -618,7 +597,7 @@ class TestBaseBehaviour:
             side_effect=IPFSInteractionError,
         ), caplog.at_level(logging.ERROR):
             generator = self.behaviour.send_to_ipfs("dummy_filename", {})
-            try_send(generator)
+            try_send(cast(Generator[Any, None, None], generator))
             assert expected_logs in caplog.text
 
     def test_do_ipfs_request(self) -> None:
@@ -643,7 +622,7 @@ class TestBaseBehaviour:
                 dialogue,
                 message,
             )
-            try_send(gen)
+            try_send(gen)  # type: ignore[arg-type]
 
     @pytest.mark.parametrize(
         "ipfs_response, expected_log",
@@ -690,7 +669,7 @@ class TestBaseBehaviour:
             BaseBehaviour, "_do_ipfs_request", side_effect=dummy_do_ipfs_req
         ) as do_req:
             generator = self.behaviour.get_from_ipfs("dummy_ipfs_hash")
-            try_send(generator)
+            try_send(cast(Generator[Any, None, None], generator))
             build_req.assert_called()
             do_req.assert_called()
             assert expected_log in caplog.text
@@ -702,7 +681,7 @@ class TestBaseBehaviour:
             IPFSBehaviour, "_build_ipfs_get_file_req", side_effect=IPFSInteractionError
         ), caplog.at_level(logging.ERROR):
             generator = self.behaviour.get_from_ipfs("dummy_ipfs_hash")
-            try_send(generator)
+            try_send(cast(Generator[Any, None, None], generator))
             assert expected_logs in caplog.text
 
     def test_params_property(self) -> None:
@@ -833,7 +812,9 @@ class TestBaseBehaviour:
             gen = self.behaviour.async_act_wrapper()
             for __ in range(3):
                 try_send(gen)
-            log_mock.assert_called_with("local height == remote == 0; Sync complete...")
+            log_mock.assert_called_with(
+                "local height == remote == 0; Synchronization complete."
+            )
 
     @mock.patch.object(BaseBehaviour, "_get_status", _get_status_wrong_patch)
     def test_async_act_wrapper_agent_sync_mode_where_height_dont_match(self) -> None:
@@ -914,32 +895,36 @@ class TestBaseBehaviour:
 
         # test with a non-200 response in order to cause the execution to re-enter the while `stop_condition`
         # we expect that the second time we will not enter, since we have caused the `stop_condition` to be `True`
-        with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
+        with mock.patch.object(
+            self.behaviour.context.logger, "debug"
+        ) as mock_debug, mock.patch.object(
+            self.behaviour.context.logger, "error"
+        ) as mock_error:
             # send message to 'wait_for_message'
             try_send(gen, obj=MagicMock(status_code=200))
             # send message to '_submit_tx'
             response = MagicMock(body='{"result": {"hash": "", "code": 0}}')
             try_send(gen, obj=response)
-            mock_info.assert_called_with(
+            mock_error.assert_called_with(
                 f"Received return code != 200 with response {response} with body {str(response.body)}. "
                 f"Retrying in {request_retry_delay} seconds..."
             )
             time.sleep(request_retry_delay)
             try_send(gen)
             # assert that the stop condition is now `True` and we reach at the end of the method
-            mock_info.assert_called_with(
+            mock_debug.assert_called_with(
                 "Stop condition is true, no more attempts to send the transaction."
             )
 
     def test_send_transaction_positive_false_condition(self) -> None:
         """Test '_send_transaction', positive case (false condition)"""
-        with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
+        with mock.patch.object(self.behaviour.context.logger, "debug") as mock_debug:
             try_send(
                 self.behaviour._send_transaction(
                     MagicMock(), stop_condition=lambda: True
                 )
             )
-            mock_info.assert_called_with(
+            mock_debug.assert_called_with(
                 "Stop condition is true, no more attempts to send the transaction."
             )
 
@@ -1026,6 +1011,29 @@ class TestBaseBehaviour:
         )
         self.behaviour._tx_not_found(tx_hash="tx_hash", res=res)
 
+    @pytest.mark.parametrize(
+        "body, expected",
+        [
+            (
+                '{"tx_result": {"info": "LateArrivingTransaction: request \'RedeemPayload(...round_count=368...\'."}}',
+                True,
+            ),
+            (
+                '{"tx_result": {"info": "TransactionNotValidError: ..."}}',
+                True,
+            ),
+            (
+                '{"tx_result": {"info": ""}}',
+                False,
+            ),
+        ],
+    )
+    def test_is_invalid_transaction(self, body: str, expected: bool) -> None:
+        """Test _is_invalid_transaction recognizes various transaction error types."""
+        res = MagicMock()
+        res.body = body
+        assert self.behaviour._is_invalid_transaction(res) is expected
+
     @mock.patch.object(BaseBehaviour, "_send_signing_request")
     def test_send_transaction_signing_error(self, *_: Any) -> None:
         """Test '_send_transaction', signing error."""
@@ -1048,7 +1056,9 @@ class TestBaseBehaviour:
         timeout = 0.05
         delay = 0.1
         m = MagicMock()
-        with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
+        with mock.patch.object(
+            self.behaviour.context.logger, "warning"
+        ) as mock_warning:
             gen = self.behaviour._send_transaction(
                 m, request_timeout=timeout, request_retry_delay=delay
             )
@@ -1058,7 +1068,7 @@ class TestBaseBehaviour:
             time.sleep(timeout)
             try_send(gen, obj=m)
             time.sleep(delay)
-            mock_info.assert_called_with(
+            mock_warning.assert_called_with(
                 f"Timeout expired for submit tx. Retrying in {delay} seconds..."
             )
             try_send(gen, obj=None)
@@ -1078,7 +1088,9 @@ class TestBaseBehaviour:
         timeout = 0.05
         delay = 0.1
         m = MagicMock()
-        with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
+        with mock.patch.object(
+            self.behaviour.context.logger, "warning"
+        ) as mock_warning:
             gen = self.behaviour._send_transaction(
                 m, request_retry_delay=delay, tx_timeout=timeout
             )
@@ -1092,7 +1104,7 @@ class TestBaseBehaviour:
             time.sleep(timeout)
             try_send(gen, obj=m)
 
-            mock_info.assert_called_with(
+            mock_warning.assert_called_with(
                 f"Timeout expired for wait until transaction delivered. Retrying in {delay} seconds..."
             )
 
@@ -1109,7 +1121,9 @@ class TestBaseBehaviour:
         timeout = 0.05
         delay = 0.1
         m = MagicMock()
-        with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
+        with mock.patch.object(
+            self.behaviour.context.logger, "warning"
+        ) as mock_warning:
             gen = self.behaviour._send_transaction(
                 m, request_retry_delay=delay, tx_timeout=timeout, max_attempts=0
             )
@@ -1123,7 +1137,9 @@ class TestBaseBehaviour:
             time.sleep(timeout)
             try_send(gen, obj=m)
 
-            mock_info.assert_called_with("Tx sent but not delivered. Response = None")
+            mock_warning.assert_called_with(
+                "Tx sent but not delivered. Response = None"
+            )
 
     @mock.patch.object(BaseBehaviour, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
@@ -1138,7 +1154,7 @@ class TestBaseBehaviour:
         m = MagicMock(status_code=200)
         gen = self.behaviour._send_transaction(m)
 
-        with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
+        with mock.patch.object(self.behaviour.context.logger, "error") as mock_error:
             # trigger generator function
             try_send(gen, obj=None)
             # send message to 'wait_for_message'
@@ -1151,7 +1167,7 @@ class TestBaseBehaviour:
             )
             try_send(gen, obj=success_response)
 
-            mock_info.assert_called_with(
+            mock_error.assert_called_with(
                 "Received tendermint code != 0. Retrying in 1.0 seconds..."
             )
 
@@ -1173,7 +1189,9 @@ class TestBaseBehaviour:
         timeout = 0.05
         delay = 0.1
         m = MagicMock()
-        with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
+        with mock.patch.object(
+            self.behaviour.context.logger, "warning"
+        ) as mock_warning:
             gen = self.behaviour._send_transaction(
                 m,
                 request_timeout=timeout,
@@ -1186,7 +1204,7 @@ class TestBaseBehaviour:
             try_send(gen, obj=m)
             time.sleep(timeout)
             try_send(gen, obj=m)
-            mock_info.assert_called_with(
+            mock_warning.assert_called_with(
                 f"Timeout expired for wait until transaction delivered. Retrying in {delay} seconds..."
             )
             time.sleep(delay)
@@ -1216,7 +1234,7 @@ class TestBaseBehaviour:
         delay = 0.1
         self.behaviour._non_200_return_code_count = non_200_count
         m = MagicMock()
-        with mock.patch.object(self.behaviour.context.logger, "info") as mock_info:
+        with mock.patch.object(self.behaviour.context.logger, "error") as mock_error:
             gen = self.behaviour._send_transaction(
                 m, resetting, request_retry_delay=delay
             )
@@ -1230,9 +1248,9 @@ class TestBaseBehaviour:
                 resetting
                 and non_200_count <= NON_200_RETURN_CODE_DURING_RESET_THRESHOLD
             ):
-                mock_info.assert_not_called()
+                mock_error.assert_not_called()
             else:
-                mock_info.assert_called_with(
+                mock_error.assert_called_with(
                     f"Received return code != 200 with response {res} with body {str(res.body)}. "
                     f"Retrying in {delay} seconds..."
                 )
@@ -1293,7 +1311,13 @@ class TestBaseBehaviour:
                         ledger_id="ethereum_flashbots",
                         signed_transactions=[{"test_tx": "test_tx"}],
                     ),
-                    kwargs=LedgerApiMessage.Kwargs({}),
+                    kwargs=LedgerApiMessage.Kwargs(
+                        {
+                            "chain_id": None,
+                            "raise_on_failed_simulation": False,
+                            "use_all_builders": True,
+                        }
+                    ),
                 ),
             ),
             (
@@ -1306,7 +1330,14 @@ class TestBaseBehaviour:
                         ledger_id="ethereum_flashbots",
                         signed_transactions=[{"test_tx": "test_tx"}],
                     ),
-                    kwargs=LedgerApiMessage.Kwargs({"target_block_numbers": [1, 2, 3]}),
+                    kwargs=LedgerApiMessage.Kwargs(
+                        {
+                            "chain_id": None,
+                            "raise_on_failed_simulation": False,
+                            "use_all_builders": True,
+                            "target_block_numbers": [1, 2, 3],
+                        }
+                    ),
                 ),
             ),
             (
@@ -1385,17 +1416,17 @@ class TestBaseBehaviour:
         """Test '_wait_until_transaction_delivered' method."""
         gen = self.behaviour._wait_until_transaction_delivered(MagicMock())
         # trigger generator function
-        try_send(gen, obj=None)
+        try_send(gen, obj=None)  # type: ignore[arg-type]
 
         # first check attempt fails
         failure_response = MagicMock(status_code=500)
-        try_send(gen, failure_response)
+        try_send(gen, failure_response)  # type: ignore[arg-type]
 
         # second check attempt succeeds
         success_response = MagicMock(
             status_code=200, body='{"result": {"tx_result": {"code": 0}}}'
         )
-        try_send(gen, success_response)
+        try_send(gen, success_response)  # type: ignore[arg-type]
 
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
     @mock.patch.object(
@@ -1412,17 +1443,17 @@ class TestBaseBehaviour:
             MagicMock(), max_attempts=0
         )
         # trigger generator function
-        try_send(gen, obj=None)
+        try_send(gen, obj=None)  # type: ignore[arg-type]
 
         # first check attempt fails
         failure_response = MagicMock(status_code=500)
-        try_send(gen, failure_response)
+        try_send(gen, failure_response)  # type: ignore[arg-type]
 
         # second check attempt succeeds
         success_response = MagicMock(
             status_code=200, body='{"result": {"tx_result": {"code": -1}}}'
         )
-        try_send(gen, success_response)
+        try_send(gen, success_response)  # type: ignore[arg-type]
 
     @pytest.mark.skipif(
         platform.system() == "Windows",
@@ -1433,7 +1464,7 @@ class TestBaseBehaviour:
         gen = self.behaviour._wait_until_transaction_delivered(MagicMock(), timeout=0.0)
         with pytest.raises(TimeoutException):
             # trigger generator function
-            try_send(gen, obj=None)
+            try_send(gen, obj=None)  # type: ignore[arg-type]
 
     @mock.patch.object(behaviour_utils, "Terms")
     def test_get_default_terms(self, *_: Any) -> None:
@@ -1669,8 +1700,8 @@ class TestBaseBehaviour:
             ),
         ):
             gen = self.behaviour.get_transaction_receipt("tx_digest")
-            try_send(gen)
-            try_send(gen)
+            try_send(gen)  # type: ignore[arg-type]
+            try_send(gen)  # type: ignore[arg-type]
             assert "Error when requesting transaction receipt" in caplog.text
 
     @pytest.mark.parametrize("contract_address", [None, "contract_address"])
@@ -1689,9 +1720,9 @@ class TestBaseBehaviour:
                 MagicMock(), contract_address, "contract_id", "contract_callable"
             )
             # first trigger
-            try_send(gen, obj=None)
+            try_send(gen, obj=None)  # type: ignore[arg-type]
             # wait for message
-            try_send(gen, obj=MagicMock())
+            try_send(gen, obj=MagicMock())  # type: ignore[arg-type]
 
     @mock.patch.object(
         BaseBehaviour, "_build_http_request_message", return_value=(None, None)
@@ -1791,10 +1822,10 @@ class TestBaseBehaviour:
         """Test 'default_callback_request' when stopped."""
         message = MagicMock()
         current_behaviour = self.behaviour
-        with mock.patch.object(self.behaviour.context.logger, "debug") as info_mock:
+        with mock.patch.object(self.behaviour.context.logger, "debug") as debug_mock:
             self.behaviour.get_callback_request()(message, current_behaviour)
-            info_mock.assert_called_with(
-                "dropping message as behaviour has stopped: %s", message
+            debug_mock.assert_called_with(
+                "Dropping message as behaviour has stopped: %s", message
             )
 
     def test_default_callback_late_arriving_message(self, *_: Any) -> None:
@@ -1825,10 +1856,12 @@ class TestBaseBehaviour:
         self.behaviour._AsyncBehaviour__stopped = False  # type: ignore
         message = MagicMock()
         current_behaviour = self.behaviour
-        with mock.patch.object(self.behaviour.context.logger, "warning") as info_mock:
+        with mock.patch.object(
+            self.behaviour.context.logger, "warning"
+        ) as warning_mock:
             self.behaviour.get_callback_request()(message, current_behaviour)
-            info_mock.assert_called_with(
-                "could not send message to FSMBehaviour: %s", message
+            warning_mock.assert_called_with(
+                "Could not send message to FSMBehaviour: %s", message
             )
 
     def test_stop(self) -> None:
@@ -1976,7 +2009,7 @@ class TestBaseBehaviour:
     def test_request_recovery_params(self, expected_result: bool) -> None:
         """Test `request_recovery_params`."""
         acn_result = "not None ACN result" if expected_result else None
-        request_recovery_params = self.behaviour.request_recovery_params()
+        request_recovery_params = self.behaviour.request_recovery_params(False)
 
         with mock.patch.object(
             self.behaviour,
@@ -2315,7 +2348,7 @@ class TestTmManager:
 
     _DUMMY_CONSENSUS_THRESHOLD = 3
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         self.context_mock = MagicMock()
         self.context_params_mock = MagicMock(
@@ -2343,9 +2376,11 @@ class TestTmManager:
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.tm_manager = TmManager(name="", skill_context=self.context_mock)
         self.tm_manager._max_reset_retry = 1
+        self.tm_manager.synchronized_data.max_participants = 3  # type: ignore
 
     def test_async_act(self) -> None:
         """Test the async_act method of the TmManager."""
+        self.tm_manager.act_wrapper()
         with pytest.raises(
             SystemExit,
         ):
@@ -2441,7 +2476,7 @@ class TestTmManager:
                 with pytest.raises(StopIteration):
                     next(gen)
                 set_block_stall_deadline_mock.assert_called_once()
-                assert not self.tm_manager.gentle_reset_attempted
+                assert self.tm_manager.gentle_reset_attempted
                 return
 
             if not acn_communication_success:
@@ -2455,6 +2490,61 @@ class TestTmManager:
                 next(gen)
 
             set_block_stall_deadline_mock.assert_not_called()
+            assert self.tm_manager.informed is True
+
+    @pytest.mark.parametrize(
+        "n_repetitions",
+        (
+            1,
+            2,
+            1000,
+        ),
+    )
+    def test_handle_unhealthy_tm_logging(self, n_repetitions: int) -> None:
+        """Verify if unintended logging repetition occurs during the execution of `_handle_unhealthy_tm`."""
+
+        self.tm_manager.gentle_reset_attempted = False
+        self.tm_manager.context.state.round_sequence.height = 10
+
+        def mock_sleep(_seconds: int) -> Generator:
+            """A method that mocks sleep."""
+            return
+            yield
+
+        def dummy_do_request(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_do_request` method."""
+            yield
+            return mock.MagicMock()
+
+        def dummy_get_status(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_get_status` method."""
+            yield
+            return mock.MagicMock(
+                body=json.dumps(
+                    {"result": {"sync_info": {"latest_block_height": 0}}}
+                ).encode()
+            )
+
+        with mock.patch.object(
+            self.tm_manager,
+            "reset_tendermint_with_wait",
+            side_effect=yield_and_return_bool_wrapper(True),
+        ), mock.patch.object(
+            self.tm_manager,
+            "num_active_peers",
+            side_effect=yield_and_return_int_wrapper(4),
+        ), mock.patch.object(
+            self.tm_manager, "sleep", side_effect=mock_sleep
+        ), mock.patch.object(
+            BaseBehaviour, "_do_request", new_callable=lambda *_: dummy_do_request
+        ), mock.patch.object(
+            BaseBehaviour, "_get_status", new_callable=lambda *_: dummy_get_status
+        ):
+            assert self.tm_manager.informed is False
+            for _ in range(n_repetitions):
+                gen = self.tm_manager._handle_unhealthy_tm()
+                next(gen)
+                assert self.tm_manager.informed is True
 
     @pytest.mark.parametrize(
         "expected_reset_params",
@@ -2576,7 +2666,7 @@ def test_base_behaviour_instantiation_without_attributes_raises_error() -> None:
 class TestIPFSBehaviour:
     """Test IPFSBehaviour tests."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Sets up the tests."""
         self.context_mock = MagicMock()
         self.context_mock.ipfs_dialogues = IpfsDialogues(

@@ -36,7 +36,7 @@ from tests.test_autonomy.test_images.base import BaseImageBuildTest
 
 @pytest.mark.skip(
     reason=(
-        "Temporary skip untile we figure out the volume size issue"
+        "Temporary skip untile we figure out the volume size issue "
         "https://forums.docker.com/t/error-response-from-daemon-error-creating-overlay-mount-to-var-lib-docker-overlay2-merged-no-such-file-or-directory-error-failed-to-start-containers-mydocker/123365"
     )
 )

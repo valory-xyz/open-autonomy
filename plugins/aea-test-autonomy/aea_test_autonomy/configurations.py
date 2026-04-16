@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test tools configuration."""
+
 import inspect
 import os
 from pathlib import Path
@@ -37,7 +38,7 @@ LOCALHOST = "localhost"
 HTTP_LOCALHOST = f"http://{LOCALHOST}"
 
 DEFAULT_IMAGE_VERSION = "latest"
-MATCHING_FRAMEWORK_VERSION = "0.11.0"
+MATCHING_FRAMEWORK_VERSION = "0.21.18"
 TENDERMINT_IMAGE_VERSION = os.environ.get(
     "TENDERMINT_IMAGE_VERSION", MATCHING_FRAMEWORK_VERSION
 )

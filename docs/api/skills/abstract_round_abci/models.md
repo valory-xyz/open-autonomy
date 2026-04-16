@@ -2,7 +2,7 @@
 
 # packages.valory.skills.abstract`_`round`_`abci.models
 
-This module contains the shared state for the price estimation ABCI application.
+This module contains the core models for all the ABCI apps.
 
 <a id="packages.valory.skills.abstract_round_abci.models.FrozenMixin"></a>
 
@@ -263,6 +263,26 @@ def __init__(*args: Any, skill_context: SkillContext, **kwargs: Any) -> None
 ```
 
 Initialize the state.
+
+<a id="packages.valory.skills.abstract_round_abci.models.SharedState.setup_slashing"></a>
+
+#### setup`_`slashing
+
+```python
+def setup_slashing(validator_to_agent: Dict[str, str]) -> None
+```
+
+Initialize the structures required for slashing.
+
+<a id="packages.valory.skills.abstract_round_abci.models.SharedState.get_validator_address"></a>
+
+#### get`_`validator`_`address
+
+```python
+def get_validator_address(agent_address: str) -> str
+```
+
+Get the validator address of an agent.
 
 <a id="packages.valory.skills.abstract_round_abci.models.SharedState.acn_container"></a>
 

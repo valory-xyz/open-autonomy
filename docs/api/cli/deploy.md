@@ -47,16 +47,31 @@ Deploy an agent service.
     help="Number of agents.",
 )
 @click.option(
+    "--number-of-services",
+    "number_of_services",
+    type=int,
+    default=1,
+    help="Number of services.",
+)
+@click.option(
+    "--localhost",
+    "deployment_type",
+    flag_value=HostDeploymentGenerator.deployment_type,
+    default=DockerComposeGenerator.deployment_type,
+    help="Use localhost as a backend.",
+)
+@click.option(
     "--docker",
     "deployment_type",
     flag_value=DockerComposeGenerator.deployment_type,
-    default=True,
-    help="Use docker as a backend.",
+    default=DockerComposeGenerator.deployment_type,
+    help="Use docker as a backend. (default)",
 )
 @click.option(
     "--kubernetes",
     "deployment_type",
     flag_value=KubernetesGenerator.deployment_type,
+    default=DockerComposeGenerator.deployment_type,
     help="Use kubernetes as a backend.",
 )
 @click.option(
@@ -79,11 +94,6 @@ Deploy an agent service.
     "--open-aea-dir",
     type=click.Path(),
     help="Path to open-aea repo (Use with dev mode)",
-)
-@click.option(
-    "--open-autonomy-dir",
-    type=click.Path(),
-    help="Path to open-autonomy repo (Use with dev mode)",
 )
 @click.option(
     "--aev",
@@ -114,28 +124,65 @@ Deploy an agent service.
 @click.option("--image-version",
               type=str,
               help="Define runtime image version.")
+@click.option(
+    "--agent-cpu-request",
+    type=float,
+    help="Set agent CPU usage request.",
+    default=DEFAULT_AGENT_CPU_REQUEST,
+)
+@click.option(
+    "--agent-memory-request",
+    type=int,
+    help="Set agent memory usage request.",
+    default=DEFAULT_AGENT_MEMORY_REQUEST,
+)
+@click.option(
+    "--agent-cpu-limit",
+    type=float,
+    help="Set agent CPU usage limit.",
+    default=DEFAULT_AGENT_CPU_LIMIT,
+)
+@click.option(
+    "--agent-memory-limit",
+    type=int,
+    help="Set agent memory usage limit.",
+    default=DEFAULT_AGENT_MEMORY_LIMIT,
+)
+@click.option(
+    "--mkdir",
+    type=str,
+    help="Directory names to create in the build directory.",
+    default=[],
+    multiple=True,
+)
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @image_author_option
 @click.pass_context
-def build_deployment_command(click_context: click.Context,
-                             keys_file: Optional[Path],
-                             deployment_type: str,
-                             output_dir: Optional[Path],
-                             dev_mode: bool,
-                             registry: str,
-                             number_of_agents: Optional[int] = None,
-                             password: Optional[str] = None,
-                             open_aea_dir: Optional[Path] = None,
-                             packages_dir: Optional[Path] = None,
-                             open_autonomy_dir: Optional[Path] = None,
-                             log_level: str = INFO,
-                             aev: bool = False,
-                             image_version: Optional[str] = None,
-                             use_hardhat: bool = False,
-                             use_acn: bool = False,
-                             use_tm_testnet_setup: bool = False,
-                             image_author: Optional[str] = None) -> None
+def build_deployment_command(
+        click_context: click.Context,
+        keys_file: Optional[Path],
+        deployment_type: str,
+        output_dir: Optional[Path],
+        dev_mode: bool,
+        registry: str,
+        mkdir: List[str],
+        number_of_agents: Optional[int] = None,
+        number_of_services: int = 1,
+        password: Optional[str] = None,
+        open_aea_dir: Optional[Path] = None,
+        packages_dir: Optional[Path] = None,
+        log_level: str = INFO,
+        aev: bool = False,
+        image_version: Optional[str] = None,
+        use_hardhat: bool = False,
+        use_acn: bool = False,
+        use_tm_testnet_setup: bool = False,
+        image_author: Optional[str] = None,
+        agent_cpu_limit: Optional[float] = None,
+        agent_memory_limit: Optional[int] = None,
+        agent_cpu_request: Optional[float] = None,
+        agent_memory_request: Optional[int] = None) -> None
 ```
 
 Build deployment setup for n agents.
@@ -149,6 +196,7 @@ Build deployment setup for n agents.
 @click.option(
     "--build-dir",
     type=click.Path(),
+    help="Path to the deployment build directory.",
 )
 @click.option(
     "--no-recreate",
@@ -162,10 +210,47 @@ Build deployment setup for n agents.
     default=False,
     help="Remove containers for services not defined in the Compose file.",
 )
-def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None
+@click.option(
+    "--detach",
+    is_flag=True,
+    default=False,
+    help="Run service in the background.",
+)
+@click.option(
+    "--localhost",
+    "deployment_type",
+    flag_value="localhost",
+    default="docker",
+    help="Use localhost as a backend.",
+)
+@click.option(
+    "--docker",
+    "deployment_type",
+    flag_value="docker",
+    help="Use docker as a backend. (default)",
+    default="docker",
+)
+def run(build_dir: Path, no_recreate: bool, remove_orphans: bool, detach: bool,
+        deployment_type: str) -> None
 ```
 
 Run deployment.
+
+<a id="autonomy.cli.deploy.stop"></a>
+
+#### stop
+
+```python
+@deploy_group.command(name="stop")
+@click.option(
+    "--build-dir",
+    type=click.Path(),
+    help="Path to the deployment build directory.",
+)
+def stop(build_dir: Path) -> None
+```
+
+Stop a running deployment.
 
 <a id="autonomy.cli.deploy.run_deployment_from_token"></a>
 
@@ -192,13 +277,14 @@ Run deployment.
     "--docker",
     "deployment_type",
     flag_value=DockerComposeGenerator.deployment_type,
-    default=True,
+    default=DockerComposeGenerator.deployment_type,
     help="Use docker as a backend.",
 )
 @click.option(
     "--kubernetes",
     "deployment_type",
     flag_value=KubernetesGenerator.deployment_type,
+    default=DockerComposeGenerator.deployment_type,
     help="Use kubernetes as a backend.",
 )
 @click.option(
@@ -206,20 +292,56 @@ Run deployment.
     is_flag=True,
     help="If set to true, the deployment won't run automatically",
 )
+@click.option(
+    "--detach",
+    is_flag=True,
+    default=False,
+    help="Run service in the background.",
+)
+@click.option(
+    "--agent-cpu-request",
+    type=float,
+    help="Set agent CPU usage request.",
+    default=DEFAULT_AGENT_CPU_REQUEST,
+)
+@click.option(
+    "--agent-memory-request",
+    type=int,
+    help="Set agent memory usage request.",
+    default=DEFAULT_AGENT_MEMORY_REQUEST,
+)
+@click.option(
+    "--agent-cpu-limit",
+    type=float,
+    help="Set agent CPU usage limit.",
+    default=DEFAULT_AGENT_CPU_LIMIT,
+)
+@click.option(
+    "--agent-memory-limit",
+    type=int,
+    help="Set agent memory usage limit.",
+    default=DEFAULT_AGENT_MEMORY_LIMIT,
+)
 @chain_selection_flag(
     help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 @password_option(confirmation_prompt=True)
-def run_deployment_from_token(click_context: click.Context,
-                              token_id: int,
-                              keys_file: Path,
-                              chain_type: ChainType,
-                              skip_image: bool,
-                              n: Optional[int],
-                              deployment_type: str,
-                              no_deploy: bool,
-                              aev: bool = False,
-                              password: Optional[str] = None) -> None
+def run_deployment_from_token(
+        click_context: click.Context,
+        token_id: int,
+        keys_file: Path,
+        chain_type: ChainType,
+        skip_image: bool,
+        n: Optional[int],
+        deployment_type: str,
+        no_deploy: bool,
+        detach: bool,
+        aev: bool = False,
+        password: Optional[str] = None,
+        agent_cpu_limit: Optional[float] = None,
+        agent_memory_limit: Optional[int] = None,
+        agent_cpu_request: Optional[float] = None,
+        agent_memory_request: Optional[int] = None) -> None
 ```
 
 Run service deployment.

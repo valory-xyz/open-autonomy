@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -38,7 +38,9 @@ from aea.protocols.generator.common import (
 )
 from google.protobuf.descriptor import FieldDescriptor
 
-from packages.valory.connections.abci.connection import PUBLIC_ID
+from packages.valory.connections.abci.connection import (
+    PUBLIC_ID,
+)
 from packages.valory.connections.abci.connection import (
     _TendermintProtocolDecoder as Decoder,
 )
@@ -53,7 +55,6 @@ from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type
 )
 from packages.valory.protocols import abci as valory_abci_protocol
 from packages.valory.protocols.abci import AbciMessage, custom_types
-
 
 Node = Dict[str, Any]
 
@@ -207,7 +208,7 @@ def _create_aea_type_tree(field: str) -> Any:
 
 
 def create_aea_abci_type_tree(
-    speech_acts: Dict[str, Dict[str, str]]
+    speech_acts: Dict[str, Dict[str, str]],
 ) -> Dict[str, Node]:
     """Create AEA-native ABCI type tree from the defined speech acts"""
 
@@ -356,7 +357,6 @@ def _get_message_content(message: Any) -> Node:
     #       but are retrieved as mapping from Tendermint side
 
     assert message.IsInitialized()
-    assert not message.UnknownFields()
     assert not message.FindInitializationErrors()
 
     # NOTE: ListFields does not retrieve what is empty!
@@ -406,7 +406,6 @@ def get_tendermint_content(envelope: Union[Request, Response]) -> Node:
 
     assert isinstance(envelope, (Request, Response))
     assert envelope.IsInitialized()
-    assert not envelope.UnknownFields()
     assert not envelope.FindInitializationErrors()
     assert len(envelope.ListFields()) == 1
     descr, message = envelope.ListFields()[0]

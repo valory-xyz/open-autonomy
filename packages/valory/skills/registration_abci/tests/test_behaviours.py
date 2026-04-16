@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import json
 import logging
 import time
 from contextlib import ExitStack, contextmanager
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, cast
 from unittest import mock
@@ -62,7 +63,6 @@ from packages.valory.skills.registration_abci.rounds import (
     Event,
     FinishedRegistrationRound,
 )
-
 
 PACKAGE_DIR = Path(__file__).parent.parent
 
@@ -119,9 +119,12 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
     @pytest.mark.parametrize(
         "setup_data, expected_initialisation",
         (
-            ({}, '{"0": {}}'),
-            ({"test": []}, '{"0": {}}'),
-            ({"test": [], "valid": [1, 2]}, '{"0": {"valid": [1, 2]}}'),
+            ({}, '{"db_data": {"0": {}}, "slashing_config": ""}'),
+            ({"test": []}, '{"db_data": {"0": {}}, "slashing_config": ""}'),
+            (
+                {"test": [], "valid": [1, 2]},
+                '{"db_data": {"0": {"valid": [1, 2]}}, "slashing_config": ""}',
+            ),
         ),
     )
     def test_registration(
@@ -173,15 +176,15 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     _time_in_future = datetime.datetime.now() + datetime.timedelta(hours=10)
     _time_in_past = datetime.datetime.now() - datetime.timedelta(hours=10)
 
-    def setup(self, **kwargs: Any) -> None:
+    def setup_method(self, **kwargs: Any) -> None:
         """Setup"""
-        super().setup(**kwargs)
+        super().setup_method(**kwargs)
         self.state.params.__dict__["sleep_time"] = 0.01
         self.state.params.__dict__["share_tm_config_on_startup"] = True
 
-    def teardown(self, **kwargs: Any) -> None:
+    def teardown_method(self, **kwargs: Any) -> None:
         """Teardown."""
-        super().teardown(**kwargs)
+        super().teardown_method(**kwargs)
         self.state.initial_tm_configs = {}
 
     @property
@@ -315,9 +318,11 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
 
     def mock_get_tendermint_info(self, *addresses: str) -> None:
         """Mock get Tendermint info"""
-        for _ in addresses:
+        for i in addresses:
             request_kwargs: Dict = dict()
-            info = json.dumps(DUMMY_VALIDATOR_CONFIG)
+            config = deepcopy(DUMMY_VALIDATOR_CONFIG)
+            config["address"] = str(config["address"]) + i
+            info = json.dumps(config)
             response_kwargs = dict(info=info)
             self.mock_tendermint_request(request_kwargs, response_kwargs)
         # give room to the behaviour to finish sleeping
@@ -527,7 +532,19 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.mock_is_correct_contract()
             self.mock_get_agent_instances(*self.agent_instances)
             self.mock_get_tendermint_info(*self.other_agents)
-            assert all(map(self.state.initial_tm_configs.get, self.other_agents))
+
+            initial_tm_configs = self.state.initial_tm_configs
+            validator_to_agent = (
+                self.state.context.state.round_sequence.validator_to_agent
+            )
+
+            assert all(map(initial_tm_configs.get, self.other_agents))
+            assert tuple(validator_to_agent.keys()) == tuple(
+                config["address"] for config in initial_tm_configs.values()
+            )
+            assert tuple(validator_to_agent.values()) == tuple(
+                initial_tm_configs.keys()
+            )
             log_message = self.state.LogMessages.collection_complete
             assert log_message.value in caplog.text
 

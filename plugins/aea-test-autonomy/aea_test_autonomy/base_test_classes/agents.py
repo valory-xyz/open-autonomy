@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401; pylint: disable=u
     UseLocalIpfs,
 )
 from web3 import Web3
-
 
 TERMINATION_TIMEOUT = 120
 _HTTP = "http://"
@@ -213,6 +212,10 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
             type_="int",
         )
         self.set_config(
+            "vendor.valory.connections.ledger.config.ledger_apis.ethereum.chain_id",
+            31337,
+        )
+        self.set_config(
             f"vendor.{skill.author}.skills.{skill.name}.models.params.args.service_registry_address",
             SERVICE_REGISTRY,  # address on registries image
             type_="str",
@@ -281,7 +284,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
 
     @staticmethod
     def __generate_full_strings_from_rounds(
-        happy_path: Tuple[RoundChecks, ...]
+        happy_path: Tuple[RoundChecks, ...],
     ) -> Dict[str, int]:
         """Generate the full strings from the given round strings"""
         full_strings = {}
@@ -486,6 +489,7 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
         for i in range(self.n_terminal):
             agent_name = self._get_agent_name(i)
             self.processes[i].terminate()
+            self.processes[i].wait()
             self.processes.pop(i)
             logging.info(f"Terminated {agent_name}")
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Analyse CLI module."""
+
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, cast
@@ -52,7 +53,6 @@ from autonomy.cli.utils.click_utils import (
     sys_path_patch,
 )
 from autonomy.deploy.constants import LOGGING_LEVELS
-
 
 TIME_FORMAT_TEMPLATE = "YYYY-MM-DD H:M:S,MS"
 BENCHMARKS_DIR = Path("./benchmarks.html")
@@ -233,7 +233,6 @@ def docstrings(ctx: Context, update: bool) -> None:
     "--fsm",
     "fsm_path",
     is_flag=True,
-    type=str,
     help="Print only the FSM execution path",
 )
 @click.option(
@@ -252,7 +251,7 @@ def docstrings(ctx: Context, update: bool) -> None:
     type=str,
     help="Regex pattern to exclude from the result.",
 )
-def _parse_logs(  # pylint: disable=too-many-arguments
+def _parse_logs(
     logs_dir: Optional[Path],
     agents: List[str],
     start_time: Optional[datetime],
@@ -443,12 +442,12 @@ def _check_service(
 
     if token_id is None and public_id is None:
         raise click.ClickException(
-            "Please provide either the public ID or the on-chain token ID of of the service"
+            "Please provide either the public ID or the on-chain token ID of the service"
         )
 
     if token_id is not None and public_id is not None:
         raise click.ClickException(
-            "Please provide either the public ID or the on-chain token ID of of the service, not both"
+            "Please provide either the public ID or the on-chain token ID of the service, not both"
         )
 
     check_service_readiness(

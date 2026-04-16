@@ -4,6 +4,28 @@
 
 Database schemas and helpers
 
+<a id="autonomy.analyse.logs.db.validate_sql_identifier"></a>
+
+#### validate`_`sql`_`identifier
+
+```python
+def validate_sql_identifier(identifier: str) -> str
+```
+
+Validate that an identifier is safe for use in SQL queries.
+
+**Arguments**:
+
+- `identifier`: The identifier to validate
+
+**Raises**:
+
+- `ValueError`: If the identifier is not safe
+
+**Returns**:
+
+The validated identifier
+
 <a id="autonomy.analyse.logs.db.AgentLogsDB"></a>
 
 ## AgentLogsDB Objects

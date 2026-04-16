@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
 
 """Test the models.py module of the skill."""
 
-
 from packages.valory.skills.abstract_round_abci.test_tools.base import DummyContext
 from packages.valory.skills.register_termination_abci.models import SharedState
 
@@ -28,7 +27,7 @@ from packages.valory.skills.register_termination_abci.models import SharedState
 class TestSharedState:  # pylint: disable=too-few-public-methods
     """Test SharedState(Model) class."""
 
-    def test_initialization(  # pylint: disable=no-self-use
+    def test_initialization(
         self,
     ) -> None:
         """Test initialization."""

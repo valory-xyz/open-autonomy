@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 """Test the rounds of the skill."""
 
 from copy import deepcopy
+from unittest.mock import MagicMock
 
 from packages.valory.skills.abstract_round_abci.base import BaseSynchronizedData
 from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
@@ -43,8 +44,8 @@ class BaseRoundTestClass(
     _event_class = Event
 
 
-class TestTerminationRound(BaseRoundTestClass):
-    """Tests for TerminationRound."""
+class TestRoundCountRound(BaseRoundTestClass):
+    """Tests for RoundCountRound."""
 
     def test_run(
         self,
@@ -53,6 +54,7 @@ class TestTerminationRound(BaseRoundTestClass):
 
         test_round = RoundCountRound(
             synchronized_data=deepcopy(self.synchronized_data),
+            context=MagicMock(),
         )
         payload_data = 1
         first_payload, *payloads = [

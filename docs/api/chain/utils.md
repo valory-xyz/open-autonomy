@@ -38,30 +38,12 @@ def parse_public_id_from_metadata(id_string: str) -> PublicId
 
 Parse public ID from on-chain metadata.
 
-<a id="autonomy.chain.utils.verify_component_dependencies"></a>
+<a id="autonomy.chain.utils.is_service_manager_token_compatible_chain"></a>
 
-#### verify`_`component`_`dependencies
-
-```python
-def verify_component_dependencies(ledger_api: LedgerApi,
-                                  contract_address: str,
-                                  dependencies: List[int],
-                                  package_configuration: PackageConfiguration,
-                                  skip_hash_check: bool = False) -> None
-```
-
-Verify package dependencies using on-chain metadata.
-
-<a id="autonomy.chain.utils.verify_service_dependencies"></a>
-
-#### verify`_`service`_`dependencies
+#### is`_`service`_`manager`_`token`_`compatible`_`chain
 
 ```python
-def verify_service_dependencies(ledger_api: LedgerApi,
-                                contract_address: str,
-                                agent_id: int,
-                                service_configuration: Service,
-                                skip_hash_check: bool = False) -> None
+def is_service_manager_token_compatible_chain(ledger_api: LedgerApi) -> bool
 ```
 
 Verify package dependencies using on-chain metadata.

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,24 +24,44 @@ import shutil
 from pathlib import Path
 from unittest import mock
 
+import click
+import pytest
 from aea.cli.fetch import NotAnAgentPackage
+from aea.cli.registry.settings import REMOTE_IPFS
 from aea.configurations.constants import (
+    AGENT,
     DEFAULT_README_FILE,
     DEFAULT_SERVICE_CONFIG_FILE,
 )
 from aea.configurations.loader import ConfigLoader
 from aea.helpers.base import cd
 from aea.helpers.io import open_file
+from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 
+from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
+from autonomy.cli.fetch import fetch as fetch_cmd
 from autonomy.cli.helpers.registry import IPFSTool
 from autonomy.configurations.base import Service
 
-from tests.conftest import ROOT_DIR
+from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.base import get_dummy_service_config
+from tests.test_autonomy.test_chain.base import BaseChainInteractionTest
 from tests.test_autonomy.test_cli.base import BaseCliTest, cli
 
-
 IPFS_REGISTRY = "/dns/registry.autonolas.tech/tcp/443/https"
+
+
+def test_fetch_package_type_defaults() -> None:
+    """Test fetch package type defaults are order-robust."""
+
+    package_type_options = [
+        parameter
+        for parameter in fetch_cmd.params
+        if isinstance(parameter, click.Option) and parameter.name == "package_type"
+    ]
+
+    assert len(package_type_options) == 2
+    assert all(option.default == AGENT for option in package_type_options)
 
 
 class FetchTest(BaseCliTest):
@@ -50,10 +70,10 @@ class FetchTest(BaseCliTest):
     packages_dir: Path
     package_type: str  # agent or service
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup class."""
 
-        super().setup()
+        super().setup_method()
 
         self.packages_dir = self.t / "packages"
         self.cli_options = (
@@ -86,7 +106,7 @@ class TestFetchAgentCommand(FetchTest):
         with mock.patch("autonomy.cli.fetch.do_fetch", side_effect=NotAnAgentPackage):
             result = self.run_cli(("--remote", "valory/counter"))
             assert result.exit_code == 1
-            assert expected in result.stdout
+            assert expected in result.stderr
 
 
 class TestFetchServiceCommand(FetchTest):
@@ -115,7 +135,7 @@ class TestFetchServiceCommand(FetchTest):
 
     def test_publish_and_fetch_service_ipfs(self) -> None:
         """Test fetch service."""
-        expected_hash = "bafybeicojucnpgeud7lmomfkppwbnxpnbtfwvqritalkzessfjbcze27re"
+        expected_hash = "bafybeiarzxv5yvg2ob6qtksqcig7xn46krq4np3v56la2a5rdxx2evy6ba"
 
         service_dir = self.t / "dummy_service"
         service_file = service_dir / DEFAULT_SERVICE_CONFIG_FILE
@@ -140,7 +160,7 @@ class TestFetchServiceCommand(FetchTest):
             result = self.cli_runner.invoke(cli, ["publish", "--remote"])
 
             assert result.exit_code == 0, result.output
-            assert expected_hash in result.output
+            assert expected_hash in result.stdout
 
         with mock.patch(
             "autonomy.cli.helpers.registry.get_default_remote_registry",
@@ -185,6 +205,9 @@ class TestFetchServiceCommand(FetchTest):
     ) -> None:
         """Test fetch service in mixed mode."""
         with mock.patch(
+            "autonomy.cli.helpers.registry.get_default_remote_registry",
+            return_value=REMOTE_IPFS,
+        ), mock.patch(
             "autonomy.cli.helpers.registry.fetch_service_local",
             side_effect=Exception("expected"),
         ) as fetch_local_mock, mock.patch(
@@ -221,3 +244,88 @@ class TestFetchServiceCommand(FetchTest):
                 "if you intend to download an agent please use "
                 "`--agent` flag or check the hash"
             ) in result.output
+
+
+@pytest.mark.integration
+@skip_docker_tests
+class TestFromToken(BaseChainInteractionTest):
+    """Test fetch from token id."""
+
+    package_type = "service"
+
+    default_ipfs_node_patch = mock.patch(
+        "autonomy.cli.helpers.registry.get_ipfs_node_multiaddr",
+        new=lambda: "/dns/registry.autonolas.tech/tcp/443/https",
+    )
+    ipfs_resolve_patch = mock.patch(
+        "autonomy.cli.helpers.deployment.resolve_component_id",
+        return_value={
+            "name": "valory/oracle_hardhat",
+            "description": "Oracle service.",
+            "code_uri": "ipfs://bafybeiansmhkoovd6jlnyurm2w4qzhpmi43gxlyenq33ioovy2rh4gziji",
+            "image": "bafybeiansmhkoovd6jlnyurm2w4qzhpmi43gxlyenq33ioovy2rh4gziji",
+            "attributes": [{"trait_type": "version", "value": "0.1.0"}],
+        },
+    )
+
+    def setup_method(self) -> None:
+        """Setup the test."""
+        super().setup_method()
+
+        self.packages_dir = self.t / "packages"
+        self.cli_options = ("fetch", "1")
+
+        shutil.copytree(ROOT_DIR / "packages", self.packages_dir)
+        os.chdir(self.t)
+
+    def test_from_token(self) -> None:
+        """Run test."""
+
+        service_dir = self.t / "service"
+        service_dir.mkdir()
+
+        service_file = service_dir / "service.yaml"
+        service_file.write_text(
+            (
+                ROOT_DIR
+                / "tests"
+                / "data"
+                / "dummy_service_config_files"
+                / "service_0.yaml"
+            ).read_text()
+        )
+
+        with mock.patch(
+            "autonomy.cli.fetch.fetch_service_ipfs",
+            return_value=service_dir,
+        ), self.default_ipfs_node_patch, self.ipfs_resolve_patch:
+            result = self.run_cli()
+
+            assert result.exit_code == 0, result.stdout
+            assert "Service name: valory/oracle_hardhat" in result.stdout
+
+    def test_fail_on_chain_resolve_connection_error(self) -> None:
+        """Run test."""
+
+        with self.default_ipfs_node_patch, self.ipfs_resolve_patch, mock.patch(
+            "autonomy.cli.helpers.deployment.resolve_component_id",
+            side_effect=FailedToRetrieveComponentMetadata(
+                "Error connecting RPC endpoint"
+            ),
+        ):
+            result = self.run_cli()
+
+            assert result.exit_code == 1, result.stdout
+            assert "Error connecting RPC endpoint" in result.stderr, result.output
+
+    def test_fail_on_chain_resolve_bad_contract_call(self) -> None:
+        """Run test."""
+
+        with self.default_ipfs_node_patch, self.ipfs_resolve_patch, mock.patch(
+            "autonomy.cli.helpers.deployment.resolve_component_id",
+            side_effect=Exception,
+        ):
+            result = self.run_cli()
+
+            assert result.exit_code == 1, result.stdout
+            assert "Cannot find the service registry deployment;" in result.stderr

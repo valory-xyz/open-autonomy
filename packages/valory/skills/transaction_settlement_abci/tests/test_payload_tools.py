@@ -67,7 +67,7 @@ class TestTxHistPayloadEncodingDecoding:
     @staticmethod
     @pytest.mark.parametrize(
         "payload",
-        ("0000000000000000000000000000000000000000000000000000000000000007", ""),
+        ("0000000000000000000000000000000000000000000000000000000000000008", ""),
     )
     def test_invalid_payloads_during_deserialization(payload: str) -> None:
         """Test decoding payload is invalid."""
@@ -92,7 +92,9 @@ def test_payload_to_hex_and_back(use_flashbots: bool) -> None:
         safe_gas_price=0,
         gas_token=NULL_ADDRESS,
         use_flashbots=use_flashbots,
+        gas_limit=0,
         refund_receiver=NULL_ADDRESS,
+        raise_on_failed_simulation=False,
     )
 
     intermediate = hash_payload_to_hex(**tx_params)  # type: ignore

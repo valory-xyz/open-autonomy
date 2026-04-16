@@ -1,0 +1,21 @@
+alphabet_in:
+- DONE
+- ERROR
+- NO_MAJORITY
+- ROUND_TIMEOUT
+default_start_state: IdentifyServiceOwnerRound
+final_states:
+- FinishedIdentifyServiceOwnerErrorRound
+- FinishedIdentifyServiceOwnerRound
+label: IdentifyServiceOwnerAbciApp
+start_states:
+- IdentifyServiceOwnerRound
+states:
+- FinishedIdentifyServiceOwnerErrorRound
+- FinishedIdentifyServiceOwnerRound
+- IdentifyServiceOwnerRound
+transition_func:
+    (IdentifyServiceOwnerRound, DONE): FinishedIdentifyServiceOwnerRound
+    (IdentifyServiceOwnerRound, ERROR): FinishedIdentifyServiceOwnerErrorRound
+    (IdentifyServiceOwnerRound, NO_MAJORITY): IdentifyServiceOwnerRound
+    (IdentifyServiceOwnerRound, ROUND_TIMEOUT): IdentifyServiceOwnerRound

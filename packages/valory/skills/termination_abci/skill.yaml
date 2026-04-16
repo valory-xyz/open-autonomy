@@ -4,33 +4,33 @@ version: 0.1.0
 type: skill
 description: Termination skill.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
-  __init__.py: bafybeidztixckwwbn4ujl6kkvghgsk23xecbgnbiw3e4t3owxldhyjo3au
-  behaviours.py: bafybeidl5q5fenawxaze2crv3h3nhsjkyylxihsmn67o6dhvdd35wj6mpe
-  dialogues.py: bafybeif7uhfjkcz3ryhti6gafqxhvciw4ec5bdshxvq3355tun5ydkzrna
-  handlers.py: bafybeibh5b3p4bdvbnwiqwormduqjvuievylb3s2wgj4ald4led7gx2kji
-  models.py: bafybeif5qygu6bdgsxv53sqoty76vgp3afib6e6fmykofrgnlcubmg4cd4
+  __init__.py: bafybeibgcuyc7kml7jddd4bmt3wfgeeszmz67iadf2joh45h3fzz2xxrue
+  behaviours.py: bafybeidxmgorumlm6nfcu3xumxuly7q3k5klwn6cs27hyxzl6m4mcsnihq
+  dialogues.py: bafybeiat3bcaov7ekmjzezczjyk2ux5ctvy4i6bcmwnyz7wprkd5xdnqca
+  handlers.py: bafybeihgd27xy5w2tb3fxvbk2bceymcmsbfcv2dww2vzdllod4tz6a5mcq
+  models.py: bafybeidpmdfwfamuopkhznkouzx5ver35mc64l2menzugwiuicqiyqwuby
   payloads.py: bafybeihbwfunongkws5lck67sdgpnytq6bdbiv22yuehmyfth4qeypjcpa
-  rounds.py: bafybeifj7xjobumi7l2vwfdzeqfqdlrcn7oq2vy46tzakketgipxwgh3nu
+  rounds.py: bafybeidvmyb7jxj7l4tqky6txr42jqr7x36w5mvi266ajxp52mv2hbnm3a
   tests/__init__.py: bafybeigsjjibb2gcybzp5yrsy25vyiu54rw6oaeyw5onaqemsvul7bmroi
-  tests/test_behaviours.py: bafybeibkogjosxk6ktneru5ddgzguuiw2wuvx2n63d3rpyqhoy7llnoc5i
-  tests/test_dialogues.py: bafybeicb6gfanfyt3wiq3svdlvtxiuzpk72oxp7cfdeq4ezed7ixee5yae
-  tests/test_handlers.py: bafybeiefz2ebr5rlyxziwr4bts2r75abpqgji3k47a6hnrj7e7t2yvgmpu
-  tests/test_models.py: bafybeih5wtdjuv4hc25fxneeg7mgjiks55xj353zxfamvtrthkw2ydmbbe
-  tests/test_payloads.py: bafybeibai4dzjjdeyeinyirjndcfzbj2qst6roj6prjvcqwut5m3won3fa
-  tests/test_rounds.py: bafybeid57gov7piwazxot7qfpjtptkgw24xv67nbdpasqr7pdcwoa7eiea
+  tests/test_behaviours.py: bafybeidjjgp36tgclvlsrkdzhpf5ukf55yhbejmgfsfldrq5nta2zx5xxm
+  tests/test_dialogues.py: bafybeiebrigfukrzywuoxtu6vpg2unypkamqrhsagz7e6vhqssg4rmwmkq
+  tests/test_handlers.py: bafybeif4kyxb37elmsqnw5fnynh5pxgzjjvuu2xfuueaivg3lkxjvvvg5q
+  tests/test_models.py: bafybeihqq3mmrsatitj6ddb6wwsnrbpk4szjj777ordwkea5tjpoogekua
+  tests/test_payloads.py: bafybeibzoenazcn2tltxyswrweg7rbgeqoh63gqev34ph2suha66m4fkwy
+  tests/test_rounds.py: bafybeichkzun34algm6k63luirdqy5nh3uri5jqtgaqphz6h2ptz6k4t7u
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeigaeon5qhgdwhduw4wtjt7x7o3hpz62aifr5a7522ynll3nps3qnm
-- valory/multisend:0.1.0:bafybeiemglycsigpsf2f6ohfdlsha7w6lrc5nmhlydmocna4apa7b4cqcq
-- valory/service_registry:0.1.0:bafybeihi2tfcf4l7j6tzwb6vptrctkj57zye2oqxmyfwxc4u7gb2v3fmwa
+- valory/gnosis_safe:0.1.0:bafybeicm3rxjpqc4kcjmxoj5ixqfzu6jn4alalyn3xuqxa5y2g22kpp72m
+- valory/multisend:0.1.0:bafybeihx7c3xj6c5v4tgvu3ipnj7seyc4dkmovoyzu4isgbwdrhj2oo6uq
+- valory/service_registry:0.1.0:bafybeib6lrxpbhsrg32bueif53vnb3xecyjxzk6rhd2t2xot27qtbeyvjm
 protocols:
-- valory/contract_api:1.0.0:bafybeiasywsvax45qmugus5kxogejj66c5taen27h4voriodz7rgushtqa
+- valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeicyy4g3x6ol6x2ayzcdkg2wstubqecp6ycgo6f2c2bhjnhwdjs3qa
-- valory/transaction_settlement_abci:0.1.0:bafybeic7vatd3um6en3fqdxpbdsdq4n2zdqf3c4m5cs2r73ag5pbgdohoe
+- valory/abstract_round_abci:0.1.0:bafybeihgbc5geup3ljdfgyontr2p5e4myxjkthaplm5ei727uw2pawstcy
+- valory/transaction_settlement_abci:0.1.0:bafybeic6f4ujckiutqxueagohb5iv7kgzpamhuhiq7shn6fmiwbkt3cqny
 behaviours:
   main:
     args: {}
@@ -105,6 +105,7 @@ models:
       ipfs_domain_name: null
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
+      light_slash_unit_amount: 5000000000000000
       max_attempts: 10
       max_healthcheck: 120
       multisend_address: '0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761'
@@ -116,18 +117,23 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
+      serious_slash_unit_amount: 8000000000000000
       service_id: termination_abci
       service_registry_address: '0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA'
       setup: {}
       share_tm_config_on_startup: false
+      slash_cooldown_hours: 3
+      slash_threshold_amount: 10000000000000000
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
+      termination_from_block: 0
       termination_sleep: 900
       tx_timeout: 10.0
+      use_slashing: false
       use_termination: false
       validate_timeout: 1205
     class_name: TerminationParams
@@ -146,3 +152,4 @@ models:
 dependencies:
   hexbytes: {}
 is_abstract: true
+customs: []

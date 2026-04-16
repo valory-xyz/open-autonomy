@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ from hypothesis import settings
 
 from packages.valory.skills.abstract_round_abci.io_.store import StoredJSONType
 from packages.valory.skills.abstract_round_abci.models import MIN_RESET_PAUSE_DURATION
-
 
 # pylint: skip-file
 
@@ -108,4 +107,9 @@ irrelevant_config = {
     "setup": {},
     "genesis_config": irrelevant_genesis_config,
     "use_termination": False,
+    "use_slashing": False,
+    "slash_cooldown_hours": 3,
+    "slash_threshold_amount": 10_000_000_000_000_000,
+    "light_slash_unit_amount": 5_000_000_000_000_000,
+    "serious_slash_unit_amount": 8_000_000_000_000_000,
 }
