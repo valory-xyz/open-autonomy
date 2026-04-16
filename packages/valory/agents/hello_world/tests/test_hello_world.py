@@ -154,6 +154,50 @@ class TestHelloWorldABCIFourAgentsTwoAgentRestarting(BaseHelloWorldABCITestCatch
     n_terminal = 2
 
 
+@pytest.mark.e2e
+@pytest.mark.parametrize("nb_nodes", (1,))
+class TestHelloWorldABCISingleAgentMock(BaseHelloWorldABCITest):
+    """Test the hello_world_abci skill with one agent using the mock Tendermint channel."""
+
+    USE_MOCK = True
+    MOCK_RPC_PORT = 26657
+
+    @pytest.fixture(autouse=True)
+    def _start_tendermint(self, *args, **kwargs):  # type: ignore
+        """Override to skip Docker-based Tendermint setup."""
+        self.tendermint_port = self.MOCK_RPC_PORT  # type: ignore
+
+    @property
+    def p2p_seeds(self):  # type: ignore
+        """No p2p seeds needed for mock."""
+        return []
+
+    def get_node_name(self, i):  # type: ignore
+        """Get the node's name."""
+        return f"node{i}"
+
+    def get_abci_port(self, i):  # type: ignore
+        """Get the ABCI port (unused by mock, but needed for config)."""
+        return 26658 + i * 10
+
+    def get_port(self, i):  # type: ignore
+        """Get the RPC port — this is where the mock HTTP server listens."""
+        return self.MOCK_RPC_PORT + i * 10
+
+    def get_com_port(self, i):  # type: ignore
+        """Get the COM port (unused by mock, mock returns 200 for reset endpoints)."""
+        return self.MOCK_RPC_PORT + i * 10
+
+    def get_laddr(self, i, p2p=False):  # type: ignore
+        """Get the listen address."""
+        if p2p:
+            return f"tcp://localhost:{26656 + i * 10}"
+        return f"tcp://localhost:{self.get_port(i)}"
+
+    def health_check(self, **kwargs):  # type: ignore
+        """Skip health check — mock starts with the agent."""
+
+
 @pytest.mark.skip(reason="https://github.com/valory-xyz/open-autonomy/issues/1709")
 @pytest.mark.parametrize("nb_nodes", (1,))
 class TestHelloWorldABCISingleAgentGrpc(

@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 """Connection to interact with an ABCI server."""
 import asyncio
+import hashlib
 import json
 import logging
 import os
@@ -29,7 +30,9 @@ from io import BytesIO
 from logging import Logger
 from pathlib import Path
 from threading import Event, Thread
+from time import time as time_
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from urllib.parse import urlparse
 
 import grpc
 from aea.configurations.base import PublicId
@@ -84,7 +87,18 @@ from packages.valory.connections.abci.tendermint_encoder import (
     _TendermintProtocolEncoder,
 )
 from packages.valory.protocols.abci import AbciMessage
+from packages.valory.protocols.abci.custom_types import (
+    BlockID,
+    ConsensusVersion,
+    Evidences,
+    Header,
+    LastCommitInfo,
+    PartSetHeader,
+    Timestamp,
+    ValidatorUpdates,
+)
 
+from aiohttp import web as aiohttp_web  # type: ignore
 
 PUBLIC_ID = PublicId.from_str("valory/abci:0.1.0")
 
@@ -1036,34 +1050,51 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
 
 
 class MockServerChannel:  # pylint: disable=too-many-instance-attributes
-    """Mock server channel to handle local round-trips, mocking Tendermint behaviour."""
+    """Mock server channel that acts as a drop-in replacement for Tendermint in single-agent services.
+
+    Simulates both the ABCI block lifecycle (Channel 1) and the Tendermint RPC HTTP interface (Channel 2).
+    """
+
+    DEFAULT_BLOCK_TIME = 1.0
 
     def __init__(
         self,
         target_skill_id: PublicId = PUBLIC_ID,
-        address: str = "local",
-        port: int = -1,
+        rpc_host: str = LOCALHOST,
+        rpc_port: int = DEFAULT_RPC_PORT,
         logger: Optional[Logger] = None,
+        block_time: float = DEFAULT_BLOCK_TIME,
     ):
         """
         Initialize the mock server.
 
-        It's effectively a queue wrapped in the same interface as the other servers.
-
         :param target_skill_id: the public id of the target skill.
-        :param address: the listen address.
-        :param port: the port to listen from.
+        :param rpc_host: the host for the mock RPC HTTP server.
+        :param rpc_port: the port for the mock RPC HTTP server.
         :param logger: the logger.
+        :param block_time: time between blocks in seconds.
         """
         self.target_skill_id = target_skill_id
-        self.address = address
-        self.port = port
+        self.rpc_host = rpc_host
+        self.rpc_port = rpc_port
         self.logger = logger or logging.getLogger()
+        self.block_time = block_time
 
         # channel state
         self._dialogues = AbciDialogues(connection_id=PUBLIC_ID)
         self._is_stopped: bool = True
-        self.queue: Optional[asyncio.Queue] = None
+        self._loop: Optional[AbstractEventLoop] = None
+
+        # ABCI block production state
+        self._request_queue: Optional[asyncio.Queue] = None
+        self._response_future: Optional[asyncio.Future] = None
+        self._height: int = 0
+        self._mempool: List[bytes] = []
+        self._delivered_txs: Dict[str, bool] = {}
+        self._block_producer_task: Optional[Task] = None
+
+        # mock RPC HTTP server
+        self._rpc_runner: Optional[aiohttp_web.AppRunner] = None
 
     @property
     def is_stopped(self) -> bool:
@@ -1072,40 +1103,275 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
 
     async def connect(self, loop: AbstractEventLoop) -> None:
         """
-        Connect.
+        Connect the channel.
 
-        Upon TCP Channel connection, start the TCP Server asynchronously.
+        Starts the mock RPC HTTP server and the block production coroutine.
 
-        :param loop: asyncio event loop
+        :param loop: asyncio event loop.
         """
         if not self._is_stopped:  # pragma: nocover
             return
         self._is_stopped = False
-        self.queue = asyncio.Queue()
+        self._loop = loop
+        self._request_queue = asyncio.Queue()
+        self._mempool = []
+        self._delivered_txs = {}
+        self._height = 0
+
+        # start mock RPC HTTP server
+        app = aiohttp_web.Application()
+        app.router.add_get("/broadcast_tx_sync", self._handle_broadcast_tx)
+        app.router.add_get("/tx", self._handle_tx_query)
+        app.router.add_get("/status", self._handle_status)
+        app.router.add_get("/net_info", self._handle_net_info)
+        app.router.add_get("/hard_reset", self._handle_reset)
+        app.router.add_get("/gentle_reset", self._handle_reset)
+        self._rpc_runner = aiohttp_web.AppRunner(app)
+        await self._rpc_runner.setup()
+        site = aiohttp_web.TCPSite(self._rpc_runner, self.rpc_host, self.rpc_port)
+        await site.start()
+        self.logger.info(
+            f"Mock Tendermint RPC server started on {self.rpc_host}:{self.rpc_port}"
+        )
+
+        # start block production
+        self._block_producer_task = loop.create_task(self._produce_blocks())
 
     async def disconnect(self) -> None:
-        """Disconnect the channel"""
+        """Disconnect the channel."""
         if self.is_stopped:  # pragma: nocover
             return
         self._is_stopped = True
-        self.queue = None
+
+        if self._block_producer_task is not None:
+            self._block_producer_task.cancel()
+            try:
+                await self._block_producer_task
+            except (CancelledError, Exception):  # pylint: disable=broad-except
+                pass
+            self._block_producer_task = None
+
+        if self._rpc_runner is not None:
+            await self._rpc_runner.cleanup()
+            self._rpc_runner = None
+
+        # unblock any pending _send_and_wait
+        if self._response_future is not None and not self._response_future.done():
+            self._response_future.cancel()
+        self._request_queue = None
 
     async def get_message(self) -> Envelope:
-        """Get a message from the queue."""
-        # TOCHECK might have to swap to/from?
-        # TOCHECK do we need to update some dialogue?
-        return await cast(asyncio.Queue, self.queue).get()
+        """Get an ABCI request message to deliver to the skill handler."""
+        return await cast(asyncio.Queue, self._request_queue).get()
 
     async def send(self, envelope: Envelope) -> None:
-        """Send a message."""
-        self.logger = cast(Logger, self.logger)
-        message = cast(AbciMessage, envelope.message)
-        dialogue = self._dialogues.update(message)
-        if dialogue is None:  # pragma: nocover
-            self.logger.warning(f"Could not create dialogue for message={message}")
+        """
+        Receive a response from the skill handler.
+
+        Resolves the pending future so the block producer can proceed.
+
+        :param envelope: the response envelope.
+        """
+        if self._response_future is not None and not self._response_future.done():
+            self._response_future.set_result(envelope)
+
+    # --- ABCI block production ---
+
+    async def _send_and_wait(
+        self, performative: AbciMessage.Performative, **kwargs: Any
+    ) -> Envelope:
+        """
+        Create an ABCI request, enqueue it, and wait for the handler's response.
+
+        :param performative: the ABCI request performative.
+        :param kwargs: fields for the ABCI message.
+        :return: the response envelope.
+        """
+        msg, _dialogue = self._dialogues.create(
+            performative=performative,
+            counterparty=str(self.target_skill_id),
+            **kwargs,
+        )
+        msg = cast(AbciMessage, msg)
+        envelope = Envelope(to=msg.to, sender=msg.sender, message=msg)
+        self._response_future = self._loop.create_future()  # type: ignore
+        await cast(asyncio.Queue, self._request_queue).put(envelope)
+        return await self._response_future
+
+    def _now_timestamp(self) -> Timestamp:
+        """Get the current time as a Timestamp."""
+        now = time_()
+        seconds = int(now)
+        nanos = int((now - seconds) * 1_000_000_000)
+        return Timestamp(seconds, nanos)
+
+    def _make_header(self, height: int) -> Header:
+        """Build a minimal block header."""
+        return Header(
+            ConsensusVersion(0, 0),
+            "mock",
+            height,
+            self._now_timestamp(),
+            BlockID(b"", PartSetHeader(0, b"")),
+            *(b"",) * 9,
+        )
+
+    async def _produce_blocks(self) -> None:
+        """Run the ABCI block lifecycle: info, init_chain, then block loop."""
+        try:
+            # startup handshake
+            await self._send_and_wait(
+                AbciMessage.Performative.REQUEST_INFO,
+                version="",
+                block_version=0,
+                p2p_version=0,
+            )
+            await self._send_and_wait(
+                AbciMessage.Performative.REQUEST_INIT_CHAIN,
+                time=self._now_timestamp(),
+                chain_id="mock",
+                validators=ValidatorUpdates([]),
+                app_state_bytes=b"",
+                initial_height=1,
+            )
+
+            # block production loop
+            while not self._is_stopped:
+                self._height += 1
+                header = self._make_header(self._height)
+
+                await self._send_and_wait(
+                    AbciMessage.Performative.REQUEST_BEGIN_BLOCK,
+                    hash=b"",
+                    header=header,
+                    last_commit_info=LastCommitInfo(0, []),
+                    byzantine_validators=Evidences([]),
+                )
+
+                # deliver pending transactions
+                pending = list(self._mempool)
+                self._mempool.clear()
+                for tx_bytes in pending:
+                    tx_hash = hashlib.sha256(tx_bytes).hexdigest().upper()
+                    await self._send_and_wait(
+                        AbciMessage.Performative.REQUEST_DELIVER_TX,
+                        tx=tx_bytes,
+                    )
+                    self._delivered_txs[tx_hash] = True
+
+                await self._send_and_wait(
+                    AbciMessage.Performative.REQUEST_END_BLOCK,
+                    height=self._height,
+                )
+                await self._send_and_wait(
+                    AbciMessage.Performative.REQUEST_COMMIT,
+                )
+
+                await asyncio.sleep(self.block_time)
+        except CancelledError:
             return
-        self.logger.debug(f"Adding dialogue to queue: {dialogue.incomplete_dialogue_label}")
-        await cast(asyncio.Queue, self.queue).put(envelope)
+        except Exception as e:  # pylint: disable=broad-except
+            self.logger.error(f"Mock block producer error: {type(e).__name__}: {e}")
+
+    # --- Mock Tendermint RPC HTTP handlers ---
+
+    async def _handle_broadcast_tx(
+        self, request: aiohttp_web.Request
+    ) -> aiohttp_web.Response:
+        """Handle /broadcast_tx_sync — accept a transaction into the mempool."""
+        tx_param = request.query.get("tx", "")
+        if tx_param.startswith("0x"):
+            tx_param = tx_param[2:]
+        tx_bytes = bytes.fromhex(tx_param)
+        tx_hash = hashlib.sha256(tx_bytes).hexdigest().upper()
+        self._mempool.append(tx_bytes)
+        body = json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": "",
+                "result": {
+                    "hash": tx_hash,
+                    "code": 0,
+                    "data": "",
+                    "log": "",
+                    "codespace": "",
+                },
+            }
+        )
+        return aiohttp_web.Response(text=body, content_type="application/json")
+
+    async def _handle_tx_query(
+        self, request: aiohttp_web.Request
+    ) -> aiohttp_web.Response:
+        """Handle /tx?hash=0x... — check if a transaction has been delivered."""
+        raw_hash = request.query.get("hash", "")
+        if raw_hash.startswith("0x"):
+            raw_hash = raw_hash[2:]
+        tx_hash = raw_hash.upper()
+        if tx_hash in self._delivered_txs:
+            body = json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "",
+                    "result": {
+                        "hash": tx_hash,
+                        "tx_result": {"code": 0, "log": "", "data": ""},
+                    },
+                }
+            )
+            return aiohttp_web.Response(text=body, content_type="application/json")
+        # tx not found yet
+        body = json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": "",
+                "error": {
+                    "code": -32603,
+                    "message": "Internal error",
+                    "data": f"tx ({tx_hash}) not found",
+                },
+            }
+        )
+        return aiohttp_web.Response(
+            status=200, text=body, content_type="application/json"
+        )
+
+    async def _handle_status(
+        self, _request: aiohttp_web.Request
+    ) -> aiohttp_web.Response:
+        """Handle /status — return current block height for sync checks."""
+        body = json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": "",
+                "result": {
+                    "sync_info": {
+                        "latest_block_height": str(self._height),
+                    }
+                },
+            }
+        )
+        return aiohttp_web.Response(text=body, content_type="application/json")
+
+    async def _handle_net_info(
+        self, _request: aiohttp_web.Request
+    ) -> aiohttp_web.Response:
+        """Handle /net_info — return minimal valid response."""
+        body = json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": "",
+                "result": {"n_peers": "0", "peers": []},
+            }
+        )
+        return aiohttp_web.Response(text=body, content_type="application/json")
+
+    async def _handle_reset(
+        self, _request: aiohttp_web.Request
+    ) -> aiohttp_web.Response:
+        """Handle /hard_reset and /gentle_reset — no-op for single-agent mock."""
+        body = json.dumps({"status": True, "message": "mock reset"})
+        return aiohttp_web.Response(text=body, content_type="application/json")
 
 
 class StoppableThread(
@@ -1402,9 +1668,25 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
                 logger=self.logger,
             )
         else:
+            # parse RPC address from tendermint_config for the mock HTTP server
+            tendermint_config = self.configuration.config.get("tendermint_config", {})
+            rpc_laddr = cast(
+                str,
+                tendermint_config.get("rpc_laddr", DEFAULT_RPC_LISTEN_ADDRESS),
+            )
+            # rpc_laddr is in the format "tcp://host:port"
+            rpc_laddr_clean = rpc_laddr.replace(_TCP, "http://")
+            parsed = urlparse(rpc_laddr_clean)
+            rpc_host = parsed.hostname or LOCALHOST
+            rpc_port = parsed.port or DEFAULT_RPC_PORT
             self.channel = MockServerChannel(
+                target_skill_id=self.target_skill_id,
+                rpc_host=rpc_host,
+                rpc_port=rpc_port,
                 logger=self.logger,
             )
+            # mock replaces Tendermint, no need to start the real node
+            self.use_tendermint = False
 
     def _process_connection_params(self) -> None:
         """

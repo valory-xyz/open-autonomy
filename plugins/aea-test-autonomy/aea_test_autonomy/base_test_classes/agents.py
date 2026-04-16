@@ -103,6 +103,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
     ledger_id: str = "ethereum"
     key_file_name: str = "ethereum_private_key.txt"
     USE_GRPC = False
+    USE_MOCK = False
     # usually test envs provide the full set of dependencies; only select
     # when you want to run the installation of the packages as part of the test case.
     RUN_AEA_INSTALL = False
@@ -153,6 +154,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
             False,
         )
         self.set_config("vendor.valory.connections.abci.config.use_grpc", self.USE_GRPC)
+        self.set_config("vendor.valory.connections.abci.config.use_mock", self.USE_MOCK)
         self.set_config(
             "vendor.valory.connections.abci.config.tendermint_config.rpc_laddr",
             self.get_laddr(i),
