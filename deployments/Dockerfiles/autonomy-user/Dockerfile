@@ -3,7 +3,7 @@ FROM python:3.14-slim-trixie AS base
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-RUN apt-get update -y && apt-get install gcc git make libssl-dev libffi-dev -y && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -y && apt-get install gcc git make pkg-config libssl-dev libffi-dev libudev-dev libusb-1.0-0-dev -y && rm -rf /var/lib/apt/lists/*
 
 # Install library dependencies into our venv
 RUN python3 -m venv $VIRTUAL_ENV
