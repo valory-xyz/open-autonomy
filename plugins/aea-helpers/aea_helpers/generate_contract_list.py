@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
@@ -18,10 +17,11 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Script to generate a markdown package table."""
+"""Script to generate a markdown contract addresses table."""
 
 from pathlib import Path
 
+import click
 import requests
 
 DOC_FILE = "docs/advanced_reference/on_chain_addresses.md"
@@ -53,7 +53,7 @@ BLOCKSCAN_URLS = {
 
 
 def to_title(string: str) -> str:
-    """Convert camelCase to snake_case."""
+    """Convert camelCase to Title Case with spaces."""
     _string = string[0].upper()
     for char in string[1:]:
         if char.islower():
@@ -94,5 +94,7 @@ def main() -> None:
     Path(DOC_FILE).write_text(data, encoding="utf-8")
 
 
-if __name__ == "__main__":
+@click.command(name="generate-contract-list")
+def generate_contract_list() -> None:
+    """Generate the on-chain contract addresses markdown file."""
     main()

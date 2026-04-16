@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ from setuptools import find_packages  # type: ignore
 from setuptools import setup  # type: ignore
 
 base_deps = [
-    "open-aea[all]>=2.1.0,<3.0.0",
+    "open-aea[all]>=2.2.0,<3.0.0",
     "pytest==8.4.2",
-    "open-aea-ledger-ethereum>=2.1.0,<3.0.0",
+    "open-aea-ledger-ethereum>=2.2.0,<3.0.0",
     "docker==7.1.0",
 ]
 

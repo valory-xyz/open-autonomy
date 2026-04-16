@@ -14,8 +14,8 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeigjmetusztbj3ikgsimj55rc3nn6m2j6ns6ciew5twjtgip2axdme
 - valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
-- valory/ipfs:0.1.0:bafybeib44s5rdz5xwzwuncm2gwo6zvqsy6yefvbf5znmjc4mw3goql23ha
-- valory/ledger:0.19.0:bafybeid5uwx4uqxkiibw6kazr7my5mk5kcqg2dx2owtcf7kcpbs2jrns2e
+- valory/ipfs:0.1.0:bafybeiddxbjccmzkknny5pbfupxgexp4w4pwiu2rny4a6vnlxwqs3mmfo4
+- valory/ledger:0.19.0:bafybeidqf5dmueqm655z3bkw36mviobpcpuek4bhha7iq2nnz6sfu32kva
 - valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts: []
 protocols:
@@ -25,9 +25,9 @@ protocols:
 - valory/ipfs:0.1.0:bafybeibz5xqhxdbuvba7nuw2w6ardjermtcoqercopnypdplnaekf3joam
 skills:
 - valory/abstract_abci:0.1.0:bafybeict6h3wfmddpvam5gmmanqzuokup6ppoev3t4j5uyl7xxahjaols4
-- valory/abstract_round_abci:0.1.0:bafybeihygetmlgnhawrbyswvpvv3wpztr2hlhxkljmohp4r7qcmvglpwdq
-- valory/register_reset_recovery_abci:0.1.0:bafybeihexe2fu23kzcmw3glv25fh6senwjputuhvdu27tsnhtxmp2c7poi
-- valory/registration_abci:0.1.0:bafybeif3gpewppz5wr5mmgyvaowsamjufyons3oif7cb4x5ubvvfb6rtda
+- valory/abstract_round_abci:0.1.0:bafybeichogyngiqtdrojdbnqvhyoeumw2way3ykg64sqgdom73zq5f2yqq
+- valory/register_reset_recovery_abci:0.1.0:bafybeignkfnpwbk5qmu6eofjcdk7m66k5fp3pbngry37dmjysh3nmyjiuq
+- valory/registration_abci:0.1.0:bafybeih3zqcovkq4mas4jmglr5o2up3gsr4xdhy6ffpj3qxv5wzmdqnpqa
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -59,9 +59,9 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-cosmos:
-    version: ==2.1.0
+    version: ==2.2.1
   open-aea-ledger-ethereum:
-    version: ==2.1.0
+    version: ==2.2.1
   open-aea-test-autonomy:
     version: ==0.21.16
 skill_exception_policy: stop_and_exit

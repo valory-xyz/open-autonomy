@@ -32,7 +32,7 @@ base_deps = [
 ]
 
 setup(
-    name="aea-helpers",
+    name="open-aea-helpers",
     version="0.21.16",
     author="Valory AG",
     license="Apache-2.0",

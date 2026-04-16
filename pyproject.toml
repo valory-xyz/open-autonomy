@@ -7,15 +7,15 @@ license = "Apache-2.0 license"
 packages = [{include = "autonomy"}, {include = "packages"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">=3.10,<3.15"
 aiohttp = ">=3.8.5,<4.0.0"
 docker = "==7.1.0"
 Flask = ">=3.1.0,<4.0.0"
-open-aea = { version = "==2.1.0", extras = ["all"] }
-open-aea-ledger-ethereum = "==2.1.0"
-open-aea-ledger-ethereum-hwi = "==2.1.0"
-open-aea-ledger-cosmos = "==2.1.0"
-open-aea-cli-ipfs = "==2.1.0"
+open-aea = { version = "==2.2.1", extras = ["all"] }
+open-aea-ledger-ethereum = "==2.2.1"
+open-aea-ledger-ethereum-hwi = "==2.2.1"
+open-aea-ledger-cosmos = "==2.2.1"
+open-aea-cli-ipfs = "==2.2.1"
 ipfshttpclient = "==0.8.0a2"
 multiaddr = "==0.0.9"
 Werkzeug = ">=3.1.0,<4.0.0"
@@ -74,8 +74,10 @@ all = [
 autonomy = "autonomy.cli:cli"
 
 [tool.poetry.group.dev.dependencies]
-tomte = { extras = ["tox", "docs"], version = "==0.6.1" }
+tomte = { extras = ["tox", "docs"], version = "==0.6.5" }
 mkdocs-monorepo-plugin = "^1.0.5"
+open-aea-ci-helpers = "==2.2.1"
+open-aea-dev-helpers = "==2.2.1"
 
 
 [build-system]

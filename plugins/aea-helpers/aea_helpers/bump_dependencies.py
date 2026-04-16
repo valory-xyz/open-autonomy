@@ -64,10 +64,6 @@ DEPENDENCY_SPECS = {
         "repo": OPEN_AEA_REPO,
         "file": "plugins/aea-ledger-ethereum/setup.py",
     },
-    "open-aea-ledger-ethereum-flashbots": {
-        "repo": OPEN_AEA_REPO,
-        "file": "plugins/aea-ledger-ethereum-flashbots/setup.py",
-    },
     "open-aea-ledger-ethereum-hwi": {
         "repo": OPEN_AEA_REPO,
         "file": "plugins/aea-ledger-ethereum-hwi/setup.py",
