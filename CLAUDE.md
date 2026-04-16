@@ -153,7 +153,7 @@ The central design pattern is the **FSM App**: skills define a finite state mach
 
 ## Key Dependencies
 
-- `open-aea[all]==2.1.0` - Core AEA framework
+- `open-aea[all]==2.2.1` - Core AEA framework
 - `web3>=7,<8` - Ethereum interaction
 - `docker==7.1.0` - Container management for deployments
 - `Flask>=3.1.0,<4.0.0` - Tendermint monitoring server
