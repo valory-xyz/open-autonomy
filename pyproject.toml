@@ -75,7 +75,6 @@ all = [
     "python-dotenv",
     "pytest",
     "coverage",
-    "open-aea-ledger-ethereum-hwi",
 ]
 
 [tool.poetry.scripts]
