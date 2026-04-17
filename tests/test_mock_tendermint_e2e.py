@@ -16,6 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# flake8: noqa: F811
 
 """
 Mock Tendermint vs real Tendermint comparison test.
@@ -57,9 +58,10 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
 from packages.valory.skills.registration_abci.rounds import RegistrationStartupRound
 from packages.valory.skills.reset_pause_abci.rounds import ResetAndPauseRound
 
-
 SKILL_PACKAGE = "valory/register_reset_abci:0.1.0"
-_ARGS = f"vendor.valory.skills.{PublicId.from_str(SKILL_PACKAGE).name}.models.params.args"
+_ARGS = (
+    f"vendor.valory.skills.{PublicId.from_str(SKILL_PACKAGE).name}.models.params.args"
+)
 
 # With 1 agent, the app enters RegistrationStartupRound (no multi-agent handshake).
 # Registration submits a tx (exercises broadcast_tx_sync → deliver_tx → round done).

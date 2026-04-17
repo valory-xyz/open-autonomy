@@ -43,6 +43,7 @@ from aea.connections.base import Connection, ConnectionStates
 from aea.exceptions import enforce
 from aea.mail.base import Envelope
 from aea.protocols.dialogue.base import DialogueLabel
+from aiohttp import web as aiohttp_web  # type: ignore
 from google.protobuf.message import DecodeError
 
 from packages.valory.connections.abci.dialogues import AbciDialogues
@@ -100,8 +101,6 @@ from packages.valory.protocols.abci.custom_types import (
     Timestamp,
     ValidatorUpdates,
 )
-
-from aiohttp import web as aiohttp_web  # type: ignore
 
 PUBLIC_ID = PublicId.from_str("valory/abci:0.1.0")
 
@@ -1191,9 +1190,7 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
 
     # --- ABCI block production ---
 
-    async def _send_and_wait(
-        self, performative: AbciMessage.Performative, **kwargs: Any
-    ) -> Envelope:
+    async def _send_and_wait(self, performative: Any, **kwargs: Any) -> Envelope:
         """
         Create an ABCI request, enqueue it, and wait for the handler's response.
 
@@ -1702,7 +1699,9 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
     connection_id = PUBLIC_ID
     params: Optional[TendermintParams] = None
     node: Optional[TendermintNode] = None
-    channel: Optional[Union[TcpServerChannel, GrpcServerChannel, MockServerChannel]] = None
+    channel: Optional[Union[TcpServerChannel, GrpcServerChannel, MockServerChannel]] = (
+        None
+    )
 
     def __init__(self, **kwargs: Any) -> None:
         """
@@ -1787,9 +1786,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         self.use_tendermint = cast(
             bool, self.configuration.config.get("use_tendermint")
         )
-        self.use_mock = cast(
-            bool, self.configuration.config.get("use_mock")
-        )
+        self.use_mock = cast(bool, self.configuration.config.get("use_mock"))
         self.use_grpc = cast(bool, self.configuration.config.get("use_grpc", False))
 
         if not self.use_tendermint:
@@ -1823,7 +1820,9 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         """Ensure that the connection and the channel are ready."""
         super()._ensure_connected()
 
-        self.channel = cast(Union[TcpServerChannel, GrpcServerChannel, MockServerChannel], self.channel)
+        self.channel = cast(
+            Union[TcpServerChannel, GrpcServerChannel, MockServerChannel], self.channel
+        )
         if self.channel.is_stopped:
             raise ConnectionError("The channel is stopped.")
 
@@ -1837,7 +1836,9 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
             return
 
         self.state = ConnectionStates.connecting
-        self.channel = cast(Union[TcpServerChannel, GrpcServerChannel, MockServerChannel], self.channel)
+        self.channel = cast(
+            Union[TcpServerChannel, GrpcServerChannel, MockServerChannel], self.channel
+        )
         if self.use_tendermint:
             self.node = cast(TendermintNode, self.node)
             self.node.init()
@@ -1862,7 +1863,9 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         if self.use_tendermint:
             self.node = cast(TendermintNode, self.node)
             self.node.stop()
-        self.channel = cast(Union[TcpServerChannel, GrpcServerChannel, MockServerChannel], self.channel)
+        self.channel = cast(
+            Union[TcpServerChannel, GrpcServerChannel, MockServerChannel], self.channel
+        )
         await self.channel.disconnect()
         self.state = ConnectionStates.disconnected
 
@@ -1873,7 +1876,9 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         :param envelope: the envelope to send.
         """
         self._ensure_connected()
-        self.channel = cast(Union[TcpServerChannel, GrpcServerChannel, MockServerChannel], self.channel)
+        self.channel = cast(
+            Union[TcpServerChannel, GrpcServerChannel, MockServerChannel], self.channel
+        )
         await self.channel.send(envelope)
 
     async def receive(self, *args: Any, **kwargs: Any) -> Optional[Envelope]:
@@ -1885,7 +1890,9 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         :return: the envelope received, if present.  # noqa: DAR202
         """
         self._ensure_connected()
-        self.channel = cast(Union[TcpServerChannel, GrpcServerChannel, MockServerChannel], self.channel)
+        self.channel = cast(
+            Union[TcpServerChannel, GrpcServerChannel, MockServerChannel], self.channel
+        )
         try:
             message = await self.channel.get_message()
             return message

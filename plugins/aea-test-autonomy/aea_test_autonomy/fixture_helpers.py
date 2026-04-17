@@ -234,7 +234,7 @@ class UseMockTendermint:
     @pytest.fixture(autouse=True)
     def _start_tendermint(self, *args: Any, **kwargs: Any) -> None:
         """Override to skip Docker-based Tendermint."""
-        self.tendermint_port = self.mock_rpc_port  # type: ignore
+        self.tendermint_port = self.mock_rpc_port  # type: ignore  # pylint: disable=attribute-defined-outside-init
 
     @property
     def p2p_seeds(self) -> List[str]:  # type: ignore
