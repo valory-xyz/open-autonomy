@@ -215,6 +215,54 @@ class UseFlaskTendermintNode:
         self._tendermint_image.health_check(**kwargs)
 
 
+DEFAULT_MOCK_RPC_PORT = 36657
+
+
+class UseMockTendermint:
+    """Mixin that replaces Tendermint with the mock channel for single-agent tests.
+
+    Place before BaseTestEnd2EndExecution in the MRO to shadow UseFlaskTendermintNode methods.
+    Usage::
+
+        class TestMySkill(BaseTestEnd2EndExecution): ...           # real TM
+        class TestMySkillMock(UseMockTendermint, TestMySkill): ... # mock TM
+    """
+
+    USE_MOCK = True
+    mock_rpc_port: int = DEFAULT_MOCK_RPC_PORT
+
+    @pytest.fixture(autouse=True)
+    def _start_tendermint(self, *args: Any, **kwargs: Any) -> None:
+        """Override to skip Docker-based Tendermint."""
+        self.tendermint_port = self.mock_rpc_port  # type: ignore
+
+    @property
+    def p2p_seeds(self) -> List[str]:  # type: ignore
+        """No p2p seeds for single-agent mock."""
+        return []
+
+    def get_abci_port(self, i: int) -> int:
+        """Get the ABCI port (unused by mock, but required by config)."""
+        return self.mock_rpc_port + 1 + i * 10
+
+    def get_port(self, i: int) -> int:
+        """Get the RPC port — where the mock HTTP server listens."""
+        return self.mock_rpc_port + i * 10
+
+    def get_com_port(self, i: int) -> int:
+        """Get the COM port — mock handles resets via the RPC port."""
+        return self.mock_rpc_port + i * 10
+
+    def get_laddr(self, i: int, p2p: bool = False) -> str:
+        """Get the listen address."""
+        if p2p:
+            return f"tcp://localhost:{self.mock_rpc_port - 1 + i * 10}"
+        return f"tcp://localhost:{self.get_port(i)}"
+
+    def health_check(self, **kwargs: Any) -> None:
+        """Skip health check — mock starts with the agent."""
+
+
 ###
 # Vanilla Ganache
 ###

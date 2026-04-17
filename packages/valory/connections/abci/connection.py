@@ -1104,6 +1104,7 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
         self._mempool: List[bytes] = []
         self._delivered_txs: Dict[str, bool] = {}
         self._block_producer_task: Optional[Task] = None
+        self._new_tx_event: Optional[asyncio.Event] = None
 
         # mock RPC HTTP server
         self._rpc_runner: Optional[aiohttp_web.AppRunner] = None
@@ -1129,6 +1130,7 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
         self._mempool = []
         self._delivered_txs = {}
         self._height = 0
+        self._new_tx_event = asyncio.Event()
 
         # start mock RPC HTTP server
         app = aiohttp_web.Application()
@@ -1279,7 +1281,15 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
                     AbciMessage.Performative.REQUEST_COMMIT,
                 )
 
-                await asyncio.sleep(self.block_time)
+                # wait for block_time OR until a new tx arrives, whichever is first
+                self._new_tx_event.clear()  # type: ignore
+                try:
+                    await asyncio.wait_for(
+                        self._new_tx_event.wait(),  # type: ignore
+                        timeout=self.block_time,
+                    )
+                except asyncio.TimeoutError:
+                    pass
         except CancelledError:
             return
         except Exception as e:  # pylint: disable=broad-except
@@ -1297,6 +1307,8 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
         tx_bytes = bytes.fromhex(tx_param)
         tx_hash = hashlib.sha256(tx_bytes).hexdigest().upper()
         self._mempool.append(tx_bytes)
+        if self._new_tx_event is not None:
+            self._new_tx_event.set()
         body = json.dumps(
             {
                 "jsonrpc": "2.0",
