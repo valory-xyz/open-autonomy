@@ -131,4 +131,9 @@ class TestRealTendermint(_BaseRegisterResetSingleAgent):
 @pytest.mark.e2e
 @pytest.mark.parametrize("nb_nodes", (1,))
 class TestMockTendermint(UseMockTendermint, _BaseRegisterResetSingleAgent):
-    """Run the identical test against the MockServerChannel — no Docker Tendermint."""
+    """Run the identical test against the MockServerChannel — no Docker Tendermint.
+
+    Note: inherits the ``integration`` mark from ``BaseTestEnd2End`` because
+    the IPFS daemon fixture still requires Docker.  Only the Tendermint
+    dependency is removed.
+    """

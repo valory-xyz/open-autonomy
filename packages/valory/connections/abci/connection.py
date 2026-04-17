@@ -1219,12 +1219,20 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
     def _make_header(self, height: int) -> Header:
         """Build a minimal block header."""
         return Header(
-            ConsensusVersion(0, 0),
-            "mock",
-            height,
-            self._now_timestamp(),
-            BlockID(b"", PartSetHeader(0, b"")),
-            *(b"",) * 9,
+            version=ConsensusVersion(0, 0),
+            chain_id="mock",
+            height=height,
+            time=self._now_timestamp(),
+            last_block_id=BlockID(b"", PartSetHeader(0, b"")),
+            last_commit_hash=b"",
+            data_hash=b"",
+            validators_hash=b"",
+            next_validators_hash=b"",
+            consensus_hash=b"",
+            app_hash=b"",
+            last_results_hash=b"",
+            evidence_hash=b"",
+            proposer_address=b"",
         )
 
     async def _produce_blocks(self) -> None:
@@ -1291,6 +1299,10 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
             return
         except Exception as e:  # pylint: disable=broad-except
             self.logger.error(f"Mock block producer error: {type(e).__name__}: {e}")
+            self._is_stopped = True
+            if self._rpc_runner is not None:
+                await self._rpc_runner.cleanup()
+                self._rpc_runner = None
 
     # --- Mock Tendermint RPC HTTP handlers ---
 
@@ -1354,7 +1366,7 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
             }
         )
         return aiohttp_web.Response(
-            status=200, text=body, content_type="application/json"
+            status=500, text=body, content_type="application/json"
         )
 
     async def _handle_status(
@@ -1746,8 +1758,6 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
                 rpc_port=rpc_port,
                 logger=self.logger,
             )
-            # mock replaces Tendermint, no need to start the real node
-            self.use_tendermint = False
 
     def _process_connection_params(self) -> None:
         """
@@ -1784,10 +1794,23 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         - p2p_seeds: a comma-separated list of IP addresses and ports
         """
         self.use_tendermint = cast(
-            bool, self.configuration.config.get("use_tendermint")
+            bool, self.configuration.config.get("use_tendermint", False)
         )
-        self.use_mock = cast(bool, self.configuration.config.get("use_mock"))
+        self.use_mock = cast(bool, self.configuration.config.get("use_mock", False))
         self.use_grpc = cast(bool, self.configuration.config.get("use_grpc", False))
+
+        if self.use_mock:
+            if self.use_tendermint:
+                self.logger.warning(
+                    "use_mock=True overrides use_tendermint; Tendermint node will not be started."
+                )
+                self.use_tendermint = False
+            if self.use_grpc:
+                self.logger.warning(
+                    "use_mock=True overrides use_grpc; gRPC will not be used."
+                )
+                self.use_grpc = False
+            return
 
         if not self.use_tendermint:
             return

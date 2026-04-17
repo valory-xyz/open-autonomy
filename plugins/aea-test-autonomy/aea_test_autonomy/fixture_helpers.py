@@ -256,8 +256,8 @@ class UseMockTendermint:
     def get_laddr(self, i: int, p2p: bool = False) -> str:
         """Get the listen address."""
         if p2p:
-            return f"tcp://localhost:{self.mock_rpc_port - 1 + i * 10}"
-        return f"tcp://localhost:{self.get_port(i)}"
+            return f"tcp://0.0.0.0:{self.mock_rpc_port - 1 + i * 10}"  # nosec
+        return f"tcp://0.0.0.0:{self.get_port(i)}"  # nosec
 
     def health_check(self, **kwargs: Any) -> None:
         """Skip health check — mock starts with the agent."""
