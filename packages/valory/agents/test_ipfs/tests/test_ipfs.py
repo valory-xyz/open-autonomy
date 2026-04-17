@@ -25,6 +25,7 @@ from pathlib import Path
 import pytest
 from aea_test_autonomy.base_test_classes.agents import BaseTestEnd2EndExecution
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401
+    UseMockTendermint,
     UseRegistries,
     abci_host,
     abci_port,
@@ -59,3 +60,12 @@ class TestIpfs(  # pylint: disable=too-few-public-methods
         "Single object uploading & downloading works.",
         "Multiple object uploading & downloading works.",
     )
+
+
+@pytest.mark.e2e
+@pytest.mark.integration
+class TestIpfsMockTendermint(  # pylint: disable=too-few-public-methods
+    UseMockTendermint,
+    TestIpfs,
+):
+    """Test whether uploading and receiving from IPFS works, using mock Tendermint."""
