@@ -25,8 +25,8 @@ from datetime import datetime
 from typing import Any, Callable, Dict, Optional, TYPE_CHECKING, cast
 
 from aea.crypto.base import Crypto, LedgerApi
+from aea.helpers.http_requests import ConnectionError as RequestsConnectionError
 from aea.helpers.logging import setup_logger
-from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from autonomy.chain.config import ChainType
 from autonomy.chain.exceptions import (

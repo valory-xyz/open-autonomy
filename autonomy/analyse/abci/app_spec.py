@@ -28,9 +28,9 @@ from itertools import product
 from pathlib import Path
 from typing import Any, Dict, List, Set, Tuple
 
-import jsonschema
 import yaml
 from aea.helpers.io import open_file
+from aea.helpers.json_schema import Draft4Validator
 
 from autonomy.configurations.constants import (
     DEFAULT_FSM_SPEC_JSON,
@@ -52,7 +52,7 @@ def validate_fsm_spec(data: Dict) -> None:
     with open_file(SCHEMAS_DIR / FSM_SCHEMA_FILE) as fp:
         fsm_schema = json.load(fp=fp)
 
-    validator = jsonschema.Draft4Validator(schema=fsm_schema)
+    validator = Draft4Validator(schema=fsm_schema)
     validator.validate(data)
 
 

@@ -25,9 +25,9 @@ from typing import Any, Callable, Dict
 from unittest import mock
 
 import pytest
+from aea.helpers.http_requests import ConnectionError as RequestsConnectionError
 from aea_ledger_ethereum import GAS_STATION
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
-from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from autonomy.chain.config import ChainType
 from autonomy.chain.exceptions import (

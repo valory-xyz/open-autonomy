@@ -27,7 +27,7 @@ from aea.configurations.base import PackageConfiguration
 from aea.configurations.data_types import PackageId, PackageType, PublicId
 from aea.configurations.loader import load_configuration_object
 from aea.helpers.base import IPFSHash
-from requests.exceptions import ConnectionError as RequestConnectionError
+from aea.helpers.http_requests import ConnectionError as RequestConnectionError
 from texttable import Texttable
 
 from autonomy.chain.base import ServiceState, UnitType

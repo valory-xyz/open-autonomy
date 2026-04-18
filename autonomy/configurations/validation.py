@@ -21,9 +21,9 @@
 
 import json
 
-import jsonschema
 from aea.configurations import validation
 from aea.helpers.io import open_file
+from aea.helpers.json_schema import RefResolver
 
 from autonomy.configurations.constants import SCHEMAS_DIR
 
@@ -45,7 +45,7 @@ class ConfigValidator(validation.ConfigValidator):
             self._schema = json.load(fp)
 
         root_path = validation.make_jsonschema_base_uri(SCHEMAS_DIR)
-        self._resolver = jsonschema.RefResolver(root_path, self._schema)
+        self._resolver = RefResolver(root_path, self._schema)
         self.env_vars_friendly = env_vars_friendly
 
         if env_vars_friendly:  # pragma: nocover

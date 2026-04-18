@@ -36,10 +36,10 @@ from aea.configurations.data_types import (
 from aea.crypto.base import LedgerApi
 from aea.helpers.cid import to_v0
 from aea.helpers.env_vars import apply_env_variables
+from aea.helpers.http_requests import ConnectionError as RequestConnectionError
+from aea.helpers.json_schema import Draft4Validator
+from aea.helpers.json_schema import ValidationError as SchemaValidationError
 from aea.helpers.logging import setup_logger
-from jsonschema.exceptions import ValidationError as SchemaValidationError
-from jsonschema.validators import Draft4Validator
-from requests.exceptions import ConnectionError as RequestConnectionError
 
 from autonomy.chain.base import ServiceState
 from autonomy.chain.config import ChainType
@@ -259,7 +259,7 @@ class CustomSchemaValidator(Draft4Validator):
                 continue
 
             if (
-                "does not have enough properties" in message
+                "has fewer than" in message
                 or "should be non-empty" in message
             ):
                 not_enough_properties.append(message)

@@ -24,8 +24,8 @@ from typing import Dict
 
 from aea.configurations.data_types import PackageId, PublicId
 from aea.crypto.base import LedgerApi
-from requests import get as r_get
-from requests.exceptions import ConnectionError as RequestConnectionError
+from aea.helpers.http_requests import ConnectionError as RequestConnectionError
+from aea.helpers.http_requests import get as r_get
 
 from autonomy.chain.base import registry_contracts
 from autonomy.chain.constants import SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS

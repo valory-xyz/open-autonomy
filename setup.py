@@ -65,14 +65,10 @@ base_deps = [
     "werkzeug>=3.1.0,<4.0.0",
     "docker==7.1.0",
     "hexbytes",
-    "jsonschema<4.24.0,>=4.3.0",
     "protobuf<6,>=5",
     "gql==3.5.0",
-    "requests<2.33.0,>=2.28.1",
-    "requests-toolbelt==1.0.0",  # Required for graphql client
     "aiohttp<4.0.0,>=3.8.5",
     "typing_extensions<=4.15.0,>=3.10.0.2",
-    "multiaddr==0.0.9"
 ]
 base_deps.extend(all_extras["cli"])
 
@@ -132,7 +128,7 @@ if __name__ == "__main__":
         classifiers=[
             "Environment :: Console",
             "Environment :: Web Environment",
-            "Development Status :: 2 - Pre-Alpha",
+            "Development Status :: 5 - Production/Stable",
             "Intended Audience :: Developers",
             "License :: OSI Approved :: Apache Software License",
             "Natural Language :: English",
