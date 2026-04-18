@@ -72,7 +72,7 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseBehaviour):
         # + 1 because `period_count` starts from 0
         n_periods_done = self.synchronized_data.period_count + 1
         reset_tm_nodes = n_periods_done % self.params.reset_tendermint_after == 0
-        if reset_tm_nodes:
+        if reset_tm_nodes and not self.synchronized_data.no_tm:
             tendermint_reset = yield from self.reset_tendermint_with_wait()
             if not tendermint_reset:
                 return

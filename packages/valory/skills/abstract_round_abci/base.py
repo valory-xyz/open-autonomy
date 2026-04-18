@@ -36,6 +36,7 @@ from dataclasses import asdict, astuple, dataclass, field, is_dataclass
 from enum import Enum
 from inspect import isclass
 from math import ceil
+from time import time_ns
 from typing import (
     Any,
     Callable,
@@ -65,10 +66,14 @@ from packages.valory.connections.ledger.connection import (
     PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.protocols.abci.custom_types import (
+    BlockID,
+    ConsensusVersion,
     EvidenceType,
     Evidences,
     Header,
     LastCommitInfo,
+    PartSetHeader,
+    Timestamp,
     Validator,
 )
 from packages.valory.skills.abstract_round_abci.utils import (
@@ -105,6 +110,8 @@ PAYLOAD_KEY_ATTRIBUTE = "payload_key"
 COLLECTION_KEY_ATTRIBUTE = "collection_key"
 SELECTION_KEY_ATTRIBUTE = "selection_key"
 REQUIRED_BLOCK_CONFIRMATIONS_ATTRIBUTE = "required_block_confirmations"
+NS_PER_SEC = 1_000_000_000
+MS_PER_SEC = 1_000
 
 EventType = TypeVar("EventType")
 
@@ -116,6 +123,12 @@ def get_name(prop: Any) -> str:
     if prop.fget is None:
         raise ValueError(f"fget of {prop} is None")  # pragma: nocover
     return prop.fget.__name__
+
+
+def now_sec_nanos() -> tuple[int, int]:
+    """The current time in seconds and nanoseconds."""
+    ns = time_ns()
+    return ns // NS_PER_SEC, ns % NS_PER_SEC
 
 
 class ABCIAppException(Exception):
@@ -886,6 +899,11 @@ class BaseSynchronizedData:
     def max_participants(self) -> int:
         """Get the number of all the participants."""
         return len(self.all_participants)
+
+    @property
+    def no_tm(self) -> bool:
+        """Whether Tendermint should not be used."""
+        return self.max_participants == 1
 
     @property
     def consensus_threshold(self) -> int:
@@ -3332,6 +3350,11 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._offence_status = offence_status
         self.store_offence_status()
 
+    @property
+    def no_tm(self) -> bool:
+        """Whether Tendermint is being used."""
+        return self.current_round.synchronized_data.no_tm
+
     def add_pending_offence(self, pending_offence: PendingOffense) -> None:
         """
         Add a pending offence to the set of pending offences.
@@ -3392,6 +3415,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         kwargs["context"] = self._context
         self._abci_app = self._abci_app_cls(*args, **kwargs)
         self._abci_app.setup()
+        if self.no_tm:
+            self.init_chain(1)
 
     def start_sync(
         self,
@@ -3415,7 +3440,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self,
     ) -> bool:
         """Return if the app is in sync mode."""
-        return self._syncing_up
+        return not self.no_tm and self._syncing_up
 
     @property
     def abci_app(self) -> AbciApp:
@@ -3561,9 +3586,57 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
     @property
     def block_stall_deadline_expired(self) -> bool:
         """Get if the deadline for not having received any begin block requests from the Tendermint node has expired."""
-        if self._block_stall_deadline is None:
+        if self._block_stall_deadline is None or self.no_tm:
             return False
         return datetime.datetime.now() > self._block_stall_deadline
+
+    def ensure_no_tm(self) -> None:
+        """Ensure Tendermint is not used."""
+        if not self.no_tm:
+            raise ABCIAppInternalError(
+                "Attempted to call an unsafe method without state replication."
+            )
+
+    def progress_blocks_without_tm(self) -> None:
+        """Progress the blocks without using Tendermint"""
+        self.ensure_no_tm()
+
+        now = Timestamp(*now_sec_nanos())
+        try:
+            last_genesis = self.abci_app.last_timestamp.timestamp()
+        except ABCIAppInternalError:
+            last_genesis = 0
+
+        time_since_last_genesis = now.seconds - last_genesis
+        time_iota_sec = (
+            float(
+                self.current_round.context.params.genesis_config.consensus_params.block.time_iota_ms
+            )
+            / MS_PER_SEC
+        )
+        should_generate_block = time_since_last_genesis >= time_iota_sec
+
+        if (
+            self._block_construction_phase
+            == RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+            and should_generate_block
+        ):
+            # we only care about the height and the time values
+            self.begin_block(
+                Header(
+                    ConsensusVersion(0, 0),
+                    "",
+                    self.height + 1,
+                    now,
+                    BlockID(b"", PartSetHeader(0, b"hash")),
+                    *(b"",) * 9,
+                ),
+                Evidences([]),
+                LastCommitInfo(0, []),
+            )
+            self.end_block()
+            self.tm_height = self.height
+            self.commit()
 
     def set_block_stall_deadline(self) -> None:
         """Use the local time of the agent and a predefined tolerance, to specify the expiration of the deadline."""
