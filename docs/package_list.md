@@ -15,7 +15,7 @@
 | contract/valory/erc20/0.1.0                                   | `bafybeigjxwhx4li5hmyv3hrtatwq65gl4wihqysaq5pqlpmw5o4lymfv6y` |
 | contract/valory/recovery_module/0.1.0                         | `bafybeibzxzuh2dv2kgk52fjxx6sshkkxwp3j44ux7ffdcxmuazxy443w5a` |
 | contract/valory/service_registry_token_utility/0.1.0          | `bafybeiff5qt664ym4rjoyvgysfh6e4sw2sxjbkz6aqaecm4fi5evj3rfbe` |
-| contract/valory/squads_multisig/0.1.0                         | `bafybeicstdn4yk5zyrupzfvzvlkvnty6m23ubwnbncofdxk2mqmn3deeay` |
+| contract/valory/squads_multisig/0.1.0                         | `bafybeihf6kgfsnfp5ugs44gjffj2qltr5zerf2w2rmgets3d3tizjngrp4` |
 | contract/valory/multicall2/0.1.0                              | `bafybeib5ewqtf3zmm2qsuxxlaytrvclz5ymj75blinvqytjfaqf5zh6wqu` |
 | contract/valory/poly_safe_creator_with_recovery_module/0.1.0  | `bafybeigquyefn6gng7b3frw2moljo5zjd7ie37xow66jtbt52srzvpj52q` |
 | contract/valory/sign_message_lib/0.1.0                        | `bafybeihowj444hazrxhffmutq7xjgye5w6i5yqqmpxkh7wsd32ysndcwzq` |
@@ -43,8 +43,8 @@
 | skill/valory/slashing_abci/0.1.0                              | `bafybeialpv7sqxlq735djlzpydlkr7bksdp5x2itpocxyqqbsl52l2hjqy` |
 | skill/valory/offend_abci/0.1.0                                | `bafybeia55sq5gfqhf6zixsawxqvy5vtigmflwh4meomxhajqypmt5wacti` |
 | skill/valory/offend_slash_abci/0.1.0                          | `bafybeieomp7uguwld7bi63ngf3ufs7asaph25dmz22yowzkvwqltvgh5a4` |
-| skill/valory/squads_transaction_settlement_abci/0.1.0         | `bafybeiehss3lvqbcr7nll5qbnuu4pktgbmaadidp3o7qd5z3alumtsr4km` |
-| skill/valory/test_solana_tx_abci/0.1.0                        | `bafybeicsb4fv2nwoykfnovpoddubc4cweamajgni3e2xslmrmbeirg2gkm` |
+| skill/valory/squads_transaction_settlement_abci/0.1.0         | `bafybeienyaaqmixnanum75yxsaroeevrbrgebwjhfpub54fnnhbkri6en4` |
+| skill/valory/test_solana_tx_abci/0.1.0                        | `bafybeierigbc7tzv7on3n45ojtvwh4ygl6xf5clgt4w4swtu3csm7i55e4` |
 | skill/valory/identify_service_owner_abci/0.1.0                | `bafybeib4s7ythcqm7eoejnzghj5jb665oswmuyajfoosyg3qywmip2bkv4` |
 | skill/valory/funds_forwarder_abci/0.1.0                       | `bafybeiaycorl423elno2m3zxzplmkpd4ktid7lxqwpjn2u3t6daarvq2pa` |
 | agent/valory/test_ipfs/0.1.0                                  | `bafybeigfhgaqeu7delo75uhx5mx2xc5cgmnxteudenof2473nh3lyr5cb4` |
@@ -57,6 +57,6 @@
 | agent/valory/test_abci/0.1.0                                  | `bafybeieh5j642barw6yvuucakal6t4aql54icnqayfus4zohizuo5v2ij4` |
 | agent/valory/register_reset_recovery/0.1.0                    | `bafybeie47f53gs76n4vn43wftcwlpip3sz4jrbm2nrrkodcfsntjgt3tse` |
 | agent/valory/offend_slash/0.1.0                               | `bafybeieb4y2yh5v5ow4lubbuihxdotccjotdcnthr22wmrle6yw75o5fcu` |
-| agent/valory/solana_transfer_agent/0.1.0                      | `bafybeidrlncozykabjli3zrddlbvnmkje7rnao2rjwku37oe5uza3fcxoi` |
+| agent/valory/solana_transfer_agent/0.1.0                      | `bafybeiga6iqw7ejrffjauaewghwilig6vwakkubueuq22tko723544raxy` |
 | service/valory/counter/0.1.0                                  | `bafybeigwn7aer2vvziegyf7uu35xyk7j6i6wfyevotyfopr2675bftm6om` |
 | service/valory/register_reset/0.1.0                           | `bafybeiaom5mn7gnznugyfs5zqfpnlybkevggoaibzty24lg62gpnotypfm` |

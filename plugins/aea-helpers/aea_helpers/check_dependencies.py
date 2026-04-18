@@ -35,10 +35,14 @@ from typing import OrderedDict as OrderedDictType
 from typing import Tuple, cast
 
 import click
-import toml
 from aea.configurations.data_types import Dependency
 from aea.package_manager.base import load_configuration
 from aea.package_manager.v1 import PackageManagerV1
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib  # pytest (via open-aea[all]) supplies `tomli`
 
 ANY_SPECIFIER = "*"
 
@@ -402,7 +406,8 @@ class PyProjectTomlConfig:
         cls, pyproject_path: Path, exclude: Optional[List[str]] = None
     ) -> Optional["PyProjectTomlConfig"]:
         """Load pyproject.toml dependencies."""
-        config = toml.load(pyproject_path)
+        with open(pyproject_path, "rb") as _pyproject_fp:
+            config = tomllib.load(_pyproject_fp)
         dependencies: OrderedDictType[str, Dependency] = OrderedDict()
         try:
             config["tool"]["poetry"]["dependencies"]

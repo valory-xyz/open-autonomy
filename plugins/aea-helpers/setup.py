@@ -23,11 +23,16 @@ from setuptools import find_packages  # type: ignore
 from setuptools import setup  # type: ignore
 
 base_deps = [
+    # Direct imports: `autonomy.cli.helpers.ipfs_hash`, plus the
+    # `aea.*` modules (arrive transitively via `open-aea`).
+    # `open-autonomy` also supplies `click`, `aea.helpers.http_requests`,
+    # and `PyYAML` transitively (via `open-aea[all]` and its own
+    # declarations), so they are not re-declared here.
+    # `tomllib` (pyproject.toml parsing) is stdlib on Python >= 3.11;
+    # on 3.10 we fall back to `tomli`, which arrives transitively via
+    # `pytest` (declared by `open-aea[all]` with a
+    # `python_version < "3.11"` marker).
     "open-autonomy>=0.21.0,<0.22.0",
-    "click>=8.1.0,<9",
-    "requests>=2.28.0,<3",
-    "toml>=0.10,<1",
-    "PyYAML>=6.0,<7",
 ]
 
 setup(
@@ -53,7 +58,7 @@ setup(
     install_requires=base_deps,
     classifiers=[
         "Environment :: Console",
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: Apache Software License",
         "Natural Language :: English",

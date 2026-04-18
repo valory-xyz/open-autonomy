@@ -28,7 +28,9 @@ from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
-from aea_ledger_solana import SolanaApi  # type: ignore[import-not-found]  # pylint: disable=import-error
+from aea_ledger_solana import (  # type: ignore[import-not-found]  # pylint: disable=import-error  # noqa: E501
+    SolanaApi,
+)
 
 Pubkey = Any  # defined in solders.pubkey
 Keypair = Any  # defined in solders.keypair

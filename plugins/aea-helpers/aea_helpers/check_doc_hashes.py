@@ -26,10 +26,10 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import click
-import requests
 import yaml
 from aea.cli.packages import get_package_manager
 from aea.configurations.data_types import PackageId
+from aea.helpers import http_requests
 from aea.helpers.base import IPFS_HASH_REGEX, SIMPLE_ID_REGEX
 
 CLI_REGEX = r"(?P<cli>aea|autonomy)"
@@ -75,25 +75,27 @@ def get_packages_from_repository(repo_url: str) -> Dict[str, str]:
     """Retrieve packages.json from the latest release from a repository."""
     repo_url = repo_url.strip("/").replace("https://github.com/", "")
     repo_api_url = f"https://api.github.com/repos/{repo_url}/releases/latest"
-    response = requests.get(repo_api_url, timeout=30)
+    response = http_requests.get(repo_api_url, timeout=30)
 
     if response.status_code == 200:
         repo_info = response.json()
         latest_release_tag = repo_info["tag_name"]
         url = f"https://raw.githubusercontent.com/{repo_url}/{latest_release_tag}/packages/packages.json"
     else:
-        raise requests.RequestException(
+        raise http_requests.exceptions.RequestException(
             f"Failed to fetch repository information from GitHub API for: {repo_url}"
         )
 
-    response = requests.get(url, timeout=30)
+    response = http_requests.get(url, timeout=30)
     if response.status_code == 200:
         data = response.json()
         if "dev" in data:
             return {**data["dev"], **data["third_party"]}
         return data
 
-    raise requests.RequestException(f"Failed to fetch data from URL: {url}")
+    raise http_requests.exceptions.RequestException(
+        f"Failed to fetch data from URL: {url}"
+    )
 
 
 class Package:  # pylint: disable=too-few-public-methods
