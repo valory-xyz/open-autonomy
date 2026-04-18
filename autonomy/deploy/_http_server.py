@@ -353,7 +353,9 @@ class App:
                 if handler is not None:
                     try:
                         return _to_response(handler(InternalServerError(str(exc))))
-                    except Exception:  # pragma: no cover
+                    except Exception:  # nosec B110  # pragma: no cover
+                        # If the user's 500 handler raises too, fall back to
+                        # the generic 500 response below — intentional.
                         pass
                 return Response(str(exc), status=500)
             return _to_response(result)
