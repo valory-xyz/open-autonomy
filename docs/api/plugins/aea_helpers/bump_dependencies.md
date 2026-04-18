@@ -33,7 +33,7 @@ Dump versions cache.
 #### make`_`git`_`request
 
 ```python
-def make_git_request(url: str) -> requests.Response
+def make_git_request(url: str) -> http_requests.HTTPResponse
 ```
 
 Make git request.
