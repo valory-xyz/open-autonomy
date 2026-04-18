@@ -33,8 +33,8 @@ from aea.configurations.data_types import (
     PublicId,
 )
 from aea.helpers.cid import to_v0
-from aea.helpers.http_requests import ConnectionError as RequestConnectionError
 from aea_cli_ipfs.ipfs_utils import IPFSDaemon, IPFSTool
+from requests.exceptions import ConnectionError as RequestConnectionError
 
 from autonomy.analyse.service import ServiceAnalyser
 from autonomy.configurations.base import Service

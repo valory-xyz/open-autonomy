@@ -25,7 +25,6 @@ from datetime import datetime
 from typing import Any, Callable, Dict, Optional, TYPE_CHECKING, cast
 
 from aea.crypto.base import Crypto, LedgerApi
-from aea.helpers.http_requests import ConnectionError as RequestsConnectionError
 from aea.helpers.logging import setup_logger
 
 from autonomy.chain.config import ChainType
@@ -36,6 +35,7 @@ from autonomy.chain.exceptions import (
     TxBuildError,
     TxSettleError,
     TxVerifyError,
+    get_requests_connection_error,
 )
 
 if TYPE_CHECKING:
@@ -212,7 +212,7 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
                     raise_on_try=True,
                 )
                 return self
-            except RequestsConnectionError as e:
+            except get_requests_connection_error() as e:
                 raise RPCError("Cannot connect to the given RPC") from e
             except Exception as e:  # pylint: disable=broad-except
                 error = str(e)

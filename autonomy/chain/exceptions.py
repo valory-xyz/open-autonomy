@@ -19,6 +19,30 @@
 
 """Custom exceptions for chain module."""
 
+from typing import Type
+
+
+def get_requests_connection_error() -> Type[BaseException]:
+    """Return `requests.exceptions.ConnectionError`.
+
+    web3's HTTPProvider uses `requests` internally, and `requests` is
+    installed transitively with `open-aea-ledger-ethereum`. Resolved
+    lazily so unrelated importers of this module work without the
+    plugin; any call that actually reaches a chain-side `except` without
+    the plugin raises here with a clear install hint, matching the
+    `load_hwi_plugin` pattern in `autonomy.chain.config`.
+    """
+    try:
+        from requests.exceptions import (  # pylint: disable=import-outside-toplevel
+            ConnectionError as _RequestsConnectionError,
+        )
+    except ImportError as e:  # pragma: nocover
+        raise ImportError(
+            "Chain operations require the Ethereum ledger plugin, "
+            "run `pip install open-aea-ledger-ethereum` to install the plugin"
+        ) from e
+    return _RequestsConnectionError
+
 
 class ChainInteractionError(Exception):
     """Base chain interaction failure."""

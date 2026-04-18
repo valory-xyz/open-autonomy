@@ -36,13 +36,13 @@ from aea.configurations.data_types import (
 from aea.crypto.base import LedgerApi
 from aea.helpers.cid import to_v0
 from aea.helpers.env_vars import apply_env_variables
-from aea.helpers.http_requests import ConnectionError as RequestConnectionError
 from aea.helpers.json_schema import Draft4Validator
 from aea.helpers.json_schema import ValidationError as SchemaValidationError
 from aea.helpers.logging import setup_logger
 
 from autonomy.chain.base import ServiceState
 from autonomy.chain.config import ChainType
+from autonomy.chain.exceptions import get_requests_connection_error
 from autonomy.chain.service import get_service_info
 from autonomy.configurations.base import Service
 
@@ -325,7 +325,7 @@ class ServiceAnalyser:
             *_, _service_state, _ = get_service_info(
                 ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
             )
-        except RequestConnectionError as e:
+        except get_requests_connection_error() as e:
             raise ServiceValidationFailed(
                 "On chain service validation failed, could not connect to the RPC"
             ) from e
