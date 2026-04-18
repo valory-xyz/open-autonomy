@@ -90,7 +90,7 @@ def build_tx_deploy_proxy_contract_with_nonce(
         gas_price: Optional[int] = None,
         max_fee_per_gas: Optional[int] = None,
         max_priority_fee_per_gas: Optional[int] = None,
-        nonce: Optional[int] = None) -> Tuple[TxParams, str]
+        nonce: Optional[int] = None) -> Tuple[Dict[str, Any], str]
 ```
 
 Deploy proxy contract via Proxy Factory using `createProxyWithNonce` (create2)

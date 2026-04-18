@@ -22,13 +22,13 @@
 import json
 from collections import OrderedDict
 from enum import Enum, IntEnum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
-from solders.system_program import transfer  # pylint: disable=import-error
+from aea_ledger_solana import SolanaApi  # type: ignore[import-not-found]  # pylint: disable=import-error
 
 Pubkey = Any  # defined in solders.pubkey
 Keypair = Any  # defined in solders.keypair
@@ -701,11 +701,6 @@ class SquadsMultisig(Contract):
         lamports: int,
     ) -> JSONLike:
         """Get transfer tx."""
-        transfer_tx = transfer(
-            params=dict(
-                from_pubkey=ledger_api.to_pubkey(from_pubkey),
-                to_pubkey=ledger_api.to_pubkey(to_pubkey),
-                lamports=lamports,
-            )
-        ).to_json()
-        return dict(data=json.loads(transfer_tx))
+        ledger_api = cast(SolanaApi, ledger_api)
+        transfer_ix = ledger_api.api.get_transfer_tx(from_pubkey, to_pubkey, lamports)
+        return dict(data=json.loads(transfer_ix.to_json()))

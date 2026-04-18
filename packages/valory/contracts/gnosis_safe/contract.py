@@ -345,7 +345,7 @@ class GnosisSafeContract(Contract):
             )
             structured_data["domain"]["chainId"] = chain_id  # type: ignore
 
-        return dict(tx_hash="0x" + encode_typed_data(structured_data).hex())
+        return dict(tx_hash="0x" + encode_typed_data(ledger_api, structured_data).hex())
 
     @classmethod
     def get_packed_signatures(

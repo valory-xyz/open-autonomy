@@ -4,22 +4,12 @@
 
 This module contains the class to connect to an Gnosis Safe contract.
 
-<a id="packages.valory.contracts.gnosis_safe.contract.checksum_address"></a>
-
-#### checksum`_`address
-
-```python
-def checksum_address(agent_address: str) -> ChecksumAddress
-```
-
-Get the checksum address.
-
 <a id="packages.valory.contracts.gnosis_safe.contract.pad_address_for_topic"></a>
 
 #### pad`_`address`_`for`_`topic
 
 ```python
-def pad_address_for_topic(address: str) -> HexBytes
+def pad_address_for_topic(address: str) -> bytes
 ```
 
 Left-pad an Ethereum address to 32 bytes for use in a topic.
@@ -187,10 +177,10 @@ def get_raw_safe_transaction(cls,
                              gas_token: str = NULL_ADDRESS,
                              refund_receiver: str = NULL_ADDRESS,
                              gas_price: Optional[int] = None,
-                             nonce: Optional[Nonce] = None,
+                             nonce: Optional[int] = None,
                              max_fee_per_gas: Optional[int] = None,
                              max_priority_fee_per_gas: Optional[int] = None,
-                             old_price: Optional[Dict[str, Wei]] = None,
+                             old_price: Optional[Dict[str, int]] = None,
                              fallback_gas: int = 0) -> JSONLike
 ```
 
@@ -303,7 +293,7 @@ the verified status
 ```python
 @classmethod
 def revert_reason(cls, ledger_api: EthereumApi, contract_address: str,
-                  tx: TxData) -> JSONLike
+                  tx: Dict[str, Any]) -> JSONLike
 ```
 
 Check the revert reason of a transaction.
@@ -348,8 +338,8 @@ the safe nonce
 def get_ingoing_transfers(cls,
                           ledger_api: EthereumApi,
                           contract_address: str,
-                          from_block: Optional[BlockIdentifier] = None,
-                          to_block: BlockIdentifier = "latest") -> JSONLike
+                          from_block: Optional[Union[int, str]] = None,
+                          to_block: Union[int, str] = "latest") -> JSONLike
 ```
 
 A list of transfers into the contract.
@@ -417,8 +407,8 @@ the safe balance (in wei)
 def get_safe_txs(cls,
                  ledger_api: EthereumApi,
                  contract_address: str,
-                 from_block: BlockIdentifier = "earliest",
-                 to_block: BlockIdentifier = "latest") -> JSONLike
+                 from_block: Union[int, str] = "earliest",
+                 to_block: Union[int, str] = "latest") -> JSONLike
 ```
 
 Get all the safe tx hashes.
@@ -441,8 +431,8 @@ def get_removed_owner_events(cls,
                              ledger_api: EthereumApi,
                              contract_address: str,
                              removed_owner: Optional[str] = None,
-                             from_block: BlockIdentifier = "earliest",
-                             to_block: BlockIdentifier = "latest") -> JSONLike
+                             from_block: Union[int, str] = "earliest",
+                             to_block: Union[int, str] = "latest") -> JSONLike
 ```
 
 Get all RemovedOwner events for a safe contract.
@@ -469,8 +459,8 @@ def get_zero_transfer_events(cls,
                              ledger_api: EthereumApi,
                              contract_address: str,
                              sender_address: str,
-                             from_block: BlockIdentifier = "earliest",
-                             to_block: BlockIdentifier = "latest") -> JSONLike
+                             from_block: Union[int, str] = "earliest",
+                             to_block: Union[int, str] = "latest") -> JSONLike
 ```
 
 Get all zero transfer events from a given sender to the safe address.

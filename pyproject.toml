@@ -23,6 +23,38 @@ open-aea-ledger-ethereum = {version = "==2.2.1", optional = true}
 open-aea-ledger-ethereum-hwi = {version = "==2.2.1", optional = true}
 docker = {version = "==7.1.0", optional = true}
 
+# ---------------------------------------------------------------------------
+# TODO(cleanup): direct imports from `packages/valory/**` — declared here so
+# `pyproject.toml` matches the union of all package-manifest `dependencies:`
+# blocks. Many of these arrive transitively today (e.g. `web3`, `requests`,
+# `eth-typing` via open-aea-ledger-ethereum; `protobuf`, `aiohttp`,
+# `multidict`, `certifi` via open-aea[all]; `ipfshttpclient` via
+# open-aea-cli-ipfs). We will prune/re-homes this block (extras, dev-only,
+# remove outright) once the package-side cleanup is finalised.
+# ---------------------------------------------------------------------------
+open-aea-ledger-cosmos = "==2.2.1"
+# open-aea-ledger-solana = "==2.2.1"  # Temporarily commented out:
+# conflicts with `open-aea-test-autonomy==0.21.18` (pytest==8.4.2)
+# via `anchorpy<0.19` (pytest<8). Revisit during pyproject cleanup.
+open-aea-test-autonomy = "==0.21.18"
+web3 = ">=7,<8"
+requests = ">=2.28.1,<2.33.0"
+grpcio = "==1.78.0"
+protobuf = ">=5,<6"
+aiohttp = ">=3.8.5,<4.0.0"
+certifi = "*"
+multidict = "*"
+ipfshttpclient = "==0.8.0a2"
+asn1crypto = ">=1.4.0,<1.5.0"
+ecdsa = "*"
+eth-typing = "*"
+pytz = "==2022.2.1"
+typing-extensions = ">=3.10.0.2,<=4.15.0"
+py-ecc = "==8.0.0"
+hypothesis = "==6.21.6"
+pytest = "==8.4.2"
+pytest-asyncio = "*"
+
 [tool.poetry.extras]
 cli = [
     "open-aea-cli-ipfs",
@@ -49,14 +81,11 @@ tomte = { extras = ["tox", "docs"], version = "==0.6.5" }
 mkdocs-monorepo-plugin = "^1.0.5"
 open-aea-ci-helpers = "==2.2.1"
 open-aea-dev-helpers = "==2.2.1"
-# Test-only runtime deps for `packages/valory/**` when `make test`
-# runs pytest directly (outside tox). Kept out of the main deps so
-# the published wheel doesn't ship them. `tox -e <env>` has its own
-# lists in tox.ini.
-py-ecc = "==8.0.0"
+# NOTE: `py-ecc`, `hypothesis`, `pytest`, `pytest-asyncio` have been
+# promoted to main deps because they are declared in package YAMLs
+# (direct imports in packages/valory/**). They will be re-homed during
+# the pyproject cleanup pass.
 pycryptodome = "==3.20.0"
-hypothesis = "==6.21.6"
-pytest-asyncio = "*"
 
 
 [build-system]

@@ -21,15 +21,22 @@
 
 import typing as t
 
-from Crypto.Hash import keccak  # nosec
-from eth_abi.abi import default_codec  # nosec
-from eth_utils import decode_hex
+from aea_ledger_ethereum import EthereumApi
 
 
-def encode(typ: t.Any, arg: t.Any) -> bytes:
-    """Encode by type."""
-    encoder = default_codec._registry.get_encoder(  # pylint: disable=protected-access
-        typ
+def encode(ledger_api: EthereumApi, typ: t.Any, arg: t.Any) -> bytes:
+    """Encode a single value of the given ABI type.
+
+    web3 bundles ``eth_abi`` and exposes its default codec via
+    ``ledger_api.api.codec``; reaching through to the codec's
+    ``_registry`` gives us the same per-type encoder the contract
+    used to import directly from ``eth_abi.default_codec._registry``,
+    without adding ``eth-abi`` as a declared dep.
+    """
+    encoder = (
+        ledger_api.api.codec._registry.get_encoder(  # pylint: disable=protected-access
+            typ
+        )
     )
     return encoder(arg)
 
@@ -45,21 +52,21 @@ def to_string(value: t.Union[bytes, str, int]) -> bytes:
     raise ValueError("Invalid data")
 
 
-def sha3_256(x: bytes) -> bytes:
-    """Calculate SHA3-256 hash."""
-    return keccak.new(digest_bits=256, data=x).digest()
+def sha3_256(ledger_api: EthereumApi, x: bytes) -> bytes:
+    """Calculate keccak-256 hash (Ethereum's SHA3 variant)."""
+    return ledger_api.api.keccak(x)
 
 
-def sha3(seed: t.Union[bytes, str, int]) -> bytes:
-    """Calculate SHA3-256 hash."""
-    return sha3_256(to_string(seed))
+def sha3(ledger_api: EthereumApi, seed: t.Union[bytes, str, int]) -> bytes:
+    """Calculate keccak-256 hash over *seed* (coerced to bytes)."""
+    return sha3_256(ledger_api, to_string(seed))
 
 
 def scan_bin(v: str) -> bytes:
     """Scan bytes."""
     if v[:2] in ("0x", b"0x"):
-        return decode_hex(v[2:])
-    return decode_hex(v)
+        return bytes.fromhex(v[2:])
+    return bytes.fromhex(v)
 
 
 def create_struct_definition(name: str, schema: t.List[t.Dict[str, str]]) -> str:
@@ -101,55 +108,79 @@ def create_schema(name: str, types: t.Dict) -> str:
     )
 
 
-def create_schema_hash(name: str, types: t.Dict) -> bytes:
+def create_schema_hash(ledger_api: EthereumApi, name: str, types: t.Dict) -> bytes:
     """Create schema hash."""
-    return encode("bytes32", sha3(create_schema(name, types)))
+    return encode(ledger_api, "bytes32", sha3(ledger_api, create_schema(name, types)))
 
 
-def encode_value(data_type: str, value: t.Any, types: t.Dict) -> bytes:
+def encode_value(
+    ledger_api: EthereumApi, data_type: str, value: t.Any, types: t.Dict
+) -> bytes:
     """Encode value."""
     if data_type == "string":
-        return encode("bytes32", sha3(value))
+        return encode(ledger_api, "bytes32", sha3(ledger_api, value))
     if data_type == "bytes":
-        return encode("bytes32", sha3(scan_bin(value)))
+        return encode(ledger_api, "bytes32", sha3(ledger_api, scan_bin(value)))
     if types.get(data_type):
-        return encode("bytes32", sha3(encode_data(data_type, value, types)))
+        return encode(
+            ledger_api,
+            "bytes32",
+            sha3(ledger_api, encode_data(ledger_api, data_type, value, types)),
+        )
     if data_type.endswith("]"):
         arrayType = data_type[: data_type.index("[")]
         return encode(
+            ledger_api,
             "bytes32",
             sha3(
+                ledger_api,
                 b"".join(
-                    [encode_data(arrayType, arrayValue, types) for arrayValue in value]
-                )
+                    [
+                        encode_data(ledger_api, arrayType, arrayValue, types)
+                        for arrayValue in value
+                    ]
+                ),
             ),
         )
-    return encode(data_type, value)
+    return encode(ledger_api, data_type, value)
 
 
-def encode_data(name: str, data: t.Dict[str, t.Dict[str, str]], types: t.Dict) -> bytes:
+def encode_data(
+    ledger_api: EthereumApi,
+    name: str,
+    data: t.Dict[str, t.Dict[str, str]],
+    types: t.Dict,
+) -> bytes:
     """Encode data."""
-    return create_schema_hash(name, types) + b"".join(
+    return create_schema_hash(ledger_api, name, types) + b"".join(
         [
-            encode_value(schema_type["type"], data[schema_type["name"]], types)
+            encode_value(
+                ledger_api, schema_type["type"], data[schema_type["name"]], types
+            )
             for schema_type in types[name]
         ]
     )
 
 
 def create_struct_hash(
-    name: str, data: t.Dict[str, t.Dict[str, str]], types: t.Dict
+    ledger_api: EthereumApi,
+    name: str,
+    data: t.Dict[str, t.Dict[str, str]],
+    types: t.Dict,
 ) -> bytes:
     """Create struct hash."""
-    return sha3(encode_data(name, data, types))
+    return sha3(ledger_api, encode_data(ledger_api, name, data, types))
 
 
-def encode_typed_data(data: t.Dict[str, t.Any]) -> bytes:
+def encode_typed_data(ledger_api: EthereumApi, data: t.Dict[str, t.Any]) -> bytes:
     """Encode typed data."""
     types = t.cast(t.Dict, data.get("types"))
     primary_type = t.cast(str, data.get("primaryType"))
     domain = t.cast(t.Dict[str, t.Dict[str, str]], data.get("domain"))
     message = t.cast(t.Dict[str, t.Any], data.get("message"))
-    domain_hash = create_struct_hash("EIP712Domain", domain, types)
-    message_hash = create_struct_hash(primary_type, message, types)
-    return sha3(bytes.fromhex("19") + bytes.fromhex("01") + domain_hash + message_hash)
+    domain_hash = create_struct_hash(ledger_api, "EIP712Domain", domain, types)
+    message_hash = create_struct_hash(ledger_api, primary_type, message, types)
+    return sha3(
+        ledger_api,
+        bytes.fromhex("19") + bytes.fromhex("01") + domain_hash + message_hash,
+    )

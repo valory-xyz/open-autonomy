@@ -16,4 +16,6 @@ contracts: []
 class_name: RegistriesManagerContract
 contract_interface_paths:
   ethereum: build/RegistriesManager.json
-dependencies: {}
+dependencies:
+  open-aea-test-autonomy:
+    version: ==0.21.18
