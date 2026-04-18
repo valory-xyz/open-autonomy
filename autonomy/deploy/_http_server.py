@@ -249,6 +249,11 @@ class _RequestProxy:
     """Thread-local proxy that forwards to the current :class:`Request`."""
 
     def __getattr__(self, name: str) -> Any:
+        # Let Python's default attribute lookup handle dunders so tools
+        # (pydoc, doctest, repr) that introspect the proxy don't hit
+        # the "no request context" runtime error outside a handler.
+        if name.startswith("__") and name.endswith("__"):
+            raise AttributeError(name)
         req = getattr(_request_context, "request", None)
         if req is None:
             raise RuntimeError("No active request context")
