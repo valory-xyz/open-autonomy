@@ -39,6 +39,10 @@ def get_all_extras() -> Dict:
         "open-aea-ledger-ethereum==2.2.1",
     ]
 
+    docker_deps = [
+        "docker==7.1.0",
+    ]
+
     hwi_deps = [
         "open-aea-ledger-ethereum-hwi==2.2.1",
     ]
@@ -46,14 +50,20 @@ def get_all_extras() -> Dict:
     extras = {
         "cli": cli_deps,
         "chain": chain_deps,
+        "docker": docker_deps,
         "hwi": hwi_deps,
     }
 
-    # [all] intentionally excludes [hwi] — HWI's transitive deps
-    # (hidapi, Pillow via ledgerwallet) have no armv7 wheels, breaking
-    # multi-platform Docker builds. Use pip install open-autonomy[hwi]
-    # explicitly for hardware wallet support.
-    extras["all"] = list(set(dep for k, e in extras.items() for dep in e if k != "hwi"))
+    # [all] intentionally excludes [hwi] and [docker]:
+    # * HWI's transitive deps (hidapi, Pillow via ledgerwallet) have
+    #   no armv7 wheels, breaking multi-platform Docker builds.
+    # * [docker] is only needed for docker-compose-based deployments;
+    #   users deploying to Kubernetes / localhost don't need it.
+    # Install them explicitly: `pip install open-autonomy[hwi,docker]`.
+    _opt_out = {"hwi", "docker"}
+    extras["all"] = list(
+        set(dep for k, e in extras.items() for dep in e if k not in _opt_out)
+    )
     return extras
 
 
@@ -63,9 +73,7 @@ all_extras = get_all_extras()
 base_deps = [
     "Flask>=3.1.0,<4.0.0",
     "open-aea[all]==2.2.1",
-    "watchdog>=2.1.6",
     "werkzeug>=3.1.0,<4.0.0",
-    "docker==7.1.0",
     "protobuf<6,>=5",
     "gql==3.5.0",
 ]
