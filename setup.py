@@ -74,7 +74,6 @@ base_deps = [
     "Flask>=3.1.0,<4.0.0",
     "open-aea[all]==2.2.1",
     "werkzeug>=3.1.0,<4.0.0",
-    "protobuf<6,>=5",
 ]
 base_deps.extend(all_extras["cli"])
 
