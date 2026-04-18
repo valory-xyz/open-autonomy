@@ -23,7 +23,6 @@ typing_extensions = ">=3.10.0.2,<=4.15.0"
 # CLI deps (also bundled into the default install)
 click = ">=8.1.0,<9"
 open-aea-cli-ipfs = "==2.2.1"
-python-dotenv = ">=0.14.5,<0.22.0"
 coverage = ">=6.4.4,<8.0.0"
 # Optional plugins — declared via extras below.
 # HWI kept out of [all]: its transitive chain (ledgerwallet ->
@@ -36,7 +35,6 @@ open-aea-ledger-ethereum-hwi = {version = "==2.2.1", optional = true}
 cli = [
     "click",
     "open-aea-cli-ipfs",
-    "python-dotenv",
     "pytest",
     "coverage",
 ]
@@ -49,7 +47,6 @@ hwi = [
 all = [
     "click",
     "open-aea-cli-ipfs",
-    "python-dotenv",
     "pytest",
     "coverage",
     "open-aea-ledger-ethereum",
