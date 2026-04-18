@@ -18,8 +18,6 @@ docker = "==7.1.0"
 hexbytes = "*"
 protobuf = ">=5,<6"
 gql = "==3.5.0"
-aiohttp = ">=3.8.5,<4.0.0"
-typing_extensions = ">=3.10.0.2,<=4.15.0"
 # CLI deps (also bundled into the default install)
 click = ">=8.1.0,<9"
 open-aea-cli-ipfs = "==2.2.1"

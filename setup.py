@@ -70,8 +70,6 @@ base_deps = [
     "hexbytes",
     "protobuf<6,>=5",
     "gql==3.5.0",
-    "aiohttp<4.0.0,>=3.8.5",
-    "typing_extensions<=4.15.0,>=3.10.0.2",
 ]
 base_deps.extend(all_extras["cli"])
 
