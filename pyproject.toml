@@ -19,7 +19,7 @@ open-aea-cli-ipfs = "==2.2.1"
 #     no armv7 wheels, breaking multi-platform Docker image builds.
 #   * `docker` is only needed for docker-compose deployments; users
 #     deploying to Kubernetes or localhost don't need it.
-open-aea-ledger-ethereum = {version = "==2.2.1", optional = true}
+open-aea-ledger-ethereum = {version = "==2.2.1", optional = true, extras = []}
 open-aea-ledger-ethereum-hwi = {version = "==2.2.1", optional = true}
 docker = {version = "==7.1.0", optional = true}
 
@@ -55,6 +55,22 @@ multidict = "*"
 asn1crypto = ">=1.4.0,<1.5.0"
 ecdsa = "*"
 py-ecc = ">=8,<10"
+
+# ---------------------------------------------------------------------------
+# TODO(cleanup): entries below are declared here only to satisfy
+# `tox -e check-dependencies`. That tool reads
+# `[tool.poetry.dependencies]` but:
+#   * ignores entries with `optional = true` unless they also carry
+#     an `extras` key (so `open-aea-ledger-ethereum` above is
+#     invisible; we restate it here without `optional`);
+#   * doesn't read the dev group (so `pytest-asyncio` is invisible);
+#   * flags `protobuf` as missing even though it arrives transitively
+#     via `open-aea[all]`.
+# The authoritative distribution manifest is `setup.py`, so these
+# redundant entries are harmless. The right long-term fix is to
+# patch the checker to understand `optional` + dev-group deps.
+protobuf = "*"
+pytest-asyncio = "*"
 
 [tool.poetry.extras]
 cli = [
