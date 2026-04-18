@@ -745,13 +745,18 @@ def _draw_table(rows: Sequence[Sequence[Any]]) -> str:
 
     Cell values are stringified and may contain newlines, which are rendered
     as stacked lines inside the cell.
+
+    :param rows: 2D sequence of cell values; first row is the header.
+    :return: the rendered table as a string.
     """
     cells = [[str(c).split("\n") for c in row] for row in rows]
     widths = [
         max(len(line) for row in cells for line in row[col])
         for col in range(len(cells[0]))
     ]
-    border = lambda fill: "+" + "+".join(fill * (w + 2) for w in widths) + "+"
+
+    def border(fill: str) -> str:
+        return "+" + "+".join(fill * (w + 2) for w in widths) + "+"
 
     def fmt(row: List[List[str]]) -> str:
         height = max(len(cell) for cell in row)

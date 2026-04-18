@@ -31,11 +31,13 @@ def get_requests_connection_error() -> Type[BaseException]:
     plugin; any call that actually reaches a chain-side `except` without
     the plugin raises here with a clear install hint, matching the
     `load_hwi_plugin` pattern in `autonomy.chain.config`.
+
+    :return: the ``requests.exceptions.ConnectionError`` class.
+    :raises ImportError: if the Ethereum ledger plugin is not installed.
     """
+    # pylint: disable=import-outside-toplevel
     try:
-        from requests.exceptions import (
-            ConnectionError as _RequestsConnectionError,  # pylint: disable=import-outside-toplevel
-        )
+        from requests.exceptions import ConnectionError as _RequestsConnectionError
     except ImportError as e:  # pragma: nocover
         raise ImportError(
             "Chain operations require the Ethereum ledger plugin, "

@@ -28,6 +28,12 @@ for production use. Deliberately API-compatible so callers don't
 need to change and the switch can be reverted.
 """
 
+# Module-wide pylint relaxation: this file defines several small
+# data-style classes where the "two public methods" threshold is
+# not a useful signal, and catches `Exception` broadly by design
+# to turn any handler error into a 500 response.
+# pylint: disable=too-few-public-methods,broad-exception-caught
+
 import json as _json
 import logging
 import re
@@ -80,12 +86,20 @@ class InternalServerError(HTTPException):
 class _Args(dict):
     """Query-string args with Flask's ``get(key, default=None, type=None)``."""
 
+    # pylint: disable=redefined-builtin
     def get(  # type: ignore[override]
         self,
         key: str,
         default: Any = None,
         type: Optional[Callable[[str], Any]] = None,  # noqa: A002
     ) -> Any:
+        """Return *key* from the query string, optionally coerced via *type*.
+
+        :param key: query-string key to look up.
+        :param default: value to return when *key* is absent.
+        :param type: optional callable to coerce the string value.
+        :return: the (optionally coerced) value or *default*.
+        """
         value = super().get(key, default)
         if type is not None and value is not None and value is not default:
             try:
@@ -165,6 +179,11 @@ def jsonify(*args: Any, **kwargs: Any) -> Response:
     * ``jsonify({"a": 1})`` — one positional arg is used as the body.
     * ``jsonify(a=1, b=2)`` — keyword args form an object.
     * ``jsonify(1, 2, 3)`` — multiple positional args form a list.
+
+    :param args: positional value(s) to serialize.
+    :param kwargs: keyword pairs to serialize as an object.
+    :return: a :class:`Response` with ``application/json`` mimetype.
+    :raises TypeError: when both positional and keyword args are given.
     """
     if args and kwargs:
         raise TypeError("jsonify() accepts either positional args or kwargs, not both")
@@ -309,6 +328,10 @@ class App:
         """Return an in-process test client."""
         return _TestClient(self)
 
+    def run(self, host: str = "127.0.0.1", port: int = 5000) -> None:
+        """Serve this app on *host:port* — matches ``flask.Flask.run``."""
+        run_app(self, host=host, port=port)
+
     def dispatch(self, req: Request) -> Response:
         """Dispatch *req* to the matching handler (or an error handler)."""
         for route in self._routes:
@@ -319,15 +342,13 @@ class App:
                 continue
             try:
                 result = route.handler(**params)
-            except Exception as exc:  # pylint: disable=broad-except
+            except Exception as exc:
                 self.logger.exception("unhandled exception in handler")
                 handler = self._error_handlers.get(500)
                 if handler is not None:
                     try:
                         return _to_response(handler(InternalServerError(str(exc))))
-                    except (
-                        Exception
-                    ):  # pragma: no cover  # pylint: disable=broad-except
+                    except Exception:  # pragma: no cover
                         pass
                 return Response(str(exc), status=500)
             return _to_response(result)
@@ -460,7 +481,7 @@ def _build_handler_class(app: App) -> Type[BaseHTTPRequestHandler]:
                 path=parts.path,
                 args=dict(parse_qsl(parts.query, keep_blank_values=True)),
                 data=body,
-                headers={k: v for k, v in self.headers.items()},
+                headers=dict(self.headers),
             )
             _request_context.request = req
             try:
@@ -483,9 +504,14 @@ def _build_handler_class(app: App) -> Type[BaseHTTPRequestHandler]:
             """Handle POST."""
             self._serve("POST")
 
+        # pylint: disable=redefined-builtin
         def log_message(self, format: str, *args: Any) -> None:  # noqa: A002
-            """Forward stdlib access log lines to the app logger."""
-            app.logger.info(format % args)
+            """Forward stdlib access log lines to the app logger.
+
+            :param format: printf-style format string from BaseHTTPRequestHandler.
+            :param args: positional values for the format string.
+            """
+            app.logger.info(format, *args)
 
     return _AppHandler
 

@@ -22,7 +22,11 @@ disable=C0103,R0801,C0301,C0201,C0204,C0209,W1203,C0302,R1735,R1729,W0511,E0611,
 ; R0917: too-many-positional-arguments
 
 [IMPORTS]
-ignored-modules=pandas,numpy,aea_cli_ipfs,compose,multidict
+; `flask`, `werkzeug`, `watchdog`, `dotenv` are runtime deps of separate
+; artifacts (Docker images and plugins declare them in their own
+; manifests); they are not installed in autonomys lint env and pylint
+; doesn't need to resolve them there.
+ignored-modules=pandas,numpy,aea_cli_ipfs,compose,multidict,flask,werkzeug,watchdog,dotenv
 
 [DESIGN]
 # min-public-methods=1
