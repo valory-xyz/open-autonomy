@@ -19,12 +19,12 @@
 
 """Subgraph client."""
 
+import json
 import os
 from typing import List, Optional, TypedDict, cast
 
 from aea.configurations.data_types import PackageId, PackageType
-from gql import Client, gql
-from gql.transport.requests import RequestsHTTPTransport
+from aea.helpers.http_requests import post
 
 from autonomy.chain.subgraph.queries import (
     FIND_BY_PACKAGE_HASH,
@@ -55,23 +55,27 @@ class UnitContainer(TypedDict):
 class SubgraphClient:
     """Subgraph helper class."""
 
-    client: Client
-
     def __init__(self, url: Optional[str] = None) -> None:
         """Initialize object"""
-
         self._url = url or SUBGRAPH_URL
-        self._transport = RequestsHTTPTransport(
-            url=self._url,
-        )
-        self.client = Client(
-            transport=self._transport,
-            fetch_schema_from_transport=True,
-        )
 
     def _query(self, query: str) -> UnitContainer:
         """Perform a query"""
-        return cast(UnitContainer, self.client.execute(gql(request_string=query)))
+        # Cloudflare fronts the default subgraph and 403s requests without
+        # a User-Agent; urllib (used by aea.helpers.http_requests) sends
+        # none by default, so set one explicitly.
+        resp = post(
+            self._url,
+            data=json.dumps({"query": query}).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": "open-autonomy",
+            },
+        )
+        payload = resp.json()
+        if "errors" in payload:
+            raise RuntimeError(f"Subgraph query failed: {payload['errors']}")
+        return cast(UnitContainer, payload["data"])
 
     def get_component_by_token(
         self, token_id: int, package_type: PackageType

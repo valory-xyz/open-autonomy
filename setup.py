@@ -75,7 +75,6 @@ base_deps = [
     "open-aea[all]==2.2.1",
     "werkzeug>=3.1.0,<4.0.0",
     "protobuf<6,>=5",
-    "gql==3.5.0",
 ]
 base_deps.extend(all_extras["cli"])
 

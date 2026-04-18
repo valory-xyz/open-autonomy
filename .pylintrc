@@ -22,7 +22,7 @@ disable=C0103,R0801,C0301,C0201,C0204,C0209,W1203,C0302,R1735,R1729,W0511,E0611,
 ; R0917: too-many-positional-arguments
 
 [IMPORTS]
-ignored-modules=pandas,numpy,aea_cli_ipfs,compose,multidict,gql
+ignored-modules=pandas,numpy,aea_cli_ipfs,compose,multidict
 
 [DESIGN]
 # min-public-methods=1
