@@ -46,7 +46,6 @@ from typing import (
 )
 from urllib.parse import parse_qsl, urlsplit
 
-
 # ---------------------------------------------------------------------------
 # Errors (stand-ins for werkzeug.exceptions)
 # ---------------------------------------------------------------------------
@@ -168,9 +167,7 @@ def jsonify(*args: Any, **kwargs: Any) -> Response:
     * ``jsonify(1, 2, 3)`` — multiple positional args form a list.
     """
     if args and kwargs:
-        raise TypeError(
-            "jsonify() accepts either positional args or kwargs, not both"
-        )
+        raise TypeError("jsonify() accepts either positional args or kwargs, not both")
     if len(args) == 1:
         payload = args[0]
     elif args:
@@ -194,9 +191,7 @@ _Handler = Callable[..., Any]
 class _Route:
     """A single route: method(s), URL pattern, handler."""
 
-    def __init__(
-        self, methods: List[str], pattern: str, handler: _Handler
-    ) -> None:
+    def __init__(self, methods: List[str], pattern: str, handler: _Handler) -> None:
         """Initialize a route and compile its URL pattern."""
         self.methods = [m.upper() for m in methods]
         # Translate Flask-style <int:x> and <x> placeholders to regex groups
@@ -297,9 +292,7 @@ class App:
         """Register a POST handler."""
         return self.route(rule, methods=["POST"])
 
-    def errorhandler(
-        self, code: int
-    ) -> Callable[[_Handler], _Handler]:
+    def errorhandler(self, code: int) -> Callable[[_Handler], _Handler]:
         """Register a handler for HTTP *code* (e.g. 404, 500)."""
 
         def decorator(fn: _Handler) -> _Handler:
@@ -332,7 +325,9 @@ class App:
                 if handler is not None:
                     try:
                         return _to_response(handler(InternalServerError(str(exc))))
-                    except Exception:  # pragma: no cover  # pylint: disable=broad-except
+                    except (
+                        Exception
+                    ):  # pragma: no cover  # pylint: disable=broad-except
                         pass
                 return Response(str(exc), status=500)
             return _to_response(result)
@@ -360,9 +355,7 @@ def _to_response(result: Any) -> Response:
         return resp
     if isinstance(result, (str, bytes)):
         return Response(result, status=status)
-    raise TypeError(
-        f"Unsupported handler return type: {type(result).__name__}"
-    )
+    raise TypeError(f"Unsupported handler return type: {type(result).__name__}")
 
 
 # ---------------------------------------------------------------------------

@@ -31,8 +31,8 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, cast
 
 from aea.helpers import http_requests as requests
 
+from autonomy.deploy._http_server import App as Flask
 from autonomy.deploy._http_server import (
-    App as Flask,
     InternalServerError,
     NotFound,
     Response,

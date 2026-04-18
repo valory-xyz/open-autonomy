@@ -33,8 +33,8 @@ def get_requests_connection_error() -> Type[BaseException]:
     `load_hwi_plugin` pattern in `autonomy.chain.config`.
     """
     try:
-        from requests.exceptions import (  # pylint: disable=import-outside-toplevel
-            ConnectionError as _RequestsConnectionError,
+        from requests.exceptions import (
+            ConnectionError as _RequestsConnectionError,  # pylint: disable=import-outside-toplevel
         )
     except ImportError as e:  # pragma: nocover
         raise ImportError(
