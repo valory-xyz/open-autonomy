@@ -27,6 +27,7 @@ from aea.configurations.base import PackageConfiguration
 from aea.configurations.data_types import PackageId, PackageType, PublicId
 from aea.configurations.loader import load_configuration_object
 from aea.helpers.base import IPFSHash
+from aea.helpers.http_requests import ConnectionError as HttpConnectionError
 
 from autonomy.chain.base import ServiceState, UnitType
 from autonomy.chain.config import ChainType, ContractConfigs, OnChainHelper
@@ -36,10 +37,7 @@ from autonomy.chain.constants import (
     SERVICE_REGISTRY_CONTRACT,
     SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT,
 )
-from autonomy.chain.exceptions import (
-    ChainInteractionError,
-    get_requests_connection_error,
-)
+from autonomy.chain.exceptions import ChainInteractionError
 from autonomy.chain.metadata import NFTHashOrPath, publish_metadata
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH, MintManager
 from autonomy.chain.service import (
@@ -217,7 +215,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                     unit, *_ = sorted(units, key=lambda x: x["tokenId"])
                     dependencies.append(unit["tokenId"])
             self.dependencies = sorted(list(map(int, dependencies)))
-        except get_requests_connection_error() as e:
+        except HttpConnectionError as e:
             raise click.ClickException(message=f"Error interacting with subgraph; {e}")
         return self
 
@@ -232,7 +230,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 token_id=agent_id,
                 package_type=PackageType.AGENT,
             ).get("units", [])
-        except get_requests_connection_error() as e:
+        except HttpConnectionError as e:
             raise click.ClickException(message=f"Error interacting with subgraph; {e}")
         if len(units) == 0:
             raise click.ClickException(f"No agents found with token ID {agent_id}")
