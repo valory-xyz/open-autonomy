@@ -9,9 +9,7 @@ packages = [{include = "autonomy"}, {include = "packages"}]
 [tool.poetry.dependencies]
 python = ">=3.10,<3.15"
 # Core runtime
-Flask = ">=3.1.0,<4.0.0"
 open-aea = { version = "==2.2.1", extras = ["all"] }
-Werkzeug = ">=3.1.0,<4.0.0"
 # CLI deps. `click`, `pytest`, `coverage` come transitively via
 # `open-aea[all]`; only the IPFS CLI plugin is autonomy-specific.
 open-aea-cli-ipfs = "==2.2.1"

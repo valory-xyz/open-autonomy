@@ -71,9 +71,7 @@ all_extras = get_all_extras()
 
 
 base_deps = [
-    "Flask>=3.1.0,<4.0.0",
     "open-aea[all]==2.2.1",
-    "werkzeug>=3.1.0,<4.0.0",
 ]
 base_deps.extend(all_extras["cli"])
 

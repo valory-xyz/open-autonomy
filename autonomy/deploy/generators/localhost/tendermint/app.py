@@ -30,9 +30,15 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, cast
 
 from aea.helpers import http_requests as requests
-from flask import Flask, Response, jsonify, request
-from werkzeug.exceptions import InternalServerError, NotFound
 
+from autonomy.deploy._http_server import (
+    App as Flask,
+    InternalServerError,
+    NotFound,
+    Response,
+    jsonify,
+    request,
+)
 from autonomy.deploy.constants import (
     TM_ENV_CREATE_EMPTY_BLOCKS,
     TM_ENV_P2P_LADDR,
