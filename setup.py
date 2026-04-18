@@ -66,7 +66,6 @@ base_deps = [
     "watchdog>=2.1.6",
     "werkzeug>=3.1.0,<4.0.0",
     "docker==7.1.0",
-    "hexbytes",
     "protobuf<6,>=5",
     "gql==3.5.0",
 ]
