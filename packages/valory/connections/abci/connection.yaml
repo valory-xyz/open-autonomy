@@ -75,6 +75,6 @@ dependencies:
   grpcio:
     version: ==1.78.0
   protobuf:
-    version: <6,>=5
+    version: <7,>=5
 is_abstract: false
 cert_requests: []
