@@ -26,9 +26,23 @@ from pathlib import Path
 from typing import Any, Set, Type, cast
 from unittest import mock
 
-import pytest
 from aea.exceptions import AEAActException
 from aea.skills.base import SkillContext
+
+try:
+    import pytest
+except ImportError:  # pragma: no cover
+
+    class _PytestMissing:  # pylint: disable=too-few-public-methods
+        """Stub that raises a clear ImportError when `pytest` is touched."""
+
+        def __getattr__(self, name: str) -> Any:
+            raise ImportError(
+                "pytest is required to use abstract_round_abci.test_tools. "
+                "Install with `pip install pytest`."
+            )
+
+    pytest = _PytestMissing()  # type: ignore[assignment]
 
 from packages.valory.protocols.contract_api.custom_types import State
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage

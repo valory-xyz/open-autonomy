@@ -18,5 +18,5 @@ class_name: ServiceManagerContract
 contract_interface_paths:
   ethereum: build/ServiceManagerToken.json
 dependencies:
-  open-aea-test-autonomy:
-    version: ==0.21.18
+  open-aea-ledger-ethereum:
+    version: ==2.2.1

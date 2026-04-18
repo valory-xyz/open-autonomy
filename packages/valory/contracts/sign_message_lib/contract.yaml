@@ -14,4 +14,6 @@ contracts: []
 class_name: SignMessageLibContract
 contract_interface_paths:
   ethereum: build/SignMessageLib.json
-dependencies: {}
+dependencies:
+  open-aea-ledger-ethereum:
+    version: ==2.2.1

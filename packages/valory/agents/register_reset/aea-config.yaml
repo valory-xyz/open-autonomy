@@ -22,9 +22,9 @@ fingerprint:
   tests/test_register_reset.py: bafybeicnugiccs4525czzqmyx2ewh26bep56osw64cqutsbyid2tct7amq
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeihgtguy5ljj2rwgwoxeor5d565alwfggnuevss7malhzdats6nfqi
+- valory/abci:0.1.0:bafybeigva5akqtre5fu4e2pi3y2valv4d5fcajrw4gfi535wuuve4cxc3q
 - valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
-- valory/ipfs:0.1.0:bafybeiddxbjccmzkknny5pbfupxgexp4w4pwiu2rny4a6vnlxwqs3mmfo4
+- valory/ipfs:0.1.0:bafybeic4cubtc6jbejq7yt7fjlibuixofb6wqpfoc5vt2h4wpaahi5y5bi
 - valory/ledger:0.19.0:bafybeidqf5dmueqm655z3bkw36mviobpcpuek4bhha7iq2nnz6sfu32kva
 - valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts: []
@@ -34,11 +34,11 @@ protocols:
 - valory/http:1.0.0:bafybeidxkp3vga7t6x2pbt2tpkgyaxa5bgpdgryao54py7w3yxyzr7neoy
 - valory/ipfs:0.1.0:bafybeibz5xqhxdbuvba7nuw2w6ardjermtcoqercopnypdplnaekf3joam
 skills:
-- valory/abstract_abci:0.1.0:bafybeif4jcv22xrmkwiaecyyli7iknmdhtkg6dmzqmwpqekmvxyr7ba3xy
-- valory/abstract_round_abci:0.1.0:bafybeiacfuv6hwp4jip77wpe53z6fsrtsx47wbpe7jvyrcqwpmib2lnfpa
-- valory/register_reset_abci:0.1.0:bafybeigy3z7kf6tgeostbbicz6vrly37ckp5gt6hqn5wlx6tid6yvq2lou
-- valory/registration_abci:0.1.0:bafybeiedz4t6gujjofix7xhrhceetzkmo5aoewkrc4knjrabzzhr4lbhwq
-- valory/reset_pause_abci:0.1.0:bafybeihy2retmmblmr5f4xepqqriet655oxe2kimqidal332k27neb3if4
+- valory/abstract_abci:0.1.0:bafybeicsmcuaf3623iwxggtyprqws6tficjfopdw7dwjh2o7c2mf7qc4ey
+- valory/abstract_round_abci:0.1.0:bafybeianq4zn4wp4ry2xc6ox33773n5hatlni455fof7mcyzs6skg3hvau
+- valory/register_reset_abci:0.1.0:bafybeic55j34tgh5yilk4wlyehzwhlsagqei4dnmspmpt5urnse46wglia
+- valory/registration_abci:0.1.0:bafybeicdphjwivvvzkqp2erlcbyf6int3auihd6coeymqgbz36llp4vijq
+- valory/reset_pause_abci:0.1.0:bafybeiact5x5ygoh47kkz6pr4jofvonch4ro3osz2zchoirgo4fq5t3htq
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -70,8 +70,6 @@ logging_config:
 dependencies:
   open-aea-ledger-ethereum:
     version: ==2.2.1
-  open-aea-test-autonomy:
-    version: ==0.21.18
 customs: []
 default_connection: null
 ---

@@ -16,4 +16,6 @@ contracts: []
 class_name: ComponentRegistryContract
 contract_interface_paths:
   ethereum: build/ComponentRegistry.json
-dependencies: {}
+dependencies:
+  open-aea-ledger-ethereum:
+    version: ==2.2.1
