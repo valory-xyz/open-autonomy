@@ -36,12 +36,17 @@ def get_all_extras() -> Dict:
         "coverage>=6.4.4,<8.0.0",
     ]
 
+    chain_deps = [
+        "open-aea-ledger-ethereum==2.2.1",
+    ]
+
     hwi_deps = [
         "open-aea-ledger-ethereum-hwi==2.2.1",
     ]
 
     extras = {
         "cli": cli_deps,
+        "chain": chain_deps,
         "hwi": hwi_deps,
     }
 
