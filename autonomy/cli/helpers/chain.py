@@ -20,7 +20,7 @@
 """On-chain interaction helpers."""
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Sequence, cast
 
 import click
 from aea.configurations.base import PackageConfiguration
@@ -28,7 +28,6 @@ from aea.configurations.data_types import PackageId, PackageType, PublicId
 from aea.configurations.loader import load_configuration_object
 from aea.helpers.base import IPFSHash
 from aea.helpers.http_requests import ConnectionError as RequestConnectionError
-from texttable import Texttable
 
 from autonomy.chain.base import ServiceState, UnitType
 from autonomy.chain.config import ChainType, ContractConfigs, OnChainHelper
@@ -739,6 +738,36 @@ class ServiceHelper(OnChainHelper):
         click.echo("Service multisig recovered successfully")
 
 
+def _draw_table(rows: Sequence[Sequence[Any]]) -> str:
+    """Render *rows* as a bordered ASCII table with the first row as header.
+
+    Cell values are stringified and may contain newlines, which are rendered
+    as stacked lines inside the cell.
+    """
+    cells = [[str(c).split("\n") for c in row] for row in rows]
+    widths = [
+        max(len(line) for row in cells for line in row[col])
+        for col in range(len(cells[0]))
+    ]
+    border = lambda fill: "+" + "+".join(fill * (w + 2) for w in widths) + "+"
+
+    def fmt(row: List[List[str]]) -> str:
+        height = max(len(cell) for cell in row)
+        lines = []
+        for i in range(height):
+            parts = [
+                f" {(cell[i] if i < len(cell) else ''):<{widths[col]}} "
+                for col, cell in enumerate(row)
+            ]
+            lines.append("|" + "|".join(parts) + "|")
+        return "\n".join(lines)
+
+    out = [border("-"), fmt(cells[0]), border("=")]
+    out.extend(fmt(row) for row in cells[1:])
+    out.append(border("-"))
+    return "\n".join(out)
+
+
 def print_service_info(service_id: int, chain_type: ChainType) -> None:
     """Print service information"""
     ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(chain_type=chain_type)
@@ -784,4 +813,4 @@ def print_service_info(service_id: int, chain_type: ChainType) -> None:
                 ),
             ),
         )
-    click.echo(Texttable().add_rows(rows=rows).draw())
+    click.echo(_draw_table(rows))

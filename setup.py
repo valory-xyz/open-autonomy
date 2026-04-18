@@ -31,7 +31,6 @@ def get_all_extras() -> Dict:
     cli_deps = [
         "click>=8.1.0,<9",
         "open-aea-cli-ipfs==2.2.1",
-        "texttable==1.6.7",
         "python-dotenv>=0.14.5,<0.22.0",
         "pytest>=8.0.0,<8.5.0",
         "coverage>=6.4.4,<8.0.0",
