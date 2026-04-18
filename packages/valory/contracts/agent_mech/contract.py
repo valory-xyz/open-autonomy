@@ -60,6 +60,7 @@ class AgentMech(Contract):
         :param payment_data: the payment data (bytes)
         :param response_timeout: the response timeout (uint256)
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         checksummed_contract_address = ledger_api.api.to_checksum_address(
             contract_address
         )
@@ -150,6 +151,7 @@ class AgentMech(Contract):
         :return: a dictionary with a key named `results`
         which contains a list of dictionaries (as many as the expected logs) containing the request id and the data.
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         contract_address = ledger_api.api.to_checksum_address(contract_address)
         contract_instance = cls.get_instance(ledger_api, contract_address)
         res = cls._process_event(
@@ -182,6 +184,7 @@ class AgentMech(Contract):
         :param expected_logs: the number of logs expected.
         :return: a dictionary with the request id and the data.
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         contract_address = ledger_api.api.to_checksum_address(contract_address)
         contract_instance = cls.get_instance(ledger_api, contract_address)
         res = cls._process_event(

@@ -14,6 +14,4 @@ contracts: []
 class_name: SignMessageLibContract
 contract_interface_paths:
   ethereum: build/SignMessageLib.json
-dependencies:
-  web3:
-    version: <8,>=7.0.0
+dependencies: {}

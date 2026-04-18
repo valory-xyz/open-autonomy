@@ -76,6 +76,11 @@ tox -e fix-copyright
 make common-checks-2          # checks API docs, ABCI specs, handlers, dialogues
 ```
 
+**Hashing rule:** always run `autonomy packages lock` (or `make generators`)
+at the end of a work cycle, after every other edit/lint/format step has
+settled. Locking earlier is wasted work: any subsequent edit (including
+linter-triggered ones) will dirty the files again and require a re-lock.
+
 ### API Documentation
 ```bash
 tox -e check-api-docs                # verify API docs are up to date

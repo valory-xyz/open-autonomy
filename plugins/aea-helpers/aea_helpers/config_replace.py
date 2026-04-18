@@ -28,7 +28,7 @@ from typing import Any, Dict
 
 import click
 import yaml
-from dotenv import load_dotenv  # type: ignore
+from aea.helpers.base import load_env_file
 
 CONFIG_REGEX = r"\${.*?:(.*)}"
 
@@ -97,8 +97,10 @@ def run_config_replace(
     env_file: str = ".env",
 ) -> None:
     """Replace config values in agent's aea-config.yaml using env vars."""
-    if Path(env_file).exists():
-        load_dotenv(env_file, override=True)
+    # Note: aea.helpers.base.load_env_file uses setdefault (pre-existing
+    # env wins). If we ever need file-wins semantics, switch back to
+    # python-dotenv's load_dotenv(..., override=True).
+    load_env_file(env_file)
 
     config_path = Path(agent_dir, "aea-config.yaml")
     if not config_path.exists():

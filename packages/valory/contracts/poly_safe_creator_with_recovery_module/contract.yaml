@@ -8,18 +8,12 @@ aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeihfvdcbxhdrslacdtdeda57ia6eyrfv2i7i6hjxvkdo4xg5nh4k7m
   build/PolySafeCreatorWithRecoveryModule.json: bafybeidw37vjzgb2vsl5l6tnz2syhwrod25a6yzem4mauhpnpbdc2lmuwu
-  contract.py: bafybeihfmnsdenlnd3vogck7yr6u6o7voe5omc3nsr7tmb7wk2xxinzuba
+  contract.py: bafybeihqfip5ximv4ncktg6db46p5cpcp23oqpmqjrl6doutxl62koami4
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: PolySafeCreatorWithRecoveryModule
 contract_interface_paths:
   ethereum: build/PolySafeCreatorWithRecoveryModule.json
 dependencies:
-  eth-abi:
-    version: ==5.2.0
-  eth-utils:
-    version: ==5.3.0
   open-aea-ledger-ethereum:
     version: ==2.2.1
-  open-aea-test-autonomy:
-    version: ==0.21.18

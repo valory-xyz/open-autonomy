@@ -27,7 +27,6 @@ from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
-from web3 import Web3
 
 PUBLIC_ID = PublicId.from_str("valory/agent_registry:0.1.0")
 
@@ -201,21 +200,23 @@ class AgentRegistryContract(Contract):
                 },
             ]
             contract = ledger_api.api.eth.contract(
-                address=Web3.to_checksum_address(mech_address), abi=minimal_abi
+                address=ledger_api.api.to_checksum_address(mech_address),
+                abi=minimal_abi,
             )
             agent_id = contract.functions.tokenId().call()
 
             agent_owner = contract_instance.functions.ownerOf(agent_id).call()
-            if Web3.to_checksum_address(agent_owner) == Web3.to_checksum_address(
-                sender_address
-            ):
+            if ledger_api.api.to_checksum_address(
+                agent_owner
+            ) == ledger_api.api.to_checksum_address(sender_address):
                 return dict(is_valid=True)
 
             safe_contract = ledger_api.api.eth.contract(
-                address=Web3.to_checksum_address(agent_owner), abi=minimal_abi
+                address=ledger_api.api.to_checksum_address(agent_owner),
+                abi=minimal_abi,
             )
             owners = safe_contract.functions.getOwners().call()
-            if Web3.to_checksum_address(sender_address) in owners:
+            if ledger_api.api.to_checksum_address(sender_address) in owners:
                 return dict(is_valid=True)
 
             return dict(is_valid=False)

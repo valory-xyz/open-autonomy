@@ -27,7 +27,6 @@ base_deps = [
     "click>=8.1.0,<9",
     "requests>=2.28.0,<3",
     "toml>=0.10,<1",
-    "python-dotenv>=0.14.5,<2",
     "PyYAML>=6.0,<7",
 ]
 
