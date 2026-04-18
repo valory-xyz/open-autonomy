@@ -28,11 +28,11 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 
 def get_all_extras() -> Dict:
+    # `click`, `pytest`, `coverage` are pulled transitively via
+    # `open-aea[all]` (which implies its own `[cli]` extra), so we only
+    # need to declare the IPFS CLI plugin here.
     cli_deps = [
-        "click>=8.1.0,<9",
         "open-aea-cli-ipfs==2.2.1",
-        "pytest>=8.0.0,<8.5.0",
-        "coverage>=6.4.4,<8.0.0",
     ]
 
     chain_deps = [
@@ -64,7 +64,6 @@ base_deps = [
     "Flask>=3.1.0,<4.0.0",
     "open-aea[all]==2.2.1",
     "watchdog>=2.1.6",
-    "pytest==8.4.2",
     "werkzeug>=3.1.0,<4.0.0",
     "docker==7.1.0",
     "hexbytes",

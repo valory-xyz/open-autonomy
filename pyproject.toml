@@ -12,16 +12,14 @@ python = ">=3.10,<3.15"
 Flask = ">=3.1.0,<4.0.0"
 open-aea = { version = "==2.2.1", extras = ["all"] }
 watchdog = ">=2.1.6"
-pytest = "==8.4.2"
 Werkzeug = ">=3.1.0,<4.0.0"
 docker = "==7.1.0"
 hexbytes = "*"
 protobuf = ">=5,<6"
 gql = "==3.5.0"
-# CLI deps (also bundled into the default install)
-click = ">=8.1.0,<9"
+# CLI deps. `click`, `pytest`, `coverage` come transitively via
+# `open-aea[all]`; only the IPFS CLI plugin is autonomy-specific.
 open-aea-cli-ipfs = "==2.2.1"
-coverage = ">=6.4.4,<8.0.0"
 # Optional plugins — declared via extras below.
 # HWI kept out of [all]: its transitive chain (ledgerwallet ->
 # hidapi + Pillow) has no pre-built armv7 wheels, breaking
@@ -31,10 +29,7 @@ open-aea-ledger-ethereum-hwi = {version = "==2.2.1", optional = true}
 
 [tool.poetry.extras]
 cli = [
-    "click",
     "open-aea-cli-ipfs",
-    "pytest",
-    "coverage",
 ]
 chain = [
     "open-aea-ledger-ethereum",
@@ -43,10 +38,7 @@ hwi = [
     "open-aea-ledger-ethereum-hwi",
 ]
 all = [
-    "click",
     "open-aea-cli-ipfs",
-    "pytest",
-    "coverage",
     "open-aea-ledger-ethereum",
 ]
 
