@@ -37,6 +37,24 @@ pytest -rfE tests/test_autonomy/test_cli/test_analyse.py
 aea test by-path packages/valory/skills/abstract_round_abci
 ```
 
+**Docker images required for integration and e2e tests** — pure unit tests (no `-m integration` / `-m e2e`) need nothing; fixtures that do need docker are the ones that call out to `registries_scope_class`, `UseACNNode`, `UseFlaskTendermintNode`, `UseTendermint`, or `SlowFlaskTendermintDockerImage`:
+
+```bash
+# Pulled from Docker Hub:
+docker pull valory/autonolas-registries:latest    # registries_scope_class (chain tests, e2e)
+docker pull valory/acn-node:latest                # UseACNNode (register_reset e2e)
+docker pull tendermint/tendermint:v0.34.19        # UseTendermint, test_runtime
+docker pull valory/slow-tendermint-server:0.1.0   # register_reset recovery helpers
+
+# Built locally from deployments/Dockerfiles/tendermint/ (the flask-wrapped tendermint):
+TM="deployments/Dockerfiles/tendermint/"
+docker build $TM -t valory/open-autonomy-tendermint:0.1.0 \
+                 -t valory/open-autonomy-tendermint:1.0.0 \
+                 -t valory/open-autonomy-tendermint:latest
+```
+
+`.github/workflows/main_workflow.yml` also pulls `valory/contracts-amm`, `valory/safe-contract-net`, and `trufflesuite/ganache:beta`, but those fixture classes have no callers in this repo and can be omitted locally.
+
 ### Formatting & Linting
 ```bash
 # Auto-format code
