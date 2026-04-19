@@ -26,10 +26,9 @@ from pathlib import Path
 from typing import Any, Tuple
 from unittest import mock
 
-import flask
-
 from autonomy.cli import cli
 from autonomy.constants import DEFAULT_BUILD_FOLDER
+from autonomy.deploy._http_server import App as _InlineHttpApp
 from autonomy.deploy.base import build_hash_id
 from autonomy.deploy.constants import PERSISTENT_DATA_DIR, TM_STATE_DIR
 from autonomy.replay.tendermint import TendermintNetwork
@@ -130,7 +129,7 @@ class TestTendermintRunner(BaseCliTest):
         with mock.patch.object(TendermintNetwork, "init"), mock.patch.object(
             TendermintNetwork, "start"
         ), mock.patch.object(TendermintNetwork, "stop") as stop_mock, mock.patch.object(
-            flask.Flask, "run", new=ctrl_c
+            _InlineHttpApp, "run", new=ctrl_c
         ):
             result = self.run_cli(("--build", str(build_dir)))
             assert result.exit_code == 0, result.output

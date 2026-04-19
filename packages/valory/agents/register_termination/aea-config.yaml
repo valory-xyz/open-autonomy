@@ -8,7 +8,7 @@ fingerprint:
   README.md: bafybeigogzuikulxmaitsy45aa2e7hcl456jyhuayj7sxs3g3st5xnxsdm
   __init__.py: bafybeihgxrmmp63exxkdmvlu565kehvuucg4iivnejwutaehb2p7xzxu4q
   tests/__init__.py: bafybeiftvheymtbp6iilmx7dceh46hplfxa3lss4xghz623gdon7jhpidi
-  tests/base.py: bafybeid6wfg4hsyh6hy3qhc7gnvur5kzzzeg3cuai4pvo6kgbzsqilvkdy
+  tests/base.py: bafybeidn46n7vl5mqafbsdva2agdklkx2iolkxvevxhanyd7dangj3takm
   tests/test_register_reset.py: bafybeihwoxo4voc3bmj5dlfdspmy6fcm4bleroy44vasq2cmd46a3hmixq
 fingerprint_ignore_patterns: []
 connections:
