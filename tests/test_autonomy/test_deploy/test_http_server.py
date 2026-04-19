@@ -601,7 +601,9 @@ def test_built_handler_dispatches_real_http_requests() -> None:
                 time.sleep(0.05)
 
         # GET → json handler
-        with urllib.request.urlopen(f"http://127.0.0.1:{port}/hello", timeout=5) as r:
+        with urllib.request.urlopen(  # nosec B310  # hard-coded 127.0.0.1 test server
+            f"http://127.0.0.1:{port}/hello", timeout=5
+        ) as r:
             assert json.loads(r.read()) == {"greeting": "hi"}
 
         # POST with int path param + json body
@@ -611,12 +613,14 @@ def test_built_handler_dispatches_real_http_requests() -> None:
             headers={"Content-Type": "application/json"},
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=5) as r:
+        with urllib.request.urlopen(req, timeout=5) as r:  # nosec B310
             assert json.loads(r.read()) == {"n": 7, "body": {"x": 1}}
 
         # 500 path → custom handler response
         try:
-            urllib.request.urlopen(f"http://127.0.0.1:{port}/boom", timeout=5)
+            urllib.request.urlopen(  # nosec B310
+                f"http://127.0.0.1:{port}/boom", timeout=5
+            )
         except urllib.error.HTTPError as e:
             assert e.code == 500
             assert e.read() == b"handled"
@@ -625,14 +629,16 @@ def test_built_handler_dispatches_real_http_requests() -> None:
 
         # 404 path → default handler
         try:
-            urllib.request.urlopen(f"http://127.0.0.1:{port}/nope", timeout=5)
+            urllib.request.urlopen(  # nosec B310
+                f"http://127.0.0.1:{port}/nope", timeout=5
+            )
         except urllib.error.HTTPError as e:
             assert e.code == 404
         else:  # pragma: no cover
             pytest.fail("expected HTTP 404")
 
         # custom-header forwarding path
-        with urllib.request.urlopen(
+        with urllib.request.urlopen(  # nosec B310
             f"http://127.0.0.1:{port}/with-headers", timeout=5
         ) as r:
             assert r.headers.get("X-Custom") == "yes"
