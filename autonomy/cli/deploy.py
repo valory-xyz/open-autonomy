@@ -179,7 +179,7 @@ def deploy_group(
     "--aev",
     is_flag=True,
     default=False,
-    help="Apply environment variable when loading service config.",
+    help="Deprecated: applying environment variables when loading service config is now the default; this flag will be removed in v1.0.0.",
 )
 @click.option(
     "--use-hardhat",
@@ -413,7 +413,7 @@ def stop(build_dir: Path) -> None:
     "--aev",
     is_flag=True,
     default=False,
-    help="Apply environment variable when loading service config.",
+    help="Deprecated: applying environment variables when loading service config is now the default; this flag will be removed in v1.0.0.",
 )
 @click.option(
     "--docker",

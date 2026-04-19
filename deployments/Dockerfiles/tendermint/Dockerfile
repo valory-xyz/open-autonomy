@@ -8,10 +8,6 @@ RUN apk update && \
     apk --no-cache add curl jq file net-tools \
     python3 bash py3-pip
 
-COPY wait-for-it.sh .
-RUN  chmod u+x wait-for-it.sh
-RUN  mv wait-for-it.sh /usr/local/bin
-
 COPY install.sh .
 RUN  chmod u+x install.sh
 
