@@ -295,7 +295,7 @@ class GnosisSafeContract(Contract):
         if chain_id is None:
             chain_id = ledger_api.api.eth.chain_id
 
-        data_ = "0x" + data.hex()
+        data_ = data if isinstance(data, str) else "0x" + data.hex()
 
         # Safes >= 1.0.0 Renamed `baseGas` to `dataGas`
         safe_version_ = tuple(int(p) for p in safe_version.split("."))
