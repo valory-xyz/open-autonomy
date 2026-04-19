@@ -27,7 +27,7 @@ skills:
 - valory/offend_abci:0.1.0:bafybeiafcqxfg3htfdrzvdq26zmtcrqkz5zscvgovv3tibypwo7pm3rpi4
 - valory/registration_abci:0.1.0:bafybeihco4qy6oywzn4hjmswbhu344y2k2hig5kmlorsrrwihzoy7cxkhm
 - valory/reset_pause_abci:0.1.0:bafybeigzq4truenpdzzzehltw3vmef6hevjwledw2wozrigbne44l22ylm
-- valory/slashing_abci:0.1.0:bafybeic7iapikxzln364d545gl7hp437xambl676hkxijvapp6eftz77ea
+- valory/slashing_abci:0.1.0:bafybeih277hbvfeducj7gvijag5jk2rhjlgp332wwvmsfjo6o6smxougju
 behaviours:
   main:
     args: {}

@@ -93,3 +93,12 @@ def test_versioning(
                 image_version = f"latest:{AGENT.hash}"
             expected = f"valory/{oar_image}oracle:{image_version or AGENT.hash}"
             assert expected in deployment_generator.output
+
+
+def test_get_docker_client_raises_when_docker_package_missing() -> None:
+    """Test that `get_docker_client` raises ImportError when `docker` package is absent."""
+    from autonomy.deploy.generators.docker_compose import base as dc_base
+
+    with mock.patch.object(dc_base, "DOCKER_INSTALLED", False):
+        with pytest.raises(ImportError, match=r"open-autonomy\[docker\]"):
+            dc_base.get_docker_client()

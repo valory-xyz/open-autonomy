@@ -13,6 +13,7 @@ fingerprint:
   encode.py: bafybeihpkmobld3ejmltn25hpia2v6inqv6eouiwwiyn6fafh2mnyrchkm
   tests/__init__.py: bafybeihbclcqwfoxoljzwnbg3nf22srsyx5dgdbcyj27irwizktg4ygujy
   tests/test_contract.py: bafybeibgwowfvl5ofx66cyc5qhxeydkgxlprtqtzjjdpz4gdpz7j7pbbzm
+  tests/test_encode.py: bafybeifmh7i6bauzalflqjpuvwayvtu4f5skoqkub2pmjj7kozalhxphnu
 fingerprint_ignore_patterns: []
 contracts:
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeihpzvi2rxvdzujrqivnynsoqezklval6j3qeoxaitquktvwscqgra
