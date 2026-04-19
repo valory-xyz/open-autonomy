@@ -19,11 +19,12 @@
 
 """This module contains the class to connect to the `ERC8004IdentityRegistry` contract."""
 
+from typing import cast
+
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
-from eth_abi import encode
-from web3 import Web3
+from aea_ledger_ethereum import EthereumApi
 
 PUBLIC_ID = PublicId.from_str("valory/erc8004_identity_registry:0.1.0")
 
@@ -56,11 +57,12 @@ class ERC8004IdentityRegistryContract(Contract):
         Returns:
             Digest as hex string (without 0x prefix)
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         # Type hashes
-        EIP712DOMAIN_TYPEHASH = Web3.keccak(
+        EIP712DOMAIN_TYPEHASH = ledger_api.api.keccak(
             text="EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
         )
-        AGENT_WALLET_SET_TYPEHASH = Web3.keccak(
+        AGENT_WALLET_SET_TYPEHASH = ledger_api.api.keccak(
             text="AgentWalletSet(uint256 agentId,address newWallet,address owner,uint256 deadline)"
         )
 
@@ -76,29 +78,31 @@ class ERC8004IdentityRegistryContract(Contract):
         chain_id = domain[3]
 
         # Compute struct hash
-        struct_hash = Web3.keccak(
-            encode(
+        struct_hash = ledger_api.api.keccak(
+            ledger_api.api.codec.encode(
                 ["bytes32", "uint256", "address", "address", "uint256"],
                 [
                     AGENT_WALLET_SET_TYPEHASH,
                     agent_id,
-                    Web3.to_checksum_address(new_wallet),
-                    Web3.to_checksum_address(identity_registry_bridger_address),
+                    ledger_api.api.to_checksum_address(new_wallet),
+                    ledger_api.api.to_checksum_address(
+                        identity_registry_bridger_address
+                    ),
                     deadline,
                 ],
             )
         )
 
         # Compute domain separator
-        domain_separator = Web3.keccak(
-            encode(
+        domain_separator = ledger_api.api.keccak(
+            ledger_api.api.codec.encode(
                 ["bytes32", "bytes32", "bytes32", "uint256", "address"],
                 [
                     EIP712DOMAIN_TYPEHASH,
-                    Web3.keccak(text=name),
-                    Web3.keccak(text=version),
+                    ledger_api.api.keccak(text=name),
+                    ledger_api.api.keccak(text=version),
                     chain_id,
-                    Web3.to_checksum_address(contract_address),
+                    ledger_api.api.to_checksum_address(contract_address),
                 ],
             )
         )

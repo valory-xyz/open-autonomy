@@ -26,7 +26,7 @@ import os
 from base64 import urlsafe_b64encode
 from copy import copy, deepcopy
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
+from typing import Any, Dict, List, Optional, Set, Tuple, TypedDict, Union, cast
 from warnings import warn
 
 from aea.cli.generate_key import _generate_multiple_keys
@@ -39,7 +39,6 @@ from aea.configurations.base import (
 from aea.configurations.constants import ADDRESS, LEDGER, PRIVATE_KEY, SKILL
 from aea.configurations.data_types import PackageType, PublicId
 from aea.helpers.env_vars import apply_env_variables
-from typing_extensions import TypedDict
 
 from autonomy.analyse.service import ABCI
 from autonomy.configurations.base import Service

@@ -15,5 +15,5 @@ class_name: ERC8004IdentityRegistryBridgerContract
 contract_interface_paths:
   ethereum: build/ERC8004IdentityRegistryBridger.json
 dependencies:
-  web3:
-    version: <8,>=7.0.0
+  open-aea-ledger-ethereum:
+    version: ==2.2.1

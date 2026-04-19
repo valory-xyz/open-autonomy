@@ -299,8 +299,8 @@ Test verify negative.
     return_value=AttributeDict({
         "accessList": [],
         "block_hash":
-        HexBytes(
-            "0x8543592f08d1d9e6d722ba9d600270d7e7789ecc9b66f27ca81b104df9c5dd4a"
+        bytes.fromhex(
+            "8543592f08d1d9e6d722ba9d600270d7e7789ecc9b66f27ca81b104df9c5dd4a"
         ),
         "blockNumber":
         31190129,
@@ -313,8 +313,8 @@ Test verify negative.
         "gasPrice":
         36215860217,
         "hash":
-        HexBytes(
-            "0x09d5be525caea564b2d4fd31af424c8f0414a9b270937a1bee29167a883e6ce5"
+        bytes.fromhex(
+            "09d5be525caea564b2d4fd31af424c8f0414a9b270937a1bee29167a883e6ce5"
         ),
         "input":
         "0x6a7612020000000000000000000000003d9e92b0fe7673dda3d7c33b9ff302768a03de190000000000000000000"
@@ -342,12 +342,12 @@ Test verify negative.
         "nonce":
         2231,
         "r":
-        HexBytes(
-            "0x5d5d369d5fc30c5604d974761d41b08118120eb94fd65a827bab1f6ea558d67c"
+        bytes.fromhex(
+            "5d5d369d5fc30c5604d974761d41b08118120eb94fd65a827bab1f6ea558d67c"
         ),
         "s":
-        HexBytes(
-            "0x12f68826bd41989335e62d43fd36547fe171ad536b99bc93766622438d3f8355"
+        bytes.fromhex(
+            "12f68826bd41989335e62d43fd36547fe171ad536b99bc93766622438d3f8355"
         ),
         "to":
         "0x37ba5291A5bE8cbE44717a0673fe2c5a45B4B6A8",

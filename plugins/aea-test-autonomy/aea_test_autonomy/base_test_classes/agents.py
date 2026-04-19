@@ -19,8 +19,10 @@
 
 """End2end tests base class."""
 
+import contextlib
 import json
 import logging
+import shutil
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -401,6 +403,21 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
             self.__check_missing_strings(
                 missing_strict_strings, missing_round_strings, i
             )
+
+    def teardown_method(self) -> None:
+        """Clean up per-method state so pytest-rerunfailures reruns start fresh.
+
+        setup_class creates a single class-scoped tmpdir; without this hook,
+        agent folders fetched in the first run would still exist on rerun,
+        causing `fetch_agent` to fail with "already exists".
+        """
+        with contextlib.suppress(Exception):
+            self.terminate_agents()
+        for agent_name in list(type(self).agents):
+            shutil.rmtree(self.t / agent_name, ignore_errors=True)
+        type(self).agents.clear()
+        type(self).subprocesses.clear()
+        self.unset_agent_context()
 
 
 class BaseTestEnd2EndExecution(BaseTestEnd2End):

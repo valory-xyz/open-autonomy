@@ -11,17 +11,17 @@ fingerprint:
   behaviours.py: bafybeifqs6p5nnsmccrkjutgovko5eidfsmj2xwy52c62vaaznrw3ltcxe
   dialogues.py: bafybeiafgwadv6kzts6yx5gtjyuvaftnofyn3rrwvczfd5seihpydzukju
   handlers.py: bafybeid3elhzwafqvkmsjcozmscnmaw2sl6hfsy2kmq3nnbdn2lqxdeane
-  models.py: bafybeigalras5aehk3lmvirigch4bkqmhhj6u5h47pskgcknuqagb7mo24
+  models.py: bafybeiaq26pt24yrxxyyqx3rd4uh3q76iqiok7iajbf2sb7gaksavho6gu
   payloads.py: bafybeib4hlmpzeox7fkolmpw6ky4s2ihsegko7lzo5ngl5kowm7ono4nk4
   rounds.py: bafybeihfmhofemmzttzdstl76luee2xwnim76e7pvhiu3cgtohpk4wzgoi
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/squads_multisig:0.1.0:bafybeigzpgf3spp7ckm5k3a6dla7wops744wnvk4ksixig3yjlerkp5yxe
+- valory/squads_multisig:0.1.0:bafybeihf6kgfsnfp5ugs44gjffj2qltr5zerf2w2rmgets3d3tizjngrp4
 protocols:
 - valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihgbc5geup3ljdfgyontr2p5e4myxjkthaplm5ei727uw2pawstcy
+- valory/abstract_round_abci:0.1.0:bafybeianzlz35hhvap5arix25rtazg4rf4bqcjvlqxhizdvbngc66twfuy
 behaviours:
   main:
     args: {}
@@ -144,10 +144,6 @@ models:
   tendermint_dialogues:
     args: {}
     class_name: TendermintDialogues
-dependencies:
-  open-aea-test-autonomy:
-    version: ==0.21.18
-  web3:
-    version: <8,>=7.0.0
+dependencies: {}
 is_abstract: true
 customs: []

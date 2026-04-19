@@ -32,10 +32,13 @@ from typing import (
     FrozenSet,
     Iterator,
     List,
+    Literal,
+    NewType,
     Optional,
     Set,
     Tuple,
     Type,
+    TypeGuard,
     TypeVar,
     Union,
     cast,
@@ -44,10 +47,10 @@ from typing import (
 )
 from unittest.mock import MagicMock
 
-import typing_extensions
-from eth_typing.bls import BLSPubkey, BLSSignature
 from py_ecc.bls import G2Basic as bls
-from typing_extensions import Literal, TypeGuard
+
+BLSPubkey = NewType("BLSPubkey", bytes)
+BLSSignature = NewType("BLSSignature", bytes)
 
 MAX_UINT64 = 2**64 - 1
 DEFAULT_TENDERMINT_P2P_PORT = 26656
@@ -383,9 +386,8 @@ def is_typeddict(ty: Type[Any]) -> TypeGuard:  # type: ignore
     # TODO: Should use `typing.is_typeddict` in future
     #       or, use publich API
     T = "_TypedDictMeta"
-    for mod in [typing, typing_extensions]:
-        if hasattr(mod, T) and isinstance(ty, getattr(mod, T)):
-            return True
+    if hasattr(typing, T) and isinstance(ty, getattr(typing, T)):
+        return True
     return False
 
 

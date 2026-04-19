@@ -23,10 +23,14 @@ from setuptools import find_packages  # type: ignore
 from setuptools import setup  # type: ignore
 
 base_deps = [
-    "open-aea[all]>=2.2.0,<3.0.0",
-    "pytest==8.4.2",
-    "open-aea-ledger-ethereum>=2.2.0,<3.0.0",
-    "docker==7.1.0",
+    # `open-autonomy[all,docker]` supplies everything the plugin's
+    # direct imports resolve to:
+    #   * `pytest`, `aea.*` — via `open-aea[all]`
+    #   * `aea_ledger_ethereum`, `web3`, `eth_account` — via the
+    #     `[all]` extra's `open-aea-ledger-ethereum`
+    #   * `docker`, `docker.models.containers`, `docker.errors` —
+    #     via the `[docker]` extra
+    "open-autonomy[all,docker]>=0.21.0,<0.22.0",
 ]
 
 setup(
@@ -51,7 +55,7 @@ setup(
     classifiers=[
         "Environment :: Console",
         "Environment :: Web Environment",
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: Apache Software License",
         "Natural Language :: English",

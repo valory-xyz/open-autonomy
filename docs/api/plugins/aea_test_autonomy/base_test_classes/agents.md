@@ -126,6 +126,20 @@ Check that *each* AEA prints these messages.
 
 First failing check will cause assertion error and test tear down.
 
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2End.teardown_method"></a>
+
+#### teardown`_`method
+
+```python
+def teardown_method() -> None
+```
+
+Clean up per-method state so pytest-rerunfailures reruns start fresh.
+
+setup_class creates a single class-scoped tmpdir; without this hook,
+agent folders fetched in the first run would still exist on rerun,
+causing `fetch_agent` to fail with "already exists".
+
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2EndExecution"></a>
 
 ## BaseTestEnd2EndExecution Objects

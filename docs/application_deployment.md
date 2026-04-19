@@ -29,8 +29,10 @@ Options:
                                   Logging level for runtime.
   --packages-dir PATH             Path to packages dir (Use with dev mode)
   --open-aea-dir PATH             Path to open-aea repo (Use with dev mode)
-  --aev                           Apply environment variable when loading
-                                  service config.
+  --aev                           Deprecated: applying environment
+                                  variables when loading service config
+                                  is now the default; this flag will be
+                                  removed in v1.0.0.
   -ltm, --local-tm-setup          Use local tendermint chain setup.
   --image-version TEXT            Define runtime image version.
   --remote                        To use a remote registry.

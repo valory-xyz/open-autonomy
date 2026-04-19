@@ -28,13 +28,19 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 
 def get_all_extras() -> Dict:
+    # `click`, `pytest`, `coverage` are pulled transitively via
+    # `open-aea[all]` (which implies its own `[cli]` extra), so we only
+    # need to declare the IPFS CLI plugin here.
     cli_deps = [
-        "click>=8.1.0,<9",
         "open-aea-cli-ipfs==2.2.1",
-        "texttable==1.6.7",
-        "python-dotenv>=0.14.5,<0.22.0",
-        "pytest>=8.0.0,<8.5.0",
-        "coverage>=6.4.4,<8.0.0",
+    ]
+
+    chain_deps = [
+        "open-aea-ledger-ethereum==2.2.1",
+    ]
+
+    docker_deps = [
+        "docker==7.1.0",
     ]
 
     hwi_deps = [
@@ -43,14 +49,21 @@ def get_all_extras() -> Dict:
 
     extras = {
         "cli": cli_deps,
+        "chain": chain_deps,
+        "docker": docker_deps,
         "hwi": hwi_deps,
     }
 
-    # [all] intentionally excludes [hwi] — HWI's transitive deps
-    # (hidapi, Pillow via ledgerwallet) have no armv7 wheels, breaking
-    # multi-platform Docker builds. Use pip install open-autonomy[hwi]
-    # explicitly for hardware wallet support.
-    extras["all"] = list(set(dep for k, e in extras.items() for dep in e if k != "hwi"))
+    # [all] intentionally excludes [hwi] and [docker]:
+    # * HWI's transitive deps (hidapi, Pillow via ledgerwallet) have
+    #   no armv7 wheels, breaking multi-platform Docker builds.
+    # * [docker] is only needed for docker-compose-based deployments;
+    #   users deploying to Kubernetes / localhost don't need it.
+    # Install them explicitly: `pip install open-autonomy[hwi,docker]`.
+    _opt_out = {"hwi", "docker"}
+    extras["all"] = list(
+        set(dep for k, e in extras.items() for dep in e if k not in _opt_out)
+    )
     return extras
 
 
@@ -58,21 +71,7 @@ all_extras = get_all_extras()
 
 
 base_deps = [
-    "Flask>=3.1.0,<4.0.0",
     "open-aea[all]==2.2.1",
-    "watchdog>=2.1.6",
-    "pytest==8.4.2",
-    "werkzeug>=3.1.0,<4.0.0",
-    "docker==7.1.0",
-    "hexbytes",
-    "jsonschema<4.24.0,>=4.3.0",
-    "protobuf<6,>=5",
-    "gql==3.5.0",
-    "requests<2.33.0,>=2.28.1",
-    "requests-toolbelt==1.0.0",  # Required for graphql client
-    "aiohttp<4.0.0,>=3.8.5",
-    "typing_extensions<=4.15.0,>=3.10.0.2",
-    "multiaddr==0.0.9"
 ]
 base_deps.extend(all_extras["cli"])
 
@@ -132,7 +131,7 @@ if __name__ == "__main__":
         classifiers=[
             "Environment :: Console",
             "Environment :: Web Environment",
-            "Development Status :: 2 - Pre-Alpha",
+            "Development Status :: 5 - Production/Stable",
             "Intended Audience :: Developers",
             "License :: OSI Approved :: Apache Software License",
             "Natural Language :: English",

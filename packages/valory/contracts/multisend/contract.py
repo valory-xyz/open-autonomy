@@ -28,8 +28,7 @@ from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
-from hexbytes import HexBytes
-from web3 import Web3
+from aea_ledger_ethereum import EthereumApi
 
 PUBLIC_ID = PublicId.from_str("valory/multisend:0.1.0")
 MIN_GAS = MIN_GASPRICE = 1
@@ -48,24 +47,25 @@ class MultiSendOperation(Enum):
 
 def encode_data(tx: Dict) -> bytes:
     """Encodes multisend transaction."""
-    operation = HexBytes(
+    operation = bytes.fromhex(
         "{:0>2x}".format(cast(MultiSendOperation, tx.get("operation")).value)
     )  # Operation 1 byte
-    to = HexBytes(
+    to = bytes.fromhex(
         "{:0>40x}".format(int(cast(str, tx.get("to")), 16))
     )  # Address 20 bytes
-    value = HexBytes("{:0>64x}".format(cast(int, tx.get("value"))))  # Value 32 bytes
+    value = bytes.fromhex(
+        "{:0>64x}".format(cast(int, tx.get("value")))
+    )  # Value 32 bytes
     data = cast(bytes, tx.get("data", b""))
-    data_ = HexBytes(data)
-    data_length = HexBytes("{:0>64x}".format(len(data_)))  # Data length 32 bytes
-    return operation + to + value + data_length + data_
+    data_length = bytes.fromhex("{:0>64x}".format(len(data)))  # Data length 32 bytes
+    return operation + to + value + data_length + data
 
 
-def decode_data(encoded_tx: bytes) -> Tuple[Dict, int]:
+def decode_data(ledger_api: LedgerApi, encoded_tx: bytes) -> Tuple[Dict, int]:
     """Decodes multisend transaction."""
-    encoded_tx = HexBytes(encoded_tx)
+    ledger_api = cast(EthereumApi, ledger_api)
     operation = MultiSendOperation(encoded_tx[0])
-    to = Web3.to_checksum_address(encoded_tx[1 : 1 + 20])
+    to = ledger_api.api.to_checksum_address(bytes(encoded_tx[1 : 1 + 20]))
     value = int.from_bytes(encoded_tx[21 : 21 + 32], byteorder="big")
     data_length = int.from_bytes(encoded_tx[21 + 32 : 21 + 32 * 2], byteorder="big")
     data = encoded_tx[21 + 32 * 2 : 21 + 32 * 2 + data_length]
@@ -86,13 +86,14 @@ def to_bytes(multi_send_txs: List[Dict]) -> bytes:
     return b"".join([encode_data(tx) for tx in multi_send_txs])
 
 
-def from_bytes(encoded_multisend_txs: bytes) -> List[Dict]:
+def from_bytes(ledger_api: LedgerApi, encoded_multisend_txs: bytes) -> List[Dict]:
     """Encoded multi send tx to list."""
-    encoded_multisend_txs = HexBytes(encoded_multisend_txs)
     next_data_position = 0
     txs = []
     while len(encoded_multisend_txs[next_data_position:]) > 0:
-        tx, total_length = decode_data(encoded_multisend_txs[next_data_position:])
+        tx, total_length = decode_data(
+            ledger_api, encoded_multisend_txs[next_data_position:]
+        )
         next_data_position += total_length
         txs.append(tx)
     return txs
@@ -188,4 +189,6 @@ class MultiSendContract(Contract):
         _, encoded_multisend_data = multisend_contract.decode_function_input(
             multi_send_data
         )
-        return {"tx_list": from_bytes(encoded_multisend_data["transactions"])}
+        return {
+            "tx_list": from_bytes(ledger_api, encoded_multisend_data["transactions"])
+        }

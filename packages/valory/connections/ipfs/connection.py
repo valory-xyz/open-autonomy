@@ -27,15 +27,14 @@ from pathlib import Path
 from shutil import rmtree
 from typing import Any, Callable, Dict, Optional, cast
 
-import requests
 from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
 from aea.mail.base import Envelope
 from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea_cli_ipfs.exceptions import DownloadError
+from aea_cli_ipfs.ipfs_client import IPFSError
 from aea_cli_ipfs.ipfs_utils import IPFSTool
-from ipfshttpclient.exceptions import ErrorResponse
 
 from packages.valory.protocols.ipfs import IpfsMessage
 from packages.valory.protocols.ipfs.dialogues import IpfsDialogue
@@ -204,8 +203,7 @@ class IpfsConnection(Connection):
             self.logger.debug(f"Successfully stored files with hash: {hash_}.")
         except (
             ValueError,
-            requests.exceptions.ChunkedEncodingError,
-            requests.exceptions.HTTPError,
+            IPFSError,
         ) as e:  # pragma: no cover
             err = str(e)
             self.logger.error(err)
@@ -259,7 +257,7 @@ class IpfsConnection(Connection):
             except (
                 DownloadError,
                 PermissionError,
-                ErrorResponse,
+                IPFSError,
             ) as e:
                 err = str(e)
                 self.logger.error(err)

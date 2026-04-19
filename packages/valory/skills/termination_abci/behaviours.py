@@ -23,7 +23,6 @@ import sys
 from typing import Callable, Dict, Generator, List, Optional, Set, Type, cast
 
 from aea.protocols.base import Message
-from hexbytes import HexBytes
 
 from packages.valory.contracts.gnosis_safe.contract import (
     GnosisSafeContract,
@@ -437,7 +436,7 @@ class BackgroundBehaviour(BaseBehaviour):
                     "operation": MultiSendOperation.CALL,
                     "to": self.synchronized_data.safe_contract_address,
                     "value": _ETHER_VALUE,
-                    "data": HexBytes(remove_tx),
+                    "data": remove_tx,
                 }
             )
 
@@ -456,7 +455,7 @@ class BackgroundBehaviour(BaseBehaviour):
                     "operation": MultiSendOperation.CALL,
                     "to": self.synchronized_data.safe_contract_address,
                     "value": _ETHER_VALUE,
-                    "data": HexBytes(swap_tx),
+                    "data": bytes.fromhex(swap_tx),
                 }
             )
 

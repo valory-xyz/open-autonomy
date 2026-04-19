@@ -28,7 +28,7 @@ import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from flask import Flask
+from autonomy.deploy._http_server import App as Flask
 
 # TODO: extract constants
 

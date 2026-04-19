@@ -40,7 +40,6 @@ from typing import (
 )
 
 from aea.protocols.base import Message
-from web3.types import Nonce, TxData, Wei
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
@@ -243,19 +242,17 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
 
         tx_data["tx_digest"] = cast(str, tx_digest)
 
-        nonce = Nonce(int(cast(str, message.raw_transaction.body["nonce"])))
+        nonce = int(cast(str, message.raw_transaction.body["nonce"]))
         fallback_gas = message.raw_transaction.body["gas"]
 
         # Get the gas params
         gas_price_params = self.get_gas_price_params(message.raw_transaction.body)
 
         gas_price = {
-            gas_price_param: Wei(
-                int(
-                    cast(
-                        str,
-                        message.raw_transaction.body[gas_price_param],
-                    )
+            gas_price_param: int(
+                cast(
+                    str,
+                    message.raw_transaction.body[gas_price_param],
                 )
             )
             for gas_price_param in gas_price_params
@@ -617,7 +614,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
                 yield
                 continue
 
-            tx_data = cast(TxData, contract_api_msg.state.body["transaction"])
+            tx_data = cast(Dict[str, Any], contract_api_msg.state.body["transaction"])
             revert_reason = yield from self._get_revert_reason(tx_data)
 
             if revert_reason is not None:
@@ -649,7 +646,9 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
 
         return VerificationStatus.NOT_VERIFIED, None
 
-    def _get_revert_reason(self, tx: TxData) -> Generator[None, None, Optional[str]]:
+    def _get_revert_reason(
+        self, tx: Dict[str, Any]
+    ) -> Generator[None, None, Optional[str]]:
         """Get the revert reason of the given transaction."""
         chain_id = self.synchronized_data.get_chain_id(self.params.default_chain_id)
         contract_api_msg = yield from self.get_contract_api_response(

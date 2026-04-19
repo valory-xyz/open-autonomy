@@ -37,6 +37,24 @@ pytest -rfE tests/test_autonomy/test_cli/test_analyse.py
 aea test by-path packages/valory/skills/abstract_round_abci
 ```
 
+**Docker images required for integration and e2e tests** — pure unit tests (no `-m integration` / `-m e2e`) need nothing; fixtures that do need docker are the ones that call out to `registries_scope_class`, `UseACNNode`, `UseFlaskTendermintNode`, `UseTendermint`, or `SlowFlaskTendermintDockerImage`:
+
+```bash
+# Pulled from Docker Hub:
+docker pull valory/autonolas-registries:latest    # registries_scope_class (chain tests, e2e)
+docker pull valory/acn-node:latest                # UseACNNode (register_reset e2e)
+docker pull tendermint/tendermint:v0.34.19        # UseTendermint, test_runtime
+docker pull valory/slow-tendermint-server:0.1.0   # register_reset recovery helpers
+
+# Built locally from deployments/Dockerfiles/tendermint/ (the flask-wrapped tendermint):
+TM="deployments/Dockerfiles/tendermint/"
+docker build $TM -t valory/open-autonomy-tendermint:0.1.0 \
+                 -t valory/open-autonomy-tendermint:1.0.0 \
+                 -t valory/open-autonomy-tendermint:latest
+```
+
+`.github/workflows/main_workflow.yml` also pulls `valory/contracts-amm`, `valory/safe-contract-net`, and `trufflesuite/ganache:beta`, but those fixture classes have no callers in this repo and can be omitted locally.
+
 ### Formatting & Linting
 ```bash
 # Auto-format code
@@ -54,27 +72,82 @@ tox -e pylint                 # linting
 tox -e darglint               # docstring validation (Sphinx style)
 ```
 
-### Pre-PR Checklist
+### Pre-commit routine (mandatory before every commit)
+
+Run these in order — every commit. Skipping any one has caused CI failures
+in the past (stale copyright years dirty the tree under `check-api-docs`,
+skipped hash locks fail `common-checks-1`, etc.):
+
 ```bash
-make clean
+# 1. Auto-format (black + isort)
 tomte format-code
+
+# 2. Static analysis (black-check, isort-check, flake8, mypy, pylint, darglint)
 tomte check-code
-make security                 # bandit + safety + gitleaks
 
-# If you modified an AbciApp definition:
-tox -e abci-docstrings
+# 3. Security (bandit, safety, gitleaks)
+make security
 
-# If you modified files in packages/:
-make generators               # updates docstrings, copyright, hashes, API docs
-make common-checks-1          # checks copyright, hashes, packages
-tox -e fix-doc-hashes         # updates IPFS hashes in docs (package_list.md etc.)
-
-# Otherwise just:
+# 4. Bump copyright headers on every touched file (CI fails otherwise — it
+#    runs `tomte format-copyright` as its FIRST step, then checks git diff)
 tox -e fix-copyright
 
-# After committing:
-make common-checks-2          # checks API docs, ABCI specs, handlers, dialogues
+# 5. Dependencies — keep tox.ini / pyproject.toml / packages deps in sync
+tox -e check-dependencies
 ```
+
+**If you modified anything under `packages/`**, add:
+
+```bash
+# 6. Regenerate skill/agent artifacts + ABCI docstrings
+make generators
+
+# 7. Re-lock package hashes (MUST be last — any subsequent edit re-dirties
+#    fingerprints and requires a re-lock)
+autonomy packages lock
+
+# 8. Keep autonomy/constants.py ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH matching
+#    the just-locked hash in packages.json
+grep abstract_round_abci packages/packages.json | head -1
+grep ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH autonomy/constants.py
+
+# 9. Update IPFS hashes in docs (package_list.md etc.)
+tox -e fix-doc-hashes
+```
+
+**If you added or changed code docstrings**, also:
+
+```bash
+tox -e generate-api-documentation   # regenerate docs/api/**.md
+```
+
+**If you modified an `AbciApp` definition** specifically:
+
+```bash
+tox -e abci-docstrings
+```
+
+**Final verification before `git commit`**: run the CI-mirror checks so the
+working tree is exactly what CI will see:
+
+```bash
+tox -e check-api-docs           # confirms docs/api/** matches current source
+tox -e check-hash               # confirms packages.json matches
+tox -e check-packages           # package-level validity
+```
+
+If any of these modify files, stage them — CI runs the `-fix` variant
+before the `-check` variant and will fail the check step if the `-fix`
+step produces a diff.
+
+**After pushing**, CI also runs `make common-checks-2` (API docs, ABCI
+specs, handlers, dialogues). Those rarely fail when the above has been
+followed.
+
+**Hashing rule:** always run `autonomy packages lock` (or `make generators`)
+at the end of a work cycle, after every other edit/lint/format step has
+settled. Locking earlier is wasted work: any subsequent edit (including
+linter-triggered ones) will dirty the files again and require a re-lock.
 
 ### API Documentation
 ```bash
