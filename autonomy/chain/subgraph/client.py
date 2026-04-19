@@ -72,6 +72,11 @@ class SubgraphClient:
                 "User-Agent": "open-autonomy",
             },
         )
+        if resp.status_code >= 400:
+            raise RuntimeError(
+                f"Subgraph HTTP {resp.status_code} from {self._url}: "
+                f"{resp.text[:200]}"
+            )
         payload = resp.json()
         if "errors" in payload:
             raise RuntimeError(f"Subgraph query failed: {payload['errors']}")

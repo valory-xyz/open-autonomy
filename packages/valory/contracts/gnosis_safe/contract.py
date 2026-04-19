@@ -691,8 +691,8 @@ class GnosisSafeContract(Contract):
         event = safe_contract.events.SafeReceived()
 
         filter_params: Dict[str, Any] = {
-            "from_block": from_block,
-            "to_block": to_block,
+            "fromBlock": from_block,
+            "toBlock": to_block,
             "address": safe_contract.address,
             "topics": [event.topic],
         }
@@ -772,8 +772,8 @@ class GnosisSafeContract(Contract):
         event = factory_contract.events.ExecutionSuccess()
 
         filter_params: Dict[str, Any] = {
-            "from_block": from_block,
-            "to_block": to_block,
+            "fromBlock": from_block,
+            "toBlock": to_block,
             "address": factory_contract.address,
             "topics": [event.topic],
         }
@@ -817,8 +817,8 @@ class GnosisSafeContract(Contract):
         event = safe_contract.events.RemovedOwner()
 
         filter_params: Dict[str, Any] = {
-            "from_block": from_block,
-            "to_block": to_block,
+            "fromBlock": from_block,
+            "toBlock": to_block,
             "address": safe_contract.address,
             "topics": [event.topic],
         }
@@ -872,8 +872,8 @@ class GnosisSafeContract(Contract):
         padded_sender = pad_address_for_topic(sender_address)
 
         filter_params: Dict[str, Any] = {
-            "from_block": from_block,
-            "to_block": to_block,
+            "fromBlock": from_block,
+            "toBlock": to_block,
             "address": safe_contract.address,
             # cannot filter for 0 value transfers using topics as the value is not indexed
             "topics": [event.topic, padded_sender],

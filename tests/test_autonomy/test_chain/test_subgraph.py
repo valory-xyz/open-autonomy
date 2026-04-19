@@ -69,6 +69,7 @@ class TestClient:
     def test_query_posts_and_returns_data(self) -> None:
         """`_query` posts to the subgraph URL and returns the `data` key."""
         fake_resp = mock.Mock()
+        fake_resp.status_code = 200
         fake_resp.json.return_value = {"data": {"units": [{"tokenId": "1"}]}}
         with mock.patch(
             "autonomy.chain.subgraph.client.post", return_value=fake_resp
@@ -81,7 +82,19 @@ class TestClient:
     def test_query_raises_on_errors_field(self) -> None:
         """`_query` raises when the response payload contains `errors`."""
         fake_resp = mock.Mock()
+        fake_resp.status_code = 200
         fake_resp.json.return_value = {"errors": [{"message": "bad query"}]}
         with mock.patch("autonomy.chain.subgraph.client.post", return_value=fake_resp):
             with pytest.raises(RuntimeError, match="Subgraph query failed"):
                 self.client._query("query { broken }")
+
+    def test_query_raises_on_http_error_status(self) -> None:
+        """`_query` raises on 4xx/5xx before attempting to parse JSON."""
+        fake_resp = mock.Mock()
+        fake_resp.status_code = 503
+        fake_resp.text = "<html>Service Unavailable</html>"
+        with mock.patch("autonomy.chain.subgraph.client.post", return_value=fake_resp):
+            with pytest.raises(RuntimeError, match="Subgraph HTTP 503"):
+                self.client._query("query { ok }")
+        # Confirm .json() was NEVER called — the HTTP check short-circuits.
+        fake_resp.json.assert_not_called()

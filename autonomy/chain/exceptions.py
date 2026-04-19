@@ -41,7 +41,9 @@ def get_requests_connection_error() -> Type[BaseException]:
     except ImportError as e:  # pragma: nocover
         raise ImportError(
             "Chain operations require the Ethereum ledger plugin, "
-            "run `pip install open-aea-ledger-ethereum` to install the plugin"
+            "run `pip install open-autonomy[chain]` to install the full "
+            "chain dependency set (or `pip install open-aea-ledger-ethereum` "
+            "for just the plugin)"
         ) from e
     return _RequestsConnectionError
 
