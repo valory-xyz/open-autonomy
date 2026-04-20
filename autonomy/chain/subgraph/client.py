@@ -80,6 +80,8 @@ class SubgraphClient:
         payload = resp.json()
         if "errors" in payload:
             raise RuntimeError(f"Subgraph query failed: {payload['errors']}")
+        if "data" not in payload:
+            raise RuntimeError(f"Subgraph returned malformed response: {payload!r}")
         return cast(UnitContainer, payload["data"])
 
     def get_component_by_token(

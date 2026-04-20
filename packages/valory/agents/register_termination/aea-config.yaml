@@ -18,7 +18,7 @@ connections:
 - valory/ledger:0.19.0:bafybeidqf5dmueqm655z3bkw36mviobpcpuek4bhha7iq2nnz6sfu32kva
 - valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeifoaqgi6aptxuncpec6wya7rbctvf6ljq73r6gactiscfoxapsxem
+- valory/gnosis_safe:0.1.0:bafybeihljnuo6jiyqfvow4vgxy5ih4eha2pjtguh7o6pabe24lbd6mwjaa
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeihpzvi2rxvdzujrqivnynsoqezklval6j3qeoxaitquktvwscqgra
 - valory/multisend:0.1.0:bafybeic4534fd4axozjmykpstgjynxzpkpfvnvyjt7hz32ajfe3fmwhn7m
 - valory/service_registry:0.1.0:bafybeifuexvcj6w3j2lludzxi3rgu2nn2b3toyifxiy46hv726o2bxivjm
@@ -33,12 +33,12 @@ protocols:
 - valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
 skills:
 - valory/abstract_abci:0.1.0:bafybeib5qjkpfsxjcur4asube6kctmy2xsrg2hzcele2tmvsstula4lt54
-- valory/abstract_round_abci:0.1.0:bafybeih5nr3jdjo7pahcs3pgjheqzmwkoi2emiilxqzorhcduoalhxi7jy
-- valory/register_termination_abci:0.1.0:bafybeigjkvqf4wi7u5h24mrqw35nghyjkrha3q5ymte44jucpwy4ynbzci
-- valory/registration_abci:0.1.0:bafybeifpdgnlrn3dnur76yww2errlecm4nwconerrkww7rxkr4zd2sw5ky
-- valory/reset_pause_abci:0.1.0:bafybeife66mkzjgci6ozikwergg6lr26o3duhusta2sociebwxicp3jsre
-- valory/termination_abci:0.1.0:bafybeibgv2hbbprkh4pqbkr35kcpqaeopdrznqwgihryjrlbyi42gzup3m
-- valory/transaction_settlement_abci:0.1.0:bafybeigqefmlzk7nehhpwzrkm4rnjsep7xpa3c7xuttjf2yummcdhjffy4
+- valory/abstract_round_abci:0.1.0:bafybeiesqybjt2d3cwazu5xurye7znnkidem2qhudfvjnaprbk6p5flfe4
+- valory/register_termination_abci:0.1.0:bafybeigc2erlisy3ovsq2wjpe3ketx3hdpf5ubadjcnbgnnfqnt2cyydtq
+- valory/registration_abci:0.1.0:bafybeidywralavqvrmzxomdgnthngqfzhbpop6n23pwf67lg2p6ndvt3fy
+- valory/reset_pause_abci:0.1.0:bafybeiahbkc4gfcmcvifbs6dvhtcj6wtjr7bvvdxunhxxquglkv365lu3e
+- valory/termination_abci:0.1.0:bafybeihnck556jfcdkxvqcb5ca7wkvh4pkycssn7luyqwp2tpdmxsrvw6m
+- valory/transaction_settlement_abci:0.1.0:bafybeicvms774u3z74lpffa7ckrhkug2tzbgv4t5ia4krf3bpnivyyyaf4
 default_ledger: ethereum
 required_ledgers:
 - ethereum

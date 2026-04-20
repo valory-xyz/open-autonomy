@@ -70,7 +70,7 @@ def scan_bin(v: str) -> bytes:
 
 
 def create_struct_definition(name: str, schema: t.List[t.Dict[str, str]]) -> str:
-    """Create method struction defintion."""
+    """Create the struct definition string."""
     schema_types = [
         (schema_type["type"] + " " + schema_type["name"]) for schema_type in schema
     ]

@@ -9,6 +9,7 @@ Custom exceptions for chain module.
 #### get`_`requests`_`connection`_`error
 
 ```python
+@lru_cache(maxsize=1)
 def get_requests_connection_error() -> Type[BaseException]
 ```
 
@@ -16,7 +17,8 @@ Return `requests.exceptions.ConnectionError`.
 
 web3's HTTPProvider uses `requests` internally, and `requests` is
 installed transitively with `open-aea-ledger-ethereum`. Resolved
-lazily so unrelated importers of this module work without the
+lazily and cached so repeated ``except`` clause evaluations avoid
+re-importing. Unrelated importers of this module work without the
 plugin; any call that actually reaches a chain-side `except` without
 the plugin raises here with a clear install hint, matching the
 `load_hwi_plugin` pattern in `autonomy.chain.config`.

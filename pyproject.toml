@@ -58,7 +58,12 @@ ecdsa = "*"
 py-ecc = ">=8,<10"
 
 # ---------------------------------------------------------------------------
-# TODO(cleanup): entries below are declared here only to satisfy
+# Dev-vs-distribution split:
+# `[tool.poetry.dependencies]` models the dev environment the repo is
+# checked out into; `setup.py` remains the authoritative PyPI manifest
+# and is intentionally narrower.
+#
+# Entries below are declared here only to satisfy
 # `tox -e check-dependencies`. That tool reads
 # `[tool.poetry.dependencies]` but:
 #   * ignores entries with `optional = true` unless they also carry
@@ -67,8 +72,7 @@ py-ecc = ">=8,<10"
 #   * doesn't read the dev group (so `pytest-asyncio` is invisible);
 #   * flags `protobuf` as missing even though it arrives transitively
 #     via `open-aea[all]`.
-# The authoritative distribution manifest is `setup.py`, so these
-# redundant entries are harmless. The right long-term fix is to
+# These redundant entries are harmless. The right long-term fix is to
 # patch the checker to understand `optional` + dev-group deps.
 protobuf = "*"
 pytest-asyncio = "*"

@@ -69,7 +69,7 @@ def create_struct_definition(name: str, schema: t.List[t.Dict[str,
                                                               str]]) -> str
 ```
 
-Create method struction defintion.
+Create the struct definition string.
 
 <a id="packages.valory.contracts.gnosis_safe.encode.find_dependencies"></a>
 

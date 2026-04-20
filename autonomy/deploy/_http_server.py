@@ -367,7 +367,21 @@ class App:
 
 
 def _to_response(result: Any) -> Response:
-    """Coerce a handler's return value to a :class:`Response`."""
+    """Coerce a handler's return value to a :class:`Response`.
+
+    Supported shapes:
+
+    - ``Response`` object — returned as-is.
+    - ``dict`` or ``list`` — JSON-serialised via :func:`jsonify`.
+    - ``str`` or ``bytes`` — wrapped in a plain :class:`Response`.
+    - ``(body, status)`` 2-tuple — body is any of the above, status is an int.
+
+    Note: unlike Flask, the 3-tuple ``(body, status, headers)`` and
+    2-tuple ``(body, headers)`` forms are **not** supported.
+
+    :param result: the handler's return value.
+    :return: a Response object.
+    """
     status = 200
     if isinstance(result, tuple):
         if len(result) != 2:
@@ -473,6 +487,8 @@ class _TestResponse:
 def _build_handler_class(app: App) -> Type[BaseHTTPRequestHandler]:
     """Build a BaseHTTPRequestHandler subclass bound to *app*."""
 
+    max_content_length = 10 * 1024 * 1024  # 10 MiB
+
     class _AppHandler(BaseHTTPRequestHandler):
         """HTTP/1.1 handler that dispatches through the app."""
 
@@ -482,6 +498,9 @@ def _build_handler_class(app: App) -> Type[BaseHTTPRequestHandler]:
         def _serve(self, method: str) -> None:
             parts = urlsplit(self.path)
             content_length = int(self.headers.get("Content-Length") or 0)
+            if content_length > max_content_length:
+                self.send_error(413, "Content Too Large")
+                return
             body = self.rfile.read(content_length) if content_length else b""
             req = Request(
                 method=method,
