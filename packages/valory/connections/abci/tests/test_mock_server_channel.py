@@ -23,9 +23,12 @@
 
 import asyncio
 import hashlib
-from typing import AsyncGenerator, List, cast
+import json
+import socket
+import urllib.error
+import urllib.request
+from typing import AsyncGenerator, Dict, List, Tuple, cast
 
-import aiohttp
 import pytest
 import pytest_asyncio
 
@@ -35,11 +38,22 @@ from packages.valory.protocols.abci import AbciMessage
 MOCK_RPC_PORT = 37657  # avoid conflicts with real TM
 
 
+def _http_get(url: str) -> Tuple[int, Dict]:
+    """Make a GET request and return (status_code, json_body).
+
+    :param url: the URL to request.
+    :return: tuple of HTTP status code and parsed JSON body.
+    """
+    try:
+        with urllib.request.urlopen(url) as resp:  # nosec
+            return resp.status, json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        return e.code, json.loads(e.read())
+
+
 @pytest.fixture()
 def free_port() -> int:
     """Get a free port to avoid conflicts between parallel tests."""
-    import socket
-
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("", 0))
         return s.getsockname()[1]
@@ -145,10 +159,9 @@ class TestABCIMessageSequencing:
 
         # now submit a tx via HTTP
         tx_data = b'{"test": "payload"}'
-        async with aiohttp.ClientSession() as session:
-            url = f"http://127.0.0.1:{connected_channel.rpc_port}/broadcast_tx_sync?tx=0x{tx_data.hex()}"
-            async with session.get(url) as resp:
-                assert resp.status == 200
+        url = f"http://127.0.0.1:{connected_channel.rpc_port}/broadcast_tx_sync?tx=0x{tx_data.hex()}"
+        status, _ = await asyncio.to_thread(_http_get, url)
+        assert status == 200
 
         # the tx event wakes the producer for the next block
         # expect: begin_block, deliver_tx, end_block, commit
@@ -178,43 +191,33 @@ class TestRPCHandlers:
         """Test /broadcast_tx_sync returns hash and code 0."""
         tx_data = b"hello"
         expected_hash = hashlib.sha256(tx_data).hexdigest().upper()
-
-        async with aiohttp.ClientSession() as session:
-            url = f"http://127.0.0.1:{connected_channel.rpc_port}/broadcast_tx_sync?tx=0x{tx_data.hex()}"
-            async with session.get(url) as resp:
-                assert resp.status == 200
-                body = await resp.json()
-                assert body["result"]["code"] == 0
-                assert body["result"]["hash"] == expected_hash
+        url = f"http://127.0.0.1:{connected_channel.rpc_port}/broadcast_tx_sync?tx=0x{tx_data.hex()}"
+        status, body = await asyncio.to_thread(_http_get, url)
+        assert status == 200
+        assert body["result"]["code"] == 0
+        assert body["result"]["hash"] == expected_hash
 
     @pytest.mark.asyncio
     async def test_tx_query_not_found(
         self, connected_channel: MockServerChannel
     ) -> None:
         """Test /tx?hash=... returns 500 when tx not yet delivered."""
-        async with aiohttp.ClientSession() as session:
-            url = f"http://127.0.0.1:{connected_channel.rpc_port}/tx?hash=0xABCD1234"
-            async with session.get(url) as resp:
-                assert resp.status == 500
-                body = await resp.json()
-                assert body["error"]["code"] == -32603
-                assert "not found" in body["error"]["data"]
+        url = f"http://127.0.0.1:{connected_channel.rpc_port}/tx?hash=0xABCD1234"
+        status, body = await asyncio.to_thread(_http_get, url)
+        assert status == 500
+        assert body["error"]["code"] == -32603
+        assert "not found" in body["error"]["data"]
 
     @pytest.mark.asyncio
     async def test_tx_query_found(self, connected_channel: MockServerChannel) -> None:
         """Test /tx?hash=... returns 200 with tx_result after delivery."""
         tx_data = b"test_tx_found"
         tx_hash = hashlib.sha256(tx_data).hexdigest().upper()
-
-        # manually add to delivered_txs (simulating block production)
         connected_channel._delivered_txs[tx_hash] = True
-
-        async with aiohttp.ClientSession() as session:
-            url = f"http://127.0.0.1:{connected_channel.rpc_port}/tx?hash=0x{tx_hash}"
-            async with session.get(url) as resp:
-                assert resp.status == 200
-                body = await resp.json()
-                assert body["result"]["tx_result"]["code"] == 0
+        url = f"http://127.0.0.1:{connected_channel.rpc_port}/tx?hash=0x{tx_hash}"
+        status, body = await asyncio.to_thread(_http_get, url)
+        assert status == 200
+        assert body["result"]["tx_result"]["code"] == 0
 
     @pytest.mark.asyncio
     async def test_status_returns_height(
@@ -222,39 +225,32 @@ class TestRPCHandlers:
     ) -> None:
         """Test /status returns current block height."""
         connected_channel._height = 42
-
-        async with aiohttp.ClientSession() as session:
-            url = f"http://127.0.0.1:{connected_channel.rpc_port}/status"
-            async with session.get(url) as resp:
-                assert resp.status == 200
-                body = await resp.json()
-                assert body["result"]["sync_info"]["latest_block_height"] == "42"
+        url = f"http://127.0.0.1:{connected_channel.rpc_port}/status"
+        status, body = await asyncio.to_thread(_http_get, url)
+        assert status == 200
+        assert body["result"]["sync_info"]["latest_block_height"] == "42"
 
     @pytest.mark.asyncio
     async def test_net_info(self, connected_channel: MockServerChannel) -> None:
         """Test /net_info returns valid response."""
-        async with aiohttp.ClientSession() as session:
-            url = f"http://127.0.0.1:{connected_channel.rpc_port}/net_info"
-            async with session.get(url) as resp:
-                assert resp.status == 200
-                body = await resp.json()
-                assert body["result"]["n_peers"] == "0"
+        url = f"http://127.0.0.1:{connected_channel.rpc_port}/net_info"
+        status, body = await asyncio.to_thread(_http_get, url)
+        assert status == 200
+        assert body["result"]["n_peers"] == "0"
 
     @pytest.mark.asyncio
     async def test_hard_reset(self, connected_channel: MockServerChannel) -> None:
         """Test /hard_reset returns 200 (no-op)."""
-        async with aiohttp.ClientSession() as session:
-            url = f"http://127.0.0.1:{connected_channel.rpc_port}/hard_reset"
-            async with session.get(url) as resp:
-                assert resp.status == 200
+        url = f"http://127.0.0.1:{connected_channel.rpc_port}/hard_reset"
+        status, _ = await asyncio.to_thread(_http_get, url)
+        assert status == 200
 
     @pytest.mark.asyncio
     async def test_gentle_reset(self, connected_channel: MockServerChannel) -> None:
         """Test /gentle_reset returns 200 (no-op)."""
-        async with aiohttp.ClientSession() as session:
-            url = f"http://127.0.0.1:{connected_channel.rpc_port}/gentle_reset"
-            async with session.get(url) as resp:
-                assert resp.status == 200
+        url = f"http://127.0.0.1:{connected_channel.rpc_port}/gentle_reset"
+        status, _ = await asyncio.to_thread(_http_get, url)
+        assert status == 200
 
 
 # --- Connect/disconnect lifecycle tests ---
@@ -272,7 +268,7 @@ class TestLifecycle:
         assert not channel.is_stopped
         assert channel._request_queue is not None
         assert channel._block_producer_task is not None
-        assert channel._rpc_runner is not None
+        assert channel._rpc_server is not None
         await channel.disconnect()
 
     @pytest.mark.asyncio
@@ -283,7 +279,7 @@ class TestLifecycle:
         await channel.disconnect()
         assert channel.is_stopped
         assert channel._block_producer_task is None
-        assert channel._rpc_runner is None
+        assert channel._rpc_server is None
         assert channel._request_queue is None
 
     @pytest.mark.asyncio

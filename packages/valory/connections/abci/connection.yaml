@@ -9,7 +9,7 @@ fingerprint:
   Makefile: bafybeibdgarch56r46dfy7x7fouj52nbjpjs4fgtrd3prgtwelowyjan5i
   __init__.py: bafybeic2m6f6j42cbfxz3jcwhju2dcbbdcw6xyc7mslq7uk2hwe6ctcugi
   check_dependencies.py: bafybeidusow4q5ue2brrdpruisldydyum7vmtfioqbbpx6cdpni5klled4
-  connection.py: bafybeihtj4xxezezooz3oiw7ftxw2rqxphvkamk7by27ituxjkr4l5bgby
+  connection.py: bafybeiakkxs2qf2vdgcejizh3lscq7c3ky3ujgntfsurxlcqazf2dmohfu
   dialogues.py: bafybeiegsmt3ip3q4ofbksdlupkqsssu6mv52brhgt5ny5vhtg6q2kekye
   gogoproto/__init__.py: bafybeifmpcbkrpygdt7uvhpq6gaxgskofpczxktoalp2cwyouay46drcke
   gogoproto/gogo_pb2.py: bafybeia6r5qnnub6kbgtd4zt5ek4ucdlaqmr4y5blzqy5vk3kjw57trx3q
@@ -48,7 +48,7 @@ fingerprint:
   tests/test_fuzz/mock_node/channels/tcp_channel.py: bafybeifnacouimlr3tltrlfn7pmeiwqcjj6knob3uetkbdudhzqytcqt6e
   tests/test_fuzz/mock_node/node.py: bafybeihlklt7hwgxaf3xnuxm5xqbhbtrxa7v7wgacon5giijxpgfccrtjy
   tests/test_fuzz/test_fuzz.py: bafybeigami4kjgwpdvfhheiny5pvdrthacw4h4iesefegwpbbfjrvn7ndu
-  tests/test_mock_server_channel.py: bafybeicxvxwqn5eokt67bzjr6q4jlxkvjfi4d4ob2y3w36rtehhuidcvaa
+  tests/test_mock_server_channel.py: bafybeibm375f32qbcoigiflcy35ekmte4r3zphq7n65hsa4kapwq3apt6a
   tests/test_tendermint_decoder.py: bafybeihogt3aopyln5newihm3rbiqimoc4aw6za2cngplnjnwatv6nakea
   tests/test_tendermint_encoder.py: bafybeigpun2ybwr5tu7b52his3b5apyrlmdytlgofcszbctsmmabo3sjg4
   version.txt: bafybeifjb44fd7qve2ku62ythui6z4mvd4k7qkjomlcdnl3ymb3bnq6xee
@@ -74,8 +74,6 @@ config:
 excluded_protocols: []
 restricted_to_protocols: []
 dependencies:
-  aiohttp:
-    version: '>=3.8.5,<4.0.0'
   grpcio:
     version: ==1.78.0
   protobuf:

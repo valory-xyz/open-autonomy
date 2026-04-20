@@ -35,7 +35,7 @@ from pathlib import Path
 from threading import Event, Thread
 from time import time as time_
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 import grpc
 from aea.configurations.base import PublicId
@@ -43,7 +43,6 @@ from aea.connections.base import Connection, ConnectionStates
 from aea.exceptions import enforce
 from aea.mail.base import Envelope
 from aea.protocols.dialogue.base import DialogueLabel
-from aiohttp import web as aiohttp_web  # type: ignore
 from google.protobuf.message import DecodeError
 
 from packages.valory.connections.abci.dialogues import AbciDialogues
@@ -1106,7 +1105,7 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
         self._new_tx_event: Optional[asyncio.Event] = None
 
         # mock RPC HTTP server
-        self._rpc_runner: Optional[aiohttp_web.AppRunner] = None
+        self._rpc_server: Optional[AbstractServer] = None
 
     @property
     def is_stopped(self) -> bool:
@@ -1131,18 +1130,10 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
         self._height = 0
         self._new_tx_event = asyncio.Event()
 
-        # start mock RPC HTTP server
-        app = aiohttp_web.Application()
-        app.router.add_get("/broadcast_tx_sync", self._handle_broadcast_tx)
-        app.router.add_get("/tx", self._handle_tx_query)
-        app.router.add_get("/status", self._handle_status)
-        app.router.add_get("/net_info", self._handle_net_info)
-        app.router.add_get("/hard_reset", self._handle_reset)
-        app.router.add_get("/gentle_reset", self._handle_reset)
-        self._rpc_runner = aiohttp_web.AppRunner(app)
-        await self._rpc_runner.setup()
-        site = aiohttp_web.TCPSite(self._rpc_runner, self.rpc_host, self.rpc_port)
-        await site.start()
+        # start mock RPC HTTP server using stdlib asyncio
+        self._rpc_server = await asyncio.start_server(
+            self._handle_rpc_connection, self.rpc_host, self.rpc_port
+        )
         self.logger.info(
             f"Mock Tendermint RPC server started on {self.rpc_host}:{self.rpc_port}"
         )
@@ -1164,9 +1155,10 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
                 pass
             self._block_producer_task = None
 
-        if self._rpc_runner is not None:
-            await self._rpc_runner.cleanup()
-            self._rpc_runner = None
+        if self._rpc_server is not None:
+            self._rpc_server.close()
+            await self._rpc_server.wait_closed()
+            self._rpc_server = None
 
         # unblock any pending _send_and_wait
         if self._response_future is not None and not self._response_future.done():
@@ -1300,17 +1292,74 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
         except Exception as e:  # pylint: disable=broad-except
             self.logger.error(f"Mock block producer error: {type(e).__name__}: {e}")
             self._is_stopped = True
-            if self._rpc_runner is not None:
-                await self._rpc_runner.cleanup()
-                self._rpc_runner = None
+            if self._rpc_server is not None:
+                self._rpc_server.close()
+                self._rpc_server = None
 
-    # --- Mock Tendermint RPC HTTP handlers ---
+    # --- Mock Tendermint RPC HTTP server (stdlib asyncio) ---
 
-    async def _handle_broadcast_tx(
-        self, request: aiohttp_web.Request
-    ) -> aiohttp_web.Response:
+    async def _handle_rpc_connection(
+        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+    ) -> None:
+        """Handle a single HTTP connection on the mock RPC server."""
+        try:
+            request_line_bytes = await reader.readline()
+            if not request_line_bytes:
+                return
+            # consume remaining headers (read until empty line)
+            while True:
+                line = await reader.readline()
+                if line in (b"\r\n", b"\n", b""):
+                    break
+            request_line = request_line_bytes.decode().strip()
+            # parse "GET /path?query HTTP/1.1"
+            parts = request_line.split(" ")
+            if len(parts) < 2:
+                return
+            raw_url = parts[1]
+            parsed = urlparse(raw_url)
+            path = parsed.path
+            query = parse_qs(parsed.query)
+            status, body = self._route_rpc_request(path, query)
+            response = (
+                f"HTTP/1.1 {status} {'OK' if status == 200 else 'Internal Server Error'}\r\n"
+                f"Content-Type: application/json; charset=utf-8\r\n"
+                f"Content-Length: {len(body)}\r\n"
+                f"Connection: close\r\n"
+                f"\r\n"
+                f"{body}"
+            )
+            writer.write(response.encode())
+            await writer.drain()
+        except Exception as e:  # pylint: disable=broad-except
+            self.logger.debug(f"RPC handler error: {type(e).__name__}: {e}")
+        finally:
+            writer.close()
+
+    def _route_rpc_request(
+        self, path: str, query: Dict[str, List[str]]
+    ) -> Tuple[int, str]:
+        """Route an RPC request to the appropriate handler.
+
+        :param path: the URL path.
+        :param query: parsed query-string parameters.
+        :return: tuple of (status_code, json_body).
+        """
+        if path == "/broadcast_tx_sync":
+            return self._handle_broadcast_tx(query)
+        if path == "/tx":
+            return self._handle_tx_query(query)
+        if path == "/status":
+            return self._handle_status()
+        if path == "/net_info":
+            return self._handle_net_info()
+        if path in ("/hard_reset", "/gentle_reset"):
+            return self._handle_reset()
+        return 404, json.dumps({"error": "not found"})
+
+    def _handle_broadcast_tx(self, query: Dict[str, List[str]]) -> Tuple[int, str]:
         """Handle /broadcast_tx_sync — accept a transaction into the mempool."""
-        tx_param = request.query.get("tx", "")
+        tx_param = query.get("tx", [""])[0]
         if tx_param.startswith("0x"):
             tx_param = tx_param[2:]
         tx_bytes = bytes.fromhex(tx_param)
@@ -1331,13 +1380,11 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
                 },
             }
         )
-        return aiohttp_web.Response(text=body, content_type="application/json")
+        return 200, body
 
-    async def _handle_tx_query(
-        self, request: aiohttp_web.Request
-    ) -> aiohttp_web.Response:
+    def _handle_tx_query(self, query: Dict[str, List[str]]) -> Tuple[int, str]:
         """Handle /tx?hash=0x... — check if a transaction has been delivered."""
-        raw_hash = request.query.get("hash", "")
+        raw_hash = query.get("hash", [""])[0]
         if raw_hash.startswith("0x"):
             raw_hash = raw_hash[2:]
         tx_hash = raw_hash.upper()
@@ -1352,7 +1399,7 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
                     },
                 }
             )
-            return aiohttp_web.Response(text=body, content_type="application/json")
+            return 200, body
         # tx not found yet
         body = json.dumps(
             {
@@ -1365,13 +1412,9 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
                 },
             }
         )
-        return aiohttp_web.Response(
-            status=500, text=body, content_type="application/json"
-        )
+        return 500, body
 
-    async def _handle_status(
-        self, _request: aiohttp_web.Request
-    ) -> aiohttp_web.Response:
+    def _handle_status(self) -> Tuple[int, str]:
         """Handle /status — return current block height for sync checks."""
         body = json.dumps(
             {
@@ -1384,11 +1427,9 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
                 },
             }
         )
-        return aiohttp_web.Response(text=body, content_type="application/json")
+        return 200, body
 
-    async def _handle_net_info(
-        self, _request: aiohttp_web.Request
-    ) -> aiohttp_web.Response:
+    def _handle_net_info(self) -> Tuple[int, str]:
         """Handle /net_info — return minimal valid response."""
         body = json.dumps(
             {
@@ -1397,14 +1438,12 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
                 "result": {"n_peers": "0", "peers": []},
             }
         )
-        return aiohttp_web.Response(text=body, content_type="application/json")
+        return 200, body
 
-    async def _handle_reset(
-        self, _request: aiohttp_web.Request
-    ) -> aiohttp_web.Response:
+    def _handle_reset(self) -> Tuple[int, str]:
         """Handle /hard_reset and /gentle_reset — no-op for single-agent mock."""
         body = json.dumps({"status": True, "message": "mock reset"})
-        return aiohttp_web.Response(text=body, content_type="application/json")
+        return 200, body
 
 
 class StoppableThread(
