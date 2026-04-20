@@ -3,7 +3,8 @@ name = "open-autonomy"
 version = "0.21.18"
 description = "Open Autonomy Framework"
 authors = ["developer-valory <develope@valory.xyz>"]
-license = "Apache-2.0 license"
+license = "Apache-2.0"
+readme = "README.md"
 packages = [{include = "autonomy"}, {include = "packages"}]
 
 [tool.poetry.dependencies]
