@@ -762,7 +762,8 @@ async def send(envelope: Envelope) -> None
 
 Receive a response from the skill handler.
 
-Resolves the pending future so the block producer can proceed.
+Updates the dialogue (completing it so it can be cleaned up)
+and resolves the pending future so the block producer can proceed.
 
 **Arguments**:
 

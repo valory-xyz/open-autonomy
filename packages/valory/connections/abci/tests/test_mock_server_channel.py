@@ -31,11 +31,104 @@ from typing import AsyncGenerator, Dict, List, Tuple, cast
 
 import pytest
 import pytest_asyncio
+from aea.configurations.base import PublicId
+from aea.mail.base import Envelope
+from aea.protocols.base import Address, Message
+from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 
 from packages.valory.connections.abci.connection import MockServerChannel
 from packages.valory.protocols.abci import AbciMessage
+from packages.valory.protocols.abci.custom_types import Events, ValidatorUpdates
+from packages.valory.protocols.abci.dialogues import AbciDialogue
+from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
 
 MOCK_RPC_PORT = 37657  # avoid conflicts with real TM
+
+
+class _SkillSideDialogues(BaseAbciDialogues):
+    """Simulates the skill-side ABCI dialogues (SERVER role)."""
+
+    def __init__(self, address: str) -> None:
+        """Initialise."""
+
+        def role_from_first_message(
+            message: Message, receiver_address: Address
+        ) -> BaseDialogue.Role:
+            return AbciDialogue.Role.SERVER
+
+        super().__init__(
+            self_address=address,
+            role_from_first_message=role_from_first_message,
+            dialogue_class=AbciDialogue,
+        )
+
+
+# Map each request performative to the minimal valid response fields.
+_RESPONSE_MAP = {
+    AbciMessage.Performative.REQUEST_INFO: (
+        AbciMessage.Performative.RESPONSE_INFO,
+        dict(
+            info_data="",
+            version="",
+            app_version=0,
+            last_block_height=0,
+            last_block_app_hash=b"",
+        ),
+    ),
+    AbciMessage.Performative.REQUEST_INIT_CHAIN: (
+        AbciMessage.Performative.RESPONSE_INIT_CHAIN,
+        dict(validators=ValidatorUpdates([]), app_hash=b""),
+    ),
+    AbciMessage.Performative.REQUEST_BEGIN_BLOCK: (
+        AbciMessage.Performative.RESPONSE_BEGIN_BLOCK,
+        dict(events=Events([])),
+    ),
+    AbciMessage.Performative.REQUEST_DELIVER_TX: (
+        AbciMessage.Performative.RESPONSE_DELIVER_TX,
+        dict(
+            code=0,
+            data=b"",
+            log="",
+            info="",
+            gas_wanted=0,
+            gas_used=0,
+            events=Events([]),
+            codespace="",
+        ),
+    ),
+    AbciMessage.Performative.REQUEST_END_BLOCK: (
+        AbciMessage.Performative.RESPONSE_END_BLOCK,
+        dict(validator_updates=ValidatorUpdates([]), events=Events([])),
+    ),
+    AbciMessage.Performative.REQUEST_COMMIT: (
+        AbciMessage.Performative.RESPONSE_COMMIT,
+        dict(data=b"", retain_height=0),
+    ),
+}
+
+
+async def _respond(
+    ch: MockServerChannel,
+    skill_dialogues: _SkillSideDialogues,
+) -> AbciMessage.Performative:
+    """Get a request from the mock, create a proper response, and send it back.
+
+    :param ch: the mock channel.
+    :param skill_dialogues: the skill-side dialogues tracker.
+    :return: the performative of the received request.
+    """
+    env = await asyncio.wait_for(ch.get_message(), timeout=2.0)
+    request = cast(AbciMessage, env.message)
+    dialogue = skill_dialogues.update(request)
+    assert dialogue is not None
+    resp_perf, resp_kwargs = _RESPONSE_MAP[request.performative]
+    response = cast(
+        AbciMessage,
+        dialogue.reply(performative=resp_perf, **resp_kwargs),
+    )
+    resp_env = Envelope(to=response.to, sender=response.sender, message=response)
+    await ch.send(resp_env)
+    return request.performative
 
 
 def _http_get(url: str) -> Tuple[int, Dict]:
@@ -59,10 +152,14 @@ def free_port() -> int:
         return s.getsockname()[1]
 
 
+SKILL_ID = PublicId.from_str("valory/test_skill:0.1.0")
+
+
 @pytest.fixture()
 def channel(free_port: int) -> MockServerChannel:
     """Create a MockServerChannel instance."""
     return MockServerChannel(
+        target_skill_id=SKILL_ID,
         rpc_host="127.0.0.1",
         rpc_port=free_port,
         block_time=10.0,  # long block time so blocks don't auto-produce during tests
@@ -78,6 +175,12 @@ async def connected_channel(
     await channel.connect(loop)
     yield channel
     await channel.disconnect()
+
+
+@pytest.fixture()
+def skill_dialogues(channel: MockServerChannel) -> _SkillSideDialogues:
+    """Create a skill-side dialogues instance for proper response creation."""
+    return _SkillSideDialogues(str(channel.target_skill_id))
 
 
 # --- ABCI message sequencing tests ---
@@ -97,16 +200,13 @@ class TestABCIMessageSequencing:
 
     @pytest.mark.asyncio
     async def test_init_chain_after_info_response(
-        self, connected_channel: MockServerChannel
+        self,
+        connected_channel: MockServerChannel,
+        skill_dialogues: _SkillSideDialogues,
     ) -> None:
         """After responding to INFO, the next message should be REQUEST_INIT_CHAIN."""
-        # get and respond to info
-        envelope = await asyncio.wait_for(connected_channel.get_message(), timeout=2.0)
-        info_msg = cast(AbciMessage, envelope.message)
-        assert info_msg.performative == AbciMessage.Performative.REQUEST_INFO
-
-        # respond — the mock only checks that the future is resolved
-        await connected_channel.send(envelope)
+        perf = await _respond(connected_channel, skill_dialogues)
+        assert perf == AbciMessage.Performative.REQUEST_INFO
 
         # next should be init_chain
         envelope = await asyncio.wait_for(connected_channel.get_message(), timeout=2.0)
@@ -115,7 +215,9 @@ class TestABCIMessageSequencing:
 
     @pytest.mark.asyncio
     async def test_full_block_lifecycle(
-        self, connected_channel: MockServerChannel
+        self,
+        connected_channel: MockServerChannel,
+        skill_dialogues: _SkillSideDialogues,
     ) -> None:
         """Test the full sequence: info -> init_chain -> begin_block -> end_block -> commit."""
         expected_sequence = [
@@ -128,34 +230,21 @@ class TestABCIMessageSequencing:
 
         received: List[AbciMessage.Performative] = []
         for _ in range(len(expected_sequence)):
-            envelope = await asyncio.wait_for(
-                connected_channel.get_message(), timeout=2.0
-            )
-            msg = cast(AbciMessage, envelope.message)
-            received.append(msg.performative)
-            # send() just resolves the future; content doesn't matter for sequencing
-            await connected_channel.send(envelope)
+            perf = await _respond(connected_channel, skill_dialogues)
+            received.append(perf)
 
         assert received == expected_sequence
 
     @pytest.mark.asyncio
     async def test_deliver_tx_in_block(
-        self, connected_channel: MockServerChannel
+        self,
+        connected_channel: MockServerChannel,
+        skill_dialogues: _SkillSideDialogues,
     ) -> None:
         """Test that a submitted tx appears as REQUEST_DELIVER_TX in the next block."""
-
-        async def drain_and_respond(
-            ch: MockServerChannel,
-        ) -> AbciMessage.Performative:
-            """Get next message and immediately respond to unblock the producer."""
-            env = await asyncio.wait_for(ch.get_message(), timeout=2.0)
-            msg = cast(AbciMessage, env.message)
-            await ch.send(env)
-            return msg.performative
-
         # drain info, init_chain, first empty block (begin, end, commit)
         for _ in range(5):
-            await drain_and_respond(connected_channel)
+            await _respond(connected_channel, skill_dialogues)
 
         # now submit a tx via HTTP
         tx_data = b'{"test": "payload"}'
@@ -167,8 +256,8 @@ class TestABCIMessageSequencing:
         # expect: begin_block, deliver_tx, end_block, commit
         perfs = []
         for _ in range(4):
-            p = await drain_and_respond(connected_channel)
-            perfs.append(p)
+            perf = await _respond(connected_channel, skill_dialogues)
+            perfs.append(perf)
 
         assert perfs == [
             AbciMessage.Performative.REQUEST_BEGIN_BLOCK,
@@ -302,18 +391,16 @@ class TestLifecycle:
 
     @pytest.mark.asyncio
     async def test_height_increments(
-        self, connected_channel: MockServerChannel
+        self,
+        connected_channel: MockServerChannel,
+        skill_dialogues: _SkillSideDialogues,
     ) -> None:
         """Test that block height increments after a full block cycle."""
         assert connected_channel._height == 0
 
-        async def drain(ch: MockServerChannel) -> None:
-            env = await asyncio.wait_for(ch.get_message(), timeout=2.0)
-            await ch.send(env)
-
         # drain info, init_chain, begin_block, end_block, commit = 1 full block
         for _ in range(5):
-            await drain(connected_channel)
+            await _respond(connected_channel, skill_dialogues)
 
         assert connected_channel._height == 1
 

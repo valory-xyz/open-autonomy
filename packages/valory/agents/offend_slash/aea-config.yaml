@@ -11,7 +11,7 @@ fingerprint:
   tests/test_offend_slash.py: bafybeic62qhx2glxfv3itse7ykc5eybmvdubdqs5pdcnfhc7j6axnvpwfe
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeif7ut33j423ivd7zmqfioontezqqcgg2udexhefrcfe3ghogbacfi
+- valory/abci:0.1.0:bafybeibcpvyteijct4rz3zl63sn5zwuiwtn6gt6guvr5gufko4332ybgcu
 - valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
 - valory/ipfs:0.1.0:bafybeic4cubtc6jbejq7yt7fjlibuixofb6wqpfoc5vt2h4wpaahi5y5bi
 - valory/ledger:0.19.0:bafybeidqf5dmueqm655z3bkw36mviobpcpuek4bhha7iq2nnz6sfu32kva
@@ -30,14 +30,14 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 - valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
 skills:
-- valory/abstract_abci:0.1.0:bafybeie4hqt56d6bxx7jorn52rgtu7heq27tfgpqczwcme2swb4uk4cp54
-- valory/abstract_round_abci:0.1.0:bafybeiesegziv2na2qsyiza5ugfswu7g7tcmu74k43p6lozbf3zg5kpj2i
-- valory/offend_abci:0.1.0:bafybeigh2z56kosvvfd22npssai4i6ficxs5phocddwvvdzhpyspm3lsya
-- valory/offend_slash_abci:0.1.0:bafybeih2kgy5chwae5xgn626puzipnk4z2lctiwdpy7km4r6oi7ccadbhy
-- valory/registration_abci:0.1.0:bafybeif25rm2tew4lkwklwmlhomqs627blz26tnwkbkrvvy5tmbg2azuri
-- valory/reset_pause_abci:0.1.0:bafybeihc6fj7jjc6zxc4vbbmoqw4rkop2jlc6qa4ssmngitljt6zwtwyba
-- valory/slashing_abci:0.1.0:bafybeiawvxciv5dpinwkmevqro6ro6qzldy3d4267kydzht5eel4ybrexm
-- valory/transaction_settlement_abci:0.1.0:bafybeihukcmcjpiegl2olijjjc727qfuqyj233h3t426hupblembwbghuq
+- valory/abstract_abci:0.1.0:bafybeib5qjkpfsxjcur4asube6kctmy2xsrg2hzcele2tmvsstula4lt54
+- valory/abstract_round_abci:0.1.0:bafybeih5nr3jdjo7pahcs3pgjheqzmwkoi2emiilxqzorhcduoalhxi7jy
+- valory/offend_abci:0.1.0:bafybeibgszg3jpgsnahehhdh722qiblyghycywpqqktnj26r6yrc2d53xe
+- valory/offend_slash_abci:0.1.0:bafybeiamtg6eajzrhlslb3exxu4aozszg3snwkth7gqwxncwuaiut2vjae
+- valory/registration_abci:0.1.0:bafybeifpdgnlrn3dnur76yww2errlecm4nwconerrkww7rxkr4zd2sw5ky
+- valory/reset_pause_abci:0.1.0:bafybeife66mkzjgci6ozikwergg6lr26o3duhusta2sociebwxicp3jsre
+- valory/slashing_abci:0.1.0:bafybeibmzbtcubr3ccejolm3e53ewzm2fqk46v66nkhvogadvnfunbsj4y
+- valory/transaction_settlement_abci:0.1.0:bafybeigqefmlzk7nehhpwzrkm4rnjsep7xpa3c7xuttjf2yummcdhjffy4
 default_ledger: ethereum
 required_ledgers:
 - ethereum

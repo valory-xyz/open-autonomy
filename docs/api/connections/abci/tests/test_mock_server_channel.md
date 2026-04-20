@@ -10,6 +10,26 @@ Unit tests for MockServerChannel.
 
 avoid conflicts with real TM
 
+<a id="packages.valory.connections.abci.tests.test_mock_server_channel._SkillSideDialogues"></a>
+
+## `_`SkillSideDialogues Objects
+
+```python
+class _SkillSideDialogues(BaseAbciDialogues)
+```
+
+Simulates the skill-side ABCI dialogues (SERVER role).
+
+<a id="packages.valory.connections.abci.tests.test_mock_server_channel._SkillSideDialogues.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(address: str) -> None
+```
+
+Initialise.
+
 <a id="packages.valory.connections.abci.tests.test_mock_server_channel.free_port"></a>
 
 #### free`_`port
@@ -44,6 +64,17 @@ async def connected_channel(
 
 Create and connect a MockServerChannel.
 
+<a id="packages.valory.connections.abci.tests.test_mock_server_channel.skill_dialogues"></a>
+
+#### skill`_`dialogues
+
+```python
+@pytest.fixture()
+def skill_dialogues(channel: MockServerChannel) -> _SkillSideDialogues
+```
+
+Create a skill-side dialogues instance for proper response creation.
+
 <a id="packages.valory.connections.abci.tests.test_mock_server_channel.TestABCIMessageSequencing"></a>
 
 ## TestABCIMessageSequencing Objects
@@ -73,7 +104,8 @@ The first message produced should be REQUEST_INFO.
 ```python
 @pytest.mark.asyncio
 async def test_init_chain_after_info_response(
-        connected_channel: MockServerChannel) -> None
+        connected_channel: MockServerChannel,
+        skill_dialogues: _SkillSideDialogues) -> None
 ```
 
 After responding to INFO, the next message should be REQUEST_INIT_CHAIN.
@@ -85,7 +117,8 @@ After responding to INFO, the next message should be REQUEST_INIT_CHAIN.
 ```python
 @pytest.mark.asyncio
 async def test_full_block_lifecycle(
-        connected_channel: MockServerChannel) -> None
+        connected_channel: MockServerChannel,
+        skill_dialogues: _SkillSideDialogues) -> None
 ```
 
 Test the full sequence: info -> init_chain -> begin_block -> end_block -> commit.
@@ -97,7 +130,8 @@ Test the full sequence: info -> init_chain -> begin_block -> end_block -> commit
 ```python
 @pytest.mark.asyncio
 async def test_deliver_tx_in_block(
-        connected_channel: MockServerChannel) -> None
+        connected_channel: MockServerChannel,
+        skill_dialogues: _SkillSideDialogues) -> None
 ```
 
 Test that a submitted tx appears as REQUEST_DELIVER_TX in the next block.
@@ -251,7 +285,8 @@ Test that disconnecting twice doesn't raise.
 
 ```python
 @pytest.mark.asyncio
-async def test_height_increments(connected_channel: MockServerChannel) -> None
+async def test_height_increments(connected_channel: MockServerChannel,
+                                 skill_dialogues: _SkillSideDialogues) -> None
 ```
 
 Test that block height increments after a full block cycle.

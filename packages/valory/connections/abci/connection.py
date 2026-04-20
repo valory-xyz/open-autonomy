@@ -1188,10 +1188,17 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
         """
         Receive a response from the skill handler.
 
-        Resolves the pending future so the block producer can proceed.
+        Updates the dialogue (completing it so it can be cleaned up)
+        and resolves the pending future so the block producer can proceed.
 
         :param envelope: the response envelope.
         """
+        message = cast(AbciMessage, envelope.message)
+        dialogue = self._dialogues.update(message)
+        if dialogue is None:  # pragma: nocover
+            self.logger.warning(
+                f"Could not update dialogue for message={message.performative}"
+            )
         if self._response_future is not None and not self._response_future.done():
             self._response_future.set_result(envelope)
 
@@ -1314,6 +1321,7 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
             self._is_stopped = True
             if self._rpc_server is not None:
                 self._rpc_server.close()
+                await self._rpc_server.wait_closed()
                 self._rpc_server = None
             # unblock any pending get_message() call
             if self._request_queue is not None:
@@ -1365,6 +1373,7 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
             self.logger.debug(f"RPC handler error: {type(e).__name__}: {e}")
         finally:
             writer.close()
+            await writer.wait_closed()
 
     def _route_rpc_request(
         self, path: str, query: Dict[str, List[str]]
