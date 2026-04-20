@@ -17,7 +17,7 @@
 | contract/valory/service_registry_token_utility/0.1.0          | `bafybeigrrphdrb2umdywk3xl4fbstcofllllubty34va7ywht3whi4eoyy` |
 | contract/valory/squads_multisig/0.1.0                         | `bafybeihf6kgfsnfp5ugs44gjffj2qltr5zerf2w2rmgets3d3tizjngrp4` |
 | contract/valory/multicall2/0.1.0                              | `bafybeieb6xzq4ytn3vcetr5rbhltmc7krutodkfwgvvtjiaskg2fvajdca` |
-| contract/valory/poly_safe_creator_with_recovery_module/0.1.0  | `bafybeid3x4d6ebw3tqpqjlvqxqleu23pzdzi4pm7q2s7jwl7ta5zjpfd5a` |
+| contract/valory/poly_safe_creator_with_recovery_module/0.1.0  | `bafybeiaz3augzlsca3rqeg3lfwsflhnihhc4n4be6iwzowlpoc2mdq3ofe` |
 | contract/valory/sign_message_lib/0.1.0                        | `bafybeiesll5l77ggendlasqnbyvlf5r7huliww5kzmnnsnvyx55irsjwpy` |
 | contract/valory/erc8004_identity_registry/0.1.0               | `bafybeihkiewmxjfkjwgt2pvqvbove2friqu3o5sy4gblvj4nmlxpqcnxim` |
 | contract/valory/erc8004_identity_registry_bridger/0.1.0       | `bafybeig7sxwyhs2xig3w2jj4smbxua64ctu4cyxl7vtwtdrkrsxlfv2fem` |
