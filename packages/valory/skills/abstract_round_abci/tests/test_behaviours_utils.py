@@ -24,7 +24,7 @@ import logging
 import platform
 import time
 from abc import ABC
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import (
@@ -43,7 +43,6 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
-import pytz  # pylint: disable=import-error
 from _pytest.logging import LogCaptureFixture
 
 # pylint: skip-file
@@ -2109,7 +2108,7 @@ class TestBaseBehaviour:
 
         else:
             initial_height = INITIAL_HEIGHT
-            genesis_time = timestamp.astimezone(pytz.UTC).strftime(GENESIS_TIME_FMT)
+            genesis_time = timestamp.astimezone(timezone.utc).strftime(GENESIS_TIME_FMT)
             period_count = str(period)
 
             expected = {
@@ -2238,7 +2237,7 @@ class TestBaseBehaviour:
                 next(reset)
             initial_height = INITIAL_HEIGHT
             genesis_time = self.behaviour.context.state.round_sequence.last_round_transition_timestamp.astimezone(
-                pytz.UTC
+                timezone.utc
             ).strftime(
                 "%Y-%m-%dT%H:%M:%S.%fZ"
             )

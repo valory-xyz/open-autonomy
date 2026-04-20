@@ -77,11 +77,7 @@ dependencies:
     version: '>=3.8.5,<4.0.0'
   grpcio:
     version: ==1.78.0
-  hypothesis:
-    version: ==6.21.6
-  open-aea-test-autonomy:
-    version: ==0.21.18
   protobuf:
-    version: <6,>=5
+    version: <7,>=5
 is_abstract: false
 cert_requests: []

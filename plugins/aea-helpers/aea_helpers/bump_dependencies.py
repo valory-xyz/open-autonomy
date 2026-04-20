@@ -31,10 +31,10 @@ import typing as t
 from pathlib import Path
 
 import click
-import requests
 from aea.cli.utils.click_utils import PackagesSource, PyPiDependency
 from aea.configurations.constants import PACKAGES, PACKAGE_TYPE_TO_CONFIG_FILE
 from aea.configurations.data_types import Dependency
+from aea.helpers import http_requests
 from aea.helpers.logging import setup_logger
 from aea.helpers.yaml_utils import yaml_dump, yaml_dump_all, yaml_load, yaml_load_all
 from aea.package_manager.v1 import PackageManagerV1
@@ -109,12 +109,12 @@ def dump_git_cache() -> None:
         yaml_dump(data=_version_cache, stream=stream)
 
 
-def make_git_request(url: str) -> requests.Response:
+def make_git_request(url: str) -> http_requests.HTTPResponse:
     """Make git request."""
     auth = os.environ.get("GITHUB_AUTH")
     if auth is None:
-        return requests.get(url=url, timeout=TIMEOUT)
-    return requests.get(
+        return http_requests.get(url=url, timeout=TIMEOUT)
+    return http_requests.get(
         url=url, headers={"Authorization": f"Bearer {auth}"}, timeout=TIMEOUT
     )
 

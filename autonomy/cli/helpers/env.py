@@ -24,7 +24,7 @@ import os
 from pathlib import Path
 from typing import Dict
 
-from dotenv import load_dotenv
+from aea.helpers.base import load_env_file as _load_dotenv
 
 
 def load_json(file: Path, serialize: bool = False) -> None:
@@ -44,4 +44,4 @@ def load_env_file(file: Path, serialize_json: bool = False) -> None:
     if file.name.endswith(".json"):
         load_json(file=file, serialize=serialize_json)
     else:
-        load_dotenv(dotenv_path=file)
+        _load_dotenv(str(file))

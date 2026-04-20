@@ -22,8 +22,6 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from web3.types import Nonce, Wei
-
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.models import (
     ApiSpecs,
@@ -59,8 +57,8 @@ class MutableParams(TypeCheckMixin):
 
     fallback_gas: int
     tx_hash: str = ""
-    nonce: Optional[Nonce] = None
-    gas_price: Optional[Dict[str, Wei]] = None
+    nonce: Optional[int] = None
+    gas_price: Optional[Dict[str, int]] = None
     late_messages: List[ContractApiMessage] = field(default_factory=list)
 
 

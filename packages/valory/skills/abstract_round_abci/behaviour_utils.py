@@ -41,7 +41,6 @@ from typing import (
     cast,
 )
 
-import pytz
 from aea.exceptions import enforce
 from aea.mail.base import EnvelopeContext
 from aea.protocols.base import Message
@@ -1907,9 +1906,9 @@ class BaseBehaviour(
         last_round_transition_timestamp = (
             self.round_sequence.last_round_transition_timestamp
         )
-        genesis_time = last_round_transition_timestamp.astimezone(pytz.UTC).strftime(
-            GENESIS_TIME_FMT
-        )
+        genesis_time = last_round_transition_timestamp.astimezone(
+            datetime.timezone.utc
+        ).strftime(GENESIS_TIME_FMT)
         return {
             "genesis_time": genesis_time,
             "initial_height": INITIAL_HEIGHT,

@@ -8,7 +8,7 @@ aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeiaaoxkui6cjj52avj3xbriazrwdg6bcfqxmukkw7emwc2q4hbdfdi
   build/AgentRegistry.json: bafybeicj2x3tjw77m5yjdggi3lodvbha2k33gxrfjjljhhee2f2stk6ezy
-  contract.py: bafybeidaidf52ylbhfriupj5agtfjshxowfn5omea3xptttyb7onp3rtdy
+  contract.py: bafybeiaef2lbnqfiskxu4dkj3tdfnnuo7vgewbni24f4ntm2kurs5ldscu
   tests/__init__.py: bafybeig6vb3j7xuemr25f5uapvhyuo4hlk3rbfiq7kfxg4f5gfz6oc6tte
   tests/test_contract.py: bafybeia64mdbir75gbxvzodd7c3lq53wspwdljuzbkekczajdanxyxeicu
 fingerprint_ignore_patterns: []
@@ -19,7 +19,3 @@ contract_interface_paths:
 dependencies:
   open-aea-ledger-ethereum:
     version: ==2.2.1
-  open-aea-test-autonomy:
-    version: ==0.21.18
-  web3:
-    version: <8,>=7.0.0

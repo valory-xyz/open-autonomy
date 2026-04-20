@@ -76,7 +76,7 @@ autonomy deploy build [OPTIONS] [KEYS_FILE]
 :   Path to open-aea repo (Use with `dev` mode).
 
 `--aev`
-:   Apply environment variable when loading AI agent config.
+:   *Deprecated.* Applying environment variables when loading service config is now the default; this flag will be removed in v1.0.0.
 
 `--use-hardhat`
 :   Include a hardhat node in the deployment setup.
@@ -278,7 +278,7 @@ autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
 :   Skip building images.
 
 `--aev`
-:   Apply environment variable when loading AI agent config.
+:   *Deprecated.* Applying environment variables when loading service config is now the default; this flag will be removed in v1.0.0.
 
 `--docker`
 :   Use docker as a backend.

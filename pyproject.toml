@@ -8,73 +8,86 @@ packages = [{include = "autonomy"}, {include = "packages"}]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.15"
-aiohttp = ">=3.8.5,<4.0.0"
-docker = "==7.1.0"
-Flask = ">=3.1.0,<4.0.0"
+# Core runtime
 open-aea = { version = "==2.2.1", extras = ["all"] }
-open-aea-ledger-ethereum = "==2.2.1"
-open-aea-ledger-cosmos = "==2.2.1"
-# HWI is optional — only needed when using --hwi flag for hardware
-# wallet interactions. Kept out of base deps because its transitive
-# chain (ledgerwallet -> hidapi + Pillow) has no pre-built armv7
-# wheels, breaking multi-platform Docker image builds.
-open-aea-ledger-ethereum-hwi = {version = "==2.2.1", optional = true}
+# CLI deps. `click`, `pytest`, `coverage` come transitively via
+# `open-aea[all]`; only the IPFS CLI plugin is autonomy-specific.
 open-aea-cli-ipfs = "==2.2.1"
-ipfshttpclient = "==0.8.0a2"
-multiaddr = "==0.0.9"
-Werkzeug = ">=3.1.0,<4.0.0"
-watchdog = ">=2.1.6"
-pytest = "==8.4.2"
-click = ">=8.1.0,<9"
-requests-toolbelt = "==1.0.0"
-requests = ">=2.28.1,<2.33.0"
-typing_extensions = ">=3.10.0.2,<=4.15.0"
-hexbytes = "*"
-jsonschema = ">=4.3.0,<4.24.0"
-protobuf = ">=5,<6"
-gql = "==3.5.0"
-texttable = "==1.6.7"
-python-dotenv = ">=0.14.5,<0.22.0"
-asn1crypto = ">=1.4.0,<1.5.0"
-ecdsa = ">=0.15"
-web3 = "<8,>=7.0.0"
+# Optional plugins — declared via extras below.
+# [hwi] and [docker] are intentionally kept out of [all]:
+#   * HWI's transitive chain (ledgerwallet -> hidapi + Pillow) has
+#     no armv7 wheels, breaking multi-platform Docker image builds.
+#   * `docker` is only needed for docker-compose deployments; users
+#     deploying to Kubernetes or localhost don't need it.
+open-aea-ledger-ethereum = {version = "==2.2.1", optional = true, extras = []}
+open-aea-ledger-ethereum-hwi = {version = "==2.2.1", optional = true}
+docker = {version = "==7.1.0", optional = true}
+
+# ---------------------------------------------------------------------------
+# Direct runtime imports from `packages/valory/**` that aren't covered
+# by the `open-aea[all]` / ledger-plugin transitive chain. Each entry
+# is directly `import`-ed by at least one runtime module in this repo
+# (checked via `ast`-walk of `autonomy/` and `packages/valory/` outside
+# `tests/` / `test_tools/`).
+#
+# Version policy:
+#   * Unpinned (`*`) when the effective range is already constrained
+#     by a ledger plugin or `open-aea[all]` transitively — we trust
+#     the upstream to dictate a compatible version. Matches the `{}`
+#     entries in the package YAMLs.
+#   * Pinned / bounded only when the dep is version-sensitive for
+#     correctness. Such ranges must stay in sync with the
+#     corresponding package YAML.
+# ---------------------------------------------------------------------------
+open-aea-ledger-cosmos = "==2.2.1"
+# open-aea-ledger-solana = "==2.2.1"  # NOTE: can't coexist with our
+# dev tooling. `open-aea-ledger-solana` pulls `anchorpy<0.19` which
+# transitively requires `cachetools<5`; that clashes with
+# `tomte[tox]`'s `cachetools>=7.0.1` (via `tox 4.46`). Re-enabling
+# needs either the anchorpy upstream to loosen, or moving solana
+# into an opt-in extra.
+web3 = "*"
+requests = "*"
+grpcio = "==1.78.0"
+aiohttp = ">=3.8.5,<4.0.0"
 certifi = "*"
 multidict = "*"
-eth_typing = "*"
-eth-account = ">=0.13.0,<0.14.0"
-packaging = "*"
+asn1crypto = ">=1.4.0,<1.5.0"
+ecdsa = "*"
+py-ecc = ">=8,<10"
+
+# ---------------------------------------------------------------------------
+# TODO(cleanup): entries below are declared here only to satisfy
+# `tox -e check-dependencies`. That tool reads
+# `[tool.poetry.dependencies]` but:
+#   * ignores entries with `optional = true` unless they also carry
+#     an `extras` key (so `open-aea-ledger-ethereum` above is
+#     invisible; we restate it here without `optional`);
+#   * doesn't read the dev group (so `pytest-asyncio` is invisible);
+#   * flags `protobuf` as missing even though it arrives transitively
+#     via `open-aea[all]`.
+# The authoritative distribution manifest is `setup.py`, so these
+# redundant entries are harmless. The right long-term fix is to
+# patch the checker to understand `optional` + dev-group deps.
+protobuf = "*"
 pytest-asyncio = "*"
-grpcio = "==1.78.0"
-hypothesis = "==6.21.6"
-pytz = "==2022.2.1"
-py-ecc = "==8.0.0"
-toml = "==0.10.2"
-eth-utils = "==5.3.0"
-eth-abi = "==5.2.0"
-pycryptodome = "==3.20.0"
-py-eth-sig-utils = "*"
-# Optional deps for extras
-coverage = {version = ">=6.4.4,<8.0.0", optional = true}
 
 [tool.poetry.extras]
 cli = [
-    "click",
     "open-aea-cli-ipfs",
-    "texttable",
-    "python-dotenv",
-    "pytest",
-    "coverage",
+]
+chain = [
+    "open-aea-ledger-ethereum",
+]
+docker = [
+    "docker",
 ]
 hwi = [
     "open-aea-ledger-ethereum-hwi",
 ]
 all = [
-    "click",
     "open-aea-cli-ipfs",
-    "texttable",
-    "python-dotenv",
-    "pytest",
-    "coverage",
+    "open-aea-ledger-ethereum",
 ]
 
 [tool.poetry.scripts]
@@ -85,6 +98,26 @@ tomte = { extras = ["tox", "docs"], version = "==0.6.5" }
 mkdocs-monorepo-plugin = "^1.0.5"
 open-aea-ci-helpers = "==2.2.1"
 open-aea-dev-helpers = "==2.2.1"
+# Local CI/release tooling — used by `make generators`, `tox -e
+# fix-doc-hashes`, etc. Not imported by any runtime code.
+open-aea-helpers = { path = "plugins/aea-helpers", develop = true }
+# Test tooling: `open-aea-test-autonomy` (our own plugin) supplies the
+# base test classes imported from `packages/valory/**/test_tools/`;
+# `hypothesis`, `pytest`, `pytest-asyncio` are only used by test
+# modules (pytest is guarded via a `_PytestMissing` stub in
+# `test_tools/` so skill imports work without pytest installed).
+open-aea-test-autonomy = { path = "plugins/aea-test-autonomy", develop = true }
+hypothesis = "*"
+pytest = "*"
+pytest-asyncio = "*"
+# Used by the docker-compose tendermint sidecar
+# (`deployments/Dockerfiles/tendermint/app.py`) and a legacy test helper
+# (`packages/valory/agents/register_reset/tests/helpers/slow_tendermint_server/app.py`).
+# Kept out of the main deps because the runtime autonomy wheel uses
+# `autonomy/deploy/_http_server.py` (stdlib-only Flask-compatible shim)
+# instead.
+Flask = ">=3.1.0,<4.0.0"
+Werkzeug = ">=3.1.0,<4.0.0"
 
 
 [build-system]

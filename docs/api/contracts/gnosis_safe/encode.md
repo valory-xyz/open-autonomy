@@ -9,10 +9,16 @@ ETH encoder.
 #### encode
 
 ```python
-def encode(typ: t.Any, arg: t.Any) -> bytes
+def encode(ledger_api: EthereumApi, typ: t.Any, arg: t.Any) -> bytes
 ```
 
-Encode by type.
+Encode a single value of the given ABI type.
+
+web3 bundles ``eth_abi`` and exposes its default codec via
+``ledger_api.api.codec``; reaching through to the codec's
+``_registry`` gives us the same per-type encoder the contract
+used to import directly from ``eth_abi.default_codec._registry``,
+without adding ``eth-abi`` as a declared dep.
 
 <a id="packages.valory.contracts.gnosis_safe.encode.to_string"></a>
 
@@ -29,20 +35,20 @@ Convert to byte string.
 #### sha3`_`256
 
 ```python
-def sha3_256(x: bytes) -> bytes
+def sha3_256(ledger_api: EthereumApi, x: bytes) -> bytes
 ```
 
-Calculate SHA3-256 hash.
+Calculate keccak-256 hash (Ethereum's SHA3 variant).
 
 <a id="packages.valory.contracts.gnosis_safe.encode.sha3"></a>
 
 #### sha3
 
 ```python
-def sha3(seed: t.Union[bytes, str, int]) -> bytes
+def sha3(ledger_api: EthereumApi, seed: t.Union[bytes, str, int]) -> bytes
 ```
 
-Calculate SHA3-256 hash.
+Calculate keccak-256 hash over *seed* (coerced to bytes).
 
 <a id="packages.valory.contracts.gnosis_safe.encode.scan_bin"></a>
 
@@ -91,7 +97,8 @@ Create schema.
 #### create`_`schema`_`hash
 
 ```python
-def create_schema_hash(name: str, types: t.Dict) -> bytes
+def create_schema_hash(ledger_api: EthereumApi, name: str,
+                       types: t.Dict) -> bytes
 ```
 
 Create schema hash.
@@ -101,7 +108,8 @@ Create schema hash.
 #### encode`_`value
 
 ```python
-def encode_value(data_type: str, value: t.Any, types: t.Dict) -> bytes
+def encode_value(ledger_api: EthereumApi, data_type: str, value: t.Any,
+                 types: t.Dict) -> bytes
 ```
 
 Encode value.
@@ -111,8 +119,8 @@ Encode value.
 #### encode`_`data
 
 ```python
-def encode_data(name: str, data: t.Dict[str, t.Dict[str, str]],
-                types: t.Dict) -> bytes
+def encode_data(ledger_api: EthereumApi, name: str,
+                data: t.Dict[str, t.Dict[str, str]], types: t.Dict) -> bytes
 ```
 
 Encode data.
@@ -122,8 +130,9 @@ Encode data.
 #### create`_`struct`_`hash
 
 ```python
-def create_struct_hash(name: str, data: t.Dict[str, t.Dict[str, str]],
-                       types: t.Dict) -> bytes
+def create_struct_hash(ledger_api: EthereumApi, name: str,
+                       data: t.Dict[str, t.Dict[str,
+                                                str]], types: t.Dict) -> bytes
 ```
 
 Create struct hash.
@@ -133,7 +142,8 @@ Create struct hash.
 #### encode`_`typed`_`data
 
 ```python
-def encode_typed_data(data: t.Dict[str, t.Any]) -> bytes
+def encode_typed_data(ledger_api: EthereumApi, data: t.Dict[str,
+                                                            t.Any]) -> bytes
 ```
 
 Encode typed data.

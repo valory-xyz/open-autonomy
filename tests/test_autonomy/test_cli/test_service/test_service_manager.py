@@ -32,7 +32,6 @@ from aea.crypto.registries import make_crypto
 from aea_test_autonomy.configurations import ETHEREUM_KEY_PATH_5
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 from click.testing import Result
-from hexbytes import HexBytes
 from web3 import HTTPProvider, Web3
 
 from autonomy.chain.base import ServiceState, registry_contracts
@@ -722,7 +721,7 @@ class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
                     "operation": MultiSendOperation.CALL,
                     "to": multisig_address,
                     "value": 0,
-                    "data": HexBytes(bytes.fromhex(txd[2:])),
+                    "data": bytes.fromhex(txd[2:]),
                 }
             )
         txd = registry_contracts.gnosis_safe.get_swap_owner_data(
@@ -736,7 +735,7 @@ class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
                 "operation": MultiSendOperation.CALL,
                 "to": multisig_address,
                 "value": 0,
-                "data": HexBytes(txd[2:]),
+                "data": bytes.fromhex(txd[2:]),
             }
         )
 

@@ -29,10 +29,16 @@ import traceback
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, cast
 
-import requests
-from flask import Flask, Response, jsonify, request
-from werkzeug.exceptions import InternalServerError, NotFound
+from aea.helpers import http_requests as requests
 
+from autonomy.deploy._http_server import App as Flask
+from autonomy.deploy._http_server import (
+    InternalServerError,
+    NotFound,
+    Response,
+    jsonify,
+    request,
+)
 from autonomy.deploy.constants import (
     TM_ENV_CREATE_EMPTY_BLOCKS,
     TM_ENV_P2P_LADDR,
@@ -303,7 +309,7 @@ def create_app(  # pylint: disable=too-many-statements
             endpoint = f"{tendermint_params.rpc_laddr.replace('tcp', 'http').replace(non_routable, loopback)}/block"
             height = request.args.get("height")
             params = {"height": height} if height is not None else None
-            res = requests.get(endpoint, params, timeout=30)
+            res = requests.get(endpoint, params=params, timeout=30)
             app_hash_ = res.json()["result"]["block"]["header"]["app_hash"]
             return jsonify({"app_hash": app_hash_}), res.status_code
         except Exception as e:  # pylint: disable=W0703

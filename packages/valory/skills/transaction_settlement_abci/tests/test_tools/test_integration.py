@@ -25,7 +25,6 @@ from unittest import mock
 
 import pytest
 from aea.exceptions import AEAActException
-from web3.types import Nonce, Wei
 
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
@@ -140,8 +139,8 @@ class Test_TxHelperIntegration(FSMBehaviourTestToolSetup):
 
         test_instance = self.instantiate_test()
 
-        nonce = Nonce(0)
-        gas_price = {"maxPriorityFeePerGas": Wei(0), "maxFeePerGas": Wei(0)}
+        nonce = 0
+        gas_price = {"maxPriorityFeePerGas": 0, "maxFeePerGas": 0}
         behaviour = cast(FinalizeBehaviour, test_instance.behaviour.current_behaviour)
         behaviour.params.mutable_params.gas_price = gas_price
         behaviour.params.mutable_params.nonce = nonce

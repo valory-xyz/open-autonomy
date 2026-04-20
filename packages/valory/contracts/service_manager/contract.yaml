@@ -17,4 +17,6 @@ contracts: []
 class_name: ServiceManagerContract
 contract_interface_paths:
   ethereum: build/ServiceManagerToken.json
-dependencies: {}
+dependencies:
+  open-aea-ledger-ethereum:
+    version: ==2.2.1

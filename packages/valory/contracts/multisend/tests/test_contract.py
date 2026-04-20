@@ -29,7 +29,6 @@ from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import crypto_registry
 from aea.test_tools.test_contract import BaseContractTestCase
 from aea_ledger_ethereum import EthereumCrypto
-from hexbytes import HexBytes
 
 from packages.valory.contracts.multisend.contract import (
     MultiSendContract,
@@ -52,13 +51,13 @@ class TestMultisendContract(BaseContractTestCase):
             "operation": MultiSendOperation.CALL,
             "to": crypto_registry.make(EthereumCrypto.identifier).address,
             "value": 1,
-            "data": HexBytes("0x123456789a"),
+            "data": bytes.fromhex("123456789a"),
         },
         {
             "operation": MultiSendOperation.DELEGATE_CALL,
             "to": crypto_registry.make(EthereumCrypto.identifier).address,
             "value": 796,
-            "data": HexBytes("0x123456789a"),
+            "data": bytes.fromhex("123456789a"),
         },
     ]
 
