@@ -676,6 +676,13 @@ Mock server channel that acts as a drop-in replacement for Tendermint in single-
 
 Simulates both the ABCI block lifecycle (Channel 1) and the Tendermint RPC HTTP interface (Channel 2).
 
+Known semantic departures from real Tendermint:
+- ``broadcast_tx_sync`` skips ``CheckTx`` and always returns ``code: 0``.
+- ``/tx?hash=`` returns hard-coded ``tx_result`` fields (code=0), not the actual
+  ``ResponseDeliverTx`` from the handler.
+
+These are acceptable for single-agent services where consensus validation is unnecessary.
+
 <a id="packages.valory.connections.abci.connection.MockServerChannel.__init__"></a>
 
 #### `__`init`__`

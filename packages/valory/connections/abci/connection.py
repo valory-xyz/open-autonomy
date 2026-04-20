@@ -1063,6 +1063,13 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
     """Mock server channel that acts as a drop-in replacement for Tendermint in single-agent services.
 
     Simulates both the ABCI block lifecycle (Channel 1) and the Tendermint RPC HTTP interface (Channel 2).
+
+    Known semantic departures from real Tendermint:
+    - ``broadcast_tx_sync`` skips ``CheckTx`` and always returns ``code: 0``.
+    - ``/tx?hash=`` returns hard-coded ``tx_result`` fields (code=0), not the actual
+      ``ResponseDeliverTx`` from the handler.
+
+    These are acceptable for single-agent services where consensus validation is unnecessary.
     """
 
     DEFAULT_BLOCK_TIME = 1.0
@@ -1100,7 +1107,7 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
         self._response_future: Optional[asyncio.Future] = None
         self._height: int = 0
         self._mempool: List[bytes] = []
-        self._delivered_txs: Dict[str, bool] = {}
+        self._delivered_txs: set = set()
         self._block_producer_task: Optional[Task] = None
         self._new_tx_event: Optional[asyncio.Event] = None
 
@@ -1126,14 +1133,19 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
         self._loop = loop
         self._request_queue = asyncio.Queue()
         self._mempool = []
-        self._delivered_txs = {}
+        self._delivered_txs = set()
         self._height = 0
         self._new_tx_event = asyncio.Event()
 
         # start mock RPC HTTP server using stdlib asyncio
-        self._rpc_server = await asyncio.start_server(
-            self._handle_rpc_connection, self.rpc_host, self.rpc_port
-        )
+        try:
+            self._rpc_server = await asyncio.start_server(
+                self._handle_rpc_connection, self.rpc_host, self.rpc_port
+            )
+        except OSError:
+            self._is_stopped = True
+            self._request_queue = None
+            raise
         self.logger.info(
             f"Mock Tendermint RPC server started on {self.rpc_host}:{self.rpc_port}"
         )
@@ -1167,7 +1179,10 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
 
     async def get_message(self) -> Envelope:
         """Get an ABCI request message to deliver to the skill handler."""
-        return await cast(asyncio.Queue, self._request_queue).get()
+        envelope = await cast(asyncio.Queue, self._request_queue).get()
+        if envelope is None:
+            raise ConnectionError("Mock block producer has stopped.")
+        return envelope
 
     async def send(self, envelope: Envelope) -> None:
         """
@@ -1268,7 +1283,7 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
                         AbciMessage.Performative.REQUEST_DELIVER_TX,
                         tx=tx_bytes,
                     )
-                    self._delivered_txs[tx_hash] = True
+                    self._delivered_txs.add(tx_hash)
 
                 await self._send_and_wait(
                     AbciMessage.Performative.REQUEST_END_BLOCK,
@@ -1287,6 +1302,8 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
                     )
                 except asyncio.TimeoutError:
                     pass
+                # safe to clear: polls complete before a new tx is submitted
+                self._delivered_txs.clear()
         except CancelledError:
             return
         except Exception as e:  # pylint: disable=broad-except
@@ -1295,6 +1312,9 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
             if self._rpc_server is not None:
                 self._rpc_server.close()
                 self._rpc_server = None
+            # unblock any pending get_message() call
+            if self._request_queue is not None:
+                await self._request_queue.put(None)
 
     # --- Mock Tendermint RPC HTTP server (stdlib asyncio) ---
 
@@ -1362,7 +1382,21 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
         tx_param = query.get("tx", [""])[0]
         if tx_param.startswith("0x"):
             tx_param = tx_param[2:]
-        tx_bytes = bytes.fromhex(tx_param)
+        try:
+            tx_bytes = bytes.fromhex(tx_param)
+        except ValueError:
+            body = json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "",
+                    "error": {
+                        "code": -32602,
+                        "message": "Invalid params",
+                        "data": "invalid hex in tx parameter",
+                    },
+                }
+            )
+            return 400, body
         tx_hash = hashlib.sha256(tx_bytes).hexdigest().upper()
         self._mempool.append(tx_bytes)
         if self._new_tx_event is not None:
@@ -1841,14 +1875,15 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         if self.use_mock:
             if self.use_tendermint:
                 self.logger.warning(
-                    "use_mock=True overrides use_tendermint; Tendermint node will not be started."
+                    "use_mock=True overrides use_tendermint; "
+                    "Tendermint node will not be started."
                 )
-                self.use_tendermint = False
             if self.use_grpc:
                 self.logger.warning(
                     "use_mock=True overrides use_grpc; gRPC will not be used."
                 )
-                self.use_grpc = False
+            self.use_tendermint = False
+            self.use_grpc = False
             return
 
         if not self.use_tendermint:

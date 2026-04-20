@@ -55,7 +55,7 @@ def _http_get(url: str) -> Tuple[int, Dict]:
 def free_port() -> int:
     """Get a free port to avoid conflicts between parallel tests."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(("", 0))
+        s.bind(("", 0))  # nosec
         return s.getsockname()[1]
 
 
@@ -213,7 +213,7 @@ class TestRPCHandlers:
         """Test /tx?hash=... returns 200 with tx_result after delivery."""
         tx_data = b"test_tx_found"
         tx_hash = hashlib.sha256(tx_data).hexdigest().upper()
-        connected_channel._delivered_txs[tx_hash] = True
+        connected_channel._delivered_txs.add(tx_hash)
         url = f"http://127.0.0.1:{connected_channel.rpc_port}/tx?hash=0x{tx_hash}"
         status, body = await asyncio.to_thread(_http_get, url)
         assert status == 200
