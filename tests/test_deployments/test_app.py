@@ -29,10 +29,9 @@ import subprocess  # nosec
 import tempfile
 import time
 from pathlib import Path
-from typing import Callable, Dict, Set, cast
+from typing import Any, Callable, Dict, Set, cast
 from unittest import mock
 
-import flask
 import pytest
 import requests
 from _pytest.logging import LogCaptureFixture  # type: ignore
@@ -127,8 +126,8 @@ class BaseTendermintTest:
 class BaseTendermintServerTest(BaseTendermintTest):
     """Test Tendermint server app"""
 
-    app: flask.app.Flask
-    app_context: flask.ctx.AppContext
+    app: Any
+    app_context: Any
     tendermint_node: TendermintNode
     debug_tendermint = False
     tm_status_endpoint = "http://localhost:26657/status"

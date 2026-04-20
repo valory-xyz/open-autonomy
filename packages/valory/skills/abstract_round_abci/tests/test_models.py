@@ -31,13 +31,12 @@ from enum import Enum
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
-from typing import Any, Dict, List, Optional, Set, Tuple, Type, cast
+from typing import Any, Dict, List, Literal, Optional, Set, Tuple, Type, TypedDict, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
 from aea.exceptions import AEAEnforceError
-from typing_extensions import Literal, TypedDict
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,

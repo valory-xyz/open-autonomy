@@ -239,6 +239,17 @@ If you have repetitive overridden parameters, you can define them using [YAML an
           args: *id001
     ```
 
+### Sharing the same parameter across skills
+
+Each skill has its own `models.params.args` namespace — there is no implicit cross-skill binding, and `BaseParams._ensure(key, kwargs, type_)` pops `key` from the skill's own kwargs. Two skills that need the *same* value (e.g. an external API URL both read from and write to) must each declare the parameter in their respective `skill.yaml`, and keep the values in sync at the service level.
+
+The idiomatic options, in order of preference:
+
+- **YAML anchor in `service.yaml`** — declare the value once with `&anchor` and reference it with `*anchor` under each skill's overrides (same mechanism as the example above).
+- **Environment variable export** — set one environment variable and let the service build pass it through the `SKILL_<MODELS_PATH>_<ARG_NAME>` path for each consuming skill (see the next section).
+
+Avoid renaming the parameter per-skill to dodge the sharing concern — it hides the logical relationship and makes service-level overrides harder to reason about.
+
 ## Export to environment variables
 
 When building the deployments, the overrides from the AI agent components are exported as system environment variables inside the Docker containers and picked up at runtime by the agent instances. The exported environment variables are labelled with their upper case JSON path:

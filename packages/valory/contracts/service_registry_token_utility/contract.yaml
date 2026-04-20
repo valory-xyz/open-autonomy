@@ -13,5 +13,7 @@ fingerprint_ignore_patterns: []
 class_name: ServiceRegistryTokenUtilityContract
 contract_interface_paths:
   ethereum: build/ServiceRegistryTokenUtility.json
-dependencies: {}
+dependencies:
+  open-aea-ledger-ethereum:
+    version: ==2.2.1
 contracts: []

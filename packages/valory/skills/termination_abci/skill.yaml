@@ -7,7 +7,7 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeibgcuyc7kml7jddd4bmt3wfgeeszmz67iadf2joh45h3fzz2xxrue
-  behaviours.py: bafybeidxmgorumlm6nfcu3xumxuly7q3k5klwn6cs27hyxzl6m4mcsnihq
+  behaviours.py: bafybeigigpllg3gdnkrxvtz6ehvutq3vwz2jbzen3tlf3xzpu3fxf4lqou
   dialogues.py: bafybeiat3bcaov7ekmjzezczjyk2ux5ctvy4i6bcmwnyz7wprkd5xdnqca
   handlers.py: bafybeihgd27xy5w2tb3fxvbk2bceymcmsbfcv2dww2vzdllod4tz6a5mcq
   models.py: bafybeidpmdfwfamuopkhznkouzx5ver35mc64l2menzugwiuicqiyqwuby
@@ -23,14 +23,14 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeicm3rxjpqc4kcjmxoj5ixqfzu6jn4alalyn3xuqxa5y2g22kpp72m
-- valory/multisend:0.1.0:bafybeihx7c3xj6c5v4tgvu3ipnj7seyc4dkmovoyzu4isgbwdrhj2oo6uq
-- valory/service_registry:0.1.0:bafybeib6lrxpbhsrg32bueif53vnb3xecyjxzk6rhd2t2xot27qtbeyvjm
+- valory/gnosis_safe:0.1.0:bafybeifoaqgi6aptxuncpec6wya7rbctvf6ljq73r6gactiscfoxapsxem
+- valory/multisend:0.1.0:bafybeic4534fd4axozjmykpstgjynxzpkpfvnvyjt7hz32ajfe3fmwhn7m
+- valory/service_registry:0.1.0:bafybeifuexvcj6w3j2lludzxi3rgu2nn2b3toyifxiy46hv726o2bxivjm
 protocols:
 - valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihgbc5geup3ljdfgyontr2p5e4myxjkthaplm5ei727uw2pawstcy
-- valory/transaction_settlement_abci:0.1.0:bafybeic6f4ujckiutqxueagohb5iv7kgzpamhuhiq7shn6fmiwbkt3cqny
+- valory/abstract_round_abci:0.1.0:bafybeianzlz35hhvap5arix25rtazg4rf4bqcjvlqxhizdvbngc66twfuy
+- valory/transaction_settlement_abci:0.1.0:bafybeiauziqle5edtokabwad2rh6x42ft5i4jho3lfqguy3yckvbbky3ke
 behaviours:
   main:
     args: {}
@@ -149,7 +149,6 @@ models:
   tendermint_dialogues:
     args: {}
     class_name: TendermintDialogues
-dependencies:
-  hexbytes: {}
+dependencies: {}
 is_abstract: true
 customs: []

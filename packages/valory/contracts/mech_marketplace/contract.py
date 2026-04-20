@@ -28,12 +28,6 @@ from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
-from eth_typing import ChecksumAddress
-from eth_utils import event_abi_to_log_topic
-from hexbytes import HexBytes
-from web3 import Web3
-from web3._utils.events import get_event_data
-from web3.types import BlockIdentifier, FilterParams, TxReceipt
 
 PUBLIC_ID = PublicId.from_str("valory/mech_marketplace:0.1.0")
 
@@ -77,9 +71,9 @@ class MechOperation(Enum):
     DELEGATE_CALL = 1
 
 
-def pad_address_for_topic(address: str) -> HexBytes:
+def pad_address_for_topic(address: str) -> bytes:
     """Left-pad an Ethereum address to 32 bytes for use in a topic."""
-    return HexBytes(Ox + address[Ox_CHARS:].zfill(TOPIC_CHARS))
+    return bytes.fromhex(address[Ox_CHARS:].zfill(TOPIC_CHARS))
 
 
 class MechMarketplaceContract(Contract):
@@ -183,16 +177,16 @@ class MechMarketplaceContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        from_block: BlockIdentifier = "earliest",
-        to_block: BlockIdentifier = "latest",
+        from_block: Union[int, str] = "earliest",
+        to_block: Union[int, str] = "latest",
     ) -> JSONLike:
         """Get the Request events emitted by the contract."""
         ledger_api = cast(EthereumApi, ledger_api)
         contract_instance = cls.get_instance(ledger_api, contract_address)
-        event_abi = contract_instance.events.MarketplaceRequest().abi
+        event = contract_instance.events.MarketplaceRequest()
         entries = cls.get_event_entries(
             ledger_api=ledger_api,
-            event_abi=event_abi,
+            event=event,
             address=contract_instance.address,
             from_block=from_block,
             to_block=to_block,
@@ -200,8 +194,8 @@ class MechMarketplaceContract(Contract):
 
         request_events = list(
             {
-                "tx_hash": entry.transactionHash.to_0x_hex(),
-                "block_number": entry.blockNumber,
+                "tx_hash": "0x" + entry["transactionHash"].hex(),
+                "block_number": entry["blockNumber"],
                 **entry["args"],
                 "sender": entry["args"]["requester"],
             }
@@ -214,16 +208,16 @@ class MechMarketplaceContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        from_block: BlockIdentifier = "earliest",
-        to_block: BlockIdentifier = "latest",
+        from_block: Union[int, str] = "earliest",
+        to_block: Union[int, str] = "latest",
     ) -> JSONLike:
         """Get the Deliver events emitted by the contract."""
         ledger_api = cast(EthereumApi, ledger_api)
         contract_instance = cls.get_instance(ledger_api, contract_address)
-        event_abi = contract_instance.events.MarketplaceDeliver().abi
+        event = contract_instance.events.MarketplaceDeliver()
         entries = cls.get_event_entries(
             ledger_api=ledger_api,
-            event_abi=event_abi,
+            event=event,
             address=contract_instance.address,
             from_block=from_block,
             to_block=to_block,
@@ -231,8 +225,8 @@ class MechMarketplaceContract(Contract):
 
         request_events = list(
             {
-                "tx_hash": entry.transactionHash.to_0x_hex(),
-                "block_number": entry.blockNumber,
+                "tx_hash": "0x" + entry["transactionHash"].hex(),
+                "block_number": entry["blockNumber"],
                 **entry["args"],
                 "contract_address": contract_address,
             }
@@ -248,16 +242,19 @@ class MechMarketplaceContract(Contract):
         wait_for_timeout_tasks: List[Dict[str, Any]],
         timeout_tasks: List[Dict[str, Any]],
         marketplace_address: str,
-        from_block: BlockIdentifier = "earliest",
-        to_block: BlockIdentifier = "latest",
+        from_block: Union[int, str] = "earliest",
+        to_block: Union[int, str] = "latest",
         max_block_window: int = 1000,
         **kwargs: Any,
     ) -> JSONLike:
         """Get the requests that are not delivered."""
+        ledger_api = cast(EthereumApi, ledger_api)
         if from_block == "earliest":
             from_block = 0
         current_block = ledger_api.api.eth.block_number
-        checksumed_contract_address = Web3.to_checksum_address(marketplace_address)
+        checksumed_contract_address = ledger_api.api.to_checksum_address(
+            marketplace_address
+        )
         requests, delivers = [], []
         for from_block_batch in range(int(from_block), current_block, max_block_window):
             to_block_batch: Union[int, str] = (from_block_batch + max_block_window) - 1
@@ -335,25 +332,25 @@ class MechMarketplaceContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        from_block: BlockIdentifier = "earliest",
-        to_block: BlockIdentifier = "latest",
+        from_block: Union[int, str] = "earliest",
+        to_block: Union[int, str] = "latest",
     ) -> JSONLike:
         """Get the Request events emitted by the contract."""
         ledger_api = cast(EthereumApi, ledger_api)
         contract_instance = cls.get_instance(ledger_api, contract_address)
-        event_abi = contract_instance.events.MarketplaceRequest().abi
+        event = contract_instance.events.MarketplaceRequest()
         entries = cls.get_event_entries(
             ledger_api=ledger_api,
             from_block=from_block,
             to_block=to_block,
-            event_abi=event_abi,
+            event=event,
             address=contract_instance.address,
         )
 
         request_events = list(
             {
-                "tx_hash": entry.transactionHash.to_0x_hex(),
-                "block_number": entry.blockNumber,
+                "tx_hash": "0x" + entry["transactionHash"].hex(),
+                "block_number": entry["blockNumber"],
                 **entry["args"],
                 "contract_address": contract_address,
             }
@@ -366,16 +363,16 @@ class MechMarketplaceContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        from_block: BlockIdentifier = "earliest",
-        to_block: BlockIdentifier = "latest",
+        from_block: Union[int, str] = "earliest",
+        to_block: Union[int, str] = "latest",
     ) -> JSONLike:
         """Get the Deliver events emitted by the contract."""
         ledger_api = cast(EthereumApi, ledger_api)
         contract_instance = cls.get_instance(ledger_api, contract_address)
-        event_abi = contract_instance.events.MarketplaceDelivery().abi
+        event = contract_instance.events.MarketplaceDelivery()
         entries = cls.get_event_entries(
             ledger_api=ledger_api,
-            event_abi=event_abi,
+            event=event,
             address=contract_instance.address,
             from_block=from_block,
             to_block=to_block,
@@ -383,8 +380,8 @@ class MechMarketplaceContract(Contract):
 
         deliver_events = list(
             {
-                "tx_hash": entry.transactionHash.to_0x_hex(),
-                "block_number": entry.blockNumber,
+                "tx_hash": "0x" + entry["transactionHash"].hex(),
+                "block_number": entry["blockNumber"],
                 **entry["args"],
                 "contract_address": contract_address,
             }
@@ -397,7 +394,7 @@ class MechMarketplaceContract(Contract):
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        tx_receipt: TxReceipt,
+        tx_receipt: Dict[str, Any],
     ) -> JSONLike:
         """Process transaction receipt to filter contract events."""
 
@@ -414,6 +411,7 @@ class MechMarketplaceContract(Contract):
         request_ids: List[bytes],
     ) -> Dict[str, Any]:
         """Check requests are yet to be delivered."""
+        ledger_api = cast(EthereumApi, ledger_api)
         # BatchRequestIdStatusData contract is a special contract used specifically for batching request id status
         # It is not deployed anywhere, nor it needs to be deployed
         batch_workable_contract = ledger_api.api.eth.contract(
@@ -446,12 +444,13 @@ class MechMarketplaceContract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         my_mech: str,
-        from_block: BlockIdentifier = "earliest",
-        to_block: BlockIdentifier = "latest",
+        from_block: Union[int, str] = "earliest",
+        to_block: Union[int, str] = "latest",
         max_block_window: int = 1000,
         **kwargs: Any,
     ) -> JSONLike:
         """Get the requests that are not delivered."""
+        ledger_api = cast(EthereumApi, ledger_api)
         if from_block == "earliest":
             from_block = 0
 
@@ -592,23 +591,26 @@ class MechMarketplaceContract(Contract):
     def get_event_entries(
         cls,
         ledger_api: EthereumApi,
-        event_abi: Any,
-        address: ChecksumAddress,
-        from_block: BlockIdentifier = "earliest",
-        to_block: BlockIdentifier = "latest",
+        event: Any,
+        address: str,
+        from_block: Union[int, str] = "earliest",
+        to_block: Union[int, str] = "latest",
     ) -> List:
-        """Helper method to extract the events."""
+        """Helper method to extract the events.
 
-        event_topic = event_abi_to_log_topic(event_abi)
-
-        filter_params: FilterParams = {
+        :param ledger_api: the ledger API object
+        :param event: a ``ContractEvent`` instance (e.g.
+            ``contract_instance.events.MarketplaceRequest()``)
+        :param address: the contract address whose logs to scan
+        :param from_block: from which block to start the search
+        :param to_block: at which block to end the search
+        :return: the parsed event entries
+        """
+        filter_params: Dict[str, Any] = {
             "fromBlock": from_block,
             "toBlock": to_block,
             "address": address,
-            "topics": [event_topic],
+            "topics": [event.topic],
         }
-
-        w3 = ledger_api.api.eth
-        logs = w3.get_logs(filter_params)
-        entries = [get_event_data(w3.codec, event_abi, log) for log in logs]
-        return entries
+        logs = ledger_api.api.eth.get_logs(filter_params)
+        return [event.process_log(log) for log in logs]

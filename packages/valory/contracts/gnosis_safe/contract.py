@@ -30,14 +30,8 @@ from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
-from eth_typing import ChecksumAddress, HexAddress, HexStr
-from eth_utils import event_abi_to_log_topic
-from hexbytes import HexBytes
-from packaging.version import Version
 from requests import HTTPError
-from web3._utils.events import get_event_data
 from web3.exceptions import ContractLogicError, TransactionNotFound
-from web3.types import BlockIdentifier, FilterParams, Nonce, TxData, TxParams, Wei
 
 from packages.valory.contracts.gnosis_safe.encode import encode_typed_data
 from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
@@ -69,14 +63,9 @@ def _get_nonce() -> int:
     return secrets.SystemRandom().randint(0, 2**256 - 1)
 
 
-def checksum_address(agent_address: str) -> ChecksumAddress:
-    """Get the checksum address."""
-    return ChecksumAddress(HexAddress(HexStr(agent_address)))
-
-
-def pad_address_for_topic(address: str) -> HexBytes:
+def pad_address_for_topic(address: str) -> bytes:
     """Left-pad an Ethereum address to 32 bytes for use in a topic."""
-    return HexBytes(Ox + address[Ox_CHARS:].zfill(TOPIC_CHARS))
+    return bytes.fromhex(address[Ox_CHARS:].zfill(TOPIC_CHARS))
 
 
 class SafeOperation(Enum):
@@ -149,7 +138,7 @@ class GnosisSafeContract(Contract):
         gas_price: Optional[int] = None,
         max_fee_per_gas: Optional[int] = None,
         max_priority_fee_per_gas: Optional[int] = None,
-    ) -> Tuple[TxParams, str]:
+    ) -> Tuple[Dict[str, Any], str]:
         """
         Get the deployment transaction of the new Safe.
 
@@ -184,7 +173,7 @@ class GnosisSafeContract(Contract):
         proxy_factory_address = PROXY_FACTORY_CONTRACT
         fallback_handler = DEFAULT_CALLBACK_HANDLER
 
-        account_address = checksum_address(deployer_address)
+        account_address = ledger_api.api.to_checksum_address(deployer_address)
         account_balance: int = ledger_api.api.eth.get_balance(account_address)
         if not account_balance:
             raise ValueError("Client does not have any funds")
@@ -213,7 +202,7 @@ class GnosisSafeContract(Contract):
             salt_nonce,
         )
         safe_contract = cls.get_instance(ledger_api, safe_contract_address)
-        safe_creation_tx_data = HexBytes(
+        safe_creation_tx_data = bytes.fromhex(
             safe_contract.functions.setup(
                 owners,
                 threshold,
@@ -223,7 +212,9 @@ class GnosisSafeContract(Contract):
                 payment_token,
                 payment,
                 payment_receiver,
-            ).build_transaction({"gas": MIN_GAS, "gasPrice": MIN_GASPRICE})["data"]
+            ).build_transaction({"gas": MIN_GAS, "gasPrice": MIN_GASPRICE})["data"][
+                Ox_CHARS:
+            ]
         )
 
         nonce = (
@@ -304,11 +295,11 @@ class GnosisSafeContract(Contract):
         if chain_id is None:
             chain_id = ledger_api.api.eth.chain_id
 
-        data_ = HexBytes(data).to_0x_hex()
+        data_ = data if isinstance(data, str) else "0x" + data.hex()
 
         # Safes >= 1.0.0 Renamed `baseGas` to `dataGas`
-        safe_version_ = Version(safe_version)
-        base_gas_name = "baseGas" if safe_version_ >= Version("1.0.0") else "dataGas"
+        safe_version_ = tuple(int(p) for p in safe_version.split("."))
+        base_gas_name = "baseGas" if safe_version_ >= (1, 0, 0) else "dataGas"
 
         structured_data = {
             "types": {
@@ -347,14 +338,14 @@ class GnosisSafeContract(Contract):
         }
 
         # Safes >= 1.3.0 Added `chainId` to the domain
-        if safe_version_ >= Version("1.3.0"):
+        if safe_version_ >= (1, 3, 0):
             # EIP712Domain(uint256 chainId,address verifyingContract)
             structured_data["types"]["EIP712Domain"].insert(  # type: ignore
                 0, {"name": "chainId", "type": "uint256"}
             )
             structured_data["domain"]["chainId"] = chain_id  # type: ignore
 
-        return dict(tx_hash=HexBytes(encode_typed_data(structured_data)).to_0x_hex())
+        return dict(tx_hash="0x" + encode_typed_data(ledger_api, structured_data).hex())
 
     @classmethod
     def get_packed_signatures(
@@ -390,10 +381,10 @@ class GnosisSafeContract(Contract):
         gas_token: str = NULL_ADDRESS,
         refund_receiver: str = NULL_ADDRESS,
         gas_price: Optional[int] = None,
-        nonce: Optional[Nonce] = None,
+        nonce: Optional[int] = None,
         max_fee_per_gas: Optional[int] = None,
         max_priority_fee_per_gas: Optional[int] = None,
-        old_price: Optional[Dict[str, Wei]] = None,
+        old_price: Optional[Dict[str, int]] = None,
         fallback_gas: int = 0,
     ) -> JSONLike:
         """
@@ -476,7 +467,7 @@ class GnosisSafeContract(Contract):
         # note, the next line makes an eth_estimateGas call if gas is not set!
         transaction_dict = w3_tx.build_transaction(tx_parameters)
         if configured_gas != MIN_GAS:
-            transaction_dict["gas"] = Wei(configured_gas)
+            transaction_dict["gas"] = configured_gas
         else:
             gas_estimate = (
                 ledger_api._try_get_gas_estimate(  # pylint: disable=protected-access
@@ -484,7 +475,7 @@ class GnosisSafeContract(Contract):
                 )
             )
             transaction_dict["gas"] = (
-                Wei(gas_estimate) if gas_estimate is not None else fallback_gas
+                gas_estimate if gas_estimate is not None else fallback_gas
             )
         transaction_dict["nonce"] = nonce  # pragma: nocover
         return transaction_dict
@@ -499,7 +490,7 @@ class GnosisSafeContract(Contract):
         :return: the verified status
         """
         ledger_api = cast(EthereumApi, ledger_api)
-        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).to_0x_hex()
+        deployed_bytecode = "0x" + ledger_api.api.eth.get_code(contract_address).hex()
         # we cannot use cls.contract_interface["ethereum"]["deployedBytecode"] because the
         # contract is created via a proxy
         local_bytecode = SAFE_DEPLOYED_BYTECODE
@@ -558,8 +549,8 @@ class GnosisSafeContract(Contract):
                 block_identifier="latest"
             )
         # Safes >= 1.0.0 Renamed `baseGas` to `dataGas`
-        safe_version_ = Version(safe_version)
-        base_gas_name = "baseGas" if safe_version_ >= Version("1.0.0") else "dataGas"
+        safe_version_ = tuple(int(p) for p in safe_version.split("."))
+        base_gas_name = "baseGas" if safe_version_ >= (1, 0, 0) else "dataGas"
 
         try:
             _logger.info(f"Trying to get transaction and receipt from hash {tx_hash}")
@@ -625,7 +616,7 @@ class GnosisSafeContract(Contract):
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
-        tx: TxData,
+        tx: Dict[str, Any],
     ) -> JSONLike:
         """Check the revert reason of a transaction.
 
@@ -676,8 +667,8 @@ class GnosisSafeContract(Contract):
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
-        from_block: Optional[BlockIdentifier] = None,
-        to_block: BlockIdentifier = "latest",
+        from_block: Optional[Union[int, str]] = None,
+        to_block: Union[int, str] = "latest",
     ) -> JSONLike:
         """
         A list of transfers into the contract.
@@ -697,19 +688,17 @@ class GnosisSafeContract(Contract):
             current_block = ledger_api.api.eth.get_block("latest")["number"]
             from_block = max(0, current_block - 50)  # check in the last 50 blocks
 
-        event_abi = safe_contract.events.SafeReceived().abi
-        event_topic = event_abi_to_log_topic(event_abi)
+        event = safe_contract.events.SafeReceived()
 
-        filter_params: FilterParams = {
-            "from_block": from_block,
-            "to_block": to_block,
+        filter_params: Dict[str, Any] = {
+            "fromBlock": from_block,
+            "toBlock": to_block,
             "address": safe_contract.address,
-            "topics": [event_topic],
+            "topics": [event.topic],
         }
 
-        w3 = ledger_api.api.eth
-        logs = w3.get_logs(filter_params)
-        entries = [get_event_data(w3.codec, event_abi, log) for log in logs]
+        logs = ledger_api.api.eth.get_logs(filter_params)
+        entries = [event.process_log(log) for log in logs]
 
         return {
             "data": list(
@@ -765,8 +754,8 @@ class GnosisSafeContract(Contract):
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
-        from_block: BlockIdentifier = "earliest",
-        to_block: BlockIdentifier = "latest",
+        from_block: Union[int, str] = "earliest",
+        to_block: Union[int, str] = "latest",
     ) -> JSONLike:
         """
         Get all the safe tx hashes.
@@ -780,25 +769,23 @@ class GnosisSafeContract(Contract):
 
         ledger_api = cast(EthereumApi, ledger_api)
         factory_contract = cls.get_instance(ledger_api, contract_address)
-        event_abi = factory_contract.events.ExecutionSuccess().abi
-        event_topic = event_abi_to_log_topic(event_abi)
+        event = factory_contract.events.ExecutionSuccess()
 
-        filter_params: FilterParams = {
-            "from_block": from_block,
-            "to_block": to_block,
+        filter_params: Dict[str, Any] = {
+            "fromBlock": from_block,
+            "toBlock": to_block,
             "address": factory_contract.address,
-            "topics": [event_topic],
+            "topics": [event.topic],
         }
 
-        w3 = ledger_api.api.eth
-        logs = w3.get_logs(filter_params)
-        entries = [get_event_data(w3.codec, event_abi, log) for log in logs]
+        logs = ledger_api.api.eth.get_logs(filter_params)
+        entries = [event.process_log(log) for log in logs]
 
         return dict(
             txs=list(
                 map(
                     lambda entry: dict(
-                        tx_hash=entry["transactionHash"].to_0x_hex(),
+                        tx_hash="0x" + entry["transactionHash"].hex(),
                         block_number=entry["blockNumber"],
                     ),
                     entries,
@@ -812,8 +799,8 @@ class GnosisSafeContract(Contract):
         ledger_api: EthereumApi,
         contract_address: str,
         removed_owner: Optional[str] = None,
-        from_block: BlockIdentifier = "earliest",
-        to_block: BlockIdentifier = "latest",
+        from_block: Union[int, str] = "earliest",
+        to_block: Union[int, str] = "latest",
     ) -> JSONLike:
         """
         Get all RemovedOwner events for a safe contract.
@@ -827,19 +814,17 @@ class GnosisSafeContract(Contract):
         """
         ledger_api = cast(EthereumApi, ledger_api)
         safe_contract = cls.get_instance(ledger_api, contract_address)
-        event_abi = safe_contract.events.RemovedOwner().abi
-        event_topic = event_abi_to_log_topic(event_abi)
+        event = safe_contract.events.RemovedOwner()
 
-        filter_params: FilterParams = {
-            "from_block": from_block,
-            "to_block": to_block,
+        filter_params: Dict[str, Any] = {
+            "fromBlock": from_block,
+            "toBlock": to_block,
             "address": safe_contract.address,
-            "topics": [event_topic],
+            "topics": [event.topic],
         }
 
-        w3 = ledger_api.api.eth
-        logs = w3.get_logs(filter_params)
-        entries = [get_event_data(w3.codec, event_abi, log) for log in logs]
+        logs = ledger_api.api.eth.get_logs(filter_params)
+        entries = [event.process_log(log) for log in logs]
 
         checksummed_removed_owner = (
             ledger_api.api.to_checksum_address(removed_owner)
@@ -849,7 +834,7 @@ class GnosisSafeContract(Contract):
 
         removed_owner_events = [
             {
-                "tx_hash": entry["transactionHash"].to_0x_hex(),
+                "tx_hash": "0x" + entry["transactionHash"].hex(),
                 "block_number": entry["blockNumber"],
                 "owner": entry["args"]["owner"],
             }
@@ -867,8 +852,8 @@ class GnosisSafeContract(Contract):
         ledger_api: EthereumApi,
         contract_address: str,
         sender_address: str,
-        from_block: BlockIdentifier = "earliest",
-        to_block: BlockIdentifier = "latest",
+        from_block: Union[int, str] = "earliest",
+        to_block: Union[int, str] = "latest",
     ) -> JSONLike:
         """
         Get all zero transfer events from a given sender to the safe address.
@@ -882,25 +867,23 @@ class GnosisSafeContract(Contract):
         """
         ledger_api = cast(EthereumApi, ledger_api)
         safe_contract = cls.get_instance(ledger_api, contract_address)
-        event_abi = safe_contract.events.SafeReceived().abi
-        event_topic = event_abi_to_log_topic(event_abi)
+        event = safe_contract.events.SafeReceived()
         sender_address = ledger_api.api.to_checksum_address(sender_address)
         padded_sender = pad_address_for_topic(sender_address)
 
-        filter_params: FilterParams = {
-            "from_block": from_block,
-            "to_block": to_block,
+        filter_params: Dict[str, Any] = {
+            "fromBlock": from_block,
+            "toBlock": to_block,
             "address": safe_contract.address,
             # cannot filter for 0 value transfers using topics as the value is not indexed
-            "topics": [event_topic, padded_sender],
+            "topics": [event.topic, padded_sender],
         }
 
-        w3 = ledger_api.api.eth
-        logs = w3.get_logs(filter_params)
-        entries = [get_event_data(w3.codec, event_abi, log) for log in logs]
+        logs = ledger_api.api.eth.get_logs(filter_params)
+        entries = [event.process_log(log) for log in logs]
         zero_transfer_events = list(
             dict(
-                tx_hash=entry["transactionHash"].to_0x_hex(),
+                tx_hash="0x" + entry["transactionHash"].hex(),
                 block_number=entry["blockNumber"],
                 sender=ledger_api.api.to_checksum_address(entry["args"]["sender"]),
             )

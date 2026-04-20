@@ -8,10 +8,6 @@ RUN apk update && \
     apk --no-cache add curl jq file net-tools \
     python3 bash py3-pip
 
-RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh &&\
-    chmod u+x wait-for-it.sh &&\
-    mv wait-for-it.sh /usr/local/bin
-
 # Download Tendermint
 RUN curl -L https://github.com/tendermint/tendermint/releases/download/v${TENDERMINT_VERSION}/tendermint_${TENDERMINT_VERSION}_linux_amd64.tar.gz > tendermint.tar.gz &&\
     tar -xf tendermint.tar.gz &&\

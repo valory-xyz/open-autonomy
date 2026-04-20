@@ -22,7 +22,7 @@
 from pathlib import Path
 
 import click
-import requests
+from aea.helpers import http_requests
 
 DOC_FILE = "docs/advanced_reference/on_chain_addresses.md"
 ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/main/docs/configuration.json"
@@ -67,7 +67,7 @@ def to_title(string: str) -> str:
 def main() -> None:
     """Generate contract addresses list."""
     data = "# List of contract addresses\n"
-    chains = requests.get(ADDRESS_FILE_URL, timeout=30).json()
+    chains = http_requests.get(ADDRESS_FILE_URL, timeout=30).json()
     for chain in chains:
         chain_name = chain["name"]
         chain_id = chain["chainId"]

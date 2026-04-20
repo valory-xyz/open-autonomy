@@ -35,9 +35,15 @@ from aea.configurations.constants import (
     PRIVATE_KEY,
     PRIVATE_KEY_PATH_SCHEMA,
 )
-from docker import DockerClient, from_env
-from docker.constants import DEFAULT_NPIPE, IS_WINDOWS_PLATFORM
-from docker.errors import DockerException
+
+try:
+    from docker import DockerClient, from_env
+    from docker.constants import DEFAULT_NPIPE, IS_WINDOWS_PLATFORM
+    from docker.errors import DockerException
+
+    DOCKER_INSTALLED = True
+except ImportError:  # pragma: nocover
+    DOCKER_INSTALLED = False
 
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
 from autonomy.constants import (
@@ -86,8 +92,13 @@ AGENT_ENV_TEMPLATE = Template("agent_${node_id}.env")
 DEFAULT_CUSTOM_PROPS: Dict[str, str] = {"restart": "unless-stopped"}
 
 
-def get_docker_client() -> DockerClient:
+def get_docker_client() -> "DockerClient":
     """Load docker client."""
+    if not DOCKER_INSTALLED:
+        raise ImportError(
+            "Docker-based deployments require the `docker` package, "
+            "run `pip install open-autonomy[docker]` to install it"
+        )
     try:
         return from_env()
     except DockerException:

@@ -34,7 +34,7 @@ import yaml
 from aea.cli.registry.settings import REGISTRY_LOCAL
 from aea.cli.utils.constants import CLI_CONFIG_PATH, DEFAULT_CLI_CONFIG
 from aea.configurations.constants import PACKAGES
-from jsonschema.exceptions import ValidationError
+from aea.helpers.json_schema import ValidationError
 
 from autonomy.analyse.abci.app_spec import (
     DFA,

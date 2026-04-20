@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,15 +20,14 @@
 """On-chain interaction helpers."""
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Sequence, cast
 
 import click
 from aea.configurations.base import PackageConfiguration
 from aea.configurations.data_types import PackageId, PackageType, PublicId
 from aea.configurations.loader import load_configuration_object
 from aea.helpers.base import IPFSHash
-from requests.exceptions import ConnectionError as RequestConnectionError
-from texttable import Texttable
+from aea.helpers.http_requests import ConnectionError as HttpConnectionError
 
 from autonomy.chain.base import ServiceState, UnitType
 from autonomy.chain.config import ChainType, ContractConfigs, OnChainHelper
@@ -216,7 +215,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                     unit, *_ = sorted(units, key=lambda x: x["tokenId"])
                     dependencies.append(unit["tokenId"])
             self.dependencies = sorted(list(map(int, dependencies)))
-        except RequestConnectionError as e:
+        except HttpConnectionError as e:
             raise click.ClickException(message=f"Error interacting with subgraph; {e}")
         return self
 
@@ -231,7 +230,7 @@ class MintHelper(OnChainHelper):  # pylint: disable=too-many-instance-attributes
                 token_id=agent_id,
                 package_type=PackageType.AGENT,
             ).get("units", [])
-        except RequestConnectionError as e:
+        except HttpConnectionError as e:
             raise click.ClickException(message=f"Error interacting with subgraph; {e}")
         if len(units) == 0:
             raise click.ClickException(f"No agents found with token ID {agent_id}")
@@ -739,6 +738,41 @@ class ServiceHelper(OnChainHelper):
         click.echo("Service multisig recovered successfully")
 
 
+def _draw_table(rows: Sequence[Sequence[Any]]) -> str:
+    """Render *rows* as a bordered ASCII table with the first row as header.
+
+    Cell values are stringified and may contain newlines, which are rendered
+    as stacked lines inside the cell.
+
+    :param rows: 2D sequence of cell values; first row is the header.
+    :return: the rendered table as a string.
+    """
+    cells = [[str(c).split("\n") for c in row] for row in rows]
+    widths = [
+        max(len(line) for row in cells for line in row[col])
+        for col in range(len(cells[0]))
+    ]
+
+    def border(fill: str) -> str:
+        return "+" + "+".join(fill * (w + 2) for w in widths) + "+"
+
+    def fmt(row: List[List[str]]) -> str:
+        height = max(len(cell) for cell in row)
+        lines = []
+        for i in range(height):
+            parts = [
+                f" {(cell[i] if i < len(cell) else ''):<{widths[col]}} "
+                for col, cell in enumerate(row)
+            ]
+            lines.append("|" + "|".join(parts) + "|")
+        return "\n".join(lines)
+
+    out = [border("-"), fmt(cells[0]), border("=")]
+    out.extend(fmt(row) for row in cells[1:])
+    out.append(border("-"))
+    return "\n".join(out)
+
+
 def print_service_info(service_id: int, chain_type: ChainType) -> None:
     """Print service information"""
     ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(chain_type=chain_type)
@@ -784,4 +818,4 @@ def print_service_info(service_id: int, chain_type: ChainType) -> None:
                 ),
             ),
         )
-    click.echo(Texttable().add_rows(rows=rows).draw())
+    click.echo(_draw_table(rows))

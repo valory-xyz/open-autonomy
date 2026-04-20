@@ -9,15 +9,12 @@ fingerprint:
   README.md: bafybeibygutu6yhowkumxdmjhlldtxk72ivhpdxco5h2gl7o2m3zbfb7yu
   __init__.py: bafybeicmc2ccpqgvgpyapsb62djmgrtscww6djqirkpjysqixuxwcw4lve
   build/mech.json: bafybeiczngojkmncocmx33ddlwjdu3kicsz5hikymsuk4zytunf5aeogvy
-  contract.py: bafybeidv7efmb7chgjzkqzp362vs4stizqjvqpkwe3rlwcyehdyvchyo54
+  contract.py: bafybeihzzrun5noj422ny5okv427nk65ktqqxli4ii2tmheinjzcmk4tk4
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: AgentMech
 contract_interface_paths:
   ethereum: build/mech.json
 dependencies:
-  eth_typing: {}
   open-aea-ledger-ethereum:
     version: ==2.2.1
-  web3:
-    version: <8,>=7.0.0

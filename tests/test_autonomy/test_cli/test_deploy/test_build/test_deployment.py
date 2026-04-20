@@ -45,7 +45,6 @@ from aea_test_autonomy.configurations import (
     ETHEREUM_ENCRYPTED_KEYS,
     ETHEREUM_ENCRYPTION_PASSWORD,
 )
-from dotenv import load_dotenv
 
 from autonomy.constants import (
     DEFAULT_BUILD_FOLDER,
@@ -138,14 +137,14 @@ def find_hash(component_name: str) -> str:
 def check_agent_env(build_dir: Path, env_var_name: str, expected_value: str) -> None:
     """Check env."""
     for node_id in range(N_AGENTS):
-        env_file = AGENT_ENV_TEMPLATE.substitute(node_id=node_id)
-        assert load_dotenv(
-            build_dir / env_file, override=True
-        ), "Environment was not changed!"
-        env_var_value = os.getenv(env_var_name)
-        assert (
-            env_var_value is not None
-        ), f"{env_var_name!r} not in {os.environ.keys()!r}!"
+        env_path = build_dir / AGENT_ENV_TEMPLATE.substitute(node_id=node_id)
+        env_map = dict(
+            line.split("=", 1)
+            for line in env_path.read_text().splitlines()
+            if "=" in line and not line.startswith("#")
+        )
+        assert env_var_name in env_map, f"{env_var_name!r} not in {list(env_map)!r}!"
+        env_var_value = env_map[env_var_name]
         assert (
             env_var_value == expected_value
         ), f"{env_var_value!r} != {expected_value!r}!"

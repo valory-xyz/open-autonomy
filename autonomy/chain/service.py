@@ -26,7 +26,6 @@ from typing import Callable, Dict, List, Optional, Tuple, cast
 
 from aea.configurations.data_types import PublicId
 from aea.crypto.base import Crypto, LedgerApi
-from hexbytes import HexBytes
 
 from autonomy.chain.base import ServiceState, registry_contracts
 from autonomy.chain.config import ChainType, ContractConfigs
@@ -754,13 +753,11 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
         txs.append(
             {
                 "to": multisig_address,
-                "data": HexBytes(
-                    bytes.fromhex(
-                        multisig_instance.encode_abi(
-                            abi_element_identifier="addOwnerWithThreshold",
-                            args=[_owner, 1],
-                        )[2:]
-                    )
+                "data": bytes.fromhex(
+                    multisig_instance.encode_abi(
+                        abi_element_identifier="addOwnerWithThreshold",
+                        args=[_owner, 1],
+                    )[2:]
                 ),
                 "operation": MultiSendOperation.CALL,
                 "value": 0,
@@ -770,13 +767,11 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
     txs.append(
         {
             "to": multisig_address,
-            "data": HexBytes(
-                bytes.fromhex(
-                    multisig_instance.encode_abi(
-                        abi_element_identifier="removeOwner",
-                        args=[new_owners[0], service_owner, 1],
-                    )[2:]
-                )
+            "data": bytes.fromhex(
+                multisig_instance.encode_abi(
+                    abi_element_identifier="removeOwner",
+                    args=[new_owners[0], service_owner, 1],
+                )[2:]
             ),
             "operation": MultiSendOperation.CALL,
             "value": 0,
@@ -786,13 +781,11 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
     txs.append(
         {
             "to": multisig_address,
-            "data": HexBytes(
-                bytes.fromhex(
-                    multisig_instance.encode_abi(
-                        abi_element_identifier="changeThreshold",
-                        args=[threshold],
-                    )[2:]
-                )
+            "data": bytes.fromhex(
+                multisig_instance.encode_abi(
+                    abi_element_identifier="changeThreshold",
+                    args=[threshold],
+                )[2:]
             ),
             "operation": MultiSendOperation.CALL,
             "value": 0,

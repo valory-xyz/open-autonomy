@@ -5,8 +5,8 @@ name = "pypi"
 
 [packages]
 click = {version = ">=8.1.0,<9"}
-watchdog = {version = "==2.1.6"}
-requests = {version = "==2.27.1"}
+watchdog = {version = ">=3,<7"}
+requests = {version = ">=2.33.0,<3"}
 
 [dev-packages]
 open-aea = {editable = true, extras=["all"], path = "/open-aea"}

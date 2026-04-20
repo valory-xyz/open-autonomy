@@ -20,8 +20,8 @@
 
 """End2End tests base classes for the Termination agent."""
 
-import web3
 from aea.configurations.base import PublicId
+from aea_ledger_ethereum import EthereumApi
 from aea_test_autonomy.base_test_classes.agents import BaseTestEnd2End
 from aea_test_autonomy.configurations import KEY_PAIRS as _HARDHAT_KEY_PAIRS
 from aea_test_autonomy.docker.registries import (
@@ -39,7 +39,6 @@ from aea_test_autonomy.docker.registries import (
 from aea_test_autonomy.docker.registries import (
     SERVICE_REGISTRY as _DEFAULT_SERVICE_REGISTRY_ADDRESS,
 )
-from web3.types import Wei
 
 TERMINATION_TIMEOUT = 120
 
@@ -83,28 +82,27 @@ class BaseTestTerminationEnd2End(
 
         The termination signal is just a zero transfer to the safe contract by the service.
         """
-        instance = web3.Web3(web3.HTTPProvider(self.NETWORK_ENDPOINT))
-        zero_eth = Wei(0)
-        checksum_sender_address = instance.to_checksum_address(
+        ledger_api = EthereumApi(address=self.NETWORK_ENDPOINT, chain_id=self.CHAIN_ID)
+        checksum_sender_address = ledger_api.api.to_checksum_address(
             self.SERVICE_OWNER_ADDRESS
         )
-        checksum_receiver_address = instance.to_checksum_address(
+        checksum_receiver_address = ledger_api.api.to_checksum_address(
             self.SAFE_CONTRACT_ADDRESS
         )
 
         raw_tx = {
             "to": checksum_receiver_address,
             "from": checksum_sender_address,
-            "value": zero_eth,
+            "value": 0,
             "gas": 100000,
             "chainId": self.CHAIN_ID,
-            "gasPrice": instance.eth.gas_price,
-            "nonce": instance.eth.get_transaction_count(checksum_sender_address),
+            "gasPrice": ledger_api.api.eth.gas_price,
+            "nonce": ledger_api.api.eth.get_transaction_count(checksum_sender_address),
         }
-        signed_tx = instance.eth.account.sign_transaction(
+        signed_tx = ledger_api.api.eth.account.sign_transaction(
             raw_tx, private_key=self.SERVICE_OWNER_PK
         )
-        instance.eth.send_raw_transaction(signed_tx.raw_transaction)
+        ledger_api.api.eth.send_raw_transaction(signed_tx.raw_transaction)
 
     def test_run(self, nb_nodes: int) -> None:
         """Run the test."""

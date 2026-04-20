@@ -28,9 +28,9 @@ from itertools import product
 from pathlib import Path
 from typing import Any, Dict, List, Set, Tuple
 
-import jsonschema
 import yaml
 from aea.helpers.io import open_file
+from aea.helpers.json_schema import Draft4Validator
 
 from autonomy.configurations.constants import (
     DEFAULT_FSM_SPEC_JSON,
@@ -52,7 +52,7 @@ def validate_fsm_spec(data: Dict) -> None:
     with open_file(SCHEMAS_DIR / FSM_SCHEMA_FILE) as fp:
         fsm_schema = json.load(fp=fp)
 
-    validator = jsonschema.Draft4Validator(schema=fsm_schema)
+    validator = Draft4Validator(schema=fsm_schema)
     validator.validate(data)
 
 
@@ -474,13 +474,18 @@ def check_unreferenced_events(abci_app_cls: Any) -> List[str]:
                 f"but missing from transition function"
             )
 
-        # Filter timeout events using referenced events since we don't explicitly return the timeout events
+        # Events that appear in a round's transition function but are never returned from
+        # end_block are assumed to be timeout-triggered; they must therefore be declared in
+        # `event_to_timeout`. If the developer actually intends to return such an event,
+        # wiring it up in that round's end_block is the fix.
         timeout_events = round_transition_events - referenced_events
         missing_timeout_events = timeout_events - abci_app_timeout_events
         if len(missing_timeout_events) > 0:
             error_strings.append(
-                f"Events {missing_timeout_events} are defined in the round transitions of `{round_cls.__name__}` "
-                f"but not in `event_to_timeout`"
+                f"Events {missing_timeout_events} are listed in the transition function of "
+                f"`{round_cls.__name__}` but are never returned from any round's `end_block`. "
+                f"Either return them from `end_block`, or declare them in `event_to_timeout` "
+                f"if they are meant to be triggered by a round timeout."
             )
 
     return error_strings

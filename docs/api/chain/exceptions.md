@@ -4,6 +4,31 @@
 
 Custom exceptions for chain module.
 
+<a id="autonomy.chain.exceptions.get_requests_connection_error"></a>
+
+#### get`_`requests`_`connection`_`error
+
+```python
+def get_requests_connection_error() -> Type[BaseException]
+```
+
+Return `requests.exceptions.ConnectionError`.
+
+web3's HTTPProvider uses `requests` internally, and `requests` is
+installed transitively with `open-aea-ledger-ethereum`. Resolved
+lazily so unrelated importers of this module work without the
+plugin; any call that actually reaches a chain-side `except` without
+the plugin raises here with a clear install hint, matching the
+`load_hwi_plugin` pattern in `autonomy.chain.config`.
+
+**Raises**:
+
+- `ImportError`: if the Ethereum ledger plugin is not installed.
+
+**Returns**:
+
+the ``requests.exceptions.ConnectionError`` class.
+
 <a id="autonomy.chain.exceptions.ChainInteractionError"></a>
 
 ## ChainInteractionError Objects

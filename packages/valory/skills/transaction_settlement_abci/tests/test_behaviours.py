@@ -56,7 +56,6 @@ from aea.helpers.transaction.base import (
     TransactionReceipt,
 )
 from aea.skills.base import SkillContext
-from web3.types import Nonce
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import (
@@ -339,7 +338,7 @@ class TestTransactionSettlementBaseBehaviour(TransactionSettlementFSMBehaviourBa
         assert behaviour.behaviour_id == SignatureBehaviour.auto_behaviour_id()
         # Set `nonce` to the same value as the returned, so that we test the tx replacement logging.
         if replacement:
-            behaviour.params.mutable_params.nonce = Nonce(0)
+            behaviour.params.mutable_params.nonce = 0
 
         # patch the `send_raw_transaction` method
         def dummy_send_raw_transaction(
