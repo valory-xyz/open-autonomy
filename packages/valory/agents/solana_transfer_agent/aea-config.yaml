@@ -12,7 +12,7 @@ fingerprint:
   tests/test_register_reset.py: bafybeigjimvueefuumi7jbiclscf3k2fag4qoy5hluoxbv6fiakyroyv3m
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeialm3enmggtorzxmyo2iydrsrb74z5iozqwa5zdna7dt6wu4cdx3i
+- valory/abci:0.1.0:bafybeibcpvyteijct4rz3zl63sn5zwuiwtn6gt6guvr5gufko4332ybgcu
 - valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
 - valory/ipfs:0.1.0:bafybeic4cubtc6jbejq7yt7fjlibuixofb6wqpfoc5vt2h4wpaahi5y5bi
 - valory/ledger:0.19.0:bafybeidqf5dmueqm655z3bkw36mviobpcpuek4bhha7iq2nnz6sfu32kva
@@ -30,12 +30,12 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 - valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
 skills:
-- valory/abstract_abci:0.1.0:bafybeia5fylv6jvbx5aom6cyvnvwvgqd4apljdmpi533lv3mqgpn47obzu
-- valory/abstract_round_abci:0.1.0:bafybeianzlz35hhvap5arix25rtazg4rf4bqcjvlqxhizdvbngc66twfuy
-- valory/registration_abci:0.1.0:bafybeihco4qy6oywzn4hjmswbhu344y2k2hig5kmlorsrrwihzoy7cxkhm
-- valory/reset_pause_abci:0.1.0:bafybeigzq4truenpdzzzehltw3vmef6hevjwledw2wozrigbne44l22ylm
-- valory/squads_transaction_settlement_abci:0.1.0:bafybeibziha43nffgdvwewdgl32bzkrpe3dq7sg7bb6f3x6oslwwthtklu
-- valory/test_solana_tx_abci:0.1.0:bafybeibc7xhe54jymvbsrs227piczipqgy2jnz3ennof3jjovat7lvpxfa
+- valory/abstract_abci:0.1.0:bafybeib5qjkpfsxjcur4asube6kctmy2xsrg2hzcele2tmvsstula4lt54
+- valory/abstract_round_abci:0.1.0:bafybeih5nr3jdjo7pahcs3pgjheqzmwkoi2emiilxqzorhcduoalhxi7jy
+- valory/registration_abci:0.1.0:bafybeifpdgnlrn3dnur76yww2errlecm4nwconerrkww7rxkr4zd2sw5ky
+- valory/reset_pause_abci:0.1.0:bafybeife66mkzjgci6ozikwergg6lr26o3duhusta2sociebwxicp3jsre
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeigbjqmd5vvb5zyguk27secwqhuumdatz57pu4yprebdrrbfrfc4da
+- valory/test_solana_tx_abci:0.1.0:bafybeieocbu6tsg3kzoer3gx4lpfaayktcbze5f6cecqfjjxbrg725iuqi
 default_ledger: solana
 required_ledgers:
 - solana

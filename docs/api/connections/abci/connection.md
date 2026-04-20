@@ -664,6 +664,111 @@ async def send(envelope: Envelope) -> None
 
 Send a message.
 
+<a id="packages.valory.connections.abci.connection.MockServerChannel"></a>
+
+## MockServerChannel Objects
+
+```python
+class MockServerChannel()
+```
+
+Mock server channel that acts as a drop-in replacement for Tendermint in single-agent services.
+
+Simulates both the ABCI block lifecycle (Channel 1) and the Tendermint RPC HTTP interface (Channel 2).
+
+Known semantic departures from real Tendermint:
+- ``broadcast_tx_sync`` skips ``CheckTx`` and always returns ``code: 0``.
+- ``/tx?hash=`` returns hard-coded ``tx_result`` fields (code=0), not the actual
+  ``ResponseDeliverTx`` from the handler.
+
+These are acceptable for single-agent services where consensus validation is unnecessary.
+
+<a id="packages.valory.connections.abci.connection.MockServerChannel.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(target_skill_id: PublicId = PUBLIC_ID,
+             rpc_host: str = LOCALHOST,
+             rpc_port: int = DEFAULT_RPC_PORT,
+             logger: Optional[Logger] = None,
+             block_time: float = DEFAULT_BLOCK_TIME)
+```
+
+Initialize the mock server.
+
+**Arguments**:
+
+- `target_skill_id`: the public id of the target skill.
+- `rpc_host`: the host for the mock RPC HTTP server.
+- `rpc_port`: the port for the mock RPC HTTP server.
+- `logger`: the logger.
+- `block_time`: time between blocks in seconds.
+
+<a id="packages.valory.connections.abci.connection.MockServerChannel.is_stopped"></a>
+
+#### is`_`stopped
+
+```python
+@property
+def is_stopped() -> bool
+```
+
+Check that the channel is stopped.
+
+<a id="packages.valory.connections.abci.connection.MockServerChannel.connect"></a>
+
+#### connect
+
+```python
+async def connect(loop: AbstractEventLoop) -> None
+```
+
+Connect the channel.
+
+Starts the mock RPC HTTP server and the block production coroutine.
+
+**Arguments**:
+
+- `loop`: asyncio event loop.
+
+<a id="packages.valory.connections.abci.connection.MockServerChannel.disconnect"></a>
+
+#### disconnect
+
+```python
+async def disconnect() -> None
+```
+
+Disconnect the channel.
+
+<a id="packages.valory.connections.abci.connection.MockServerChannel.get_message"></a>
+
+#### get`_`message
+
+```python
+async def get_message() -> Envelope
+```
+
+Get an ABCI request message to deliver to the skill handler.
+
+<a id="packages.valory.connections.abci.connection.MockServerChannel.send"></a>
+
+#### send
+
+```python
+async def send(envelope: Envelope) -> None
+```
+
+Receive a response from the skill handler.
+
+Updates the dialogue (completing it so it can be cleaned up)
+and resolves the pending future so the block producer can proceed.
+
+**Arguments**:
+
+- `envelope`: the response envelope.
+
 <a id="packages.valory.connections.abci.connection.StoppableThread"></a>
 
 ## StoppableThread Objects

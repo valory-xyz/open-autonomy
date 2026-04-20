@@ -104,6 +104,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
     ledger_id: str = "ethereum"
     key_file_name: str = "ethereum_private_key.txt"
     USE_GRPC = False
+    USE_MOCK = False
     # usually test envs provide the full set of dependencies; only select
     # when you want to run the installation of the packages as part of the test case.
     RUN_AEA_INSTALL = False
@@ -154,6 +155,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
             False,
         )
         self.set_config("vendor.valory.connections.abci.config.use_grpc", self.USE_GRPC)
+        self.set_config("vendor.valory.connections.abci.config.use_mock", self.USE_MOCK)
         self.set_config(
             "vendor.valory.connections.abci.config.tendermint_config.rpc_laddr",
             self.get_laddr(i),
@@ -192,9 +194,11 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
             f"vendor.{skill.author}.skills.{skill.name}.models.params.args.tendermint_url",
             f"{_HTTP}{ANY_ADDRESS}:{self.get_port(i)}",
         )
+        # when using the mock, the mock RPC server handles COM endpoints too
+        com_port = self.get_port(i) if self.USE_MOCK else self.get_com_port(i)
         self.set_config(
             f"vendor.{skill.author}.skills.{skill.name}.models.params.args.tendermint_com_url",
-            f"{_HTTP}{ANY_ADDRESS}:{self.get_com_port(i)}",
+            f"{_HTTP}{ANY_ADDRESS}:{com_port}",
         )
         self.set_config(
             f"vendor.{skill.author}.skills.{skill.name}.models.params.args.keeper_timeout",
