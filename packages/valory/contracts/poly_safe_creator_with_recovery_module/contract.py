@@ -28,6 +28,25 @@ from aea.crypto.base import Crypto, LedgerApi
 from aea_ledger_ethereum import EthereumApi
 
 PUBLIC_ID = PublicId.from_str("valory/poly_safe_creator_with_recovery_module:0.1.0")
+POLYGON_CHAIN_ID = 137
+
+
+def _validate_hash_bytes(hash_bytes: object) -> bytes:
+    """Validate that the value is exactly 32 bytes.
+
+    :param hash_bytes: the value returned by the contract call.
+    :return: the validated bytes.
+    :raises ValueError: if the value is not 32 bytes.
+    """
+    if not isinstance(hash_bytes, bytes):
+        raise ValueError(
+            f"Invalid hash format: expected bytes, got {type(hash_bytes)}."
+        )
+    if len(hash_bytes) != 32:
+        raise ValueError(
+            f"Invalid hash format: expected 32 bytes, got {len(hash_bytes)}."
+        )
+    return hash_bytes
 
 
 class PolySafeCreatorWithRecoveryModule(Contract):
@@ -48,6 +67,7 @@ class PolySafeCreatorWithRecoveryModule(Contract):
         hash_bytes = (
             contract_instance.functions.getPolySafeCreateTransactionHash().call()
         )
+        _validate_hash_bytes(hash_bytes)
         return dict(hash_bytes=hash_bytes)
 
     @classmethod
@@ -65,6 +85,7 @@ class PolySafeCreatorWithRecoveryModule(Contract):
         hash_bytes = contract_instance.functions.getEnableModuleTransactionHash(
             ledger_api.api.to_checksum_address(signer_address)
         ).call()
+        _validate_hash_bytes(hash_bytes)
         return dict(hash_bytes=hash_bytes)
 
     @classmethod
@@ -91,6 +112,12 @@ class PolySafeCreatorWithRecoveryModule(Contract):
         # See deploy function at https://github.com/valory-xyz/autonolas-registries/blob/main/contracts/ServiceManager.sol#L310
         # See contract at https://github.com/valory-xyz/autonolas-registries/blob/main/contracts/multisigs/PolySafeCreatorWithRecoveryModule.sol
         # See example test at https://github.com/valory-xyz/autonolas-registries/blob/main/test/PolySafeCreatorWithRecoveryModule.t.sol#L49
+
+        if ledger_api.api.eth.chain_id != POLYGON_CHAIN_ID:
+            raise ValueError(
+                f"Chain ID mismatch: expected {POLYGON_CHAIN_ID}, "
+                f"got {ledger_api.api.eth.chain_id}."
+            )
 
         create_transaction_hash = cls.get_poly_safe_create_transaction_hash(
             ledger_api=ledger_api,
