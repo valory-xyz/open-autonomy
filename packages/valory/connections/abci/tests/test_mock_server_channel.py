@@ -304,7 +304,70 @@ class TestLifecycle:
     async def test_height_increments(
         self, connected_channel: MockServerChannel
     ) -> None:
-        """Test that block height starts at 0 and is incremented by the block producer."""
-        # the block producer starts immediately, height should be > 0
-        # after the first block cycle completes
-        assert connected_channel._height == 0  # initial state before first block
+        """Test that block height increments after a full block cycle."""
+        assert connected_channel._height == 0
+
+        async def drain(ch: MockServerChannel) -> None:
+            env = await asyncio.wait_for(ch.get_message(), timeout=2.0)
+            await ch.send(env)
+
+        # drain info, init_chain, begin_block, end_block, commit = 1 full block
+        for _ in range(5):
+            await drain(connected_channel)
+
+        assert connected_channel._height == 1
+
+    @pytest.mark.asyncio
+    async def test_connect_rollback_on_port_conflict(self, free_port: int) -> None:
+        """Test that connect rolls back state if the port is already bound."""
+        import socket as sock
+
+        # occupy the port
+        blocker = sock.socket(sock.AF_INET, sock.SOCK_STREAM)
+        blocker.setsockopt(sock.SOL_SOCKET, sock.SO_REUSEADDR, 1)
+        blocker.bind(("127.0.0.1", free_port))  # nosec
+        blocker.listen(1)
+        try:
+            ch = MockServerChannel(
+                rpc_host="127.0.0.1", rpc_port=free_port, block_time=10.0
+            )
+            with pytest.raises(OSError):
+                await ch.connect(asyncio.get_event_loop())
+            assert ch.is_stopped
+            assert ch._request_queue is None
+        finally:
+            blocker.close()
+
+    @pytest.mark.asyncio
+    async def test_get_message_raises_on_producer_error(
+        self, channel: MockServerChannel
+    ) -> None:
+        """Test that get_message raises ConnectionError after producer dies."""
+        # manually set up just the queue (no producer) to test sentinel handling
+        channel._is_stopped = False
+        channel._request_queue = asyncio.Queue()
+        await channel._request_queue.put(None)
+        with pytest.raises(ConnectionError):
+            await channel.get_message()
+        channel._is_stopped = True
+
+    @pytest.mark.asyncio
+    async def test_broadcast_tx_invalid_hex(
+        self, connected_channel: MockServerChannel
+    ) -> None:
+        """Test /broadcast_tx_sync with invalid hex returns 400."""
+        url = (
+            f"http://127.0.0.1:{connected_channel.rpc_port}/broadcast_tx_sync?tx=0xZZZZ"
+        )
+        status, body = await asyncio.to_thread(_http_get, url)
+        assert status == 400
+        assert body["error"]["code"] == -32602
+
+    @pytest.mark.asyncio
+    async def test_unknown_route_returns_404(
+        self, connected_channel: MockServerChannel
+    ) -> None:
+        """Test that an unknown path returns 404."""
+        url = f"http://127.0.0.1:{connected_channel.rpc_port}/nonexistent"
+        status, body = await asyncio.to_thread(_http_get, url)
+        assert status == 404

@@ -1277,6 +1277,10 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
                 # deliver pending transactions
                 pending = list(self._mempool)
                 self._mempool.clear()
+                # clear old hashes before adding new ones; previous polls
+                # have completed since we only reach here after a new tx arrived
+                # or block_time elapsed (no new activity)
+                self._delivered_txs.clear()
                 for tx_bytes in pending:
                     tx_hash = hashlib.sha256(tx_bytes).hexdigest().upper()
                     await self._send_and_wait(
@@ -1293,17 +1297,16 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
                     AbciMessage.Performative.REQUEST_COMMIT,
                 )
 
-                # wait for block_time OR until a new tx arrives, whichever is first
+                # wait for block_time OR until a new tx arrives
+                if not self._new_tx_event.is_set():  # type: ignore
+                    try:
+                        await asyncio.wait_for(
+                            self._new_tx_event.wait(),  # type: ignore
+                            timeout=self.block_time,
+                        )
+                    except asyncio.TimeoutError:
+                        pass
                 self._new_tx_event.clear()  # type: ignore
-                try:
-                    await asyncio.wait_for(
-                        self._new_tx_event.wait(),  # type: ignore
-                        timeout=self.block_time,
-                    )
-                except asyncio.TimeoutError:
-                    pass
-                # safe to clear: polls complete before a new tx is submitted
-                self._delivered_txs.clear()
         except CancelledError:
             return
         except Exception as e:  # pylint: disable=broad-except
@@ -1318,7 +1321,7 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
 
     # --- Mock Tendermint RPC HTTP server (stdlib asyncio) ---
 
-    async def _handle_rpc_connection(
+    async def _handle_rpc_connection(  # pylint: disable=too-many-locals
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     ) -> None:
         """Handle a single HTTP connection on the mock RPC server."""
@@ -1341,15 +1344,22 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
             path = parsed.path
             query = parse_qs(parsed.query)
             status, body = self._route_rpc_request(path, query)
-            response = (
-                f"HTTP/1.1 {status} {'OK' if status == 200 else 'Internal Server Error'}\r\n"
-                f"Content-Type: application/json; charset=utf-8\r\n"
-                f"Content-Length: {len(body)}\r\n"
+            _REASONS = {
+                200: "OK",
+                400: "Bad Request",
+                404: "Not Found",
+                500: "Internal Server Error",
+            }
+            reason = _REASONS.get(status, "OK")
+            body_bytes = body.encode(ENCODING)
+            header = (
+                f"HTTP/1.1 {status} {reason}\r\n"
+                f"Content-Type: application/json; charset={ENCODING}\r\n"
+                f"Content-Length: {len(body_bytes)}\r\n"
                 f"Connection: close\r\n"
                 f"\r\n"
-                f"{body}"
             )
-            writer.write(response.encode())
+            writer.write(header.encode(ENCODING) + body_bytes)
             await writer.drain()
         except Exception as e:  # pylint: disable=broad-except
             self.logger.debug(f"RPC handler error: {type(e).__name__}: {e}")
@@ -1475,7 +1485,10 @@ class MockServerChannel:  # pylint: disable=too-many-instance-attributes
         return 200, body
 
     def _handle_reset(self) -> Tuple[int, str]:
-        """Handle /hard_reset and /gentle_reset — no-op for single-agent mock."""
+        """Handle /hard_reset and /gentle_reset — reset chain state."""
+        self._height = 0
+        self._mempool.clear()
+        self._delivered_txs.clear()
         body = json.dumps({"status": True, "message": "mock reset"})
         return 200, body
 

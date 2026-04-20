@@ -254,5 +254,52 @@ Test that disconnecting twice doesn't raise.
 async def test_height_increments(connected_channel: MockServerChannel) -> None
 ```
 
-Test that block height starts at 0 and is incremented by the block producer.
+Test that block height increments after a full block cycle.
+
+<a id="packages.valory.connections.abci.tests.test_mock_server_channel.TestLifecycle.test_connect_rollback_on_port_conflict"></a>
+
+#### test`_`connect`_`rollback`_`on`_`port`_`conflict
+
+```python
+@pytest.mark.asyncio
+async def test_connect_rollback_on_port_conflict(free_port: int) -> None
+```
+
+Test that connect rolls back state if the port is already bound.
+
+<a id="packages.valory.connections.abci.tests.test_mock_server_channel.TestLifecycle.test_get_message_raises_on_producer_error"></a>
+
+#### test`_`get`_`message`_`raises`_`on`_`producer`_`error
+
+```python
+@pytest.mark.asyncio
+async def test_get_message_raises_on_producer_error(
+        channel: MockServerChannel) -> None
+```
+
+Test that get_message raises ConnectionError after producer dies.
+
+<a id="packages.valory.connections.abci.tests.test_mock_server_channel.TestLifecycle.test_broadcast_tx_invalid_hex"></a>
+
+#### test`_`broadcast`_`tx`_`invalid`_`hex
+
+```python
+@pytest.mark.asyncio
+async def test_broadcast_tx_invalid_hex(
+        connected_channel: MockServerChannel) -> None
+```
+
+Test /broadcast_tx_sync with invalid hex returns 400.
+
+<a id="packages.valory.connections.abci.tests.test_mock_server_channel.TestLifecycle.test_unknown_route_returns_404"></a>
+
+#### test`_`unknown`_`route`_`returns`_`404
+
+```python
+@pytest.mark.asyncio
+async def test_unknown_route_returns_404(
+        connected_channel: MockServerChannel) -> None
+```
+
+Test that an unknown path returns 404.
 
