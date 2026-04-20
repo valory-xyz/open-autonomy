@@ -19,8 +19,16 @@
 # ------------------------------------------------------------------------------
 """Setup script for the plug-in."""
 
+from pathlib import Path
+
 from setuptools import find_packages  # type: ignore
 from setuptools import setup  # type: ignore
+
+
+def _read_long_description() -> str:
+    """Read the plugin README as the PyPI long description."""
+    return (Path(__file__).parent / "README.md").read_text(encoding="utf-8")
+
 
 base_deps = [
     # Direct imports: `autonomy.cli.helpers.ipfs_hash`, plus the
@@ -41,7 +49,7 @@ setup(
     author="Valory AG",
     license="Apache-2.0",
     description="CLI helpers for CI and dependency management in AEA-based projects.",
-    long_description="CLI helpers for CI and dependency management in AEA-based projects.",
+    long_description=_read_long_description(),
     long_description_content_type="text/markdown",
     packages=find_packages(where=".", include=["aea_helpers", "aea_helpers.*"]),
     package_data={

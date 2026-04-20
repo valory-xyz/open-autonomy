@@ -19,8 +19,16 @@
 # ------------------------------------------------------------------------------
 """Setup script for the plug-in."""
 
+from pathlib import Path
+
 from setuptools import find_packages  # type: ignore
 from setuptools import setup  # type: ignore
+
+
+def _read_long_description() -> str:
+    """Read the plugin README as the PyPI long description."""
+    return (Path(__file__).parent / "README.md").read_text(encoding="utf-8")
+
 
 base_deps = [
     # `open-autonomy[all,docker]` supplies everything the plugin's
@@ -39,7 +47,7 @@ setup(
     author="Valory AG",
     license="Apache-2.0",
     description="Plugin containing test tools for open-autonomy packages.",
-    long_description="Plugin containing test tools for open-autonomy packages.",
+    long_description=_read_long_description(),
     long_description_content_type="text/markdown",
     packages=find_packages(
         where=".", include=["aea_test_autonomy", "aea_test_autonomy.*"]
