@@ -497,7 +497,7 @@ def _build_handler_class(app: App) -> Type[BaseHTTPRequestHandler]:
 
         def _serve(self, method: str) -> None:
             parts = urlsplit(self.path)
-            content_length = int(self.headers.get("Content-Length") or 0)
+            content_length = max(int(self.headers.get("Content-Length") or 0), 0)
             if content_length > max_content_length:
                 self.send_error(413, "Content Too Large")
                 return
