@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ from aea.crypto.registries import make_crypto
 from aea_test_autonomy.configurations import ETHEREUM_KEY_PATH_5
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 from click.testing import Result
-from hexbytes import HexBytes
 from web3 import HTTPProvider, Web3
 
 from autonomy.chain.base import ServiceState, registry_contracts
@@ -51,7 +50,6 @@ from tests.test_autonomy.test_chain.base import (
     THRESHOLD,
     patch_subgraph,
 )
-
 
 DEFAULT_AGENT_INSTANCE_ADDRESS = (
     "0x976EA74026E726554dB657fA54763abd0C3a0aa9"  # a key from default hardhat keys
@@ -475,9 +473,9 @@ class TestServiceManager(BaseServiceManagerTest):
 class TestERC20AsBond(BaseServiceManagerTest):
     """Test ERC20 token as bond."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
         erc20_instance = Contract.from_dir(
             ROOT_DIR / "packages" / "valory" / "contracts" / "erc20"
         ).get_instance(
@@ -639,9 +637,9 @@ class TestERC20AsBond(BaseServiceManagerTest):
 class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
     """Test service deployment with same multisig."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup class."""
-        super().setup()
+        super().setup_method()
         self.ledger_api._api = Web3(
             HTTPProvider(
                 endpoint_uri="http://127.0.0.1:8545",
@@ -723,7 +721,7 @@ class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
                     "operation": MultiSendOperation.CALL,
                     "to": multisig_address,
                     "value": 0,
-                    "data": HexBytes(bytes.fromhex(txd[2:])),
+                    "data": bytes.fromhex(txd[2:]),
                 }
             )
         txd = registry_contracts.gnosis_safe.get_swap_owner_data(
@@ -737,7 +735,7 @@ class TestServiceRedeploymentWithSameMultisig(BaseServiceManagerTest):
                 "operation": MultiSendOperation.CALL,
                 "to": multisig_address,
                 "value": 0,
-                "data": HexBytes(txd[2:]),
+                "data": bytes.fromhex(txd[2:]),
             }
         )
 

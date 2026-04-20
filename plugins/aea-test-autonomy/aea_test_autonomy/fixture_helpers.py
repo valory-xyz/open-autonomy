@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -60,7 +60,6 @@ from aea_test_autonomy.docker.tendermint import (
 )
 from eth_account import Account
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -95,7 +94,7 @@ def tendermint(
     timeout: float = 2.0,
     max_attempts: int = 10,
 ) -> Generator:
-    """Launch the Ganache image."""
+    """Launch the Tendermint image."""
     client = docker.from_env()
     logging.info(f"Launching Tendermint at port {tendermint_port}")
     image = TendermintDockerImage(client, abci_host, abci_port, tendermint_port)
@@ -216,6 +215,54 @@ class UseFlaskTendermintNode:
         self._tendermint_image.health_check(**kwargs)
 
 
+DEFAULT_MOCK_RPC_PORT = 36657
+
+
+class UseMockTendermint:
+    """Mixin that replaces Tendermint with the mock channel for single-agent tests.
+
+    Place before BaseTestEnd2EndExecution in the MRO to shadow UseFlaskTendermintNode methods.
+    Usage::
+
+        class TestMySkill(BaseTestEnd2EndExecution): ...           # real TM
+        class TestMySkillMock(UseMockTendermint, TestMySkill): ... # mock TM
+    """
+
+    USE_MOCK = True
+    mock_rpc_port: int = DEFAULT_MOCK_RPC_PORT
+
+    @pytest.fixture(autouse=True)
+    def _start_tendermint(self, *args: Any, **kwargs: Any) -> None:
+        """Override to skip Docker-based Tendermint."""
+        self.tendermint_port = self.mock_rpc_port  # type: ignore  # pylint: disable=attribute-defined-outside-init
+
+    @property
+    def p2p_seeds(self) -> List[str]:  # type: ignore
+        """No p2p seeds for single-agent mock."""
+        return []
+
+    def get_abci_port(self, i: int) -> int:
+        """Get the ABCI port (unused by mock, but required by config)."""
+        return self.mock_rpc_port + 1 + i * 10
+
+    def get_port(self, i: int) -> int:
+        """Get the RPC port — where the mock HTTP server listens."""
+        return self.mock_rpc_port + i * 10
+
+    def get_com_port(self, i: int) -> int:
+        """Get the COM port — mock handles resets via the RPC port."""
+        return self.mock_rpc_port + i * 10
+
+    def get_laddr(self, i: int, p2p: bool = False) -> str:
+        """Get the listen address."""
+        if p2p:
+            return f"tcp://0.0.0.0:{self.mock_rpc_port - 1 + i * 10}"  # nosec
+        return f"tcp://0.0.0.0:{self.get_port(i)}"  # nosec
+
+    def health_check(self, **kwargs: Any) -> None:
+        """Skip health check — mock starts with the agent."""
+
+
 ###
 # Vanilla Ganache
 ###
@@ -289,14 +336,14 @@ class UseGanache:
 
     key_pairs: List[Tuple[str, str]] = []
 
-    @classmethod
     @pytest.fixture(autouse=True, scope="class")
     def _start_ganache(
-        cls,
+        self,
         ganache_scope_class: GanacheDockerImage,  # pylint: disable=redefined-outer-name
         ganache_configuration: Dict,  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start Ganache instance."""
+        cls = type(self)
         cls.key_pairs = cast(
             List[Tuple[str, str]],
             [
@@ -381,7 +428,7 @@ def acn_node(
     timeout: float = 2.0,
     max_attempts: int = 10,
 ) -> Generator:
-    """Launch the Ganache image."""
+    """Launch the ACN node image."""
     client = docker.from_env()
     logging.info(f"Launching ACNNode with the following config: {acn_config}")
     image = ACNNodeDockerImage(client, acn_config)
@@ -394,14 +441,14 @@ class UseACNNode:
 
     _acn_node_image: ACNNodeDockerImage
 
-    @classmethod
     @pytest.fixture(autouse=True)
     def _start_acn(
-        cls,
+        self,
         acn_node: ACNNodeDockerImage,  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start an ACN instance."""
-        cls._acn_node_image = acn_node
+        cls = type(self)
+        cls._acn_node_image = acn_node  # pylint: disable=protected-access
 
 
 class ACNNodeBaseTest(DockerBaseTest):
@@ -500,15 +547,15 @@ class UseRegistries:
 
     key_pairs: List[Tuple[str, str]] = KEY_PAIRS
 
-    @classmethod
     @pytest.fixture(autouse=True)
     def _start_gnosis_and_registries(
-        cls,
+        self,
         registries_scope_class: Any,  # pylint: disable=redefined-outer-name
         hardhat_port: int,  # pylint: disable=redefined-outer-name
         key_pairs: List[Tuple[str, str]],  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start a Hardhat instance, with registries contracts deployed."""
+        cls = type(self)
         cls.key_pairs = key_pairs
 
 
@@ -551,15 +598,15 @@ class UseGnosisSafeHardHatNet:
 
     key_pairs: List[Tuple[str, str]] = KEY_PAIRS
 
-    @classmethod
     @pytest.fixture(autouse=True)
     def _start_hardhat(
-        cls,
+        self,
         gnosis_safe_hardhat_scope_function: Any,  # pylint: disable=redefined-outer-name
         hardhat_port: int,  # pylint: disable=redefined-outer-name
         key_pairs: List[Tuple[str, str]],  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start an HardHat instance."""
+        cls = type(self)
         cls.key_pairs = key_pairs
 
 
@@ -631,12 +678,12 @@ class UseLocalIpfs:
 
     ipfs_domain: str
 
-    @classmethod
     @pytest.fixture(autouse=True)
     def _start_ipfs_daemon(
-        cls,
+        self,
         ipfs_daemon: Any,  # pylint: disable=redefined-outer-name
         ipfs_domain: str,  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start IPFS daemon."""
+        cls = type(self)
         cls.ipfs_domain = ipfs_domain

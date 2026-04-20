@@ -16,12 +16,12 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-# pylint: disable=protected-access,attribute-defined-outside-init
+# pylint: disable=protected-access,attribute-defined-outside-init,consider-using-with
 
 """Tests for ipfs connection."""
+
 import asyncio
 import os
-import platform
 import tempfile
 from typing import Dict, List, Optional
 from unittest import mock
@@ -46,7 +46,6 @@ from packages.valory.connections.ipfs.connection import (
 )
 from packages.valory.protocols.ipfs import IpfsMessage
 
-
 ANY_SKILL = "skill/any:0.1.0"
 
 
@@ -54,7 +53,7 @@ ANY_SKILL = "skill/any:0.1.0"
 class TestIpfsConnection:
     """Tests for IpfsConnection"""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         configuration = ConnectionConfig(
             ipfs_domain=LOCAL_IPFS,
@@ -231,47 +230,171 @@ class TestIpfsConnection:
             assert message is not None
             mock_logger.assert_called_with(expected_log)
 
-    @pytest.mark.skipif(
-        platform.system() == "Windows",
-        reason="PermissionError: [Errno 13] Permission denied",
-    )
     @pytest.mark.parametrize(
-        ("extra_files", "download_side_effect", "is_dir"),
+        ("extra_files", "download_side_effect"),
         [
-            ([], None, False),
-            (["dummy_unexpected_extra_file"], None, False),
-            ([], DownloadError, False),
-            ([], None, True),
+            ([], None),
+            (["dummy_unexpected_extra_file"], None),
+            ([], DownloadError),
         ],
     )
     def test_handle_get_files(
         self,
         extra_files: List[str],
         download_side_effect: Optional[Exception],
-        is_dir: bool,
     ) -> None:
         """Test _handle_get_files"""
-        with tempfile.NamedTemporaryFile() as tmp_file, mock.patch.object(
-            os,
-            "listdir",
-        ) as mock_listdir, mock.patch.object(
-            IPFSTool, "download", side_effect=download_side_effect
-        ):
-            listdir_value = [extra_files + [tmp_file.name]]
-            if is_dir:
-                listdir_value = [["/tmp"]] + listdir_value  # nosec
-            mock_listdir.side_effect = listdir_value
-
+        tmp_file = tempfile.NamedTemporaryFile(delete=False)
+        try:
             tmp_file.write(b"dummy_data")
-            tmp_file.flush()
+            tmp_file.close()  # close before IPFS reads to avoid Windows file lock
 
-            _, ipfs_hash, _ = self.connection.ipfs_tool.add(tmp_file.name)
+            with mock.patch.object(
+                os,
+                "listdir",
+            ) as mock_listdir, mock.patch.object(
+                IPFSTool, "download", side_effect=download_side_effect
+            ):
+                mock_listdir.side_effect = [extra_files + [tmp_file.name]]
+                _, ipfs_hash, _ = self.connection.ipfs_tool.add(tmp_file.name)
+                message = IpfsMessage(
+                    performative=IpfsMessage.Performative.GET_FILES, ipfs_hash=ipfs_hash  # type: ignore
+                )
+                dialogue = MagicMock()
+                message = self.connection._handle_get_files(message, dialogue)
+                assert message is not None
+        finally:
+            os.unlink(tmp_file.name)
+
+    def test_handle_get_files_with_subdirectory(self) -> None:
+        """Test _handle_get_files reads files recursively from subdirectories."""
+        with tempfile.TemporaryDirectory() as pkg_dir:
+            # Create a package with a subdirectory
+            os.makedirs(os.path.join(pkg_dir, "tests"))
+            with open(
+                os.path.join(pkg_dir, "component.yaml"), "w", encoding="utf-8"
+            ) as f:
+                f.write("name: test_tool")
+            with open(os.path.join(pkg_dir, "tool.py"), "w", encoding="utf-8") as f:
+                f.write("def run(): pass")
+            with open(
+                os.path.join(pkg_dir, "tests", "__init__.py"),
+                "w",
+                encoding="utf-8",
+            ) as f:
+                f.write("")
+            with open(
+                os.path.join(pkg_dir, "tests", "test_tool.py"),
+                "w",
+                encoding="utf-8",
+            ) as f:
+                f.write("def test_run(): pass")
+
+            _, ipfs_hash, _ = self.connection.ipfs_tool.add(
+                pkg_dir, wrap_with_directory=False
+            )
+
             message = IpfsMessage(
-                performative=IpfsMessage.Performative.GET_FILES, ipfs_hash=ipfs_hash  # type: ignore
+                performative=IpfsMessage.Performative.GET_FILES,  # type: ignore
+                ipfs_hash=ipfs_hash,
             )
             dialogue = MagicMock()
             message = self.connection._handle_get_files(message, dialogue)
             assert message is not None
+
+            # Verify the reply was called with files containing subdirectory paths
+            call_kwargs = dialogue.reply.call_args[1]
+            files = call_kwargs["files"]
+            assert "component.yaml" in files
+            assert "tool.py" in files
+            assert os.path.join("tests", "__init__.py") in files
+            assert os.path.join("tests", "test_tool.py") in files
+
+    def test_handle_get_files_with_binary_file(self) -> None:
+        """Test _handle_get_files skips binary files with a warning."""
+        with tempfile.TemporaryDirectory() as pkg_dir:
+            with open(
+                os.path.join(pkg_dir, "component.yaml"), "w", encoding="utf-8"
+            ) as f:
+                f.write("name: test_tool")
+            # Write a binary file that will cause UnicodeDecodeError
+            with open(os.path.join(pkg_dir, "data.bin"), "wb") as f:
+                f.write(bytes(range(256)))
+
+            _, ipfs_hash, _ = self.connection.ipfs_tool.add(
+                pkg_dir, wrap_with_directory=False
+            )
+
+            message = IpfsMessage(
+                performative=IpfsMessage.Performative.GET_FILES,  # type: ignore
+                ipfs_hash=ipfs_hash,
+            )
+            dialogue = MagicMock()
+            with mock.patch.object(self.connection.logger, "warning") as mock_warning:
+                result = self.connection._handle_get_files(message, dialogue)
+
+            assert result is not None
+            call_kwargs = dialogue.reply.call_args[1]
+            files = call_kwargs["files"]
+            assert "component.yaml" in files
+            assert "data.bin" not in files
+            mock_warning.assert_any_call("Skipping non-UTF-8 file: data.bin")
+
+    def test_handle_get_files_with_nested_subdirectories(self) -> None:
+        """Test _handle_get_files handles deeply nested directories."""
+        with tempfile.TemporaryDirectory() as pkg_dir:
+            nested = os.path.join(pkg_dir, "a", "b", "c")
+            os.makedirs(nested)
+            with open(os.path.join(pkg_dir, "root.py"), "w", encoding="utf-8") as f:
+                f.write("root")
+            with open(os.path.join(nested, "deep.py"), "w", encoding="utf-8") as f:
+                f.write("deep")
+
+            _, ipfs_hash, _ = self.connection.ipfs_tool.add(
+                pkg_dir, wrap_with_directory=False
+            )
+
+            message = IpfsMessage(
+                performative=IpfsMessage.Performative.GET_FILES,  # type: ignore
+                ipfs_hash=ipfs_hash,
+            )
+            dialogue = MagicMock()
+            message = self.connection._handle_get_files(message, dialogue)
+            assert message is not None
+
+            call_kwargs = dialogue.reply.call_args[1]
+            files = call_kwargs["files"]
+            assert "root.py" in files
+            assert os.path.join("a", "b", "c", "deep.py") in files
+
+    def test_handle_get_files_flat_package_unchanged(self) -> None:
+        """Test _handle_get_files backwards compatibility with flat packages."""
+        with tempfile.TemporaryDirectory() as pkg_dir:
+            with open(
+                os.path.join(pkg_dir, "component.yaml"), "w", encoding="utf-8"
+            ) as f:
+                f.write("name: test_tool")
+            with open(os.path.join(pkg_dir, "tool.py"), "w", encoding="utf-8") as f:
+                f.write("def run(): pass")
+
+            _, ipfs_hash, _ = self.connection.ipfs_tool.add(
+                pkg_dir, wrap_with_directory=False
+            )
+
+            message = IpfsMessage(
+                performative=IpfsMessage.Performative.GET_FILES,  # type: ignore
+                ipfs_hash=ipfs_hash,
+            )
+            dialogue = MagicMock()
+            message = self.connection._handle_get_files(message, dialogue)
+            assert message is not None
+
+            call_kwargs = dialogue.reply.call_args[1]
+            files = call_kwargs["files"]
+            assert "component.yaml" in files
+            assert files["component.yaml"] == "name: test_tool"
+            assert "tool.py" in files
+            assert files["tool.py"] == "def run(): pass"
 
     def test_ipfs_dialogue(self) -> None:
         """Test 'IpfsDialogues' creation."""

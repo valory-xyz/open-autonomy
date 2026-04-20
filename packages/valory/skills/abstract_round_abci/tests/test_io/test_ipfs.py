@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -39,14 +39,13 @@ from packages.valory.skills.abstract_round_abci.io_.store import (
     SupportedFiletype,
 )
 
-
 use_ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
 
 
 class TestIPFSInteract:
     """Test `IPFSInteract`."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test class."""
         self.ipfs_interact = IPFSInteract()
 

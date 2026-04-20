@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ from aea_test_autonomy.docker.base import skip_docker_tests
 from docker.client import NetworkCollection
 
 from autonomy.deploy.generators.docker_compose.base import Network
-
 
 BASE_SUBNET = cast(
     ipaddress.IPv4Network,

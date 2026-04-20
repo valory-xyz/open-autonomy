@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -28,8 +28,7 @@ from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
-from web3.types import BlockData, EventData, TxReceipt
-
+from aea_ledger_ethereum import EthereumApi
 
 PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
 ETHEREUM_IDENTIFIER = "ethereum"
@@ -91,6 +90,7 @@ class ServiceRegistryContract(Contract):
     @staticmethod
     def is_l1_chain(ledger_api: LedgerApi) -> bool:
         """Check if we're interecting with an L1 chain"""
+        ledger_api = cast(EthereumApi, ledger_api)
         return ledger_api.api.eth.chain_id in L1_CHAINS
 
     @staticmethod
@@ -130,6 +130,7 @@ class ServiceRegistryContract(Contract):
         :param contract_address: the contract address
         :return: the verified status
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         chain_id = ledger_api.api.eth.chain_id
         expected_address = EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID[chain_id]
         if contract_address != expected_address:
@@ -187,6 +188,7 @@ class ServiceRegistryContract(Contract):
         service_id: int,
     ) -> Dict[str, Any]:
         """Retrieve the service owner."""
+        ledger_api = cast(EthereumApi, ledger_api)
         contract_instance = cls.get_instance(ledger_api, contract_address)
         service_owner = contract_instance.functions.ownerOf(service_id).call()
         checksum_service_owner = ledger_api.api.to_checksum_address(service_owner)
@@ -343,17 +345,16 @@ class ServiceRegistryContract(Contract):
         :param tx_hash: the hash of a slash tx to be processed.
         :return: a dictionary with the timestamp of the slashing and the `OperatorSlashed` events.
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         contract = cls.get_instance(ledger_api, contract_address)
-        receipt: TxReceipt = ledger_api.api.eth.get_transaction_receipt(tx_hash)
-        logs: List[EventData] = list(
-            contract.events.OperatorSlashed().process_receipt(receipt)
-        )
+        receipt = ledger_api.api.eth.get_transaction_receipt(tx_hash)
+        logs = list(contract.events.OperatorSlashed().process_receipt(receipt))
 
         if len(logs) == 0:
             _logger.error(f"No `OperatorSlashed` event was emitted in tx {tx_hash}.")
             return None
 
-        block: BlockData = ledger_api.api.eth.get_block(receipt["blockNumber"])
+        block = ledger_api.api.eth.get_block(receipt["blockNumber"])
 
         return {
             "slash_timestamp": block["timestamp"],

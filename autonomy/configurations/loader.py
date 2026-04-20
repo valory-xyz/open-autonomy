@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ from aea.helpers.yaml_utils import yaml_load_all
 
 from autonomy.configurations.base import Service, load_dependencies
 
-
 COMPONENT_CONFIGS: Dict = {
     component.package_type.value: component  # type: ignore
     for component in [
@@ -56,7 +55,7 @@ def load_service_config(
     if substitute_env_vars:
         warn(
             "`substitute_env_vars` argument is deprecated and will be removed in v1.0.0, "
-            "usage of environment varibales is default now.",
+            "usage of environment variables is default now.",
             DeprecationWarning,
             stacklevel=2,
         )

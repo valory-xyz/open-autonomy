@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,17 +18,22 @@
 # ------------------------------------------------------------------------------
 
 """Utility functions."""
+
 from json import JSONDecodeError
 from typing import Dict
 
 from aea.configurations.data_types import PackageId, PublicId
 from aea.crypto.base import LedgerApi
-from requests import get as r_get
-from requests.exceptions import ConnectionError as RequestConnectionError
+from aea.helpers.http_requests import ConnectionError as AeaHttpConnectionError
+from aea.helpers.http_requests import get as r_get
 
 from autonomy.chain.base import registry_contracts
 from autonomy.chain.constants import SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS
-from autonomy.chain.exceptions import DependencyError, FailedToRetrieveComponentMetadata
+from autonomy.chain.exceptions import (
+    DependencyError,
+    FailedToRetrieveComponentMetadata,
+    get_requests_connection_error,
+)
 from autonomy.chain.metadata import IPFS_URI_PREFIX
 from autonomy.constants import OLAS_DOCS_URL
 
@@ -61,7 +66,7 @@ def resolve_component_id(
             contract_address=contract_address,
             token_id=token_id,
         )
-    except RequestConnectionError as e:
+    except get_requests_connection_error() as e:
         raise FailedToRetrieveComponentMetadata(
             "Error connecting to the RPC. Please make sure that "
             "you have set the chain RPC environment variable correctly. "
@@ -70,7 +75,7 @@ def resolve_component_id(
 
     try:
         return r_get(url=metadata_uri, timeout=30).json()
-    except RequestConnectionError as e:
+    except AeaHttpConnectionError as e:
         raise FailedToRetrieveComponentMetadata(
             "Error connecting to the IPFS gateway"
         ) from e

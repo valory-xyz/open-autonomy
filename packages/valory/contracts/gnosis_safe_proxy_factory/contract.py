@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,16 +18,15 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the class to connect to an Gnosis Safe Proxy Factory contract."""
+
 import logging
-from typing import Any, Optional, Tuple, cast
+from typing import Any, Dict, Optional, Tuple, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
-from web3.types import Nonce, TxParams, Wei
-
 
 PUBLIC_ID = PublicId.from_str("valory/gnosis_safe_proxy_factory:0.1.0")
 MIN_GAS = 1
@@ -96,7 +95,7 @@ class GnosisSafeProxyFactoryContract(Contract):
         max_fee_per_gas: Optional[int] = None,
         max_priority_fee_per_gas: Optional[int] = None,
         nonce: Optional[int] = None,
-    ) -> Tuple[TxParams, str]:
+    ) -> Tuple[Dict[str, Any], str]:
         """
         Deploy proxy contract via Proxy Factory using `createProxyWithNonce` (create2)
 
@@ -119,18 +118,18 @@ class GnosisSafeProxyFactoryContract(Contract):
             master_copy, initializer, salt_nonce
         )
 
-        tx_parameters = TxParams({"from": address})
+        tx_parameters: Dict[str, Any] = {"from": address}
         contract_address = create_proxy_fn.call(tx_parameters)
 
         if gas_price is not None:
-            tx_parameters["gasPrice"] = Wei(gas_price)  # pragma: nocover
+            tx_parameters["gasPrice"] = gas_price  # pragma: nocover
 
         if max_fee_per_gas is not None:
-            tx_parameters["maxFeePerGas"] = Wei(max_fee_per_gas)  # pragma: nocover
+            tx_parameters["maxFeePerGas"] = max_fee_per_gas  # pragma: nocover
 
         if max_priority_fee_per_gas is not None:
-            tx_parameters["maxPriorityFeePerGas"] = Wei(  # pragma: nocover
-                max_priority_fee_per_gas
+            tx_parameters["maxPriorityFeePerGas"] = (
+                max_priority_fee_per_gas  # pragma: nocover
             )
 
         if (
@@ -141,10 +140,10 @@ class GnosisSafeProxyFactoryContract(Contract):
             tx_parameters.update(ledger_api.try_get_gas_pricing())
 
         # we set a value to avoid triggering the gas estimation during `buildTransaction` below
-        tx_parameters["gas"] = Wei(max(gas, MIN_GAS))
+        tx_parameters["gas"] = max(gas, MIN_GAS)
 
         if nonce is not None:
-            tx_parameters["nonce"] = Nonce(nonce)
+            tx_parameters["nonce"] = nonce
 
         transaction_dict = create_proxy_fn.build_transaction(tx_parameters)
         gas_estimate = (
@@ -154,9 +153,9 @@ class GnosisSafeProxyFactoryContract(Contract):
         )
         # see https://github.com/valory-xyz/open-autonomy/pull/1209#discussion_r950129886
         transaction_dict["gas"] = (
-            Wei(max(gas_estimate + GAS_ESTIMATE_ADJUSTMENT, gas))
+            max(gas_estimate + GAS_ESTIMATE_ADJUSTMENT, gas)
             if gas_estimate is not None
-            else Wei(gas)
+            else gas
         )
         return transaction_dict, contract_address
 

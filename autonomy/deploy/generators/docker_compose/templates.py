@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,12 +19,10 @@
 
 """Deployment Templates."""
 
-
 import textwrap
 from typing import Dict
 
 import yaml
-
 
 TENDERMINT_CONFIG_TEMPLATE: str = (
     """bash /app/build.sh "{validators}" "{hosts}" "{user}" """

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,13 +18,15 @@
 # ------------------------------------------------------------------------------
 
 """Custom objects for the transaction settlement ABCI application."""
+
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from web3.types import Nonce, Wei
-
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
+from packages.valory.skills.abstract_round_abci.models import (
+    ApiSpecs,
+    BaseParams,
+)
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
@@ -32,11 +34,12 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.abstract_round_abci.models import TypeCheckMixin
+from packages.valory.skills.abstract_round_abci.models import (
+    TypeCheckMixin,
+)
 from packages.valory.skills.squads_transaction_settlement_abci.rounds import (
     SolanaTransactionSubmissionAbciApp,
 )
-
 
 _MINIMUM_VALIDATE_TIMEOUT = 300  # 5 minutes
 BenchmarkTool = BaseBenchmarkTool
@@ -54,8 +57,8 @@ class MutableParams(TypeCheckMixin):
 
     fallback_gas: int
     tx_hash: str = ""
-    nonce: Optional[Nonce] = None
-    gas_price: Optional[Dict[str, Wei]] = None
+    nonce: Optional[int] = None
+    gas_price: Optional[Dict[str, int]] = None
     late_messages: List[ContractApiMessage] = field(default_factory=list)
 
 

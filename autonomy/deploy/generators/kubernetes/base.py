@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -73,9 +73,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     ) -> str:
         """Build agent deployment."""
 
-        host_names = ", ".join(
-            [f'"--hostname=abci{i}"' for i in range(number_of_agents)]
-        )
+        host_names = " ".join([f"--hostname=abci{i}" for i in range(number_of_agents)])
 
         agent_ports_deployment = ""
         if agent_ports is not None:
@@ -151,17 +149,10 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         return res
 
     def generate_config_tendermint(self) -> "KubernetesGenerator":
-        """Build configuration job."""
+        """Generate PVC configuration for the deployment."""
 
-        if self.tendermint_job_config is not None:  # pragma: no cover
+        if self.cluster_config is not None:  # pragma: no cover
             return self
-
-        host_names = ", ".join(
-            [
-                f'"--hostname=abci{i}"'
-                for i in range(self.service_builder.service.number_of_agents)
-            ]
-        )
 
         pvcs = ""
         extra_volumes = self.service_builder.service.deployment_config.get(
@@ -175,12 +166,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             )
             host_path.mkdir(exist_ok=True, parents=True)
 
-        self.tendermint_job_config = CLUSTER_CONFIGURATION_TEMPLATE.format(
-            valory_app=self.service_builder.service.agent.name,
-            number_of_validators=self.service_builder.service.number_of_agents,
-            host_names=host_names,
-            tendermint_image_name=TENDERMINT_IMAGE_NAME,
-            tendermint_image_version=TENDERMINT_IMAGE_VERSION,
+        self.cluster_config = CLUSTER_CONFIGURATION_TEMPLATE.format(
             pvcs=pvcs,
         )
 
@@ -207,7 +193,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             # insert an ACN node into resources
             ...
 
-        agent_vars = self.service_builder.generate_agents()  # type:ignore
+        agent_vars = self.service_builder.generate_agents()  # type: ignore
         runtime_image = OAR_IMAGE.format(
             image_author=self.image_author,
             agent=self.service_builder.service.agent.name,
@@ -240,7 +226,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     ) -> "KubernetesGenerator":
         """Write output to build dir"""
 
-        output = "---\n".join([self.output, cast(str, self.tendermint_job_config)])
+        output = "---\n".join([self.output, cast(str, self.cluster_config)])
         if not self.build_dir.is_dir():  # pragma: no cover
             self.build_dir.mkdir()
         with open(

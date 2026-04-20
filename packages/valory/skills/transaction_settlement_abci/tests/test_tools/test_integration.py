@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ from unittest import mock
 
 import pytest
 from aea.exceptions import AEAActException
-from web3.types import Nonce, Wei
 
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
@@ -45,7 +44,6 @@ from packages.valory.skills.transaction_settlement_abci.test_tools.integration i
     _SafeConfiguredHelperIntegration,
     _TxHelperIntegration,
 )
-
 
 DUMMY_TX_HASH = "a" * 234
 
@@ -141,8 +139,8 @@ class Test_TxHelperIntegration(FSMBehaviourTestToolSetup):
 
         test_instance = self.instantiate_test()
 
-        nonce = Nonce(0)
-        gas_price = {"maxPriorityFeePerGas": Wei(0), "maxFeePerGas": Wei(0)}
+        nonce = 0
+        gas_price = {"maxPriorityFeePerGas": 0, "maxFeePerGas": 0}
         behaviour = cast(FinalizeBehaviour, test_instance.behaviour.current_behaviour)
         behaviour.params.mutable_params.gas_price = gas_price
         behaviour.params.mutable_params.nonce = nonce

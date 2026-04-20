@@ -8,16 +8,15 @@ aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeidavn55z6uoz3hdjxs4ukvykl2tkvbntnl22uexfyk7unpnfqjflq
   __init__.py: bafybeigzxw44dlgdb4qxhm6zul426uyxnqtlhe3oajivdyo3ue7kb45pai
-  build/MultiSend.json: bafybeicamzvsaaxtboijwfnv24ctrgv5v7gn5irnydnuf62y57o7fmx2jm
-  contract.py: bafybeid5h5sro6nt7jmr52ntqdwo4ajhdyxy5estq625gzvo3dbkjuzxia
+  build/MultiSend.json: bafybeieaomogjpwbzk3t2sieueh6schr4rztmvuxgzhpmwhovg7plsd4ie
+  contract.py: bafybeihm6qv3bmsfxw2ex2itctgffbqrkqjva63rof6svjyctqknkfmahi
   tests/__init__.py: bafybeifd5zc6x3oxef7uy6mhjnt6oybna6ux7ycareqoqo52czkfxaeawm
-  tests/test_contract.py: bafybeid72mml6mvtv6qqr7r6a2nfbgbwpkhyitx5mmdtzcejt5zo7wcmje
+  tests/test_contract.py: bafybeihu6tohdcbc3zs3n7v2tcpcnayorec4cgjpozycbyzd5ytqruas2m
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: MultiSendContract
 contract_interface_paths:
   ethereum: build/MultiSend.json
 dependencies:
-  hexbytes: {}
-  web3:
-    version: <8,>=7.0.0
+  open-aea-ledger-ethereum:
+    version: ==2.2.1

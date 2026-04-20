@@ -22,29 +22,48 @@ import os
 import re
 from typing import Dict
 
-from setuptools import find_packages, setup  # type: ignore
-
 
 PACKAGE_NAME = "autonomy"
 here = os.path.abspath(os.path.dirname(__file__))
 
 
 def get_all_extras() -> Dict:
+    # `click`, `pytest`, `coverage` are pulled transitively via
+    # `open-aea[all]` (which implies its own `[cli]` extra), so we only
+    # need to declare the IPFS CLI plugin here.
     cli_deps = [
-        "click>=8.1.0,<9",
-        "open-aea-cli-ipfs==2.0.8",
-        "texttable==1.6.7",
-        "python-dotenv>=0.14.5,<0.22.0",
-        "pytest>=7.0.0,<7.5.0",
-        "coverage>=6.4.4,<8.0.0",
+        "open-aea-cli-ipfs==2.2.1",
+    ]
+
+    chain_deps = [
+        "open-aea-ledger-ethereum==2.2.1",
+    ]
+
+    docker_deps = [
+        "docker==7.1.0",
+    ]
+
+    hwi_deps = [
+        "open-aea-ledger-ethereum-hwi==2.2.1",
     ]
 
     extras = {
         "cli": cli_deps,
+        "chain": chain_deps,
+        "docker": docker_deps,
+        "hwi": hwi_deps,
     }
 
-    # add "all" extras
-    extras["all"] = list(set(dep for e in extras.values() for dep in e))
+    # [all] intentionally excludes [hwi] and [docker]:
+    # * HWI's transitive deps (hidapi, Pillow via ledgerwallet) have
+    #   no armv7 wheels, breaking multi-platform Docker builds.
+    # * [docker] is only needed for docker-compose-based deployments;
+    #   users deploying to Kubernetes / localhost don't need it.
+    # Install them explicitly: `pip install open-autonomy[hwi,docker]`.
+    _opt_out = {"hwi", "docker"}
+    extras["all"] = list(
+        set(dep for k, e in extras.items() for dep in e if k not in _opt_out)
+    )
     return extras
 
 
@@ -52,21 +71,7 @@ all_extras = get_all_extras()
 
 
 base_deps = [
-    "Flask>=2.0.2,<3.0.0",
-    "open-aea[all]==2.0.8",
-    "watchdog>=2.1.6",
-    "pytest==7.4.4",
-    "werkzeug==2.0.3",
-    "docker==7.1.0",
-    "hexbytes",
-    "jsonschema<4.4.0,>=4.3.0",
-    "protobuf<4.25.0,>=4.21.6",
-    "gql==3.5.0",
-    "requests<2.32.5,>=2.28.1",
-    "requests-toolbelt==1.0.0",  # Required for graphql client
-    "aiohttp<4.0.0,>=3.8.5",
-    "typing_extensions<=4.13.2,>=3.10.0.2",
-    "multiaddr==0.0.9"
+    "open-aea[all]==2.2.1",
 ]
 base_deps.extend(all_extras["cli"])
 
@@ -88,6 +93,8 @@ def parse_readme():
 
 
 if __name__ == "__main__":
+    from setuptools import find_packages, setup
+
     setup(
         name=about["__title__"],
         description=about["__description__"],
@@ -124,7 +131,7 @@ if __name__ == "__main__":
         classifiers=[
             "Environment :: Console",
             "Environment :: Web Environment",
-            "Development Status :: 2 - Pre-Alpha",
+            "Development Status :: 5 - Production/Stable",
             "Intended Audience :: Developers",
             "License :: OSI Approved :: Apache Software License",
             "Natural Language :: English",
@@ -133,6 +140,9 @@ if __name__ == "__main__":
             "Operating System :: Unix",
             "Programming Language :: Python :: 3.10",
             "Programming Language :: Python :: 3.11",
+            "Programming Language :: Python :: 3.12",
+            "Programming Language :: Python :: 3.13",
+            "Programming Language :: Python :: 3.14",
             "Topic :: Communications",
             "Topic :: Internet",
             "Topic :: Scientific/Engineering",

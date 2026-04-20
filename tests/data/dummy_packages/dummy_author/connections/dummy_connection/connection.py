@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,12 +17,12 @@
 #
 # ------------------------------------------------------------------------------
 """Scaffold connection and channel."""
+
 from typing import Any, Optional
 
 from aea.configurations.base import PublicId
 from aea.connections.base import BaseSyncConnection, Connection
 from aea.mail.base import Envelope
-
 
 """
 Choose one of the possible implementations:

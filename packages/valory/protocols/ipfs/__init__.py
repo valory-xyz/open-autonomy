@@ -26,5 +26,4 @@ It was created with protocol buffer compiler version `libprotoc 24.3` and aea pr
 from packages.valory.protocols.ipfs.message import IpfsMessage
 from packages.valory.protocols.ipfs.serialization import IpfsSerializer
 
-
 IpfsMessage.serializer = IpfsSerializer

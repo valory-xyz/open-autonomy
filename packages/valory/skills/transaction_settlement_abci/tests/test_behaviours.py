@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -51,9 +51,11 @@ from aea.helpers.transaction.base import (
     SignedTransaction,
 )
 from aea.helpers.transaction.base import State as TrState
-from aea.helpers.transaction.base import TransactionDigest, TransactionReceipt
+from aea.helpers.transaction.base import (
+    TransactionDigest,
+    TransactionReceipt,
+)
 from aea.skills.base import SkillContext
-from web3.types import Nonce
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import (
@@ -104,7 +106,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TransactionSettlementSynchronizedSata,
 )
-
 
 PACKAGE_DIR = Path(__file__).parent.parent
 
@@ -337,7 +338,7 @@ class TestTransactionSettlementBaseBehaviour(TransactionSettlementFSMBehaviourBa
         assert behaviour.behaviour_id == SignatureBehaviour.auto_behaviour_id()
         # Set `nonce` to the same value as the returned, so that we test the tx replacement logging.
         if replacement:
-            behaviour.params.mutable_params.nonce = Nonce(0)
+            behaviour.params.mutable_params.nonce = 0
 
         # patch the `send_raw_transaction` method
         def dummy_send_raw_transaction(

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -75,7 +75,6 @@ from packages.valory.skills.abstract_round_abci.utils import (
     consensus_threshold,
     is_json_serializable,
 )
-
 
 _logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base")
 
@@ -2540,7 +2539,9 @@ class AbciApp(
     def bg_apps_prioritized(self) -> Tuple[List[BackgroundApp], ...]:
         """Get the background apps grouped and prioritized by their types."""
         n_correct_types = len(BackgroundAppType.correct_types())
-        grouped_prioritized: Tuple[List, ...] = ([],) * n_correct_types
+        grouped_prioritized: Tuple[List, ...] = tuple(
+            [] for _ in range(n_correct_types)
+        )
         for app in self.background_apps:
             # reminder: the values correspond to the priority of the background apps
             for priority in range(n_correct_types):

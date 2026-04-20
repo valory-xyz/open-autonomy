@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,13 +19,12 @@
 
 """Environment variable helpers."""
 
-
 import json
 import os
 from pathlib import Path
 from typing import Dict
 
-from dotenv import load_dotenv
+from aea.helpers.base import load_env_file as _load_dotenv
 
 
 def load_json(file: Path, serialize: bool = False) -> None:
@@ -45,4 +44,4 @@ def load_env_file(file: Path, serialize_json: bool = False) -> None:
     if file.name.endswith(".json"):
         load_json(file=file, serialize=serialize_json)
     else:
-        load_dotenv(dotenv_path=file)
+        _load_dotenv(str(file))

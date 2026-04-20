@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,14 +19,16 @@
 
 """Test `run` command."""
 
-
 import json
 import os
 import shutil
 from unittest import mock
 
+import click
 from aea.configurations.constants import DEFAULT_AEA_CONFIG_FILE, PACKAGES
 
+from autonomy.cli.deploy import build_deployment_command
+from autonomy.cli.deploy import run as run_cmd
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DOCKER_COMPOSE_YAML, VALORY
 from autonomy.deploy.base import ServiceBuilder
 from autonomy.deploy.constants import (
@@ -41,15 +43,49 @@ from tests.test_autonomy.test_cli.test_deploy.test_build.test_deployment import 
 )
 
 
+def test_run_deployment_type_defaults() -> None:
+    """Test run command deployment type defaults are order-robust."""
+
+    deployment_type_options = [
+        parameter
+        for parameter in run_cmd.params
+        if isinstance(parameter, click.Option) and parameter.name == "deployment_type"
+    ]
+
+    assert len(deployment_type_options) == 2
+    default_values = {option.default for option in deployment_type_options}
+    assert len(default_values) == 1
+    default_value = default_values.pop()
+    assert isinstance(default_value, str)
+    assert default_value in {option.flag_value for option in deployment_type_options}
+
+
+def test_build_deployment_type_defaults() -> None:
+    """Test build command deployment type defaults are order-robust."""
+
+    deployment_type_options = [
+        parameter
+        for parameter in build_deployment_command.params
+        if isinstance(parameter, click.Option) and parameter.name == "deployment_type"
+    ]
+
+    assert len(deployment_type_options) == 3
+    default_values = {option.default for option in deployment_type_options}
+    assert len(default_values) == 1
+    default_value = default_values.pop()
+    assert isinstance(default_value, str)
+    assert default_value in {option.flag_value for option in deployment_type_options}
+
+
 class TestRun(BaseCliTest):
     """Test `run` command."""
 
     cli_options = ("deploy", "run")
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
 
-        super().setup()
+        super().setup_method()
         os.chdir(self.t)
 
     def test_run(
@@ -64,7 +100,7 @@ class TestRun(BaseCliTest):
 
     def test_run_local(self) -> None:
         """Test that `deploy run` works on localhost."""
-        super().setup()
+        super().setup_method()
 
         # setup the service keys and packages
         self.keys_file = self.t / "keys.json"
@@ -121,9 +157,9 @@ class TestStop(BaseCliTest):
 
     cli_options = ("deploy", "stop")
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
-        super().setup()
+        super().setup_method()
         os.chdir(self.t)
 
     def test_run(

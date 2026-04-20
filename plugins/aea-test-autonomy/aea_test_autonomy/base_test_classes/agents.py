@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,8 +19,10 @@
 
 """End2end tests base class."""
 
+import contextlib
 import json
 import logging
+import shutil
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -37,7 +39,6 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401; pylint: disable=u
     UseLocalIpfs,
 )
 from web3 import Web3
-
 
 TERMINATION_TIMEOUT = 120
 _HTTP = "http://"
@@ -103,6 +104,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
     ledger_id: str = "ethereum"
     key_file_name: str = "ethereum_private_key.txt"
     USE_GRPC = False
+    USE_MOCK = False
     # usually test envs provide the full set of dependencies; only select
     # when you want to run the installation of the packages as part of the test case.
     RUN_AEA_INSTALL = False
@@ -153,6 +155,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
             False,
         )
         self.set_config("vendor.valory.connections.abci.config.use_grpc", self.USE_GRPC)
+        self.set_config("vendor.valory.connections.abci.config.use_mock", self.USE_MOCK)
         self.set_config(
             "vendor.valory.connections.abci.config.tendermint_config.rpc_laddr",
             self.get_laddr(i),
@@ -191,9 +194,11 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
             f"vendor.{skill.author}.skills.{skill.name}.models.params.args.tendermint_url",
             f"{_HTTP}{ANY_ADDRESS}:{self.get_port(i)}",
         )
+        # when using the mock, the mock RPC server handles COM endpoints too
+        com_port = self.get_port(i) if self.USE_MOCK else self.get_com_port(i)
         self.set_config(
             f"vendor.{skill.author}.skills.{skill.name}.models.params.args.tendermint_com_url",
-            f"{_HTTP}{ANY_ADDRESS}:{self.get_com_port(i)}",
+            f"{_HTTP}{ANY_ADDRESS}:{com_port}",
         )
         self.set_config(
             f"vendor.{skill.author}.skills.{skill.name}.models.params.args.keeper_timeout",
@@ -209,6 +214,10 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
             f"vendor.{skill.author}.skills.{skill.name}.models.params.args.reset_pause_duration",
             self.RESET_PAUSE_DURATION,
             type_="int",
+        )
+        self.set_config(
+            "vendor.valory.connections.ledger.config.ledger_apis.ethereum.chain_id",
+            31337,
         )
         self.set_config(
             f"vendor.{skill.author}.skills.{skill.name}.models.params.args.service_registry_address",
@@ -399,6 +408,21 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
                 missing_strict_strings, missing_round_strings, i
             )
 
+    def teardown_method(self) -> None:
+        """Clean up per-method state so pytest-rerunfailures reruns start fresh.
+
+        setup_class creates a single class-scoped tmpdir; without this hook,
+        agent folders fetched in the first run would still exist on rerun,
+        causing `fetch_agent` to fail with "already exists".
+        """
+        with contextlib.suppress(Exception):
+            self.terminate_agents()
+        for agent_name in list(type(self).agents):
+            shutil.rmtree(self.t / agent_name, ignore_errors=True)
+        type(self).agents.clear()
+        type(self).subprocesses.clear()
+        self.unset_agent_context()
+
 
 class BaseTestEnd2EndExecution(BaseTestEnd2End):
     """
@@ -484,6 +508,7 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
         for i in range(self.n_terminal):
             agent_name = self._get_agent_name(i)
             self.processes[i].terminate()
+            self.processes[i].wait()
             self.processes.pop(i)
             logging.info(f"Terminated {agent_name}")
 

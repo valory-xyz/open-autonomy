@@ -50,7 +50,7 @@ def tendermint(tendermint_port: int,
                max_attempts: int = 10) -> Generator
 ```
 
-Launch the Ganache image.
+Launch the Tendermint image.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseTendermint"></a>
 
@@ -207,6 +207,83 @@ def health_check(**kwargs: Any) -> None
 
 Perform a health check.
 
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseMockTendermint"></a>
+
+## UseMockTendermint Objects
+
+```python
+class UseMockTendermint()
+```
+
+Mixin that replaces Tendermint with the mock channel for single-agent tests.
+
+Place before BaseTestEnd2EndExecution in the MRO to shadow UseFlaskTendermintNode methods.
+Usage::
+
+    class TestMySkill(BaseTestEnd2EndExecution): ...           # real TM
+    class TestMySkillMock(UseMockTendermint, TestMySkill): ... # mock TM
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseMockTendermint.p2p_seeds"></a>
+
+#### p2p`_`seeds
+
+```python
+@property
+def p2p_seeds() -> List[str]
+```
+
+No p2p seeds for single-agent mock.
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseMockTendermint.get_abci_port"></a>
+
+#### get`_`abci`_`port
+
+```python
+def get_abci_port(i: int) -> int
+```
+
+Get the ABCI port (unused by mock, but required by config).
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseMockTendermint.get_port"></a>
+
+#### get`_`port
+
+```python
+def get_port(i: int) -> int
+```
+
+Get the RPC port — where the mock HTTP server listens.
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseMockTendermint.get_com_port"></a>
+
+#### get`_`com`_`port
+
+```python
+def get_com_port(i: int) -> int
+```
+
+Get the COM port — mock handles resets via the RPC port.
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseMockTendermint.get_laddr"></a>
+
+#### get`_`laddr
+
+```python
+def get_laddr(i: int, p2p: bool = False) -> str
+```
+
+Get the listen address.
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseMockTendermint.health_check"></a>
+
+#### health`_`check
+
+```python
+def health_check(**kwargs: Any) -> None
+```
+
+Skip health check — mock starts with the agent.
+
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.ganache_addr"></a>
 
 #### ganache`_`addr
@@ -358,7 +435,7 @@ def acn_node(acn_config: Dict,
              max_attempts: int = 10) -> Generator
 ```
 
-Launch the Ganache image.
+Launch the ACN node image.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseACNNode"></a>
 

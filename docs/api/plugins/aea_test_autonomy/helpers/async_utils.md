@@ -34,7 +34,7 @@ Provides better cancel behaviour: on cancel it will wait till cancelled complete
 #### `__`init`__`
 
 ```python
-def __init__(coro: Union[Coroutine[Any, Any, Any], Generator[Any, None, Any]],
+def __init__(coro: Union[Coroutine[Any, Any, Any]],
              loop: AbstractEventLoop) -> None
 ```
 
@@ -132,9 +132,7 @@ Run code inside thread.
 #### call
 
 ```python
-def call(
-        coro: Union[Coroutine[Any, Any, Any], Generator[Any, None,
-                                                        Any]]) -> Any
+def call(coro: Union[Coroutine[Any, Any, Any]]) -> Any
 ```
 
 Run a coroutine inside the event loop.
@@ -167,12 +165,12 @@ class BaseThreadedAsyncLoop()
 
 Test class with a threaded event loop running.
 
-<a id="plugins.aea-test-autonomy.aea_test_autonomy.helpers.async_utils.BaseThreadedAsyncLoop.setup"></a>
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.helpers.async_utils.BaseThreadedAsyncLoop.setup_method"></a>
 
-#### setup
+#### setup`_`method
 
 ```python
-def setup() -> None
+def setup_method() -> None
 ```
 
 Set up the class.
@@ -182,18 +180,18 @@ Set up the class.
 #### execute
 
 ```python
-def execute(coro: Union[Coroutine[Any, Any, Any], Generator[Any, None, Any]],
+def execute(coro: Union[Coroutine[Any, Any, Any]],
             timeout: float = DEFAULT_ASYNC_TIMEOUT) -> Any
 ```
 
 Execute a coroutine and wait its completion.
 
-<a id="plugins.aea-test-autonomy.aea_test_autonomy.helpers.async_utils.BaseThreadedAsyncLoop.teardown"></a>
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.helpers.async_utils.BaseThreadedAsyncLoop.teardown_method"></a>
 
-#### teardown
+#### teardown`_`method
 
 ```python
-def teardown() -> None
+def teardown_method() -> None
 ```
 
 Teardown the class.

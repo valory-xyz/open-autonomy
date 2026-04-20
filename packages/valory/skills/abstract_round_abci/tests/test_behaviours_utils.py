@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import logging
 import platform
 import time
 from abc import ABC
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import (
@@ -43,7 +43,6 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
-import pytz  # pylint: disable=import-error
 from _pytest.logging import LogCaptureFixture
 
 # pylint: skip-file
@@ -104,7 +103,6 @@ from packages.valory.skills.abstract_round_abci.models import (
     TendermintRecoveryParams,
 )
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
-
 
 _DEFAULT_REQUEST_TIMEOUT = 10.0
 _DEFAULT_REQUEST_RETRY_DELAY = 1.0
@@ -502,7 +500,7 @@ class TestBaseBehaviour:
 
     _DUMMY_CONSENSUS_THRESHOLD = 3
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         self.context_mock = MagicMock()
         self.context_params_mock = MagicMock(
@@ -1011,6 +1009,29 @@ class TestBaseBehaviour:
             body='{"error": {"code": "dummy_code", "message": "dummy_message", "data": "dummy_data"}}'
         )
         self.behaviour._tx_not_found(tx_hash="tx_hash", res=res)
+
+    @pytest.mark.parametrize(
+        "body, expected",
+        [
+            (
+                '{"tx_result": {"info": "LateArrivingTransaction: request \'RedeemPayload(...round_count=368...\'."}}',
+                True,
+            ),
+            (
+                '{"tx_result": {"info": "TransactionNotValidError: ..."}}',
+                True,
+            ),
+            (
+                '{"tx_result": {"info": ""}}',
+                False,
+            ),
+        ],
+    )
+    def test_is_invalid_transaction(self, body: str, expected: bool) -> None:
+        """Test _is_invalid_transaction recognizes various transaction error types."""
+        res = MagicMock()
+        res.body = body
+        assert self.behaviour._is_invalid_transaction(res) is expected
 
     @mock.patch.object(BaseBehaviour, "_send_signing_request")
     def test_send_transaction_signing_error(self, *_: Any) -> None:
@@ -2087,7 +2108,7 @@ class TestBaseBehaviour:
 
         else:
             initial_height = INITIAL_HEIGHT
-            genesis_time = timestamp.astimezone(pytz.UTC).strftime(GENESIS_TIME_FMT)
+            genesis_time = timestamp.astimezone(timezone.utc).strftime(GENESIS_TIME_FMT)
             period_count = str(period)
 
             expected = {
@@ -2216,7 +2237,7 @@ class TestBaseBehaviour:
                 next(reset)
             initial_height = INITIAL_HEIGHT
             genesis_time = self.behaviour.context.state.round_sequence.last_round_transition_timestamp.astimezone(
-                pytz.UTC
+                timezone.utc
             ).strftime(
                 "%Y-%m-%dT%H:%M:%S.%fZ"
             )
@@ -2326,7 +2347,7 @@ class TestTmManager:
 
     _DUMMY_CONSENSUS_THRESHOLD = 3
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         self.context_mock = MagicMock()
         self.context_params_mock = MagicMock(
@@ -2644,7 +2665,7 @@ def test_base_behaviour_instantiation_without_attributes_raises_error() -> None:
 class TestIPFSBehaviour:
     """Test IPFSBehaviour tests."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Sets up the tests."""
         self.context_mock = MagicMock()
         self.context_mock.ipfs_dialogues = IpfsDialogues(

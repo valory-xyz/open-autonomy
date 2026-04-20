@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,15 +22,12 @@
 from pathlib import Path
 from string import Template
 
-
-DEPLOYMENT_REPORT: Template = Template(
-    """
+DEPLOYMENT_REPORT: Template = Template("""
 Generated Deployment!\n\n
 Type:                 $type
 Agents:               $agents
 Build Length          $size\n\n
-"""
-)
+""")
 
 DEPLOYMENT_KEY_DIRECTORY = "agent_keys"
 DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA = "agent_{agent_n}"

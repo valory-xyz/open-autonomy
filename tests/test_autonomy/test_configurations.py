@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ class TestServiceConfig:
         """Setup test class."""
         cls.cwd = Path.cwd()
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test."""
@@ -166,7 +166,21 @@ class TestServiceConfig:
         service = load_service_config(self.t, substitute_env_vars=True)
         assert service.number_of_agents == 1
 
-    def teardown(
+    def test_overrides_accept_env_var_placeholders_in_typed_fields(
+        self,
+    ) -> None:
+        """Test that overrides with env var placeholders in non-string fields are accepted."""
+
+        dummy_service = get_dummy_service_config(file_number=5)
+        self._write_service(dummy_service)
+
+        service = load_service_config(self.t)
+        assert len(service.overrides) == 1
+
+        connection_override = service.overrides[0]
+        assert connection_override["is_abstract"] == "${DISABLE_CONNECTION:bool:true}"
+
+    def teardown_method(
         self,
     ) -> None:
         """Teardown test."""

@@ -26,7 +26,6 @@ from typing import Callable, Dict, List, Optional, Tuple, cast
 
 from aea.configurations.data_types import PublicId
 from aea.crypto.base import Crypto, LedgerApi
-from hexbytes import HexBytes
 
 from autonomy.chain.base import ServiceState, registry_contracts
 from autonomy.chain.config import ChainType, ContractConfigs
@@ -53,7 +52,6 @@ from autonomy.chain.exceptions import (
 )
 from autonomy.chain.mint import transact
 from autonomy.chain.tx import TxSettler
-
 
 NULL_ADDRESS = "0x0000000000000000000000000000000000000000"
 DEFAULT_FALLBACK_HANDLER = "0xf48f2b2d2a534e402487b3ee7c18c33aec0fe5e4"
@@ -755,13 +753,11 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
         txs.append(
             {
                 "to": multisig_address,
-                "data": HexBytes(
-                    bytes.fromhex(
-                        multisig_instance.encode_abi(
-                            abi_element_identifier="addOwnerWithThreshold",
-                            args=[_owner, 1],
-                        )[2:]
-                    )
+                "data": bytes.fromhex(
+                    multisig_instance.encode_abi(
+                        abi_element_identifier="addOwnerWithThreshold",
+                        args=[_owner, 1],
+                    )[2:]
                 ),
                 "operation": MultiSendOperation.CALL,
                 "value": 0,
@@ -771,13 +767,11 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
     txs.append(
         {
             "to": multisig_address,
-            "data": HexBytes(
-                bytes.fromhex(
-                    multisig_instance.encode_abi(
-                        abi_element_identifier="removeOwner",
-                        args=[new_owners[0], service_owner, 1],
-                    )[2:]
-                )
+            "data": bytes.fromhex(
+                multisig_instance.encode_abi(
+                    abi_element_identifier="removeOwner",
+                    args=[new_owners[0], service_owner, 1],
+                )[2:]
             ),
             "operation": MultiSendOperation.CALL,
             "value": 0,
@@ -787,13 +781,11 @@ def get_reuse_multisig_payload(  # pylint: disable=too-many-locals
     txs.append(
         {
             "to": multisig_address,
-            "data": HexBytes(
-                bytes.fromhex(
-                    multisig_instance.encode_abi(
-                        abi_element_identifier="changeThreshold",
-                        args=[threshold],
-                    )[2:]
-                )
+            "data": bytes.fromhex(
+                multisig_instance.encode_abi(
+                    abi_element_identifier="changeThreshold",
+                    args=[threshold],
+                )[2:]
             ),
             "operation": MultiSendOperation.CALL,
             "value": 0,

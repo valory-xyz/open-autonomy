@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint Docker image."""
+
 import logging
 import os
 import subprocess  # nosec
@@ -34,7 +35,6 @@ from aea_test_autonomy.configurations import (
 from aea_test_autonomy.docker.base import DockerImage
 from aea_test_autonomy.helpers.base import tendermint_health_check
 from docker.models.containers import Container
-
 
 _TCP = "tcp://"
 _HTTP = "http://"
@@ -307,7 +307,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         """
         for i in range(self.nb_nodes):
             path = Path(f"{os.getcwd()}", "nodes", f"node{i}", "config")
-            os.makedirs(path)
+            os.makedirs(path, exist_ok=True)
             open(  # pylint: disable=consider-using-with,unspecified-encoding
                 path / "config.toml", "a"
             ).close()

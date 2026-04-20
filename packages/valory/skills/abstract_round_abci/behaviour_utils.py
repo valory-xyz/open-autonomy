@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """This module contains helper classes for behaviours."""
-
 
 import datetime
 import inspect
@@ -42,7 +41,6 @@ from typing import (
     cast,
 )
 
-import pytz
 from aea.exceptions import enforce
 from aea.mail.base import EnvelopeContext
 from aea.protocols.base import Message
@@ -108,7 +106,6 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState,
     TendermintRecoveryParams,
 )
-
 
 # TODO: port registration code from registration_abci to here
 
@@ -935,7 +932,7 @@ class BaseBehaviour(
     def _is_invalid_transaction(res: HttpMessage) -> bool:
         """Check if the transaction is invalid."""
         try:
-            error_codes = ["TransactionNotValidError"]
+            error_codes = ["TransactionNotValidError", "LateArrivingTransaction"]
             body_ = json.loads(res.body)
             return any(
                 [error_code in body_["tx_result"]["info"] for error_code in error_codes]
@@ -1909,9 +1906,9 @@ class BaseBehaviour(
         last_round_transition_timestamp = (
             self.round_sequence.last_round_transition_timestamp
         )
-        genesis_time = last_round_transition_timestamp.astimezone(pytz.UTC).strftime(
-            GENESIS_TIME_FMT
-        )
+        genesis_time = last_round_transition_timestamp.astimezone(
+            datetime.timezone.utc
+        ).strftime(GENESIS_TIME_FMT)
         return {
             "genesis_time": genesis_time,
             "initial_height": INITIAL_HEIGHT,

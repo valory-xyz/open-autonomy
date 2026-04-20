@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,12 +26,11 @@ NOTE: This code is adapted from the google protobuf Python library. Specifically
 
 import os
 import re
+import shutil
 import subprocess  # nosec
 import sys
-from distutils.spawn import find_executable
 from pathlib import Path
 from typing import cast
-
 
 PACKAGE_IMPORT_PATH_PREFIX = "packages.valory.connections.abci"
 
@@ -49,7 +48,7 @@ def _find_protoc() -> str:
     elif os.path.exists("../vsprojects/Release/protoc.exe"):
         protoc_bin = "../vsprojects/Release/protoc.exe"
     else:
-        which_protoc = find_executable("protoc")
+        which_protoc = shutil.which("protoc")
         if which_protoc is None:
             raise ValueError("cannot find 'protoc' binary on the system.")
         protoc_bin = which_protoc

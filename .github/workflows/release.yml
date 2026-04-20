@@ -12,10 +12,10 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.10"]
+        python-version: ["3.14"]
     steps:
-      - uses: actions/checkout@master
-      - uses: actions/setup-python@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -23,19 +23,22 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          python -m pip install --upgrade pip
-          pip install pipenv twine
+          python -m pip install --upgrade pip setuptools
+          pip install poetry twine build
           python --version
 
       - name: Build wheels and source tarball
         run: |
           echo Processing open-autonomy
-          pipenv run make dist
+          # python -m build performs PEP 517 isolated builds — it does
+          # not need the project's runtime deps, only the `build` package.
+          # Run outside poetry's venv so system-installed `build` is used.
+          make dist
 
-          echo Processing aea-test-autonomy
-          cd plugins/aea-test-autonomy
-          pipenv run python setup.py sdist bdist_wheel
-          cd ../..
+          for plugin in aea-test-autonomy aea-helpers; do
+            echo "Processing $plugin"
+            (cd "plugins/$plugin" && python -m build --sdist --wheel)
+          done
 
       - name: Publish open-autonomy Framework to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -53,6 +56,14 @@ jobs:
           skip_existing: true
           packages_dir: plugins/aea-test-autonomy/dist/
 
+      - name: Publish open-aea-helpers Plugin to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          skip_existing: true
+          packages_dir: plugins/aea-helpers/dist/
+
   publish-autonomy-packages:
     name: Push Open Autonomy Packages
     runs-on: ${{ matrix.os }}
@@ -61,11 +72,11 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.10"]
+        python-version: ["3.14"]
 
     steps:
-      - uses: actions/checkout@master
-      - uses: actions/setup-python@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -73,8 +84,12 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          python -m pip install --upgrade pip
-          pip install open-autonomy[all] --no-cache
+          python -m pip install --upgrade pip setuptools
+          pip install .[all] --no-cache
+          # Pin Click >=8.3.0: flag_value default handling is broken in <8.3,
+          # causing autonomy init --remote --ipfs to ignore the flags.
+          # Remove once setup.py lower bound is raised to >=8.3.0.
+          pip install "click>=8.3.0,<8.4.0" --no-cache
 
       - name: Push Packages
         run: |
@@ -87,7 +102,7 @@ jobs:
     needs:
       - publish-autonomy-packages
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Docker login
         env:
           DOCKER_USER: ${{secrets.DOCKER_USER}}
@@ -100,7 +115,7 @@ jobs:
           docker buildx create --use --name multibuild
           docker buildx inspect --bootstrap
       - name: Set up tag
-        run: echo export TAG=$(python3 -c "from setup import about; print(about[\"__version__\"])") > env.sh
+        run: echo export TAG=$(python3 -c "import runpy; print(runpy.run_path('autonomy/__version__.py')['__version__'])") > env.sh
       - name: Build and push version tagged images
         run: |
           # export `TAG` variable
@@ -114,7 +129,7 @@ jobs:
     needs:
       - publish-autonomy-packages
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Docker login
         env:
           DOCKER_USER: ${{secrets.DOCKER_USER}}
@@ -127,7 +142,7 @@ jobs:
           docker buildx create --use --name multibuild
           docker buildx inspect --bootstrap
       - name: Set up tag
-        run: echo export TAG=$(python3 -c "from setup import about; print(about[\"__version__\"])") > env.sh
+        run: echo export TAG=$(python3 -c "import runpy; print(runpy.run_path('autonomy/__version__.py')['__version__'])") > env.sh
       - name: Build and push version tagged images
         run: |
           # export `TAG` variable
@@ -141,7 +156,7 @@ jobs:
     needs:
       - publish-autonomy-packages
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Docker login
         env:
           DOCKER_USER: ${{secrets.DOCKER_USER}}
@@ -154,7 +169,7 @@ jobs:
           docker buildx create --use --name multibuild
           docker buildx inspect --bootstrap
       - name: Set up tag
-        run: echo export TAG=$(python3 -c "from setup import about; print(about[\"__version__\"])") > env.sh
+        run: echo export TAG=$(python3 -c "import runpy; print(runpy.run_path('autonomy/__version__.py')['__version__'])") > env.sh
       - name: Build and push version tagged images
         run: |
           # export `TAG` variable
@@ -172,7 +187,7 @@ jobs:
     needs:
       - publish-autonomy-packages
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Docker login
         env:
           DOCKER_USER: ${{secrets.DOCKER_USER}}
@@ -185,7 +200,7 @@ jobs:
           docker buildx create --use --name multibuild
           docker buildx inspect --bootstrap
       - name: Set up tag
-        run: echo export TAG=$(python3 -c "from setup import about; print(about[\"__version__\"])") > env.sh
+        run: echo export TAG=$(python3 -c "import runpy; print(runpy.run_path('autonomy/__version__.py')['__version__'])") > env.sh
       - name: Build and push version tagged images
         run: |
           # export `TAG` variable

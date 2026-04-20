@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2024 Valory AG
+#   Copyright 2024-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Localhost Deployment utilities."""
+
 import json
 import os
 import platform
@@ -35,7 +36,6 @@ from autonomy.deploy.constants import (
     TENDERMINT_BIN_UNIX,
     TENDERMINT_BIN_WINDOWS,
 )
-
 
 LOCAL_TENDERMINT_VERSION = "0.34.19"
 
@@ -133,11 +133,16 @@ def setup_agent(working_dir: Path, agent_dir: Path, keys_file: Path) -> None:
         cwd=working_dir,
     )
 
-    # add private keys
+    # add private keys; pass AEA_PASSWORD so aea add-key can decrypt
+    # encrypted key files (the aea CLI reads it via envvar= on the
+    # Click option, see open-aea#825)
     shutil.copy(keys_file, agent_dir)
+    password = env.get("AEA_PASSWORD", "")
+    cmd_env = {**os.environ, "AEA_PASSWORD": password} if password else None
     _run_aea_cmd(
         ["add-key", ChainType.ETHEREUM.value],
         cwd=agent_dir,
         ignore_error="already present",
+        env=cmd_env,
     )
     _run_aea_cmd(["issue-certificates"], cwd=agent_dir)

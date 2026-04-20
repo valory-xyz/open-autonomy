@@ -31,7 +31,6 @@ from packages.valory.protocols.tendermint.custom_types import (
     ErrorCode as CustomErrorCode,
 )
 
-
 _default_logger = logging.getLogger("aea.packages.valory.protocols.tendermint.message")
 
 DEFAULT_BODY_SIZE = 4

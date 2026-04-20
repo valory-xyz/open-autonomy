@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests package for the 'valory/abci' protocol."""
+
 import datetime
 from abc import abstractmethod
 from typing import Callable, Type

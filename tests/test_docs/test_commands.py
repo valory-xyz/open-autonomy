@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,10 +26,10 @@ from pathlib import Path
 from typing import Dict, Union, cast
 
 import click
+from aea_helpers.check_doc_hashes import read_file
 from click.core import Command, Group, Option
 
 from autonomy.cli import cli as autonomy_cli
-from scripts.check_doc_ipfs_hashes import read_file
 
 
 def get_cmd_data(cmd: Union[Command, Group]) -> Dict:

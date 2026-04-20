@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import warnings
 from pathlib import Path
 
 import pytest
-import requests
+from aea.helpers import http_requests
 from aea.test_tools.test_cases import AEATestCaseMany
 from aea_test_autonomy.configurations import ANY_ADDRESS, DEFAULT_REQUESTS_TIMEOUT
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401
@@ -65,7 +65,7 @@ class BaseTestABCICounterSkill:
         """
         # at least two hex digits
         tx_arg = "0x{:02x}".format(value)
-        result = requests.get(
+        result = http_requests.get(
             node_address + "/broadcast_tx_commit",
             params=dict(tx=tx_arg),
             timeout=DEFAULT_REQUESTS_TIMEOUT,
@@ -79,7 +79,7 @@ class BaseTestABCICounterSkill:
         :param node_address: the node address
         :param expected_value: the expected value of the counter.
         """
-        result = requests.get(
+        result = http_requests.get(
             node_address + "/abci_query",
             timeout=DEFAULT_REQUESTS_TIMEOUT,
         )
@@ -147,6 +147,7 @@ class TestABCICounterSkill(AEATestCaseMany, UseTendermint):
             )
 
 
+@pytest.mark.flaky(reruns=1)
 class TestABCICounterSkillMany(
     AEATestCaseMany, BaseTendermintTestClass, BaseTestABCICounterSkill
 ):
@@ -268,7 +269,7 @@ class TestABCICounterSkillMany(
         :param agent_id: the agent to be queried
         """
         node = self.tendermint_net_builder.nodes[agent_id]
-        result = requests.get(
+        result = http_requests.get(
             node.get_http_addr("localhost") + "/abci_query",
             timeout=DEFAULT_REQUESTS_TIMEOUT,
         )

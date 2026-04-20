@@ -33,6 +33,29 @@ For a clean workflow run checks in following order before making a PR or pushing
 - make common-checks-2
 
 
+### Running tests locally
+
+Most unit tests run without any extra setup. A subset of the test suite relies on docker fixtures — specifically anything decorated with `@pytest.mark.integration` / `@pytest.mark.e2e` or that pulls in `registries_scope_class`, `UseACNNode`, `UseFlaskTendermintNode`, `UseTendermint`, or the `register_reset` recovery helpers. If you only run unit tests (`-m 'not integration and not e2e'`) you don't need docker at all.
+
+If you do need the integration / e2e images, pull the following:
+
+```bash
+# From Docker Hub:
+docker pull valory/autonolas-registries:latest    # registries_scope_class (chain tests, e2e)
+docker pull valory/acn-node:latest                # UseACNNode (register_reset e2e)
+docker pull tendermint/tendermint:v0.34.19        # UseTendermint, test_runtime
+docker pull valory/slow-tendermint-server:0.1.0   # register_reset recovery helpers
+
+# Built locally from the in-repo Dockerfile:
+TM="deployments/Dockerfiles/tendermint/"
+docker build $TM -t valory/open-autonomy-tendermint:0.1.0 \
+                 -t valory/open-autonomy-tendermint:1.0.0 \
+                 -t valory/open-autonomy-tendermint:latest
+```
+
+`.github/workflows/main_workflow.yml` additionally pulls `valory/contracts-amm`, `valory/safe-contract-net`, and `trufflesuite/ganache:beta`, but those fixture classes have no callers in this repo and can be omitted locally. When the workflow is updated, update this section alongside it so the two stay in sync.
+
+
 ### Documentation (Docstrings and inline comments)
 - Instead of writing just single line of docstring write more informative docstring. If a method is fairly easy to understand one line of docstring will do but if the method has more complex logic it needs be documented properly.
 ```python

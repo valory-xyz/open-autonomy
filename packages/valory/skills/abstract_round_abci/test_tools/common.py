@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test common classes."""
+
 import binascii
 import json
 import time
@@ -25,9 +26,23 @@ from pathlib import Path
 from typing import Any, Set, Type, cast
 from unittest import mock
 
-import pytest
 from aea.exceptions import AEAActException
 from aea.skills.base import SkillContext
+
+try:
+    import pytest
+except ImportError:  # pragma: no cover
+
+    class _PytestMissing:  # pylint: disable=too-few-public-methods
+        """Stub that raises a clear ImportError when `pytest` is touched."""
+
+        def __getattr__(self, name: str) -> Any:
+            raise ImportError(
+                "pytest is required to use abstract_round_abci.test_tools. "
+                "Install with `pip install pytest`."
+            )
+
+    pytest = _PytestMissing()  # type: ignore[assignment]
 
 from packages.valory.protocols.contract_api.custom_types import State
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
@@ -39,7 +54,6 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehav
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
-
 
 PACKAGE_DIR = Path(__file__).parent.parent
 DRAND_VALUE = {

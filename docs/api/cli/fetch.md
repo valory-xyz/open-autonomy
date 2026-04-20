@@ -21,13 +21,14 @@ Implementation of the 'autonomy fetch' subcommand.
     "--agent",
     "package_type",
     help="Specify the package type as agent (default).",
-    default=True,
+    default=AGENT,
     flag_value=AGENT,
 )
 @click.option(
     "--service",
     "package_type",
     help="Specify the package type as service.",
+    default=AGENT,
     flag_value=SERVICE,
 )
 @click.argument("public-id", type=PublicIdOrHashOrTokenId(), required=True)

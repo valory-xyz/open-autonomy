@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -56,7 +56,6 @@ from autonomy.deploy.base import (
 
 from tests.test_autonomy.base import get_dummy_service_config
 
-
 COMMON_VARS = (
     ENV_VAR_ID,
     ENV_VAR_AEA_AGENT,
@@ -96,7 +95,7 @@ class TestServiceBuilder:
         """Setup test class."""
         cls.cwd = Path.cwd()
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test."""
@@ -374,7 +373,7 @@ class TestServiceBuilder:
             self.keys_path,
         )
 
-        spec.deplopyment_type = KUBERNETES_DEPLOYMENT
+        spec.deployment_type = KUBERNETES_DEPLOYMENT
         spec.try_update_runtime_params()
         skill_config, *_ = spec.service.overrides
 
@@ -435,7 +434,7 @@ class TestServiceBuilder:
         spec = ServiceBuilder.from_dir(
             self.service_path,
         )
-        spec.deplopyment_type = KUBERNETES_DEPLOYMENT
+        spec.deployment_type = KUBERNETES_DEPLOYMENT
 
         spec.try_update_abci_connection_params()
         (conn_config,) = [
@@ -632,7 +631,7 @@ class TestServiceBuilder:
             == '"Hello from agent 1"'
         )
 
-    def teardown(
+    def teardown_method(
         self,
     ) -> None:
         """Teardown test."""

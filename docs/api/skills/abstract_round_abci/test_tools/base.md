@@ -25,12 +25,12 @@ def setup_class(cls, **kwargs: Any) -> None
 
 Setup the test class.
 
-<a id="packages.valory.skills.abstract_round_abci.test_tools.base.FSMBehaviourBaseCase.setup"></a>
+<a id="packages.valory.skills.abstract_round_abci.test_tools.base.FSMBehaviourBaseCase.setup_method"></a>
 
-#### setup
+#### setup`_`method
 
 ```python
-def setup(**kwargs: Any) -> None
+def setup_method(**kwargs: Any) -> None
 ```
 
 Set up the test method.
@@ -142,12 +142,12 @@ def teardown_class(cls) -> None
 
 Teardown the test class.
 
-<a id="packages.valory.skills.abstract_round_abci.test_tools.base.FSMBehaviourBaseCase.teardown"></a>
+<a id="packages.valory.skills.abstract_round_abci.test_tools.base.FSMBehaviourBaseCase.teardown_method"></a>
 
-#### teardown
+#### teardown`_`method
 
 ```python
-def teardown(**kwargs: Any) -> None
+def teardown_method(**kwargs: Any) -> None
 ```
 
 Teardown.

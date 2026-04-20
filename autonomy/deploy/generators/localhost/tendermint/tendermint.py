@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint manager."""
+
 import json
 import logging
 import os
@@ -29,7 +30,6 @@ from logging import Logger
 from pathlib import Path
 from threading import Event, Thread
 from typing import Any, Dict, List, Optional
-
 
 _TCP = "tcp://"
 ENCODING = "utf-8"
@@ -125,7 +125,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
     @staticmethod
     def get_node_command_kwargs() -> Dict:
         """Get the node command kwargs"""
-        kwargs = {
+        kwargs: Dict = {
             "bufsize": 1,
             "universal_newlines": True,
             "stdout": subprocess.PIPE,
@@ -134,7 +134,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         if platform.system() == "Windows":  # pragma: nocover
             kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
         else:
-            kwargs["preexec_fn"] = os.setsid  # type: ignore
+            kwargs["start_new_session"] = True
         return kwargs
 
 
@@ -188,6 +188,9 @@ class TendermintNode:
             try:
                 if self._process is not None and self._process.stdout is not None:
                     line = self._process.stdout.readline()
+                    if not line:
+                        # EOF: process exited and stdout pipe closed
+                        break
                     self.log(line)
                     for trigger in [
                         # this occurs when we lose connection from the tm side
@@ -249,6 +252,9 @@ class TendermintNode:
             self._unix_stop_tm()
 
         self._stopping = False
+        # Close stdout to unblock the monitoring thread's readline()
+        if self._process is not None and self._process.stdout is not None:
+            self._process.stdout.close()
         self._process = None
         self.log("Tendermint process stopped\n")
 
@@ -280,7 +286,7 @@ class TendermintNode:
         """Stop a monitoring process."""
         if self._monitoring is not None:
             self._monitoring.stop()  # set stop event
-            self._monitoring.join()
+            self._monitoring.join(timeout=10)
 
     def stop(self) -> None:
         """Stop a Tendermint node process."""

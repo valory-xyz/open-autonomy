@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 """GrpcChannel for MockNode"""
+
 # pylint: skip-file
 
 import logging
@@ -28,7 +29,6 @@ import packages.valory.connections.abci.tendermint.abci.types_pb2 as abci_types 
 import packages.valory.connections.abci.tendermint.abci.types_pb2_grpc as tendermint_grpc  # type: ignore
 
 from .base import BaseChannel
-
 
 _default_logger = logging.getLogger(__name__)
 

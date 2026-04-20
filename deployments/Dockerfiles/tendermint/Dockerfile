@@ -1,4 +1,4 @@
-FROM alpine:3.7
+FROM alpine:3.20
 
 ENV TENDERMINT_VERSION=0.34.19
 ENV USE_GRPC=false
@@ -7,10 +7,6 @@ RUN apk update && \
     apk upgrade && \
     apk --no-cache add curl jq file net-tools \
     python3 bash py3-pip
-
-COPY wait-for-it.sh .
-RUN  chmod u+x wait-for-it.sh
-RUN  mv wait-for-it.sh /usr/local/bin
 
 COPY install.sh .
 RUN  chmod u+x install.sh
@@ -25,7 +21,7 @@ COPY tendermint.py /app/
 COPY build.sh /app/
 
 WORKDIR /app
-RUN pip3 install Flask==2.0.2 requests==2.27.1 Werkzeug==2.0.3
+RUN pip3 install --break-system-packages "Flask>=3.1.0,<4.0.0" "requests==2.28.1" "Werkzeug>=3.1.0,<4.0.0"
 
 VOLUME /tendermint
 VOLUME /tm_state

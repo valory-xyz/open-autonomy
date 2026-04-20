@@ -1,4 +1,4 @@
-FROM alpine:3.7
+FROM alpine:3.20
 MAINTAINER Valory AG
 
 ENV TENDERMINT_VERSION=0.34.19
@@ -7,10 +7,6 @@ RUN apk update && \
     apk upgrade && \
     apk --no-cache add curl jq file net-tools \
     python3 bash py3-pip
-
-RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh &&\
-    chmod u+x wait-for-it.sh &&\
-    mv wait-for-it.sh /usr/local/bin
 
 # Download Tendermint
 RUN curl -L https://github.com/tendermint/tendermint/releases/download/v${TENDERMINT_VERSION}/tendermint_${TENDERMINT_VERSION}_linux_amd64.tar.gz > tendermint.tar.gz &&\
@@ -24,7 +20,7 @@ COPY app.py /app/
 COPY tendermint.py /app/
 
 WORKDIR /app
-RUN pip3 install Flask==2.0.2 requests==2.27.1 Werkzeug==2.0.3
+RUN pip3 install --break-system-packages "Flask>=3.1.0,<4.0.0" "requests==2.28.1" "Werkzeug>=3.1.0,<4.0.0"
 
 
 VOLUME /tendermint

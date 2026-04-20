@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the behaviours.py module of the skill."""
+
 # pylint: skip-file
 
 import platform
@@ -58,7 +59,6 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 )
 from packages.valory.skills.abstract_round_abci.models import TendermintRecoveryParams
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
-
 
 BEHAVIOUR_A_ID = "behaviour_a"
 BEHAVIOUR_B_ID = "behaviour_b"
@@ -210,7 +210,7 @@ class ConcreteRoundBehaviour(AbstractRoundBehaviour):
 class TestAbstractRoundBehaviour:
     """Test 'AbstractRoundBehaviour' class."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Set up the tests."""
         self.round_sequence_mock = MagicMock()
         context_mock = MagicMock(params=MagicMock())
@@ -233,6 +233,20 @@ class TestAbstractRoundBehaviour:
             if use_termination
             else self.behaviour.background_behaviours == set()
         )
+
+    def test_setup_pending_offences_included_when_slashing_enabled(self) -> None:
+        """Test that PendingOffencesBehaviour is included when use_slashing=True."""
+        self.behaviour.background_behaviours_cls = {
+            ConcreteBackgroundBehaviour,
+            PendingOffencesBehaviour,
+        }
+        self.behaviour.context.params.use_termination = True
+        self.behaviour.context.params.use_slashing = True
+        self.behaviour.setup()
+        bg_types = {type(b) for b in self.behaviour.background_behaviours}
+        assert (
+            PendingOffencesBehaviour in bg_types
+        ), "PendingOffencesBehaviour should be included when use_slashing=True"
 
     def test_teardown(self) -> None:
         """Test 'teardown' method."""

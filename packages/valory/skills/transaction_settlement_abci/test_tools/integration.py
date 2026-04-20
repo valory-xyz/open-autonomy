@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 
 """Integration tests for various transaction settlement skill's failure modes."""
 
-
 import binascii
 import os
 import tempfile
@@ -31,7 +30,6 @@ from aea.crypto.base import Crypto
 from aea.crypto.registries import make_crypto, make_ledger_api
 from aea_ledger_ethereum import EthereumApi
 from aea_test_autonomy.helpers.contracts import get_register_contract
-from web3.types import Nonce, Wei
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.tests.test_contract import (
@@ -63,7 +61,6 @@ from packages.valory.skills.transaction_settlement_abci.payloads import Signatur
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TxSettlementSynchronizedSata,
 )
-
 
 # pylint: disable=protected-access,too-many-ancestors,unbalanced-tuple-unpacking,too-many-locals,consider-using-with,unspecified-encoding,unidiomatic-typecheck
 
@@ -220,14 +217,12 @@ class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
         )
         assert msg1 is not None and isinstance(msg1, ContractApiMessage)  # nosec
         assert msg3 is not None and isinstance(msg3, LedgerApiMessage)  # nosec
-        nonce_used = Nonce(int(cast(str, msg1.raw_transaction.body["nonce"])))
+        nonce_used = int(cast(str, msg1.raw_transaction.body["nonce"]))
         gas_price_used = {
-            gas_price_param: Wei(
-                int(
-                    cast(
-                        str,
-                        msg1.raw_transaction.body[gas_price_param],
-                    )
+            gas_price_param: int(
+                cast(
+                    str,
+                    msg1.raw_transaction.body[gas_price_param],
                 )
             )
             for gas_price_param in ("maxPriorityFeePerGas", "maxFeePerGas")

@@ -1,5 +1,135 @@
 # Release History - `open-autonomy`
 
+# 0.21.18 (2026-04-16)
+
+Autonomy:
+- Moves `open-aea-ledger-ethereum-hwi` from a hard runtime dependency to an optional `[hwi]` extra. The HWI plugin's transitive deps (`hidapi`, `Pillow` via `ledgerwallet`) have no pre-built armv7 wheels, which broke multi-platform Docker image builds in v0.21.17. Install with `pip install open-autonomy[hwi]` if hardware wallet support is needed.
+
+# 0.21.17 (2026-04-16)
+
+Autonomy:
+- Bumps `open-aea` from `2.1.0` to `2.2.1` and `tomte` from `0.6.1` to `0.6.5` across the entire framework, all plugins, package yamls, Dockerfiles, and skaffold #2470
+- Removes `open-aea-ledger-ethereum-flashbots` plugin references from deployment scripts (`run.sh`, `start.sh`), Docker images, Pipfile, and bump-dependencies config. Skill-level `use_flashbots` API intentionally preserved to avoid on-chain payload wire-format break #2470
+- Fixes `autonomy/chain/metadata.py` to use `add_bytes` instead of removed `add_str` (open-aea-cli-ipfs 2.2.1 API change) #2470
+- Updates `ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH` constant to match regenerated package hashes #2470
+
+Scripts:
+- Migrates all 8 Python scripts from `scripts/` to CLI commands in `tomte`, upstream `aea-ci-helpers`, or OA-local `aea-helpers` #2470
+- Deletes `check_copyright.py`, `check_doc_links.py`, `freeze_dependencies.py`, `generate_api_documentation.py`, `generate_package_list.py`, `check_third_party_hashes.py`, `check_ipfs_hashes_pushed.py`, `generate_contract_list.py`
+- `check_third_party_hashes` and `generate_api_docs` promoted to upstream `open-aea-ci-helpers` (configurable, generic) — OA-local forks deleted #2470
+
+Plugins (aea-helpers):
+- Renames PyPI package from `aea-helpers` to `open-aea-helpers`
+- Removes `check-third-party-hashes` and `generate-api-docs` commands (migrated upstream to `aea-ci`)
+- Retains `generate-contract-list` (OA-specific Olas registry address table)
+- Removes `open-aea-flashbots` from dependency ignore lists
+
+Kubernetes:
+- Fixes k8s initContainer race condition — replaces config-nodes Job with per-pod initContainer using sentinel files and atomic locking #2461
+
+CI:
+- Adds "All checks passed" aggregate gate job #2471
+- Reduces test matrix from 15 to 9 cells #2466
+- Fixes `tomte format-copyright` author strings for tomte 0.6.5 compatibility
+- Fixes `main_workflow.yml` to call `check-doc-links-hashes` (was referencing non-existent `check-doc-hashes` env)
+- Adds flaky external URL skips (modescan.io, gameprogrammingpatterns.com, cointelegraph.com, etc.)
+
+Packages:
+- Updates funds forwarder skill #2468
+- Mints components #2462
+
+# 0.21.16 (2026-03-26)
+
+Autonomy:
+- Fixes IPFS connection handler to support directories and binary files #2458
+- Fixes identify service params #2455
+
+Plugins (aea-helpers):
+- Adds 4 new CLI commands: `config-replace`, `run-agent`, `run-service`, `make-release` #2456
+- Adds `--skip-tendermint` flag to `run-agent` for agents using HTTP-based ABCI
+- Fixes `customs` package type handling in `check-doc-hashes`
+- Fixes zero-matches exit behavior in `check-doc-hashes`
+- Bumps `aea-helpers` version to align with framework versioning
+
+# 0.21.15 (2026-03-24)
+
+Autonomy:
+- Adds `aea-helpers` plugin consolidating duplicated CI scripts (`bump.py`, `check_dependencies.py`, `check_doc_ipfs_hashes.py`) from 7 repos into a single installable CLI package #2450
+- Adds `aea-helpers` to the release pipeline for PyPI publishing #2452
+
+Packages:
+- Adds funds forwarder and identify service owner skills #2449
+
+# 0.21.14 (2026-03-19)
+
+Autonomy:
+- Fixes environment variable override validation #2447
+
+Packages:
+- Ensures ABIs have all parameters from explorer #2445
+- Fixes ERC20 transfer transaction #2444
+
+# 0.21.13 (2026-03-10)
+
+Chore:
+- Fixes requests version range to `<2.33.0,>=2.28.1` for compatibility #2443
+
+# 0.21.12 (2026-03-08)
+
+Autonomy:
+- Adds aea key to connection also in docker deployment #2408
+- Updates defaults for click commands options #2427
+- Fixes `protobuf` version conflict in docker image #2429
+- Introduces ERC8004 for Celo #2431
+- Fixes localhost password propagation #2434
+- Fixes critical audit issues #2435
+
+Packages:
+- Adds acn data share package #2403
+- Refactors packages' dependencies #2411
+- Fixes dependency version conflict #2413
+- Adds FSM core and test infrastructure audit #2436
+
+CI:
+- Sets up Snyk #2406
+- Unblocks Python 3.14 packaging flow #2424
+- Installs local source in package-publish job #2425
+
+Docs:
+- Adds testing behaviours #2409
+
+Chore:
+- Bumps tomte==0.6.1, updates code based on the linters, resolves dependency conflicts #2412
+- Bumps open-aea #2414
+- Adds support for Python 3.12, 3.13, and 3.14 #2410
+- Improves Python3.14 compatibility #2416 && #2423
+- Bumps base image to `python:3.14-slim-trixie` #2428
+- Pins grpcio to 1.78.0 (1.78.1 was yanked from PyPI) #2432
+
+Tests:
+- Fixes tests for Python 3.14 #2415
+- Fixes TestSlashing flaky rerun #2430
+- Replaces incorrect `assert any` with `assert all` #2419
+
+# 0.21.11 (2026-02-11)
+
+Autonomy:
+- Support both gas and its price multipliers in TxSettler #2398
+- Add ERC8004 contract addresses for Arbitrum and Optimism #2400
+
+# 0.21.10 (2026-02-09)
+
+Packages:
+- Fix handling `LateArrivingTransaction` error from tendermint in `abstract_round_abci` #2397
+
+# 0.21.9 (2026-02-05)
+
+Autonomy:
+- Adds support for setting custom gas multiplier in the TxSettler #2394
+
+Autonomy && Packages:
+- Adds the contracts for supporting agent wallets in ERC8004 registry #2395
+
 # 0.21.8 (2026-01-22)
 
 Autonomy:

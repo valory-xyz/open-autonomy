@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -38,12 +38,12 @@ class BaseTest:
     test_cls: Type[BaseTestEnd2End]
     setup_class_called: bool
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test"""
 
         self.setup_class_called = False
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown test"""
 
         if self.setup_class_called:

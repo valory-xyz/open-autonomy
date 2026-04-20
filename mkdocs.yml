@@ -95,6 +95,7 @@ nav:
       - Benchmarking: 'advanced_reference/developer_tooling/benchmarking.md'
       - Debugging in the cluster: 'advanced_reference/developer_tooling/debugging_in_the_cluster.md'
       - Debugging using Tenderly: 'advanced_reference/developer_tooling/debugging_using_tenderly.md'
+      - Testing Behaviours: 'advanced_reference/testing_behaviours.md'
     - Deployment:
       - Container Control Flow: 'control_flow.md'
     - Using custom images in a deployment: 'advanced_reference/use_custom_images.md'

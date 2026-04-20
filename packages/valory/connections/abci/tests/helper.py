@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -38,7 +38,9 @@ from aea.protocols.generator.common import (
 )
 from google.protobuf.descriptor import FieldDescriptor
 
-from packages.valory.connections.abci.connection import PUBLIC_ID
+from packages.valory.connections.abci.connection import (
+    PUBLIC_ID,
+)
 from packages.valory.connections.abci.connection import (
     _TendermintProtocolDecoder as Decoder,
 )
@@ -53,7 +55,6 @@ from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type
 )
 from packages.valory.protocols import abci as valory_abci_protocol
 from packages.valory.protocols.abci import AbciMessage, custom_types
-
 
 Node = Dict[str, Any]
 

@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package aea.valory.acn_data_share.v0_1_0;
+
+message AcnDataShareMessage{
+
+  // Performatives and contents
+  message Data_Performative{
+    string request_id = 1;
+    string content = 2;
+  }
+
+
+  oneof performative{
+    Data_Performative data = 5;
+  }
+}

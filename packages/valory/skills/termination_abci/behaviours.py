@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the termination behaviour classes."""
+
 import sys
 from typing import Callable, Dict, Generator, List, Optional, Set, Type, cast
 
 from aea.protocols.base import Message
-from hexbytes import HexBytes
 
 from packages.valory.contracts.gnosis_safe.contract import (
     GnosisSafeContract,
@@ -53,7 +53,6 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
 )
-
 
 # setting the safe gas to 0 means that all available gas will be used
 # which is what we want in most cases
@@ -437,7 +436,7 @@ class BackgroundBehaviour(BaseBehaviour):
                     "operation": MultiSendOperation.CALL,
                     "to": self.synchronized_data.safe_contract_address,
                     "value": _ETHER_VALUE,
-                    "data": HexBytes(remove_tx),
+                    "data": remove_tx,
                 }
             )
 
@@ -456,7 +455,7 @@ class BackgroundBehaviour(BaseBehaviour):
                     "operation": MultiSendOperation.CALL,
                     "to": self.synchronized_data.safe_contract_address,
                     "value": _ETHER_VALUE,
-                    "data": HexBytes(swap_tx),
+                    "data": bytes.fromhex(swap_tx),
                 }
             )
 

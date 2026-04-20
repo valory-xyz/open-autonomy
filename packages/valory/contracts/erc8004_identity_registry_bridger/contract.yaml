@@ -1,0 +1,19 @@
+name: erc8004_identity_registry_bridger
+author: valory
+version: 0.1.0
+type: contract
+description: ERC8004 Identity Registry Bridger contract
+license: Apache-2.0
+aea_version: '>=2.0.0, <3.0.0'
+fingerprint:
+  __init__.py: bafybeiadjnmymfy57b44xk3uwphg2g3oklmodyc7mqoh3a3hhamz55ati4
+  build/ERC8004IdentityRegistryBridger.json: bafybeie4cxuie25ot6sv656rdtho27klpuqqqx4kupddzlihns5vfco7eu
+  contract.py: bafybeiarruui4ga7bgjpq3bvgujrsve7zjqknphprlfnqwavjfjmdnylay
+fingerprint_ignore_patterns: []
+contracts: []
+class_name: ERC8004IdentityRegistryBridgerContract
+contract_interface_paths:
+  ethereum: build/ERC8004IdentityRegistryBridger.json
+dependencies:
+  open-aea-ledger-ethereum:
+    version: ==2.2.1

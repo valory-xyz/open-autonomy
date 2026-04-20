@@ -173,12 +173,12 @@ class BaseRoundTestClass()
 
 Base test class.
 
-<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.BaseRoundTestClass.setup"></a>
+<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.BaseRoundTestClass.setup_method"></a>
 
-#### setup
+#### setup`_`method
 
 ```python
-def setup() -> None
+def setup_method() -> None
 ```
 
 Setup test class.
@@ -268,12 +268,12 @@ class _BaseRoundTestClass(BaseRoundTestClass)
 
 Base test class.
 
-<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds._BaseRoundTestClass.setup"></a>
+<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds._BaseRoundTestClass.setup_method"></a>
 
-#### setup
+#### setup`_`method
 
 ```python
-def setup() -> None
+def setup_method() -> None
 ```
 
 Setup test class.

@@ -5,6 +5,176 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.17` to `v0.21.18`
+
+- `open-aea-ledger-ethereum-hwi` is now an optional extra instead of a hard dependency. If you use hardware wallet support (`--hwi` flag), install with `pip install open-autonomy[hwi]`. This change fixes multi-platform Docker image builds on armv7 which failed due to missing pre-built wheels for `hidapi` and `Pillow`.
+
+## `v0.21.16` to `v0.21.17`
+
+This release bumps `open-aea` from `2.1.0` to `2.2.1`, migrates scripts to CLI commands, and removes the unmaintained `open-aea-ledger-ethereum-flashbots` plugin.
+
+Main dependency updates to account for:
+
+- `open-aea: ==2.1.0 -> ==2.2.1`
+- `open-aea-ledger-ethereum: ==2.1.0 -> ==2.2.1`
+- `open-aea-ledger-ethereum-hwi: ==2.1.0 -> ==2.2.1`
+- `open-aea-ledger-cosmos: ==2.1.0 -> ==2.2.1`
+- `open-aea-cli-ipfs: ==2.1.0 -> ==2.2.1`
+- `tomte: ==0.6.1 -> ==0.6.5`
+
+### `open-aea-ledger-ethereum-flashbots` removed upstream
+
+The `open-aea-ledger-ethereum-flashbots` plugin was removed from open-aea in 2.2.1. The last published `2.2.0` wheel remains on PyPI but receives no further releases.
+
+Impact on downstream repos:
+
+- **Remove `open-aea-ledger-ethereum-flashbots` from dependency pins** in `pyproject.toml`, `Pipfile`, `tox.ini`, or `setup.py`.
+- **Drop any `ethereum_flashbots` block** from the `valory/ledger` connection config (the upstream `connection.yaml` no longer declares it — use plain `ethereum` instead).
+- **Remove `aea_ledger_ethereum_flashbots` PyInstaller flags** (`--collect-all`, `--hidden-import`) from release workflows.
+- **Audit `aea-config.yaml`** in agent packages for references to `open-aea-ledger-ethereum-flashbots` and drop them.
+- **`autonomy replay` flows** no longer provision an `ethereum_flashbots_private_key.txt` or register the `ethereum-flashbots` key. Replays that relied on the flashbots ledger being set up implicitly will fail at `aea run`. Switch to plain `ethereum` in replay fixtures, or pin `open-aea<=2.2.0` + the frozen flashbots plugin.
+- The skill-level `use_flashbots` parameter on `send_raw_transaction` is intentionally preserved (default `False`) to avoid a payload wire-format change. Agents with `use_flashbots=False` keep working unchanged; agents that explicitly set `use_flashbots=True` will fail at runtime.
+
+### Scripts → CLI migration
+
+All Python scripts in `scripts/` have been migrated to CLI commands:
+
+- `check_copyright.py` → `tomte check-copyright`
+- `check_doc_links.py` → `tomte check-doc-links`
+- `freeze_dependencies.py` → `tomte freeze-dependencies`
+- `generate_package_list.py` → `aea-ci generate-pkg-list`
+- `check_ipfs_hashes_pushed.py` → `aea-ci check-ipfs-pushed`
+- `check_third_party_hashes.py` → `aea-ci check-third-party-hashes --upstream valory-xyz/open-aea@2.2.1`
+- `generate_api_documentation.py` → `aea-ci generate-api-docs --source-dir autonomy ...`
+- `generate_contract_list.py` → `aea-helpers generate-contract-list`
+
+If your CI invokes any of these scripts directly, update to the corresponding CLI command.
+
+### Concrete upgrade steps
+
+1. Bump `open-autonomy` pin to `==0.21.17`.
+2. Bump all `open-aea*` pins to `==2.2.1`.
+3. Drop `open-aea-ledger-ethereum-flashbots` from dependencies and configs as described above.
+4. Run `autonomy packages sync --update-packages` to pull the updated third-party packages.
+5. Run `autonomy packages lock` to regenerate downstream package hashes.
+6. Replace any direct `scripts/` invocations with the corresponding CLI commands.
+
+## `v0.21.15` to `v0.21.16`
+
+- The `aea-helpers` plugin now includes 4 new commands for deployment and release management:
+    - `aea-helpers config-replace --mapping config-mapping.json` — replaces `scripts/aea-config-replace.py` with a generic YAML config substitution using a mapping file
+    - `aea-helpers run-agent --name <agent>` — replaces `run_agent.sh` with built-in port management (`--free-ports`), config replacement, and tendermint lifecycle
+    - `aea-helpers run-service --name <service>` — replaces `run_service.sh` with parameterized deployment (agent count, resource limits, pre/post hooks)
+    - `aea-helpers make-release --version <ver> --env <env>` — replaces `make_release.sh` for creating git tags and GitHub releases
+- New `--skip-tendermint` flag on `run-agent` for agents configured with `use_tendermint: false` (e.g. IEKit)
+- Fixes `customs` package type handling in `check-doc-hashes` (no longer crashes on mech tool packages)
+- Fixes IPFS connection handler to support directories and binary files
+- To migrate deployment scripts: extract your `PATH_TO_VAR` dict from `aea-config-replace.py` into a `config-mapping.json` file, then delete `aea-config-replace.py`, `run_agent.sh`, and `run_service.sh`
+- Mech repos should use the `mech` CLI from `mech-server` instead of `run_agent.sh`/`run_service.sh`
+
+## `v0.21.14` to `v0.21.15`
+
+- The `aea-helpers` plugin is now available as a standalone PyPI package. It consolidates the duplicated CI scripts (`bump.py`, `check_dependencies.py`, `check_doc_ipfs_hashes.py`) that were previously copy-pasted across repositories.
+- If your repository has local copies of these scripts in `scripts/` or `utils/`, you can replace them with the `aea-helpers` CLI commands:
+    - `aea-helpers bump-dependencies` replaces `scripts/bump.py`
+    - `aea-helpers check-dependencies --check` replaces `scripts/check_dependencies.py`
+    - `aea-helpers check-doc-hashes` replaces `scripts/check_doc_ipfs_hashes.py`
+- Add `aea-helpers>=0.1.0` to your project dependencies and `tox.ini` deps to use.
+- Hardcoded package exclusions (e.g. `requests` version hacks, popping `open-aea-ledger-solana`) are now configurable via `--exclude` flags instead.
+
+## `v0.21.12` to `v0.21.14`
+
+- Ensures ABIs have all parameters from explorer #2445
+- Fixes ERC20 transfer transaction handling #2444
+- Fixes environment variable override validation for friendly names #2447
+- Fixes requests version range to `<2.33.0,>=2.28.1` for compatibility #2443
+
+No breaking changes. Bump `open-autonomy` version pin and regenerate package hashes.
+
+## `v0.21.11` to `v0.21.12`
+
+- Python support is now `3.10-3.14` (previously `3.10-3.11`).
+- Regenerate your environment and lock files when upgrading, as several toolchain and runtime dependencies were bumped to support newer Python versions.
+
+Main dependency updates to account for:
+
+- `open-aea: ==2.0.8 -> ==2.1.0`
+- `tomte: ==0.4.0 -> ==0.6.1`
+- `click: >=8.1.0,<8.3.0 -> >=8.1.0,<9`
+- `pytest: ==7.4.4 -> ==8.4.2`
+- `protobuf: >=4.21.6,<4.25.0 -> >=5,<6`
+- `requests: >=2.28.1,<2.32.5 -> >=2.28.1,<2.33.0`
+- `docker: 4.2.0 -> 7.1.0`
+- `typing_extensions`: `<4.15.0,>=3.10.0.2` -> `<=4.15.0,>=3.10.0.2`
+- `grpcio`: `==1.53.0` -> `==1.78.0`
+
+Exact APIs/functions to check:
+
+### 1) Click `flag_value` default handling
+
+If your downstream CLI uses Click options with `flag_value`, audit these exact patterns against Open Autonomy fixes:
+
+- `autonomy/cli/deploy.py::build_deployment_command`
+- `autonomy/cli/deploy.py::run`
+- `autonomy/cli/deploy.py::run_deployment_from_token`
+- `autonomy/cli/fetch.py::fetch`
+- `autonomy/cli/analyse.py::abci_app_specs`
+- `autonomy/cli/analyse.py::abci_app_specs`
+- `autonomy/cli/mint.py::mint`
+- `autonomy/cli/service.py::service`
+
+Required behaviour:
+
+- Do **not** rely on decorator order to select defaults when multiple flags write to the same parameter.
+- Use explicit normalization in code for unset values (e.g. `if sync_type is None: sync_type = SyncTypes.THIRD_PARTY`).
+- Ensure upgrade command handlers consume a single `registry: str` mode rather than split boolean flags (`local` / `remote`).
+
+### 2) Python 3.13/3.14 asyncio/multiprocessing compatibility
+
+Audit downstream code for these exact anti-patterns and replacements:
+
+- `multiprocessing.Manager()` without explicit context on Python 3.14+.
+  - Required fix pattern: use `multiprocessing.get_context("spawn").Manager()` where process-manager context must be controlled.
+- Accessing private queue loop internals (e.g. `queue._loop`).
+  - Required fix pattern: store/use explicit event loop references instead of private attributes.
+- Removed/unsupported asyncio APIs in modern Python:
+  - `asyncio.StreamReader(loop=...)`
+  - `asyncio.ensure_future(..., loop=...)`
+  - unconditional `asyncio.get_child_watcher()` / child-watcher usage on Python 3.14+
+- Ready-awaitable internals relying on module-level coroutine/future objects.
+  - Required fix pattern: use a lightweight awaitable object/factory that is loop-safe across Python 3.10-3.14.
+
+### 3) Plugin dependency compatibility (Ethereum + Flashbots)
+
+If you install both plugins, verify dependency constraints in your lock/constraints files:
+
+- The Flashbots plugin package must be compatible with the same 2.1.x line of the Ethereum plugin package.
+- Reject locks where Flashbots still constrains Ethereum to `<2.1.0`.
+
+Run after upgrade:
+
+```bash
+make new_env
+```
+
+### API compatibility notes
+
+- CLI/API-surface changes:
+  - `autonomy.cli.deploy.py::build_deployment_command` and `autonomy.cli.deploy.py::run_deployment_from_token` 
+     now always prompt on `-p` and support `AEA_PASSWORD` for `--password`.
+
+## `v0.21.10` to `v0.21.11`
+
+No backwards incompatible changes.
+
+## `v0.21.9` to `v0.21.10`
+
+No backwards incompatible changes.
+
+## `v0.21.8` to `v0.21.9`
+
+No backwards incompatible changes.
+
 ## `v0.21.7` to `v0.21.8`
 
 No backwards incompatible changes.

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ from autonomy.analyse.benchmark.aggregate import BlockTypes
 from autonomy.deploy.constants import BENCHMARKS_DIR
 
 from tests.test_autonomy.test_cli.base import BaseCliTest
-
 
 NUMBER_OF_AGENTS = 4
 NUMBER_OF_PERIODS = 3
@@ -62,10 +61,10 @@ class TestBenchmarks(BaseCliTest):
     benchmarks_dir: Path
     output_file: Path
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
 
-        super().setup()
+        super().setup_method()
 
         self.benchmarks_dir = self.t / BENCHMARKS_DIR
         self.benchmarks_dir.mkdir()
@@ -80,10 +79,10 @@ class TestBenchmarks(BaseCliTest):
 
         os.chdir(self.t)
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown test method."""
 
-        super().teardown()
+        super().teardown_method()
 
         with suppress(FileNotFoundError):
             os.remove(self.output_file)

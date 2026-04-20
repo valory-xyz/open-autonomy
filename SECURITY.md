@@ -6,10 +6,10 @@ This document outlines security procedures and general policies for the `open-au
 
 The following table shows which versions of `open-autonomy` are currently being supported with security updates.
 
-| Version   | Supported          |
-| --------- | ------------------ |
-| `0.14.0`   | :white_check_mark: |
-| `< 0.14.x` | :x:                |
+| Version    | Supported          |
+| ---------- | ------------------ |
+| `0.21.x`   | :white_check_mark: |
+| `< 0.21.0` | :x:                |
 
 ## Reporting a Vulnerability
 

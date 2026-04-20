@@ -17,6 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 """A connection responsible for uploading and downloading files from IPFS."""
+
 import asyncio
 import os
 import tempfile
@@ -26,20 +27,18 @@ from pathlib import Path
 from shutil import rmtree
 from typing import Any, Callable, Dict, Optional, cast
 
-import requests
 from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
 from aea.mail.base import Envelope
 from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea_cli_ipfs.exceptions import DownloadError
+from aea_cli_ipfs.ipfs_client import IPFSError
 from aea_cli_ipfs.ipfs_utils import IPFSTool
-from ipfshttpclient.exceptions import ErrorResponse
 
 from packages.valory.protocols.ipfs import IpfsMessage
 from packages.valory.protocols.ipfs.dialogues import IpfsDialogue
 from packages.valory.protocols.ipfs.dialogues import IpfsDialogues as BaseIpfsDialogues
-
 
 PUBLIC_ID = PublicId.from_str("valory/ipfs:0.1.0")
 
@@ -204,8 +203,7 @@ class IpfsConnection(Connection):
             self.logger.debug(f"Successfully stored files with hash: {hash_}.")
         except (
             ValueError,
-            requests.exceptions.ChunkedEncodingError,
-            requests.exceptions.HTTPError,
+            IPFSError,
         ) as e:  # pragma: no cover
             err = str(e)
             self.logger.error(err)
@@ -222,6 +220,25 @@ class IpfsConnection(Connection):
         )
         return response_message
 
+    def _read_files_recursive(self, base_dir: Path) -> Dict[str, str]:
+        """
+        Recursively read all text files under a directory.
+
+        :param base_dir: the base directory to walk.
+        :returns: a mapping of relative file paths to their contents.
+        """
+        result: Dict[str, str] = {}
+        for root, _, filenames in os.walk(base_dir):
+            for fname in filenames:
+                file_path = Path(root) / fname
+                key = str(file_path.relative_to(base_dir))
+                try:
+                    with open(file_path, encoding="utf-8", mode="r") as file:
+                        result[key] = file.read()
+                except UnicodeDecodeError:
+                    self.logger.warning(f"Skipping non-UTF-8 file: {key}")
+        return result
+
     def _handle_get_files(
         self, message: IpfsMessage, dialogue: BaseDialogue
     ) -> IpfsMessage:
@@ -233,7 +250,6 @@ class IpfsConnection(Connection):
         :param message: The ipfs request.
         :returns: the downloaded files.
         """
-        response_body: Dict[str, str] = {}
         ipfs_hash = message.ipfs_hash
         with tempfile.TemporaryDirectory() as tmp_dir:
             try:
@@ -241,7 +257,7 @@ class IpfsConnection(Connection):
             except (
                 DownloadError,
                 PermissionError,
-                ErrorResponse,
+                IPFSError,
             ) as e:
                 err = str(e)
                 self.logger.error(err)
@@ -254,15 +270,11 @@ class IpfsConnection(Connection):
                     f"The first will be used. "
                 )
             downloaded_file = files.pop()
-            files_to_be_read = [downloaded_file]
             base_dir = Path(tmp_dir)
             if os.path.isdir(base_dir / downloaded_file):
                 base_dir = base_dir / downloaded_file
-                files_to_be_read = os.listdir(base_dir)
 
-            for file_path in files_to_be_read:
-                with open(base_dir / file_path, encoding="utf-8", mode="r") as file:
-                    response_body[file_path] = file.read()
+            response_body = self._read_files_recursive(base_dir)
 
             response_message = cast(
                 IpfsMessage,

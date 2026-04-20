@@ -181,3 +181,36 @@ def multisend() -> Contract
 
 Returns an instance of the multisend contract.
 
+<a id="autonomy.chain.base.RegistryContracts.sign_message_lib"></a>
+
+#### sign`_`message`_`lib
+
+```python
+@property
+def sign_message_lib() -> Contract
+```
+
+Returns an instance of the sign message lib contract.
+
+<a id="autonomy.chain.base.RegistryContracts.erc8004_identity_registry"></a>
+
+#### erc8004`_`identity`_`registry
+
+```python
+@property
+def erc8004_identity_registry() -> Contract
+```
+
+Returns an instance of the ERC8004 identity registry contract.
+
+<a id="autonomy.chain.base.RegistryContracts.erc8004_identity_registry_bridger"></a>
+
+#### erc8004`_`identity`_`registry`_`bridger
+
+```python
+@property
+def erc8004_identity_registry_bridger() -> Contract
+```
+
+Returns an instance of the ERC8004 identity registry bridger contract.
+

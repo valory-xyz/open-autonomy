@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/service_registry contract."""
+
 from pathlib import Path
 from typing import Any
 from unittest import mock
@@ -32,7 +33,6 @@ from packages.valory.contracts.service_registry.contract import (
     EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID,
     ServiceRegistryContract,
 )
-
 
 PACKAGE_DIR = Path(__file__).parent.parent
 

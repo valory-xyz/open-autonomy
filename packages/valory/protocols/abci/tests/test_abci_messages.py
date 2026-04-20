@@ -59,7 +59,6 @@ from packages.valory.protocols.abci.custom_types import (
 )
 from packages.valory.protocols.abci.message import AbciMessage
 
-
 event = Event("type", [EventAttribute(b"key", b"value", True)])
 events = Events([event, event])
 

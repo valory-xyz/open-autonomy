@@ -8,33 +8,20 @@ aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeig26vrs7tcobu4cgk3fpqhvlzjwmb4nqsc7u66n4yhd2dh2rt7ff4
   __init__.py: bafybeib4nfvueif2tkc7migc73qopyjvrbzedyehrexjx4y5vav3clmf34
-  build/GnosisSafe_V1_3_0.json: bafybeifxc4pnyus43qfrvxrqunlmkzvwfr5chyjesyobbk5m4smb2hkd4y
-  contract.py: bafybeibq7vkmudtguwjv2nbt4qwg4eyu4sx4a4b2uljsi2builphgat6ne
-  encode.py: bafybeiez2siif4cpntxjvzcxsgpv2xcdgco4xtnr26pjqzwrlu62tmn2na
+  build/GnosisSafe_V1_3_0.json: bafybeidv3m66hyxhzfsgx2l7n4l6h5jpo2l6jmwenqlffdwjz6lyzf7rka
+  contract.py: bafybeihnpbtjk25vai7gayilyjtqqmn5hmpfsrm7pcrspak7336eoqytwy
+  encode.py: bafybeihpkmobld3ejmltn25hpia2v6inqv6eouiwwiyn6fafh2mnyrchkm
   tests/__init__.py: bafybeihbclcqwfoxoljzwnbg3nf22srsyx5dgdbcyj27irwizktg4ygujy
-  tests/test_contract.py: bafybeibwjhlqo3pie3k6rpgrye36mf6cb3ylaadqkdd5ctmnechziejika
+  tests/test_contract.py: bafybeibgwowfvl5ofx66cyc5qhxeydkgxlprtqtzjjdpz4gdpz7j7pbbzm
+  tests/test_encode.py: bafybeifmh7i6bauzalflqjpuvwayvtu4f5skoqkub2pmjj7kozalhxphnu
 fingerprint_ignore_patterns: []
 contracts:
-- valory/gnosis_safe_proxy_factory:0.1.0:bafybeicnwvklc4dkstzf4jex7cgwmanf2wdnhwmw4hhi4fgtcrg5dt2itu
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeihpzvi2rxvdzujrqivnynsoqezklval6j3qeoxaitquktvwscqgra
 class_name: GnosisSafeContract
 contract_interface_paths:
   ethereum: build/GnosisSafe_V1_3_0.json
 dependencies:
-  ecdsa:
-    version: '>=0.15'
-  eth-abi:
-    version: ==5.2.0
-  eth-utils:
-    version: ==5.3.0
-  eth_typing: {}
-  hexbytes: {}
   open-aea-ledger-ethereum:
-    version: ==2.0.8
-  open-aea-test-autonomy:
-    version: ==0.21.8
-  packaging: {}
-  pycryptodome:
-    version: ==3.20.0
+    version: ==2.2.1
   requests: {}
-  web3:
-    version: <8,>=7.0.0
+  web3: {}

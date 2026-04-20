@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional
 
 from autonomy.deploy.base import TENDERMINT_COM_URL_PARAM, TENDERMINT_URL_PARAM
-
 
 ETHEREUM_PRIVATE_KEY_FILE = "ethereum_private_key.txt"
 
@@ -101,13 +100,6 @@ class AgentRunner:
 
         subprocess.run(  # nosec # pylint: disable=subprocess-run-check
             [*self.aea_cli, "add-key", "ethereum"], env=self.agent_env
-        )
-        subprocess.run(  # nosec # pylint: disable=subprocess-run-check
-            ["cp", "ethereum_private_key.txt", "ethereum_flashbots_private_key.txt"],
-            env=self.agent_env,
-        )
-        subprocess.run(  # nosec # pylint: disable=subprocess-run-check
-            [*self.aea_cli, "add-key", "ethereum-flashbots"], env=self.agent_env
         )
         subprocess.run(  # nosec # pylint: disable=subprocess-run-check
             [*self.aea_cli, "install"], env=self.agent_env

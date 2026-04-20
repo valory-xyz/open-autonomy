@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Log streams"""
-
 
 import re
 from abc import ABC, abstractmethod
@@ -99,7 +98,7 @@ class LogCollection(ABC):
 
                 match = ENTER_ROUND_REGEX.match(string=log_block)
                 if match is not None:
-                    (current_round, current_period) = cast(
+                    current_round, current_period = cast(
                         Tuple[str, int], match.groups()
                     )
 

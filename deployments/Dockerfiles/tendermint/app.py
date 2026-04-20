@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """HTTP server to control the tendermint execution environment."""
+
 import json
 import logging
 import os
@@ -31,7 +32,6 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, cast
 import requests
 from flask import Flask, Response, jsonify, request
 from werkzeug.exceptions import InternalServerError, NotFound
-
 
 try:
     from .tendermint import TendermintNode, TendermintParams  # type: ignore
@@ -157,9 +157,9 @@ class PeriodDumper:
         self.dump_dir = dump_dir or Path("/tm_state")
 
         if self.dump_dir.is_dir():
-            shutil.rmtree(
+            shutil.rmtree(  # pylint: disable=deprecated-argument
                 str(self.dump_dir), onerror=self.readonly_handler
-            )  # pylint: disable=deprecated-argument
+            )
         self.dump_dir.mkdir(exist_ok=True)
 
     @staticmethod

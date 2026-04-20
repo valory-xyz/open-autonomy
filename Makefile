@@ -15,7 +15,7 @@ clean-build:
 	find . -name '*.egg-info' -exec rm -fr {} +
 	find . -name '*.egg' -exec rm -fr {} +
 	find . -type d -name __pycache__ -exec rm -rv {} +
-	rm -fr Pipfile.lock
+	rm -fr poetry.lock
 	rm -rf plugins/*/build
 	rm -rf plugins/*/dist
 
@@ -130,7 +130,7 @@ install: clean
 
 .PHONY: eject-contracts
 eject-contracts:
-	@for contract in component_registry agent_registry registries_manager service_manager service_registry gnosis_safe gnosis_safe_proxy_factory service_registry_token_utility multisend erc20 recovery_module poly_safe_creator_with_recovery_module; do \
+	@for contract in component_registry agent_registry registries_manager service_manager service_registry gnosis_safe gnosis_safe_proxy_factory service_registry_token_utility multisend erc20 recovery_module poly_safe_creator_with_recovery_module sign_message_lib erc8004_identity_registry erc8004_identity_registry_bridger; do \
 		echo Updating $$contract contract; \
     	rm -rf autonomy/data/contracts/$$contract ; \
 		cp -r packages/valory/contracts/$$contract autonomy/data/contracts/$$contract ; \
@@ -138,8 +138,7 @@ eject-contracts:
 
 .PHONY: dist
 dist: clean eject-contracts
-	python setup.py sdist
-	python setup.py bdist_wheel
+	python -m build --sdist --wheel
 
 h := $(shell git rev-parse --abbrev-ref HEAD)
 
@@ -158,7 +157,7 @@ v := $(shell pip -V | grep virtualenvs)
 
 .PHONY: new_env
 new_env: clean
-	if [ ! -z "$(which svn)" ];\
+	if [ -z "$(which svn)" ];\
 	then\
 		echo "The development setup requires SVN, exit";\
 		exit 1;\
@@ -166,13 +165,10 @@ new_env: clean
 
 	if [ -z "$v" ];\
 	then\
-		pipenv --rm;\
-		pipenv --clear;\
-		pipenv --python 3.10;\
-		pipenv install --dev --skip-lock;\
-		pipenv run pip install -e .[all];\
-		pipenv run pip install --no-deps file:plugins/aea-test-autonomy;\
-		echo "Enter virtual environment with all development dependencies now: 'pipenv shell'.";\
+		poetry env remove --all || true;\
+		poetry install --all-extras --no-interaction;\
+		poetry run pip install --no-deps file:plugins/aea-test-autonomy;\
+		echo "Enter virtual environment with all development dependencies now: 'poetry shell'.";\
 	else\
 		echo "In a virtual environment! Exit first: 'exit'.";\
 	fi

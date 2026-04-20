@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,12 +19,17 @@
 
 """Test `valory/oar-{agent}` image."""
 
+import shutil
+import tempfile
 from pathlib import Path
 from typing import cast
 
 import docker
 from aea.configurations.data_types import PackageId
-from aea_test_autonomy.docker.tendermint import DEFAULT_ABCI_HOST, TendermintDockerImage
+from aea_test_autonomy.docker.tendermint import (
+    DEFAULT_ABCI_HOST,
+    TendermintDockerImage,
+)
 from aea_test_autonomy.helpers.async_utils import wait_for_condition
 from docker.models.containers import Container
 
@@ -38,12 +43,52 @@ from autonomy.constants import (
 )
 from autonomy.deploy.constants import DOCKERFILES
 
-from tests.conftest import ROOT_DIR, get_package_hash_from_latest_tag, skip_docker_tests
+from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_images.base import BaseImageBuildTest
-
 
 AGENT = PackageId.from_uri_path("agent/valory/offend_slash/0.1.0")
 TENDERMINT_IMAGE = f"{TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}"
+PACKAGES_DIR = ROOT_DIR / "packages"
+
+LOCAL_DOCKERFILE = """\
+ARG AUTONOMY_IMAGE_VERSION="latest"
+ARG AUTONOMY_IMAGE_NAME="valory/open-autonomy"
+FROM ${AUTONOMY_IMAGE_NAME}:${AUTONOMY_IMAGE_VERSION}
+
+ARG AEA_AGENT
+ARG AUTHOR
+ARG EXTRA_DEPENDENCIES=""
+
+# Use local packages to avoid IPFS dependency
+COPY packages/ /home/packages/
+# Install aea-test-autonomy from source; the current dev version
+# may not yet be published to PyPI
+COPY plugins/ /home/plugins/
+
+WORKDIR /home
+
+ENV PIP_PRE=1
+
+RUN pip install --no-deps /home/plugins/aea-test-autonomy
+
+RUN aea init --reset --local --author ${AUTHOR}
+
+RUN aea fetch ${AEA_AGENT} --alias agent --local \
+    && cd agent \
+    && aea build \
+    && aea install --timeout 21600 ${EXTRA_DEPENDENCIES} \
+    && echo "Successfully built the host dependencies." \
+    && cd ..
+
+WORKDIR /root
+
+RUN chmod -R a+x /root
+RUN chmod -R 777 /home
+
+CMD ["/root/scripts/start.sh"]
+
+HEALTHCHECK --interval=3s --timeout=600s --retries=600 CMD netstat -ltn | grep -c 26658 > /dev/null; if [ 0 != $? ]; then exit 1; fi;
+"""
 
 
 @skip_docker_tests
@@ -56,17 +101,35 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
     tag: str = OAR_IMAGE.format(
         image_author=DEFAULT_DOCKER_IMAGE_AUTHOR, agent=AGENT.name, version="latest"
     )
+    local_build_dir: Path
 
     @classmethod
     def setup_class(cls) -> None:
         """Setup class."""
         super().setup_class()
 
-        cls.agent = str(
-            AGENT.with_hash(
-                get_package_hash_from_latest_tag(package=AGENT.to_uri_path)
-            ).public_id
+        cls.agent = str(AGENT.public_id)
+
+        # Create a temp build context with local packages and plugins.
+        # We use local packages to avoid IPFS dependency and ensure the
+        # image builds against the current working tree. The aea-test-autonomy
+        # plugin is installed from source because agents depend on the
+        # current dev version which may not yet be published to PyPI.
+        cls.local_build_dir = Path(tempfile.mkdtemp())
+        (cls.local_build_dir / "Dockerfile").write_text(LOCAL_DOCKERFILE)
+        shutil.copytree(
+            str(PACKAGES_DIR),
+            str(cls.local_build_dir / "packages"),
         )
+        shutil.copytree(
+            str(ROOT_DIR / "plugins"),
+            str(cls.local_build_dir / "plugins"),
+        )
+
+    @classmethod
+    def teardown_class(cls) -> None:
+        """Teardown class."""
+        shutil.rmtree(str(cls.local_build_dir), ignore_errors=True)
 
     def test_image_fail(self) -> None:
         """Test image build fail."""
@@ -86,9 +149,9 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
     def test_image(self) -> None:
         """Test image build."""
 
-        # check build
+        # check build using local packages
         success, output = self.build_image(
-            path=self.path,
+            path=self.local_build_dir,
             tag=self.tag,
             buildargs={
                 "AUTONOMY_IMAGE_NAME": AUTONOMY_IMAGE_NAME,

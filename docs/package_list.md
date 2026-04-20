@@ -1,60 +1,62 @@
-| Package name                                                  | Package hash                                                  | Description                                                                                                                |
-| ------------------------------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| protocol/valory/abci/0.1.0                                    | `bafybeicjjeintlqgg53zrreflmoafeiynt3gvdnovy5ocea7doddos3e5a` | A protocol for ABCI requests and responses.                                                                                |
-| protocol/valory/tendermint/0.1.0                              | `bafybeie4jqosqiicefnlnxsvrymqj6tycv7x5qeitsdew6abhdcxlu23r4` | A protocol for communication between two AEAs to share tendermint configuration details.                                   |
-| protocol/valory/ipfs/0.1.0                                    | `bafybeidqfs3njcishcwv4ymf4srxibw44u7qrnryxiwrg5ulk2h7myvt6q` | A protocol specification for IPFS requests and responses.                                                                  |
-| contract/valory/gnosis_safe_proxy_factory/0.1.0               | `bafybeicnwvklc4dkstzf4jex7cgwmanf2wdnhwmw4hhi4fgtcrg5dt2itu` | Gnosis Safe proxy factory (GnosisSafeProxyFactory) contract                                                                |
-| contract/valory/component_registry/0.1.0                      | `bafybeihitc3xybzbnxsybb46uqejqunwhvnvkwtk23yxacfdafm3n4bu2a` | Component registry contract                                                                                                |
-| contract/valory/agent_registry/0.1.0                          | `bafybeicinlkh76yggtqrzhii6zhavpxqkpbles3wh73durkqchbj2elor4` | Agent registry contract                                                                                                    |
-| contract/valory/registries_manager/0.1.0                      | `bafybeic6plto4ptvs726gp77grzsr2kltuwhrff36pi2mjgjeegt7qa5bm` | Registries Manager contract                                                                                                |
-| contract/valory/service_manager/0.1.0                         | `bafybeih32bgepcwanqe5whrt5cqjrlpcncq2krvnyhsrxtkionilz4l72q` | Service Manager contract                                                                                                   |
-| contract/valory/service_registry/0.1.0                        | `bafybeibzuktplryzlfhdyahcbldfh5dz6pnvukigzbejeuvlvv24774lpi` | Service Registry contract                                                                                                  |
-| contract/valory/gnosis_safe/0.1.0                             | `bafybeia3ictpeosrza3tkxa7ad2io5txutcs44jgrqoqgdxhrjdu2fy4qy` | Gnosis Safe (GnosisSafeL2) contract                                                                                        |
-| contract/valory/multisend/0.1.0                               | `bafybeidjdgi2kyexajirj3cnpzgse4y5u664b2blztt4flv6i7knlecyr4` | MultiSend contract                                                                                                         |
-| contract/valory/erc20/0.1.0                                   | `bafybeidw7l6kttsnyskar5i5lmue3kgigtgrusszy6i3e4aqzbxoy5xiyi` | The scaffold contract scaffolds a contract to be implemented by the developer.                                             |
-| contract/valory/recovery_module/0.1.0                         | `bafybeihf4gqsvhtuhncn7svnbmzzuottmn7owu57g3etb5v3kz2fk7myoy` | Recovery module                                                                                                            |
-| contract/valory/service_registry_token_utility/0.1.0          | `bafybeiff5qt664ym4rjoyvgysfh6e4sw2sxjbkz6aqaecm4fi5evj3rfbe` | The scaffold contract scaffolds a contract to be implemented by the developer.                                             |
-| contract/valory/squads_multisig/0.1.0                         | `bafybeigjamatvbf3ofouvbth2ldvaur7m5pxklzqiwfnjneenvdvc3c2mq` | The scaffold contract scaffolds a contract to be implemented by the developer.                                             |
-| contract/valory/multicall2/0.1.0                              | `bafybeidvcbchqj7spljepv6awxgkdpnvrohic27z2rb56ko7hnazojoxkq` | The MakerDAO multicall2 contract.                                                                                          |
-| contract/valory/poly_safe_creator_with_recovery_module/0.1.0  | `bafybeicrf2fahs6esse7u4e6cnu5ggavzown2x2ohtx3hthilwu4h6y6si` | PolySafe creator with recovery module                                                                                      |
-| connection/valory/abci/0.1.0                                  | `bafybeial4fha7gc5abbdiw7wiyczpwwowwsu2puze7zefrah5qqra5foku` | connection to wrap communication with an ABCI server.                                                                      |
-| connection/valory/ipfs/0.1.0                                  | `bafybeif2252xypx25p42fva4y3wi4loinxi6pfwf4wkwgcbdbfiu3gmjqu` | A connection responsible for uploading and downloading files from IPFS.                                                    |
-| skill/valory/test_ipfs_abci/0.1.0                             | `bafybeid6gsyeoydzdp4gytdvwuhwvho2zvykxfmgr6relg5hyfun2zbn2m` | IPFS e2e testing application.                                                                                              |
-| skill/valory/abstract_abci/0.1.0                              | `bafybeic5wohfvzro366vaxvm6q7qx6ck5dx2rycfu2bve2pkbwf7o263sq` | The abci skill provides a template of an ABCI application.                                                                 |
-| skill/valory/abstract_round_abci/0.1.0                        | `bafybeihhadgaitdltynzaq4w7jhgwbdnizsobbaa2riqtqwbml3li2tieq` | abstract round-based ABCI application                                                                                      |
-| skill/valory/transaction_settlement_abci/0.1.0                | `bafybeifbumqyemwzffxtn3kwucxx55ja57mhmfalo7fqlkq2hnjwqhfp74` | ABCI application for transaction settlement.                                                                               |
-| skill/valory/registration_abci/0.1.0                          | `bafybeie3dfore53bxvbokqiarzuwulzlyt4vz5mifb4t3gxl6drwkblfha` | ABCI application for common apps.                                                                                          |
-| skill/valory/reset_pause_abci/0.1.0                           | `bafybeicffwijiecbqc6z22nowir2fgwwqzwu6vokzuwgd5wa3zxromxevm` | ABCI application for resetting and pausing app executions.                                                                 |
-| skill/valory/termination_abci/0.1.0                           | `bafybeiaylk6haefa2xex55krizafzwo2v5tpkcoflw5hiwaqm3qxice23m` | Termination skill.                                                                                                         |
-| skill/valory/counter/0.1.0                                    | `bafybeidx46as63wr6uztucooljbmmb45o5xw3vqifnf74am3q7v6khsib4` | The ABCI Counter application example.                                                                                      |
-| skill/valory/counter_client/0.1.0                             | `bafybeiamd423q3mzqgen33wgbka63h26zujuk4orxyj2hux5g5llawe4xy` | A client for the ABCI counter application.                                                                                 |
-| skill/valory/register_reset_abci/0.1.0                        | `bafybeieubhndjdaucjjhi5kzazacofhsum5uo2upqqylvxmpwqmqgwsk3m` | ABCI application for dummy skill that registers and resets                                                                 |
-| skill/valory/register_termination_abci/0.1.0                  | `bafybeidt4mobgysz7m6vglwc3kytlmwyzf4f3ecaju6b37urgclapazmfy` | ABCI application for dummy skill that registers and resets                                                                 |
-| skill/valory/test_abci/0.1.0                                  | `bafybeidkjagrxsieacrrazp4m47254xqyr2zrwjyt7ddrxku3sylaweba4` | ABCI application for testing the ABCI connection.                                                                          |
-| skill/valory/register_reset_recovery_abci/0.1.0               | `bafybeifuxrl3ym2m2wch3hrsbrezumiz4olr77yhcd4zfbogxxvejakqjm` | ABCI application for dummy skill that registers and resets                                                                 |
-| skill/valory/slashing_abci/0.1.0                              | `bafybeic7b4xblcz2nkjgad6hpyvfnbf56odcam6uer67omcqkgmanfxtda` | Slashing skill.                                                                                                            |
-| skill/valory/offend_abci/0.1.0                                | `bafybeigvf7qveafhdnq6a7bspqeswqr6lvi4fygbbwlxcjg5tqivmtpnmy` | Offend ABCI application.                                                                                                   |
-| skill/valory/offend_slash_abci/0.1.0                          | `bafybeibqgvpiauormqali6iskxvhrj4uif3win6wbbixzjzwfpaogds4ue` | ABCI application used in order to test the slashing abci                                                                   |
-| skill/valory/squads_transaction_settlement_abci/0.1.0         | `bafybeiaiwg3tezgsw2sewnsnqg565bsz2w6se5lyyytboi2giykpafxr4i` | ABCI application for transaction settlement.                                                                               |
-| skill/valory/test_solana_tx_abci/0.1.0                        | `bafybeicaxntiqkkxnn42nabrl45n6ltcbpphns2tmcdepuspaw2h5d4h2u` | SOLANA e2e testing application.                                                                                            |
-| agent/valory/test_ipfs/0.1.0                                  | `bafybeibpyvoveuffl4g62h2xwcnrgqxufkqk6ou65rq5hjt4k5lfz7dbwy` | Agent for testing the ABCI connection.                                                                                     |
-| agent/valory/abstract_abci/0.1.0                              | `bafybeieirzj5kp6ss3hhp2vxvuqevhu5y6bujklvuwxfef3a45gah2fqpq` | The abstract ABCI AEA - for testing purposes only.                                                                         |
-| agent/valory/counter/0.1.0                                    | `bafybeidsfikdijj4d4louqnbjyuab7nlkbyrfgwskb6p2pmg3iy4w2sfnu` | The ABCI Counter example as an AEA                                                                                         |
-| agent/valory/counter_client/0.1.0                             | `bafybeigk7vgznpjlqxgpd3lmitoajkiugcrx66xmfkg7qjwgmejypepapi` | The ABCI Counter example as an AEA                                                                                         |
-| agent/valory/register_reset/0.1.0                             | `bafybeiadrm7ljhf4unpzsgw4leqgi4e3yfsqju6k7ptio2cpmg2nnmnnme` | Register reset to replicate Tendermint issue.                                                                              |
-| agent/valory/register_termination/0.1.0                       | `bafybeibmo37deqqqjaak2py7yxz4fqbu22377yeye6drvq4gynrjvkrfhm` | Register terminate to test the termination feature.                                                                        |
-| agent/valory/registration_start_up/0.1.0                      | `bafybeifjzb3kqrth3efp5vuxbgnutjpr4surya2pfbrqqkvh2awfyfpxsq` | Registration start-up ABCI example.                                                                                        |
-| agent/valory/test_abci/0.1.0                                  | `bafybeiblpxfl3kqlxps7gdgc7t45x74oeq5gdukkuxlp5cvoyfxuprz6ci` | Agent for testing the ABCI connection.                                                                                     |
-| agent/valory/register_reset_recovery/0.1.0                    | `bafybeia5txcx3jfmjfuqnirdrlpk2n7rh7c5zrhfjwvfiwvnojlzkclmfm` | Agent to showcase hard reset as a recovery mechanism.                                                                      |
-| agent/valory/offend_slash/0.1.0                               | `bafybeigtfahasqtti224tgqs2i7wrbwloevj2wp3c7zoelgh27owxojnca` | Offend and slash to test the slashing feature.                                                                             |
-| agent/valory/solana_transfer_agent/0.1.0                      | `bafybeiccthnbjxnft2ut6dnn2jyalogq6j2ocuzz6ghvxddwcwxwxc4qf4` | Register terminate to test the termination feature.                                                                        |
-| service/valory/counter/0.1.0                                  | `bafybeiabuq2nvczpqcxbmij7ltxa5eenplwcakcbrxjgdfxobyvjs7wqna` | A set of agents incrementing a counter                                                                                     |
-| service/valory/register_reset/0.1.0                           | `bafybeicxedzl2mu36lceaw4eeqknyanrg6iopkwh3hug4fko6doxvkx2ha` | Test and debug tendermint reset mechanism.                                                                                 |
-| protocol/open_aea/signing/1.0.0                               | `bafybeiei6h5suazzfta7n3uyq7bsz26zkmdiiylptu5i44p7s2wiygxt24` | A protocol for communication between skills and decision maker.                                                            |
-| protocol/valory/acn/1.1.0                                     | `bafybeih6o2ts4thjluddizqesxbrcqkaciz3zlbolq6e77dgblqdnht2rm` | The protocol used for envelope delivery on the ACN.                                                                        |
-| protocol/valory/http/1.0.0                                    | `bafybeia4tq7ycivm3dnekelrnlzdwb4qnrjdykk6gf5tizq6djr66adotm` | A protocol for HTTP requests and responses.                                                                                |
-| protocol/valory/ledger_api/1.0.0                              | `bafybeig7yk77pmebqcb33jbavodcslmltitz2uolq6s5arklvsvu5bvp7y` | A protocol for ledger APIs requests and responses.                                                                         |
-| protocol/valory/contract_api/1.0.0                            | `bafybeigl7mxuyxngk4gztgygeccbgdfrllx73kwbvvkjvtkfw6ionyd56q` | A protocol for contract APIs requests and responses.                                                                       |
-| connection/valory/http_client/0.23.0                          | `bafybeigwzn4hkry3wy7nf2myk3h3pl5xrqkvvxp2ppdbwwffa4c2s2bkwy` | The HTTP_client connection that wraps a web-based client connecting to a RESTful API specification.                        |
-| connection/valory/ledger/0.19.0                               | `bafybeigiipjmtjdivz2wd54c7bmbqxbayk5b5st7wcrsvsnqkfc2f2rbaa` | A connection to interact with any ledger API and contract API.                                                             |
-| connection/valory/p2p_libp2p_client/0.1.0                     | `bafybeigg3kzkywemiswrgjhb7hei5qsysxcsx36c6weyewtirctbmleowm` | The libp2p client connection implements a tcp connection to a running libp2p node as a traffic delegate to send/receive envelopes to/from agents in the DHT. |
+| Package name                                                  | Package hash                                                  |
+| ------------------------------------------------------------- | ------------------------------------------------------------- |
+| protocol/valory/abci/0.1.0                                    | `bafybeiak4pwac3pwjtd7weskxdhkrcopckr32vtazfbuteu6yqjkwarpte` |
+| protocol/valory/tendermint/0.1.0                              | `bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq` |
+| protocol/valory/ipfs/0.1.0                                    | `bafybeibz5xqhxdbuvba7nuw2w6ardjermtcoqercopnypdplnaekf3joam` |
+| protocol/valory/acn_data_share/0.1.0                          | `bafybeieqisfr6lhaaesq37lk7vyaxza2h6nucshksgyo2djqfyf2saqo4i` |
+| contract/valory/gnosis_safe_proxy_factory/0.1.0               | `bafybeihpzvi2rxvdzujrqivnynsoqezklval6j3qeoxaitquktvwscqgra` |
+| contract/valory/component_registry/0.1.0                      | `bafybeiges5ygfae7ur3vok2wd4qdv2me3xugwqa6qthwp2knxrma5krnyq` |
+| contract/valory/agent_registry/0.1.0                          | `bafybeihix534wbt7nq5qaneww5j4b74ce6rf33xgbochpc6xcogzhmnv7q` |
+| contract/valory/registries_manager/0.1.0                      | `bafybeiad4svvvbcsv4j4rha4bf3tuc3hcv3ps72iqyjgrr4oxp3su2zqiu` |
+| contract/valory/service_manager/0.1.0                         | `bafybeiek6vx2zvg6r73j3pxwdrfvuatczwjxumb5df5wghfvohoaoogllm` |
+| contract/valory/service_registry/0.1.0                        | `bafybeifuexvcj6w3j2lludzxi3rgu2nn2b3toyifxiy46hv726o2bxivjm` |
+| contract/valory/gnosis_safe/0.1.0                             | `bafybeifoaqgi6aptxuncpec6wya7rbctvf6ljq73r6gactiscfoxapsxem` |
+| contract/valory/multisend/0.1.0                               | `bafybeic4534fd4axozjmykpstgjynxzpkpfvnvyjt7hz32ajfe3fmwhn7m` |
+| contract/valory/erc20/0.1.0                                   | `bafybeigjxwhx4li5hmyv3hrtatwq65gl4wihqysaq5pqlpmw5o4lymfv6y` |
+| contract/valory/recovery_module/0.1.0                         | `bafybeibzxzuh2dv2kgk52fjxx6sshkkxwp3j44ux7ffdcxmuazxy443w5a` |
+| contract/valory/service_registry_token_utility/0.1.0          | `bafybeigrrphdrb2umdywk3xl4fbstcofllllubty34va7ywht3whi4eoyy` |
+| contract/valory/squads_multisig/0.1.0                         | `bafybeihf6kgfsnfp5ugs44gjffj2qltr5zerf2w2rmgets3d3tizjngrp4` |
+| contract/valory/multicall2/0.1.0                              | `bafybeieb6xzq4ytn3vcetr5rbhltmc7krutodkfwgvvtjiaskg2fvajdca` |
+| contract/valory/poly_safe_creator_with_recovery_module/0.1.0  | `bafybeid3x4d6ebw3tqpqjlvqxqleu23pzdzi4pm7q2s7jwl7ta5zjpfd5a` |
+| contract/valory/sign_message_lib/0.1.0                        | `bafybeiesll5l77ggendlasqnbyvlf5r7huliww5kzmnnsnvyx55irsjwpy` |
+| contract/valory/erc8004_identity_registry/0.1.0               | `bafybeihkiewmxjfkjwgt2pvqvbove2friqu3o5sy4gblvj4nmlxpqcnxim` |
+| contract/valory/erc8004_identity_registry_bridger/0.1.0       | `bafybeig7sxwyhs2xig3w2jj4smbxua64ctu4cyxl7vtwtdrkrsxlfv2fem` |
+| contract/valory/staking_activity_checker/0.1.0                | `bafybeihywzpoaxltgvgaazzh5sffpl57p5ptp5oyaz545ywpom2a4obyu4` |
+| contract/valory/staking_token/0.1.0                           | `bafybeibdn7ntkijvsco224ehm3bk6i4r7zhlre4ns4mzlmohlqgnw325bu` |
+| contract/valory/agent_mech/0.1.0                              | `bafybeieehgxkc3mosiramapon4u7qkhihxa52actku4wlykypovgcjsjde` |
+| contract/valory/mech_marketplace/0.1.0                        | `bafybeifhsokyqboq6acuvysjrypuly3ozpsopgzlwmgp5qzojyfmbqm67u` |
+| connection/valory/abci/0.1.0                                  | `bafybeibcpvyteijct4rz3zl63sn5zwuiwtn6gt6guvr5gufko4332ybgcu` |
+| connection/valory/ipfs/0.1.0                                  | `bafybeic4cubtc6jbejq7yt7fjlibuixofb6wqpfoc5vt2h4wpaahi5y5bi` |
+| skill/valory/test_ipfs_abci/0.1.0                             | `bafybeigijjvz3cxu2ipwxs5fudz4lvu244r7mikcukyegkjbjwgzhsjknq` |
+| skill/valory/abstract_abci/0.1.0                              | `bafybeib5qjkpfsxjcur4asube6kctmy2xsrg2hzcele2tmvsstula4lt54` |
+| skill/valory/abstract_round_abci/0.1.0                        | `bafybeih5nr3jdjo7pahcs3pgjheqzmwkoi2emiilxqzorhcduoalhxi7jy` |
+| skill/valory/transaction_settlement_abci/0.1.0                | `bafybeigqefmlzk7nehhpwzrkm4rnjsep7xpa3c7xuttjf2yummcdhjffy4` |
+| skill/valory/registration_abci/0.1.0                          | `bafybeifpdgnlrn3dnur76yww2errlecm4nwconerrkww7rxkr4zd2sw5ky` |
+| skill/valory/reset_pause_abci/0.1.0                           | `bafybeife66mkzjgci6ozikwergg6lr26o3duhusta2sociebwxicp3jsre` |
+| skill/valory/termination_abci/0.1.0                           | `bafybeibgv2hbbprkh4pqbkr35kcpqaeopdrznqwgihryjrlbyi42gzup3m` |
+| skill/valory/counter/0.1.0                                    | `bafybeih3yv2hykaplyo7ltilsl4kama4f5ezgnwqz7bxr6fnel7lvrh2by` |
+| skill/valory/counter_client/0.1.0                             | `bafybeictnuzwjih3wift5zxfwvyin6zcr2sprv4eyelewusmcc3aiz7nki` |
+| skill/valory/register_reset_abci/0.1.0                        | `bafybeifvk2psuhzrhkht3tg3v2misgq4wi6ve4x2fzikod3yhtvg4s57pq` |
+| skill/valory/register_termination_abci/0.1.0                  | `bafybeigjkvqf4wi7u5h24mrqw35nghyjkrha3q5ymte44jucpwy4ynbzci` |
+| skill/valory/test_abci/0.1.0                                  | `bafybeid52dvemtzhki6tkxluettgific4zf4tjvzgp7typetgteeppklyq` |
+| skill/valory/register_reset_recovery_abci/0.1.0               | `bafybeibznk3gms7guqxgpcjlvhp4mcsbip7vr2mzn3xcljpbnur5xco7eq` |
+| skill/valory/slashing_abci/0.1.0                              | `bafybeibmzbtcubr3ccejolm3e53ewzm2fqk46v66nkhvogadvnfunbsj4y` |
+| skill/valory/offend_abci/0.1.0                                | `bafybeibgszg3jpgsnahehhdh722qiblyghycywpqqktnj26r6yrc2d53xe` |
+| skill/valory/offend_slash_abci/0.1.0                          | `bafybeiamtg6eajzrhlslb3exxu4aozszg3snwkth7gqwxncwuaiut2vjae` |
+| skill/valory/squads_transaction_settlement_abci/0.1.0         | `bafybeigbjqmd5vvb5zyguk27secwqhuumdatz57pu4yprebdrrbfrfc4da` |
+| skill/valory/test_solana_tx_abci/0.1.0                        | `bafybeieocbu6tsg3kzoer3gx4lpfaayktcbze5f6cecqfjjxbrg725iuqi` |
+| skill/valory/identify_service_owner_abci/0.1.0                | `bafybeif2hghqon6z2hnbjhvkfedp3jypb65x6gijhndpte3gjfjlyxpj2i` |
+| skill/valory/funds_forwarder_abci/0.1.0                       | `bafybeifrdlelwanav4juehrusdzseo3sh72l4vvroqv2xtsk7ydxodptmu` |
+| agent/valory/test_ipfs/0.1.0                                  | `bafybeihrqzokjih6zshnzjwv62whcvbhyzwhst4qzbec63hd6xekhb44qa` |
+| agent/valory/abstract_abci/0.1.0                              | `bafybeifflsfaq7ivfygzdyjlmjiwnmvhkbuzvlf27qml5dhe65yaeiteqm` |
+| agent/valory/counter/0.1.0                                    | `bafybeiechj7a4fh72n2oij4dphpxw3twky3nsbnjxq6hrsy5nd4atsxldm` |
+| agent/valory/counter_client/0.1.0                             | `bafybeie5nfsyyflohuzlliioyubekwh463wej43hf74wnvmzevryssifti` |
+| agent/valory/register_reset/0.1.0                             | `bafybeidiiqmu5asarl7y7h4wc72t4p55juou6rsrni4lxuetuceawmlicu` |
+| agent/valory/register_termination/0.1.0                       | `bafybeieul3dpxnul2agjl27qy3yrejlfzodfsjvop55qvjfsee6ouhfhua` |
+| agent/valory/registration_start_up/0.1.0                      | `bafybeihyjvtljiu5xyums4gv7nxv3mk7mqb4op6scfifwzt4umu5x2xjlm` |
+| agent/valory/test_abci/0.1.0                                  | `bafybeidc2xhakbdui57lcojusxhm57pyvm7uezovvtvwshwalh5evhcgp4` |
+| agent/valory/register_reset_recovery/0.1.0                    | `bafybeiayhvlhfqjar24bkqxlmgmksqryvsw3tc5la3or6r7x4nucrwfvgi` |
+| agent/valory/offend_slash/0.1.0                               | `bafybeiaz3f5uyrm3jdqgfyqpxx3vmvi3q27klbv2hbn2jnoz3up6jrgaj4` |
+| agent/valory/solana_transfer_agent/0.1.0                      | `bafybeia5y24w43vfjuctx6p4jw6jmapsnuwaeunoi2iowsrk3vv4uitvhq` |
+| service/valory/counter/0.1.0                                  | `bafybeibfemvbw7ftkmwmmvhbhbieystz4eo4kz53y3nbxp7b5oh5vi2w6y` |
+| service/valory/register_reset/0.1.0                           | `bafybeifkq33z6yj6ggfaossawksrt6wggryi3rnwzs5cti7e7gqqwsuy7y` |

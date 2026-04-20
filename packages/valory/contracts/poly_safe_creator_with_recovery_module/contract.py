@@ -19,15 +19,17 @@
 
 """This module contains the class to connect to the `PolySafeCreatorWithRecoveryModule` contract."""
 
+from typing import cast
+
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import Crypto, LedgerApi
+from aea_ledger_ethereum import EthereumApi
 from eth_abi import encode
 from eth_utils import to_checksum_address
 
 from autonomy.chain.config import ChainType
-
 
 PUBLIC_ID = PublicId.from_str("valory/poly_safe_creator_with_recovery_module:0.1.0")
 
@@ -65,11 +67,12 @@ class PolySafeCreatorWithRecoveryModule(Contract):
         signer_address: str,
     ) -> JSONLike:
         """Get the enable module transaction hash for a given signer (Poly Safe owner)."""
+        ledger_api = cast(EthereumApi, ledger_api)
         contract_instance = cls.get_instance(
             ledger_api=ledger_api, contract_address=contract_address
         )
         hash_bytes = contract_instance.functions.getEnableModuleTransactionHash(
-            to_checksum_address(signer_address)
+            ledger_api.api.to_checksum_address(signer_address)
         ).call()
         return dict(hash_bytes=hash_bytes)
 
@@ -88,6 +91,7 @@ class PolySafeCreatorWithRecoveryModule(Contract):
         :param crypto: Crypto instance holding the Safe owner private key.
         :return: Hex-encoded ABI payload (`0x...`) containing the `data` payload.
         """
+        ledger_api = cast(EthereumApi, ledger_api)
 
         # Poly Safe deployment data requires two (legacy) signatures by the safe owner packed in a specific format:
         # - Signature 1: Poly Safe creation signature
@@ -130,7 +134,7 @@ class PolySafeCreatorWithRecoveryModule(Contract):
         r1 = sig1_bytes[0:32]
         s1 = sig1_bytes[32:64]
         v1 = sig1_bytes[64]
-        data_bytes = encode(
+        data_bytes = ledger_api.api.codec.encode(
             ["(uint8,bytes32,bytes32)", "bytes"], [(v1, r1, s1), sig2_bytes]
         )
 

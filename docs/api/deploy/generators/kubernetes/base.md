@@ -37,7 +37,7 @@ Build agent deployment.
 def generate_config_tendermint() -> "KubernetesGenerator"
 ```
 
-Build configuration job.
+Generate PVC configuration for the deployment.
 
 <a id="autonomy.deploy.generators.kubernetes.base.KubernetesGenerator.generate"></a>
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -45,7 +45,6 @@ from aea_test_autonomy.configurations import (
     ETHEREUM_ENCRYPTED_KEYS,
     ETHEREUM_ENCRYPTION_PASSWORD,
 )
-from dotenv import load_dotenv
 
 from autonomy.constants import (
     DEFAULT_BUILD_FOLDER,
@@ -91,7 +90,6 @@ from autonomy.replay.agent import ETHEREUM_PRIVATE_KEY_FILE
 from tests.conftest import PACKAGES_DIR, ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.base import get_dummy_service_config
 from tests.test_autonomy.test_cli.base import BaseCliTest
-
 
 OS_ENV_PATCH = mock.patch.dict(
     os.environ, values={**os.environ, "ALL_PARTICIPANTS": "[]"}, clear=True
@@ -139,14 +137,14 @@ def find_hash(component_name: str) -> str:
 def check_agent_env(build_dir: Path, env_var_name: str, expected_value: str) -> None:
     """Check env."""
     for node_id in range(N_AGENTS):
-        env_file = AGENT_ENV_TEMPLATE.substitute(node_id=node_id)
-        assert load_dotenv(
-            build_dir / env_file, override=True
-        ), "Environment was not changed!"
-        env_var_value = os.getenv(env_var_name)
-        assert (
-            env_var_value is not None
-        ), f"{env_var_name!r} not in {os.environ.keys()!r}!"
+        env_path = build_dir / AGENT_ENV_TEMPLATE.substitute(node_id=node_id)
+        env_map = dict(
+            line.split("=", 1)
+            for line in env_path.read_text().splitlines()
+            if "=" in line and not line.startswith("#")
+        )
+        assert env_var_name in env_map, f"{env_var_name!r} not in {list(env_map)!r}!"
+        env_var_value = env_map[env_var_name]
         assert (
             env_var_value == expected_value
         ), f"{env_var_value!r} != {expected_value!r}!"
@@ -171,9 +169,9 @@ class BaseDeployBuildTest(BaseCliTest):
     keys_file: Path
     spec: ServiceBuilder
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test method."""
-        super().setup()
+        super().setup_method()
 
         self.keys_file = self.t / "keys.json"
         shutil.copytree(ROOT_DIR / PACKAGES, self.t / PACKAGES)
@@ -207,9 +205,7 @@ class BaseDeployBuildTest(BaseCliTest):
         """Check kubernetes build dir."""
 
         build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
-        assert any(
-            child in build_tree for child in ["persistent_storage", "build.yaml"]
-        )
+        assert "build.yaml" in build_tree
 
     def load_and_check_docker_compose_file(
         self,
@@ -228,19 +224,16 @@ class BaseDeployBuildTest(BaseCliTest):
                     service_hash_id=service_hash_id,
                 )
 
-        assert any(
+        assert all(
             [key in docker_compose for key in ["version", "services", "networks"]]
         )
 
-        assert any(
-            [
-                service in docker_compose["services"]
-                for service in [
-                    *map(
-                        lambda i: self.spec.get_abci_container_name(i), range(N_AGENTS)
-                    ),
-                    *map(lambda i: self.spec.get_tm_container_name(i), range(N_AGENTS)),
-                ]
+        n_agents = self.spec.service.number_of_agents
+        assert all(
+            service in docker_compose["services"]
+            for service in [
+                *map(lambda i: self.spec.get_abci_container_name(i), range(n_agents)),
+                *map(lambda i: self.spec.get_tm_container_name(i), range(n_agents)),
             ]
         )
 
@@ -305,7 +298,7 @@ class BaseDeployBuildTest(BaseCliTest):
                 "ID": "0",
                 "AEA_AGENT": f"valory/register_reset:0.1.0:{hash_}",
                 "LOG_LEVEL": INFO,
-                "AEA_PASSWORD": "",
+                "AEA_PASSWORD": "",  # nosec
                 "CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_ADDRESS": "http://host.docker.internal:8545",
                 "CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_CHAIN_ID": "31337",
                 "CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_POA_CHAIN": "False",
@@ -320,24 +313,15 @@ class BaseDeployBuildTest(BaseCliTest):
     ) -> None:
         """Check docker compose build directory."""
         build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
-        assert any(
-            [
-                child in build_tree
-                for child in [
-                    "persistent_storage",
-                    "nodes",
-                    DockerComposeGenerator.output_name,
-                ]
-            ]
-        )
+        assert DockerComposeGenerator.output_name in build_tree
 
 
 class TestLocalhostBuilds(BaseDeployBuildTest):
     """Test localhost builds."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test for localhost deployment."""
-        super().setup()
+        super().setup_method()
         shutil.copy(
             ROOT_DIR
             / PACKAGES
@@ -385,9 +369,9 @@ class TestLocalhostBuilds(BaseDeployBuildTest):
                 "0x0000000000000000000000000000000000000000000000000000000000000001"
             )
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown method."""
-        super().teardown()
+        super().teardown_method()
         DEFAULT_CLI_CONFIG["registry_config"]["settings"][REGISTRY_LOCAL][
             "default_packages_path"
         ] = None
@@ -403,23 +387,30 @@ class TestLocalhostBuilds(BaseDeployBuildTest):
             / REGISTER_RESET_COMPONENT
             / DEFAULT_BUILD_FOLDER.format(build_hash_id())
         )
-        result = self.run_cli(
-            (
-                str(self.keys_file),
-                "--o",
-                str(build_dir),
-                "--localhost",
-                "--mkdir",
-                "data",
+
+        # Ensure AEA_PASSWORD is not set; the aea CLI reads it via
+        # envvar= on the Click option (open-aea#825) and a stale value
+        # from a previous test causes add-key to attempt JSON decryption
+        # on plaintext keys.
+        env = {k: v for k, v in os.environ.items() if k != "AEA_PASSWORD"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(build_dir),
+                    "--localhost",
+                    "--mkdir",
+                    "data",
+                )
             )
-        )
 
-        assert result.exit_code == 0, result.output
-        assert build_dir.exists()
-        assert (build_dir / "data").exists()
+            assert result.exit_code == 0, result.output
+            assert build_dir.exists()
+            assert (build_dir / "data").exists()
 
-        self.check_localhost_build(build_dir)
-        self.load_and_check_localhost_build(build_dir)
+            self.check_localhost_build(build_dir)
+            self.load_and_check_localhost_build(build_dir)
 
     @pytest.mark.skip("Test is not implemented yet.")
     def test_dev_mode(self) -> None:
@@ -429,9 +420,9 @@ class TestLocalhostBuilds(BaseDeployBuildTest):
 class TestDockerComposeBuilds(BaseDeployBuildTest):
     """Test docker-compose build."""
 
-    def teardown(self) -> None:
+    def teardown_method(self) -> None:
         """Teardown method."""
-        super().teardown()
+        super().teardown_method()
         os.environ.pop(AUTONOMY_PKEY_PASSWORD, None)
 
     def test_docker_compose_build(
@@ -923,12 +914,27 @@ class TestKubernetesBuild(BaseDeployBuildTest):
             path=build_dir,
         )
 
-        assert any(
-            [
-                resource["metadata"]["name"] == "config-nodes"
-                for resource in kubernetes_config
-            ]
+        # Verify tendermint config generation is handled via initContainer
+        # (no separate config-nodes Job or any Job kind)
+        assert not any(
+            resource.get("metadata", {}).get("name") == "config-nodes"
+            for resource in kubernetes_config
         )
+        assert not any(
+            resource.get("kind") == "Job" for resource in kubernetes_config
+        ), "No Job resources should exist — config generation uses initContainers"
+        # Verify agent deployments have the generate-tendermint-config initContainer
+        agent_deployments = [
+            r for r in kubernetes_config if r.get("kind") == "Deployment"
+        ]
+        assert len(agent_deployments) > 0
+        for deployment in agent_deployments:
+            init_containers = deployment["spec"]["template"]["spec"].get(
+                "initContainers", []
+            )
+            init_names = [c["name"] for c in init_containers]
+            assert "generate-tendermint-config" in init_names
+            assert "copy-tendermint-configuration" in init_names
 
     def test_kubernetes_build_image_author_default(
         self,
@@ -956,7 +962,7 @@ class TestKubernetesBuild(BaseDeployBuildTest):
 
         build_config = self.load_kubernetes_config(build_dir)
         assert (
-            f"'image': '{get_default_author_from_cli_config() or  DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-"
+            f"'image': '{get_default_author_from_cli_config() or DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-"
             in str(build_config)
         )
 
@@ -995,9 +1001,9 @@ class TestKubernetesBuild(BaseDeployBuildTest):
 class TestExposePorts(BaseDeployBuildTest):
     """Test expose ports from service config."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
 
         service_data = get_dummy_service_config(file_number=1)
         service_data[0]["deployment"] = {
@@ -1074,9 +1080,9 @@ class TestExtraVolumes(BaseDeployBuildTest):
 
     volume: Path
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
 
         self.volume = self.t / "extra_volume"
         service_data = get_dummy_service_config(file_number=1)
@@ -1168,9 +1174,9 @@ class TestLoadEnvVars(BaseDeployBuildTest):
     env_var_path = "SKILL_DUMMY_SKILL_MODELS_PARAMS_ARGS_HELLO_WORLD_MESSAGE"
     env_var_value = "ENV_VAR_VALUE"
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
         service_data = get_dummy_service_config(file_number=4)
         with open("./service.yaml", "w+") as fp:
             yaml.dump_all(service_data, fp)
@@ -1218,9 +1224,9 @@ class TestLoadEnvVars(BaseDeployBuildTest):
 class TestResourceSpecification(BaseDeployBuildTest):
     """Test expose ports from service config."""
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         """Setup test."""
-        super().setup()
+        super().setup_method()
         service_data = get_dummy_service_config(file_number=4)
         with open("./service.yaml", "w+") as fp:
             yaml.dump_all(service_data, fp)

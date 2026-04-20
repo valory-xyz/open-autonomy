@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -86,8 +86,13 @@ def test_analyse_docstrings_with_update(capsys: CaptureFixture) -> None:
     """Test analyse_docstrings with update"""
 
     module_path = Path(cast(str, test_abci_rounds.__file__))
-    doc = cast(str, test_abci_rounds.TestAbciApp.__doc__)
-    content_with_mutated_abci_doc = module_path.read_text().replace(doc, doc + " ")
+    original_content = module_path.read_text()
+    # Mutate the docstring by adding a trailing space to a known line;
+    # we modify the file content directly rather than using __doc__ which
+    # may have normalized whitespace (Python 3.14+)
+    content_with_mutated_abci_doc = original_content.replace(
+        "reset timeout: 30.0", "reset timeout: 30.0 "
+    )
 
     with mock.patch.object(Path, "write_text") as mock_write_text:
         with mock.patch.object(Path, "read_text", return_value=""):

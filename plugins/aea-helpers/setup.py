@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------------------------
+#
+#   Copyright 2026 Valory AG
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ------------------------------------------------------------------------------
+"""Setup script for the plug-in."""
+
+from pathlib import Path
+
+from setuptools import find_packages  # type: ignore
+from setuptools import setup  # type: ignore
+
+
+def _read_long_description() -> str:
+    """Read the plugin README as the PyPI long description."""
+    return (Path(__file__).parent / "README.md").read_text(encoding="utf-8")
+
+
+base_deps = [
+    # Direct imports: `autonomy.cli.helpers.ipfs_hash`, plus the
+    # `aea.*` modules (arrive transitively via `open-aea`).
+    # `open-autonomy` also supplies `click`, `aea.helpers.http_requests`,
+    # and `PyYAML` transitively (via `open-aea[all]` and its own
+    # declarations), so they are not re-declared here.
+    # `tomllib` (pyproject.toml parsing) is stdlib on Python >= 3.11;
+    # on 3.10 we fall back to `tomli`, which arrives transitively via
+    # `pytest` (declared by `open-aea[all]` with a
+    # `python_version < "3.11"` marker).
+    "open-autonomy>=0.21.0,<0.22.0",
+]
+
+setup(
+    name="open-aea-helpers",
+    version="0.21.18",
+    author="Valory AG",
+    license="Apache-2.0",
+    description="CLI helpers for CI and dependency management in AEA-based projects.",
+    long_description=_read_long_description(),
+    long_description_content_type="text/markdown",
+    packages=find_packages(where=".", include=["aea_helpers", "aea_helpers.*"]),
+    package_data={
+        "aea_helpers": [
+            "py.typed",
+            "scripts/*.sh",
+        ]
+    },
+    entry_points={
+        "console_scripts": [
+            "aea-helpers=aea_helpers.cli:cli",
+        ],
+    },
+    install_requires=base_deps,
+    classifiers=[
+        "Environment :: Console",
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: Apache Software License",
+        "Natural Language :: English",
+        "Operating System :: MacOS",
+        "Operating System :: Microsoft",
+        "Operating System :: Unix",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Topic :: Software Development",
+    ],
+)

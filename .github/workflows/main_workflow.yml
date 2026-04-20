@@ -7,6 +7,10 @@ on:
       - main
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   TENDERMINT_IMAGE_VERSION: latest
 
@@ -17,43 +21,36 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest-large, windows-latest ]
-        python-version: ["3.10.9"]
+        python-version: ["3.14"]
 
     timeout-minutes: 18
 
+    defaults:
+      run:
+        shell: bash
+
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@master
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    - if: matrix.os != 'windows-latest'
-      name: Pipenv install requirements and check it can be locked
-      run: |
-        pip install pipenv==2023.7.23
-        pipenv --clear
-        time pipenv install --verbose --dev --skip-lock
-        time pipenv run pip install -e .[all]
-        time pipenv lock
-    - if: matrix.os == 'windows-latest'
-      name: Pipenv install requirements and check it can be locked
-      run: |
-        choco install ptime
-        pip install pipenv==2023.7.23
-        pipenv --clear
-        ptime pipenv install --verbose --dev --skip-lock
-        ptime pipenv run pip install -e .[all]
-        ptime pipenv lock
+    - name: Install Poetry
+      run: pip install poetry==2.3.2
+    - name: Check if dependencies can be locked
+      run: poetry check --lock
+    - name: Poetry install requirements and check they can be locked
+      run: poetry install --all-extras --no-interaction -vvv
 
   install_check:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        python-version: ["3.10.9"]
+        python-version: ["3.14"]
     timeout-minutes: 10
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@master
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Check clean installation
@@ -67,15 +64,15 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.10.9"]
+        python-version: ["3.14"]
 
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@master
+    - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -83,20 +80,25 @@ jobs:
         sudo apt-get update --fix-missing
         sudo apt-get autoremove
         sudo apt-get autoclean
-        pip install tomte[tox,cli]==0.4.0
+        pip install tomte[tox,cli]==0.6.5
         pip install --user --upgrade setuptools
     - name: Check copyright headers
-      run: tomte format-copyright --author valory --author fetchai
+      # tomte 0.6.5 matches author strings literally against file headers.
+      # Pass the full names that actually appear in source headers —
+      # the short slugs "valory"/"fetchai" cause tomte to treat headers
+      # with "Valory AG"/"Fetch.AI Limited" as missing and prepend a
+      # second (wrong) copyright block, making the working tree dirty.
+      run: tomte format-copyright --author "Valory AG" --author "Fetch.AI Limited"
     - name: License compatibility check
       run: tox -e liccheck
     - name: Check docs
       run: tox -e check-api-docs
-    # - name: Check doc links
-    #   run: tomte check-doc-links --http-skips http://host.docker.internal:8545 --http-skips http://www.fipa.org/repository/ips.php3 --url-skips "https://gateway.autonolas.tech/ipfs/<hash>" --url-skips "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure" --url-skips "http://host.docker.internal:8545" --url-skips "https://github.com/valory-xyz/open-operator"
-    - name: Check doc IPFS hashes
-      run: tox -e check-doc-hashes
+    - name: Check doc links and IPFS hashes
+      run: tox -e check-doc-links-hashes
     - name: Check dependencies
       run: tox -e check-dependencies
+    - name: Check third-party hashes
+      run: tox -e check-third-party-hashes
 
   linter_checks:
     runs-on: ${{ matrix.os }}
@@ -104,16 +106,16 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.10.9"]
+        python-version: ["3.13"]  # use 3.14 after https://github.com/akaihola/darglint2/issues/44 is fixed
 
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@master
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    - uses: actions/setup-go@v3
+    - uses: actions/setup-go@v5
       with:
         go-version: "1.17.7"
     - name: Install dependencies
@@ -121,7 +123,7 @@ jobs:
         sudo apt-get update --fix-missing
         sudo apt-get autoremove
         sudo apt-get autoclean
-        pip install tomte[tox]==0.4.0
+        pip install tomte[tox]==0.6.5
         pip install --user --upgrade setuptools
         # install Protobuf compiler
         wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-linux-x86_64.zip
@@ -169,10 +171,10 @@ jobs:
     name: gitleaks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v5
         with:
           go-version: "1.17.7"
       - run: |
@@ -192,20 +194,29 @@ jobs:
     strategy:
       fail-fast: false  # prevents all matrix jobs from canceling if one fails
       matrix:
-        os: [ ubuntu-latest, macos-latest-large, windows-latest ]
-        python-version: [ "3.10", "3.11" ]
+        os: [ubuntu-latest]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        include:
+          - os: macos-latest-large
+            python-version: "3.10"
+          - os: macos-latest-large
+            python-version: "3.14"
+          - os: windows-latest
+            python-version: "3.10"
+          - os: windows-latest
+            python-version: "3.14"
 
     timeout-minutes: 90
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
-      - uses: actions/setup-python@master
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v5
         with:
           go-version: "1.17.7"
       - if: matrix.os == 'ubuntu-latest'
@@ -214,7 +225,7 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          pip install tomte[tox]==0.4.0
+          pip install tomte[tox]==0.6.5
           pip install --user --upgrade setuptools
 
           # install Protobuf compiler
@@ -266,9 +277,13 @@ jobs:
           tox -e packages-py${{ matrix.python-version }}-linux -- -m 'not e2e'
 
       - if: matrix.os == 'macos-latest-large'
+        name: Set macOS SDK root
+        run: echo "SDKROOT=$(xcrun --show-sdk-path)" >> $GITHUB_ENV
+
+      - if: matrix.os == 'macos-latest-large'
         name: Install dependencies (macos-latest-large)
         run: |
-          pip install tomte[tox]==0.4.0
+          pip install tomte[tox]==0.6.5
 
           # brew install protobuf
           # brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/72457f0166d5619a83f508f2345b22d0617b5021/Formula/protobuf.rb
@@ -328,7 +343,7 @@ jobs:
           choco install make -y
           # to check make was installed
           make --version
-          pip install tomte[tox]==0.4.0
+          pip install tomte[tox]==0.6.5
           # wget https://github.com/protocolbuffers/protobuf/releases/download/v24.3/protoc-24.3-win64.zip
           # unzip protoc-24.3-win64.zip -d protoc
           # sudo mv protoc/bin/protoc /usr/local/bin/protoc
@@ -368,7 +383,7 @@ jobs:
 
       - if: matrix.os == 'ubuntu-latest'
         name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
@@ -387,15 +402,15 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ "3.10.9" ]
+        python-version: [ "3.14" ]
 
     timeout-minutes: 150
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: actions/setup-python@master
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -403,7 +418,7 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          pip install tomte[tox]==0.4.0
+          pip install tomte[tox]==0.6.5
           pip install --user --upgrade setuptools
 
           # install Protobuf compiler
@@ -442,3 +457,23 @@ jobs:
       - name: Unit tests
         run: |
           tox --develop -e e2e-py${{ matrix.python-version }}-linux -- -m 'e2e'
+
+  all-checks-passed:
+    name: All checks passed
+    if: always()
+    needs:
+      - lock_check
+      - install_check
+      - copyright_doc_and_dependencies_check
+      - linter_checks
+      - scan
+      - test
+      - e2e
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any dependency did not succeed
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}" == "true" ]]; then
+            echo "One or more required jobs failed, were cancelled, or were skipped."
+            exit 1
+          fi

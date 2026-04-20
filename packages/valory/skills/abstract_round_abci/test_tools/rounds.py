@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -37,7 +37,20 @@ from typing import (
 )
 from unittest import mock
 
-import pytest
+try:
+    import pytest
+except ImportError:  # pragma: no cover
+
+    class _PytestMissing:  # pylint: disable=too-few-public-methods
+        """Stub that raises a clear ImportError when `pytest` is touched."""
+
+        def __getattr__(self, name: str) -> Any:
+            raise ImportError(
+                "pytest is required to use abstract_round_abci.test_tools. "
+                "Install with `pip install pytest`."
+            )
+
+    pytest = _PytestMissing()  # type: ignore[assignment]
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
@@ -55,7 +68,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     TransactionNotValidError,
     VotingRound,
 )
-
 
 MAX_PARTICIPANTS: int = 4
 
@@ -187,7 +199,7 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
     _synchronized_data_class: Type[BaseSynchronizedData]
     _event_class: Any
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test class."""
@@ -592,12 +604,12 @@ class _BaseRoundTestClass(BaseRoundTestClass):  # pylint: disable=too-few-public
 
     _synchronized_data_class = DummySynchronizedData
 
-    def setup(
+    def setup_method(
         self,
     ) -> None:
         """Setup test class."""
 
-        super().setup()
+        super().setup_method()
         self.tx_payloads = get_dummy_tx_payloads(self.participants)
 
     @staticmethod

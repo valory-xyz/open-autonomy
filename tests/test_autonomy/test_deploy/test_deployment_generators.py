@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 from autonomy.deploy.generators.localhost.base import HostDeploymentGenerator
 
 from tests.conftest import ROOT_DIR
-
 
 AGENT = PublicId(
     author="valory",
@@ -94,3 +93,12 @@ def test_versioning(
                 image_version = f"latest:{AGENT.hash}"
             expected = f"valory/{oar_image}oracle:{image_version or AGENT.hash}"
             assert expected in deployment_generator.output
+
+
+def test_get_docker_client_raises_when_docker_package_missing() -> None:
+    """Test that `get_docker_client` raises ImportError when `docker` package is absent."""
+    from autonomy.deploy.generators.docker_compose import base as dc_base
+
+    with mock.patch.object(dc_base, "DOCKER_INSTALLED", False):
+        with pytest.raises(ImportError, match=r"open-autonomy\[docker\]"):
+            dc_base.get_docker_client()

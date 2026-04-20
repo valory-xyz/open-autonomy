@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,24 +19,35 @@
 # ------------------------------------------------------------------------------
 """Setup script for the plug-in."""
 
+from pathlib import Path
+
 from setuptools import find_packages  # type: ignore
 from setuptools import setup  # type: ignore
 
 
+def _read_long_description() -> str:
+    """Read the plugin README as the PyPI long description."""
+    return (Path(__file__).parent / "README.md").read_text(encoding="utf-8")
+
+
 base_deps = [
-    "open-aea[all]>=2.0.8,<3.0.0",
-    "pytest==7.4.4",
-    "open-aea-ledger-ethereum>=2.0.8,<3.0.0",
-    "docker==7.1.0",
+    # `open-autonomy[all,docker]` supplies everything the plugin's
+    # direct imports resolve to:
+    #   * `pytest`, `aea.*` — via `open-aea[all]`
+    #   * `aea_ledger_ethereum`, `web3`, `eth_account` — via the
+    #     `[all]` extra's `open-aea-ledger-ethereum`
+    #   * `docker`, `docker.models.containers`, `docker.errors` —
+    #     via the `[docker]` extra
+    "open-autonomy[all,docker]>=0.21.0,<0.22.0",
 ]
 
 setup(
     name="open-aea-test-autonomy",
-    version="0.21.8",
+    version="0.21.18",
     author="Valory AG",
     license="Apache-2.0",
     description="Plugin containing test tools for open-autonomy packages.",
-    long_description="Plugin containing test tools for open-autonomy packages.",
+    long_description=_read_long_description(),
     long_description_content_type="text/markdown",
     packages=find_packages(
         where=".", include=["aea_test_autonomy", "aea_test_autonomy.*"]
@@ -52,7 +63,7 @@ setup(
     classifiers=[
         "Environment :: Console",
         "Environment :: Web Environment",
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: Apache Software License",
         "Natural Language :: English",
@@ -61,6 +72,9 @@ setup(
         "Operating System :: Unix",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
         "Topic :: Communications",
         "Topic :: Internet",
         "Topic :: Software Development",

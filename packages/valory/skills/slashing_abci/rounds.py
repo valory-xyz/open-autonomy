@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -102,7 +102,7 @@ class SynchronizedData(BaseSynchronizedData):
         self,
     ) -> DeserializedCollection:  # pragma: no cover
         """The participants mapped to the status reset payloads."""
-        serialized = self.db.get_strict("participant_to_randomness")
+        serialized = self.db.get_strict("participant_to_offence_reset")
         deserialized = CollectionRound.deserialize_collection(serialized)
         return cast(DeserializedCollection, deserialized)
 
@@ -185,7 +185,7 @@ class SlashingCheckRound(CollectSameUntilThresholdRound):
 
 
 class StatusResetRound(CollectSameUntilThresholdRound):
-    """Defines the slashing check background round, which runs after a slash tx has been verified."""
+    """Defines the status reset round, which runs after a slash tx has been verified."""
 
     payload_class = StatusResetPayload
     synchronized_data_class = SynchronizedData

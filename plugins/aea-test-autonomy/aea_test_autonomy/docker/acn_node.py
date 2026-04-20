@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """ACN Docker Image."""
+
 import logging
 import socket
 import time
@@ -27,7 +28,6 @@ from aea.exceptions import enforce
 from aea_test_autonomy.docker.base import DockerImage
 from docker import DockerClient
 from docker.models.containers import Container
-
 
 _LOCAL_ADDRESS = "0.0.0.0"  # nosec
 
@@ -99,16 +99,14 @@ class ACNNodeDockerImage(DockerImage):
         i, to_be_connected = 0, {self._config[uri] for uri in self.uris}
         while i < max_attempts and to_be_connected:
             i += 1
-            for uri in to_be_connected:
+            for uri in list(to_be_connected):
                 try:
-                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    host, port = uri.split(":")
-                    result = sock.connect_ex((host, int(port)))
-                    sock.close()
+                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                        host, port = uri.split(":")
+                        result = sock.connect_ex((host, int(port)))
                     enforce(result == 0, "")
-                    to_be_connected.remove(uri)
+                    to_be_connected.discard(uri)
                     logging.info(f"URI ready: {uri}")
-                    break
                 except Exception:  # pylint: disable=broad-except
                     logging.error(
                         f"Attempt {i} failed on {uri}. Retrying in {sleep_rate} seconds..."

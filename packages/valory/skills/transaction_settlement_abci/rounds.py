@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -61,7 +61,6 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     SynchronizeLateMessagesPayload,
     ValidatePayload,
 )
-
 
 ADDRESS_LENGTH = 42
 TX_HASH_LENGTH = 66
@@ -244,7 +243,7 @@ class SynchronizedData(
         self,
     ) -> Mapping[str, SynchronizeLateMessagesPayload]:  # pragma: no cover
         """Get the mapping from participants to checks."""
-        serialized = self.db.get_strict("participant_to_late_message")
+        serialized = self.db.get_strict("participant_to_late_messages")
         deserialized = CollectionRound.deserialize_collection(serialized)
         return cast(Mapping[str, SynchronizeLateMessagesPayload], deserialized)
 

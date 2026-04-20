@@ -57,19 +57,21 @@ Deploy an agent service.
     "--localhost",
     "deployment_type",
     flag_value=HostDeploymentGenerator.deployment_type,
+    default=DockerComposeGenerator.deployment_type,
     help="Use localhost as a backend.",
 )
 @click.option(
     "--docker",
     "deployment_type",
     flag_value=DockerComposeGenerator.deployment_type,
-    default=True,
+    default=DockerComposeGenerator.deployment_type,
     help="Use docker as a backend. (default)",
 )
 @click.option(
     "--kubernetes",
     "deployment_type",
     flag_value=KubernetesGenerator.deployment_type,
+    default=DockerComposeGenerator.deployment_type,
     help="Use kubernetes as a backend.",
 )
 @click.option(
@@ -97,7 +99,8 @@ Deploy an agent service.
     "--aev",
     is_flag=True,
     default=False,
-    help="Apply environment variable when loading service config.",
+    help=
+    "Deprecated: applying environment variables when loading service config is now the default; this flag will be removed in v1.0.0.",
 )
 @click.option(
     "--use-hardhat",
@@ -218,6 +221,7 @@ Build deployment setup for n agents.
     "--localhost",
     "deployment_type",
     flag_value="localhost",
+    default="docker",
     help="Use localhost as a backend.",
 )
 @click.option(
@@ -225,7 +229,7 @@ Build deployment setup for n agents.
     "deployment_type",
     flag_value="docker",
     help="Use docker as a backend. (default)",
-    default=True,
+    default="docker",
 )
 def run(build_dir: Path, no_recreate: bool, remove_orphans: bool, detach: bool,
         deployment_type: str) -> None
@@ -268,19 +272,21 @@ Stop a running deployment.
     "--aev",
     is_flag=True,
     default=False,
-    help="Apply environment variable when loading service config.",
+    help=
+    "Deprecated: applying environment variables when loading service config is now the default; this flag will be removed in v1.0.0.",
 )
 @click.option(
     "--docker",
     "deployment_type",
     flag_value=DockerComposeGenerator.deployment_type,
-    default=True,
+    default=DockerComposeGenerator.deployment_type,
     help="Use docker as a backend.",
 )
 @click.option(
     "--kubernetes",
     "deployment_type",
     flag_value=KubernetesGenerator.deployment_type,
+    default=DockerComposeGenerator.deployment_type,
     help="Use kubernetes as a backend.",
 )
 @click.option(

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for various transaction settlement skill's failure modes."""
-
 
 import asyncio
 import os
@@ -46,7 +45,6 @@ from packages.valory.skills.abstract_round_abci.handlers import SigningHandler
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
-
 
 # pylint: disable=protected-access,too-many-ancestors,unbalanced-tuple-unpacking,too-many-locals,consider-using-with,unspecified-encoding,unidiomatic-typecheck
 
@@ -136,7 +134,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase, ABC):
         """Tear down the multiplexer."""
         cls.multiplexer.disconnect()
         cls.running_loop.call_soon_threadsafe(cls.running_loop.stop)
-        cls.thread_loop.join()
+        cls.thread_loop.join(timeout=30.0)
         super().teardown_class()
 
     def get_message_from_decision_maker_inbox(self) -> Optional[Message]:

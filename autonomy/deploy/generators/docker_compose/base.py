@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -35,9 +35,15 @@ from aea.configurations.constants import (
     PRIVATE_KEY,
     PRIVATE_KEY_PATH_SCHEMA,
 )
-from docker import DockerClient, from_env
-from docker.constants import DEFAULT_NPIPE, IS_WINDOWS_PLATFORM
-from docker.errors import DockerException
+
+try:
+    from docker import DockerClient, from_env
+    from docker.constants import DEFAULT_NPIPE, IS_WINDOWS_PLATFORM
+    from docker.errors import DockerException
+
+    DOCKER_INSTALLED = True
+except ImportError:  # pragma: nocover
+    DOCKER_INSTALLED = False
 
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
 from autonomy.constants import (
@@ -76,7 +82,6 @@ from autonomy.deploy.generators.docker_compose.templates import (
     indent_yaml,
 )
 
-
 NETWORK_ADDRESS_OFFSET = 1
 BASE_SUBNET = cast(ipaddress.IPv4Network, ipaddress.ip_network("192.167.11.0/24"))
 SUBNET_OVERFLOW = 256
@@ -87,8 +92,13 @@ AGENT_ENV_TEMPLATE = Template("agent_${node_id}.env")
 DEFAULT_CUSTOM_PROPS: Dict[str, str] = {"restart": "unless-stopped"}
 
 
-def get_docker_client() -> DockerClient:
+def get_docker_client() -> "DockerClient":
     """Load docker client."""
+    if not DOCKER_INSTALLED:
+        raise ImportError(
+            "Docker-based deployments require the `docker` package, "
+            "run `pip install open-autonomy[docker]` to install it"
+        )
     try:
         return from_env()
     except DockerException:
@@ -357,7 +367,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 for k in range(self.service_builder.service.number_of_agents)
             ]
         )
-        self.tendermint_job_config = TENDERMINT_CONFIG_TEMPLATE.format(
+        self.cluster_config = TENDERMINT_CONFIG_TEMPLATE.format(
             validators=self.service_builder.service.number_of_agents,
             hosts=hosts,
             user=os.environ.get("UID", "1000"),
@@ -368,7 +378,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         run_log = client.containers.run(
             image=image,
             volumes={f"{self.build_dir}/nodes": {"bind": "/tendermint", "mode": "z"}},
-            entrypoint=self.tendermint_job_config,
+            entrypoint=self.cluster_config,
             remove=True,
         )
         print(run_log.decode())

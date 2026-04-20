@@ -39,13 +39,6 @@ function checkKey() {
     addKey $1
 }
 
-function handleFlashbotsKey() {
-    if grep "open-aea-ledger-ethereum-flashbots" aea-config.yaml -q; then
-        echo "Copying ethereum key to ethereum flashbots key"
-        cp ethereum_private_key.txt ethereum_flashbots_private_key.txt
-    fi
-}
-
 function handleCosmosConnectionKeyAndCerts() {
     echo "Generating cosmos key for libp2p connection"
     if [ ! -f "cosmos_private_key.txt" ]; then
@@ -77,6 +70,7 @@ function addKey() {
         echo "$1 key provided. Adding to agent."
         if [[ "$AEA_PASSWORD" != "" ]]; then
             aea add-key $1 --password $AEA_PASSWORD 2>&1 | grep -v "already present!" || true
+            aea add-key $1 --password $AEA_PASSWORD --connection 2>&1 | grep -v "already present!" || true
         else
             aea add-key $1 2>&1 | grep -v "already present!" || true
         fi
@@ -92,7 +86,6 @@ function main() {
     checkKey solana
 
     echo "Checking autonomy specific connection keys"
-    handleFlashbotsKey
     handleCosmosConnectionKeyAndCerts
 
     echo "Running the aea"

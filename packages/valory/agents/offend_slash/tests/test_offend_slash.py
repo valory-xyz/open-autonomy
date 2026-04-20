@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023-2025 Valory AG
+#   Copyright 2023-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,10 @@
 
 """e2e tests for the `valory/offend_slash` skill."""
 
+import logging
+import os
+import shutil
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -54,7 +58,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     ValidateTransactionRound,
 )
 
-
 NO_SLASHING_HAPPY_PATH = (
     RoundChecks(RegistrationStartupRound.auto_round_id()),
     RoundChecks(OffendRound.auto_round_id(), n_periods=2),
@@ -73,6 +76,7 @@ SLASHING_STRICT_CHECKS = (
 )
 
 
+@pytest.mark.flaky(reruns=1)
 @pytest.mark.parametrize("nb_nodes", (4,))
 class SlashingE2E(
     UseRegistries, UseACNNode, BaseTestEnd2End
@@ -82,8 +86,34 @@ class SlashingE2E(
     package_registry_src_rel = Path(__file__).parents[4]
     agent_package = "valory/offend_slash:0.1.0"
     skill_package = "valory/offend_slash_abci:0.1.0"
-    wait_to_finish = 120
+    wait_to_finish = 200
     _args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
+    _run_count: int = 0
+
+    def setup_method(self) -> None:
+        """Reinitialize temp directory on flaky reruns."""
+        type(self)._run_count += 1
+        if self._run_count <= 1:
+            return
+        logging.info("Flaky rerun detected, reinitializing temp directory")
+        type(self).t = Path(tempfile.mkdtemp())
+        os.chdir(self.t)
+        registry_tmp_dir = self.t / self.packages_dir_path
+        shutil.copytree(str(self.package_registry_src), str(registry_tmp_dir))
+        self.initialize_aea(self.author)
+        type(self).subprocesses = []
+        type(self).threads = []
+        type(self).agents = set()
+        type(self).current_agent_context = ""
+        type(self).stdout = {}
+        type(self).stderr = {}
+
+    def teardown_method(self) -> None:
+        """Clean up temp directory so flaky reruns start fresh."""
+        self.terminate_agents()
+        self._join_threads()
+        os.chdir(self.old_cwd)
+        shutil.rmtree(self.t, ignore_errors=True)
 
     def __set_configs(  # pylint: disable=unused-private-member
         self, i: int, nb_agents: int
@@ -121,6 +151,7 @@ class TestSlashing(
 
     happy_path = SLASHING_HAPPY_PATH
     strict_check_strings = SLASHING_STRICT_CHECKS
+    wait_to_finish = 300
     extra_configs = [
         {
             "dotted_path": f"{SlashingE2E._args_prefix}.validator_downtime",

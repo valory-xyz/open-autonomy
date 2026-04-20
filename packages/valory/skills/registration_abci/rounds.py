@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ from packages.valory.skills.registration_abci.payloads import RegistrationPayloa
 
 
 class Event(Enum):
-    """Event enumeration for the price estimation demo."""
+    """Event enumeration for agent registration."""
 
     DONE = "done"
     ROUND_TIMEOUT = "round_timeout"
@@ -91,7 +91,7 @@ class RegistrationRound(CollectSameUntilThresholdRound):
     """
     A round in which the agents get registered.
 
-    This rounds waits until the threshold of agents has been reached
+    This round waits until the threshold of agents has been reached
     and then a further x block confirmations.
     """
 
@@ -147,7 +147,7 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     Final states: {FinishedRegistrationRound}
 
     Timeouts:
-        round timeout: 30.0
+
     """
 
     initial_round_cls: AppState = RegistrationStartupRound
@@ -165,9 +165,7 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     final_states: Set[AppState] = {
         FinishedRegistrationRound,
     }
-    event_to_timeout: Dict[Event, float] = {
-        Event.ROUND_TIMEOUT: 30.0,
-    }
+    event_to_timeout: Dict[Event, float] = {}
     db_pre_conditions: Dict[AppState, Set[str]] = {
         RegistrationStartupRound: set(),
         RegistrationRound: set(),

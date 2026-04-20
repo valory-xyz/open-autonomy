@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2025 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Base deployments module."""
+
 import abc
 import json
 import logging
@@ -25,7 +26,7 @@ import os
 from base64 import urlsafe_b64encode
 from copy import copy, deepcopy
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
+from typing import Any, Dict, List, Optional, Set, Tuple, TypedDict, Union, cast
 from warnings import warn
 
 from aea.cli.generate_key import _generate_multiple_keys
@@ -38,14 +39,12 @@ from aea.configurations.base import (
 from aea.configurations.constants import ADDRESS, LEDGER, PRIVATE_KEY, SKILL
 from aea.configurations.data_types import PackageType, PublicId
 from aea.helpers.env_vars import apply_env_variables
-from typing_extensions import TypedDict
 
 from autonomy.analyse.service import ABCI
 from autonomy.configurations.base import Service
 from autonomy.configurations.loader import load_service_config
 from autonomy.constants import DEFAULT_DOCKER_IMAGE_AUTHOR
 from autonomy.deploy.constants import DEFAULT_ENCODING, INFO
-
 
 ENV_VAR_ID = "ID"
 ENV_VAR_AEA_AGENT = "AEA_AGENT"
@@ -155,7 +154,7 @@ def build_hash_id() -> str:
 class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
     """Class to assist with generating deployments."""
 
-    deplopyment_type: str = DOCKER_COMPOSE_DEPLOYMENT
+    deployment_type: str = DOCKER_COMPOSE_DEPLOYMENT
     log_level: str = INFO
 
     def __init__(
@@ -471,8 +470,8 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
     ) -> None:
         """Try update the tendermint parameters"""
 
-        is_kubernetes_deployment = self.deplopyment_type == KUBERNETES_DEPLOYMENT
-        is_localhost_deployment = self.deplopyment_type == LOCALHOST_DEPLOYMENT
+        is_kubernetes_deployment = self.deployment_type == KUBERNETES_DEPLOYMENT
+        is_localhost_deployment = self.deployment_type == LOCALHOST_DEPLOYMENT
 
         def _update_tendermint_params(
             param_args: Dict,
@@ -615,7 +614,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         if self.service.number_of_agents == 1:
             processed_overrides["config"]["host"] = (
                 self.get_abci_container_name(index=0)
-                if self.deplopyment_type == DOCKER_COMPOSE_DEPLOYMENT
+                if self.deployment_type == DOCKER_COMPOSE_DEPLOYMENT
                 else LOOPBACK
             )
             processed_overrides["config"]["port"] = processed_overrides["config"].get(
@@ -631,7 +630,7 @@ class ServiceBuilder:  # pylint: disable=too-many-instance-attributes
         for idx, override in processed_overrides.items():
             override["config"]["host"] = (
                 self.get_abci_container_name(index=idx)
-                if self.deplopyment_type == DOCKER_COMPOSE_DEPLOYMENT
+                if self.deployment_type == DOCKER_COMPOSE_DEPLOYMENT
                 else LOOPBACK
             )
             override["config"]["port"] = override["config"].get(
@@ -763,7 +762,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
     deployment_type: str
     build_dir: Path
     output: str
-    tendermint_job_config: Optional[str]
+    cluster_config: Optional[str]
     dev_mode: bool
     use_tm_testnet_setup: bool
 
@@ -793,7 +792,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
         self.packages_dir = packages_dir
         self.open_aea_dir = open_aea_dir
 
-        self.tendermint_job_config: Optional[str] = None
+        self.cluster_config: Optional[str] = None
         self.image_author = image_author or DEFAULT_DOCKER_IMAGE_AUTHOR
         self.resources = resources if resources is not None else DEFAULT_RESOURCE_VALUES
         self.custom_props = custom_props or {}

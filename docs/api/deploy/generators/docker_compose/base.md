@@ -9,7 +9,7 @@ Docker-compose Deployment Generator.
 #### get`_`docker`_`client
 
 ```python
-def get_docker_client() -> DockerClient
+def get_docker_client() -> "DockerClient"
 ```
 
 Load docker client.
