@@ -41,11 +41,11 @@ On-chain helpers now live behind an optional `[chain]` extra. `open-autonomy[all
 
 ### PyPI license classifier fix
 
-The `0.21.18` and earlier wheels shipped with `License :: Other/Proprietary License` in their metadata because of a malformed `license` field. The wheel now correctly advertises `License :: OSI Approved :: Apache Software License`. If you added an `open-autonomy` entry to `[Authorized Packages]` in `liccheck` config as a workaround, you can remove it.
+The `0.21.18` wheel shipped with `License :: Other/Proprietary License` in its metadata because of a malformed `license` field. The wheel now correctly advertises `License :: OSI Approved :: Apache Software License`. If you added an `open-autonomy` entry to `[Authorized Packages]` in `liccheck` config as a workaround, you can remove it.
 
 ### Mock Tendermint for single-agent services
 
-You can now skip running a Tendermint node entirely for single-agent services by setting `USE_MOCK_TENDERMINT=true` on the `valory/abci` connection. The built-in `MockServerChannel` produces blocks on transaction submission and is a drop-in replacement for testing and lightweight deployments. See `docs/advanced_reference/mock_tendermint.md`.
+You can now skip running a Tendermint node entirely for single-agent services by setting `use_mock: true` (with `use_tendermint: false`) in the `valory/abci` connection config (via connection overrides or `aea-config.yaml`). The built-in `MockServerChannel` produces blocks on transaction submission and is a drop-in replacement for testing and lightweight deployments. See `docs/advanced_reference/mock_tendermint.md`.
 
 ### Concrete upgrade steps
 
