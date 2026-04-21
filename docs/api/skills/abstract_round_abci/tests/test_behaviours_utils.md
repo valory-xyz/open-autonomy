@@ -978,14 +978,13 @@ Test '_wait_until_transaction_delivered' method.
 #### test`_`wait`_`until`_`transaction`_`delivered`_`raises`_`timeout
 
 ```python
-@pytest.mark.skipif(
-    platform.system() == "Windows",
-    reason="https://github.com/valory-xyz/open-autonomy/issues/1477",
-)
 def test_wait_until_transaction_delivered_raises_timeout(*_: Any) -> None
 ```
 
 Test '_wait_until_transaction_delivered' method.
+
+Uses a negative timeout to guarantee the deadline is already
+expired, avoiding timer-resolution issues on Windows (see `1477`).
 
 <a id="packages.valory.skills.abstract_round_abci.tests.test_behaviours_utils.TestBaseBehaviour.test_get_default_terms"></a>
 

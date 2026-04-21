@@ -21,7 +21,6 @@
 
 import json
 import logging
-import platform
 import time
 from abc import ABC
 from datetime import datetime, timezone
@@ -1454,13 +1453,15 @@ class TestBaseBehaviour:
         )
         try_send(gen, success_response)  # type: ignore[arg-type]
 
-    @pytest.mark.skipif(
-        platform.system() == "Windows",
-        reason="https://github.com/valory-xyz/open-autonomy/issues/1477",
-    )
     def test_wait_until_transaction_delivered_raises_timeout(self, *_: Any) -> None:
-        """Test '_wait_until_transaction_delivered' method."""
-        gen = self.behaviour._wait_until_transaction_delivered(MagicMock(), timeout=0.0)
+        """Test '_wait_until_transaction_delivered' method.
+
+        Uses a negative timeout to guarantee the deadline is already
+        expired, avoiding timer-resolution issues on Windows (see #1477).
+        """
+        gen = self.behaviour._wait_until_transaction_delivered(
+            MagicMock(), timeout=-1.0
+        )
         with pytest.raises(TimeoutException):
             # trigger generator function
             try_send(gen, obj=None)  # type: ignore[arg-type]

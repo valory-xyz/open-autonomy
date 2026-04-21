@@ -343,16 +343,16 @@ def create_app(  # pylint: disable=too-many-statements
             return jsonify({"message": f"Reset failed: {e}", "status": False}), 200
 
     @app.errorhandler(404)  # type: ignore
-    def handle_notfound(e: NotFound) -> Response:
-        """Handle server error."""
+    def handle_notfound(e: NotFound) -> Tuple[Response, int]:
+        """Handle not-found error."""
         cast(logging.Logger, app.logger).info(e)  # pylint: disable=E
-        return Response("Not Found", status=404, mimetype="application/json")
+        return jsonify({"error": "Not Found"}), 404
 
     @app.errorhandler(500)  # type: ignore
-    def handle_server_error(e: InternalServerError) -> Response:
+    def handle_server_error(e: InternalServerError) -> Tuple[Response, int]:
         """Handle server error."""
         cast(logging.Logger, app.logger).info(e)  # pylint: disable=E
-        return Response("Error Closing Node", status=500, mimetype="application/json")
+        return jsonify({"error": "Internal Server Error"}), 500
 
     return app, tendermint_node
 

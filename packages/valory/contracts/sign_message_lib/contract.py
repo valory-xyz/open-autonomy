@@ -19,13 +19,20 @@
 
 """This module contains the class to connect to the `SignMessageLib` contract."""
 
+from enum import Enum
+
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 
-from autonomy.chain.service import MultiSendOperation
-
 PUBLIC_ID = PublicId.from_str("valory/sign_message_lib:0.1.0")
+
+
+class MultiSendOperation(Enum):
+    """Operation types for Gnosis Safe multisend transactions."""
+
+    CALL = 0
+    DELEGATE_CALL = 1
 
 
 class SignMessageLibContract(Contract):

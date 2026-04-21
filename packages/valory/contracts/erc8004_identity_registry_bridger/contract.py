@@ -19,13 +19,20 @@
 
 """This module contains the class to connect to the `ERC8004IdentityRegistryBridger` contract."""
 
+from enum import Enum
+
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 
-from autonomy.chain.service import MultiSendOperation
-
 PUBLIC_ID = PublicId.from_str("valory/erc8004_identity_registry_bridger:0.1.0")
+
+
+class MultiSendOperation(Enum):
+    """Operation types for Gnosis Safe multisend transactions."""
+
+    CALL = 0
+    DELEGATE_CALL = 1
 
 
 class ERC8004IdentityRegistryBridgerContract(Contract):
