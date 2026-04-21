@@ -5,6 +5,56 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.18` to `v0.21.19`
+
+This release introduces a mock Tendermint server for single-agent services and significantly trims the framework's runtime dependency footprint.
+
+### `docker` moved to an optional `[docker]` extra
+
+The `docker` Python SDK is no longer a hard dependency. If your code imports `docker` directly (for example, custom tooling that builds or manages containers outside of `autonomy deploy`), install with:
+
+```bash
+pip install open-autonomy[docker]
+```
+
+The `autonomy deploy` workflows keep working as before — the extra is pulled in automatically by `open-autonomy[all]`.
+
+### Dropped transitive dependencies
+
+The following packages are no longer installed by `open-autonomy`:
+
+- `texttable` — replaced by an inlined table renderer in chain helpers
+- `python-dotenv` — replaced by `aea.helpers.base.load_env_file`
+- `typing_extensions` — no longer used
+- `aiohttp` — replaced by `asyncio` stdlib HTTP server
+- `hexbytes` — replaced by plain `bytes` for multisend tx data
+- `gql` — subgraph queries now posted via the aea http helper
+- `Flask`, `Werkzeug` — replaced by an inlined Flask-compatible HTTP server
+- `watchdog` — removed (no runtime users in autonomy)
+- `protobuf` (explicit pin) — arrives transitively via `open-aea`
+
+If your downstream repo relied on any of these being installed by `open-autonomy`, declare them directly in your own `pyproject.toml` / `setup.py`.
+
+### `[chain]` extra added
+
+On-chain helpers now live behind an optional `[chain]` extra. `open-autonomy[all]` still pulls it in.
+
+### PyPI license classifier fix
+
+The `0.21.18` and earlier wheels shipped with `License :: Other/Proprietary License` in their metadata because of a malformed `license` field. The wheel now correctly advertises `License :: OSI Approved :: Apache Software License`. If you added an `open-autonomy` entry to `[Authorized Packages]` in `liccheck` config as a workaround, you can remove it.
+
+### Mock Tendermint for single-agent services
+
+You can now skip running a Tendermint node entirely for single-agent services by setting `USE_MOCK_TENDERMINT=true` on the `valory/abci` connection. The built-in `MockServerChannel` produces blocks on transaction submission and is a drop-in replacement for testing and lightweight deployments. See `docs/advanced_reference/mock_tendermint.md`.
+
+### Concrete upgrade steps
+
+1. Bump `open-autonomy` pin to `==0.21.19`.
+2. If you import `docker` in your own code, switch your dependency to `open-autonomy[docker]` or add `docker` directly.
+3. If you were pinning any of the dropped transitive deps via `open-autonomy`, declare them directly.
+4. Run `autonomy packages sync --update-packages` to pull the updated third-party packages.
+5. Run `autonomy packages lock` to regenerate downstream package hashes.
+
 ## `v0.21.17` to `v0.21.18`
 
 - `open-aea-ledger-ethereum-hwi` is now an optional extra instead of a hard dependency. If you use hardware wallet support (`--hwi` flag), install with `pip install open-autonomy[hwi]`. This change fixes multi-platform Docker image builds on armv7 which failed due to missing pre-built wheels for `hidapi` and `Pillow`.

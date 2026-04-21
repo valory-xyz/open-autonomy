@@ -1,5 +1,22 @@
 # Release History - `open-autonomy`
 
+# 0.21.19 (2026-04-21)
+
+Autonomy:
+- Ships a mock Tendermint server (`MockServerChannel`) as a drop-in replacement for a real Tendermint node when running single-agent services. Activated via the `USE_MOCK_TENDERMINT=true` environment variable on the `valory/abci` connection; wires tx-triggered block production, dialogue lifecycle management, and an `asyncio` stdlib HTTP server (no `aiohttp` dependency). New `UseMockTendermint` test mixin and ABCI-parity e2e test included #2104
+- Minimises the runtime dependency footprint: drops `texttable`, `python-dotenv`, `typing_extensions`, `aiohttp`, `hexbytes`, `gql`, `Flask`, `Werkzeug`, and the explicit `protobuf` pin; `docker` moves to an optional `[docker]` extra; adds a `[chain]` extra; relies on `open-aea[all]` for `click`/`pytest`/`coverage`; inlines a small Flask-compatible HTTP server and a table renderer #2477
+- Adds polymarket safe-creator audit hardening in `poly_safe_creator_with_recovery_module`: symmetric hash validation across both transaction-hash paths, local `POLYGON_CHAIN_ID = 137` constant (no framework coupling), consistent `ValueError` exceptions, and 14 new unit tests #2393
+- Clamps negative `Content-Length` values to `0` in the Tendermint sidecar HTTP server (#1477 Windows test also fixed with `timeout=-1.0`) #2484
+- Removes framework imports from `sign_message_lib` and `erc8004_identity_registry_bridger` (`MultiSendOperation` is now defined locally) #2484
+- Hardens `autonomy/chain/subgraph/client.py` against missing `data` keys; fixes 404/500 mimetype mismatch and adds a 10 MiB body-size cap in `_http_server.py`; caches `get_requests_connection_error` via `lru_cache` #2484
+
+Packaging / PyPI:
+- Fixes PyPI metadata: root `pyproject.toml` now uses `license = "Apache-2.0"` (was `"Apache-2.0 license"`, which Poetry mapped to `License :: Other/Proprietary License` and broke downstream liccheck) and declares `readme = "README.md"`. Both plugins (`open-aea-helpers`, `open-aea-test-autonomy`) now ship proper long descriptions via a `_read_long_description()` helper #2483
+
+CI:
+- Bumps stale `requests` pin in the tendermint sidecar Dockerfile from `==2.28.1` to `>=2.33.0,<3` #2484
+- Resolves remaining actionable dependabot alerts; defers `requests` and `ecdsa` pins to transitive constraints #2477
+
 # 0.21.18 (2026-04-16)
 
 Autonomy:
