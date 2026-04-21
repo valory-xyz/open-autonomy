@@ -2937,7 +2937,7 @@ pyyaml = ">=6.0.1,<7"
 
 [[package]]
 name = "open-aea-helpers"
-version = "0.21.18"
+version = "0.21.19"
 description = "CLI helpers for CI and dependency management in AEA-based projects."
 optional = false
 python-versions = "*"
@@ -3016,7 +3016,7 @@ open-aea-ledger-ethereum = ">=2.2.1,<2.3.0"
 
 [[package]]
 name = "open-aea-test-autonomy"
-version = "0.21.18"
+version = "0.21.19"
 description = "Plugin containing test tools for open-autonomy packages."
 optional = false
 python-versions = "*"
