@@ -57,10 +57,10 @@ Options:
 
 ```
 
-For example, in order to build a deployment from scratch for oracle abci, first ensure you have a clean build environment and then build the images:
+For example, in order to build a deployment from scratch, first ensure you have a clean build environment and then build the images:
 ```bash
 rm -rf abci_build_*
-autonomy build-image valory/oracle_hardhat
+autonomy build-image valory/hello_world
 ```
 
 Next, run the command to generate the relevant build configuration:

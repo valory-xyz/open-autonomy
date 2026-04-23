@@ -10,10 +10,10 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 ## Build and run an AI agent in `dev` mode
 
-1. **Fetch the AI agent.** Fetch the Price Oracle AI agent from the remote registry.
+1. **Fetch the AI agent.** Fetch the Hello World AI agent from the remote registry.
 
     ```bash
-    autonomy fetch valory/oracle_hardhat:0.1.0:<hash> --service
+    autonomy fetch valory/hello_world:0.1.0:<hash> --service
     ```
 
 2. **Build the deployment.** Within the AI agent folder, execute the command below to build the AI agent deployment in `dev` mode, including a pre-configured Hardhat instance.
