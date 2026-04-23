@@ -33,26 +33,97 @@ only exists after the tomte release.
 **Start:** immediately (day 0). Does not block on Phase 1.
 
 **Why now:** the skill only depends on `open-autonomy` PR #2477 landing on
-`main` (done) and each downstream targeting
-`open-aea-ledger-ethereum==2.2.1` (they do). It touches `pyproject.toml`
+`main` (done — in the `v0.21.19` tag) and each downstream bumping to
+`open-autonomy==0.21.19`. It touches `pyproject.toml`
 / `tox.ini [deps-packages]`, which Wave 2a also touches — so Wave 2a on
 repo X must wait for Wave 1 to merge on repo X.
 
-**Per-repo procedure:**
+### Phase 0 pre-flight: OA 0.21.19 regression audit
+
+Before bumping any repo to `open-autonomy==0.21.19`, audit for the
+`HexBytes` regression first surfaced by `mech` in
+[PR #435](https://github.com/valory-xyz/mech/pull/435).
+
+**What the regression is.** PR 2477 rewrote
+`packages/valory/contracts/multisend/contract.py::encode_data` to
+require `tx["data"]` to be `bytes`. The old implementation silently
+coerced hex strings via `HexBytes(data)`. Any downstream contract
+helper that returned a hex `str` from `contract.encode_abi(...)` or
+`build_transaction(...)["data"]` will crash with
+`TypeError: can't concat str to bytes` on every multisend delivery
+cycle after the 0.21.19 pin bump.
+
+**Run this before Wave 1 on any repo.** Vendored-from-OA contracts
+are exempt (they sync from OA); only custom contracts are in scope.
+See SKILL.md §2.8 for the scanner script.
+
+**Snapshot of known hits across the fleet (2026-04-23):**
+
+| Repo | Custom helpers affected | Status |
+|---|---|---|
+| `mech` | `hash_checkpoint.get_checkpoint_data`, `complementary_service_metadata.get_update_hash_tx_data` | **fixed in PR #435** (on main) |
+| `mech-server` | same 2 helpers (pre-fix copies) | fix as part of Wave 1 |
+| `mech-agents-fun` | same 2 helpers | fix as part of Wave 1 |
+| `mech-predict` | same 2 helpers | fix as part of Wave 1 |
+| `optimus` | `_encode_call` in 5 velodrome contracts (`velodrome_cl_pool`, `velodrome_cl_gauge`, `velodrome_router`, `velodrome_non_fungible_position_manager`, `velodrome_gauge`) | fix as part of Wave 1 |
+| `trader` | 8 helpers across `conditional_tokens` (`build_redeem_positions_tx`, `build_merge_positions_tx`), `relayer` (`build_operator_deposit_tx`, `build_exec_tx`), `realitio` (`build_claim_winnings`, `get_submit_answer_tx`, `build_withdraw_tx`), `realitio_proxy` (`build_resolve_tx`) | fix as part of Wave 1 |
+| `mech-client`, `mech-interact`, `meme-ooorr`, `IEKit` | — | no hits, no action |
+
+**Fix pattern** (applied at the helper level, mirrors mech PR #435):
+
+```python
+# BEFORE
+data = contract.encode_abi(abi_element_identifier="foo", args=[...])
+return {"data": data}
+
+# AFTER
+data = contract.encode_abi(abi_element_identifier="foo", args=[...])
+return {"data": bytes.fromhex(data[2:])}
+```
+
+Bundle the bytes-coerce fix into the same Wave 1 PR as the OA pin
+bump. Shipping the bump without the fix is a live regression.
+
+### Per-repo procedure
 
 1. Open the skill: `/cleanup-deps /Users/dhairya/Desktop/Work/Valory/Github/<repo>`.
-2. Skill produces a per-repo PR (branch `chore/dependency-cleanup`) with:
-   - contract.py `web3`/`eth_abi`/`eth_utils`/`hexbytes` → `ledger_api.api.*` rewrites
-   - contract.yaml + skill.yaml dep block pruning
-   - `pyproject.toml` / `tox.ini` dep prune
-   - fingerprint/hash regen
-3. Reviewer merges.
+2. Skill runs in this order:
+   - **Pre-flight audit (SKILL.md §2.8)** — scan for str-returning
+     helpers; fix each one.
+   - contract.py `web3`/`eth_abi`/`eth_utils`/`hexbytes` →
+     `ledger_api.api.*` rewrites (SKILL.md §2.1–2.7).
+   - contract.yaml + skill.yaml dep block pruning (SKILL.md §3–4).
+   - skill-level Python stdlib / open-aea helper swaps (SKILL.md §5).
+   - `pyproject.toml` OA pin bump `0.21.18 → 0.21.19` + dep prune
+     (SKILL.md §6).
+   - `tox.ini` dep prune.
+   - `autonomy packages lock` → regen `packages.json` + fingerprint
+     hashes.
+   - Guard checks: `tomte check-code`, `tox -e check-dependencies`,
+     `tox -e check-hash`, `tox -e check-packages`.
+3. PR opened as **draft** on branch `chore/dependency-cleanup`.
+4. Reviewer merges.
 
-**Repos to run on (11):**
+### Repos to run on (10, sequential)
 
-- `mech`, `mech-predict`, `mech-interact`, `mech-agents-fun`, `mech-client`,
-  `mech-server`
-- `trader`, `optimus`, `meme-ooorr`, `IEKit`, `market-creator`
+Order — smallest surface first, so any skill defect hits on small
+repos before large ones:
+
+1. **mech** (pilot — 3 custom contracts; regression already fixed in PR #435 so this repo tests the skill's other swaps cleanly)
+2. mech-server (2 regression helpers to fix)
+3. mech-predict (2 regression helpers to fix)
+4. mech-agents-fun (2 regression helpers to fix)
+5. mech-interact (no regression helpers; ~22 skill swaps)
+6. mech-client (library, ~0 surface; tests "already clean" case)
+7. meme-ooorr
+8. IEKit (discard uncommitted YAML edits first)
+9. optimus (5 velodrome `_encode_call` helpers to fix)
+10. trader (8 regression helpers to fix; largest overall)
+
+**Skipped:** `open-autonomy` + `open-aea` (already at the target
+baseline — PR 2477 landed in OA v0.21.19; OAEA is the framework
+provider, not a consumer), `market-creator` (separate cleanup branch
+merging imminently), `tomte` (no packages/).
 
 **Signal for "safe to start Wave 2a on repo X":**
 

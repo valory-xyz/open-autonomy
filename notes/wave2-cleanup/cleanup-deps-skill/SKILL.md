@@ -213,6 +213,114 @@ real multisend payload) **on `main`** and record its output bytes. Repeat on
 the branch after the rewrite. Require **byte-identical** output. If it
 diverges by one byte, the rewrite is wrong.
 
+### 2.8 Helpers that emit hex strings to multisend consumers
+
+**Why this exists.** OA PR #2477 removed the `HexBytes(data)` wrapper
+from `multisend.encode_data`. Pre-PR, any downstream contract helper that
+returned a hex **string** (e.g. `return {"data": contract.encode_abi(...)}`)
+worked by accident — `HexBytes(...)` silently coerced the str to bytes
+inside `encode_data`. Post-PR, the same helper causes
+`TypeError: can't concat str to bytes` on every multisend delivery
+cycle. First discovered by `mech` in PR #435
+(<https://github.com/valory-xyz/mech/pull/435>); fix was narrow (two
+helpers) — the *expanded* fix is this audit, repo-wide.
+
+**How to audit.** Run before touching anything else in Step 2. Vendored
+contracts (multisend, gnosis_safe, etc.) are exempt — they're
+synced from OA. Only *custom* contracts are in scope.
+
+```bash
+python3 - <<'PY'
+import re
+from pathlib import Path
+
+EXCLUDE = {
+    "multisend", "gnosis_safe", "gnosis_safe_proxy_factory",
+    "service_registry", "service_registry_token_utility",
+    "service_manager", "registries_manager", "component_registry",
+    "agent_registry", "recovery_module", "multicall2",
+    "sign_message_lib", "staking_token", "staking_activity_checker",
+    "erc20", "erc8004_identity_registry",
+    "erc8004_identity_registry_bridger",
+    "poly_safe_creator_with_recovery_module", "squads_multisig",
+}
+ENCODE = re.compile(r"\.encode_abi\(|\.encodeABI\(|\.build_transaction\(.*\)\[['\"]data['\"]\]", re.DOTALL)
+COERCE = re.compile(r"bytes\.fromhex\(|HexBytes\(|\.encode\(\)")
+
+for contract_py in Path("packages/valory/contracts").rglob("contract.py"):
+    if contract_py.parent.name in EXCLUDE:
+        continue
+    text = contract_py.read_text(encoding="utf-8", errors="ignore")
+    if not ENCODE.search(text):
+        continue
+    blocks = re.split(r"(?m)^(?=\s{0,8}(?:def |@classmethod|@staticmethod))", text)
+    for block in blocks:
+        if ENCODE.search(block) and not COERCE.search(block):
+            if re.search(r"return\s*(?:\{|dict\()", block) and ("data" in block or "tx_hash" in block):
+                m = re.search(r"def\s+(\w+)", block)
+                name = m.group(1) if m else "?"
+                if name in {"__init__", "get_instance", "get_state", "get_raw_transaction"}:
+                    continue
+                print(f"{contract_py}:{name}")
+PY
+```
+
+Any hit is almost certainly a post-bump crash.
+
+**How to fix.** At the helper level — one fix, every caller is safe.
+
+```python
+# BEFORE — works on OA < 0.21.19 by accident
+contract = cls.get_instance(ledger_api, contract_address)
+data = contract.encode_abi(abi_element_identifier="foo", args=[...])
+return {"data": data}
+
+# AFTER — required for OA >= 0.21.19
+contract = cls.get_instance(ledger_api, contract_address)
+data = contract.encode_abi(abi_element_identifier="foo", args=[...])
+return {"data": bytes.fromhex(data[2:])}   # strip the 0x prefix
+```
+
+Same fix when the source is `build_transaction(...)["data"]`:
+
+```python
+# BEFORE
+tx_data = contract.functions.foo(args).build_transaction(
+    {"gas": MIN_GAS, "gasPrice": MIN_GASPRICE}
+)["data"]
+return {"data": tx_data}
+
+# AFTER
+tx_data = contract.functions.foo(args).build_transaction(
+    {"gas": MIN_GAS, "gasPrice": MIN_GASPRICE}
+)["data"]
+return {"data": bytes.fromhex(tx_data[2:])}
+```
+
+The fix must run **before** or **together with** the OA pin bump
+(`open-autonomy==0.21.18` → `==0.21.19`) in the same Wave 1 PR.
+Shipping the bump without the fix is a live regression that will
+surface on every multisend delivery cycle on mainnet.
+
+**Known hits across the Valory fleet (snapshot 2026-04-23):**
+
+| Repo | Helpers | Status |
+|---|---|---|
+| `mech` | `hash_checkpoint.get_checkpoint_data`, `complementary_service_metadata.get_update_hash_tx_data` | fixed in PR #435 |
+| `mech-server` | same 2 helpers (pre-fix copies) | needs fix in Wave 1 |
+| `mech-agents-fun` | same 2 helpers | needs fix |
+| `mech-predict` | same 2 helpers | needs fix |
+| `optimus` | `_encode_call` in `velodrome_cl_pool`, `velodrome_cl_gauge`, `velodrome_router`, `velodrome_non_fungible_position_manager`, `velodrome_gauge` | needs fix |
+| `trader` | `conditional_tokens.build_{redeem,merge}_positions_tx`, `relayer.build_{operator_deposit,exec}_tx`, `realitio.{build_claim_winnings,get_submit_answer_tx,build_withdraw_tx}`, `realitio_proxy.build_resolve_tx` | needs fix |
+| `mech-client`, `mech-interact`, `meme-ooorr`, `IEKit` | — | no hits |
+
+**Verification.** After applying the fix, at minimum add a unit test
+that calls each touched helper and asserts `isinstance(result["data"],
+bytes)` — mech PR #435 did this with `TestContractHelpersReturnBytes`
+in `task_submission_abci/tests/test_behaviours.py`. If you can reach
+testnet, run one multisend delivery end-to-end and confirm no
+`TypeError: can't concat str to bytes` in logs.
+
 ## Step 3 — contract.yaml dep prune
 
 For each custom `contract.yaml` the inventory flagged, rewrite its
