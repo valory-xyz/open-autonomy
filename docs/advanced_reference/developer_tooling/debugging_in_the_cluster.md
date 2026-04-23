@@ -4,8 +4,8 @@
 When debugging deployments, it can be useful to have the option to spin up a hardhat node to enable debugging and testing of the issue within the cluster. First, fetch the AI agent:
 
 ```bash
-autonomy fetch valory/oracle_hardhat --local --service
-cd oracle_hardhat
+autonomy fetch valory/hello_world --local --service
+cd hello_world
 ```
 
 You now need to replace the override in the ```service.yaml``` file: change ```http://host.docker.internal:8545``` to ```http://hardhat:8545```.
