@@ -3050,14 +3050,14 @@ typing-extensions = ">=3.0.0"
 
 [[package]]
 name = "open-aea"
-version = "2.2.1"
+version = "2.2.2"
 description = "Open AEA Framework"
 optional = false
 python-versions = "<3.15,>=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "open_aea-2.2.1-py3-none-any.whl", hash = "sha256:741910443d4bf22f73b0e7ec8860903d0a6cf1a8ffc66aae9fd634c5fd7b6500"},
-    {file = "open_aea-2.2.1.tar.gz", hash = "sha256:3cb357977109103622ceed1b0badfbdcb10afc1c105bb91ca5111026842cf966"},
+    {file = "open_aea-2.2.2-py3-none-any.whl", hash = "sha256:76cfc2d33473d0a0f64edb585734d792d38a0b123c9edd6d6a59c3b3a384f24f"},
+    {file = "open_aea-2.2.2.tar.gz", hash = "sha256:a03e3567e02547d5adacfcd2244555328682593202b46094c86d4269580b01d5"},
 ]
 
 [package.dependencies]
@@ -3076,14 +3076,14 @@ test-tools = ["click (>=8.1.0,<8.4.0)", "coverage (>=6.4.4,<9)", "packaging (>=2
 
 [[package]]
 name = "open-aea-ci-helpers"
-version = "2.2.1"
+version = "2.2.2"
 description = "CI helper utilities for AEA-based projects."
 optional = false
 python-versions = "<3.15,>=3.10"
 groups = ["dev"]
 files = [
-    {file = "open_aea_ci_helpers-2.2.1-py3-none-any.whl", hash = "sha256:4bbf1839d7c82228677ecbf8f8e90efe68fee7402a89e650f4dd3954d4db3f07"},
-    {file = "open_aea_ci_helpers-2.2.1.tar.gz", hash = "sha256:8b14662f03790ae46be73ed0d023be69e779d38dec2bba90091dc9fce99e6114"},
+    {file = "open_aea_ci_helpers-2.2.2-py3-none-any.whl", hash = "sha256:ff2f92e034ab6c7eabfb39f025619777cbab2c595c0db143f64da599dd73985c"},
+    {file = "open_aea_ci_helpers-2.2.2.tar.gz", hash = "sha256:8457035bc981227f7097fa6e28536881566d7a9d43c79d185968bbb97bd94c50"},
 ]
 
 [package.dependencies]
@@ -3095,14 +3095,14 @@ tomli-w = "*"
 
 [[package]]
 name = "open-aea-cli-ipfs"
-version = "2.2.1"
+version = "2.2.2"
 description = "CLI extension for open AEA framework wrapping IPFS functionality."
 optional = false
 python-versions = "<3.15,>=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "open_aea_cli_ipfs-2.2.1-py3-none-any.whl", hash = "sha256:e81dba96c6661c073ae634e91a2f588d710b58879c3b398f6914d0cf73de9ed1"},
-    {file = "open_aea_cli_ipfs-2.2.1.tar.gz", hash = "sha256:3bfa4da06c5ddb0d1622be624c6fa60a00b1e691ca8ed5a0f602581883c20f13"},
+    {file = "open_aea_cli_ipfs-2.2.2-py3-none-any.whl", hash = "sha256:dee616561f922258cc888889e6d0b687f3d9bd0a9f6f2a80e63d2d7268944641"},
+    {file = "open_aea_cli_ipfs-2.2.2.tar.gz", hash = "sha256:e65993e1d60e0ace0adb6a625351e9bece1f7c2946542dfda133df41b4ca6efb"},
 ]
 markers = {main = "extra == \"cli\" or extra == \"all\""}
 
@@ -3115,14 +3115,14 @@ test-tools = ["pytest (>=7.0,<10)"]
 
 [[package]]
 name = "open-aea-dev-helpers"
-version = "2.2.1"
+version = "2.2.2"
 description = "Development and release helper utilities for AEA-based projects."
 optional = false
 python-versions = "<3.15,>=3.10"
 groups = ["dev"]
 files = [
-    {file = "open_aea_dev_helpers-2.2.1-py3-none-any.whl", hash = "sha256:b724e5b741339efefe2bed094bc55e06ba8ed34ec23d2591daf22eb5be53d438"},
-    {file = "open_aea_dev_helpers-2.2.1.tar.gz", hash = "sha256:cfc0fe8f975d723bd4399a809fa04288d2d315b97ce73927260a94f5e6f30762"},
+    {file = "open_aea_dev_helpers-2.2.2-py3-none-any.whl", hash = "sha256:31a947289a4153da38c5f1e848b98e0f0cf32ecc67b168fa291f33db590af839"},
+    {file = "open_aea_dev_helpers-2.2.2.tar.gz", hash = "sha256:96498817199561b56ccac5438c316ef062206ffff7fe9e95345eec5831f29019"},
 ]
 
 [package.dependencies]
@@ -3151,14 +3151,14 @@ url = "plugins/aea-helpers"
 
 [[package]]
 name = "open-aea-ledger-cosmos"
-version = "2.2.1"
+version = "2.2.2"
 description = "Python package wrapping the public and private key cryptography and ledger api of Cosmos."
 optional = false
 python-versions = "<3.15,>=3.10"
 groups = ["main"]
 files = [
-    {file = "open_aea_ledger_cosmos-2.2.1-py3-none-any.whl", hash = "sha256:fef0a9bdf65e50884e674f9441147aa56b435b84bc15dedb70b60111d2f1410d"},
-    {file = "open_aea_ledger_cosmos-2.2.1.tar.gz", hash = "sha256:5afe4d6b22e4f187e277aceb6512b35a3cb7fc5d0c59333a6361af26b6cb878f"},
+    {file = "open_aea_ledger_cosmos-2.2.2-py3-none-any.whl", hash = "sha256:926a7f06583f9fa319f2c975893ff466c8fed025613830e1a0c0cce86e60895e"},
+    {file = "open_aea_ledger_cosmos-2.2.2.tar.gz", hash = "sha256:5f01e60c2e39b4fc1a2446b11268fc0769f30d17f48206cfc8b566b70c1ca89a"},
 ]
 
 [package.dependencies]
@@ -3171,15 +3171,15 @@ requests = ">=2.32.5,<3"
 
 [[package]]
 name = "open-aea-ledger-ethereum"
-version = "2.2.1"
+version = "2.2.2"
 description = "Python package wrapping the public and private key cryptography and ledger api of Ethereum."
 optional = true
 python-versions = "<3.15,>=3.10"
 groups = ["main"]
 markers = "extra == \"chain\" or extra == \"all\" or extra == \"hwi\""
 files = [
-    {file = "open_aea_ledger_ethereum-2.2.1-py3-none-any.whl", hash = "sha256:5ee4eda46bd1f3643815db4ec4e559d9dd16f6d123669aed0d6823148e895260"},
-    {file = "open_aea_ledger_ethereum-2.2.1.tar.gz", hash = "sha256:5d34cfb08472d819d46fd1e591c82b8a108260603078eb76f272de15a59237fa"},
+    {file = "open_aea_ledger_ethereum-2.2.2-py3-none-any.whl", hash = "sha256:daf2a713ddd4a10964f8abe43a231a13a5d6dcba8462b6e619132b48170fcbf4"},
+    {file = "open_aea_ledger_ethereum-2.2.2.tar.gz", hash = "sha256:fab1beeeab3feda0bee34653cbd5cd0286771b769e3a43043a120a70df113d1c"},
 ]
 
 [package.dependencies]
@@ -3193,37 +3193,34 @@ test-tools = ["docker (==7.1.0)", "pytest (>=7.0,<10)"]
 
 [[package]]
 name = "open-aea-ledger-ethereum-hwi"
-version = "2.2.1"
+version = "2.2.2"
 description = "Python package wrapping the public and private key cryptography and support for hardware wallet interactions."
 optional = true
-python-versions = ">=3.10,<3.15"
+python-versions = "<3.15,>=3.10"
 groups = ["main"]
 markers = "extra == \"hwi\""
-files = []
-develop = false
+files = [
+    {file = "open_aea_ledger_ethereum_hwi-2.2.2-py3-none-any.whl", hash = "sha256:2e5e50e879ea8083b632e3e54c13d61e686a6d2860ba227f96aaf046e5f31b8e"},
+    {file = "open_aea_ledger_ethereum_hwi-2.2.2.tar.gz", hash = "sha256:555ec74b102f28847f6e13570fc49a5df693ed824b0d99c60bef4c4befe5164d"},
+]
 
 [package.dependencies]
 eth-account = ">=0.13.0,<0.14.0"
 ledgerwallet = "0.1.3"
 open-aea = ">=2.0.0,<3.0.0"
-open-aea-ledger-ethereum = ">=2.2.1,<2.3.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/valory-xyz/open-aea.git"
-reference = "8d74120a997cafb71c5c2e3bd2854de469c8cfc1"
-resolved_reference = "8d74120a997cafb71c5c2e3bd2854de469c8cfc1"
-subdirectory = "plugins/aea-ledger-ethereum-hwi"
+open-aea-ledger-ethereum = ">=2.2.2,<2.3.0"
 
 [[package]]
 name = "open-aea-ledger-solana"
-version = "2.2.1"
+version = "2.2.2"
 description = "Python package wrapping the public and private key cryptography and ledger api of solana."
 optional = false
-python-versions = ">=3.10,<3.15"
+python-versions = "<3.15,>=3.10"
 groups = ["main"]
-files = []
-develop = false
+files = [
+    {file = "open_aea_ledger_solana-2.2.2-py3-none-any.whl", hash = "sha256:d5c86c1fb3d066775ee9af1de0fcb0e181b542ee5619f83cff79ff42c8fac880"},
+    {file = "open_aea_ledger_solana-2.2.2.tar.gz", hash = "sha256:5e912dd5ad8899eacd06fa29ef493520870dda5aecc03a397b97d77b0e15d4b1"},
+]
 
 [package.dependencies]
 anchorpy = ">=0.20.0,<0.21.0"
@@ -3231,13 +3228,6 @@ cryptography = "*"
 open-aea = ">=2.0.0,<3.0.0"
 solana = ">=0.33.0,<0.34.0"
 solders = ">=0.21.0,<0.22.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/valory-xyz/open-aea.git"
-reference = "8d74120a997cafb71c5c2e3bd2854de469c8cfc1"
-resolved_reference = "8d74120a997cafb71c5c2e3bd2854de469c8cfc1"
-subdirectory = "plugins/aea-ledger-solana"
 
 [[package]]
 name = "open-aea-test-autonomy"
@@ -5500,4 +5490,4 @@ hwi = ["open-aea-ledger-ethereum-hwi"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "6eba34e68328b5f13400bdadcbdfa46e8f854831de984a6368fdcf4c2498c660"
+content-hash = "f9dbdf73c31973246ef605ca3dd7c1a2b76081b14bf5827bd9aad205942758c0"

@@ -10,21 +10,18 @@ packages = [{include = "autonomy"}, {include = "packages"}]
 [tool.poetry.dependencies]
 python = ">=3.10,<3.15"
 # Core runtime
-open-aea = { version = "==2.2.1", extras = ["all"] }
+open-aea = { version = "==2.2.2", extras = ["all"] }
 # CLI deps. `click`, `pytest`, `coverage` come transitively via
 # `open-aea[all]`; only the IPFS CLI plugin is autonomy-specific.
-open-aea-cli-ipfs = "==2.2.1"
+open-aea-cli-ipfs = "==2.2.2"
 # Optional plugins — declared via extras below.
 # [hwi] and [docker] are intentionally kept out of [all]:
 #   * HWI's transitive chain (ledgerwallet -> hidapi + Pillow) has
 #     no armv7 wheels, breaking multi-platform Docker image builds.
 #   * `docker` is only needed for docker-compose deployments; users
 #     deploying to Kubernetes or localhost don't need it.
-open-aea-ledger-ethereum = {version = "==2.2.1", optional = true, extras = []}
-# TEMPORARY: pinned to open-aea main (PRs #880 + #882). The published
-# 2.2.1 wheel still carries the obsolete construct<=2.10.61 cap that
-# conflicts with solana>=0.33. Revert to `==<version>` post-release.
-open-aea-ledger-ethereum-hwi = { git = "https://github.com/valory-xyz/open-aea.git", rev = "8d74120a997cafb71c5c2e3bd2854de469c8cfc1", subdirectory = "plugins/aea-ledger-ethereum-hwi", optional = true }
+open-aea-ledger-ethereum = {version = "==2.2.2", optional = true, extras = []}
+open-aea-ledger-ethereum-hwi = {version = "==2.2.2", optional = true}
 docker = {version = "==7.1.0", optional = true}
 
 # ---------------------------------------------------------------------------
@@ -43,12 +40,8 @@ docker = {version = "==7.1.0", optional = true}
 #     correctness. Such ranges must stay in sync with the
 #     corresponding package YAML.
 # ---------------------------------------------------------------------------
-open-aea-ledger-cosmos = "==2.2.1"
-# TEMPORARY: pinned to merged-but-unreleased open-aea main (PRs #880 + #882
-# dropping the orphaned construct<=2.10.61 cap) so we can validate
-# open-autonomy#2479 unblock before the v2.2.2 cut. Revert to
-# `open-aea-ledger-solana = "==<version>"` once released.
-open-aea-ledger-solana = { git = "https://github.com/valory-xyz/open-aea.git", rev = "8d74120a997cafb71c5c2e3bd2854de469c8cfc1", subdirectory = "plugins/aea-ledger-solana" }
+open-aea-ledger-cosmos = "==2.2.2"
+open-aea-ledger-solana = "==2.2.2"
 web3 = "*"
 requests = "*"
 grpcio = "==1.78.0"
@@ -103,8 +96,8 @@ autonomy = "autonomy.cli:cli"
 [tool.poetry.group.dev.dependencies]
 tomte = { extras = ["tox", "docs"], version = "==0.6.5" }
 mkdocs-monorepo-plugin = "^1.0.5"
-open-aea-ci-helpers = "==2.2.1"
-open-aea-dev-helpers = "==2.2.1"
+open-aea-ci-helpers = "==2.2.2"
+open-aea-dev-helpers = "==2.2.2"
 # Local CI/release tooling — used by `make generators`, `tox -e
 # fix-doc-hashes`, etc. Not imported by any runtime code.
 open-aea-helpers = { path = "plugins/aea-helpers", develop = true }
