@@ -22,6 +22,6 @@ contract_interface_paths:
   ethereum: build/GnosisSafe_V1_3_0.json
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.2.1
+    version: ==2.2.2
   requests: {}
   web3: {}
