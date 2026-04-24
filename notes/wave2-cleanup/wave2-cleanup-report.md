@@ -509,6 +509,127 @@ gotcha: the section name uses dotted-quoted form:
 sometimes write `[tool.pylint.messages_control]` which pylint does NOT
 read. Use the dotted-quote form.
 
+## 7A. Linter config centralisation — architectural principle
+
+Sections 4, 6, and 7 individually recommend folding `pytest.ini`,
+`setup.cfg`, and `.pylintrc` into each repo's `pyproject.toml`. Doing
+that mechanically moves the drift problem — now every repo has a
+bespoke `[tool.pylint]`, `[tool.mypy]`, `[tool.black]`, etc. in its
+pyproject. That's not the end state we want.
+
+**The architectural principle**: linter configuration belongs in
+*one place per linter per Valory org*, not per repo. That one place
+is `tomte`.
+
+**Target layout**:
+
+| File | Role |
+|---|---|
+| `pyproject.toml` (every repo) | **Strict PEP 621**: `[project]`, `[build-system]`, `[dependency-groups]`, `[tool.uv]`, `[tool.coverage.run]` (pytest-cov needs it there). Nothing else. No `[tool.black]`, `[tool.isort]`, `[tool.mypy]`, `[tool.pylint]`, `[tool.flake8]`, `[tool.darglint]`. |
+| `tox.ini` (per repo, after §8 scaffold) | **Minimal** — delegates to tomte envs. The only repo-specific pieces are `SERVICE_SPECIFIC_PACKAGES` (lint scope) and any genuinely bespoke `[mypy-*]` per-module ignores, each with a one-line `# why` comment so the list doesn't accrete. |
+| `tomte` (upstream) | **Single source of truth** for: `black` profile, `isort` profile with `known_first_party = ["packages"]` (overridable), `flake8` select/ignore list, `mypy` strictness + stub set, `pylint` disables + rcfile, `darglint` style, `bandit` config, `safety` policy, `vulture` whitelist. Adding or retuning a rule fleetwide = one tomte PR + coordinated version bump in the 13 repos. |
+
+### Why this is better than "fold into pyproject.toml"
+
+- **Single-source-of-truth**: pyproject describes "what is this package"
+  without getting tangled in lint policy. Today we already have
+  subtly-different `[tool.black]` line lengths, `[tool.isort]` sections,
+  and `[tool.mypy]` strictness flags across the fleet — exact drift this
+  audit flagged. Folding `.pylintrc` INTO pyproject does not fix that;
+  it just moves the drift into pyproject.
+- **Fleet changes are one-line**: want everyone on `flake8-bugbear`?
+  Bump `tomte[flake8]` to ship it by default + release + repos pin the
+  new version. Without centralisation it's 13 mini-PRs to add the same
+  dep + config line.
+- **tomte is already the CI dep**: every Valory repo already installs
+  `tomte[tox,cli]==0.6.5` (or similar) in CI and local flows. The
+  defaults are already flowing — we just stop layering local overrides
+  on top.
+- **Repo-specific ignores stay repo-specific**: genuinely bespoke
+  rules (a given skill's `noqa` pattern, a particular `[mypy-*]` import
+  ignore) live in the repo's tox.ini with a justification comment.
+  The skill's existing guidance applies: the comment answers "why is
+  this here" so the list stays curated.
+
+### Revised disposition for sections 4, 6, 7
+
+- **§4 `pytest.ini`**: still fold into `pyproject.toml` (pytest reads
+  `[tool.pytest.ini_options]` from pyproject natively and pytest config
+  is repo-specific — test paths, markers). **Unchanged.**
+- **§6 `setup.cfg`**: fold into `pyproject.toml` IF the content is
+  repo-specific packaging metadata. If it's isort/flake8/pylint
+  config, that moves to **tomte**, not pyproject. Inspect each
+  repo's setup.cfg content before migrating.
+- **§7 `.pylintrc`**: revised recommendation is **option B**
+  (canonical rcfile in tomte) instead of **option A** (inline into
+  pyproject). tomte ships the rcfile as a resource, and each repo's
+  tox env passes `--rcfile=$(python -c "import tomte; print(tomte.pylintrc_path())")`.
+  Per-repo pylint ignores (rare) stay as a small `disable = [...]`
+  block in repo-level config file, not in pyproject.
+
+### Execution plan
+
+1. **Audit phase**. Grep every Valory repo's pyproject for
+   `[tool.*]` sections; tabulate diffs. Expected output: a table of
+   which defaults vary by repo, per linter.
+
+   ```bash
+   for repo in mech mech-* trader optimus meme-ooorr IEKit market-creator open-aea open-autonomy; do
+     echo "=== $repo ==="
+     grep -E "^\[tool\." /path/to/$repo/pyproject.toml 2>/dev/null
+   done
+   ```
+
+2. **tomte upstream PR**. Bake the agreed defaults into tomte as
+   resource files + config expose points. Required additions:
+   - `tomte.configs` module exposing paths to `.pylintrc`, mypy
+     config, isort profile, black profile, darglint cfg, bandit
+     cfg, safety policy.
+   - `tomte[<linter>]` install-extra already ships the right binary
+     — just add the config resources.
+   - `tomte scaffold tox` template (already planned in §8) emits a
+     repo-level `tox.ini` that references these config paths via
+     a small wrapper:
+
+     ```ini
+     [testenv:pylint]
+     deps = tomte[pylint]==0.X.Y
+     commands = pylint --rcfile={envsitepackagesdir}/tomte/configs/pylintrc {env:SERVICE_SPECIFIC_PACKAGES}
+     ```
+
+3. **Repo sweep** (one PR per repo, or fleet-wide if push-to-all):
+   - Delete `[tool.black]`, `[tool.isort]`, `[tool.mypy]`,
+     `[tool.pylint]`, `[tool.flake8]`, `[tool.darglint]` from
+     `pyproject.toml`.
+   - Replace any repo-local `.pylintrc`, `mypy.ini`, `.isort.cfg`,
+     `.flake8` with references to the tomte-shipped config.
+   - Minimise `tox.ini` per §8 scaffold.
+   - Bump `tomte` pin to the new version.
+   - Run full local CI matrix (the ~15 tox envs the skill's memory
+     directive requires) + confirm identical lint output to pre-change.
+
+### Risks
+
+- **tomte becomes a god-object.** Mitigation: treat tomte defaults as
+  a versioned API contract. Pin tomte strictly per repo
+  (`tomte[tox,cli]==0.X.Y`, no range). A tomte bump is a fleet change,
+  documented in tomte's release notes, rolled through the 13 repos in
+  coordinated batches.
+- **Per-repo mypy ignore pollution.** Without discipline, every repo
+  accretes a long `[mypy-*]` list. Require a one-line
+  `# added YYYY-MM-DD by <pr>: <reason>` comment on every per-module
+  override. Audit once a year.
+- **Over-generalised defaults hurt specific repos.** Mitigation: tomte
+  ships *opt-in* overrides (e.g. `tomte[flake8-strict]`) so a repo can
+  pick a stricter preset without forcing everyone else.
+- **Bootstrapping order**: the tomte PR must land + release BEFORE any
+  repo sweep. A half-migrated world where tomte has the new defaults
+  but some repos still carry pyproject `[tool.*]` overrides produces
+  confusing double-configuration. Land tomte + pin it before starting
+  the repo sweep.
+
+---
+
 ## 8. `tox.ini` — the big question
 
 ### Evidence
@@ -649,7 +770,16 @@ repo". Skip.
    - `open-autonomy`: promote `CONTRIBUTING.md` to the canonical version
      (small rewrite to make it repo-agnostic), ensure `.gitleaks.toml` is
      at a stable URL, bump tomte pin.
-   - `tomte`: delete `check_spelling` + ship tox template.
+   - `tomte`: (a) delete `check_spelling` + ship `tox` template (§8), AND
+     (b) ship canonical linter-config resources (§7A) — `.pylintrc`,
+     mypy config, isort/flake8/darglint/bandit defaults — exposed via a
+     `tomte.configs` module. The `tox` scaffold references them. Both
+     land in a single tomte version bump; repos pin to that version.
+   - Order: ship tomte-with-configs first, then open-autonomy rebases
+     onto the new tomte, then downstream sweep. A half-migrated world
+     (tomte has the configs but repos still carry `pyproject [tool.*]`
+     overrides) produces confusing double-configuration — avoid it by
+     pinning the order strictly.
 
 ## 12. Per-repo checklist
 
