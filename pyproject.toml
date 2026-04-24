@@ -21,7 +21,10 @@ open-aea-cli-ipfs = "==2.2.1"
 #   * `docker` is only needed for docker-compose deployments; users
 #     deploying to Kubernetes or localhost don't need it.
 open-aea-ledger-ethereum = {version = "==2.2.1", optional = true, extras = []}
-open-aea-ledger-ethereum-hwi = {version = "==2.2.1", optional = true}
+# TEMPORARY: pinned to open-aea main (PRs #880 + #882). The published
+# 2.2.1 wheel still carries the obsolete construct<=2.10.61 cap that
+# conflicts with solana>=0.33. Revert to `==<version>` post-release.
+open-aea-ledger-ethereum-hwi = { git = "https://github.com/valory-xyz/open-aea.git", rev = "8d74120a997cafb71c5c2e3bd2854de469c8cfc1", subdirectory = "plugins/aea-ledger-ethereum-hwi", optional = true }
 docker = {version = "==7.1.0", optional = true}
 
 # ---------------------------------------------------------------------------
@@ -41,12 +44,11 @@ docker = {version = "==7.1.0", optional = true}
 #     corresponding package YAML.
 # ---------------------------------------------------------------------------
 open-aea-ledger-cosmos = "==2.2.1"
-# open-aea-ledger-solana = "==2.2.1"  # NOTE: can't coexist with our
-# dev tooling. `open-aea-ledger-solana` pulls `anchorpy<0.19` which
-# transitively requires `cachetools<5`; that clashes with
-# `tomte[tox]`'s `cachetools>=7.0.1` (via `tox 4.46`). Re-enabling
-# needs either the anchorpy upstream to loosen, or moving solana
-# into an opt-in extra.
+# TEMPORARY: pinned to merged-but-unreleased open-aea main (PRs #880 + #882
+# dropping the orphaned construct<=2.10.61 cap) so we can validate
+# open-autonomy#2479 unblock before the v2.2.2 cut. Revert to
+# `open-aea-ledger-solana = "==<version>"` once released.
+open-aea-ledger-solana = { git = "https://github.com/valory-xyz/open-aea.git", rev = "8d74120a997cafb71c5c2e3bd2854de469c8cfc1", subdirectory = "plugins/aea-ledger-solana" }
 web3 = "*"
 requests = "*"
 grpcio = "==1.78.0"
