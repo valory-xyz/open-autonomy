@@ -5,31 +5,6 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
-## `v0.21.19` to `v0.21.20`
-
-This release bumps the underlying `open-aea` framework from `2.2.1` to `2.2.2` and re-enables `open-aea-ledger-solana`.
-
-### `open-aea` framework bump
-
-All `open-aea*` pins move from `==2.2.1` to `==2.2.2`. The bump includes two upstream fixes that this release depends on:
-
-- Solana ledger plugin dep bump (`solana>=0.33`, `anchorpy>=0.20`, `solders>=0.21`) so the plugin can coexist with `tomte[tox]>=0.6.5` (`cachetools>=7`). See [open-aea#880](https://github.com/valory-xyz/open-aea/pull/880).
-- Drop of an orphaned `construct<=2.10.61` cap in `open-aea-ledger-ethereum-hwi` that conflicted with `solana 0.33`'s transitive `construct>=2.10.67`. See [open-aea#882](https://github.com/valory-xyz/open-aea/pull/882).
-
-### `open-aea-ledger-solana` re-enabled
-
-`open-aea-ledger-solana==2.2.2` is now a first-class dependency again. CI coverage of `packages/valory/contracts/squads_multisig/`, `packages/valory/skills/squads_transaction_settlement_abci/`, `packages/valory/skills/test_solana_tx_abci/`, and `packages/valory/agents/solana_transfer_agent/` is restored. Closes [#2479](https://github.com/valory-xyz/open-autonomy/issues/2479).
-
-If you had previously commented out `open-aea-ledger-solana` in your downstream `pyproject.toml` / `setup.py` to work around the cachetools conflict, you can now uncomment it.
-
-### Concrete upgrade steps
-
-1. Bump `open-autonomy` pin to `==0.21.20`.
-2. Bump all `open-aea*` pins to `==2.2.2`.
-3. If you had `open-aea-ledger-solana` commented out, uncomment it.
-4. Run `autonomy packages sync --update-packages` to pull the updated third-party packages.
-5. Run `autonomy packages lock` to regenerate downstream package hashes.
-
 ## `v0.21.18` to `v0.21.19`
 
 This release introduces a mock Tendermint server for single-agent services and significantly trims the framework's runtime dependency footprint.
