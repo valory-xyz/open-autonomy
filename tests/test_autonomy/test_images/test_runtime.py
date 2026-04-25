@@ -61,22 +61,14 @@ ARG EXTRA_DEPENDENCIES=""
 
 # Use local packages to avoid IPFS dependency
 COPY packages/ /home/packages/
-# Install open-autonomy and aea-test-autonomy from source; the current
-# dev version may not yet be published to PyPI, and even when it is,
-# the published version may pin different `open-aea*` versions than
-# the working tree expects (e.g. across a framework bump). Installing
-# from source ensures `aea install` resolves transitive `open-autonomy`
-# requests against the working tree's metadata.
+# Install aea-test-autonomy from source; the current dev version
+# may not yet be published to PyPI
 COPY plugins/ /home/plugins/
-COPY autonomy/ /home/open-autonomy-src/autonomy/
-COPY packages/ /home/open-autonomy-src/packages/
-COPY pyproject.toml setup.py README.md /home/open-autonomy-src/
 
 WORKDIR /home
 
 ENV PIP_PRE=1
 
-RUN pip install --no-deps /home/open-autonomy-src
 RUN pip install --no-deps /home/plugins/aea-test-autonomy
 
 RUN aea init --reset --local --author ${AUTHOR}
@@ -118,14 +110,11 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
 
         cls.agent = str(AGENT.public_id)
 
-        # Create a temp build context with local packages, plugins, and the
-        # open-autonomy source itself. We use local sources to avoid IPFS
-        # dependency and ensure the image builds against the current working
-        # tree. open-autonomy itself is installed from source because the
-        # current dev version may not yet be published to PyPI; even when it
-        # is, the published version may pin different `open-aea*` versions
-        # than the working tree expects (e.g. across a framework bump), which
-        # would make `aea install` fail to resolve the agent's package deps.
+        # Create a temp build context with local packages and plugins.
+        # We use local packages to avoid IPFS dependency and ensure the
+        # image builds against the current working tree. The aea-test-autonomy
+        # plugin is installed from source because agents depend on the
+        # current dev version which may not yet be published to PyPI.
         cls.local_build_dir = Path(tempfile.mkdtemp())
         (cls.local_build_dir / "Dockerfile").write_text(LOCAL_DOCKERFILE)
         shutil.copytree(
@@ -135,22 +124,6 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
         shutil.copytree(
             str(ROOT_DIR / "plugins"),
             str(cls.local_build_dir / "plugins"),
-        )
-        shutil.copytree(
-            str(ROOT_DIR / "autonomy"),
-            str(cls.local_build_dir / "autonomy"),
-        )
-        shutil.copy2(
-            str(ROOT_DIR / "pyproject.toml"),
-            str(cls.local_build_dir / "pyproject.toml"),
-        )
-        shutil.copy2(
-            str(ROOT_DIR / "setup.py"),
-            str(cls.local_build_dir / "setup.py"),
-        )
-        shutil.copy2(
-            str(ROOT_DIR / "README.md"),
-            str(cls.local_build_dir / "README.md"),
         )
 
     @classmethod
