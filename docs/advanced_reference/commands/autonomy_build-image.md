@@ -84,7 +84,7 @@ autonomy build-image [OPTIONS] [AGENT_PUBLIC_ID]
 * Include extra python packages:
 
     ```bash
-    autonomy build-image ... -e open-aea-ledger-solana==2.2.1
+    autonomy build-image ... -e open-aea-ledger-solana==2.2.2
     ```
 
     This will tag the image as `<author>/oar-<agent_package>:<version>`.

@@ -34,7 +34,7 @@ from aea_helpers.run_service import run_service
 # NOTE: ``check-third-party-hashes`` and ``generate-api-docs`` used to live
 # here but have been promoted to the upstream ``open-aea-ci-helpers`` plugin
 # (valory-xyz/open-aea#876, released in open-aea 2.2.1). Tox envs now call
-# ``aea-ci check-third-party-hashes --upstream valory-xyz/open-aea@2.2.1`` and
+# ``aea-ci check-third-party-hashes --upstream valory-xyz/open-aea@2.2.2`` and
 # ``aea-ci generate-api-docs --source-dir autonomy ...`` directly.
 
 

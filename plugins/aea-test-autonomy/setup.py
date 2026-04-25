@@ -31,14 +31,17 @@ def _read_long_description() -> str:
 
 
 base_deps = [
-    # `open-autonomy[all,docker]` supplies everything the plugin's
-    # direct imports resolve to:
-    #   * `pytest`, `aea.*` — via `open-aea[all]`
-    #   * `aea_ledger_ethereum`, `web3`, `eth_account` — via the
-    #     `[all]` extra's `open-aea-ledger-ethereum`
-    #   * `docker`, `docker.models.containers`, `docker.errors` —
-    #     via the `[docker]` extra
-    "open-autonomy[all,docker]>=0.21.0,<0.22.0",
+    # Pin the plugin's direct imports here, NOT via a transitive on
+    # `open-autonomy[all,docker]`. Routing through the parent creates a
+    # circular release-order trap whenever the framework bumps a pinned
+    # `open-aea*` minor: pip resolves `open-autonomy>=0.21.0,<0.22.0`
+    # against PyPI, finds older releases that still pin the previous
+    # `open-aea*` minor, and conflicts with the bumped `open-aea*` in
+    # the working tree's agent yamls. See open-autonomy#2490.
+    "open-aea[all]>=2.2.0,<3.0.0",
+    "open-aea-ledger-ethereum>=2.2.0,<3.0.0",
+    "pytest==8.4.2",
+    "docker==7.1.0",
 ]
 
 setup(
