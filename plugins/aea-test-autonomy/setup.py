@@ -38,8 +38,8 @@ base_deps = [
     #     `[all]` extra's `open-aea-ledger-ethereum`
     # NOTE: `docker` is pinned directly (rather than inherited via
     # `open-autonomy[docker]`) because the `[docker]` extra was
-    # introduced in 0.21.19 — relying on it creates a resolver loop
-    # where pip walks back to pre-0.21.19 versions missing the extra
+    # introduced in 0.21.20 — relying on it creates a resolver loop
+    # where pip walks back to pre-0.21.20 versions missing the extra
     # whenever the target open-autonomy version is unreleased.
     "open-autonomy[all]>=0.21.0,<0.22.0",
     "docker==7.1.0",
@@ -47,7 +47,7 @@ base_deps = [
 
 setup(
     name="open-aea-test-autonomy",
-    version="0.21.19",
+    version="0.21.20",
     author="Valory AG",
     license="Apache-2.0",
     description="Plugin containing test tools for open-autonomy packages.",

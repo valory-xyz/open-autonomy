@@ -45,7 +45,7 @@ base_deps = [
 
 setup(
     name="open-aea-helpers",
-    version="0.21.19",
+    version="0.21.20",
     author="Valory AG",
     license="Apache-2.0",
     description="CLI helpers for CI and dependency management in AEA-based projects.",
