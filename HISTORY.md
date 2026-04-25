@@ -1,5 +1,18 @@
 # Release History - `open-autonomy`
 
+# 0.21.20 (2026-04-25)
+
+Autonomy:
+- Bumps `open-aea` from `2.2.1` to `2.2.2` across the framework, all plugins, package yamls, Dockerfiles, and skaffold #2489
+- Re-enables `open-aea-ledger-solana==2.2.2`, restoring CI coverage of `packages/valory/contracts/squads_multisig/` and the three solana-dependent skills/agents that were dropped while the upstream cachetools conflict was unresolved (open-autonomy#2479)
+- Realigns `connection/valory/ledger:0.19.0` and `protocol/valory/ledger_api:1.0.0` third-party CIDs with upstream `open-aea v2.2.2` (both had drifted since the 2.1.0 → 2.2.1 bump)
+
+CI:
+- Authorises `anchorpy`, `based58`, `jsonalias` (MIT per upstream LICENSE files; missing PyPI metadata) in liccheck
+- Disables the broken `anchorpy` pytest plugin autoload (`from pytest_xprocess import getrootdir` — upstream typo) via `PYTEST_ADDOPTS=-p no:anchorpy` in `[testenv] setenv` so it propagates to subprocess pytests
+- Whitelists rate-limited `notes.ethereum.org/@vbuterin/eip-1559-faq` in `check-doc-links-hashes`
+- Tracks the `[docker]` extra resolver-trap pattern in #2490
+
 # 0.21.19 (2026-04-21)
 
 Autonomy:
