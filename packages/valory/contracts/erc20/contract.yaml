@@ -16,4 +16,4 @@ contract_interface_paths:
 contracts: []
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.2.1
+    version: ==2.2.2

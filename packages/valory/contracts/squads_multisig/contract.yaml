@@ -16,5 +16,5 @@ contract_interface_paths:
   solana: build/SquadsMultisig.json
 dependencies:
   open-aea-ledger-solana:
-    version: ==2.2.1
+    version: ==2.2.2
 contracts: []

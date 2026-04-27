@@ -61,14 +61,19 @@ ARG EXTRA_DEPENDENCIES=""
 
 # Use local packages to avoid IPFS dependency
 COPY packages/ /home/packages/
-# Install aea-test-autonomy from source; the current dev version
-# may not yet be published to PyPI
+# Install open-autonomy and aea-test-autonomy from source; the current
+# dev versions may not yet be published to PyPI, and installing the
+# framework locally pins its transitive deps (e.g., open-aea-ledger-*
+# versions) to the in-tree values rather than resolving against PyPI.
 COPY plugins/ /home/plugins/
+COPY autonomy/ /home/autonomy/
+COPY pyproject.toml setup.py README.md /home/
 
 WORKDIR /home
 
 ENV PIP_PRE=1
 
+RUN pip install --no-deps /home
 RUN pip install --no-deps /home/plugins/aea-test-autonomy
 
 RUN aea init --reset --local --author ${AUTHOR}
@@ -125,6 +130,15 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
             str(ROOT_DIR / "plugins"),
             str(cls.local_build_dir / "plugins"),
         )
+        shutil.copytree(
+            str(ROOT_DIR / "autonomy"),
+            str(cls.local_build_dir / "autonomy"),
+        )
+        for filename in ("pyproject.toml", "setup.py", "README.md"):
+            shutil.copy2(
+                str(ROOT_DIR / filename),
+                str(cls.local_build_dir / filename),
+            )
 
     @classmethod
     def teardown_class(cls) -> None:

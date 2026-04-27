@@ -22,6 +22,6 @@ excluded_protocols: []
 restricted_to_protocols: []
 dependencies:
   open-aea-cli-ipfs:
-    version: ==2.2.1
+    version: ==2.2.2
 is_abstract: false
 cert_requests: []
