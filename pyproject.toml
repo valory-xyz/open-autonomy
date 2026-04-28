@@ -94,7 +94,7 @@ all = [
 autonomy = "autonomy.cli:cli"
 
 [tool.poetry.group.dev.dependencies]
-tomte = { git = "https://github.com/valory-xyz/tomte.git", rev = "08e9cd419cc8ec62a176b462baf7737332138dee", extras = ["tox", "docs"] }
+tomte = { git = "https://github.com/valory-xyz/tomte.git", rev = "cd040bfcc4b905283af16d0d411918cf73c0e56c", extras = ["tox", "docs"] }
 mkdocs-monorepo-plugin = "^1.0.5"
 open-aea-ci-helpers = "==2.2.2"
 open-aea-dev-helpers = "==2.2.2"

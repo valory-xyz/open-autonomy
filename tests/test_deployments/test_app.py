@@ -38,7 +38,6 @@ from _pytest.logging import LogCaptureFixture  # type: ignore
 from _pytest.monkeypatch import MonkeyPatch  # type: ignore
 from aea.common import JSONLike
 from aea.test_tools.utils import wait_for_condition
-
 from deployments.Dockerfiles.tendermint import app  # type: ignore
 from deployments.Dockerfiles.tendermint.app import TendermintNode  # type: ignore
 from deployments.Dockerfiles.tendermint.app import (  # type: ignore
