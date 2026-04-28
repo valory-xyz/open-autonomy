@@ -4911,8 +4911,8 @@ vulture = ["vulture (==2.14)"]
 [package.source]
 type = "git"
 url = "https://github.com/valory-xyz/tomte.git"
-reference = "cd040bfcc4b905283af16d0d411918cf73c0e56c"
-resolved_reference = "cd040bfcc4b905283af16d0d411918cf73c0e56c"
+reference = "feeea393f0f21fea3f8b6c654cd7b8cf925f30ef"
+resolved_reference = "feeea393f0f21fea3f8b6c654cd7b8cf925f30ef"
 
 [[package]]
 name = "toolz"
@@ -5494,4 +5494,4 @@ hwi = ["open-aea-ledger-ethereum-hwi"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "9fd343c84c863c3ddd05de066655af68150e1b40989574f901234135f0404a7b"
+content-hash = "b765617c589111432336e07d84b5c66997935324ba2c598c3194cd3bb2e76496"
