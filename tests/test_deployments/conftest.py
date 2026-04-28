@@ -27,6 +27,7 @@ from typing import Generator, cast
 
 import pytest
 import requests
+
 from deployments.Dockerfiles.tendermint.tendermint import (  # type: ignore
     DEFAULT_RPC_LISTEN_ADDRESS,
 )

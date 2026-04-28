@@ -24,6 +24,7 @@ import logging
 from typing import List, Type
 
 import pytest
+
 from deployments.Dockerfiles.tendermint import tendermint  # type: ignore
 
 from packages.valory.connections.abci import connection
