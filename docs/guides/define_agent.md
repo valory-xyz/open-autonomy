@@ -122,7 +122,7 @@ If you have [populated the local registry](./overview_of_the_development_process
               propagate: true
         dependencies:
           open-aea-ledger-ethereum:
-            version: ==2.2.1
+            version: ==2.2.2
           open-aea-test-autonomy:
             version: ==0.21.19
         default_connection: null

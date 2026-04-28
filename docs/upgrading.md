@@ -116,7 +116,7 @@ If your CI invokes any of these scripts directly, update to the corresponding CL
     - `aea-helpers run-agent --name <agent>` — replaces `run_agent.sh` with built-in port management (`--free-ports`), config replacement, and tendermint lifecycle
     - `aea-helpers run-service --name <service>` — replaces `run_service.sh` with parameterized deployment (agent count, resource limits, pre/post hooks)
     - `aea-helpers make-release --version <ver> --env <env>` — replaces `make_release.sh` for creating git tags and GitHub releases
-- New `--skip-tendermint` flag on `run-agent` for agents configured with `use_tendermint: false` (e.g. IEKit)
+- New `--skip-tendermint` flag on `run-agent` for agents configured with `use_tendermint: false`
 - Fixes `customs` package type handling in `check-doc-hashes` (no longer crashes on mech tool packages)
 - Fixes IPFS connection handler to support directories and binary files
 - To migrate deployment scripts: extract your `PATH_TO_VAR` dict from `aea-config-replace.py` into a `config-mapping.json` file, then delete `aea-config-replace.py`, `run_agent.sh`, and `run_service.sh`

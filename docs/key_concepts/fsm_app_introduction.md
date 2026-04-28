@@ -43,7 +43,7 @@ Due to the variety of FSMs that can be defined, the framework does not enforce t
     observations to a temporary blockchain), or a voting round (e.g.,
     waiting until at least an observed value has reached $\lceil(2N + 1) / 3\rceil$ of the votes).
 
-    The developer could define the concept of "period" for their FSM as the sequence of stages in the FSM state flow that achieve a specific objective defined by the {{fsm_app}}. Consider the price oracle demo, which aggregates asset prices from different data sources and submits the aggregated result to an L1/L2 blockchain. In this example, the developer could define a period as follows:
+    The developer could define the concept of "period" for their FSM as the sequence of stages in the FSM state flow that achieve a specific objective defined by the {{fsm_app}}. For example, consider an AI agent that aggregates observations from different data sources and submits the aggregated result to an L1/L2 blockchain. In this example, the developer could define a period as follows:
 
     1. Collect observations from external APIs or prior rounds.
     2. Reach consensus on the set of collected observations (i.e., 2/3 of the agent instances must agree).
