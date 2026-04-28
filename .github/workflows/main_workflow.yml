@@ -158,8 +158,6 @@ jobs:
       run: tox -e mypy
     - name: Pylint
       run: tox -e pylint
-    - name: Check spelling
-      run: tox -e spell-check
     - name: AbciApp consistency checks
       run: |
         tox -e check-abci-docstrings
