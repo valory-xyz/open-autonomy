@@ -129,6 +129,13 @@ def bin_template_path() -> None:
     Agent repos can pass this directly to pyinstaller's --onefile flag
     instead of maintaining a local copy of the template.
     """
-    from aea_helpers import bin_template  # pylint: disable=import-outside-toplevel
+    # Do NOT `import aea_helpers.bin_template`: the module runs
+    # `Path(sys._MEIPASS)` at top level, which is only defined inside a
+    # PyInstaller-frozen process. Outside a frozen bundle the import
+    # crashes with `AttributeError: module 'sys' has no attribute
+    # '_MEIPASS'`, so `make build-agent-runner` in any downstream agent
+    # repo would fail before pyinstaller even starts.
+    import aea_helpers  # pylint: disable=import-outside-toplevel
 
-    click.echo(bin_template.__file__, nl=False)
+    path = Path(aea_helpers.__file__).parent / "bin_template.py"
+    click.echo(str(path), nl=False)
