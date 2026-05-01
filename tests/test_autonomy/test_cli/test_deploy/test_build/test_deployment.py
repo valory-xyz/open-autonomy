@@ -305,6 +305,7 @@ class BaseDeployBuildTest(BaseCliTest):
                 "CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_DEFAULT_GAS_PRICE_STRATEGY": "eip1559",
                 "CONNECTION_ABCI_CONFIG_HOST": "localhost",
                 "CONNECTION_ABCI_CONFIG_PORT": "26658",
+                "SERVICE_REGISTER_RESET_RPC": "http://host.docker.internal:8545",
             }
 
     @staticmethod
