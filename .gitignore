@@ -413,12 +413,12 @@ autonomy/data/contracts/gnosis_safe
 autonomy/data/contracts/gnosis_safe_proxy_factory
 autonomy/data/contracts/multisend
 autonomy/data/contracts/poly_safe_creator_with_recovery_module
-autonomy/data/contracts/recovery_module
 autonomy/data/contracts/registries_manager
 autonomy/data/contracts/service_manager
 autonomy/data/contracts/service_registry
 autonomy/data/contracts/service_registry_token_utility
 autonomy/data/contracts/sign_message_lib
+autonomy/data/contracts/recovery_module
 
 .vscode/
 
