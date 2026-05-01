@@ -305,7 +305,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             component_configuration_json=configuration,
         )
         for name, default in named_env_vars.items():
-            env_var_dict.setdefault(name, default)
+            env_var_dict.setdefault(name, os.environ.get(name, default))
 
         return env_var_dict
 

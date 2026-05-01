@@ -25,6 +25,7 @@ import shutil
 import tempfile
 from pathlib import Path
 from typing import Dict, List
+from unittest import mock
 
 import pytest
 import yaml
@@ -254,6 +255,40 @@ class TestServiceConfig:
         assert env_vars["SKILL_DUMMY_SKILL_MODELS_PARAMS_ARGS_NAMED"] == "foo"
         assert env_vars["SKILL_DUMMY_SKILL_MODELS_PARAMS_ARGS_ANON"] == "bar"
         assert "ANON" not in env_vars
+
+    def test_named_placeholder_prefers_os_environ_over_inline_default(
+        self,
+    ) -> None:
+        """``os.environ`` should win over the inline placeholder default.
+
+        Path-keyed entries already pick up the ``os.environ`` value via
+        ``apply_env_variables``; the named entry must follow the same
+        precedence so the two stay in sync.
+        """
+
+        service = Service(name="service", author="author", agent="valory/agent")
+        component = {
+            "type": "skill",
+            "public_id": "valory/dummy_skill:0.1.0",
+            "models": {
+                "params": {
+                    "args": {
+                        "endpoint": "${SERVICE_RPC:str:http://default:8545}",
+                    }
+                }
+            },
+        }
+
+        with mock.patch.dict(
+            os.environ, {"SERVICE_RPC": "https://override.example/rpc"}, clear=False
+        ):
+            env_vars = service.process_component_overrides(0, component)
+
+        assert env_vars["SERVICE_RPC"] == "https://override.example/rpc"
+        assert (
+            env_vars["SKILL_DUMMY_SKILL_MODELS_PARAMS_ARGS_ENDPOINT"]
+            == "https://override.example/rpc"
+        )
 
     def teardown_method(
         self,
