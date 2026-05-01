@@ -47,7 +47,11 @@ from aea.configurations.data_types import (
 )
 from aea.exceptions import AEAValidationError
 from aea.helpers.base import SimpleIdOrStr
-from aea.helpers.env_vars import apply_env_variables, generate_env_vars_recursively
+from aea.helpers.env_vars import (
+    ENV_VARIABLE_RE,
+    apply_env_variables,
+    generate_env_vars_recursively,
+)
 
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE, SCHEMAS_DIR
 from autonomy.configurations.validation import ConfigValidator
@@ -291,6 +295,8 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                 raise ValueError(
                     f"Overrides not provided for agent {agent_idx}; component={component_id}"
                 )
+        named_env_vars = self._extract_named_env_var_defaults(configuration)
+
         configuration = apply_env_variables(
             data=configuration, env_variables=os.environ.copy()
         )
@@ -298,8 +304,39 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             component_id=component_id,
             component_configuration_json=configuration,
         )
+        for name, default in named_env_vars.items():
+            env_var_dict.setdefault(name, default)
 
         return env_var_dict
+
+    @staticmethod
+    def _extract_named_env_var_defaults(data: Any) -> Dict[str, Any]:
+        """Collect ``{NAME: default}`` for every ``${NAME:type:default}`` placeholder.
+
+        Path-keyed entries built later by :func:`generate_env_vars_recursively`
+        only let downstream callers override values via the path key. Surfacing
+        the placeholder's own name lets the user override by that name too,
+        which matches how the names are declared in ``service.yaml``.
+
+        :param data: raw component configuration (must be inspected before
+            ``apply_env_variables`` substitutes the placeholders away).
+        :return: mapping of placeholder var name to its inline default
+            (``None`` when the placeholder declared no default).
+        """
+        result: Dict[str, Any] = {}
+        if isinstance(data, dict):
+            for value in data.values():
+                result.update(Service._extract_named_env_var_defaults(value))
+        elif isinstance(data, (list, tuple)):
+            for value in data:
+                result.update(Service._extract_named_env_var_defaults(value))
+        elif isinstance(data, str):
+            match = ENV_VARIABLE_RE.match(data)
+            if match is not None:
+                _, var_name, _, _, default = match.groups()
+                if var_name is not None:
+                    result[var_name] = default
+        return result
 
     @staticmethod
     def generate_environment_variables(
