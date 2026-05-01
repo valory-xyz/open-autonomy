@@ -20,8 +20,14 @@
 """Test wheel/sdist packaging guarantees for ejected contracts."""
 
 import re
+import shutil
+import subprocess  # nosec
 import sys
+import zipfile
+from pathlib import Path
 from typing import List
+
+import pytest
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -121,4 +127,79 @@ def test_ejected_contracts_match_gitignore() -> None:
         f"Contracts ejected by `make eject-contracts` but not listed in "
         f".gitignore: {missing}. Add `autonomy/data/contracts/<name>` "
         "entries so the post-eject working tree stays clean."
+    )
+
+
+def _eject_contracts_in_python(contracts: List[str]) -> None:
+    """Replicate ``make eject-contracts`` cross-platform (no ``make`` dep)."""
+    contracts_root = ROOT_DIR / "autonomy" / "data" / "contracts"
+    contracts_root.mkdir(parents=True, exist_ok=True)
+    for name in contracts:
+        src = ROOT_DIR / "packages" / "valory" / "contracts" / name
+        dst = contracts_root / name
+        if dst.exists():
+            shutil.rmtree(dst)
+        shutil.copytree(src, dst)
+
+
+@pytest.mark.skipif(
+    sys.platform != "linux" or sys.version_info[:2] != (3, 14),
+    reason=(
+        "Behavioral build-and-inspect runs once per push on the canonical "
+        "release env (linux + py3.14). Wheel content is platform-independent, "
+        "so coverage on a single matrix cell is sufficient; the structural "
+        "tests above run everywhere."
+    ),
+)
+def test_built_wheel_ships_ejected_contracts(tmp_path: Path) -> None:
+    """Build the wheel and assert every ejected contract is bundled.
+
+    The structural tests above guard the ``[tool.poetry] include`` directive
+    in source. This test is the behavioral guard that the *built artifact*
+    actually ships the contracts — the only thing that catches a future
+    build-backend change that ignores the include directive (which is the
+    class of regression that bit v0.21.17–v0.21.19 in the first place).
+    """
+    pytest.importorskip(
+        "build", reason="install the `build` distribution to run this test"
+    )
+
+    contracts = _parse_eject_contracts()
+    assert len(contracts) >= 15, (
+        f"Sanity floor: expected at least 15 contracts in the eject list, "
+        f"found {len(contracts)}. The list shrinking unexpectedly likely "
+        "means a contract was dropped from `make eject-contracts`."
+    )
+
+    _eject_contracts_in_python(contracts)
+
+    dist = tmp_path / "dist"
+    proc = subprocess.run(  # nosec - inputs are repo-local, no shell
+        [sys.executable, "-m", "build", "--wheel", "--outdir", str(dist)],
+        cwd=str(ROOT_DIR),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 0, (
+        f"`python -m build --wheel` failed:\nstdout:\n{proc.stdout}"
+        f"\nstderr:\n{proc.stderr}"
+    )
+
+    wheels = list(dist.glob("open_autonomy-*.whl")) + list(dist.glob("autonomy-*.whl"))
+    assert len(wheels) == 1, f"Expected exactly one wheel; found {wheels}"
+
+    with zipfile.ZipFile(wheels[0]) as wheel:
+        names = set(wheel.namelist())
+
+    missing = [
+        f"{name}/{fname}"
+        for name in contracts
+        for fname in ("contract.py", "contract.yaml")
+        if f"autonomy/data/contracts/{name}/{fname}" not in names
+    ]
+    assert not missing, (
+        f"Built wheel {wheels[0].name} is missing {len(missing)} contract "
+        f"file(s): {missing}. This is the regression that silently dropped "
+        "11 contracts from PyPI artifacts in v0.21.17–v0.21.19."
     )
