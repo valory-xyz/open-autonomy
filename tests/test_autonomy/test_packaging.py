@@ -159,6 +159,9 @@ def test_built_wheel_ships_ejected_contracts(tmp_path: Path) -> None:
     actually ships the contracts — the only thing that catches a future
     build-backend change that ignores the include directive (which is the
     class of regression that bit v0.21.17–v0.21.19 in the first place).
+
+    :param tmp_path: pytest-provided per-test temporary directory used for
+        the wheel build output.
     """
     pytest.importorskip(
         "build", reason="install the `build` distribution to run this test"
