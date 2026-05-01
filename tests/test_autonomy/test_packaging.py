@@ -21,9 +21,7 @@
 
 import re
 import sys
-from pathlib import Path
 from typing import List
-
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -31,7 +29,6 @@ else:  # pragma: no cover
     import tomli as tomllib  # type: ignore
 
 from tests.conftest import ROOT_DIR
-
 
 EJECT_CONTRACTS_PATTERN = re.compile(
     r"^eject-contracts:\s*\n\s*@for contract in ([^;]+);", re.MULTILINE
@@ -118,9 +115,7 @@ def test_ejected_contracts_match_gitignore() -> None:
         if line.strip().startswith("autonomy/data/contracts/")
     }
     missing = [
-        name
-        for name in contracts
-        if f"autonomy/data/contracts/{name}" not in ignored
+        name for name in contracts if f"autonomy/data/contracts/{name}" not in ignored
     ]
     assert not missing, (
         f"Contracts ejected by `make eject-contracts` but not listed in "
