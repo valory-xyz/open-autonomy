@@ -150,6 +150,7 @@ jobs:
       run: |
         tox -e black-check
         tox -e isort-check
+        tox -e check-isort-config
         tox -e flake8
         tox -e vulture
         tox -e darglint

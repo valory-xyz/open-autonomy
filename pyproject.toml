@@ -79,7 +79,7 @@ py-ecc = ">=8,<10"
 #     via `open-aea[all]`.
 # These redundant entries are harmless. The right long-term fix is to
 # patch the checker to understand `optional` + dev-group deps.
-protobuf = "*"
+protobuf = ">=5,<7"
 pytest-asyncio = "*"
 
 [tool.poetry.extras]
