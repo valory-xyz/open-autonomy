@@ -5,6 +5,59 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.19` to `v0.21.20`
+
+This release fixes a long-standing PyPI packaging regression, picks up the `open-aea 2.2.3` security-floor bump, and migrates the linter/security tooling onto the `tomte 0.7.0` canonical configs. The runtime API surface is unchanged.
+
+### Ejected contracts now bundled in the wheel/sdist
+
+If you install `open-autonomy` from PyPI (rather than from the `packages/` source tree) and your code imports any of the framework-shipped contracts via `autonomy.data.contracts.<name>` — for example `gnosis_safe`, `multisend`, `service_registry`, `erc20`, `recovery_module`, etc. — those imports were silently failing on `0.21.17`–`0.21.19` because the eject step was not bundled into the published artifacts. `0.21.20` restores the bundling, so resolving these contracts at runtime works again without checking out the `packages/` tree.
+
+No action required if you were already pinning `<0.21.17` or installing from source. If you were on `0.21.17`–`0.21.19` and worked around this by checking out `packages/` at runtime, you can drop the workaround.
+
+### Named env-var placeholders in `service.yaml` overrides
+
+Service overrides like:
+
+```yaml
+type: skill
+public_id: valory/example_abci:0.1.0
+models:
+  params:
+    args:
+      message: ${HELLO_WORLD_MESSAGE:str:hi}
+```
+
+now surface a `HELLO_WORLD_MESSAGE` entry in the agent's environment alongside the existing path-keyed `SKILL_VALORY_EXAMPLE_ABCI_MODELS_PARAMS_ARGS_MESSAGE`. If you have middleware that injects values from `service.yaml` keyed by the named placeholder, this used to fall through to the inline default; it now matches and overrides correctly. `os.environ` still wins when both are present.
+
+### `open-aea` bumped `2.2.2` → `2.2.3`
+
+A `GitPython>=3.1.47` security floor (`GHSA-rpm5-65cw-6hj4`, `GHSA-x2qx-6953-8485`) plus open-aea's own internal cleanup. No API or wire-format changes; all third-party packages that `open-autonomy` consumes from open-aea ship the same hashes in `2.2.3` as in `2.2.2`. Update any direct `open-aea`/`open-aea-*` pins in your downstream `pyproject.toml` / `setup.py` to `==2.2.3`.
+
+### `aea-helpers bin-template-path` works outside PyInstaller
+
+If you call `aea-helpers bin-template-path` from your own tooling — `make eject-contracts` and the PyInstaller build do — it no longer crashes with `AttributeError: module 'sys' has no attribute '_MEIPASS'` when run from a regular Python interpreter. No changes required on your side.
+
+### `open-aea-ledger-solana` re-enabled
+
+The plugin had been excluded from `[all]` since `0.21.17` because of a transitive `construct<=2.10.61` cap. Open-aea `2.2.2` removed the cap, and `0.21.20` re-includes the plugin. If you removed an explicit `open-aea-ledger-solana` pin as a workaround, you can let `open-autonomy[all]` pull it back in.
+
+### Tooling: `tomte` bumped `0.6.5` → `0.7.0`, `setup.cfg` removed
+
+This is **only relevant if your downstream repo's `tox.ini` mirrors `open-autonomy`'s lint scaffolding**. The runtime framework is unaffected.
+
+- `tomte check-spelling` was dropped in `0.7.0`. If your downstream `tox.ini` had a `[testenv:spell-check]` block, drop it; the canonical config no longer covers it.
+- `tomte 0.7.0` ships canonical lint configs (`bandit.yaml`, `darglint.cfg`, `flake8.cfg`, `gitleaks.toml`, `pylintrc`, `safety-policy.yml`, `isort.cfg`) as packaged resources. `open-autonomy`'s `tox.ini` now references them via `{envsitepackagesdir}/tomte/configs/<config>`; the forked `.gitleaks.toml` and `.pylintrc` are gone.
+- `setup.cfg` is removed. `aea generate-all-protocols` (open-aea ≥ 2.2.3) now reads isort config from `pyproject.toml [tool.isort]` instead. If you mirrored the `setup.cfg [isort]` stub in your downstream repo, replace it with a `[tool.isort]` block in your `pyproject.toml`.
+
+### Concrete upgrade steps
+
+1. Bump `open-autonomy` pin to `==0.21.20` (and any matching `open-aea-test-autonomy` pin to `==0.21.20`).
+2. Bump `open-aea`/`open-aea-*` pins to `==2.2.3`.
+3. If you mirror `open-autonomy`'s lint scaffolding, bump `tomte[*]` to `==0.7.0`, drop the spell-check testenv, and migrate any `[isort]` config from `setup.cfg` to `pyproject.toml [tool.isort]`.
+4. Run `autonomy packages sync --update-packages` to pull the updated third-party packages.
+5. Run `autonomy packages lock` to regenerate downstream package hashes.
+
 ## `v0.21.18` to `v0.21.19`
 
 This release introduces a mock Tendermint server for single-agent services and significantly trims the framework's runtime dependency footprint.
