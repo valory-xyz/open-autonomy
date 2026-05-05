@@ -76,7 +76,6 @@ def some_method(some_arg: Type) -> ReturnType:
     """
 ```
 - To run documentation server use `mkdocs serve`.
-- After editing documentation use `tomte check-spelling` to ensure spelling is correct.
 
 ### Some more suggestions to help you write better code.
 

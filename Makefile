@@ -50,10 +50,10 @@ clean-cache:
 
 # safety: checks dependencies for known security vulnerabilities
 # bandit: security linter
+# gitleaks: secret scan via tomte canonical config (see [testenv:gitleaks])
 .PHONY: security
 security:
-	tox -p -e safety -e bandit
-	gitleaks detect --report-format json --report-path leak_report
+	tox -p -e safety -e bandit -e gitleaks
 
 # generate abci docstrings
 # check copyright
