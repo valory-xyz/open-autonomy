@@ -180,6 +180,7 @@ class TestYamlSnippets(BaseTestDocCode):
         "docs/advanced_reference/developer_tooling/dev_mode.md",  # just placeholder examples
         "docs/advanced_reference/commands/autonomy_deploy.md",  # blocks contain resource values on deployment configurations
         "docs/advanced_reference/mock_tendermint.md",  # configuration examples
+        "docs/upgrading.md",  # upgrade-note examples; not a real package fragment
     ]
 
 
