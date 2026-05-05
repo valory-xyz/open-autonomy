@@ -1,5 +1,27 @@
 # Release History - `open-autonomy`
 
+# 0.21.20 (2026-05-05)
+
+Autonomy:
+- Restores wheel/sdist bundling for the 11 contracts under `autonomy/data/contracts/` that have been silently missing from PyPI artifacts since `v0.21.17`. `[tool.poetry] include` in `pyproject.toml` now declares `autonomy/data/contracts/**/*` for both `sdist` and `wheel`, so framework code that resolves contracts via `autonomy.data.contracts.<name>` (without the `packages/` tree on disk) keeps working when installed from PyPI. New `tests/test_autonomy/test_packaging.py` is a behavioural regression test that builds the wheel via `python -m build` and asserts every ejected contract is present #2493
+- Surfaces named environment-variable placeholders from `service.yaml` overrides. `Service.process_component_overrides` previously emitted env-var entries keyed only by the YAML traversal path (e.g. `SKILL_DUMMY_SKILL_MODELS_PARAMS_ARGS_MESSAGE`), so named placeholders like `${HELLO_WORLD_MESSAGE:str:hi}` left no `HELLO_WORLD_MESSAGE` entry in the agent's env dict. Added `Service._extract_named_env_var_defaults` which walks the raw overrides and emits `<NAMED_KEY>=<default>` entries alongside the path-keyed ones, so downstream callers (e.g. middleware injecting from `service.yaml`) can override values by their declared name. `os.environ` takes precedence over the inline default #2494
+
+aea-helpers:
+- Fixes `aea-helpers bin-template-path` crashing on every invocation outside a PyInstaller-frozen process. The CLI now reads the path string out of `bin_template.py` via `ast` instead of importing the module (which would execute `Path(sys._MEIPASS) / ...` and trip `AttributeError` on regular Python). Restores the contract-eject helper used by `make eject-contracts` #2487
+
+Framework / dependency bumps:
+- Bumps `open-aea` `2.2.2` → `2.2.3` across `pyproject.toml`, `setup.py`, `tox.ini`, `skaffold.yaml`, both Dockerfiles' `AEA_VERSION` arg, `deployments/Dockerfiles/autonomy-user/requirements.txt`, 33 package YAMLs (agent / contract / `connections/ipfs`), and `autonomy/constants.py`. The 2.2.3 bump is a `GitPython>=3.1.47` security floor (`GHSA-rpm5-65cw-6hj4`, `GHSA-x2qx-6953-8485`) plus open-aea's own Wave 2a/2b cleanup — no API or runtime behaviour changes. All 8 entries in `packages/packages.json [third_party]` are byte-identical between v2.2.2 and v2.2.3, so no third-party hash drift #2492 #2489
+- Bumps `tomte` `0.6.5` → `0.7.0` across `pyproject.toml`, `tox.ini` (25 testenv references), and the inline `pip install tomte[*]` lines in `.github/workflows/main_workflow.yml`. tomte 0.7.0 ships canonical configs (`bandit.yaml`, `darglint.cfg`, `flake8.cfg`, `gitleaks.toml`, `pylintrc`, `safety-policy.yml`, `isort.cfg`) as packaged resources and drops the `tomte check-spelling` CLI #2492
+- Re-enables `open-aea-ledger-solana` (was blocked on a transitive `construct` cap; unblocked by open-aea 2.2.2's `construct<=2.10.61` removal) #2489
+
+Tooling / dev experience:
+- Slim `tox.ini` migration: every lint testenv now references the corresponding `{envsitepackagesdir}/tomte/configs/<config>` resource via the tool's `--config=` / `--rcfile=` / `--settings-path=` flag. Source of truth lives in tomte; OA-specific overrides layer on top via CLI flags. Net deletion: the forked `.gitleaks.toml` (1642 lines) and `.pylintrc` removed; `setup.cfg` deleted entirely (open-aea 2.2.3 changed `aea generate-all-protocols` to read isort config from `pyproject.toml`); `[tool.isort]` added to `pyproject.toml` mirroring `tomte render-isort-config` flags #2492
+- Drops the `tomte check-spelling` CLI invocations across `CONTRIBUTING.md`, `scripts/RELEASE_PROCESS.md`, and the workflow's `npm install -g markdown-spellcheck` step (tomte 0.7.0 removed the command) #2492
+- New `[testenv:gitleaks]` runs gitleaks against the canonical `tomte/configs/gitleaks.toml`. `make security` and the workflow's `gitleaks` job both call `tox -e gitleaks` so dev preflight, local tox, and CI use the same ruleset and the same `.gitleaksignore` fingerprints (full-history scan, no `--no-git`) #2492
+- New `[testenv:check-isort-config]` (+ `scripts/check_isort_config.py`) diffs `pyproject.toml [tool.isort]` against the cfg rendered by `tomte render-isort-config`. Catches drift between the source `aea generate-all-protocols` reads and the source the isort testenvs use; gates merges in `linter_checks` #2492
+- `[testenv:isort-check]` now scans `deployments/` (matching `[testenv:isort]`); `[testenv:safety]` retains 11 OA-specific muted CVE IDs as CLI flags alongside the tomte canonical `--policy-file` (canonical ships empty) #2492
+- Unifies the `protobuf` upper bound to `>=5,<7` across `pyproject.toml`, `tox.ini`, and `deployments/Dockerfiles/autonomy-user/requirements.txt` (was `*` / `<7,>=5` / `<6,>=5` respectively) #2492
+
 # 0.21.19 (2026-04-21)
 
 Autonomy:
