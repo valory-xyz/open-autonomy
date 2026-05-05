@@ -5491,4 +5491,4 @@ hwi = ["open-aea-ledger-ethereum-hwi"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "2973eece17aa0afc1a1e525f3e6f368c3e815dcc6e7bdbc74b1c3ae590745d87"
+content-hash = "e99a337629193dc027513b003736b48527d805931f9b242346c41056ad41021c"
