@@ -6,6 +6,16 @@ authors = ["developer-valory <develope@valory.xyz>"]
 license = "Apache-2.0"
 readme = "README.md"
 packages = [{include = "autonomy"}, {include = "packages"}]
+# `make eject-contracts` (run before `make dist`) copies select
+# contracts from `packages/valory/contracts/` to
+# `autonomy/data/contracts/` so the framework can resolve them via
+# `autonomy.data.contracts.<name>` when installed without the
+# packages tree. Those copies are gitignored to keep the working
+# tree free of duplicates; the explicit `include` below tells
+# poetry-core to bundle them in the wheel/sdist regardless.
+include = [
+    { path = "autonomy/data/contracts/**/*", format = ["sdist", "wheel"] },
+]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.15"
