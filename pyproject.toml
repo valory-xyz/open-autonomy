@@ -133,3 +133,24 @@ Werkzeug = ">=3.1.0,<4.0.0"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+# `aea generate-all-protocols` (open-aea ≥ 2.2.3) invokes isort with
+# `--settings-path pyproject.toml`, so isort needs to find `[tool.isort]`
+# here. Mirrors the values rendered into `{envtmpdir}/isort.cfg` by
+# `tomte render-isort-config` in `[testenv:isort]` / `[testenv:isort-check]`
+# — keep them in sync if either changes.
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+line_length = 88
+order_by_type = false
+case_sensitive = true
+lines_after_imports = -1
+known_first_party = ["autonomy", "deployments"]
+known_packages = ["packages"]
+known_local_folder = ["tests"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "PACKAGES", "LOCALFOLDER"]

@@ -24,8 +24,6 @@
 
 10. Write release notes and place them in `HISTORY.md`. Add upgrading tips in `upgrading.md`. If necessary, adjust version references in `SECURITY.md`. Commit if satisfied.
 
-11. Run spell checker `tomte check-spelling`. Run `pylint --disable all --enable spelling ...`. Commit if required.
+11. Open PRs and merge into develop. Then open develop to main PR and merge it.
 
-12. Open PRs and merge into develop. Then open develop to main PR and merge it.
-
-13. Tag a release from main.
+12. Tag a release from main.
