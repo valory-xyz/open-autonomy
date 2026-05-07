@@ -91,9 +91,16 @@ What happens after a behaviour crash:
 
 Synchronous connections (e.g., `PolymarketClientConnection`) use `BaseSyncConnection` which dispatches `on_send` via `_run_in_pool` into a `ThreadPoolExecutor`.
 
-**Critical:** If `MAX_WORKER_THREADS = 1` (common pattern), only one request can be processed at a time. If a request handler blocks (hanging HTTP call with no timeout, or `time.sleep()` during retries), **ALL subsequent requests queue behind it**. The agent's FSM continues but cannot interact with that connection at all.
+#### Canonical: `MAX_WORKER_THREADS=1` + no-timeout call = subsystem outage
 
-Additional threading details:
+This is the single most common indefinite-hang shape in open-autonomy connections. Every reference elsewhere in this skill (BP8, the priority rules, the quality checklist, the Step 3 stuck identification) points back here:
+
+> If `MAX_WORKER_THREADS = 1` (common pattern), only one request can be processed at a time. If a request handler blocks — hanging HTTP call with no timeout, `time.sleep()` during retries, third-party library that wraps HTTP without timeout configured (`httpx.Client(http2=True)`, internal `requests.request(...)` calls in vendor SDKs) — **ALL subsequent requests queue behind it**. The agent's FSM continues but cannot interact with that connection at all. Recovery requires an agent restart.
+
+When you see any of these in combination, treat it as the canonical pattern: `MAX_WORKER_THREADS=1` + a call site that can hang + no enforcement timeout at the calling layer.
+
+#### Additional threading details
+
 - `on_send()` runs in the pool thread. If it crashes (e.g., `json.loads` of a malformed SRR payload), the `_task_done_callback` logs the exception but **no response envelope is ever sent**. The skill behaviour waiting for the response will time out.
 - The `_route_request()` dispatcher typically has a broad `except Exception` catch-all that converts any exception into an error response — this is the safety net for unhandled exceptions in request handlers. But code OUTSIDE `_route_request()` (e.g., payload deserialization in `on_send()`) is NOT protected.
 
@@ -297,8 +304,7 @@ The agent process is alive but unable to make progress.
 - Can the FSM enter a loop (reset → retry → fail → reset)?
 - Are there any `thread.join()` without timeout?
 - Is `wait_for_transaction_receipt()` called without timeout?
-- Do third-party library HTTP clients have timeout configured? (Check httpx.Client AND requests internally)
-- Is `MAX_WORKER_THREADS=1`? Can a single blocking call stall all operations for that connection?
+- Does this match the canonical `MAX_WORKER_THREADS=1` + indefinite-hang call pattern? (See architecture reference and BP8.) Includes third-party HTTP client wrappers without internal timeouts (`httpx.Client`, internal `requests.request`).
 - Is `json.loads` of inbound payloads outside the `_route_request` try-except?
 
 **For each stuck path, determine:**
@@ -406,20 +412,23 @@ FALLBACK_RATE = 0.089935  # From 2026-02-11 — goes stale over time
 
 ### BP8: Thread blocking without timeout
 
+A call site that can block for longer than the calling round's `round_timeout` (or, in single-worker connections, longer than any operator-tolerated outage window). Two flavours:
+
 ```python
-# BUG: Blocks thread for up to 60 seconds
+# BUG: long timeout on Web3 — blocks the thread for up to 60s
 receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
 ```
 
-Also check for **no timeout at all** in third-party libraries:
 ```python
-# BUG: httpx.Client with no timeout — blocks indefinitely
-client = httpx.Client(http2=True)  # No timeout!
-# BUG: requests.request with no timeout — blocks indefinitely
-response = requests.request("POST", url, json=data)  # No timeout!
+# BUG: no timeout at all — third-party SDKs that wrap requests / httpx
+# without configuring a timeout block indefinitely. Common cases:
+#   - py_clob_client → httpx.Client(http2=True)   no timeout
+#   - py_builder_relayer_client → requests.request(...) no timeout
 ```
 
-**Fix:** Use shorter timeout, or run in a separate thread pool. For third-party libraries where you can't modify the source: wrap calls with `concurrent.futures.ThreadPoolExecutor` + `future.result(timeout=N)` to enforce a deadline at the calling layer, or set environment variables if the library respects them (e.g. `HTTPX_DEFAULT_TIMEOUT`). Check `pyproject.toml` to determine if a dependency is third-party (pinned version, installed via pip) vs internal (editable, in-repo).
+**See the canonical statement** in the "BaseSyncConnection Threading Model" architecture reference for why `MAX_WORKER_THREADS=1` + any indefinite-hang call site = subsystem outage. BP8 is the actionable check; that section explains the mechanism.
+
+**Fix:** use a short timeout where the API supports one. Where you can't modify the third-party source, enforce a deadline at the calling layer with `concurrent.futures.ThreadPoolExecutor` + `future.result(timeout=N)`, or set library-respected env vars (e.g. `HTTPX_DEFAULT_TIMEOUT`). Check `pyproject.toml` to decide whether the dep is editable / in-repo (you can patch it) vs pinned third-party (you must wrap).
 
 ### BP9: Retry backoff exceeding round timeout
 
@@ -637,6 +646,43 @@ Signed orders, EIP-712 typed data, relayer transactions, and many exchange APIs 
 
 **Note:** this intersects with `audit-fsm` C5 (determinism in `end_block`). A timestamp produced in `end_block` must come from `synchronized_data`, not `time.time()`.
 
+### BP23: `MagicMock` Without `spec=` Hides Production-Only Bugs
+
+A meta-resilience pattern: tests pass, prod crashes. `MagicMock(...)` (and `Mock(...)`, `AsyncMock(...)`) without a `spec=` / `spec_set=` argument auto-vivifies any attribute access — `mock.foo`, `mock.bar.baz`, `mock.does_not_exist()` all succeed and return fresh MagicMocks. When a test mocks an HTTP response, an SDK client, or a connection object, **missing-attribute or attribute-rename bugs in the production code path silently pass tests** because the mock obligingly provides whatever the production code asks for.
+
+Bug shapes this hides:
+- Production code reads `response.body` but the test sets `MagicMock(text="...")`. In the real call site, `response.body` is bytes that need decoding; the mock test never exercises the `.decode()` failure.
+- Production code's accessor was renamed (`.text` → `.json()`); tests still pass `MagicMock(text="...")` and don't notice. Or vice versa.
+- Production code accesses a method that no longer exists on the upstream library — mock provides it anyway.
+
+Concrete past finding: an `AgentDB` connection's `response.text` access bug went undetected because tests used `MagicMock(text="...")` — without `spec=`, missing-attribute failures silently succeeded in tests.
+
+**Search pattern (in `tests/` directories within audit scope):**
+- `MagicMock(`, `Mock(`, `AsyncMock(` calls used to substitute for HTTP responses, SDK clients, or connection objects
+- `mocker.patch(...)` / `mocker.patch.object(...)` whose `return_value` is unspecced
+- Any `Mock` whose attributes are populated only via `mock.foo = ...` post-hoc (no `spec=`)
+
+For each, verify a `spec=ClassName` (or `spec_set=ClassName`) argument is present. If not, flag the test as a candidate false-negative.
+
+**Bug example:**
+```python
+# BUG: any attribute access on this mock succeeds; missing attributes return MagicMocks
+mock_response = MagicMock(text="ok", status_code=200)
+# If production reads response.body, mock returns a fresh MagicMock — test passes
+# In prod, real Response.body is bytes; downstream .decode() fails on binary content
+
+# Fix: spec= constrains attribute access to the spec class's attribute set
+from requests import Response
+mock_response = MagicMock(spec=Response)
+mock_response.text = "ok"
+mock_response.status_code = 200
+# mock_response.body now raises AttributeError — bug surfaces in test
+```
+
+**Severity guidance:**
+- If the underlying production bug masked by the mock is P0/P1, flag the test pattern as the **regression-escape root cause** and pull the severity through.
+- Otherwise, this is **P3** — systemic test hygiene. But list every unspec'd HTTP/SDK mock in the audit scope; the next BP1-BP22 finding could easily be hidden behind one.
+
 ---
 
 ## Cross-cutting Issues to Check
@@ -800,8 +846,8 @@ For each external endpoint discovered, launch analysis agents (up to 3 in parall
 3. Fills in the failure matrix for all failure modes (Step 1)
 4. Traces FSM impact (Step 2) — including composed FSM transitions in `composition.py`
 5. Classifies operational impact (Step 3)
-6. Checks for all bug patterns (BP1–BP22)
-7. Applies the Methodology Guardrails (data-type trace, BP1 reminder) before flagging
+6. Checks for all bug patterns (BP1–BP23)
+7. Applies the Methodology Guardrails (data-type trace, BP1 reminder, sub-agent verification) before flagging
 
 ### Step C: Cross-cutting Analysis
 
@@ -1005,6 +1051,7 @@ Before finalizing the report, verify:
 - [ ] **BP20** — every paginated fetch documents partial-failure semantics
 - [ ] **BP21** — every external response with potentially unbounded size has a size cap
 - [ ] **BP22** — signed payloads with timestamps use consensus-safe time when in a multi-agent service
+- [ ] **BP23** — every `MagicMock` / `Mock` / `AsyncMock` substituting for an HTTP response, SDK client, or connection object uses `spec=`
 - [ ] **CC8** — worst-case-blocking vs round_timeout computed for every call site
 - [ ] **CC9** — observability table built; rows that are mostly ✗ on failure are flagged
 - [ ] `services/*/service.yaml` overrides parsed and resilience-relevant changes flagged
