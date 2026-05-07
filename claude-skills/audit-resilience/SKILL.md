@@ -486,6 +486,156 @@ response, error = self._route_request(payload=payload)
 
 **Fix:** Move deserialization inside `_route_request` or add try-except in `on_send`.
 
+### BP15: Idempotency on Retry of Financial Actions
+
+**The single biggest gap in resilience review for trading services.** BP8 / BP9 flag blocking timeouts. BP15 asks the harder question: *if this call retries — at the connection layer OR via FSM round re-entry — can it duplicate a financial action?*
+
+The pattern: a connection-layer call to a non-idempotent endpoint (place order, redeem, set approval, transfer, swap) returns an error or times out **after** the upstream has accepted the request. The agent's behaviour sees the failure, the round eventually times out, the FSM transitions to a retry path, and the next period re-enters the same call site. Two side-effects on the upstream from one logical action.
+
+Even if the connection itself does not retry, the **FSM retries the entire round** on its own timeout. CLOB nonces, on-chain nonces, and Safe nonces protect *some* of this — but the audit must flag the *pattern* and verify the dedup mechanism per call site.
+
+**How to check, per non-idempotent POST / state-changing call:**
+
+1. **Identify the call site and the calling round.** Grep for `requests.post`, `httpx.post`, third-party client `.execute() / .post_order() / .submit_*()`, contract `.transact()`, etc.
+2. **Determine whether the round can re-enter the call after its timeout fires.** Walk the `transition_function`: does the round timeout path eventually loop back to this round?
+3. **Document the dedup mechanism** at this call site:
+   - **On-chain nonce / sequence number** (CLOB nonce, Safe nonce, ETH transaction nonce, sequencer-enforced ordering) — usually safe; verify the nonce is actually included in the signed payload.
+   - **Idempotency key in request payload** (`Idempotency-Key` header, `client_order_id`, `request_id`) — safe **if the upstream honours it** (check the API docs / library source).
+   - **On-chain check before submit** (read state, then write only if not already done) — TOCTOU-prone but generally acceptable.
+   - **None of the above** — flag as **P1** (financial impact). The bug is that two independent attempts on a flaky network produce two upstream side-effects.
+4. **For relayer / exchange APIs**, check the upstream contract: does the API guarantee idempotency, or is dedup the client's responsibility?
+
+**Bug example:**
+```python
+# polymarket_client/connection.py — bet placement, no idempotency key
+def _place_bet(self, order_args):
+    signed = self._client.create_order(order_args)
+    response = self._client.post_order(signed)  # ← network error after upstream accepts
+    # No idempotency key, no on-chain dedup — FSM retries this round → duplicate order
+```
+
+**Why it matters:** Direct financial impact. A 1-in-1000 transient network blip, taken across a busy trading service, produces a duplicate order roughly daily.
+
+### BP16: Stringified-Exception Retry Conditions
+
+```python
+# BUG: retry decision based on substring match of exception message
+try:
+    return self._client.do_thing()
+except Exception as e:
+    if "rate limit exceeded" not in str(e).lower():
+        raise
+    # else retry
+```
+
+Two failure modes:
+1. **Upstream message format changes** → the substring no longer matches → retry silently stops working (the retry path becomes dead code with no test coverage).
+2. **Unrelated exception** whose `str()` happens to contain the substring → retries inappropriately on a non-transient error (e.g. an auth failure with the word "exceeded" in it).
+
+**Search pattern (inside `except` blocks):**
+- `in str(e)`, `in repr(e)`, `in str(exception)`, `in str(exc)`
+- `e.args[0] ==`, `e.message ==`, `f"{e}".lower()`
+
+**Fix:** prefer `isinstance(e, SpecificError)`; check `response.status_code` on the response; use library-provided exception types where available (`RateLimitError`, `httpx.HTTPStatusError`, etc.).
+
+### BP17: Defined-but-Unenforced Security Allowlists
+
+```python
+class _Connection:
+    _ALLOWED_METHODS = {"get_user", "post_event"}     # actually enforced via dispatch
+    _VALID_ENDPOINTS = {re.compile(r"/v1/[a-z]+/?$")}  # ← never referenced!
+```
+
+A class-level constant whose name implies enforcement but is never actually consulted. Looks like security config; isn't. Often shows up alongside a real allowlist that *is* enforced — the dead one gives a false sense of defence-in-depth.
+
+**Search pattern:** enumerate class-level constants whose name contains `VALID|ALLOWED|PERMITTED|DENY|BLOCK|WHITELIST|BLACKLIST|FORBIDDEN`. For each, grep the class body (and any subclass) for references. Unreferenced → finding.
+
+**Fix:** wire the allowlist into the dispatch path, or remove it.
+
+### BP18: Inverted Fail-Safe on Unknown State
+
+```python
+# BUG: external check returned "unknown" → assumed optimistic outcome
+balance = self._check_balance(...)  # returns None on RPC failure
+if balance is None:
+    self.context.logger.warning("Could not check balance, skipping")
+    state.sufficient_funds = True   # ← optimistic default
+    return True
+```
+
+The external dependency returned "unknown" (RPC down, response malformed). The handler claims the optimistic outcome — funds OK — and downstream code proceeds to spend funds it never verified existed. The observability gap (RPC down) silently becomes a financial-action error (failed payment, failed swap, failed deposit) at the gateway / counterparty.
+
+**Search pattern:** `if X is None:` or `if not X:` followed within a few lines by an assignment that sets a state flag to `True` or a permissive default, where `X` was assigned from a fallible external call. Particularly suspicious when the comment says "skipping" — that often signals the author chose the optimistic path on purpose.
+
+**Fix:** invert to the conservative outcome (`sufficient_funds = False`, `proceed = False`); OR model an explicit third state (`enum: Sufficient | Insufficient | Unknown`) so callers can distinguish "unable to check" from "checked and OK".
+
+**Why it matters:** This pattern silently turns an upstream observability gap into a downstream financial error. The agent appears healthy; the failure surfaces at the counterparty side, with no audit trail upstream.
+
+### BP19: TLS Verification Disabled / Hardcoded Credentials
+
+Grep-level checks. Each finding is independent; flag every match.
+
+- **`verify=False`** on `requests.*` / `httpx.*` / `aiohttp.*` — disables TLS certificate verification, opens MITM. Search: `verify=False`, `verify = False`, `ssl=False`, `ssl_context=None` in HTTP-call sites.
+- **API keys / tokens hardcoded as string literals** — search for assignment patterns: `api_key\s*=\s*"`, `token\s*=\s*"`, `secret\s*=\s*"`, `Bearer ` literal. Cross-reference against `.gitleaks` output if available.
+- **Secrets in URL query strings** — `?apikey=`, `?token=`, `?api_key=`, `?key=` — these end up in HTTP server logs, proxy logs, and browser histories. Headers are safer.
+- **`set_api_creds` failure paths** — when credential setup can fail (e.g. `client.create_or_derive_api_key()`), is the connection gracefully marked unusable, or does it silently allow unauthenticated traffic? Trace from the credential-setup call to the first request.
+
+**Fix:** never disable TLS in production code; load secrets from env vars or a secrets manager; pass via headers; fail closed on credential-setup error.
+
+### BP20: Pagination Partial-Failure Semantics
+
+```python
+# Typical paginator
+results = []
+page = 0
+while True:
+    resp, err = self._fetch_page(page)
+    if err is not None:
+        return None, err   # ← partial accumulation discarded
+    if not resp:
+        break
+    results.extend(resp)
+    page += 1
+return results, None
+```
+
+A `while True:` paginator that fetches pages 1..N and accumulates. If page 5 fails (5xx or timeout), the typical pattern returns `None, error` and the partially accumulated list is discarded. Whether this is *correct* depends entirely on the caller's contract — and that contract is rarely documented.
+
+**How to check, per paginated fetch:**
+1. Identify the loop and the accumulator variable.
+2. Locate the failure return path — does it return the partial list, an empty list, `None`, or raise?
+3. Identify all callers and ask: do they treat partial as "no data," pass-through, or expect "all-or-nothing"?
+4. Flag mismatches: caller assumes complete data, paginator returns partial; or caller wants partial, paginator drops it.
+
+**Fix:** make the contract explicit at the function signature level — return type `Tuple[List, Optional[Error]]` for partial-OK, or raise / return `(None, error)` for all-or-nothing. Document at the call site.
+
+### BP21: Response Size Bounds
+
+External calls that can return arbitrarily large responses are a memory and latency footgun:
+
+- **Subgraph queries with no `first:` / `limit:` / `skip:` clause** — The Graph defaults can return thousands of records.
+- **Iterating an unbounded list from an external source** in memory (e.g. `mech_responses` loop, full chat history fetch).
+- **Streaming binary responses through `response.body.decode()` or `response.text` without size check** — covered partly by BP5 for malformed bytes; BP21 is the *size* dimension, not the encoding dimension.
+- **`requests.get(...).content`** with no `stream=True` and no max-size guard — entire body loaded into memory.
+
+**Fix:** enforce size limits at the call site (`len(response.content) > MAX_BYTES`); chunk via pagination with explicit page-size; reject responses > N bytes; for subgraph, always specify `first: 1000` (or appropriate cap).
+
+### BP22: Clock-Window-Signed Requests
+
+Signed orders, EIP-712 typed data, relayer transactions, and many exchange APIs include a **timestamp** plus an **expiry window**. Two failure modes:
+
+1. **Agent clock drift vs upstream** — if the agent's wall clock is more than the expiry window off, every signed request fails signature verification. Drift can be invisible until NTP misconfigures.
+2. **Multi-agent timestamp divergence** — in a multi-agent service, agents that build the same payload independently see different `time.time()` values. The aggregated payload is rejected for one set of agents and accepted for another, partitioning consensus.
+
+**How to check:**
+1. Find call sites that build a signed payload for an external counterparty: relayer / exchange POSTs, EIP-712 messages, signed orders.
+2. Inspect how the payload's `timestamp` / `nonce` / `expiry` is computed.
+   - `time.time()` / `datetime.now()` → drift-prone, **NOT consensus-safe** in a multi-agent service.
+   - `last_round_transition_timestamp` from `synchronized_data` → consensus-safe (it is the agreed block time, not an agent-local timestamp).
+3. Verify the agent's NTP / clock-sync mechanism if `time.time()` is used. Document the deployment expectation.
+
+**Note:** this intersects with `audit-fsm` C5 (determinism in `end_block`). A timestamp produced in `end_block` must come from `synchronized_data`, not `time.time()`.
+
 ---
 
 ## Cross-cutting Issues to Check
@@ -516,6 +666,101 @@ If multiple threads access shared state (e.g., a cached price dict), are there r
 ### CC7: `{"data": null}` vs `{"data": {}}` inconsistency
 Check if `.get("data", {})` patterns consistently use `or {}` guards. Inconsistent application means some code paths crash on null values while others handle them.
 
+### CC8: Worst-Case Blocking vs Round Timeout
+
+For each external call site, you already gathered (in Step 1) the worst-case blocking time: `sum of retry delays + per-attempt timeouts + library-internal blocking`. Now compare it against the `round_timeout` of the round that calls it.
+
+**If `worst_case_blocking > round_timeout`:** the round's timeout fires while the worker is still blocked. The FSM transitions on, but the worker thread keeps running until the underlying I/O completes. This produces:
+- **Orphaned threads** that accumulate over time (file descriptors, HTTP connections, cached state).
+- **Re-entrancy bugs** — the next period enters the same call site while the previous worker is still running.
+- **Resource leaks** — most acute on connections with `MAX_WORKER_THREADS=1`, where the next request queues behind the orphan.
+
+**How to check:**
+1. For each call site, compute worst-case blocking from the data already gathered in Step 1.
+2. Look up `round_timeout` for the calling round in `models.Params` or via `event_to_timeout` → ROUND_TIMEOUT.
+3. Flag any site where `worst_case_blocking > round_timeout`.
+
+**Concrete past finding:** trader's polymarket retry budget was 60 s; `BetPlacementRound.round_timeout` was 30 s. The round transitioned out before the connection responded, leaving an orphaned worker thread that kept running after the FSM had moved on.
+
+**Fix:** cap retry budget at `round_timeout / 2`; OR move the call to a cancellable executor with `future.result(timeout=...)`; OR raise the round_timeout if the upstream genuinely needs the longer budget (with caveats — see CC2 circuit breaker).
+
+### CC9: Observability Table per Call Site
+
+The skill already flags individual logging gaps (CC3 inconsistent error reporting). CC9 is the *catalog*: build a table per call site so reviewers see the systemic pattern at a glance. Without this, stale fallback values (BP7) and silent `return None` failures stay invisible until P&L diverges.
+
+| Call site | Logs success | Logs failure | Emits metric | Bubbles to UI |
+|---|---|---|---|---|
+| `behaviours/foo.py:123` | ✓ INFO | ✓ ERROR | ✗ | ✗ |
+| `behaviours/bar.py:45` | ✗ | ✓ WARNING | ✗ | partial |
+| ... | | | | |
+
+A row that is mostly ✗ on the failure side is the high-leverage finding — that call site can fail invisibly. Combine this with BP7 (stale fallback) to identify "stale rate goes silent, agent trades on it for weeks" patterns.
+
+---
+
+## Scope Extension: `service.yaml` Overrides
+
+Both this skill and `audit-fsm` historically read package source only and miss runtime parameter overrides. If `services/*/service.yaml` exists in the audit scope:
+
+1. Parse the `overrides` block. Build a table of every overridden param, its target skill, and the override value.
+2. For overrides that change resilience-relevant parameters, flag if the override:
+   - Disables a safety mechanism (retry count to 0; timeout set to a very large value or `null`; `verify=False`)
+   - Changes a URL to one with different TLS / auth requirements (e.g. http instead of https)
+   - Sets an API key / token to an env var that defaults to a placeholder (`${OAR_API_KEY:str:dummy}`) — production deployments depend on the env var being set; if it isn't, the agent makes anonymous requests
+3. When multiple `services/*/service.yaml` exist for the same agent, build a comparison table — drift between deployments often hides resilience regressions in one variant but not the other.
+
+Past examples worth flagging by name: trader's `trader_pearl/` (Omenstrat) vs `polymarket_trader/` (Polystrat); meme-ooorr's env-var-driven X402 gateway URL + API key wiring.
+
+---
+
+## Methodology Guardrails
+
+These guardrails reduce false positives observed in prior runs. Apply them before flagging any finding.
+
+### Force the data-type trace before flagging
+
+When a check requires reasoning about a value's runtime type (BP1 dispatch, BP2 null guards, "type X passed where Y expected" claims), reason about the **runtime** type, not the static annotation. In open-autonomy, payload fields and DB-backed properties are JSON-deserialized — the runtime type may differ from the annotation.
+
+Before flagging:
+1. Locate the **last assignment** to the variable along the call path.
+2. If that assignment is `json.loads(...)`, `self.db.get_strict(...)`, or a payload field whose value was JSON-serialized at write time, the runtime type is whatever the producer wrote — `dict`, `list`, `str`, `int` — not the annotation.
+3. Do NOT flag a type mismatch unless you can name **both** the expected type AND the actual runtime type with `file:line` citations for each.
+
+A concrete past failure: ~5 false positives in one run, all "JSONDecodeError uncaught" claims that were inside `except ValueError` blocks. BP1 already covers this — `JSONDecodeError` is a `ValueError` subclass — but the discovery agent didn't internalize the rule at the point of application.
+
+### Pre-flag BP1 reminder (verbatim)
+
+Before flagging "JSONDecodeError uncaught" / "missing JSON error handling" at any `response.json()` or `json.loads(...)` call:
+
+1. Read the surrounding `except` clause(s).
+2. If the except clause is `except ValueError`, `except (..., ValueError)`, `except Exception`, or any superclass of `ValueError` — **the JSON error IS caught.** Do not flag.
+3. Only flag if the except clause is strictly more specific than `ValueError` (e.g. only `RequestException`, `KeyError`, or specific custom exceptions) AND `JSONDecodeError` would escape uncaught.
+
+Belt-and-suspenders, since BP1 already documents the rule. The reminder exists because discovery agents have repeatedly flagged false positives here.
+
+### Strip framework-scheduled events from end_block reasoning
+
+When tracing FSM impact (Step 2) and you observe a transition that fires on an event scheduled by `event_to_timeout` (most commonly `ROUND_TIMEOUT`): that event is dispatched by the framework, not emitted by `end_block()`. Don't reason about it as if a behaviour returns it — model it as a wall-clock timeout that the framework injects.
+
+### Single-finding-per-bug discipline
+
+If a call site is flagged by multiple BPs (e.g. BP8 no-timeout AND BP15 idempotency AND CC8 worst-case blocking), report once with all relevant BP IDs cited, not three times.
+
+---
+
+## Coverage Limitations
+
+This skill audits **external-request resilience**. The following are explicitly NOT covered — the audit report should call this out so consumers know what they still need to do:
+
+- **FSM correctness and safety** → run `/audit-fsm` (companion skill).
+- **Security review** of credential handling, env-var injection in `skill.yaml`, `eval` / `exec` patterns, unsafe deserialization (`pickle.loads`) → run `/security-review`.
+- **Dependency CVEs / pinning currency** for `httpx`, `requests`, `web3`, `py_clob_client`, etc. → run `pip-audit` / `safety check` after this audit. Out of scope for a static audit.
+- **Mathematical correctness** of strategy / pricing logic — out of scope.
+- **Smart-contract resilience** (reentrancy, gas griefing, ordering attacks) — out of scope.
+- **Network / load testing** under sustained outage — out of scope; this audit is static.
+
+Include a "What this audit did not cover" section in every report.
+
 ---
 
 ## Analysis Procedure
@@ -537,7 +782,8 @@ For each external endpoint discovered, launch analysis agents (up to 3 in parall
 3. Fills in the failure matrix for all failure modes (Step 1)
 4. Traces FSM impact (Step 2) — including composed FSM transitions in `composition.py`
 5. Classifies operational impact (Step 3)
-6. Checks for all bug patterns (BP1–BP14)
+6. Checks for all bug patterns (BP1–BP22)
+7. Applies the Methodology Guardrails (data-type trace, BP1 reminder) before flagging
 
 ### Step C: Cross-cutting Analysis
 
@@ -550,6 +796,9 @@ After all endpoints are analyzed:
 6. Check httpx clients and Web3 HTTPProvider for missing timeouts (CC5)
 7. Check shared state access patterns (CC6)
 8. Check `{"data": null}` guard consistency (CC7)
+9. Compute worst-case-blocking vs round_timeout per call site (CC8)
+10. Build the per-call-site observability table (CC9)
+11. Parse `services/*/service.yaml` overrides and flag resilience-relevant changes (Scope Extension)
 
 ### Step D: Generate Report
 
@@ -670,10 +919,35 @@ Deep analysis of every external HTTP dependency: what happens under each failure
 | Priority | Issue | Category | Fix complexity | Fix description |
 |----------|-------|----------|----------------|-----------------|
 | **P0** | [Agent crashes] | Crash | Low/Med/High | [Specific fix] |
-| **P1** | [Financial impact side-effects] | Side-effect | | |
+| **P1** | [Financial impact side-effects, idempotency-on-retry gaps] | Side-effect | | |
 | **P2** | [Important bugs] | Various | | |
 | **P3** | [Systemic improvements] | All | | |
 | **P4** | [Low-impact fixes] | Various | | |
+
+---
+
+## Observability Table (CC9)
+
+| Call site | Logs success | Logs failure | Emits metric | Bubbles to UI |
+|---|---|---|---|---|
+
+---
+
+## Service-Level Override Findings
+
+[Rows from `services/*/service.yaml` parsing — env-var defaults that fall back to `dummy`, retry/timeout overrides that disable safety, URL/key drift between deployments]
+
+---
+
+## What This Audit Did Not Cover
+
+- FSM correctness and safety (run `/audit-fsm`)
+- Security review of credential handling, env-var injection, `eval`/`exec`, unsafe deserialization (run `/security-review`)
+- Dependency CVEs (run `pip-audit` / `safety check`)
+- Mathematical correctness of strategy / pricing logic
+- Smart-contract resilience (reentrancy, gas griefing, ordering attacks)
+- Network / load testing under sustained outage (this audit is static)
+- [Add scope exclusions specific to this run, e.g. "service.yaml overrides not parsed because no services/ directory in scope"]
 ```
 
 ### Priority Assignment Rules
@@ -695,15 +969,29 @@ Before finalizing the report, verify:
 - [ ] Every failure path is traced through to the FSM outcome (including composed FSM)
 - [ ] Every unhandled exception path is identified (check exception hierarchies carefully!)
 - [ ] The `JSONDecodeError` vs `RequestException` distinction is checked everywhere `response.json()` is called in a `RequestException` except block
+- [ ] BP1 pre-flag reminder applied — verified `except` clauses do NOT include `ValueError` before flagging
 - [ ] The `{"data": null}` pattern is checked everywhere `.get("data", {})` is used
 - [ ] The `Subgraph.process_response` override is checked for `None` error message handling
 - [ ] All fallback/cached values are cataloged with their staleness risk
-- [ ] All retry strategies are documented and compared
+- [ ] All retry strategies are documented and compared (CC1)
 - [ ] Thread blocking and timeout risks are documented (including third-party library internals)
 - [ ] Third-party httpx/requests clients are checked for missing timeouts
 - [ ] `MAX_WORKER_THREADS` and executor deduplication risks are documented
 - [ ] Pre-FSM handler crashes are checked (accessing synchronized_data before FSM starts)
 - [ ] Connection `on_send` payload deserialization is checked for exception handling
+- [ ] **BP15** — every non-idempotent POST has its dedup mechanism documented (or flagged as P1)
+- [ ] **BP16** — `except` blocks decode retry eligibility via `isinstance` / status code, not substring match
+- [ ] **BP17** — every class-level `_VALID_*` / `_ALLOWED_*` constant is referenced from the dispatch path
+- [ ] **BP18** — `if X is None:` branches on fallible external calls do NOT default to optimistic state
+- [ ] **BP19** — no `verify=False`; no hardcoded credentials; no secrets in URL query strings
+- [ ] **BP20** — every paginated fetch documents partial-failure semantics
+- [ ] **BP21** — every external response with potentially unbounded size has a size cap
+- [ ] **BP22** — signed payloads with timestamps use consensus-safe time when in a multi-agent service
+- [ ] **CC8** — worst-case-blocking vs round_timeout computed for every call site
+- [ ] **CC9** — observability table built; rows that are mostly ✗ on failure are flagged
+- [ ] `services/*/service.yaml` overrides parsed and resilience-relevant changes flagged
+- [ ] Data-type trace performed before flagging type-mismatch findings (Methodology Guardrails)
 - [ ] The crash/stuck/side-effect classification is complete
 - [ ] The priority matrix covers every finding
 - [ ] Each fix description is specific enough to implement directly
+- [ ] Report includes "What this audit did not cover" section

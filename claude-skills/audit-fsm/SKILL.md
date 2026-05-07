@@ -176,6 +176,24 @@ Downstream projects compose these library skills with their own custom skills vi
 
 **Audit implication:** Do NOT flag `ROUND_TIMEOUT` (or other standard event names) as M2 findings in library skills when the enum member exists but isn't used in the skill's own transition function. This is a convention, not dead code.
 
+**Project-specific library skills.** The list above is the *framework default*. Downstream projects often introduce their own library skills (skills meant to be composed only). When auditing a downstream repo:
+
+- Skills with `is_abstract: true` in `skill.yaml` are typically library skills.
+- Check the project's `CLAUDE.md` / `AGENTS.md` for an explicit library-skills list.
+- Read `aea-config.yaml` of the agent under audit — skills that appear only as composition imports (and are never directly wired to the FSM by the agent) are library skills.
+- Apply the M2 / C4 carve-outs to those project-specific library skills as well.
+
+### `is_abstract: true` Semantics
+
+A skill with `is_abstract: true` in its `skill.yaml` is composition-only — it is never instantiated as a top-level skill, only consumed by another `chain()` call. Audit checks branch on this flag:
+
+- **Skip** "missing `fsm_specification.yaml`" findings — abstract skills are composed-only and don't need standalone wiring.
+- **Skip** "missing dialogue X" findings if the dialogue is provided by the composing skill.
+- **Demote** "missing handler" findings to informational unless the handler is required for composition (e.g. an `ABCIHandler` is mandatory).
+- **Apply** the same M2 / C4 carve-outs as library skills (unused events / dead timeouts may be intentional extension points).
+
+The `agent_performance` "missing dialogues" / "missing fsm_specification" findings from prior audits worked out only because the CLI tool happened to fail. With the `is_abstract` branch, those findings are correctly suppressed at the source.
+
 ### Test Infrastructure
 
 The framework provides base test classes in `packages/valory/skills/abstract_round_abci/test_tools/` and `plugins/aea-test-autonomy/`.
@@ -316,6 +334,8 @@ if (
 2. Verify each such event appears in the round's entry in `transition_function`
 3. For rounds extending `CollectSameUntilThresholdRound` etc., check that `done_event`, `none_event`, `no_majority_event` (and `fail_event` for keeper rounds) are all wired in the transition function
 
+**Carve-out — framework-scheduled events:** Events scheduled by the framework via `event_to_timeout` (most commonly `ROUND_TIMEOUT`) are NOT emitted by `end_block()` — the framework dispatches them via Tendermint's `update_time()`. An event is `end_block`-emittable only if it is part of the round's base class event set (`done_event`, `none_event`, `no_majority_event`, `fail_event`) or returned explicitly by a custom `end_block` override. Do NOT flag a transition-function event as "missing from `end_block()`" if it is wired into `event_to_timeout` — that is the framework's job.
+
 **Why it matters:** A missing transition means the round never completes, hanging the entire agent service.
 
 #### C4: Dead Timeouts
@@ -330,6 +350,42 @@ if (
 **Why it matters:** Developers may believe a timeout is protecting against hangs, when in fact it never fires. This creates a false sense of safety.
 
 **Caveat:** Skills whose directory name starts with `test_` (e.g. `test_abci`, `test_solana_tx_abci`) are **test/scaffold skills** that exist to exercise the framework, not production FSM apps. Dead timeouts in these skills are often intentional test fixtures (e.g. testing that `SharedState.setup()` can wire `event_to_timeout` from params). Do NOT flag these as C4 findings. See also the False Positive Guidance section.
+
+#### C5: Non-Determinism in `end_block()`
+
+**What:** `AbstractRound.end_block()` must be a **pure function of consensus state**. Reading wall-clock time, the file system, environment variables, randomness, or external services produces a different event on different agents — silently breaking consensus. The Tendermint replica picks one of the divergent state transitions; the others are wedged or marked Byzantine.
+
+**Search patterns inside `end_block()` bodies (and any helper called from `end_block`):**
+- File I/O: `open(`, `Path.read_*`, `json.load(open(`, `os.path.exists(`, `pathlib.*`
+- Wall clock: `time.time()`, `datetime.now()`, `datetime.utcnow()`, `time.monotonic()` — use `synchronized_data.last_round_transition_timestamp` instead (set by the framework from agreed block time)
+- Randomness: `random.*`, `secrets.*`, `os.urandom(` — use `synchronized_data.most_voted_randomness` (consensus randomness)
+- Environment: `os.environ.get(`, `os.getenv(`
+- Network / external services: `requests.*`, `urlopen(`, `socket.*`, `subprocess.*`, contract calls, IPFS reads
+- Locale-dependent operations: `locale.*`, `re` patterns that depend on system locale
+
+**Bug example:**
+```python
+def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
+    # BUG: each agent reads its own local file
+    with open("/tmp/benchmark_mode.json") as f:
+        config = json.load(f)
+    if config["mode"] == "benchmark":
+        return self.synchronized_data, Event.BENCHMARK
+    return self.synchronized_data, Event.NORMAL
+```
+Different agents may have different files → different events → consensus break.
+
+**Severity by service shape:**
+- **Multi-agent service:** Critical — consensus break.
+- **Single-agent / sovereign service** (e.g. some Pearl-shipped configurations): demote to **informational** but still surface — the bug appears the moment the service is promoted to multi-agent.
+
+**How to check:**
+1. Walk every `end_block()` body and any function it calls.
+2. Grep the imports of the round module for `time`, `datetime`, `random`, `os`, `requests`, `urllib`, `pathlib`.
+3. For each non-deterministic call found, verify whether the surrounding code path can reach `end_block()`.
+4. Check whether the agent's service config (look at `services/*/service.yaml` `number_of_agents`) is 1 or N to set severity.
+
+**Fix:** All non-deterministic data must be sourced from `synchronized_data` — i.e. agreed via consensus by the predecessor round's payload.
 
 ### High (H) — Issues with significant impact
 
@@ -422,6 +478,62 @@ class SynchronizedData(BaseSynchronizedData):
 ```
 
 **Why it matters:** The property silently returns data from a different round, causing logic errors or `KeyError` crashes.
+
+#### M6: SynchronizedData JSON Round-Trip Safety
+
+**What:** Writes to `synchronized_data` go through `AbciAppDB.update()` which JSON-serializes values. Values that are not JSON-native (`set`, `Decimal`, `dataclass` instances, `datetime`, `tuple` of mixed types, custom enum members) silently lose fidelity (e.g. `tuple` → `list`) or raise `TypeError` at write time. Custom serializer hooks (e.g. `EGreedyPolicy.serialize` / `deserialize`) must be applied symmetrically on the read side.
+
+Plus: when a `SynchronizedData` subclass uses **multiple inheritance** to combine data classes from composed skills (e.g. `class SynchronizedData(MechInteractSyncedData, MarketManagerSyncedData, TxSettlementSyncedData)`), two parents defining the same property name silently shadow according to MRO order. The subclass author may believe they are reading from skill A's data when they're actually reading from skill B's.
+
+**How to check:**
+1. For each round's `end_block()`, list keys + value-expressions written via `update(...)` or `update(synchronized_data_class=..., ...)`.
+2. For each value, infer the type (walk back from the call site, or look at the payload field type, or trace through `json.loads`). Flag values that are not JSON-native unless a custom serializer is documented at both write and read sides.
+3. For each `SynchronizedData` subclass with multiple base classes, walk the MRO and flag any property name defined in more than one parent — explicitly call out which parent wins.
+
+**Bug examples:**
+```python
+# BUG: set is not JSON-serializable — TypeError at write time
+self.synchronized_data.update(participants={agent1, agent2})
+
+# BUG: Decimal becomes float after JSON round-trip — silent precision loss
+self.synchronized_data.update(price=Decimal("0.123456789012345678"))
+
+# BUG: same property name in two parents
+class MechInteractSyncedData:
+    @property
+    def latest_event(self) -> str: return self.db.get_strict("mech_event")
+class MarketManagerSyncedData:
+    @property
+    def latest_event(self) -> str: return self.db.get_strict("market_event")
+class SynchronizedData(MechInteractSyncedData, MarketManagerSyncedData):
+    pass  # reads mech_event — likely surprising for someone reading the file top-down
+```
+
+**Fix:** Use lists/dicts/primitives or apply explicit serialize/deserialize hooks. Pick distinct property names across composed data classes, or override explicitly with documented intent.
+
+#### M7: `cross_period_persisted_keys` Completeness for Post-Reset Initial Reads
+
+**What:** After a period reset (`ResetAndPauseRound`), the next period restarts at the chain's initial round. Any DB key that the initial round chain (or its behaviours) reads via `self.db.get` / `self.db.get_strict` must be in `cross_period_persisted_keys` — otherwise it's missing after the first reset and the read returns `None` / raises `KeyError`. The bug is invisible in the first period (the key was just written) and surfaces only after the reset.
+
+**How to check:**
+1. Identify the initial round chain after a reset (typically `RegistrationRound` → ... → first business round). Use the composed app's `transition_function` to follow `Event.RESET_TIMEOUT` / `Event.DONE` from `ResetAndPauseRound` to the next round.
+2. Statically collect every `self.db.get(...)` / `self.db.get_strict(...)` and every `self.synchronized_data.<property>` access in those rounds and their behaviours. Resolve property accesses to the underlying DB key.
+3. Subtract `cross_period_persisted_keys`. The diff is the set of keys that will be missing after the first reset.
+
+**Why it matters:** First-period success masks the bug. Production crashes appear only after the first natural reset (often hours or days into a deployment).
+
+#### M8: Misleading Event-Shaped Class Attributes on Round Subclasses
+
+**What:** On `CollectSameUntilThresholdRound` and siblings, the framework's `end_block()` consults a fixed set of class attributes: `done_event`, `none_event`, `no_majority_event`, `collection_key`, `selection_key` (and `fail_event` for keeper rounds — see `extended_requirements`). Defining additional class attributes whose RHS is an `Event` enum value (e.g. `withdrawal_initiated: Event = Event.WITHDRAWAL_INITIATED`) does NOT wire that event into the round — the parent's `end_block()` never reads it.
+
+Combined with a `transition_function` entry for that event, this produces a "looks-like-config-but-isn't" footgun. The current C3 check catches the dead transition. M8 catches the misleading attribute that gives the false impression the round will emit it.
+
+**How to check:**
+1. For each `CollectSameUntilThresholdRound` (or sibling) subclass, list class-level attributes whose RHS is an `Event` enum value.
+2. Subtract the names actually consulted by the parent class (`done_event`, `none_event`, `no_majority_event`, `fail_event`, `collection_key`, `selection_key`) and any name read by a custom `end_block` override in the subclass.
+3. The remainder is dead config. Suggested fix: either implement a custom `end_block()` that uses the attribute, or remove it.
+
+**Why it matters:** Combined with a wired transition, the dead attribute makes a reader assume mid-round side transitions exist (e.g. "withdrawal can interrupt this round") when they don't — leading to design decisions based on capabilities the FSM doesn't actually have.
 
 ### Test (T) — Test correctness and coverage
 
@@ -539,6 +651,46 @@ self.end_round(done_event)         # Transition to next round
 
 **What:** Comments or docstrings describing the FSM that don't match the actual `transition_function` definition.
 
+#### L4: Logging Hygiene (Secret / PII Leakage)
+
+**What:** Behaviour and connection log lines that interpolate variables holding credentials, signed material, or full HTTP responses expose secrets to log aggregators and on-disk logs. Once a secret is in a log stream, it must be assumed compromised.
+
+**Search patterns:**
+- Variable name regex inside `logger.*(f"... {x} ..."`, `logger.*("... %s ...", x)`, `logger.*("... " + x)`:
+  - `private_key`, `priv_key`, `pk`, `sk`, `secret`, `token`, `api_key`, `apikey`, `password`, `passphrase`, `bearer`, `mnemonic`, `seed`, `nonce` (when used as crypto material, not RPC nonce)
+- Whole-object logging that may contain nested credentials:
+  - `signed_order`, `signed_tx`, `signed_message`, `credentials`, `headers` (when headers contain `Authorization`)
+  - `request`, `response` objects logged in full
+- Full HTTP body / response logging that may include access tokens or PII
+
+**Why it's L not C:** the agent doesn't crash and consensus isn't broken; it's a security-posture issue. Severity escalates if the leaked material grants production access.
+
+**Fix:** redact / hash before logging; log only metadata (key prefix, length); log structured fields rather than entire objects.
+
+#### L5: Numeric Precision in Financial Logic
+
+**What:** Common precision footguns in code that touches token amounts, prices, or financial calculations:
+- `float` arithmetic on token amounts (silent rounding accumulates over many trades)
+- Mixing 6-decimal (USDC) and 18-decimal (most ERC-20) without explicit unit tracking
+- `==` / `!=` between two values where at least one is a `float`
+- Hardcoded float constants used in `int(... * 10**N)` conversions (exact bits of the float matter)
+- Arithmetic on results of older Solidity calls without checking for negative / overflow
+
+**Search patterns:**
+- `float(` inside files that handle on-chain balances or token amounts
+- Hardcoded float literals (e.g. `0.089935`) used in conversions
+- `==` / `!=` between two values when at least one is provably `float`
+- `Decimal` mixed with `float` in the same expression
+
+**Bug example:**
+```python
+FALLBACK_POL_TO_USD_RATE = 0.089935  # binary float — not exactly 0.089935
+amount_usd = pol_amount * FALLBACK_POL_TO_USD_RATE
+amount_usd_wei = int(amount_usd * (10**18))  # rounding accumulates
+```
+
+**Fix:** use integer wei (or `Decimal` with explicit precision); track decimals via a typed wrapper; never compare floats with `==`.
+
 ---
 
 ## False Positive Guidance
@@ -585,6 +737,82 @@ class MyBehaviour(BaseBehaviour):
 
 ---
 
+## Scope Extensions
+
+### Auditing `customs/` Strategies
+
+`customs/` directories (e.g. `customs/kelly_criterion/`, `customs/fixed_bet/`) are loaded by IPFS hash at runtime via `FILE_HASH_TO_STRATEGIES` and execute logic that drives the FSM's financial actions (e.g. bet sizing). They are out of scope for `skills/`-only audits but receive zero coverage today.
+
+**When to extend:** if the agent's `aea-config.yaml` or any `services/*/service.yaml` references `FILE_HASH_TO_STRATEGIES` (or a similarly named param mapping IPFS hashes to strategy modules), audit those strategy directories with a reduced checklist.
+
+**Reduced checklist for `customs/` modules:**
+- L4 (logging hygiene) — strategies often log inputs and intermediate values
+- L5 (numeric precision) — strategies typically compute bet sizing, expected value, Kelly fraction, etc.
+- M1-style: type contracts on entry/exit functions (what does the calling behaviour expect back?)
+- Error handling: do strategy functions degrade gracefully or raise into the calling behaviour? An uncaught exception in a strategy crashes the calling behaviour (audit-resilience Category A).
+
+**Skip:** FSM-only checks (C3, C4, M2, M3, M5, M7, M8, T*) — there is no FSM in a strategy.
+
+### Auditing `service.yaml` Overrides
+
+Both this skill and `audit-resilience` historically read package source only and miss runtime parameter overrides. If the audit scope is a service (not just a skill) and `services/*/service.yaml` exists:
+
+1. Parse each service's `overrides` block. List every parameter override, its target skill, and the override value.
+2. For overrides that change behaviour-controlling parameters (timeouts, retry counts, URLs, contract addresses, feature flags), flag if the override:
+   - Changes the value type from the default declared in the skill's `models.py` (e.g. int default, string override)
+   - Sets a value that conflicts with `db_pre_conditions` (e.g. an override that expects a key not provided by an upstream round)
+   - Disables a safety mechanism present in defaults (retry count to 0, timeout to a very large value, `verify=False`)
+3. When multiple `services/*/service.yaml` exist for the same agent (e.g. `trader_pearl/` vs `polymarket_trader/`), build a comparison table — drift between deployments is a footgun.
+4. Note: env-var-driven overrides (`${OAR_API_KEY:str:dummy}`) hide values entirely. Flag any param marked sensitive (URL, key, address) that defaults to `dummy` / empty / placeholder — production deployments depend on the env var being set.
+
+---
+
+## Methodology Guardrails
+
+These guardrails reduce false positives observed in prior audit runs. Apply them before flagging any finding.
+
+### Force the data-type trace before flagging type mismatches
+
+Many false positives in prior runs (M5 mismatches, T2 wrong-base-class claims, "non-existent payload field" claims) came from agents reasoning about **annotated** types instead of **runtime** types. In open-autonomy, payload fields and DB-backed properties are JSON-deserialized — the runtime type may differ from the annotation.
+
+When a check requires reasoning about a value's runtime type, before flagging:
+
+1. Locate the **last assignment** to the variable along the call path (do not stop at the type annotation).
+2. If that assignment is `json.loads(some_field)`, `self.db.get_strict(key)`, or a `BaseTxPayload` field whose value was JSON-serialized at write time, the runtime type is whatever the JSON producer wrote — which may be `dict`, `list`, `str`, `int`. Static annotations alone are not authoritative here.
+3. For framework-DB-backed properties, trace from `selection_key` → property body → any `json.loads(...)` to determine the actual runtime type.
+4. Do NOT flag a type mismatch unless you can name **both** the expected type AND the actual runtime type with a `file:line` citation for each.
+
+A concrete past failure: a discovery agent claimed `isinstance(actions_data, dict)` was dead because `synced_data.actions` was annotated `Optional[List[...]]`. The annotation was a stale guess; the runtime value came from `json.loads(content)` and could be either a dict or a list.
+
+### Strip framework-scheduled events from `end_block` completeness checks
+
+C3 explicitly carves these out (see C3 above). Repeating here as a guardrail because prior runs surfaced this false positive (a discovery agent flagged `Event.ROUND_TIMEOUT` as "missing from `CheckFundsRound.end_block()`" — `ROUND_TIMEOUT` is scheduled by the framework via `event_to_timeout`, not emitted by `end_block`).
+
+Before flagging an event as missing from `end_block()`:
+- If the event appears in `event_to_timeout` for the round, **skip it** — the framework schedules the transition.
+- If the event appears in the round's transition function but is neither a base-class event (`done`, `none`, `no_majority`, `fail`) nor in `event_to_timeout`, then it is genuinely missing — flag it under C3.
+
+### Single-finding-per-bug discipline
+
+If two checks (e.g. C3 dead transition + M8 misleading attribute) flag the same underlying bug, report once with both check IDs cited, not twice.
+
+---
+
+## Coverage Limitations
+
+This skill audits **FSM correctness and safety** in `skills/`. The following are explicitly NOT covered — the audit report should call this out so consumers know what they still need to do:
+
+- **External request resilience** → run `audit-resilience` (companion skill).
+- **Security review** → run `/security-review`. This skill does not audit private-key handling, env-var injection in `skill.yaml`, `eval` / `exec` patterns, unsafe deserialization (`pickle.loads`), or supply-chain risks.
+- **Numeric precision in financial logic** is L5-checked at a syntactic level only; mathematical correctness of strategy logic is out of scope.
+- **Dependency CVEs** → run `pip-audit` / `safety check` after this audit.
+- **Smart-contract audit** → out of scope; covered by Solidity-specific tooling.
+- **Performance / gas optimisation** → out of scope.
+
+Include a "What this audit did not cover" section in every report.
+
+---
+
 ## Analysis Procedure
 
 Follow these steps in order:
@@ -614,6 +842,8 @@ These tools catch issues the manual audit does not need to duplicate:
 
 **Include the output of these tools in the report.** If any fail, report them as findings but clearly distinguish in-scope failures from out-of-scope ones. Then proceed with the manual checks below, which cover semantic and logic issues these tools cannot detect.
 
+**Tooling-unavailable case.** If the CLI tools fail with `No module named 'packages.valory.skills.abstract_round_abci'` (or similar import errors), the local `packages/` tree is missing library skills that the project policy doesn't sync (some downstream repos forbid `autonomy packages sync --all` because it bypasses a curated dependency set). This is a project policy choice, not a bug. Note in the report: *"CLI tools could not run because library skills are not in the local tree; proceeded with manual checks."* Do NOT report this as a finding, and do NOT block the audit on it.
+
 ### Step 1: Discovery
 
 Determine the scope of the audit:
@@ -638,7 +868,7 @@ Launch up to **3 parallel Explore agents**, dividing skills evenly among them. E
    - `tests/test_rounds.py` — round test classes
    - `tests/test_behaviours.py` — behaviour test classes
 
-2. **Run all checks from the Audit Checklist** (C1–C4, H1–H3, M1–M5, T1–T6, L1–L3)
+2. **Run all checks from the Audit Checklist** (C1–C5, H1–H3, M1–M8, T1–T6, L1–L5)
 
 3. **Return findings** as a structured list with:
    - Check ID (e.g. C1, H2)
@@ -706,6 +936,15 @@ Present the audit report as follows:
 
 ## Notes
 [Any false-positive exclusions or caveats about the audit scope]
+
+## What This Audit Did Not Cover
+
+- External-request resilience (run `/audit-resilience`)
+- Security review of credential handling, env-var injection, unsafe deserialization (run `/security-review`)
+- Mathematical correctness of strategy logic (only syntactic L5 checks were applied)
+- Dependency CVEs (run `pip-audit` / `safety check`)
+- Smart-contract audit, gas optimisation
+- [Add any further scope exclusions specific to this audit run, e.g. "CLI tools could not run because library skills are not in the local tree"]
 ```
 
 If no findings at a severity level, include the section header with "No findings." underneath.
