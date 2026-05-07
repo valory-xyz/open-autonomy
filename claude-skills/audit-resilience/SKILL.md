@@ -718,6 +718,23 @@ Past examples worth flagging by name: trader's `trader_pearl/` (Omenstrat) vs `p
 
 These guardrails reduce false positives observed in prior runs. Apply them before flagging any finding.
 
+### Verify every sub-agent finding before accepting it
+
+The Step B analysis agents return **candidate** findings with **candidate** severities, not final ones. The spawning agent (you) MUST hand-verify each candidate against the source before promoting it into the report. Sub-agents over-report because they lack the cross-cutting view.
+
+For each candidate finding, before accepting:
+
+1. **Read the cited `file:line` in the actual source.** Confirm the bug exists as described — not a misread, not a paraphrase that drifts from the code, not a citation pointing at the wrong line.
+2. **Confirm the bug is real.** Apply the data-type trace guardrail (below). Apply the verbatim BP1 reminder (below). Re-check exception hierarchies and `except` clause widths personally.
+3. **Re-evaluate severity.** Sub-agents systematically over-classify. Concretely:
+   - "Unused / dead config" (defined-but-unenforced allowlist, vestigial constant) is **L**, not P0/P1, unless removing it actively enables an attack.
+   - A `verify=False` in a test fixture or development helper is **not P0** even though the regex matches.
+   - "JSONDecodeError uncaught" inside an `except ValueError` block is **not a finding** (BP1 false positive).
+4. **Consolidate split findings.** If three sub-agent findings point at one root cause (e.g. three separate P0s that all stem from one missing timeout in a third-party library wrapper), report ONCE at the appropriate priority, not three times.
+5. **Demote liberally.** If you can't reproduce the sub-agent's reasoning from the source in under a minute, the finding is probably wrong — drop it or downgrade to P3/P4 with an "informational" note.
+
+Sub-agent classification is input, not output. The report is your judgment, not the union of sub-agent outputs.
+
 ### Force the data-type trace before flagging
 
 When a check requires reasoning about a value's runtime type (BP1 dispatch, BP2 null guards, "type X passed where Y expected" claims), reason about the **runtime** type, not the static annotation. In open-autonomy, payload fields and DB-backed properties are JSON-deserialized — the runtime type may differ from the annotation.

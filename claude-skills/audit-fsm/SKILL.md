@@ -771,6 +771,23 @@ Both this skill and `audit-resilience` historically read package source only and
 
 These guardrails reduce false positives observed in prior audit runs. Apply them before flagging any finding.
 
+### Verify every sub-agent finding before accepting it
+
+The Step 2 Explore agents return **candidate** findings with **candidate** severities, not final ones. The spawning agent (you) MUST hand-verify each candidate against the source before promoting it into the report. Sub-agents over-report because they lack the cross-cutting view across the audit scope.
+
+For each candidate finding from a sub-agent, before accepting:
+
+1. **Read the cited `file:line` in the actual source.** Confirm the bug exists as described — not a misread of static type vs runtime type, not a paraphrase that drifts from the actual code, not a citation pointing at the wrong line.
+2. **Confirm the bug is real.** Apply the data-type trace guardrail (below). Apply the framework-scheduled-event carve-out (below). Check the False Positive Guidance section.
+3. **Re-evaluate severity.** Sub-agents systematically over-classify. Concretely:
+   - "Unused / dead code" (initial-only attributes, dead comments, vestigial fields) is **almost always L**, not C. Critical requires runtime impact.
+   - A misnamed-but-harmless attribute is **L**, not C. Promote only if you can demonstrate a runtime path that reads / writes through it incorrectly.
+   - Configuration that "looks misleading" is **L** unless misleading the reader produced (or is highly likely to produce) a downstream bug.
+4. **Consolidate split findings.** If three sub-agent findings point at one root cause (e.g. three separate Cs that all stem from one mis-typed `AgentDB` accessor), report ONCE at the appropriate severity, not three times.
+5. **Demote liberally.** If you can't reproduce the sub-agent's reasoning from the source in under a minute, the finding is probably wrong — drop it or downgrade to L with an "informational" note.
+
+Sub-agent classification is input, not output. The report is your judgment, not the union of subagent outputs.
+
 ### Force the data-type trace before flagging type mismatches
 
 Many false positives in prior runs (M5 mismatches, T2 wrong-base-class claims, "non-existent payload field" claims) came from agents reasoning about **annotated** types instead of **runtime** types. In open-autonomy, payload fields and DB-backed properties are JSON-deserialized — the runtime type may differ from the annotation.
