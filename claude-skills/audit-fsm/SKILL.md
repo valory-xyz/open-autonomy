@@ -192,7 +192,7 @@ A skill with `is_abstract: true` in its `skill.yaml` is composition-only — it 
 - **Demote** "missing handler" findings to informational unless the handler is required for composition (e.g. an `ABCIHandler` is mandatory).
 - **Apply** the same M2 / C4 carve-outs as library skills (unused events / dead timeouts may be intentional extension points).
 
-The `agent_performance` "missing dialogues" / "missing fsm_specification" findings from prior audits worked out only because the CLI tool happened to fail. With the `is_abstract` branch, those findings are correctly suppressed at the source.
+Prior audits avoided false positives on the `agent_performance` "missing dialogues" / "missing fsm_specification" findings only by accident — the CLI tool failed before reaching these checks. The `is_abstract` branch now makes the suppression deliberate.
 
 ### Test Infrastructure
 
@@ -357,7 +357,7 @@ if (
 
 **Search patterns inside `end_block()` bodies (and any helper called from `end_block`):**
 - File I/O: `open(`, `Path.read_*`, `json.load(open(`, `os.path.exists(`, `pathlib.*`
-- Wall clock: `time.time()`, `datetime.now()`, `datetime.utcnow()`, `time.monotonic()` — use `synchronized_data.last_round_transition_timestamp` instead (set by the framework from agreed block time)
+- Wall clock: `time.time()`, `datetime.now()`, `datetime.utcnow()`, `time.monotonic()` — use `self.context.state.round_sequence.last_round_transition_timestamp` (the agreed Tendermint block time of the last transition, set on `RoundSequence` from `self._blockchain.last_block.timestamp` — see `packages/valory/skills/abstract_round_abci/base.py`), or read a timestamp written into a payload field by a predecessor round (consensus-agreed, then surfaced via `synchronized_data`)
 - Randomness: `random.*`, `secrets.*`, `os.urandom(` — use `synchronized_data.most_voted_randomness` (consensus randomness)
 - Environment: `os.environ.get(`, `os.getenv(`
 - Network / external services: `requests.*`, `urlopen(`, `socket.*`, `subprocess.*`, contract calls, IPFS reads

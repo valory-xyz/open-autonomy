@@ -631,7 +631,8 @@ Signed orders, EIP-712 typed data, relayer transactions, and many exchange APIs 
 1. Find call sites that build a signed payload for an external counterparty: relayer / exchange POSTs, EIP-712 messages, signed orders.
 2. Inspect how the payload's `timestamp` / `nonce` / `expiry` is computed.
    - `time.time()` / `datetime.now()` → drift-prone, **NOT consensus-safe** in a multi-agent service.
-   - `last_round_transition_timestamp` from `synchronized_data` → consensus-safe (it is the agreed block time, not an agent-local timestamp).
+   - `self.context.state.round_sequence.last_round_transition_timestamp` (a property on `RoundSequence`, NOT on `BaseSynchronizedData` — it is the agreed Tendermint block time of the last transition) → consensus-safe.
+   - A timestamp field written into a payload by a predecessor round and read via `synchronized_data` → consensus-safe.
 3. Verify the agent's NTP / clock-sync mechanism if `time.time()` is used. Document the deployment expectation.
 
 **Note:** this intersects with `audit-fsm` C5 (determinism in `end_block`). A timestamp produced in `end_block` must come from `synchronized_data`, not `time.time()`.
