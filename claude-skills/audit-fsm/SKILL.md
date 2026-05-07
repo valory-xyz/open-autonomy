@@ -387,6 +387,41 @@ Different agents may have different files → different events → consensus bre
 
 **Fix:** All non-deterministic data must be sourced from `synchronized_data` — i.e. agreed via consensus by the predecessor round's payload.
 
+#### C6: Unmapped Reachable Finals in Composition
+
+**What:** In `chain()`-composed AbciApps, every **final state of an inner app** that is not declared as a terminal state of the composed app must appear as a **key** in `abci_app_transition_mapping`. Otherwise the composed FSM reaches that state and stops — there is no transition out, the round emits no further events, and the agent hangs.
+
+**Important — what `chain()` does and does NOT validate.** The framework validates that mapping keys ARE final states of inner apps and that mapping values ARE initial states of other inner apps (`chain()` raises `ABCIAppInternalError` at construction time on violations). It does NOT verify that **every reachable inner final state** has been mapped. That is the gap this check covers.
+
+**How to check:**
+1. For each inner `AbciApp` in the chain, read `cls.final_states`.
+2. Compute `reachable_finals = ⋃ inner.final_states for inner in chained_apps`.
+3. Subtract:
+   - `composed_app.final_states` (states deliberately terminal in the composed FSM).
+   - `set(abci_app_transition_mapping.keys())` (states with an explicit successor).
+4. The remainder is the set of **unmapped reachable finals**. Each one is a hang on reach.
+
+**Bug example:**
+```python
+class InnerAppA(AbciApp):
+    final_states = {DoneRound, FailedRound, ImpossibleRound}
+
+# In composition.py:
+abci_app_transition_mapping = {
+    FinishedAppARound: SomeInitialRound,
+    # BUG: FailedRound and ImpossibleRound are reachable finals of InnerAppA
+    #      but absent from this mapping AND absent from composed_app.final_states
+}
+```
+
+At runtime: agent enters `InnerAppA`, takes a `FAIL_EVENT` transition to `FailedRound`, the round commits with no outbound event mapping → composed FSM hangs.
+
+**Severity rationale:** Same blast radius as C3 (transition function completeness). A round hang at composition level wedges the entire agent, with the same recovery profile.
+
+**Search pattern:** locate the module that calls `chain(...)` (typically `composition.py`); enumerate `final_states` of every inner app referenced; compare against the mapping keys plus the composed app's terminal set.
+
+**Why this needs to be its own check, not bundled under H2:** real audits have found this in production. Two unmapped finals in one repo's `composition.py` were the highest-impact FSM finding from a recent run and almost slipped through under H2's old "every mapping key/value valid" framing — those bullets are framework-validated and produce zero new findings, which masked the still-needed unmapped-finals check.
+
 ### High (H) — Issues with significant impact
 
 #### H1: Background App Configuration
@@ -401,15 +436,16 @@ Also check for shared mutable state between app configs (see C1).
 
 **Search pattern:** Grep for `BackgroundAppConfig`, `background_apps`, `bg_apps`.
 
-#### H2: Composition Chain Completeness
+#### H2: Composition Chain Completeness (Index)
 
-**What:** In composed apps using `chain()`:
-- Every final state in the mapping must be a valid final state of one of the composed apps
-- Every initial state target must be a valid initial state of one of the composed apps
-- `cross_period_persisted_keys` should include all keys needed by the first app in the chain
-- `abci_app_transition_mapping` must cover all final states that should lead to another app
+H2 used to bundle four bullets that have since been split or moved. Kept as an index so reports referencing H2 still resolve:
 
-**Search pattern:** Grep for `abci_app_transition_mapping`, `chain(`, `cross_period_persisted_keys`.
+- **Mapping key validity** ("every mapping key is a valid final state of an inner app") — **framework-validated** by `chain()` at construction time. Do NOT re-flag.
+- **Mapping value validity** ("every mapping value is a valid initial state of an inner app") — **framework-validated** by `chain()`. Do NOT re-flag.
+- **Unmapped reachable finals** ("every reachable inner final has a mapping entry or is composed-terminal") — see **C6**.
+- **`cross_period_persisted_keys` completeness for post-reset reads** — see **M7**.
+
+If a finding genuinely fits "composition chain completeness" but doesn't match any of the above, surface it under H2 as a free-form finding — but in practice, every prior H2-shaped finding maps cleanly to one of the four targets above.
 
 #### H3: Resource Lifecycle
 
@@ -419,6 +455,39 @@ Also check for shared mutable state between app configs (see C1).
 - `requests.get/post` without `timeout` parameter
 
 **Search pattern:** Grep for `open(`, `socket.socket(`, `.terminate()`, `Popen(`, `requests.get`, `requests.post` — then check surrounding context for proper cleanup.
+
+#### H4: `extended_requirements = ()` Override Without Compensating `end_block`
+
+**What:** `_MetaAbstractRound.__init__` (`packages/valory/skills/abstract_round_abci/base.py:1066-1068`) reads each round subclass's `extended_requirements` tuple and verifies via `hasattr` that every named class attribute is defined. This catches "subclass forgot to set `done_event` / `none_event` / `collection_key` / `selection_key`" at class-creation time.
+
+Setting `extended_requirements = ()` (or `tuple()`) in a subclass disables the loop — the metaclass passes any subset of attributes (including none). This is a legitimate escape hatch when the subclass overrides `end_block()` with custom logic that doesn't depend on the standard attributes.
+
+It becomes a **footgun** when:
+- The subclass omits one or more of the parent's required attributes, AND
+- The subclass inherits the parent's `end_block()` (which still reads those attributes).
+
+Result: class definition succeeds. The first time `end_block()` runs, `AttributeError: 'XRound' object has no attribute 'done_event'` (or `collection_key`, etc.) propagates uncaught from the behaviour generator — agent process crashes (`audit-resilience` Category A).
+
+**How to check:**
+1. Grep for `extended_requirements\s*=\s*\(\s*\)` and `extended_requirements:\s*Tuple.*=\s*\(\s*\)` and `extended_requirements\s*=\s*tuple\(\s*\)`.
+2. For each match, identify the parent class and look up its `extended_requirements` (e.g. `CollectSameUntilThresholdRound.extended_requirements` covers `done_event`, `no_majority_event`, `none_event`, `collection_key`, `selection_key`).
+3. Verify the subclass either:
+   - Defines a custom `end_block()` (and the override does NOT read the missing attributes), OR
+   - Defines all attributes that were in the parent's `extended_requirements` despite the override.
+4. If neither, this is crash-on-reach. Promote severity to **Critical** in the report (the subclass crashes the agent the first time it runs).
+
+**Bug example:**
+```python
+class AgentDBRound(CollectSameUntilThresholdRound):
+    payload_class = AgentDBPayload
+    extended_requirements = ()  # disables metaclass attribute check
+    # missing: done_event, none_event, no_majority_event, collection_key, selection_key
+    # inherits parent's end_block, which reads self.done_event → AttributeError at runtime
+```
+
+**Severity rationale:** Default H because legitimate uses of the empty override exist (custom-`end_block` rounds). Promote to C when the audit verifies the subclass inherits the parent's `end_block` AND omits at least one required attribute — that combination is a guaranteed crash.
+
+**Search pattern:** `extended_requirements\s*=\s*(\(\s*\)|tuple\(\s*\))` in any round module.
 
 ### Medium (M) — Issues that indicate potential problems
 
@@ -897,7 +966,7 @@ Launch up to **3 parallel Explore agents**, dividing skills evenly among them. E
    - `tests/test_rounds.py` — round test classes
    - `tests/test_behaviours.py` — behaviour test classes
 
-2. **Run all checks from the Audit Checklist** (C1–C5, H1–H3, M1–M8, T1–T6, L1–L5)
+2. **Run all checks from the Audit Checklist** (C1–C6, H1–H4, M1–M8, T1–T6, L1–L5)
 
 3. **Return findings** as a structured list with:
    - Check ID (e.g. C1, H2)
