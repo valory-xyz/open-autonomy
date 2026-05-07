@@ -844,20 +844,32 @@ Before manual inspection, run the framework's built-in analysis commands to catc
 autonomy analyse fsm-specs --package <skill-path>
 
 # These three run repo-wide (no package scoping available).
-# They may report errors from skills OUTSIDE the audit scope — note those
-# separately and only include in-scope failures as findings.
 autonomy analyse handlers
 autonomy analyse dialogues
 autonomy analyse docstrings
 ```
 
-These tools catch issues the manual audit does not need to duplicate:
-- `fsm-specs` validates that the FSM spec file, the docstring, and the `transition_function` definition are all consistent (**scoped** to target skill)
-- `handlers` verifies required handlers are defined and properly configured (**repo-wide**)
-- `dialogues` verifies dialogue definitions match protocol specifications (**repo-wide**)
-- `docstrings` checks the AbciApp class docstring matches the actual state machine definition (**repo-wide**)
+**Critical — filter unscoped output against `dev` packages only.** `handlers` / `dialogues` / `docstrings` walk every package under `packages/`, including framework-vendored ones in the `third_party` section of `packages/packages.json`. Findings against `third_party` packages belong to the upstream repo, not this audit. The composition / cross-skill analysis later in the audit STILL needs full visibility into those packages — but their CLI-tool errors are out-of-scope as findings.
 
-**Include the output of these tools in the report.** If any fail, report them as findings but clearly distinguish in-scope failures from out-of-scope ones. Then proceed with the manual checks below, which cover semantic and logic issues these tools cannot detect.
+Build the dev set once and reuse it across all unscoped tools:
+
+```bash
+# Each entry is "<type>/<author>/<name>/<version>"; on-disk path is
+# packages/<author>/<type>s/<name>
+jq -r '.dev | keys[]' packages/packages.json
+```
+
+For each error line emitted by `handlers` / `dialogues` / `docstrings`, drop the line if the cited path resolves under a `third_party` package (i.e. its `<author>/<type>s/<name>` is not in the dev set). The remaining lines are in-scope findings. Note in the report how many lines were filtered and from which third-party paths, so the consumer can see what was dropped and why.
+
+`fsm-specs` is already scoped — invoke it only on dev skills (and only on the `$ARGUMENTS` subset if provided).
+
+These tools catch issues the manual audit does not need to duplicate:
+- `fsm-specs` validates that the FSM spec file, the docstring, and the `transition_function` definition are all consistent (**scoped** to target skill — invoke per dev skill)
+- `handlers` verifies required handlers are defined and properly configured (**repo-wide; filter output to dev**)
+- `dialogues` verifies dialogue definitions match protocol specifications (**repo-wide; filter output to dev**)
+- `docstrings` checks the AbciApp class docstring matches the actual state machine definition (**repo-wide; filter output to dev**)
+
+**Include the (filtered) output of these tools in the report.** If any in-scope error remains, report it as a finding. Then proceed with the manual checks below, which cover semantic and logic issues these tools cannot detect — and which DO read across into library / `third_party` packages where composition requires it.
 
 **Tooling-unavailable case.** If the CLI tools fail with `No module named 'packages.valory.skills.abstract_round_abci'` (or similar import errors), the local `packages/` tree is missing library skills that the project policy doesn't sync (some downstream repos forbid `autonomy packages sync --all` because it bypasses a curated dependency set). This is a project policy choice, not a bug. Note in the report: *"CLI tools could not run because library skills are not in the local tree; proceeded with manual checks."* Do NOT report this as a finding, and do NOT block the audit on it.
 
