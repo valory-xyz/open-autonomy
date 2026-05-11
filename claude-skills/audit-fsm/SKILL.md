@@ -409,9 +409,12 @@ class InnerAppA(AbciApp):
 
 # In composition.py:
 abci_app_transition_mapping = {
-    FinishedAppARound: SomeInitialRound,
+    DoneRound: SomeInitialRound,
     # BUG: FailedRound and ImpossibleRound are reachable finals of InnerAppA
-    #      but absent from this mapping AND absent from composed_app.final_states
+    #      but absent from this mapping AND absent from composed_app.final_states.
+    #      chain() does NOT catch this — it only validates that present keys are
+    #      finals of inner apps; it doesn't enforce coverage of every reachable
+    #      inner final.
 }
 ```
 
@@ -551,7 +554,7 @@ class SynchronizedData(BaseSynchronizedData):
 
 #### M6: SynchronizedData JSON Round-Trip Safety
 
-**What:** Writes to `synchronized_data` go through `AbciAppDB.update()` which JSON-serializes values. Values that are not JSON-native (`set`, `Decimal`, `dataclass` instances, `datetime`, `tuple` of mixed types, custom enum members) silently lose fidelity (e.g. `tuple` → `list`) or raise `TypeError` at write time. Custom serializer hooks (e.g. `EGreedyPolicy.serialize` / `deserialize`) must be applied symmetrically on the read side.
+**What:** Writes to `synchronized_data` go through `AbciAppDB.update()`, which calls `AbciAppDB.validate(kwargs)` (`packages/valory/skills/abstract_round_abci/base.py:658-660`) BEFORE any storage step. `validate()` delegates to `is_json_serializable()` (`utils.py:408-417`), which only accepts primitives plus `tuple`/`list`/`dict` recursively. On failure it raises **`ABCIAppInternalError("AbciAppDB data must be json-serializable...")`** (`base.py:649-655`) — NOT Python's `TypeError` from `json.dumps`. Values that are JSON-native but lossy at the type level (e.g. `tuple` → `list` on the read side, `float` drift) survive validation but silently lose fidelity. Custom serializer hooks (e.g. `EGreedyPolicy.serialize` / `deserialize`) must be applied symmetrically on the read side.
 
 Plus: when a `SynchronizedData` subclass uses **multiple inheritance** to combine data classes from composed skills (e.g. `class SynchronizedData(MechInteractSyncedData, MarketManagerSyncedData, TxSettlementSyncedData)`), two parents defining the same property name silently shadow according to MRO order. The subclass author may believe they are reading from skill A's data when they're actually reading from skill B's.
 
@@ -562,11 +565,15 @@ Plus: when a `SynchronizedData` subclass uses **multiple inheritance** to combin
 
 **Bug examples:**
 ```python
-# BUG (write-time crash): set is not JSON-serializable — TypeError at write time
+# BUG (write-time crash): set is rejected by AbciAppDB.validate (base.py:649-655) —
+# raises ABCIAppInternalError("AbciAppDB data must be json-serializable..."),
+# NOT Python's TypeError from json.dumps
 self.synchronized_data.update(participants={agent1, agent2})
 
-# BUG (write-time crash): Decimal is not JSON-serializable — TypeError at write time
-# (same failure mode as set; do NOT mistake this for silent rounding to float)
+# BUG (write-time crash): same as above — Decimal is rejected by AbciAppDB.validate;
+# raises ABCIAppInternalError, not TypeError.
+# Do NOT mistake this for silent rounding to float — the validation layer
+# intercepts before json.dumps would be reached.
 self.synchronized_data.update(price=Decimal("0.123456789012345678"))
 
 # BUG (silent precision loss): float arithmetic drifts BEFORE serialization;

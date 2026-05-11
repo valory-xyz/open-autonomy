@@ -584,7 +584,11 @@ The external dependency returned "unknown" (RPC down, response malformed). The h
 
 Grep-level checks. Each finding is independent; flag every match.
 
-- **`verify=False`** on `requests.*` / `httpx.*` / `aiohttp.*` — disables TLS certificate verification, opens MITM. Search: `verify=False`, `verify = False`, `ssl=False`, `ssl_context=None` in HTTP-call sites.
+- **TLS verification disabled** on `requests.*` / `httpx.*` / `aiohttp.*` — disables certificate verification, opens MITM. Dangerous forms to search for:
+  - `requests` / `httpx`: `verify=False` (also `verify = False`)
+  - `aiohttp`: `ssl=False`, OR a custom `ssl.SSLContext(...)` passed in with `check_hostname = False` and/or `verify_mode = ssl.CERT_NONE`
+  - `ssl.create_default_context()` followed by attribute mutations that disable verification
+  - Do NOT flag `ssl_context=None` — this is the `httpx.Client` / `httpx.AsyncClient` default and means "use the system default SSL context," which validates against the trust store. Grepping for `ssl_context=None` surfaces every explicit-default usage as a false positive.
 - **API keys / tokens hardcoded as string literals** — search for assignment patterns: `api_key\s*=\s*"`, `token\s*=\s*"`, `secret\s*=\s*"`, `Bearer ` literal. Cross-reference against `.gitleaks` output if available.
 - **Secrets in URL query strings** — `?apikey=`, `?token=`, `?api_key=`, `?key=` — these end up in HTTP server logs, proxy logs, and browser histories. Headers are safer.
 - **`set_api_creds` failure paths** — when credential setup can fail (e.g. `client.create_or_derive_api_key()`), is the connection gracefully marked unusable, or does it silently allow unauthenticated traffic? Trace from the credential-setup call to the first request.
