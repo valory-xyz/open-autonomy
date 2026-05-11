@@ -19,10 +19,11 @@
 """FSM spec helpers."""
 
 import importlib
+import json
 import os
 from pathlib import Path
 from types import ModuleType
-from typing import Optional, cast
+from typing import Optional, Set, cast
 
 import click
 
@@ -32,6 +33,34 @@ from autonomy.analyse.abci.app_spec import (
     FSMSpecificationLoader,
     check_unreferenced_events,
 )
+
+
+def _load_dev_skill_names(package_path: Path) -> Optional[Set[str]]:
+    """Discover the repo's ``packages.json`` and extract dev skill names.
+
+    Walks parents of ``package_path`` looking for a directory called
+    ``packages`` containing ``packages.json``. The dev section's keys have
+    the shape ``skill/<author>/<skill_name>/<version>``; we return the set
+    of ``<skill_name>`` values. Returns ``None`` if no ``packages.json``
+    is found, in which case the Mermaid dump falls back to the flat
+    per-round diagram (no collapsing).
+    """
+    current = package_path.resolve()
+    while current != current.parent:
+        if current.name == "packages" and (current / "packages.json").is_file():
+            try:
+                data = json.loads(
+                    (current / "packages.json").read_text(encoding="utf-8")
+                )
+            except (OSError, ValueError):
+                return None
+            return {
+                key.split("/")[2]
+                for key in data.get("dev", {})
+                if key.startswith("skill/") and len(key.split("/")) >= 3
+            }
+        current = current.parent
+    return None
 
 
 def import_and_validate_app_class(module_path: Path, app_class: str) -> ModuleType:
@@ -97,6 +126,8 @@ def update_one(
         dfa,
         spec_file,
         spec_format,
+        abci_app_cls=abci_app_class,
+        dev_skills=_load_dev_skill_names(package_path),
     )
 
 

@@ -16,17 +16,22 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Generates the specification for a given ABCI app in YAML/JSON/Mermaid format."""
+"""Generates the specification for a given ABCI app in YAML/JSON/Mermaid format.
+
+JSON output is deprecated and will be removed in a future release; use YAML
+or Mermaid instead.
+"""
 
 import inspect
 import json
 import logging
 import re
 import textwrap
+import warnings
 from collections import OrderedDict, defaultdict, deque
 from itertools import product
 from pathlib import Path
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import yaml
 from aea.helpers.io import open_file
@@ -111,8 +116,17 @@ class FSMSpecificationLoader:
 
     @staticmethod
     def dump_json(dfa: "DFA", file: Path) -> None:
-        """Dump to a json file."""
+        """Dump to a json file (deprecated).
 
+        JSON output is deprecated; prefer YAML or Mermaid. Emits a
+        DeprecationWarning on use. Will be removed in a future release.
+        """
+        warnings.warn(
+            "fsm-specs JSON output is deprecated and will be removed in a "
+            "future release; use --yaml or --mermaid instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         with open_file(file, "w", encoding="utf-8") as fp:
             json.dump(dfa.generate(), fp, indent=4)
 
@@ -123,36 +137,220 @@ class FSMSpecificationLoader:
             yaml.safe_dump(dfa.generate(), fp, indent=4)
 
     @staticmethod
-    def dump_mermaid(dfa: "DFA", file: Path) -> None:
-        """Dumps this DFA spec. to a file in Mermaid format."""
+    def dump_mermaid(
+        dfa: "DFA",
+        file: Path,
+        abci_app_cls: Optional[Any] = None,
+        dev_skills: Optional[Set[str]] = None,
+    ) -> None:
+        """Dumps this DFA spec. to a file in Mermaid format.
+
+        When ``abci_app_cls`` is supplied AND its rounds span more than one
+        sub-app, the diagram collapses every THIRD-PARTY sub-app into a
+        single node (one box per sub-app), and leaves dev sub-apps expanded
+        with their atomic rounds. ``dev_skills`` is the set of skill names
+        the local repo authored (typically derived from the ``dev`` section
+        of ``packages/packages.json``); any sub-app not in this set is
+        treated as third-party and collapsed.
+
+        Falls back to the flat per-round diagram when ``abci_app_cls`` is
+        ``None``, when ``dev_skills`` is ``None`` (i.e. no packages.json
+        info available), or when all rounds belong to a single sub-app.
+        """
+        # Classify every round by its owning sub-app and split sub-apps
+        # into dev (expanded) and third-party (collapsed).
+        round_to_subapp = FSMSpecificationLoader._build_round_to_subapp(
+            abci_app_cls
+        )
+        dev_subapps: Set[str] = set()
+        third_party_subapps: Set[str] = set()
+        for sub_app in set(round_to_subapp.values()):
+            if dev_skills is not None and sub_app in dev_skills:
+                dev_subapps.add(sub_app)
+            else:
+                third_party_subapps.add(sub_app)
+
+        # When the FSM lives in a single sub-app (e.g. per-skill analysis)
+        # or we have no dev/third-party split, fall back to the flat
+        # per-round diagram -- no composites, no collapsing.
+        flatten = (
+            abci_app_cls is None
+            or dev_skills is None
+            or len(round_to_subapp) == 0
+            or (len(dev_subapps) + len(third_party_subapps)) <= 1
+        )
+
+        def _display(state: str) -> str:
+            """Collapse third-party rounds to their sub-app name."""
+            if flatten:
+                return state
+            sub = round_to_subapp.get(state)
+            if sub in third_party_subapps:
+                return sub
+            return state
+
+        # Bucket transitions:
+        #   - internal-to-dev: kept inside the dev composite
+        #   - intra-third-party: dropped (hidden inside the collapse)
+        #   - cross-app (or flat-mode): emitted at the top level
+        internal_per_subapp: Dict[str, Dict[Tuple[str, str], Set[str]]] = {}
+        top_level: Dict[Tuple[str, str], Set[str]] = {}
+        for (s1, t), s2 in dfa.transition_func.items():
+            s1_sub = round_to_subapp.get(s1)
+            s2_sub = round_to_subapp.get(s2)
+            if (
+                not flatten
+                and s1_sub is not None
+                and s1_sub == s2_sub
+            ):
+                if s1_sub in dev_subapps:
+                    internal_per_subapp.setdefault(s1_sub, {}).setdefault(
+                        (s1, s2), set()
+                    ).add(t)
+                # else third-party -> hidden inside collapse, drop.
+                continue
+            d1, d2 = _display(s1), _display(s2)
+            if d1 == d2:
+                # post-collapse self-loop; drop.
+                continue
+            top_level.setdefault((d1, d2), set()).add(t)
+
+        start_states = {_display(s) for s in dfa.start_states}
+
         with open_file(file, "w", encoding="utf-8") as fp:
+            # Wrap in a fenced Markdown block so the file renders inline as
+            # a Mermaid diagram on GitHub / VS Code / docs sites.
+            print("```mermaid", file=fp)
             print("stateDiagram-v2", file=fp)
-            aux_map: Dict[Tuple[str, str], Set[str]] = {}
-            for (s1, t), s2 in dfa.transition_func.items():
-                aux_map.setdefault((s1, s2), set()).add(t)
 
-            # A small optimization to make the output nicer:
-            # (1) First, print the arrows that start from a start_state.
-            for (s1, s2), t_set in aux_map.items():
-                if s1 in dfa.start_states:
+            # Dev sub-apps: expanded composite states, internal transitions
+            # rendered inside the box.
+            for sub_app in sorted(dev_subapps):
+                print(f"    state {sub_app} {{", file=fp)
+                for (s1, s2), events in sorted(
+                    internal_per_subapp.get(sub_app, {}).items()
+                ):
+                    label = "<br />".join(sorted(events))
                     print(
-                        f"    {s1} --> {s2}: <center>{'<br />'.join(t_set)}</center>",
+                        f"        {s1} --> {s2}: <center>{label}</center>",
+                        file=fp,
+                    )
+                print("    }", file=fp)
+
+            # Third-party sub-apps: collapsed composite with "..." placeholder
+            # (UML notation for "macro state with hidden internals").
+            for sub_app in sorted(third_party_subapps):
+                print(f"    state {sub_app} {{", file=fp)
+                print(
+                    f'        state "..." as {sub_app}_collapsed', file=fp
+                )
+                print("    }", file=fp)
+
+            # Cross-app and flat-mode transitions at the top level, start
+            # states first.
+            for (s1, s2), events in top_level.items():
+                if s1 in start_states:
+                    label = "<br />".join(sorted(events))
+                    print(
+                        f"    {s1} --> {s2}: <center>{label}</center>",
+                        file=fp,
+                    )
+            for (s1, s2), events in top_level.items():
+                if s1 not in start_states:
+                    label = "<br />".join(sorted(events))
+                    print(
+                        f"    {s1} --> {s2}: <center>{label}</center>",
                         file=fp,
                     )
 
-            # (2) Then, print the rest of the arrows.
-            for (s1, s2), t_set in aux_map.items():
-                if s1 not in dfa.start_states:
-                    print(
-                        f"    {s1} --> {s2}: <center>{'<br />'.join(t_set)}</center>",
-                        file=fp,
-                    )
+            # Visual styling: dev sub-app boxes get a subtle "group" tint,
+            # third-party get the more pronounced macro-state styling so
+            # the two roles are easy to distinguish at a glance.
+            if dev_subapps:
+                print(
+                    "    classDef devGroup "
+                    "fill:#f5f9f5,"
+                    "stroke:#2e7d32,"
+                    "stroke-width:2px,"
+                    "font-weight:bold",
+                    file=fp,
+                )
+                print(
+                    f"    class {','.join(sorted(dev_subapps))} devGroup",
+                    file=fp,
+                )
+            if third_party_subapps:
+                print(
+                    "    classDef macro "
+                    "fill:#eef2ff,"
+                    "stroke:#1e3a8a,"
+                    "stroke-width:3px,"
+                    "font-weight:bold",
+                    file=fp,
+                )
+                print(
+                    f"    class {','.join(sorted(third_party_subapps))} macro",
+                    file=fp,
+                )
+            print("```", file=fp)
+
+    @staticmethod
+    def _build_round_to_subapp(abci_app_cls: Optional[Any]) -> Dict[str, str]:
+        """Map each round class name to its owning sub-app skill name.
+
+        e.g. ``packages.valory.skills.market_manager_abci.states.update_bets``
+        -> ``market_manager_abci``. Returns ``{}`` when ``abci_app_cls`` is
+        ``None``.
+        """
+        if abci_app_cls is None:
+            return {}
+
+        round_classes: Set[Any] = set()
+        for src, transitions in abci_app_cls.transition_function.items():
+            round_classes.add(src)
+            for dst in transitions.values():
+                round_classes.add(dst)
+        for init_cls in getattr(abci_app_cls, "initial_states", set()) or set():
+            round_classes.add(init_cls)
+        for final_cls in getattr(abci_app_cls, "final_states", set()) or set():
+            round_classes.add(final_cls)
+
+        result: Dict[str, str] = {}
+        for cls in round_classes:
+            module = getattr(cls, "__module__", "")
+            sub_app = FSMSpecificationLoader._extract_skill_name(module)
+            if sub_app:
+                result[cls.__name__] = sub_app
+        return result
+
+    @staticmethod
+    def _extract_skill_name(module_path: str) -> Optional[str]:
+        """Pull the skill name out of a `packages.<author>.skills.<skill>...` path."""
+        parts = module_path.split(".")
+        try:
+            idx = parts.index("skills")
+        except ValueError:
+            return None
+        if idx + 1 >= len(parts):
+            return None
+        return parts[idx + 1]
 
     @classmethod
     def dump(
-        cls, dfa: "DFA", file: Path, spec_format: str = OutputFormats.YAML
+        cls,
+        dfa: "DFA",
+        file: Path,
+        spec_format: str = OutputFormats.YAML,
+        abci_app_cls: Optional[Any] = None,
+        dev_skills: Optional[Set[str]] = None,
     ) -> None:
-        """Dumps this DFA spec. to a file in YAML/JSON/Mermaid format."""
+        """Dumps this DFA spec. to a file in YAML/JSON/Mermaid format.
+
+        ``abci_app_cls`` and ``dev_skills`` are only used by the Mermaid
+        renderer to collapse third-party sub-apps into single nodes while
+        keeping dev sub-apps expanded (see ``dump_mermaid``). Other
+        formats ignore them.
+        """
 
         validate_fsm_spec(dfa.generate())
 
@@ -161,7 +359,9 @@ class FSMSpecificationLoader:
         elif spec_format == cls.OutputFormats.YAML:
             cls.dump_yaml(dfa, file)
         elif spec_format == cls.OutputFormats.MERMAID:
-            cls.dump_mermaid(dfa, file)
+            cls.dump_mermaid(
+                dfa, file, abci_app_cls=abci_app_cls, dev_skills=dev_skills
+            )
         else:
             raise ValueError(f"Unrecognized input format {spec_format}.")
 
