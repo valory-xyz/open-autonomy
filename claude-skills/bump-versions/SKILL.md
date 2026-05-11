@@ -11,7 +11,7 @@ End-to-end procedure for bumping a Valory downstream repo (mech, mech-interact, 
 
 The two frameworks that drive **code changes** are `open-autonomy` (OA) and `open-aea` (OAEA). Everything else listed in `[tool.tomte] upstream_pins` (e.g. `valory-xyz/mech-interact`, `valory-xyz/genai`, `valory-xyz/mech`) is bumped **tag + third-party-hash only** — never apply code rewrites for those.
 
-> Reference: a Poetry-era predecessor of this procedure exists in the legacy `oa-bump` skill. The pitfalls and tox/CI hardening notes there still apply; everything below assumes the modern **uv + tox + PEP 621 `[project]`** layout the fleet now uses.
+The procedure assumes the modern **uv + tox + PEP 621 `[project]`** layout the downstream fleet now uses. Repos still on Poetry need the equivalent edits applied to `[tool.poetry.dependencies]` / `poetry.lock` — the phase structure is unchanged.
 
 ---
 
@@ -79,19 +79,25 @@ Plugin versions are not independent — they track one framework or the other:
 
 ```bash
 # Anchor the version on a non-digit boundary so 0.21.2 doesn't false-match inside 0.21.20.
-pip index versions open-aea-test-autonomy 2>/dev/null | grep -E "(^|[^0-9])$NEW_OA([^0-9]|$)"
-pip index versions open-aea-helpers       2>/dev/null | grep -E "(^|[^0-9])$NEW_OA([^0-9]|$)"
+# Fail loudly if either plugin isn't on PyPI yet — silent grep-no-match would otherwise let
+# the bump proceed and trip later with a confusing dependency-resolution error.
+for pkg in open-aea-test-autonomy open-aea-helpers; do
+  pip index versions "$pkg" 2>/dev/null \
+    | grep -qE "(^|[^0-9])$NEW_OA([^0-9]|$)" \
+    || { echo "ERROR: $pkg==$NEW_OA not yet on PyPI — hold the bump until the publish job completes"; exit 1; }
+done
 ```
-
-If missing, hold the bump and tell the user — they should wait for the publish job to finish.
 
 ### 1.2 Verify OA at `NEW_OA` pins OAEA at `NEW_OAEA`
 
-The bump only makes sense if the new OA itself pins the new OAEA. Pull OA's own `pyproject.toml` at `v$NEW_OA` and read the `open-aea` line(s) — OA still ships Poetry-style (`[tool.poetry.dependencies]`), so the pin shape is e.g. `open-aea = {version = "==2.2.3", extras = ["all"]}`:
+The bump only makes sense if the new OA itself pins the new OAEA. Pull OA's own `pyproject.toml` at `v$NEW_OA` and read the `open-aea` line(s) — OA still ships Poetry-style (`[tool.poetry.dependencies]`), so the pin shape is e.g. `open-aea = {version = "==2.2.3", extras = ["all"]}`. Materialize the fetch first so a network/auth failure is distinguishable from an empty grep result (the latter would be the trust-OA's-pin branch):
 
 ```bash
+TMP=${TMP:-$(mktemp -d)}
 gh api "repos/valory-xyz/open-autonomy/contents/pyproject.toml?ref=v$NEW_OA" \
-  --jq '.content' | base64 -d | grep -E '^[[:space:]]*open-aea[[:space:]]*='
+  --jq '.content' > "$TMP/oa_pyproject.b64" \
+  || { echo "ERROR: gh api failed for OA pyproject.toml@v$NEW_OA — check tag exists, gh auth, rate limit"; exit 1; }
+base64 -d "$TMP/oa_pyproject.b64" | grep -E '^[[:space:]]*open-aea[[:space:]]*='
 ```
 
 If OA `v$NEW_OA` pins a different OAEA version than the user asked for, **trust OA's pin** and override `NEW_OAEA` to match. A mismatch will fail `tox -e check-dependencies` and `autonomy packages sync` later.
@@ -128,22 +134,28 @@ This is the **only** phase that drives code changes. Surface the diff between `C
 
 ### 2.1 Fetch HISTORY + upgrading from upstream HEAD
 
-`HISTORY.md` is authoritative — `docs/upgrading.md` is the user-facing distilled version. Read both: HISTORY for the full change set, upgrading for the call-to-action. Stage them in a fresh `mktemp -d` so parallel runs (or multiple users on a shared host) don't clobber one another:
+`HISTORY.md` is authoritative — `docs/upgrading.md` is the user-facing distilled version. Read both: HISTORY for the full change set, upgrading for the call-to-action. Stage them in a fresh `mktemp -d` so parallel runs (or multiple users on a shared host) don't clobber one another.
+
+**Critical**: each `gh api … > file` chain can fail silently — the redirect succeeds even if `gh api` errors, leaving a zero-byte file. Phase 2.2 then reads nothing, finds no breaking changes, and reports "no action required" — operator applies pin bumps without the code rewrites upgrading.md actually demanded. Guard every fetch:
 
 ```bash
+set -euo pipefail
 TMP=$(mktemp -d)
 
+_fetch() {
+  local repo="$1" path="$2" ref="$3" out="$4"
+  gh api "repos/$repo/contents/$path?ref=$ref" --jq '.content' \
+    | base64 -d > "$out"
+  [[ -s "$out" ]] || { echo "ERROR: empty fetch — $repo:$path@$ref"; exit 1; }
+}
+
 # Open-autonomy — HISTORY.md and docs/upgrading.md
-gh api "repos/valory-xyz/open-autonomy/contents/HISTORY.md?ref=v$NEW_OA" \
-  --jq '.content' | base64 -d > "$TMP/oa_history.md"
-gh api "repos/valory-xyz/open-autonomy/contents/docs/upgrading.md?ref=v$NEW_OA" \
-  --jq '.content' | base64 -d > "$TMP/oa_upgrading.md"
+_fetch valory-xyz/open-autonomy HISTORY.md          "v$NEW_OA" "$TMP/oa_history.md"
+_fetch valory-xyz/open-autonomy docs/upgrading.md   "v$NEW_OA" "$TMP/oa_upgrading.md"
 
 # Open-aea — HISTORY.md and docs/upgrading.md
-gh api "repos/valory-xyz/open-aea/contents/HISTORY.md?ref=v$NEW_OAEA" \
-  --jq '.content' | base64 -d > "$TMP/oaea_history.md"
-gh api "repos/valory-xyz/open-aea/contents/docs/upgrading.md?ref=v$NEW_OAEA" \
-  --jq '.content' | base64 -d > "$TMP/oaea_upgrading.md"
+_fetch valory-xyz/open-aea      HISTORY.md          "v$NEW_OAEA" "$TMP/oaea_history.md"
+_fetch valory-xyz/open-aea      docs/upgrading.md   "v$NEW_OAEA" "$TMP/oaea_upgrading.md"
 ```
 
 Read **only the sections between `CUR_OA` and `NEW_OA`** in OA's docs, and between `CUR_OAEA` and `NEW_OAEA` in OAEA's docs. Both files are reverse-chronological — top of file is newest.
@@ -459,10 +471,13 @@ Two known failure modes (from real bumps):
   ```bash
   find ~/.aea/cache/packages -mindepth 1 -maxdepth 1 -type d -empty -exec rmdir {} \;
   ```
-- **`Destination path '...' already exists`** — a prior sync wrote a package to the wrong on-disk path:
+- **`Destination path '...' already exists`** — a prior sync wrote a package to the wrong on-disk path. **Do not** reach for `git clean -fdx packages/` — `-fdx` deletes untracked **and gitignored** files, which will silently nuke any Phase 3.4 YAML edits or Phase 4 `.py` rewrites that aren't staged yet (and the doc never tells you to stage between phases). Instead stash, retry, then unstash:
   ```bash
-  git clean -fdx packages/
+  git stash push -u -- packages/    # captures untracked Phase 3-4 edits
+  autonomy packages sync --source <repo>:<tag> --update-packages
+  git stash pop                     # restore your in-progress edits
   ```
+  If you've confirmed there are no in-progress edits under `packages/` (e.g. `git status -- packages/` is clean and `git ls-files --others --exclude-standard -- packages/` is empty), `git clean -fdx packages/` is fine — but verify first.
 
 Don't treat either as a bump regression.
 
@@ -475,8 +490,16 @@ Run in this exact order. Each step gates the next.
 **Pick the right `tox` invocation form first.** Most of the modern fleet (market-creator, market-resolver, kv-store, funds-manager, genai, mech, mech-interact, …) runs envs through `tomte tox -e <env>` so the testenvs inherit dep blocks from tomte's canonical config. Bare `tox -e <env>` on those repos fails with `ERROR: env '<name>' not defined in tox config`. Detect once and use `$TOX` throughout:
 
 ```bash
-# Use `tomte tox` if the Makefile references it; otherwise fall back to bare `tox`.
-TOX=$(grep -q "tomte tox" Makefile 2>/dev/null && echo "tomte tox" || echo "tox")
+# Pick the invocation form by reading the Makefile; warn loudly if absent so we
+# don't silently default to bare `tox` on a uv-only repo that actually needs tomte.
+if [[ ! -f Makefile ]]; then
+  echo "WARNING: no Makefile — defaulting TOX=tox. Verify this repo doesn't require 'tomte tox'."
+  TOX="tox"
+elif grep -q "tomte tox" Makefile; then
+  TOX="tomte tox"
+else
+  TOX="tox"
+fi
 echo "using TOX=$TOX"
 ```
 
@@ -577,15 +600,20 @@ Hand off with a short summary: which framework versions were bumped, which `upst
 
 ## Appendix: quick-reference grep patterns
 
+All version-targeting greps below mirror Phase 3's `==X.Y.Z` + non-digit-boundary discipline so `0.21.2` doesn't false-match inside `0.21.20`. If you want a looser triage view (e.g. to find docs prose mentioning the version), drop the boundary deliberately and expect false positives.
+
 ```bash
-# Every site that still references the old OA version
-grep -rln "$CUR_OA" --exclude-dir=.git --exclude-dir=.venv --exclude=uv.lock --exclude=poetry.lock .
+# Every pin site that still references the old OA version (canonical sweep)
+grep -rE "==${CUR_OA}([^0-9]|$)" --exclude-dir=.git --exclude-dir=.venv \
+  --exclude=uv.lock --exclude=poetry.lock .
 
-# Every site that still references the old OAEA version
-grep -rln "$CUR_OAEA" --exclude-dir=.git --exclude-dir=.venv --exclude=uv.lock --exclude=poetry.lock .
+# Every pin site that still references the old OAEA version (canonical sweep)
+grep -rE "==${CUR_OAEA}([^0-9]|$)" --exclude-dir=.git --exclude-dir=.venv \
+  --exclude=uv.lock --exclude=poetry.lock .
 
-# Every YAML dep block under dev packages (Phase 3.4 scope)
-grep -rn "open-aea\|open-autonomy" packages/ --include="*.yaml" -B1 -A2
+# Every YAML dep block under dev packages (Phase 3.4 scope) — package-name match only,
+# version-pin sweep already covered by the two patterns above
+grep -rnE "open-aea|open-autonomy" packages/ --include="*.yaml" -B1 -A2
 
 # Every `[tool.tomte] upstream_pins` entry (Phase 1.3 inventory)
 sed -n '/^\[tool\.tomte\]/,/^\[/p' pyproject.toml | grep -E '"valory-xyz/'
