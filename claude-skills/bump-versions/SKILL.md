@@ -2,7 +2,7 @@
 name: bump-versions
 description: Bump `open-autonomy` and `open-aea` (and their plugins / upstream-pin tags) to the latest released versions across any Valory downstream repo. Reads HISTORY.md + upgrading.md for both frameworks, applies code changes to dev packages only for OA/OAEA breaking changes, bumps version pins everywhere, then syncs third-party hashes from all upstream repos.
 argument-hint: "[oa=<version>] [oaea=<version>]  # both optional; defaults to latest GitHub release of each"
-disable-model-invocation: false
+disable-model-invocation: true
 ---
 
 # Bump `open-autonomy` + `open-aea` (and upstream pins) in any downstream repo
@@ -11,7 +11,7 @@ End-to-end procedure for bumping a Valory downstream repo (mech, mech-interact, 
 
 The two frameworks that drive **code changes** are `open-autonomy` (OA) and `open-aea` (OAEA). Everything else listed in `[tool.tomte] upstream_pins` (e.g. `valory-xyz/mech-interact`, `valory-xyz/genai`, `valory-xyz/mech`) is bumped **tag + third-party-hash only** — never apply code rewrites for those.
 
-> Reference: a Poetry-era predecessor of this skill lives at `~/Desktop/Work/Valory/Github/oa-bump/SKILL.md`. Reuse pitfalls and tox/CI hardening rules from there; everything below assumes the modern **uv + tox + PEP 621 `[project]`** layout that the fleet now uses.
+> Reference: a Poetry-era predecessor of this procedure exists in the legacy `oa-bump` skill. The pitfalls and tox/CI hardening notes there still apply; everything below assumes the modern **uv + tox + PEP 621 `[project]`** layout the fleet now uses.
 
 ---
 
@@ -380,19 +380,24 @@ Hash sync is non-negotiable and **must** run after Phase 3 edits (pin bumps) but
 
 `autonomy packages sync --source` only refreshes packages it already knows about — it trusts whatever CID is currently in `packages.json`. Drift from a prior bump (a CID miscopy, a never-synced upstream) is invisible to the regular sync path. Audit first:
 
+Point the snippet at your own local upstream checkouts via env vars (`LOCAL_OAEA_CHECKOUT`, `LOCAL_OA_CHECKOUT`, etc.) — defaults assume `~/git/<repo>`, override per your layout:
+
 ```bash
 python3 <<'PY'
-import json, subprocess, sys
+import json, os, subprocess, sys
 from pathlib import Path
 
 local = json.load(open('packages/packages.json'))['third_party']
 
 # Upstreams to diff against. Read from [tool.tomte] upstream_pins + the two frameworks.
-# (Substitute real local checkout paths or `gh api` fetches as available.)
+# Override checkout paths per env-var; defaults assume sibling clones under ~/git/.
+def _co(env, default):
+    return os.path.expanduser(os.environ.get(env, default))
+
 UPSTREAMS = [
     # (local_checkout, ref)
-    ('/Users/dhairya/Desktop/Work/Valory/Github/open-aea',       'v<NEW_OAEA>'),
-    ('/Users/dhairya/Desktop/Work/Valory/Github/open-autonomy',  'v<NEW_OA>'),
+    (_co("LOCAL_OAEA_CHECKOUT", "~/git/open-aea"),      "v<NEW_OAEA>"),
+    (_co("LOCAL_OA_CHECKOUT",   "~/git/open-autonomy"), "v<NEW_OA>"),
     # + one entry per upstream_pins repo, using its resolved tag
 ]
 
@@ -467,6 +472,14 @@ Don't treat either as a bump regression.
 
 Run in this exact order. Each step gates the next.
 
+**Pick the right `tox` invocation form first.** Most of the modern fleet (market-creator, market-resolver, kv-store, funds-manager, genai, mech, mech-interact, …) runs envs through `tomte tox -e <env>` so the testenvs inherit dep blocks from tomte's canonical config. Bare `tox -e <env>` on those repos fails with `ERROR: env '<name>' not defined in tox config`. Detect once and use `$TOX` throughout:
+
+```bash
+# Use `tomte tox` if the Makefile references it; otherwise fall back to bare `tox`.
+TOX=$(grep -q "tomte tox" Makefile 2>/dev/null && echo "tomte tox" || echo "tox")
+echo "using TOX=$TOX"
+```
+
 ```bash
 # 1. Regenerate the lockfile and install
 uv lock
@@ -476,13 +489,13 @@ uv sync --all-groups
 autonomy packages lock
 
 # 3. Auto-format (some pin changes trip isort/black)
-tox -e black
-tox -e isort
+$TOX -e black
+$TOX -e isort
 # Re-run `autonomy packages lock` if anything under packages/ was reformatted
 
 # 4. Verify lock + format
-tox -e black-check
-tox -e isort-check
+$TOX -e black-check
+$TOX -e isort-check
 autonomy packages lock --check
 ```
 
@@ -493,20 +506,20 @@ Then run the **full CI suite locally** — every job referenced by `.github/work
 grep -E "tomte tox -e|^\s+- run:.*tox -e|^\s+- name:" .github/workflows/*.yml
 
 # Typical envs to run (substitute Python minor for your interpreter):
-tox -e flake8
-tox -e mypy
-tox -e pylint
-tox -e darglint
-tox -e bandit
-tox -e safety           # add -i <ID> for new CVE exceptions per upgrading.md
-tox -e liccheck         # add [Authorized Packages] entries for metadata-less new transitives
-tox -e copyright-check
-tox -e check-hash
-tox -e check-packages
-tox -e check-abciapp-specs
-tox -e check-abci-docstrings
-tox -e check-dependencies
-tox -e py3.11-linux     # or py3.12, py3.13, py3.14 — whatever the matrix supports
+$TOX -e flake8
+$TOX -e mypy
+$TOX -e pylint
+$TOX -e darglint
+$TOX -e bandit
+$TOX -e safety           # add -i <ID> for new CVE exceptions per upgrading.md
+$TOX -e liccheck         # add [Authorized Packages] entries for metadata-less new transitives
+$TOX -e copyright-check
+$TOX -e check-hash
+$TOX -e check-packages
+$TOX -e check-abciapp-specs
+$TOX -e check-abci-docstrings
+$TOX -e check-dependencies
+$TOX -e py3.11-linux     # or py3.12, py3.13, py3.14 — whatever the matrix supports
 # + every other env the workflow files actually run
 ```
 
