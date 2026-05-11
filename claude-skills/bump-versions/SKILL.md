@@ -380,36 +380,35 @@ Hash sync is non-negotiable and **must** run after Phase 3 edits (pin bumps) but
 
 `autonomy packages sync --source` only refreshes packages it already knows about — it trusts whatever CID is currently in `packages.json`. Drift from a prior bump (a CID miscopy, a never-synced upstream) is invisible to the regular sync path. Audit first:
 
-Point the snippet at your own local upstream checkouts via env vars (`LOCAL_OAEA_CHECKOUT`, `LOCAL_OA_CHECKOUT`, etc.) — defaults assume `~/git/<repo>`, override per your layout:
+Fetch each upstream's `packages.json` straight from GitHub via `gh api` (same path the rest of the skill uses for HISTORY/upgrading) — no local checkouts required:
 
 ```bash
 python3 <<'PY'
-import json, os, subprocess, sys
-from pathlib import Path
+import json, subprocess
 
 local = json.load(open('packages/packages.json'))['third_party']
 
-# Upstreams to diff against. Read from [tool.tomte] upstream_pins + the two frameworks.
-# Override checkout paths per env-var; defaults assume sibling clones under ~/git/.
-def _co(env, default):
-    return os.path.expanduser(os.environ.get(env, default))
-
+# (repo, ref) for [tool.tomte] upstream_pins + the two frameworks.
 UPSTREAMS = [
-    # (local_checkout, ref)
-    (_co("LOCAL_OAEA_CHECKOUT", "~/git/open-aea"),      "v<NEW_OAEA>"),
-    (_co("LOCAL_OA_CHECKOUT",   "~/git/open-autonomy"), "v<NEW_OA>"),
+    ("valory-xyz/open-aea",      "v<NEW_OAEA>"),
+    ("valory-xyz/open-autonomy", "v<NEW_OA>"),
     # + one entry per upstream_pins repo, using its resolved tag
 ]
 
+def _fetch(repo, ref):
+    raw = subprocess.check_output([
+        "gh", "api",
+        f"repos/{repo}/contents/packages/packages.json?ref={ref}",
+        "--jq", ".content",
+    ])
+    import base64
+    return json.loads(base64.b64decode(raw))
+
 all_up = {}
 for repo, ref in UPSTREAMS:
-    if not Path(repo).exists():
-        print(f'WARN: {repo} not present locally, skipping')
-        continue
-    raw = subprocess.check_output(['git', '-C', repo, 'show', f'{ref}:packages/packages.json'])
-    data = json.loads(raw)
+    data = _fetch(repo, ref)
     # Upstream-side dev map becomes our third-party map
-    all_up.update(data.get('dev', {}))
+    all_up.update(data.get("dev", {}))
 
 drift = []
 for k, v in local.items():
