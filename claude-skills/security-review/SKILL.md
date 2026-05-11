@@ -37,7 +37,7 @@ Open-autonomy agents hold private keys for one or more chains. Default file loca
 - `solana_private_key.txt`
 - `cosmos_private_key.txt`
 
-Loaded by `aea` core via `KeyManager` at startup. Used for:
+Loaded by `aea` core via `aea.crypto.wallet.Wallet` (and the underlying `CryptoStore`) at startup. Used for:
 - Signing ABCI payloads (each agent's `sender` field on consensus payloads)
 - Signing on-chain transactions to a Gnosis Safe (multi-sig) or directly to a contract
 - Establishing ACN (Agent Communication Network) identity
@@ -63,13 +63,18 @@ ABCI payloads carry `sender: str` (agent address). The framework verifies via Te
 - Payload type matches the round's `payload_class`
 - Threshold rules (e.g. `CollectSameUntilThresholdRound` requires N agents to agree)
 
+**What the framework DOES guarantee (do not re-report as findings against standard rounds):**
+- **Cross-period replay protection on standard rounds.** `BaseTxPayload.round_count` is monotonic and never resets across periods. The standard collection rounds (`CollectSameUntilThresholdRound`, etc.) verify it in `process_payload()` (`packages/valory/skills/abstract_round_abci/base.py:1417`): `if payload.round_count != self.synchronized_data.round_count: raise ABCIAppInternalError(...)`. A payload from a closed period therefore cannot be re-submitted in a later period as long as the round's `process_payload` invokes the parent's check.
+
 **What is NOT verified by the framework:**
 - **Payload field semantics**: an agent reporting "I have 1 ETH" is not cross-checked against actual on-chain balance. Field-level validation is the round/behaviour author's responsibility.
-- **Cross-period replay**: a serialized payload from period N can in some cases be re-submitted in period M; the round_id and any nonce are the only protection. If the round_id repeats (likely after a reset cycle) and no per-period nonce is bound, replay is possible.
+- **Cross-period replay on custom rounds that bypass the parent check.** Any round that overrides `process_payload()` without invoking the standard `round_count` verification re-opens the replay surface. This is the surface H6 audits.
 - **Source authenticity beyond AEA identity**: if an agent's key is stolen, the attacker is indistinguishable from the legitimate agent. There is no per-payload TOFU or out-of-band confirmation.
-- **Payload class identity stability**: `_MetaPayload` keys payloads by `"{module}.{ClassName}"`. Renaming the payload class or moving its module breaks deserialization of persisted Tendermint state — and creates a window where two distinct payload types share a registry key during rollout. (Cross-reference: audit-fsm gap #4.)
+- **Payload class identity stability**: `_MetaPayload` keys payloads by `"{module}.{ClassName}"`. Renaming the payload class or moving its module breaks deserialization of persisted Tendermint state — and creates a window where two distinct payload types share a registry key during rollout. Cross-reference: `audit-fsm` M1 (`Payload Class Mismatch`) and T6 (`_MetaPayload.registry Not Saved/Restored`).
 
 ### IPFS-Loaded Strategy Model (`customs/`)
+
+**Scope caveat.** `customs/` and `FILE_HASH_TO_STRATEGIES` are **downstream service patterns** (e.g. `valory-xyz/trader`, `valory-xyz/optimus`) — they do NOT exist in `open-autonomy` itself. Audits scoped to the framework repo will produce vacuous "no findings" output for this section and for C3. Apply this subsection only when auditing a downstream service that adopts the pattern.
 
 Strategies under `customs/` (e.g. `kelly_criterion`, `fixed_bet`) are loaded by IPFS hash at runtime:
 
@@ -77,7 +82,7 @@ Strategies under `customs/` (e.g. `kelly_criterion`, `fixed_bet`) are loaded by 
 2. Code is fetched from IPFS, the content hash is verified against the configured hash, and the module is **executed in the agent process**.
 
 **Trust boundary:** the configured hash is the only thing standing between the agent and arbitrary code execution. The strategy code runs with full agent privileges:
-- Access to private keys via `KeyManager`
+- Access to private keys via the agent's `Wallet` / `CryptoStore` (`aea.crypto.wallet`)
 - Access to environment variables
 - Network access to all configured endpoints (RPC, exchange APIs, IPFS)
 - Ability to read/write `synchronized_data` (consensus-critical state)
@@ -110,6 +115,7 @@ Resolution happens at agent startup. Resolved values flow into `Params` / `Model
 Each agent ships with a Tendermint sidecar:
 - RPC port (default 26657) — used for ABCI queries, block info, broadcast
 - P2P port (default 26656) — peer-to-peer consensus
+- ABCI app socket (default 26658) — the port the agent's `abci` connection listens on (`packages/valory/connections/abci/connection.py:110` `DEFAULT_ABCI_PORT`); Tendermint dials in to deliver `CheckTx` / `DeliverTx` etc. A 0.0.0.0 bind here lets any peer drive the application directly, bypassing Tendermint
 - gRPC port (default 9090, optional)
 
 **Threat surface:**
@@ -164,7 +170,7 @@ The repo's `tox -e safety` allowlist already pins known-unfixed CVEs in transiti
 - `importlib.import_module(`, `__import__(` with non-literal arguments
 - `pickle.load`, `pickle.loads` on data not produced by the same trust boundary (file written by user, network response, IPFS payload)
 - `marshal.loads`, `shelve.open` on untrusted data
-- `yaml.load(` (without `Loader=SafeLoader`) — defaults to `FullLoader` which can construct arbitrary Python objects in older PyYAML versions
+- `yaml.load(...)` without `Loader=SafeLoader` — pre-5.4 `FullLoader` had **CVE-2020-14343** (arbitrary object construction); PyYAML ≥ 6.0 raises `TypeError` on missing `Loader`. Always pass `Loader=SafeLoader` (or `yaml.safe_load`) explicitly — even on PyYAML 6 — to be robust against future loader-default changes
 - `subprocess.*` with `shell=True` AND interpolated arguments (`f"cmd {var}"`, `"cmd " + var`, `cmd % var`)
 - `os.system(` with interpolated arguments
 - `Template(...).substitute(...)` where the template itself comes from untrusted input
@@ -183,12 +189,12 @@ def process_strategy(self, payload):
 
 #### C2: Private Key Disclosure
 
-**What:** Any code path that emits, persists, or returns a private key, mnemonic, seed, or signing material outside the `KeyManager` boundary.
+**What:** Any code path that emits, persists, or returns a private key, mnemonic, seed, or signing material outside the AEA crypto/wallet boundary (`aea.crypto.wallet.Wallet`, `Crypto.sign_message`, `CryptoStore`).
 
 **Search patterns:**
 - Variable name regex inside `logger.*`, `print(`, `return`, response builders, payload constructors:
   - `private_key`, `priv_key`, `pk`, `sk`, `secret`, `seed`, `mnemonic`, `entropy`, `signing_key`, `wallet.private_key`
-- HTTP handlers that read from `KeyManager` and return values in the response body (debug endpoints in particular)
+- HTTP handlers that read from the agent's `Wallet` / `CryptoStore` and return values in the response body (debug endpoints in particular)
 - Behaviours that interpolate signed material into `payload` fields broadcast over Tendermint
 - Files written by the agent that contain key material (`open(..., 'w')` with key in body)
 - Exception handlers that include the key in the error message (`raise ValueError(f"Bad key: {key}")`)
@@ -229,7 +235,7 @@ self.context.logger.info(f"Sent: {request}, Got: {response.json()}")
 - `marshal.loads(...)`
 - Custom deserializers that `eval` field values
 
-**Cross-reference:** audit-resilience BP14 covers `json.loads` exception handling at the connection boundary. /security-review C4 covers the harder issue: even if exception handling is correct, using a code-executing deserializer on network input is RCE waiting to happen.
+**Distinct from `audit-resilience` BP14.** BP14 audits whether the connection's `on_send` / `_route_request` catches `JSONDecodeError` from `json.loads(message.payload)` — i.e. a malformed-input robustness concern. C4 audits whether the deserializer itself is code-executing — i.e. an RCE concern. A connection can simultaneously have a BP14 finding (no exception handling) and a clean C4 (uses `json.loads`), or vice versa (uses `pickle.loads` inside a generous try-except → C4 finding without BP14). Different threat classes; report independently.
 
 **Fix:** use JSON; if a binary format is needed, use protobuf / msgpack with strict schemas.
 
@@ -243,7 +249,7 @@ self.context.logger.info(f"Sent: {request}, Got: {response.json()}")
 - Test fixtures that may have been accidentally promoted to runtime code paths
 
 **Search patterns** beyond gitleaks defaults. Gitleaks's built-in rules already cover common SaaS / cloud token shapes (Slack, GitHub, GitLab, AWS, Stripe, JWT, OpenAI, etc.) — do NOT re-list those literals here, listing them would re-trigger gitleaks on this file. Audit-specific additions:
-- `0x[a-fA-F0-9]{64}` (Ethereum private key shape) in non-test files
+- `0x[a-fA-F0-9]{64}` — 32-byte hex **shape** in non-test files. **High false-positive rate**: the same form matches Ethereum transaction hashes, block hashes, Keccak-256 outputs, storage-slot keys, IPFS CID v1 binary fields, and any `bytes32` literal. Triage before flagging: require proximity to a variable name in `{key, secret, mnemonic, pk, sk, private}`, OR exclude matches adjacent to `{tx_hash, block_hash, ipfs_hash, topic, slot}`. Without this triage, the rule fires on every block-hash literal in tests and tooling AND lets reviewers dismiss real keys as "just a hash"
 - `mnemonic = "..."`, mnemonic-shaped 12/15/18/21/24-word strings in source
 
 **Severity:** Critical regardless of intent — once committed, must be assumed compromised even after removal (git history retention).
@@ -337,25 +343,30 @@ def restart(agent_id: str):
 
 **Fix:** validate at `check_payload()` (round side) and at payload construction (behaviour side); use strict type hints (`Address`, `URL`, `PositiveInt`); reject out-of-range values.
 
-#### H6: Replay Protection Gaps
+#### H6: Replay Protection Gaps in Custom Rounds
 
-**What:** Round / payload designs that lack a per-period nonce and could be replayed across periods if the same agent re-submits a previously seen payload.
+**What:** Standard collection rounds inherit `process_payload()` from the framework, which verifies `payload.round_count == self.synchronized_data.round_count` (`packages/valory/skills/abstract_round_abci/base.py:1417`). H6 audits the narrower residual surface: **custom rounds that override `process_payload()` without invoking the parent check** (e.g. via `super().process_payload(payload)` or an equivalent `round_count` assertion).
 
 **How to check:**
-1. For each `payload_class`, list its fields. Is there a per-period nonce, period_count, or `last_round_transition_timestamp`?
-2. If not, can a payload from period N be re-submitted in period M with the same effect?
-3. For payloads that drive on-chain transactions, does the resulting tx include the chain-id, contract nonce, and Safe nonce?
+1. Grep for round subclasses that define their own `process_payload` (`def process_payload(self, payload`).
+2. For each, verify the override either:
+   - Calls `super().process_payload(payload)`, OR
+   - Performs an equivalent `if payload.round_count != self.synchronized_data.round_count: raise ...` check.
+3. If neither, this round's payloads from a closed period can be replayed in any later period — flag.
+4. For payloads that drive on-chain transactions, also verify the resulting tx includes chain-id, contract nonce, and Safe nonce (these are independent of the ABCI-level check).
 
-**Threat:** an attacker (or a buggy resubmission) replays a payload to trigger a duplicate financial action. (Cross-reference: audit-resilience BP15 covers idempotency on retry; H6 here is the consensus-level analogue.)
+**Threat:** an adversary captures a payload signed by a participant in period N and re-submits it in period M to re-trigger a state-changing action. Standard rounds reject this at `process_payload`; overriding rounds may not.
 
-**Fix:** include `period_count` or a per-round nonce in every payload that drives state-changing actions; verify on the round side.
+**Distinct from `audit-resilience` BP15.** BP15 protects against the same logical action being re-submitted via FSM retry / connection-layer retry (accidental, internal trigger). H6 protects against an old payload from a closed period being replayed on the consensus layer (adversarial, external trigger). Different attacker model, different mitigation surface — the mitigations partially overlap (idempotency on the action vs nonce/round_count on the payload) but require independent assessment.
+
+**Fix:** in every custom `process_payload` override, either call `super().process_payload(payload)` first, or replicate the `round_count` check explicitly.
 
 #### H7: Dependency CVEs
 
-**What:** Run `tox -e safety` (which uses tomte's allowlist) and `pip-audit` against the resolved environment. Each unaddressed CVE in a runtime dep is a finding.
+**What:** Run `tox -e safety` (which uses tomte's allowlist) against the resolved environment. Each unaddressed CVE in a runtime dep is a finding. `pip-audit` is optional second-source coverage but is **NOT pre-configured** in this repo — there is no `[testenv:pip-audit]` stanza in `tox.ini` and `make security` runs only `safety`, `bandit`, and `gitleaks`. If you want pip-audit cross-check, install it manually (`pip install pip-audit`) and run separately; note in the report.
 
 **Process:**
-1. Run `tox -e safety` and `pip-audit -r <lockfile>` (or directly against the venv).
+1. Run `tox -e safety`. Optionally `pip install pip-audit && pip-audit -r <lockfile>` for second-source coverage.
 2. For each CVE not in the allowlist, document: package, version, CVE ID, severity per upstream, exploitability in this codebase (does the agent reach the vulnerable code path?).
 3. Audit the existing tomte allowlist (`-i 37524 -i 38038 ...` in `tox.ini`) — for each pinned CVE, check whether upstream has shipped a fix that allows the pin to be removed.
 
@@ -451,14 +462,7 @@ def restart(agent_id: str):
 
 #### L1: Missing Secrets-in-Logs Redaction Policy
 
-**What:** Audit-fsm L4 covers individual log-line leaks. /security-review L1 escalates to the systemic level: is there a redaction layer in the logging pipeline, or does every author bear the burden individually?
-
-**How to check:**
-- Look for a centralized log filter / formatter that redacts secret-shaped strings
-- Check whether `logging.config.dictConfig(...)` includes a `RedactingFormatter` or similar
-- Check whether sensitive fields are dropped at the structured-log boundary (e.g. via `structlog` processors)
-
-**Fix:** add a redacting formatter that masks Ethereum-key-shaped strings, JWTs, Bearer tokens, and any field name in a configurable allowlist.
+C2 covers individual-call-site disclosure. L1 asks the systemic question: is there a redaction layer in the logging pipeline (formatter / `structlog` processor / `logging.config.dictConfig` filter) that masks secret-shaped values, or does every author bear the burden individually? If the latter, file as L1 — defense-in-depth gap.
 
 #### L2: No Startup-Time Secret-Validation Check
 
@@ -518,33 +522,28 @@ Contract addresses are public on-chain. They are not secrets. Don't conflate wit
 
 ## Methodology Guardrails
 
-These guardrails reduce false positives observed in prior audit runs.
+Two sets of guardrails apply: the **cross-skill** ones already documented in `/audit-fsm` and `/audit-resilience`, and the **security-specific** ones below.
+
+**Apply the cross-skill guardrails from the sibling Methodology Guardrails sections without restating them here:**
+- *Verify every sub-agent finding before accepting it* — read source, confirm severity, consolidate splits, demote liberally.
+- *Force the data-type trace before flagging* — runtime type ≠ static annotation when JSON crosses the boundary.
+- *Single-finding-per-bug* — one root cause = one report entry citing all relevant IDs.
+
+These reduce duplication and prevent drift when the sibling skills evolve. Below are the guardrails that are genuinely specific to security review.
 
 ### Distinguish disclosure from exposure
 - **Disclosure** = the secret has left the trust boundary (in a log, response, payload, file outside the agent dir).
-- **Exposure** = the secret is reachable via a code path but not yet emitted (e.g. `KeyManager.get_key()` is callable from a behaviour).
+- **Exposure** = the secret is reachable via a code path but not yet emitted (e.g. `Wallet.crypto_objects[<ledger>].entity` / `.private_key` is callable from a behaviour).
 
 C2 is for disclosure. Exposure is M-level at most, often L (defense in depth). Don't over-escalate exposure to Critical.
 
 ### Trace every "untrusted input" claim to a source
 For C1, C4, C6, M3 findings: name the **source** of the untrusted input (HTTP request body, ABCI payload field, env var, file content, IPFS payload). If you can't name it, downgrade or drop the finding.
 
-### Test code is in scope but with reduced severity
-Test files can leak secrets that get history-mirrored, can introduce supply-chain risks via test deps, and can mask production bugs. Audit them. But:
-- Hardcoded test keys: not a finding (see False Positive Guidance).
-- Dev-only deps: not a finding unless the dep is also imported in non-test code (`grep` to verify).
-- `eval` in test scaffolding: not a finding unless the eval input comes from a non-test surface.
-
-### Dual-skill findings
-If a finding fits audit-fsm or audit-resilience better, cite that skill's check ID and demote here. Examples:
-- "logger.info(f'key={k}')" → cite audit-fsm L4 first; /security-review C2 only adds the disclosure framing.
-- "no timeout on HTTP" → audit-resilience BP8/CC5 owns this; /security-review only flags if the timeout absence enables a security-relevant DOS or resource exhaustion.
-
-### Single-finding-per-bug
-If multiple checks (e.g. C1 RCE + H7 outdated dep + M4 weak crypto) flag the same root cause, report once with all relevant IDs cited.
-
-### Don't trust the static type
-Mirror of audit-fsm/audit-resilience methodology: fields annotated as `str` may be deserialized JSON whose runtime type differs. Trace the source before claiming a type-based safety property.
+### Dual-skill findings — cite the owning skill, demote here
+If a finding fits `/audit-fsm` or `/audit-resilience` better, cite that skill's check ID as the primary and demote here. Examples:
+- `logger.info(f'key={k}')` → cite `audit-fsm` L4 first; /security-review C2 adds only the disclosure framing.
+- `requests.get(...)` with no timeout → `audit-resilience` BP8 / CC5 owns this; /security-review flags only if the missing timeout enables a security-relevant DoS or resource-exhaustion attack on a trust boundary.
 
 ---
 
@@ -638,7 +637,7 @@ Present the security review as follows:
 
 **Scope:** [list of audited paths / packages / services]
 **Date:** [current date]
-**Tools run:** bandit (Y/N), safety (Y/N), gitleaks (Y/N), pip-audit (Y/N)
+**Tools run:** bandit (Y/N), safety (Y/N), gitleaks (Y/N), pip-audit (Y/N — optional second-source; install manually)
 
 ## Executive Summary
 
@@ -679,7 +678,7 @@ Present the security review as follows:
 
 | Secret | Storage | Loaded by | Rotation policy |
 |---|---|---|---|
-| Ethereum private key | mounted volume | KeyManager | manual |
+| Ethereum private key | mounted volume | `aea.crypto.wallet.Wallet` | manual |
 | ... |
 
 ## Trust Boundaries
@@ -710,15 +709,6 @@ Present the security review as follows:
 [hits, by file]
 
 ---
-
-## Summary
-
-| Severity | Count |
-|----------|-------|
-| Critical | N     |
-| High     | N     |
-| Medium   | N     |
-| Low      | N     |
 
 ## What This Audit Did Not Cover
 
