@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.21.21 (2026-05-11)
+
+Framework / dependency bumps:
+- Bumps `open-aea` `2.2.3` → `2.2.5` across `pyproject.toml`, `setup.py`, `tox.ini` (framework + package + `check-third-party-hashes` + `check-api-docs` + `generate-api-documentation` testenvs), `skaffold.yaml`, both Dockerfiles' `AEA_VERSION` arg, `deployments/Dockerfiles/autonomy-user/requirements.txt`, and the 33 package YAMLs (agents / contracts / `connections/ipfs`) that pin `open-aea-*` dependencies. `aea-ci check-third-party-hashes` now resolves against `valory-xyz/open-aea@2.2.5`. No API or wire-format changes; package hashes regenerated via `autonomy packages lock` and `poetry.lock` regenerated to match.
+
 # 0.21.20 (2026-05-05)
 
 Autonomy:
