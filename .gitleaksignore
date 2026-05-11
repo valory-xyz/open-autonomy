@@ -21,3 +21,4 @@
 187c534cdddf8352b0ca62e7e91f6df3d8e519e7:examples/price_estimation/infra/terraform.tfstate:RSA-PK:2208
 187c534cdddf8352b0ca62e7e91f6df3d8e519e7:examples/price_estimation/infra/terraform.tfstate:RSA-PK:2232
 187c534cdddf8352b0ca62e7e91f6df3d8e519e7:examples/price_estimation/infra/terraform.tfstate:RSA-PK:2256
+9a7d839308faaf695c3c84b1c44c8120900bb062:claude-skills/security-review/SKILL.md:slack-access-token:247

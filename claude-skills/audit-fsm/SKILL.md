@@ -176,6 +176,24 @@ Downstream projects compose these library skills with their own custom skills vi
 
 **Audit implication:** Do NOT flag `ROUND_TIMEOUT` (or other standard event names) as M2 findings in library skills when the enum member exists but isn't used in the skill's own transition function. This is a convention, not dead code.
 
+**Project-specific library skills.** The list above is the *framework default*. Downstream projects often introduce their own library skills (skills meant to be composed only). When auditing a downstream repo:
+
+- Skills with `is_abstract: true` in `skill.yaml` are typically library skills.
+- Check the project's `CLAUDE.md` / `AGENTS.md` for an explicit library-skills list.
+- Read `aea-config.yaml` of the agent under audit — skills that appear only as composition imports (and are never directly wired to the FSM by the agent) are library skills.
+- Apply the M2 / C4 carve-outs to those project-specific library skills as well.
+
+### `is_abstract: true` Semantics
+
+A skill with `is_abstract: true` in its `skill.yaml` is composition-only — it is never instantiated as a top-level skill, only consumed by another `chain()` call. Audit checks branch on this flag:
+
+- **Skip** "missing `fsm_specification.yaml`" findings — abstract skills are composed-only and don't need standalone wiring.
+- **Skip** "missing dialogue X" findings if the dialogue is provided by the composing skill.
+- **Demote** "missing handler" findings to informational unless the handler is required for composition (e.g. an `ABCIHandler` is mandatory).
+- **Apply** the same M2 / C4 carve-outs as library skills (unused events / dead timeouts may be intentional extension points).
+
+Prior audits avoided false positives on the `agent_performance` "missing dialogues" / "missing fsm_specification" findings only by accident — the CLI tool failed before reaching these checks. The `is_abstract` branch now makes the suppression deliberate.
+
 ### Test Infrastructure
 
 The framework provides base test classes in `packages/valory/skills/abstract_round_abci/test_tools/` and `plugins/aea-test-autonomy/`.
@@ -316,6 +334,8 @@ if (
 2. Verify each such event appears in the round's entry in `transition_function`
 3. For rounds extending `CollectSameUntilThresholdRound` etc., check that `done_event`, `none_event`, `no_majority_event` (and `fail_event` for keeper rounds) are all wired in the transition function
 
+**Carve-out — framework-scheduled events:** Events scheduled by the framework via `event_to_timeout` (most commonly `ROUND_TIMEOUT`) are NOT emitted by `end_block()` — the framework dispatches them via Tendermint's `update_time()`. An event is `end_block`-emittable only if it is part of the round's base class event set (`done_event`, `none_event`, `no_majority_event`, `fail_event`) or returned explicitly by a custom `end_block` override. Do NOT flag a transition-function event as "missing from `end_block()`" if it is wired into `event_to_timeout` — that is the framework's job.
+
 **Why it matters:** A missing transition means the round never completes, hanging the entire agent service.
 
 #### C4: Dead Timeouts
@@ -331,6 +351,81 @@ if (
 
 **Caveat:** Skills whose directory name starts with `test_` (e.g. `test_abci`, `test_solana_tx_abci`) are **test/scaffold skills** that exist to exercise the framework, not production FSM apps. Dead timeouts in these skills are often intentional test fixtures (e.g. testing that `SharedState.setup()` can wire `event_to_timeout` from params). Do NOT flag these as C4 findings. See also the False Positive Guidance section.
 
+#### C5: Non-Determinism in `end_block()`
+
+**What:** `AbstractRound.end_block()` must be a **pure function of consensus state**. Reading wall-clock time, the file system, environment variables, randomness, or external services produces a different event on different agents — silently breaking consensus. The Tendermint replica picks one of the divergent state transitions; the others are wedged or marked Byzantine.
+
+**Search patterns inside `end_block()` bodies (and any helper called from `end_block`):**
+- File I/O: `open(`, `Path.read_*`, `json.load(open(`, `os.path.exists(`, `pathlib.*`
+- Wall clock: `time.time()`, `datetime.now()`, `datetime.utcnow()`, `time.monotonic()` — use `self.context.state.round_sequence.last_round_transition_timestamp` (the agreed Tendermint block time of the last transition, set on `RoundSequence` from `self._blockchain.last_block.timestamp` — see `packages/valory/skills/abstract_round_abci/base.py`), or read a timestamp written into a payload field by a predecessor round (consensus-agreed, then surfaced via `synchronized_data`)
+- Randomness: `random.*`, `secrets.*`, `os.urandom(` — use `synchronized_data.most_voted_randomness` (consensus randomness)
+- Environment: `os.environ.get(`, `os.getenv(`
+- Network / external services: `requests.*`, `urlopen(`, `socket.*`, `subprocess.*`, contract calls, IPFS reads
+- Locale-dependent operations: `locale.*`, `re` patterns that depend on system locale
+
+**Bug example:**
+```python
+def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
+    # BUG: each agent reads its own local file
+    with open("/tmp/benchmark_mode.json") as f:
+        config = json.load(f)
+    if config["mode"] == "benchmark":
+        return self.synchronized_data, Event.BENCHMARK
+    return self.synchronized_data, Event.NORMAL
+```
+Different agents may have different files → different events → consensus break.
+
+**Severity by service shape:**
+- **Multi-agent service:** Critical — consensus break.
+- **Single-agent / sovereign service** (e.g. some Pearl-shipped configurations): demote to **Low (L)** with a note: *"severity escalates to Critical when the service runs with N>1 agents."* This keeps the finding in the standard L section of the report rather than vanishing — Pearl-shipped services regularly get promoted to multi-agent, so silent loss is the worst outcome.
+
+**How to check:**
+1. Walk every `end_block()` body and any function it calls.
+2. **Also walk every `process_payload()` body in the same round.** `process_payload()` populates `self.synchronized_data` / round-local state that `end_block()` then reads — non-deterministic writes in `process_payload()` produce non-deterministic `end_block()` reads even when the `end_block()` body itself is clean. An auditor who walks only `end_block()` will report a clean C5 on a real consensus break.
+3. Grep the imports of the round module for `time`, `datetime`, `random`, `os`, `requests`, `urllib`, `pathlib`.
+4. For each non-deterministic call found, verify whether the surrounding code path can reach `end_block()` (directly or via `process_payload()` → `synchronized_data` propagation).
+5. Check whether the agent's service config (look at `services/*/service.yaml` `number_of_agents`) is 1 or N to set severity.
+
+**Fix:** All non-deterministic data must be sourced from `synchronized_data` — i.e. agreed via consensus by the predecessor round's payload.
+
+#### C6: Unmapped Reachable Finals in Composition
+
+**What:** In `chain()`-composed AbciApps, every **final state of an inner app** that is not declared as a terminal state of the composed app must appear as a **key** in `abci_app_transition_mapping`. Otherwise the composed FSM reaches that state and stops — there is no transition out, the round emits no further events, and the agent hangs.
+
+**Important — what `chain()` does and does NOT validate.** The framework validates that mapping keys ARE final states of inner apps and that mapping values ARE initial states of other inner apps (`chain()` raises `ABCIAppInternalError` at construction time on violations). It does NOT verify that **every reachable inner final state** has been mapped. That is the gap this check covers.
+
+**How to check:**
+1. For each inner `AbciApp` in the chain, read `cls.final_states`.
+2. Compute `reachable_finals = ⋃ inner.final_states for inner in chained_apps`.
+3. Subtract:
+   - `composed_app.final_states` (states deliberately terminal in the composed FSM).
+   - `set(abci_app_transition_mapping.keys())` (states with an explicit successor).
+4. The remainder is the set of **unmapped reachable finals**. Each one is a hang on reach.
+
+**Bug example:**
+```python
+class InnerAppA(AbciApp):
+    final_states = {DoneRound, FailedRound, ImpossibleRound}
+
+# In composition.py:
+abci_app_transition_mapping = {
+    DoneRound: SomeInitialRound,
+    # BUG: FailedRound and ImpossibleRound are reachable finals of InnerAppA
+    #      but absent from this mapping AND absent from composed_app.final_states.
+    #      chain() does NOT catch this — it only validates that present keys are
+    #      finals of inner apps; it doesn't enforce coverage of every reachable
+    #      inner final.
+}
+```
+
+At runtime: agent enters `InnerAppA`, takes a `FAIL_EVENT` transition to `FailedRound`, the round commits with no outbound event mapping → composed FSM hangs.
+
+**Severity rationale:** Same blast radius as C3 (transition function completeness). A round hang at composition level wedges the entire agent, with the same recovery profile.
+
+**Search pattern:** locate the module that calls `chain(...)` (typically `composition.py`); enumerate `final_states` of every inner app referenced; compare against the mapping keys plus the composed app's terminal set.
+
+**Why this needs to be its own check, not bundled under H2:** real audits have found this in production. Two unmapped finals in one repo's `composition.py` were the highest-impact FSM finding from a recent run and almost slipped through under H2's old "every mapping key/value valid" framing — those bullets are framework-validated and produce zero new findings, which masked the still-needed unmapped-finals check.
+
 ### High (H) — Issues with significant impact
 
 #### H1: Background App Configuration
@@ -345,15 +440,16 @@ Also check for shared mutable state between app configs (see C1).
 
 **Search pattern:** Grep for `BackgroundAppConfig`, `background_apps`, `bg_apps`.
 
-#### H2: Composition Chain Completeness
+#### H2: Composition Chain Completeness (Index)
 
-**What:** In composed apps using `chain()`:
-- Every final state in the mapping must be a valid final state of one of the composed apps
-- Every initial state target must be a valid initial state of one of the composed apps
-- `cross_period_persisted_keys` should include all keys needed by the first app in the chain
-- `abci_app_transition_mapping` must cover all final states that should lead to another app
+H2 used to bundle four bullets that have since been split or moved. Kept as an index so reports referencing H2 still resolve:
 
-**Search pattern:** Grep for `abci_app_transition_mapping`, `chain(`, `cross_period_persisted_keys`.
+- **Mapping key validity** ("every mapping key is a valid final state of an inner app") — **framework-validated** by `chain()` at construction time. Do NOT re-flag.
+- **Mapping value validity** ("every mapping value is a valid initial state of an inner app") — **framework-validated** by `chain()`. Do NOT re-flag.
+- **Unmapped reachable finals** ("every reachable inner final has a mapping entry or is composed-terminal") — see **C6**.
+- **`cross_period_persisted_keys` completeness for post-reset reads** — see **M7**.
+
+If a finding genuinely fits "composition chain completeness" but doesn't match any of the above, surface it under H2 as a free-form finding — but in practice, every prior H2-shaped finding maps cleanly to one of the four targets above.
 
 #### H3: Resource Lifecycle
 
@@ -363,6 +459,39 @@ Also check for shared mutable state between app configs (see C1).
 - `requests.get/post` without `timeout` parameter
 
 **Search pattern:** Grep for `open(`, `socket.socket(`, `.terminate()`, `Popen(`, `requests.get`, `requests.post` — then check surrounding context for proper cleanup.
+
+#### H4: `extended_requirements = ()` Override Without Compensating `end_block`
+
+**What:** `_MetaAbstractRound.__init__` (`packages/valory/skills/abstract_round_abci/base.py:1066-1068`) reads each round subclass's `extended_requirements` tuple and verifies via `hasattr` that every named class attribute is defined. This catches "subclass forgot to set `done_event` / `none_event` / `collection_key` / `selection_key`" at class-creation time.
+
+Setting `extended_requirements = ()` (or `tuple()`) in a subclass disables the loop — the metaclass passes any subset of attributes (including none). This is a legitimate escape hatch when the subclass overrides `end_block()` with custom logic that doesn't depend on the standard attributes.
+
+It becomes a **footgun** when:
+- The subclass omits one or more of the parent's required attributes, AND
+- The subclass inherits the parent's `end_block()` (which still reads those attributes).
+
+Result: class definition succeeds. The first time `end_block()` runs, `AttributeError: 'XRound' object has no attribute 'done_event'` (or `collection_key`, etc.) propagates uncaught from the behaviour generator — agent process crashes (`audit-resilience` Category A).
+
+**How to check:**
+1. Grep for `extended_requirements\s*=\s*\(\s*\)` and `extended_requirements:\s*Tuple.*=\s*\(\s*\)` and `extended_requirements\s*=\s*tuple\(\s*\)`.
+2. For each match, identify the parent class and look up its `extended_requirements` (e.g. `CollectSameUntilThresholdRound.extended_requirements` covers `done_event`, `no_majority_event`, `none_event`, `collection_key`, `selection_key`).
+3. Verify the subclass either:
+   - Defines a custom `end_block()` (and the override does NOT read the missing attributes), OR
+   - Defines all attributes that were in the parent's `extended_requirements` despite the override.
+4. If neither, this is crash-on-reach. Promote severity to **Critical** in the report (the subclass crashes the agent the first time it runs).
+
+**Bug example:**
+```python
+class AgentDBRound(CollectSameUntilThresholdRound):
+    payload_class = AgentDBPayload
+    extended_requirements = ()  # disables metaclass attribute check
+    # missing: done_event, none_event, no_majority_event, collection_key, selection_key
+    # inherits parent's end_block, which reads self.done_event → AttributeError at runtime
+```
+
+**Severity rationale:** Default H because legitimate uses of the empty override exist (custom-`end_block` rounds). Promote to C when the audit verifies the subclass inherits the parent's `end_block` AND omits at least one required attribute — that combination is a guaranteed crash.
+
+**Search pattern:** `extended_requirements\s*=\s*(\(\s*\)|tuple\(\s*\))` in any round module.
 
 ### Medium (M) — Issues that indicate potential problems
 
@@ -422,6 +551,71 @@ class SynchronizedData(BaseSynchronizedData):
 ```
 
 **Why it matters:** The property silently returns data from a different round, causing logic errors or `KeyError` crashes.
+
+#### M6: SynchronizedData JSON Round-Trip Safety
+
+**What:** Writes to `synchronized_data` go through `AbciAppDB.update()`, which calls `AbciAppDB.validate(kwargs)` (`packages/valory/skills/abstract_round_abci/base.py:658-660`) BEFORE any storage step. `validate()` delegates to `is_json_serializable()` (`utils.py:408-417`), which only accepts primitives plus `tuple`/`list`/`dict` recursively. On failure it raises **`ABCIAppInternalError("AbciAppDB data must be json-serializable...")`** (`base.py:649-655`) — NOT Python's `TypeError` from `json.dumps`. Values that are JSON-native but lossy at the type level (e.g. `tuple` → `list` on the read side, `float` drift) survive validation but silently lose fidelity. Custom serializer hooks (e.g. `EGreedyPolicy.serialize` / `deserialize`) must be applied symmetrically on the read side.
+
+Plus: when a `SynchronizedData` subclass uses **multiple inheritance** to combine data classes from composed skills (e.g. `class SynchronizedData(MechInteractSyncedData, MarketManagerSyncedData, TxSettlementSyncedData)`), two parents defining the same property name silently shadow according to MRO order. The subclass author may believe they are reading from skill A's data when they're actually reading from skill B's.
+
+**How to check:**
+1. For each round's `end_block()`, list keys + value-expressions written via `update(...)` or `update(synchronized_data_class=..., ...)`.
+2. For each value, infer the type (walk back from the call site, or look at the payload field type, or trace through `json.loads`). Flag values that are not JSON-native unless a custom serializer is documented at both write and read sides.
+3. For each `SynchronizedData` subclass with multiple base classes, walk the MRO and flag any property name defined in more than one parent — explicitly call out which parent wins.
+
+**Bug examples:**
+```python
+# BUG (write-time crash): set is rejected by AbciAppDB.validate (base.py:649-655) —
+# raises ABCIAppInternalError("AbciAppDB data must be json-serializable..."),
+# NOT Python's TypeError from json.dumps
+self.synchronized_data.update(participants={agent1, agent2})
+
+# BUG (write-time crash): same as above — Decimal is rejected by AbciAppDB.validate;
+# raises ABCIAppInternalError, not TypeError.
+# Do NOT mistake this for silent rounding to float — the validation layer
+# intercepts before json.dumps would be reached.
+self.synchronized_data.update(price=Decimal("0.123456789012345678"))
+
+# BUG (silent precision loss): float arithmetic drifts BEFORE serialization;
+# JSON round-trip then preserves the wrong value
+self.synchronized_data.update(price=0.1 + 0.2)  # writes 0.30000000000000004
+
+# BUG: same property name in two parents
+class MechInteractSyncedData:
+    @property
+    def latest_event(self) -> str: return self.db.get_strict("mech_event")
+class MarketManagerSyncedData:
+    @property
+    def latest_event(self) -> str: return self.db.get_strict("market_event")
+class SynchronizedData(MechInteractSyncedData, MarketManagerSyncedData):
+    pass  # reads mech_event — likely surprising for someone reading the file top-down
+```
+
+**Fix:** Use lists/dicts/primitives or apply explicit serialize/deserialize hooks. Pick distinct property names across composed data classes, or override explicitly with documented intent.
+
+#### M7: `cross_period_persisted_keys` Completeness for Post-Reset Initial Reads
+
+**What:** After a period reset (`ResetAndPauseRound`), the next period restarts at the chain's initial round. Any DB key that the initial round chain (or its behaviours) reads via `self.db.get` / `self.db.get_strict` must be in `cross_period_persisted_keys` — otherwise it's missing after the first reset and the read returns `None` / raises `KeyError`. The bug is invisible in the first period (the key was just written) and surfaces only after the reset.
+
+**How to check:**
+1. Identify the initial round chain after a reset (typically `RegistrationRound` → ... → first business round). Use the composed app's `transition_function` to follow **`Event.DONE`** from `ResetAndPauseRound` to the next round — this is the normal post-reset re-entry path. `Event.RESET_AND_PAUSE_TIMEOUT` and `Event.NO_MAJORITY` are failure paths that route to `FinishedResetAndPauseErrorRound` and do not represent the post-reset initial-read set (see `packages/valory/skills/reset_pause_abci/rounds.py:94-98`). Tracing the failure path will surface bogus keys or miss the real ones.
+2. Statically collect every `self.db.get(...)` / `self.db.get_strict(...)` and every `self.synchronized_data.<property>` access in those rounds and their behaviours. Resolve property accesses to the underlying DB key.
+3. Subtract `cross_period_persisted_keys` **AND `AbciAppDB.default_cross_period_keys`**. The framework auto-injects the defaults at every period boundary (`packages/valory/skills/abstract_round_abci/base.py:516-523` then `:549`); a skill that reads any of `{all_participants, participants, consensus_threshold, safe_contract_address}` after a reset does NOT need to redeclare them — they survive every period automatically. Subtracting only `cross_period_persisted_keys` produces false positives on every audit. The remaining diff is the set of keys that will genuinely be missing after the first reset.
+
+**Why it matters:** First-period success masks the bug. Production crashes appear only after the first natural reset (often hours or days into a deployment).
+
+#### M8: Misleading Event-Shaped Class Attributes on Round Subclasses
+
+**What:** On `CollectSameUntilThresholdRound` and siblings, the framework's `end_block()` consults a fixed set of class attributes: `done_event`, `none_event`, `no_majority_event`, `collection_key`, `selection_key` (and `fail_event` for keeper rounds — see `extended_requirements`). Defining additional class attributes whose RHS is an `Event` enum value (e.g. `withdrawal_initiated: Event = Event.WITHDRAWAL_INITIATED`) does NOT wire that event into the round — the parent's `end_block()` never reads it.
+
+Combined with a `transition_function` entry for that event, this produces a "looks-like-config-but-isn't" footgun. The current C3 check catches the dead transition. M8 catches the misleading attribute that gives the false impression the round will emit it.
+
+**How to check:**
+1. For each `CollectSameUntilThresholdRound` (or sibling) subclass, list class-level attributes whose RHS is an `Event` enum value.
+2. Subtract the names actually consulted by the parent class (`done_event`, `none_event`, `no_majority_event`, `fail_event`, `collection_key`, `selection_key`) and any name read by a custom `end_block` override in the subclass.
+3. The remainder is dead config. Suggested fix: either implement a custom `end_block()` that uses the attribute, or remove it.
+
+**Why it matters:** Combined with a wired transition, the dead attribute makes a reader assume mid-round side transitions exist (e.g. "withdrawal can interrupt this round") when they don't — leading to design decisions based on capabilities the FSM doesn't actually have.
 
 ### Test (T) — Test correctness and coverage
 
@@ -539,6 +733,46 @@ self.end_round(done_event)         # Transition to next round
 
 **What:** Comments or docstrings describing the FSM that don't match the actual `transition_function` definition.
 
+#### L4: Logging Hygiene (Secret / PII Leakage)
+
+**What:** Behaviour and connection log lines that interpolate variables holding credentials, signed material, or full HTTP responses expose secrets to log aggregators and on-disk logs. Once a secret is in a log stream, it must be assumed compromised.
+
+**Search patterns:**
+- Variable name regex inside `logger.*(f"... {x} ..."`, `logger.*("... %s ...", x)`, `logger.*("... " + x)`:
+  - `private_key`, `priv_key`, `pk`, `sk`, `secret`, `token`, `api_key`, `apikey`, `password`, `passphrase`, `bearer`, `mnemonic`, `seed`, `nonce` (when used as crypto material, not RPC nonce)
+- Whole-object logging that may contain nested credentials:
+  - `signed_order`, `signed_tx`, `signed_message`, `credentials`, `headers` (when headers contain `Authorization`)
+  - `request`, `response` objects logged in full
+- Full HTTP body / response logging that may include access tokens or PII
+
+**Why it's L not C:** the agent doesn't crash and consensus isn't broken; it's a security-posture issue. Severity escalates if the leaked material grants production access.
+
+**Fix:** redact / hash before logging; log only metadata (key prefix, length); log structured fields rather than entire objects.
+
+#### L5: Numeric Precision in Financial Logic
+
+**What:** Common precision footguns in code that touches token amounts, prices, or financial calculations:
+- `float` arithmetic on token amounts (silent rounding accumulates over many trades)
+- Mixing 6-decimal (USDC) and 18-decimal (most ERC-20) without explicit unit tracking
+- `==` / `!=` between two values where at least one is a `float`
+- Hardcoded float constants used in `int(... * 10**N)` conversions (exact bits of the float matter)
+- Arithmetic on results of older Solidity calls without checking for negative / overflow
+
+**Search patterns:**
+- `float(` inside files that handle on-chain balances or token amounts
+- Hardcoded float literals (e.g. `0.089935`) used in conversions
+- `==` / `!=` between two values when at least one is provably `float`
+- `Decimal` mixed with `float` in the same expression
+
+**Bug example:**
+```python
+FALLBACK_POL_TO_USD_RATE = 0.089935  # binary float — not exactly 0.089935
+amount_usd = pol_amount * FALLBACK_POL_TO_USD_RATE
+amount_usd_wei = int(amount_usd * (10**18))  # rounding accumulates
+```
+
+**Fix:** use integer wei (or `Decimal` with explicit precision); track decimals via a typed wrapper; never compare floats with `==`.
+
 ---
 
 ## False Positive Guidance
@@ -585,6 +819,99 @@ class MyBehaviour(BaseBehaviour):
 
 ---
 
+## Scope Extensions
+
+### Auditing `customs/` Strategies
+
+`customs/` directories (e.g. `customs/kelly_criterion/`, `customs/fixed_bet/`) are loaded by IPFS hash at runtime via `FILE_HASH_TO_STRATEGIES` and execute logic that drives the FSM's financial actions (e.g. bet sizing). They are out of scope for `skills/`-only audits but receive zero coverage today.
+
+**When to extend:** if the agent's `aea-config.yaml` or any `services/*/service.yaml` references `FILE_HASH_TO_STRATEGIES` (or a similarly named param mapping IPFS hashes to strategy modules), audit those strategy directories with a reduced checklist.
+
+**Reduced checklist for `customs/` modules:**
+- L4 (logging hygiene) — strategies often log inputs and intermediate values
+- L5 (numeric precision) — strategies typically compute bet sizing, expected value, Kelly fraction, etc.
+- M1-style: type contracts on entry/exit functions (what does the calling behaviour expect back?)
+- Error handling: do strategy functions degrade gracefully or raise into the calling behaviour? An uncaught exception in a strategy crashes the calling behaviour (audit-resilience Category A).
+
+**Skip:** FSM-only checks (C3, C4, M2, M3, M5, M7, M8, T*) — there is no FSM in a strategy.
+
+### Auditing `service.yaml` Overrides
+
+Both this skill and `audit-resilience` historically read package source only and miss runtime parameter overrides. If the audit scope is a service (not just a skill) and `services/*/service.yaml` exists:
+
+1. Parse each service's `overrides` block. List every parameter override, its target skill, and the override value.
+2. For overrides that change behaviour-controlling parameters (timeouts, retry counts, URLs, contract addresses, feature flags), flag if the override:
+   - Changes the value type from the default declared in the skill's `models.py` (e.g. int default, string override)
+   - Sets a value that conflicts with `db_pre_conditions` (e.g. an override that expects a key not provided by an upstream round)
+   - Disables a safety mechanism present in defaults (retry count to 0, timeout to a very large value, `verify=False`)
+3. When multiple `services/*/service.yaml` exist for the same agent (e.g. `trader_pearl/` vs `polymarket_trader/`), build a comparison table — drift between deployments is a footgun.
+4. Note: env-var-driven overrides (`${OAR_API_KEY:str:dummy}`) hide values entirely. Flag any param marked sensitive (URL, key, address) that defaults to `dummy` / empty / placeholder — production deployments depend on the env var being set.
+
+---
+
+## Methodology Guardrails
+
+These guardrails reduce false positives observed in prior audit runs. Apply them before flagging any finding.
+
+### Verify every sub-agent finding before accepting it
+
+The Step 2 Explore agents return **candidate** findings with **candidate** severities, not final ones. The spawning agent (you) MUST hand-verify each candidate against the source before promoting it into the report. Sub-agents over-report because they lack the cross-cutting view across the audit scope.
+
+For each candidate finding from a sub-agent, before accepting:
+
+1. **Read the cited `file:line` in the actual source.** Confirm the bug exists as described — not a misread of static type vs runtime type, not a paraphrase that drifts from the actual code, not a citation pointing at the wrong line.
+2. **Confirm the bug is real.** Apply the data-type trace guardrail (below). Apply the framework-scheduled-event carve-out (below). Check the False Positive Guidance section.
+3. **Re-evaluate severity.** Sub-agents systematically over-classify. Concretely:
+   - "Unused / dead code" (initial-only attributes, dead comments, vestigial fields) is **almost always L**, not C. Critical requires runtime impact.
+   - A misnamed-but-harmless attribute is **L**, not C. Promote only if you can demonstrate a runtime path that reads / writes through it incorrectly.
+   - Configuration that "looks misleading" is **L** unless misleading the reader produced (or is highly likely to produce) a downstream bug.
+4. **Consolidate split findings.** If three sub-agent findings point at one root cause (e.g. three separate Cs that all stem from one mis-typed `AgentDB` accessor), report ONCE at the appropriate severity, not three times.
+5. **Demote liberally.** If you can't reproduce the sub-agent's reasoning from the source in under a minute, the finding is probably wrong — drop it or downgrade to L with an "informational" note.
+
+Sub-agent classification is input, not output. The report is your judgment, not the union of subagent outputs.
+
+### Force the data-type trace before flagging type mismatches
+
+Many false positives in prior runs (M5 mismatches, T2 wrong-base-class claims, "non-existent payload field" claims) came from agents reasoning about **annotated** types instead of **runtime** types. In open-autonomy, payload fields and DB-backed properties are JSON-deserialized — the runtime type may differ from the annotation.
+
+When a check requires reasoning about a value's runtime type, before flagging:
+
+1. Locate the **last assignment** to the variable along the call path (do not stop at the type annotation).
+2. If that assignment is `json.loads(some_field)`, `self.db.get_strict(key)`, or a `BaseTxPayload` field whose value was JSON-serialized at write time, the runtime type is whatever the JSON producer wrote — which may be `dict`, `list`, `str`, `int`. Static annotations alone are not authoritative here.
+3. For framework-DB-backed properties, trace from `selection_key` → property body → any `json.loads(...)` to determine the actual runtime type.
+4. Do NOT flag a type mismatch unless you can name **both** the expected type AND the actual runtime type with a `file:line` citation for each.
+
+A concrete past failure: a discovery agent claimed `isinstance(actions_data, dict)` was dead because `synced_data.actions` was annotated `Optional[List[...]]`. The annotation was a stale guess; the runtime value came from `json.loads(content)` and could be either a dict or a list.
+
+### Strip framework-scheduled events from `end_block` completeness checks
+
+C3 explicitly carves these out (see C3 above). Repeating here as a guardrail because prior runs surfaced this false positive (a discovery agent flagged `Event.ROUND_TIMEOUT` as "missing from `CheckFundsRound.end_block()`" — `ROUND_TIMEOUT` is scheduled by the framework via `event_to_timeout`, not emitted by `end_block`).
+
+Before flagging an event as missing from `end_block()`:
+- If the event appears in `event_to_timeout` for the round, **skip it** — the framework schedules the transition.
+- If the event appears in the round's transition function but is neither a base-class event (`done`, `none`, `no_majority`, `fail`) nor in `event_to_timeout`, then it is genuinely missing — flag it under C3.
+
+### Single-finding-per-bug discipline
+
+If two checks (e.g. C3 dead transition + M8 misleading attribute) flag the same underlying bug, report once with both check IDs cited, not twice.
+
+---
+
+## Coverage Limitations
+
+This skill audits **FSM correctness and safety** in `skills/`. The following are explicitly NOT covered — the audit report should call this out so consumers know what they still need to do:
+
+- **External request resilience** → run `audit-resilience` (companion skill).
+- **Security review** → run `/security-review`. This skill does not audit private-key handling, env-var injection in `skill.yaml`, `eval` / `exec` patterns, unsafe deserialization (`pickle.loads`), or supply-chain risks.
+- **Numeric precision in financial logic** is L5-checked at a syntactic level only; mathematical correctness of strategy logic is out of scope.
+- **Dependency CVEs** → run `pip-audit` / `safety check` after this audit.
+- **Smart-contract audit** → out of scope; covered by Solidity-specific tooling.
+- **Performance / gas optimisation** → out of scope.
+
+Include a "What this audit did not cover" section in every report.
+
+---
+
 ## Analysis Procedure
 
 Follow these steps in order:
@@ -599,20 +926,34 @@ Before manual inspection, run the framework's built-in analysis commands to catc
 autonomy analyse fsm-specs --package <skill-path>
 
 # These three run repo-wide (no package scoping available).
-# They may report errors from skills OUTSIDE the audit scope — note those
-# separately and only include in-scope failures as findings.
 autonomy analyse handlers
 autonomy analyse dialogues
 autonomy analyse docstrings
 ```
 
-These tools catch issues the manual audit does not need to duplicate:
-- `fsm-specs` validates that the FSM spec file, the docstring, and the `transition_function` definition are all consistent (**scoped** to target skill)
-- `handlers` verifies required handlers are defined and properly configured (**repo-wide**)
-- `dialogues` verifies dialogue definitions match protocol specifications (**repo-wide**)
-- `docstrings` checks the AbciApp class docstring matches the actual state machine definition (**repo-wide**)
+**Critical — filter unscoped output against `dev` packages only.** `handlers` / `dialogues` / `docstrings` walk every package under `packages/`, including framework-vendored ones in the `third_party` section of `packages/packages.json`. Findings against `third_party` packages belong to the upstream repo, not this audit. The composition / cross-skill analysis later in the audit STILL needs full visibility into those packages — but their CLI-tool errors are out-of-scope as findings.
 
-**Include the output of these tools in the report.** If any fail, report them as findings but clearly distinguish in-scope failures from out-of-scope ones. Then proceed with the manual checks below, which cover semantic and logic issues these tools cannot detect.
+Build the dev set once and reuse it across all unscoped tools:
+
+```bash
+# Each entry is "<type>/<author>/<name>/<version>"; on-disk path is
+# packages/<author>/<type>s/<name>
+jq -r '.dev | keys[]' packages/packages.json
+```
+
+For each error line emitted by `handlers` / `dialogues` / `docstrings`, drop the line if the cited path resolves under a `third_party` package (i.e. its `<author>/<type>s/<name>` is not in the dev set). The remaining lines are in-scope findings. Note in the report how many lines were filtered and from which third-party paths, so the consumer can see what was dropped and why.
+
+`fsm-specs` is already scoped — invoke it only on dev skills (and only on the `$ARGUMENTS` subset if provided).
+
+These tools catch issues the manual audit does not need to duplicate:
+- `fsm-specs` validates that the FSM spec file, the docstring, and the `transition_function` definition are all consistent (**scoped** to target skill — invoke per dev skill)
+- `handlers` verifies required handlers are defined and properly configured (**repo-wide; filter output to dev**)
+- `dialogues` verifies dialogue definitions match protocol specifications (**repo-wide; filter output to dev**)
+- `docstrings` checks the AbciApp class docstring matches the actual state machine definition (**repo-wide; filter output to dev**)
+
+**Include the (filtered) output of these tools in the report.** If any in-scope error remains, report it as a finding. Then proceed with the manual checks below, which cover semantic and logic issues these tools cannot detect — and which DO read across into library / `third_party` packages where composition requires it.
+
+**Tooling-unavailable case.** If the CLI tools fail with `No module named 'packages.valory.skills.abstract_round_abci'` (or similar import errors), the local `packages/` tree is missing library skills that the project policy doesn't sync (some downstream repos forbid `autonomy packages sync --all` because it bypasses a curated dependency set). This is a project policy choice, not a bug. Note in the report: *"CLI tools could not run because library skills are not in the local tree; proceeded with manual checks."* Do NOT report this as a finding, and do NOT block the audit on it.
 
 ### Step 1: Discovery
 
@@ -638,7 +979,7 @@ Launch up to **3 parallel Explore agents**, dividing skills evenly among them. E
    - `tests/test_rounds.py` — round test classes
    - `tests/test_behaviours.py` — behaviour test classes
 
-2. **Run all checks from the Audit Checklist** (C1–C4, H1–H3, M1–M5, T1–T6, L1–L3)
+2. **Run all checks from the Audit Checklist** (C1–C6, H1–H4, M1–M8, T1–T6, L1–L5)
 
 3. **Return findings** as a structured list with:
    - Check ID (e.g. C1, H2)
@@ -706,6 +1047,15 @@ Present the audit report as follows:
 
 ## Notes
 [Any false-positive exclusions or caveats about the audit scope]
+
+## What This Audit Did Not Cover
+
+- External-request resilience (run `/audit-resilience`)
+- Security review of credential handling, env-var injection, unsafe deserialization (run `/security-review`)
+- Mathematical correctness of strategy logic (only syntactic L5 checks were applied)
+- Dependency CVEs (run `pip-audit` / `safety check`)
+- Smart-contract audit, gas optimisation
+- [Add any further scope exclusions specific to this audit run, e.g. "CLI tools could not run because library skills are not in the local tree"]
 ```
 
 If no findings at a severity level, include the section header with "No findings." underneath.

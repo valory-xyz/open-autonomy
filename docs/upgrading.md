@@ -5,6 +5,32 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.20` to `v0.21.21`
+
+This is a chore release that picks up the `open-aea 2.2.5` bump and regenerates the package hashes. There are no runtime, API, or wire-format changes in `open-autonomy` itself.
+
+### `open-aea` bumped `2.2.3` → `2.2.5`
+
+Update any direct `open-aea` / `open-aea-*` pins in your downstream `pyproject.toml` / `setup.py` / `tox.ini` / Dockerfiles from `==2.2.3` to `==2.2.5`. If your CI also runs `aea-ci check-third-party-hashes`, point its `--upstream` flag at `valory-xyz/open-aea@2.2.5`.
+
+### Regenerated package hashes
+
+All first-party packages under `packages/valory/` have new IPFS hashes because the `open-aea-*` pins inside each `aea-config.yaml` / `contract.yaml` / `skill.yaml` / `service.yaml` / `connection.yaml` were rewritten as part of the bump. If you maintain a downstream repo that pins `valory/*` packages by hash, run:
+
+```bash
+autonomy packages sync --update-packages
+autonomy packages lock
+```
+
+to pull the regenerated hashes and re-lock your own `packages.json`.
+
+### Concrete upgrade steps
+
+1. Bump `open-autonomy` pin to `==0.21.21` (and any matching `open-aea-test-autonomy` pin to `==0.21.21`).
+2. Bump `open-aea` / `open-aea-*` pins to `==2.2.5`.
+3. Run `autonomy packages sync --update-packages` to pull the updated framework packages.
+4. Run `autonomy packages lock` to regenerate downstream package hashes.
+
 ## `v0.21.19` to `v0.21.20`
 
 This release fixes a long-standing PyPI packaging regression, picks up the `open-aea 2.2.3` security-floor bump, and migrates the linter/security tooling onto the `tomte 0.7.0` canonical configs. The runtime API surface is unchanged.

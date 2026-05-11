@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "open-autonomy"
-version = "0.21.20"
+version = "0.21.21"
 description = "Open Autonomy Framework"
 authors = ["developer-valory <develope@valory.xyz>"]
 license = "Apache-2.0"
@@ -20,18 +20,18 @@ include = [
 [tool.poetry.dependencies]
 python = ">=3.10,<3.15"
 # Core runtime
-open-aea = { version = "==2.2.3", extras = ["all"] }
+open-aea = { version = "==2.2.5", extras = ["all"] }
 # CLI deps. `click`, `pytest`, `coverage` come transitively via
 # `open-aea[all]`; only the IPFS CLI plugin is autonomy-specific.
-open-aea-cli-ipfs = "==2.2.3"
+open-aea-cli-ipfs = "==2.2.5"
 # Optional plugins — declared via extras below.
 # [hwi] and [docker] are intentionally kept out of [all]:
 #   * HWI's transitive chain (ledgerwallet -> hidapi + Pillow) has
 #     no armv7 wheels, breaking multi-platform Docker image builds.
 #   * `docker` is only needed for docker-compose deployments; users
 #     deploying to Kubernetes or localhost don't need it.
-open-aea-ledger-ethereum = {version = "==2.2.3", optional = true, extras = []}
-open-aea-ledger-ethereum-hwi = {version = "==2.2.3", optional = true}
+open-aea-ledger-ethereum = {version = "==2.2.5", optional = true, extras = []}
+open-aea-ledger-ethereum-hwi = {version = "==2.2.5", optional = true}
 docker = {version = "==7.1.0", optional = true}
 
 # ---------------------------------------------------------------------------
@@ -50,8 +50,8 @@ docker = {version = "==7.1.0", optional = true}
 #     correctness. Such ranges must stay in sync with the
 #     corresponding package YAML.
 # ---------------------------------------------------------------------------
-open-aea-ledger-cosmos = "==2.2.3"
-open-aea-ledger-solana = "==2.2.3"
+open-aea-ledger-cosmos = "==2.2.5"
+open-aea-ledger-solana = "==2.2.5"
 web3 = "*"
 requests = "*"
 grpcio = "==1.78.0"
@@ -106,8 +106,8 @@ autonomy = "autonomy.cli:cli"
 [tool.poetry.group.dev.dependencies]
 tomte = { version = "==0.7.0", extras = ["tox", "docs"] }
 mkdocs-monorepo-plugin = "^1.0.5"
-open-aea-ci-helpers = "==2.2.3"
-open-aea-dev-helpers = "==2.2.3"
+open-aea-ci-helpers = "==2.2.5"
+open-aea-dev-helpers = "==2.2.5"
 # Local CI/release tooling — used by `make generators`, `tox -e
 # fix-doc-hashes`, etc. Not imported by any runtime code.
 open-aea-helpers = { path = "plugins/aea-helpers", develop = true }
