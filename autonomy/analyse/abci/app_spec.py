@@ -159,9 +159,7 @@ class FSMSpecificationLoader:
         """
         # Classify every round by its owning sub-app and split sub-apps
         # into dev (expanded) and third-party (collapsed).
-        round_to_subapp = FSMSpecificationLoader._build_round_to_subapp(
-            abci_app_cls
-        )
+        round_to_subapp = FSMSpecificationLoader._build_round_to_subapp(abci_app_cls)
         dev_subapps: Set[str] = set()
         third_party_subapps: Set[str] = set()
         for sub_app in set(round_to_subapp.values()):
@@ -198,11 +196,7 @@ class FSMSpecificationLoader:
         for (s1, t), s2 in dfa.transition_func.items():
             s1_sub = round_to_subapp.get(s1)
             s2_sub = round_to_subapp.get(s2)
-            if (
-                not flatten
-                and s1_sub is not None
-                and s1_sub == s2_sub
-            ):
+            if not flatten and s1_sub is not None and s1_sub == s2_sub:
                 if s1_sub in dev_subapps:
                     internal_per_subapp.setdefault(s1_sub, {}).setdefault(
                         (s1, s2), set()
@@ -241,9 +235,7 @@ class FSMSpecificationLoader:
             # (UML notation for "macro state with hidden internals").
             for sub_app in sorted(third_party_subapps):
                 print(f"    state {sub_app} {{", file=fp)
-                print(
-                    f'        state "..." as {sub_app}_collapsed', file=fp
-                )
+                print(f'        state "..." as {sub_app}_collapsed', file=fp)
                 print("    }", file=fp)
 
             # Cross-app and flat-mode transitions at the top level, start
