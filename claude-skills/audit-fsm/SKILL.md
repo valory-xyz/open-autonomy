@@ -377,13 +377,14 @@ Different agents may have different files → different events → consensus bre
 
 **Severity by service shape:**
 - **Multi-agent service:** Critical — consensus break.
-- **Single-agent / sovereign service** (e.g. some Pearl-shipped configurations): demote to **informational** but still surface — the bug appears the moment the service is promoted to multi-agent.
+- **Single-agent / sovereign service** (e.g. some Pearl-shipped configurations): demote to **Low (L)** with a note: *"severity escalates to Critical when the service runs with N>1 agents."* This keeps the finding in the standard L section of the report rather than vanishing — Pearl-shipped services regularly get promoted to multi-agent, so silent loss is the worst outcome.
 
 **How to check:**
 1. Walk every `end_block()` body and any function it calls.
-2. Grep the imports of the round module for `time`, `datetime`, `random`, `os`, `requests`, `urllib`, `pathlib`.
-3. For each non-deterministic call found, verify whether the surrounding code path can reach `end_block()`.
-4. Check whether the agent's service config (look at `services/*/service.yaml` `number_of_agents`) is 1 or N to set severity.
+2. **Also walk every `process_payload()` body in the same round.** `process_payload()` populates `self.synchronized_data` / round-local state that `end_block()` then reads — non-deterministic writes in `process_payload()` produce non-deterministic `end_block()` reads even when the `end_block()` body itself is clean. An auditor who walks only `end_block()` will report a clean C5 on a real consensus break.
+3. Grep the imports of the round module for `time`, `datetime`, `random`, `os`, `requests`, `urllib`, `pathlib`.
+4. For each non-deterministic call found, verify whether the surrounding code path can reach `end_block()` (directly or via `process_payload()` → `synchronized_data` propagation).
+5. Check whether the agent's service config (look at `services/*/service.yaml` `number_of_agents`) is 1 or N to set severity.
 
 **Fix:** All non-deterministic data must be sourced from `synchronized_data` — i.e. agreed via consensus by the predecessor round's payload.
 
@@ -561,11 +562,16 @@ Plus: when a `SynchronizedData` subclass uses **multiple inheritance** to combin
 
 **Bug examples:**
 ```python
-# BUG: set is not JSON-serializable — TypeError at write time
+# BUG (write-time crash): set is not JSON-serializable — TypeError at write time
 self.synchronized_data.update(participants={agent1, agent2})
 
-# BUG: Decimal becomes float after JSON round-trip — silent precision loss
+# BUG (write-time crash): Decimal is not JSON-serializable — TypeError at write time
+# (same failure mode as set; do NOT mistake this for silent rounding to float)
 self.synchronized_data.update(price=Decimal("0.123456789012345678"))
+
+# BUG (silent precision loss): float arithmetic drifts BEFORE serialization;
+# JSON round-trip then preserves the wrong value
+self.synchronized_data.update(price=0.1 + 0.2)  # writes 0.30000000000000004
 
 # BUG: same property name in two parents
 class MechInteractSyncedData:
@@ -585,9 +591,9 @@ class SynchronizedData(MechInteractSyncedData, MarketManagerSyncedData):
 **What:** After a period reset (`ResetAndPauseRound`), the next period restarts at the chain's initial round. Any DB key that the initial round chain (or its behaviours) reads via `self.db.get` / `self.db.get_strict` must be in `cross_period_persisted_keys` — otherwise it's missing after the first reset and the read returns `None` / raises `KeyError`. The bug is invisible in the first period (the key was just written) and surfaces only after the reset.
 
 **How to check:**
-1. Identify the initial round chain after a reset (typically `RegistrationRound` → ... → first business round). Use the composed app's `transition_function` to follow `Event.RESET_TIMEOUT` / `Event.DONE` from `ResetAndPauseRound` to the next round.
+1. Identify the initial round chain after a reset (typically `RegistrationRound` → ... → first business round). Use the composed app's `transition_function` to follow **`Event.DONE`** from `ResetAndPauseRound` to the next round — this is the normal post-reset re-entry path. `Event.RESET_AND_PAUSE_TIMEOUT` and `Event.NO_MAJORITY` are failure paths that route to `FinishedResetAndPauseErrorRound` and do not represent the post-reset initial-read set (see `packages/valory/skills/reset_pause_abci/rounds.py:94-98`). Tracing the failure path will surface bogus keys or miss the real ones.
 2. Statically collect every `self.db.get(...)` / `self.db.get_strict(...)` and every `self.synchronized_data.<property>` access in those rounds and their behaviours. Resolve property accesses to the underlying DB key.
-3. Subtract `cross_period_persisted_keys`. The diff is the set of keys that will be missing after the first reset.
+3. Subtract `cross_period_persisted_keys` **AND `AbciAppDB.default_cross_period_keys`**. The framework auto-injects the defaults at every period boundary (`packages/valory/skills/abstract_round_abci/base.py:516-523` then `:549`); a skill that reads any of `{all_participants, participants, consensus_threshold, safe_contract_address}` after a reset does NOT need to redeclare them — they survive every period automatically. Subtracting only `cross_period_persisted_keys` produces false positives on every audit. The remaining diff is the set of keys that will genuinely be missing after the first reset.
 
 **Why it matters:** First-period success masks the bug. Production crashes appear only after the first natural reset (often hours or days into a deployment).
 
