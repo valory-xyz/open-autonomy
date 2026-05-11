@@ -26,8 +26,8 @@ test -f pyproject.toml && test -f packages/packages.json && echo "OK: looks like
 # 2. Current pins — read pyproject.toml's [project] dependencies block
 grep -E "^\s*\"open-(autonomy|aea)" pyproject.toml
 
-# 3. Upstream pins listed for sync-only repos
-grep -A20 "^\[tool\.tomte\]" pyproject.toml | grep -A10 "upstream_pins"
+# 3. Upstream pins listed for sync-only repos (read the whole [tool.tomte] block)
+sed -n '/^\[tool\.tomte\]/,/^\[/p' pyproject.toml | grep -A100 "^upstream_pins"
 
 # 4. Repo-local upgrading + history docs (some downstreams ship their own)
 ls -1 HISTORY.md UPGRADING.md docs/upgrading.md 2>/dev/null
@@ -47,18 +47,14 @@ Record into working memory:
 
 ## Phase 1 — Resolve target versions
 
-If the user passed `oa=` / `oaea=`, use those. Otherwise auto-detect the latest non-draft, non-prerelease GitHub release:
+If the user passed `oa=` / `oaea=`, use those. Otherwise hit GitHub's "latest release" endpoint — it returns whatever release is currently marked Latest in the UI, which (unlike `gh release list | first`) doesn't get fooled by an out-of-order backport release published after a newer one:
 
 ```bash
-# Latest OA release (strip leading 'v' for the version literal)
-gh release list --repo valory-xyz/open-autonomy --limit 10 \
-  --json tagName,isPrerelease,isDraft \
-  --jq '[.[] | select(.isPrerelease == false and .isDraft == false)] | .[0].tagName'
+# Latest OA release (tag name includes the leading 'v'; strip if you need the bare version)
+gh api repos/valory-xyz/open-autonomy/releases/latest --jq '.tag_name'
 
 # Latest OAEA release
-gh release list --repo valory-xyz/open-aea --limit 10 \
-  --json tagName,isPrerelease,isDraft \
-  --jq '[.[] | select(.isPrerelease == false and .isDraft == false)] | .[0].tagName'
+gh api repos/valory-xyz/open-aea/releases/latest --jq '.tag_name'
 ```
 
 Set `NEW_OA` (e.g. `0.21.20`) and `NEW_OAEA` (e.g. `2.2.3`). If they equal the current pins, **stop and tell the user** — there's nothing to bump.
@@ -82,19 +78,20 @@ Plugin versions are not independent — they track one framework or the other:
 **Verify the OA-side plugins are published for the target OA version** (PyPI sometimes lags by a few minutes after a release):
 
 ```bash
-pip index versions open-aea-test-autonomy 2>/dev/null | grep "$NEW_OA"
-pip index versions open-aea-helpers 2>/dev/null | grep "$NEW_OA"
+# Anchor the version on a non-digit boundary so 0.21.2 doesn't false-match inside 0.21.20.
+pip index versions open-aea-test-autonomy 2>/dev/null | grep -E "(^|[^0-9])$NEW_OA([^0-9]|$)"
+pip index versions open-aea-helpers       2>/dev/null | grep -E "(^|[^0-9])$NEW_OA([^0-9]|$)"
 ```
 
 If missing, hold the bump and tell the user — they should wait for the publish job to finish.
 
 ### 1.2 Verify OA at `NEW_OA` pins OAEA at `NEW_OAEA`
 
-The bump only makes sense if the new OA itself pins the new OAEA. Pull OA's own `pyproject.toml` at `v$NEW_OA` and confirm:
+The bump only makes sense if the new OA itself pins the new OAEA. Pull OA's own `pyproject.toml` at `v$NEW_OA` and read the `open-aea` line(s) — OA still ships Poetry-style (`[tool.poetry.dependencies]`), so the pin shape is e.g. `open-aea = {version = "==2.2.3", extras = ["all"]}`:
 
 ```bash
 gh api "repos/valory-xyz/open-autonomy/contents/pyproject.toml?ref=v$NEW_OA" \
-  --jq '.content' | base64 -d | grep -E "^\s*\"?open-aea[^-]*[\"=]|^open-aea[^-]"
+  --jq '.content' | base64 -d | grep -E '^[[:space:]]*open-aea[[:space:]]*='
 ```
 
 If OA `v$NEW_OA` pins a different OAEA version than the user asked for, **trust OA's pin** and override `NEW_OAEA` to match. A mismatch will fail `tox -e check-dependencies` and `autonomy packages sync` later.
@@ -131,20 +128,22 @@ This is the **only** phase that drives code changes. Surface the diff between `C
 
 ### 2.1 Fetch HISTORY + upgrading from upstream HEAD
 
-`HISTORY.md` is authoritative — `docs/upgrading.md` is the user-facing distilled version. Read both: HISTORY for the full change set, upgrading for the call-to-action.
+`HISTORY.md` is authoritative — `docs/upgrading.md` is the user-facing distilled version. Read both: HISTORY for the full change set, upgrading for the call-to-action. Stage them in a fresh `mktemp -d` so parallel runs (or multiple users on a shared host) don't clobber one another:
 
 ```bash
+TMP=$(mktemp -d)
+
 # Open-autonomy — HISTORY.md and docs/upgrading.md
 gh api "repos/valory-xyz/open-autonomy/contents/HISTORY.md?ref=v$NEW_OA" \
-  --jq '.content' | base64 -d > /tmp/oa_history.md
+  --jq '.content' | base64 -d > "$TMP/oa_history.md"
 gh api "repos/valory-xyz/open-autonomy/contents/docs/upgrading.md?ref=v$NEW_OA" \
-  --jq '.content' | base64 -d > /tmp/oa_upgrading.md
+  --jq '.content' | base64 -d > "$TMP/oa_upgrading.md"
 
 # Open-aea — HISTORY.md and docs/upgrading.md
 gh api "repos/valory-xyz/open-aea/contents/HISTORY.md?ref=v$NEW_OAEA" \
-  --jq '.content' | base64 -d > /tmp/oaea_history.md
+  --jq '.content' | base64 -d > "$TMP/oaea_history.md"
 gh api "repos/valory-xyz/open-aea/contents/docs/upgrading.md?ref=v$NEW_OAEA" \
-  --jq '.content' | base64 -d > /tmp/oaea_upgrading.md
+  --jq '.content' | base64 -d > "$TMP/oaea_upgrading.md"
 ```
 
 Read **only the sections between `CUR_OA` and `NEW_OA`** in OA's docs, and between `CUR_OAEA` and `NEW_OAEA` in OAEA's docs. Both files are reverse-chronological — top of file is newest.
@@ -192,14 +191,16 @@ Non-package code (top-level `scripts/`, `tests/`, app entrypoints) is also fair 
 The same OLD version string appears in 5–10+ places per repo. Use a thorough grep before editing so you don't miss a site:
 
 ```bash
-# Cast wide. Excludes uv.lock (it gets regenerated) and .git/ and packages/packages.json (only third-party CIDs there).
-grep -rln "==$CUR_OA\b" \
+# Cast wide. Use -E with an explicit non-digit boundary so `==0.21.2` doesn't
+# false-match inside `==0.21.20` (\b is GNU-grep-only and trips on BSD grep / macOS).
+# Excludes uv.lock (regenerated), .git/, and node_modules.
+grep -rlE "==${CUR_OA}([^0-9]|$)" \
   --include="*.toml" --include="*.ini" --include="*.yaml" --include="*.yml" \
   --include="*.py" --include="*.md" --include="*.txt" --include="*.json" \
   --include="*.sh" --include="Makefile" --include="Dockerfile" --include="Pipfile*" \
   --exclude-dir=.git --exclude-dir=.venv --exclude-dir=node_modules
 
-grep -rln "==$CUR_OAEA\b" \
+grep -rlE "==${CUR_OAEA}([^0-9]|$)" \
   --include="*.toml" --include="*.ini" --include="*.yaml" --include="*.yml" \
   --include="*.py" --include="*.md" --include="*.txt" --include="*.json" \
   --include="*.sh" --include="Makefile" --include="Dockerfile" --include="Pipfile*" \
@@ -259,12 +260,13 @@ Repos using `tomte tox -e <env>` instead of bare `tox -e <env>` inherit dep bloc
 Pull workflow files in the target OA release as the source of truth for runner / action pins:
 
 ```bash
+TMP=${TMP:-$(mktemp -d)}
 gh api "repos/valory-xyz/open-autonomy/contents/.github/workflows/main_workflow.yml?ref=v$NEW_OA" \
-  --jq '.content' | base64 -d > /tmp/oa_workflow.yml
+  --jq '.content' | base64 -d > "$TMP/oa_workflow.yml"
 
 # Compare action versions, OS runners, Python matrix in your repo
 diff <(grep -E 'uses:|runs-on:|python-version:' .github/workflows/main_workflow.yml | sort -u) \
-     <(grep -E 'uses:|runs-on:|python-version:' /tmp/oa_workflow.yml | sort -u)
+     <(grep -E 'uses:|runs-on:|python-version:' "$TMP/oa_workflow.yml" | sort -u)
 ```
 
 Update **every** `.github/workflows/*.yml` file, not only the main one (`release.yaml` is the usual miss):
@@ -281,8 +283,9 @@ Update **every** `.github/workflows/*.yml` file, not only the main one (`release
 Every dev package's component YAML carries a `dependencies:` block with pinned versions of the plugins it uses. Search inside `packages/<author>/`:
 
 ```bash
-# Search across every dev package path (computed in Phase 2.3) for old pins
-grep -rn "==$CUR_OAEA\b\|==$CUR_OA\b" packages/ --include="*.yaml"
+# Search across every dev package path (computed in Phase 2.3) for old pins.
+# Uses -E with non-digit boundary (BSD-grep-safe; \b/\| are GNU-only).
+grep -rnE "==(${CUR_OAEA}|${CUR_OA})([^0-9]|$)" packages/ --include="*.yaml"
 ```
 
 Typical hits and what they map to:
@@ -429,6 +432,8 @@ Drift gets corrected by `sync --update-packages` below, but knowing the baseline
 
 ### 5.2 Run sync against every upstream repo
 
+Pass each tag **exactly as `gh release list` returns it** — `valory-xyz/open-aea` and `valory-xyz/open-autonomy` use the `v` prefix; some other upstreams have historically published without it. Don't guess the prefix; use the literal tag string.
+
 ```bash
 # OAEA first (open-autonomy depends on it; some downstream third-party packages come from open-aea)
 autonomy packages sync --source valory-xyz/open-aea:v$NEW_OAEA --update-packages
@@ -437,18 +442,14 @@ autonomy packages sync --source valory-xyz/open-aea:v$NEW_OAEA --update-packages
 autonomy packages sync --source valory-xyz/open-autonomy:v$NEW_OA --update-packages
 
 # Every entry from [tool.tomte] upstream_pins, using the tags resolved in Phase 1.3
-autonomy packages sync --source valory-xyz/mech-interact:v<TAG> --update-packages
-autonomy packages sync --source valory-xyz/genai:v<TAG> --update-packages
-autonomy packages sync --source valory-xyz/kv-store:v<TAG> --update-packages
-autonomy packages sync --source valory-xyz/funds-manager:v<TAG> --update-packages
+autonomy packages sync --source valory-xyz/mech-interact:<TAG> --update-packages
+autonomy packages sync --source valory-xyz/genai:<TAG> --update-packages
+autonomy packages sync --source valory-xyz/kv-store:<TAG> --update-packages
+autonomy packages sync --source valory-xyz/funds-manager:<TAG> --update-packages
 # … repeat for every upstream_pins entry
 ```
 
-Notes:
-
-- **Tag prefix is inconsistent** across upstream repos — some use `v0.21.20`, some `0.30.0`. Pass whatever `gh release list` shows.
-- If sync warns about packages it didn't recognise (not in any source), they come from a repo not yet in `upstream_pins`. Grep the package author/name across other Valory repos to find the source; add it to `upstream_pins`.
-- The plain (no `--source`) form `autonomy packages sync --update-packages` pulls from IPFS using whatever CIDs are already in `packages.json`. Use it as a final pass after the per-source syncs to bake on-disk state into the registry.
+If sync warns about packages it didn't recognise (not in any source), they come from a repo not yet in `upstream_pins`. Grep the package author/name across other Valory repos to find the source; add it to `upstream_pins`.
 
 ### 5.3 Sync error recovery
 
