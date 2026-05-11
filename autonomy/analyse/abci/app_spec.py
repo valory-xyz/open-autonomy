@@ -120,6 +120,9 @@ class FSMSpecificationLoader:
 
         JSON output is deprecated; prefer YAML or Mermaid. Emits a
         DeprecationWarning on use. Will be removed in a future release.
+
+        :param dfa: DFA object to serialize.
+        :param file: Output file path.
         """
         warnings.warn(
             "fsm-specs JSON output is deprecated and will be removed in a "
@@ -156,6 +159,13 @@ class FSMSpecificationLoader:
         Falls back to the flat per-round diagram when ``abci_app_cls`` is
         ``None``, when ``dev_skills`` is ``None`` (i.e. no packages.json
         info available), or when all rounds belong to a single sub-app.
+
+        :param dfa: DFA object to render.
+        :param file: Output file path.
+        :param abci_app_cls: Optional composed AbciApp class used to classify
+            rounds by sub-app for the composition-aware view.
+        :param dev_skills: Optional set of dev skill names (from
+            ``packages.json``); sub-apps not in this set are collapsed.
         """
         # Classify every round by its owning sub-app and split sub-apps
         # into dev (expanded) and third-party (collapsed).
@@ -293,6 +303,9 @@ class FSMSpecificationLoader:
         e.g. ``packages.valory.skills.market_manager_abci.states.update_bets``
         -> ``market_manager_abci``. Returns ``{}`` when ``abci_app_cls`` is
         ``None``.
+
+        :param abci_app_cls: Composed AbciApp class to inspect, or ``None``.
+        :return: Mapping from round class name to owning sub-app skill name.
         """
         if abci_app_cls is None:
             return {}
@@ -342,6 +355,13 @@ class FSMSpecificationLoader:
         renderer to collapse third-party sub-apps into single nodes while
         keeping dev sub-apps expanded (see ``dump_mermaid``). Other
         formats ignore them.
+
+        :param dfa: DFA object to serialize.
+        :param file: Output file path.
+        :param spec_format: One of ``OutputFormats.YAML``, ``JSON``, or
+            ``MERMAID``.
+        :param abci_app_cls: Optional composed AbciApp class (Mermaid only).
+        :param dev_skills: Optional set of dev skill names (Mermaid only).
         """
 
         validate_fsm_spec(dfa.generate())

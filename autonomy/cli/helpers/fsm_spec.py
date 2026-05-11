@@ -44,6 +44,9 @@ def _load_dev_skill_names(package_path: Path) -> Optional[Set[str]]:
     of ``<skill_name>`` values. Returns ``None`` if no ``packages.json``
     is found, in which case the Mermaid dump falls back to the flat
     per-round diagram (no collapsing).
+
+    :param package_path: Path to the package being analysed.
+    :return: Set of dev skill names, or ``None`` if no ``packages.json`` found.
     """
     current = package_path.resolve()
     while current != current.parent:
