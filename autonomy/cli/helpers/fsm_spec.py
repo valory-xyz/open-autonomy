@@ -20,6 +20,7 @@
 
 import importlib
 import json
+import logging
 import os
 from pathlib import Path
 from types import ModuleType
@@ -51,11 +52,17 @@ def _load_dev_skill_names(package_path: Path) -> Optional[Set[str]]:
     current = package_path.resolve()
     while current != current.parent:
         if current.name == "packages" and (current / "packages.json").is_file():
+            packages_json = current / "packages.json"
             try:
                 data = json.loads(
-                    (current / "packages.json").read_text(encoding="utf-8")
+                    packages_json.read_text(encoding="utf-8")
                 )
-            except (OSError, ValueError):
+            except OSError:
+                return None
+            except json.JSONDecodeError as exc:
+                logging.warning(
+                    "Malformed packages.json at %s: %s", packages_json, exc
+                )
                 return None
             return {
                 key.split("/")[2]
@@ -63,6 +70,11 @@ def _load_dev_skill_names(package_path: Path) -> Optional[Set[str]]:
                 if key.startswith("skill/") and len(key.split("/")) >= 3
             }
         current = current.parent
+    logging.debug(
+        "No packages.json found walking parents of %s; "
+        "composition-aware view unavailable",
+        package_path,
+    )
     return None
 
 

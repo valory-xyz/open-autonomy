@@ -31,7 +31,7 @@ import warnings
 from collections import OrderedDict, defaultdict, deque
 from itertools import product
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Protocol, Set, Tuple
 
 import yaml
 from aea.helpers.io import open_file
@@ -50,6 +50,19 @@ ABCI_APP_CLASS_POST_FIX = "AbciApp"
 
 EVENT_PATTERN = re.compile(r"Event\.(\w+)", re.DOTALL)
 ROUND_TIMEOUT_EVENTS = {"ROUND_TIMEOUT"}
+
+
+class _AbciAppLike(Protocol):  # pylint: disable=too-few-public-methods
+    """Structural type for AbciApp class objects used by the spec loader.
+
+    Matches the attributes of ``AbciApp`` accessed by ``dump_mermaid``
+    and ``_build_round_to_subapp``. Uses ``Any`` for nested types to
+    avoid coupling to the ``packages.*`` class hierarchy.
+    """
+
+    transition_function: Dict[Any, Dict[Any, Any]]
+    initial_states: Set[Any]
+    final_states: Set[Any]
 
 
 def validate_fsm_spec(data: Dict) -> None:
@@ -118,18 +131,13 @@ class FSMSpecificationLoader:
     def dump_json(dfa: "DFA", file: Path) -> None:
         """Dump to a json file (deprecated).
 
-        JSON output is deprecated; prefer YAML or Mermaid. Emits a
-        DeprecationWarning on use. Will be removed in a future release.
+        JSON output is deprecated; prefer YAML or Mermaid. The
+        ``DeprecationWarning`` is emitted by ``dump()`` so that
+        ``stacklevel`` always points at the external caller.
 
         :param dfa: DFA object to serialize.
         :param file: Output file path.
         """
-        warnings.warn(
-            "fsm-specs JSON output is deprecated and will be removed in a "
-            "future release; use --yaml or --mermaid instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         with open_file(file, "w", encoding="utf-8") as fp:
             json.dump(dfa.generate(), fp, indent=4)
 
@@ -143,7 +151,7 @@ class FSMSpecificationLoader:
     def dump_mermaid(
         dfa: "DFA",
         file: Path,
-        abci_app_cls: Optional[Any] = None,
+        abci_app_cls: Optional[_AbciAppLike] = None,
         dev_skills: Optional[Set[str]] = None,
     ) -> None:
         """Dumps this DFA spec. to a file in Mermaid format.
@@ -157,8 +165,9 @@ class FSMSpecificationLoader:
         treated as third-party and collapsed.
 
         Falls back to the flat per-round diagram when ``abci_app_cls`` is
-        ``None``, when ``dev_skills`` is ``None`` (i.e. no packages.json
-        info available), or when all rounds belong to a single sub-app.
+        ``None``, when ``dev_skills`` is empty or ``None`` (i.e. no
+        packages.json info available), or when all rounds belong to a
+        single sub-app.
 
         :param dfa: DFA object to render.
         :param file: Output file path.
@@ -173,7 +182,7 @@ class FSMSpecificationLoader:
         dev_subapps: Set[str] = set()
         third_party_subapps: Set[str] = set()
         for sub_app in set(round_to_subapp.values()):
-            if dev_skills is not None and sub_app in dev_skills:
+            if dev_skills and sub_app in dev_skills:
                 dev_subapps.add(sub_app)
             else:
                 third_party_subapps.add(sub_app)
@@ -183,10 +192,22 @@ class FSMSpecificationLoader:
         # per-round diagram -- no composites, no collapsing.
         flatten = (
             abci_app_cls is None
-            or dev_skills is None
+            or not dev_skills
             or len(round_to_subapp) == 0
             or (len(dev_subapps) + len(third_party_subapps)) <= 1
         )
+        if flatten and abci_app_cls is not None:
+            reasons = []
+            if not dev_skills:
+                reasons.append("no dev_skills info (packages.json not found)")
+            if len(round_to_subapp) == 0:
+                reasons.append("no rounds could be classified by sub-app")
+            if (len(dev_subapps) + len(third_party_subapps)) <= 1:
+                reasons.append("all rounds belong to a single sub-app")
+            logging.info(
+                "Composition-aware view not available, using flat diagram: %s",
+                "; ".join(reasons) if reasons else "unknown",
+            )
 
         def _display(state: str) -> str:
             """Collapse third-party rounds to their sub-app name."""
@@ -249,15 +270,17 @@ class FSMSpecificationLoader:
                 print("    }", file=fp)
 
             # Cross-app and flat-mode transitions at the top level, start
-            # states first.
-            for (s1, s2), events in top_level.items():
+            # states first.  Both passes are sorted to ensure deterministic
+            # output (non-sorted iteration would depend on dict insertion
+            # order and cause spurious diffs in hash/spec checks).
+            for (s1, s2), events in sorted(top_level.items()):
                 if s1 in start_states:
                     label = "<br />".join(sorted(events))
                     print(
                         f"    {s1} --> {s2}: <center>{label}</center>",
                         file=fp,
                     )
-            for (s1, s2), events in top_level.items():
+            for (s1, s2), events in sorted(top_level.items()):
                 if s1 not in start_states:
                     label = "<br />".join(sorted(events))
                     print(
@@ -297,12 +320,14 @@ class FSMSpecificationLoader:
             print("```", file=fp)
 
     @staticmethod
-    def _build_round_to_subapp(abci_app_cls: Optional[Any]) -> Dict[str, str]:
+    def _build_round_to_subapp(
+        abci_app_cls: Optional[_AbciAppLike],
+    ) -> Dict[str, str]:
         """Map each round class name to its owning sub-app skill name.
 
-        e.g. ``packages.valory.skills.market_manager_abci.states.update_bets``
-        -> ``market_manager_abci``. Returns ``{}`` when ``abci_app_cls`` is
-        ``None``.
+        e.g. ``packages.valory.skills.market_manager_abci.rounds``
+        contains ``UpdateBetsRound`` -> ``market_manager_abci``.
+        Returns ``{}`` when ``abci_app_cls`` is ``None``.
 
         :param abci_app_cls: Composed AbciApp class to inspect, or ``None``.
         :return: Mapping from round class name to owning sub-app skill name.
@@ -325,12 +350,35 @@ class FSMSpecificationLoader:
             module = getattr(cls, "__module__", "")
             sub_app = FSMSpecificationLoader._extract_skill_name(module)
             if sub_app:
-                result[cls.__name__] = sub_app
+                name = cls.__name__
+                if name in result and result[name] != sub_app:
+                    logging.warning(
+                        "Round name collision: %s appears in %s and %s",
+                        name,
+                        result[name],
+                        sub_app,
+                    )
+                result[name] = sub_app
+
+        unclassified = {
+            c.__name__ for c in round_classes if c.__name__ not in result
+        }
+        if unclassified:
+            logging.warning(
+                "Unclassified rounds (no `skills` segment in __module__): %s",
+                sorted(unclassified),
+            )
+
         return result
 
     @staticmethod
     def _extract_skill_name(module_path: str) -> Optional[str]:
-        """Pull the skill name out of a `packages.<author>.skills.<skill>...` path."""
+        """Pull the skill name out of a ``packages.<author>.skills.<skill>...`` path.
+
+        :param module_path: Dotted module path string.
+        :return: The skill name segment, or ``None`` if the path has
+            no ``skills`` segment.
+        """
         parts = module_path.split(".")
         try:
             idx = parts.index("skills")
@@ -346,7 +394,7 @@ class FSMSpecificationLoader:
         dfa: "DFA",
         file: Path,
         spec_format: str = OutputFormats.YAML,
-        abci_app_cls: Optional[Any] = None,
+        abci_app_cls: Optional[_AbciAppLike] = None,
         dev_skills: Optional[Set[str]] = None,
     ) -> None:
         """Dumps this DFA spec. to a file in YAML/JSON/Mermaid format.
@@ -367,6 +415,12 @@ class FSMSpecificationLoader:
         validate_fsm_spec(dfa.generate())
 
         if spec_format == cls.OutputFormats.JSON:
+            warnings.warn(
+                "fsm-specs JSON output is deprecated and will be removed "
+                "in a future release; use --yaml or --mermaid instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             cls.dump_json(dfa, file)
         elif spec_format == cls.OutputFormats.YAML:
             cls.dump_yaml(dfa, file)
