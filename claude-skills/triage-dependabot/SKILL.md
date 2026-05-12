@@ -119,22 +119,42 @@ For every alert, gather evidence in a defined order. **First decisive signal win
 
 ### 2.1 Resolve production vs test path sets
 
-Production paths and test paths vary by repo. Compute per-repo:
+Production paths and test paths vary by repo. Compute once per skill run and **export** so the values cross subshell / `<<<PY` heredoc boundaries cleanly. Then use bash arrays plus `"${arr[@]}"` expansion at every grep call site — never store the dir set as a space-joined string that gets re-split implicitly across function calls.
 
 ```bash
-# Production paths — top-level Python source dirs that ship in the wheel/sdist
-PROD_DIRS=$(for d in autonomy packages agent; do [[ -d "$d" ]] && echo "$d"; done | tr '\n' ' ')
+# Production paths — top-level Python source dirs that ship in the wheel/sdist.
+# Candidate list is per-repo; this default covers open-autonomy + the downstream fleet.
+PROD_DIRS=()
+for d in autonomy packages plugins libs aea operate agent; do
+  [[ -d "$d" ]] && PROD_DIRS+=("$d")
+done
 
 # Test paths — top-level test dirs PLUS in-package `tests/` subdirs that aren't shipped logic
-TEST_DIRS="tests scripts .github"
-PKG_TEST_DIRS=$(find packages -type d -name tests 2>/dev/null | tr '\n' ' ' || true)
+TEST_DIRS=(tests scripts .github benchmark examples mints docs)
+# Filter to only existing dirs to avoid `grep: tests: No such file or directory` noise
+TEST_DIRS=($(for d in "${TEST_DIRS[@]}"; do [[ -d "$d" ]] && echo "$d"; done))
 
-echo "PROD_DIRS=$PROD_DIRS"
-echo "TEST_DIRS=$TEST_DIRS"
-echo "PKG_TEST_DIRS=$PKG_TEST_DIRS"
+# Per-package nested tests/ — these are TEST even though they live under packages/
+mapfile -t PKG_TEST_DIRS < <(find packages plugins -type d -name tests 2>/dev/null)
+
+export PROD_DIRS TEST_DIRS PKG_TEST_DIRS   # propagate to any python -c / heredoc helpers
+
+echo "PROD_DIRS=${PROD_DIRS[*]}"
+echo "TEST_DIRS=${TEST_DIRS[*]}"
+echo "PKG_TEST_DIRS count=${#PKG_TEST_DIRS[@]}"
 ```
 
-**Important nuance**: under `packages/<author>/skills/<skill_name>/`, the skill's own production code (`behaviours.py`, `rounds.py`, `models.py`, `handlers.py`) is production; its sibling `tests/` subdir is not. Treat per-skill `tests/` dirs as test paths even though they live under `packages/`.
+**Critical**: every grep invocation that uses these sets MUST expand the array with `"${arr[@]}"` (quoted-each-element), not the unquoted string form `$ARR`. The unquoted form gets re-split by IFS, which silently fails on directory names with spaces and — more commonly — drops the entire list when the variable inherits empty across a subshell boundary. Signal C grepped 12 alerts to "zero hits" against open-aea before this was caught.
+
+```bash
+# RIGHT
+grep -rlnE "$REGEX" "${PROD_DIRS[@]}" --include="*.py"
+
+# WRONG — collapses to one string, breaks on spaces, vulnerable to empty-var bug
+grep -rlnE "$REGEX" $PROD_DIRS --include="*.py"
+```
+
+**Important nuance**: under `packages/<author>/skills/<skill_name>/`, the skill's own production code (`behaviours.py`, `rounds.py`, `models.py`, `handlers.py`) is production; its sibling `tests/` subdir is not. Per-skill `tests/` dirs are captured by the `find packages plugins -type d -name tests` line above and grepped as TEST.
 
 ### 2.2 Signal A — GitHub's own `dependency.scope`
 
@@ -246,12 +266,24 @@ Step 2: grep across **every** top-level module the package ships. PyPI packages 
 # (top modules can contain `.` for namespace packages like google.protobuf).
 MODULE_RE=$(printf '%s\n' "${top_modules[@]}" | sed 's/\./\\./g' | paste -sd'|' -)
 
-PROD_HITS=$(grep -rlnE "^(import|from)[[:space:]]+(${MODULE_RE})([[:space:]]|\.|$)" \
-  $PROD_DIRS --include="*.py" 2>/dev/null | wc -l | tr -d ' ')
+# Use "${arr[@]}" array expansion (see §2.1 critical note) — never the
+# unquoted string form, which collapses on subshell boundaries and silently
+# returns 0-hits even when the package IS imported in prod.
+PROD_HIT_FILES=$(grep -rlnE "^(import|from)[[:space:]]+(${MODULE_RE})([[:space:]]|\.|$)" \
+  "${PROD_DIRS[@]}" --include="*.py" 2>/dev/null \
+  | grep -v "/build/" | grep -v "/tests/")
+PROD_HITS=$(echo "$PROD_HIT_FILES" | grep -c . || echo 0)
 
-TEST_HITS=$(grep -rlnE "^(import|from)[[:space:]]+(${MODULE_RE})([[:space:]]|\.|$)" \
-  $TEST_DIRS $PKG_TEST_DIRS --include="*.py" 2>/dev/null | wc -l | tr -d ' ')
+TEST_HIT_FILES=$(grep -rlnE "^(import|from)[[:space:]]+(${MODULE_RE})([[:space:]]|\.|$)" \
+  "${TEST_DIRS[@]}" "${PKG_TEST_DIRS[@]}" --include="*.py" 2>/dev/null \
+  | grep -v "/build/")
+TEST_HITS=$(echo "$TEST_HIT_FILES" | grep -c . || echo 0)
 ```
+
+Two extra filters worth keeping:
+
+- `grep -v "/build/"` — many `plugins/<plugin>/build/lib/...` paths exist after a `poetry build` run; those are dist-copies of source under the same `plugins/<plugin>/<plugin>/` tree. They double-count if not filtered.
+- `grep -v "/tests/"` in the PROD pipeline — guards against the case where `PROD_DIRS` includes `packages/` (or `plugins/`) and the recursive grep walks into per-package `tests/` subdirs. Those should always count as TEST, never PROD, regardless of which top-level dir they live under.
 
 The `^(import|from)\s+<mod>([\s.]|$)` anchor is deliberate: it matches `import foo`, `from foo import …`, `from foo.bar import …`, but **not** `# import foo` (comment) or `from foobar import …` (different package). The trailing alternation `([\s.]|$)` is what prevents `foobar` from matching when grepping for `foo`.
 
@@ -299,8 +331,17 @@ For every alert, take exactly one action: **dismiss**, **open issue**, or **skip
 
 ### 3.1 Dismiss a DEV-only alert
 
+**`dismissed_comment` has a hard 280-character limit** on the Dependabot alerts API (`HTTP 422: Invalid property /dismissed_comment: Only 280 characters are allowed`). The wordy default below is ~330 chars and **will fail** without truncation. Build a terser default and cap defensively:
+
 ```bash
-DISMISS_COMMENT="Triaged automatically: package \`$PKG\` is only reachable from non-production code. Test/dev locations found: $TEST_HIT_FILES. Production scan (PROD_DIRS=$PROD_DIRS) returned zero imports. Dismissing as \`not_used\` from production. Re-evaluate if production code starts importing \`$PKG\`."
+# Pick a terse, deterministic comment — favour information density over prose,
+# because we lose ~50 chars to the test-hit file list when it's long.
+DISMISS_COMMENT="Triaged: \`$PKG\` only in test/dev (PROD scan: 0 imports). Locations: $TEST_HIT_FILES. Re-evaluate if prod imports \`$PKG\`."
+
+# Hard cap at 280; truncate with an ellipsis so it's obvious the comment was clipped.
+if [[ ${#DISMISS_COMMENT} -gt 280 ]]; then
+  DISMISS_COMMENT="${DISMISS_COMMENT:0:277}..."
+fi
 
 gh api -X PATCH "repos/$REPO/dependabot/alerts/$ALERT_NUM" \
   -f state="dismissed" \
@@ -308,6 +349,14 @@ gh api -X PATCH "repos/$REPO/dependabot/alerts/$ALERT_NUM" \
   -f dismissed_comment="$DISMISS_COMMENT" \
   --jq '.state' \
   || { echo "ERROR: failed to dismiss alert #$ALERT_NUM"; SKIPPED+=("$ALERT_NUM:dismiss-api-error"); continue; }
+```
+
+When `$TEST_HIT_FILES` is empty (pure transitive dismissals like `pillow` arriving via `ledgerwallet` with zero imports), use a different terser default to avoid `Locations: .` dangling:
+
+```bash
+if [[ -z "$TEST_HIT_FILES" ]]; then
+  DISMISS_COMMENT="Triaged: \`$PKG\` not imported anywhere (prod or test). Transitive via $REVERSE_DEP_ROOT. Re-evaluate if any code imports \`$PKG\`."
+fi
 ```
 
 **Required**: `dismissed_reason` must be one of the GitHub-documented enum values: `fix_started`, `inaccurate`, `no_bandwidth`, `not_used`, `tolerable_risk`. This skill uses `not_used` exclusively — it's the only one that means "the vulnerable code path is not reachable from this project's production surface", which is the only thing the skill verifies.
@@ -327,11 +376,36 @@ if [[ -n "$EXISTING" ]]; then
 fi
 ```
 
-Issue title format (under 70 chars):
+Issue title format (under 70 chars). Lead with `[Security]` so the issue is filterable, then the **package and a human-readable summary** — the GHSA ID belongs in the body, not the title, because reviewers don't scan ID strings. The skill's dedupe search (`$GHSA_ID in:title,body`) still works because the GHSA appears in the body.
 
 ```
-Security: <GHSA_ID> — <PKG> (<SEVERITY>)
+[Security][<severity>] <package>: <short summary>
 ```
+
+Build the short summary from `.security_advisory.summary`, which Dependabot returns as a string usually of the form `"<package>: <description>."`. Strip the leading `"<package>: "` to avoid `urllib3: urllib3: ...`, drop the trailing period, and truncate so the whole title stays under 70 chars:
+
+```bash
+RAW="${SUMMARY#${PKG}: }"     # strip "PackageName: " prefix
+RAW="${RAW%.}"                 # strip trailing period
+PREFIX="[Security][${SEVERITY}] ${PKG}: "
+BUDGET=$((70 - ${#PREFIX}))
+if [[ ${#RAW} -gt $BUDGET ]]; then
+  SUMMARY_SHORT="${RAW:0:$((BUDGET-1))}…"
+else
+  SUMMARY_SHORT="$RAW"
+fi
+TITLE="${PREFIX}${SUMMARY_SHORT}"
+```
+
+Worked examples:
+
+| Raw advisory `.summary` | Title produced |
+| ----------------------- | -------------- |
+| `urllib3: Sensitive headers forwarded across origins in proxied low-level redirects.` | `[Security][high] urllib3: Sensitive headers forwarded across origins in pr…` |
+| `GitPython: Insecure non-multi options accepted by clone / clone_from` | `[Security][high] GitPython: Insecure non-multi options accepted by clone…` |
+| `Authlib: Cross-site request forging when using cache` | `[Security][medium] Authlib: Cross-site request forging when using cache` |
+
+The GHSA ID lives in the issue body's `## Dependabot alert` block, which is what `gh issue list --search "$GHSA_ID in:title,body"` matches against for dedupe on repeat runs.
 
 **Pre-create labels idempotently.** `gh issue create --label X` errors with `could not add label: 'X' not found` if the label doesn't already exist in the target repo. Since this skill is repo-agnostic across the Valory fleet, most target repos won't have these labels — every first PROD action would fail without this. Run once per skill invocation, before the per-alert loop:
 
@@ -346,7 +420,7 @@ Issue body template (use a heredoc to preserve formatting):
 
 ```bash
 ISSUE_URL=$(gh issue create --repo "$REPO" \
-  --title "Security: $GHSA_ID — $PKG ($SEVERITY)" \
+  --title "$TITLE" \
   --label "security,dependabot,triage-dependabot" \
   --body "$(cat <<EOF
 ## Dependabot alert
@@ -381,7 +455,12 @@ If the package is owned by the open-autonomy / open-aea framework, the bump shou
 
 Triaged by the \`triage-dependabot\` skill. The Dependabot alert remains open as the source of truth; this issue tracks the in-repo work to fix it.
 EOF
-)" --jq '.url')
+)")
+
+# `gh issue create` does NOT support `--jq` (that flag is `gh api`-only).
+# The command prints the new issue URL on stdout already, so the command
+# substitution captures it directly. Don't append `--jq '.url'` — the
+# subprocess will exit 1 with "unknown flag: --jq" and the URL will be lost.
 
 echo "opened: $ISSUE_URL for $GHSA_ID"
 ```
@@ -454,11 +533,20 @@ REPO=$(gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"')
 gh api "repos/$REPO/dependabot/alerts?state=open&per_page=100" --paginate > "$TMP/alerts.json"
 
 N=$(jq 'length' "$TMP/alerts.json")
-DISMISSED=(); OPENED=(); SKIPPED=()
+DISMISSED=(); OPENED=(); SKIPPED_ECOSYSTEM=(); SKIPPED_UNCLASS=()
 
-PROD_DIRS=$(for d in autonomy packages agent; do [[ -d "$d" ]] && echo "$d"; done | tr '\n' ' ')
-TEST_DIRS="tests scripts .github"
-PKG_TEST_DIRS=$(find packages -type d -name tests 2>/dev/null | tr '\n' ' ' || true)
+# Path sets as bash ARRAYS — see §2.1 critical note. Do not use space-joined
+# strings; they collapse across subshell boundaries and silently null out.
+PROD_DIRS=()
+for d in autonomy packages plugins libs aea operate agent; do
+  [[ -d "$d" ]] && PROD_DIRS+=("$d")
+done
+TEST_DIRS=()
+for d in tests scripts .github benchmark examples mints docs; do
+  [[ -d "$d" ]] && TEST_DIRS+=("$d")
+done
+mapfile -t PKG_TEST_DIRS < <(find packages plugins -type d -name tests 2>/dev/null)
+export PROD_DIRS TEST_DIRS PKG_TEST_DIRS
 
 for i in $(seq 0 $((N-1))); do
   ALERT=$(jq ".[$i]" "$TMP/alerts.json")
@@ -507,7 +595,7 @@ done
 | Surface | What changes |
 | ------- | ------------ |
 | Dependabot alerts (DEV) | `state` flipped to `dismissed`; `dismissed_reason=not_used`; `dismissed_comment` includes the test/dev paths the scan found |
-| Repo issues (PROD) | New issues opened with title `Security: <GHSA> — <pkg> (<sev>)`, labels `security,dependabot,triage-dependabot`, body referencing the alert URL + prod import paths + suggested fix |
+| Repo issues (PROD) | New issues opened with title `[Security][<sev>] <pkg>: <short summary>` (GHSA in body, not title), labels `security,dependabot,triage-dependabot`, body referencing the alert URL + prod import paths + suggested fix |
 | Repo issues (existing) | Skipped via dedupe (no edit) |
 | Working tree | Nothing — the skill only mutates GitHub state, not files |
 
