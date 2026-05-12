@@ -9,14 +9,16 @@ disable-model-invocation: true
 
 Walk every open Dependabot security alert on the current repo. Classify the vulnerable dependency by whether it is **reachable from production code** or **only from tests / dev tooling / CI**. Then act in one pass:
 
-| Classification | Action |
-| -------------- | ------ |
-| **Production-reachable AND exploit-applicable** | Leave Dependabot alert open. Open a new GitHub issue on the repo that references the alert, names the CVE / GHSA / severity, lists the production paths that pull in the vulnerable package, the exploit-surface analysis, and the suggested upgrade pin. |
-| **Production-reachable but exploit NOT applicable** (CVE's threat model doesn't map to this codebase's usage) | Dismiss the Dependabot alert with `dismissed_reason=inaccurate` and a comment naming the threat-model mismatch. No repo issue. |
-| **Test / dev / CI-only import path** | Dismiss with `dismissed_reason=not_used` naming the test/dev paths it was found in. No repo issue. |
-| **Unclassifiable** | Skip. Print a line to stderr for manual review. **Never** auto-dismiss without evidence. |
+| Classification | Confidence | Action |
+| -------------- | ---------- | ------ |
+| **Production-reachable AND exploit-applicable** | any | Leave Dependabot alert open. Open a new GitHub issue on the repo that references the alert, names the CVE / GHSA / severity, lists the production paths that pull in the vulnerable package, the exploit-surface analysis, and the suggested upgrade pin. |
+| **Production-reachable but exploit NOT applicable** | **high** | Dismiss the Dependabot alert with `dismissed_reason=inaccurate` and a comment naming the threat-model mismatch. No repo issue. |
+| **Production-reachable but exploit NOT applicable** | **moderate** | Open a repo issue tagged `needs-human-review` with the analysis. Do NOT dismiss — the maintainer makes the final call. |
+| **Production-reachable but exploit NOT applicable** | **low** | Open a repo issue tagged `needs-human-review` (defaults to caution). Do NOT dismiss. |
+| **Test / dev / CI-only import path** | n/a | Dismiss with `dismissed_reason=not_used` naming the test/dev paths it was found in. No repo issue. |
+| **Unclassifiable** | n/a | Skip. Print a line to stderr for manual review. **Never** auto-dismiss without evidence. |
 
-Conservative default: **when uncertain about exploit applicability, open the issue.** A false-positive issue is cheap to close after a one-line maintainer comment; a false-negative dismissal hides a real vulnerability. But "import in prod ≠ exploit-applicable" — see Phase 2.5.
+Conservative default: **when uncertain about exploit applicability, open the issue.** A false-positive issue is cheap to close after a one-line maintainer comment; a false-negative dismissal hides a real vulnerability. Only dismiss as `inaccurate` when Phase 2.5 reaches **high** confidence that the CVE preconditions are absent. See Phase 2.5 for how the confidence tier is derived.
 
 This skill runs fully autonomously on invocation — it mutates GitHub state (dismisses alerts, opens issues). Do not invoke from conversational context; require explicit `/triage-dependabot`.
 
@@ -364,21 +366,26 @@ Read the `description` and `cwe_ids` fields. The CWE IDs are a strong typed hint
 
 #### 2.5.2 Identify the CVE's required preconditions
 
-Working from the advisory's description, write down (mentally or in scratch state) what an attacker needs in order to trigger the bug:
+Working from the advisory's description AND the `cwe_ids` array fetched in §2.5.1, derive the required preconditions. **Free-form prose against the description is a known failure mode** — reviewers miss preconditions the advisory implies but doesn't spell out. Instead, dispatch on the CWE IDs and answer the checklist questions for each.
 
-| Bug class (common CWE patterns) | Typical required preconditions |
-| ------------------------------- | ------------------------------ |
-| Header / cookie / token leak (CWE-200, CWE-201) | Code sends sensitive headers; attacker controls a URL or redirect target |
-| Decompression / zip bomb (CWE-409) | Code reads streaming bodies from attacker-controlled URLs; client process uptime matters |
-| Path traversal (CWE-22) | Code passes attacker-controlled paths to file I/O |
-| Deserialization RCE (CWE-502) | Code deserializes pickle / yaml / msgpack from attacker-controlled bytes |
-| SQL injection (CWE-89) | Code builds queries from attacker-controlled strings |
-| ReDoS (CWE-1333) | Code runs the vulnerable regex against attacker-controlled strings |
-| CSRF (CWE-352) | Server-side web app with browser-driven OAuth / form flows |
-| Command injection (CWE-78) | Code passes attacker-controlled args to subprocess / shell |
-| SSRF (CWE-918) | Code fetches URLs whose host is attacker-controlled |
-| TLS bypass (CWE-295) | Code makes outbound HTTPS to internet-facing hosts |
-| Privilege escalation in deserialized config (CWE-94) | Code loads attacker-controlled config files |
+For each CWE the advisory carries, walk the matching checklist row. If the advisory carries multiple CWEs, walk every matching row — they're additive, not alternatives. If the CWE is not listed below, fall back to free-form precondition extraction from the description AND mark the analysis as **moderate** confidence (§2.5.6) because the precondition coverage is unstructured.
+
+| CWE ID(s) | Bug class | Required preconditions (each MUST be answered explicitly) |
+| --------- | --------- | --------------------------------------------------------- |
+| CWE-200, CWE-201, CWE-209 | Information / header / token leak | Q1: Does the calling code carry sensitive state (auth tokens, session cookies, API keys, user-PII)? Q2: Does the leak path require an attacker-controlled destination (redirect target, URL host, log sink)? Q3: Can the attacker influence that destination given the caller's input model? |
+| CWE-22, CWE-23 | Path traversal | Q1: Does the calling code pass any path or filename argument derived from external input to the vulnerable API? Q2: Are the paths user-supplied, network-supplied, or developer-supplied (hardcoded / generated deterministically from repo state)? |
+| CWE-78, CWE-77, CWE-88 | Command / argument injection | Q1: Does the calling code pass any argument derived from external input to subprocess / shell? Q2: Is the vulnerable API one of the spawn helpers named in the advisory? |
+| CWE-89 | SQL injection | Q1: Does the calling code build queries from any input derived from a non-developer source? Q2: Is the vulnerable codepath one the caller actually invokes (raw-SQL vs ORM-only)? |
+| CWE-94, CWE-502, CWE-915 | Code injection / deserialization RCE | Q1: Does the calling code deserialize, eval, or load any bytes/string derived from an external source? Q2: Is the unsafe loader (pickle / yaml.unsafe_load / unsafe-mode flag) the one invoked, vs the safe variant? |
+| CWE-295, CWE-297, CWE-345, CWE-322 | TLS / cert / signature bypass | Q1: Does the calling code make outbound TLS/HTTPS to hosts that aren't internal? Q2: Is the trust decision based on the vulnerable verification path the advisory names? Q3: Does the caller pass user-controlled hostnames? |
+| CWE-352 | CSRF | Q1: Is there a browser-driven request flow against this code? Q2: Does the vulnerable endpoint exist in our service (vs being a library function we don't expose)? |
+| CWE-400, CWE-409, CWE-770, CWE-789, CWE-1333 | DoS — memory / regex / compression | Q1: Does the calling code accept attacker-controlled bytes/strings of arbitrary length into the vulnerable API? Q2: Does the calling process have an uptime contract (long-running service) where DoS matters, vs one-shot CLI where the process restarts? |
+| CWE-918 | SSRF | Q1: Does the calling code fetch URLs whose host comes from external input? Q2: Is the deployment environment one where internal-network access from the process is sensitive (cloud metadata endpoint, internal services)? |
+| CWE-601 | Open redirect | Q1: Does the calling code expose redirect targets to user-controllable input? Q2: Is the application a web frontend that holds session state worth phishing? |
+| CWE-327, CWE-328, CWE-916 | Weak crypto | Q1: Does the calling code use the vulnerable primitive for a security-relevant purpose (auth, integrity, confidentiality) vs a non-security one (deterministic hash, content-addressing)? |
+| CWE-862, CWE-863 | Missing / incorrect authz | Q1: Does the calling code expose any endpoint or operation gated by the vulnerable check? |
+
+Write each Q&A answer down. The dismissed_comment or issue body must reference the specific Q that failed (for `not-applicable`) or passed (for `applicable`). "Q1 absent — link checker carries no auth headers" is auditable; "CVE not applicable" is not.
 
 #### 2.5.3 Map preconditions against the calling code
 
@@ -388,9 +395,55 @@ For each PROD import path found in Signal C, **read the calling file** (or the r
 2. Does the calling code accept input from an untrusted source? (network user? HTTP request body? environment variable populated by an external system?) Or is the input developer-controlled (repo source, hardcoded URL, deterministic config)?
 3. Is the calling process long-lived / network-reachable, or one-shot CLI?
 
-Cross-reference the answers against the preconditions from §2.5.2. If **any** required precondition is absent, the CVE is **not applicable** in this codebase even though the package is imported in prod.
+Cross-reference the answers against the **checklist Qs from §2.5.2**. For each Q, record one of: `reachable` (precondition satisfied by the calling code), `absent` (precondition cannot be satisfied given the calling code), or `unknown` (cannot determine without runtime trace or deeper analysis). If **any** required precondition is `absent`, the CVE is candidate **not applicable**. If **any** is `unknown`, the analysis is candidate **moderate confidence** at best (see §2.5.6).
 
-#### 2.5.4 The archetype multiplier
+#### 2.5.4 Vulnerable-symbol call-graph trace (one level)
+
+Signal C in §2.4 confirms the package is imported. That's necessary but not sufficient — the *specific vulnerable API* named in the advisory must also be reachable. Many CVEs name a concrete function/method/flag (`ProxyManager.connection_from_url`, `assert_hostname`, `yaml.unsafe_load`, `Repo.clone_from(multi_options=...)`). If the calling code uses the package but never reaches the vulnerable symbol, the CVE is not exploitable in this codebase even though Signal C lit up.
+
+This is a one-level static grep — not full call-graph analysis. It catches the common case where the calling code uses a different entrypoint of the same package.
+
+Step 1 — extract the vulnerable symbol(s) from the advisory description. Look for class.method, function names, kwargs, and CLI flags:
+
+```bash
+# Extract code-like tokens (Class.method, function(, --flag) from the advisory.
+# Curate the list — the regex over-collects; human/LLM judgment picks which
+# of these are the actual vulnerable surface vs prose references.
+jq -r '.description' "$TMP/advisory_${GHSA_ID}.json" \
+  | grep -oE '`[^`]+`|\b[A-Z][A-Za-z0-9_]*\.[a-z_][A-Za-z0-9_]*\b|\b[a-z_][A-Za-z0-9_]+\(' \
+  | sort -u
+```
+
+Step 2 — grep production code for each candidate symbol. Use the same `PROD_DIRS` array machinery as §2.4 (quoted-each-element expansion, `/build/` and `/tests/` filtered):
+
+```bash
+# For each curated vulnerable symbol $SYM (escape regex metachars first):
+SYM_RE=$(printf '%s' "$SYM" | sed 's/[][\\/.*^$+?{}()|]/\\&/g')
+
+SYMBOL_HITS=$(grep -rlnE "$SYM_RE" "${PROD_DIRS[@]}" --include="*.py" 2>/dev/null \
+  | grep -v "/build/" | grep -v "/tests/" \
+  | wc -l | tr -d ' ')
+```
+
+Step 3 — verdict feeds into §2.5.6 confidence:
+
+| Vulnerable symbol in advisory? | `SYMBOL_HITS` | Effect |
+| ------------------------------ | ------------- | ------ |
+| Yes, specific symbol named | `> 0` | Strong evidence CVE is reachable — confidence shifts toward **high** for an "applicable" verdict |
+| Yes, specific symbol named | `0` | Strong evidence CVE is NOT reachable — confidence shifts toward **high** for a "not-applicable" verdict (this is the §2.5.3 `absent` case backed by code evidence, not just inference) |
+| No specific symbol named (CVE is class-wide — e.g. "any use of `requests` with proxies") | n/a | Skip this step; confidence ceiling is **moderate** at best because there's no symbol to grep for |
+| Symbol named but obscured by aliasing / dynamic dispatch | n/a | Mark as `unknown` for §2.5.3 — confidence drops one tier |
+
+This step is **the difference between dismissing as `not_used` (Phase 2.4 found no imports anywhere) and dismissing as `inaccurate` with high confidence (Phase 2.4 found imports, but Phase 2.5.4 confirmed the vulnerable surface is unreached).**
+
+Known limitations — these are the cases where the grep is insufficient and confidence MUST drop:
+- **Dynamic dispatch** — `getattr(obj, method_name)` where `method_name` is computed at runtime. Grep won't see it.
+- **Framework abstraction** — the calling code goes through a framework's HTTP transport (e.g. `web3.HTTPProvider` → `requests` → `urllib3`); the vulnerable symbol is reached internally, not by direct call. Grep at this level won't see it.
+- **Aliased imports** — `from urllib3 import ProxyManager as PM` then `PM.connection_from_url(...)`. The earlier import-graph scan catches the import; this step won't catch the use unless the alias is grepped too.
+
+When any of these patterns is plausible given the package's role, drop the confidence tier and mark the precondition `unknown` in §2.5.3.
+
+#### 2.5.5 The archetype multiplier
 
 Apply the `ARCHETYPE` value from Phase 0.1:
 
@@ -401,18 +454,46 @@ Apply the `ARCHETYPE` value from Phase 0.1:
 | `service` | **Permissive** — long-running, network-reachable, often handles user input. Default to PROD-applicable. |
 | `unknown` | Treat as `framework`. |
 
-#### 2.5.5 Final verdict
+#### 2.5.6 Confidence tier
 
-Combine §2.5.3 (preconditions match) with §2.5.4 (archetype posture):
+Derive a confidence tier in `{high, moderate, low}` from the §2.5.3 precondition map AND the §2.5.4 vulnerable-symbol trace. The tier is what gates dismissal in Phase 3 — `inaccurate` dismissals require **high** confidence.
 
-| §2.5.3 result | §2.5.4 archetype | Verdict |
-| ------------- | ---------------- | ------- |
-| All preconditions reachable | any | **PROD-APPLICABLE** → open issue (Phase 3.2) |
-| One or more preconditions absent | `service` / `framework` / `scaffold` | **PROD-APPLICABLE** → open issue (default to caution; consumers may differ) |
-| One or more preconditions absent | `cli-tool` | **NOT-APPLICABLE** → dismiss with `inaccurate` (Phase 3.3) |
-| Truly ambiguous (precondition reachability not determinable without runtime trace) | any | **PROD-APPLICABLE** → open issue, default to caution |
+| Confidence | All of these must hold |
+| ---------- | ---------------------- |
+| **high** | Every checklist Q from §2.5.2 was answered `reachable` or `absent` (no `unknown`) **AND** the §2.5.4 vulnerable-symbol trace produced a definitive yes/no (specific symbol named in advisory + grep returned `0` or `>0` hits, no aliasing / framework-internal / dynamic-dispatch caveats applied) **AND** the archetype is unambiguous from §0.1 heuristics |
+| **moderate** | At least one of the above conditions is borderline: one checklist Q is `unknown`, OR the advisory names the CVE class-wide with no specific symbol to grep for, OR the archetype detection landed on `unknown` and defaulted to `framework`, OR the precondition extraction fell back to free-form prose (CWE not in §2.5.2 table) |
+| **low** | Multiple checklist Qs are `unknown`, OR aliasing/framework-internal dispatch is plausible AND the symbol grep returned `0` hits (false-negative risk), OR the calling code reaches the package through a third-party transport whose behavior isn't audited in this repo |
 
-When dismissing as `inaccurate`, the `dismissed_comment` must name **which precondition is absent** in plain English. "Tomte's link checker carries no auth headers; the CVE requires a sensitive-header forward via redirect — precondition absent." That comment is the audit trail; a future reviewer needs to be able to challenge the call.
+Two heuristics worth applying mechanically:
+
+- If the advisory's CWE is in the §2.5.2 table AND §2.5.4 produced a definitive symbol-trace result AND the archetype is `cli-tool` or `service` (unambiguous), default to **high**.
+- If the advisory's CWE is NOT in the §2.5.2 table OR the archetype is `unknown`, ceiling is **moderate** regardless of how clean the other signals are. Skip-list this in the §2.5.2 dispatch and the ceiling lifts as soon as someone adds the CWE row.
+
+#### 2.5.7 Final verdict + action matrix
+
+Combine §2.5.3 (preconditions match), §2.5.5 (archetype posture), and §2.5.6 (confidence tier) into one action call. The action matrix is conservative on the dismissal side and permissive on the issue side — false-positive issues are cheap, false-negative dismissals are expensive.
+
+| Preconditions | Archetype | Confidence | Verdict | Action |
+| ------------- | --------- | ---------- | ------- | ------ |
+| All `reachable` | any | high or moderate | **PROD-APPLICABLE** | Open issue (Phase 3.2). If confidence = moderate, additionally label `needs-human-review`. |
+| All `reachable` | any | low | **PROD-APPLICABLE** | Open issue + `needs-human-review` label. Body must call out the uncertainty source(s). |
+| Any `absent` | `cli-tool` | **high** | **NOT-APPLICABLE** | Dismiss with `inaccurate` (Phase 3.1b). Comment names which Q failed and references the §2.5.4 symbol-grep result. |
+| Any `absent` | `cli-tool` | moderate | **NOT-APPLICABLE (low-confidence)** | Open issue + `needs-human-review` label. Do NOT dismiss — the maintainer decides. |
+| Any `absent` | `cli-tool` | low | **NOT-APPLICABLE (low-confidence)** | Open issue + `needs-human-review`. Do NOT dismiss. |
+| Any `absent` | `service` / `framework` / `scaffold` | any | **PROD-APPLICABLE** | Open issue (default to caution; consumers may satisfy the precondition even if this repo doesn't). |
+| Any `unknown` | any | any | **PROD-APPLICABLE** | Open issue + `needs-human-review`. Do NOT dismiss. |
+
+When dismissing as `inaccurate`, the `dismissed_comment` must name **which checklist Q failed** in plain English. "Tomte's link checker (cli-tool) carries no auth headers — CWE-200 Q1 absent. §2.5.4 grep for `assert_hostname` returned 0 hits." That comment is the audit trail; a future reviewer needs enough information to challenge the call without re-running the analysis from scratch.
+
+#### 2.5.8 Out of scope: PoC harness
+
+The gold-standard verification of "is this CVE exploitable in this codebase" is to run the public exploit PoC against the actual codebase. This skill does **not** automate that for three reasons:
+
+- PoCs are CVE-specific and hand-crafted; they don't generalize into a harness.
+- The PoC may be destructive (RCE, data exfiltration) — running it in a developer environment is not safe by default.
+- The threat model is "exploitable from where the calling code sits," not "the bug still exists upstream" — the PoC tests the latter.
+
+If a `moderate` or `low`-confidence dismissal is challenged by the maintainer, **PoC verification is the documented escalation path.** Note that in the `needs-human-review` issue body so the maintainer knows what to do next.
 
 ### 2.6 Transitive deps — reverse-resolve the chain
 
@@ -482,15 +563,20 @@ Do **not** use `tolerable_risk` — that's "the bug is real and reachable, but t
 
 Do **not** use `fix_started` or `no_bandwidth` — those mean "we're working on it" / "we don't have time." Neither describes the skill's actual reasoning.
 
-### 3.1b Dismiss a NOT-APPLICABLE alert (Phase 2.5 verdict)
+### 3.1b Dismiss a NOT-APPLICABLE alert (Phase 2.5 verdict, **high confidence only**)
 
-For alerts where the package is imported in PROD but Phase 2.5 ruled the CVE's preconditions absent. The dismissal comment must name the specific precondition that's absent — that's the audit trail.
+For alerts where the package is imported in PROD but Phase 2.5.7 ruled the CVE's preconditions absent AND Phase 2.5.6 returned `high` confidence. **Do not enter this branch on `moderate` or `low` confidence** — those cases must take the issue path (Phase 3.2) with the `needs-human-review` label.
+
+The dismissal comment must name the specific checklist Q that failed AND reference the §2.5.4 symbol-grep result — that's the audit trail.
 
 ```bash
-# $PRECONDITION_ABSENT is set in Phase 2.5.3 — e.g.,
-#   "sensitive-header carriage" / "long-lived process / uptime contract"
-#   / "OAuth browser session" / "deserialization of attacker bytes"
-DISMISS_COMMENT="Triaged: \`$PKG\` imported in prod but CVE threat model not applicable. Required: $PRECONDITION_ABSENT. Archetype: $ARCHETYPE. See $ALERT_URL for the CVE; this codebase does not satisfy the precondition."
+# Required pre-conditions to reach this branch:
+[[ "$VERDICT" == "NOT-APPLICABLE" ]] || { echo "guard: only NOT-APPLICABLE reaches 3.1b"; continue; }
+[[ "$CONFIDENCE" == "high" ]] || { echo "guard: only high-confidence reaches 3.1b — route to 3.2 with needs-human-review"; }
+
+# $FAILED_Q is set in §2.5.3 — e.g., "CWE-200 Q1 (no auth headers)"
+# $SYMBOL_TRACE is set in §2.5.4 — e.g., "grep for ProxyManager.connection_from_url: 0 hits"
+DISMISS_COMMENT="Triaged: \`$PKG\` imported in prod, CVE not applicable. $FAILED_Q. $SYMBOL_TRACE. Archetype: $ARCHETYPE. Confidence: high."
 
 if [[ ${#DISMISS_COMMENT} -gt 280 ]]; then
   DISMISS_COMMENT="${DISMISS_COMMENT:0:277}..."
@@ -564,14 +650,23 @@ The GHSA ID lives in the issue body's `## Dependabot alert` block, which is what
 gh label create security              --color B60205 --description "Security vulnerability" --repo "$REPO" 2>/dev/null || true
 gh label create dependabot            --color 0366D6 --description "Dependabot-reported"     --repo "$REPO" 2>/dev/null || true
 gh label create triage-dependabot     --color 5319E7 --description "Opened by triage-dependabot skill" --repo "$REPO" 2>/dev/null || true
+gh label create needs-human-review    --color FBCA04 --description "Skill confidence below threshold — maintainer call required" --repo "$REPO" 2>/dev/null || true
 ```
 
 Issue body template (use a heredoc to preserve formatting):
 
 ```bash
+# Build the label list — append needs-human-review when the verdict is NOT-APPLICABLE
+# but the dismissal path was blocked by confidence (Phase 2.5.6/2.5.7), or when the
+# verdict is PROD-APPLICABLE at low/moderate confidence.
+LABELS="security,dependabot,triage-dependabot"
+if [[ "$CONFIDENCE" != "high" ]] || [[ "$VERDICT" == "NOT-APPLICABLE" ]]; then
+  LABELS="$LABELS,needs-human-review"
+fi
+
 ISSUE_URL=$(gh issue create --repo "$REPO" \
   --title "$TITLE" \
-  --label "security,dependabot,triage-dependabot" \
+  --label "$LABELS" \
   --body "$(cat <<EOF
 ## Dependabot alert
 
@@ -580,6 +675,7 @@ ISSUE_URL=$(gh issue create --repo "$REPO" \
 - Severity: **$SEVERITY**
 - GHSA: $GHSA_ID
 - CVE: $CVE_ID
+- CWE(s): $CWE_IDS
 - Vulnerable range: \`$VULN_RANGE\`
 - First patched: \`$FIRST_PATCHED\`
 
@@ -598,16 +694,21 @@ $PROD_HIT_FILES_BULLETED
 ## Exploit-surface analysis
 
 **Repo archetype:** $ARCHETYPE
+**Skill verdict:** $VERDICT
+**Skill confidence:** $CONFIDENCE
 
-**CVE preconditions** (from the GHSA description):
-$CVE_PRECONDITIONS
+**CWE checklist (§2.5.2):**
+$CWE_CHECKLIST_ANSWERS
+
+**Vulnerable-symbol trace (§2.5.4):**
+$SYMBOL_TRACE_RESULT
 
 **Codebase's usage pattern at the import sites:**
 $USAGE_PATTERN_NOTES
 
-**Applicability verdict:** $APPLICABILITY_VERDICT — $APPLICABILITY_REASONING
+**Reasoning:** $APPLICABILITY_REASONING
 
-If you (the maintainer) judge the preconditions absent, close this issue and dismiss the linked Dependabot alert with reason \`inaccurate\` and a comment naming the missing precondition.
+If this issue carries the \`needs-human-review\` label, the skill's confidence was below the threshold required to dismiss autonomously. Maintainer review is required to either (a) confirm the bump should go ahead, or (b) dismiss the linked Dependabot alert with reason \`inaccurate\` and a comment naming the missing precondition. **Escalation path: if the call is contested, write a PoC against this repo's actual usage pattern (out-of-scope for the skill — see §2.5.8 of the skill).**
 
 ## Suggested fix
 
@@ -660,17 +761,21 @@ End with a single stdout block summarising the run:
 === triage-dependabot summary for $REPO ===
 Alerts seen:        $N_ALERTS
 Processed:          $N_PROCESS                # respects --limit
-Dismissed (DEV):    $N_DISMISSED
-Issue opened (PROD): $N_OPENED
-Skipped (non-pip):  $N_SKIPPED_ECOSYSTEM      # informational, no exit-code impact
-Skipped (unclassifiable): $N_SKIPPED_UNCLASS  # exits 1 if > 0
+Dismissed (DEV, not_used):     $N_DISMISSED_DEV
+Dismissed (PROD-not-applic, inaccurate, high-conf): $N_DISMISSED_INACCURATE
+Issue opened (PROD-applicable, high-conf):  $N_OPENED_APPLICABLE
+Issue opened (needs-human-review):  $N_OPENED_REVIEW   # moderate or low confidence
+Skipped (non-pip):              $N_SKIPPED_ECOSYSTEM   # informational, no exit-code impact
+Skipped (unclassifiable):       $N_SKIPPED_UNCLASS     # exits 1 if > 0
 
 Dismissed alerts:
-  #123 PyYAML       GHSA-... (test-only: tests/helpers/yaml_loader.py)
+  #123 PyYAML       GHSA-... (not_used, test-only: tests/helpers/yaml_loader.py)
+  #124 urllib3      GHSA-... (inaccurate, high-conf: CWE-200 Q1 absent, symbol grep 0 hits)
   ...
 
 Opened issues:
-  #456 https://github.com/owner/repo/issues/456  GHSA-... cryptography
+  #456 https://github.com/owner/repo/issues/456  GHSA-... cryptography (high-conf applicable)
+  #457 https://github.com/owner/repo/issues/457  GHSA-... requests    (moderate-conf, needs-human-review)
   ...
 
 Skipped — non-pip ecosystem (informational):
@@ -681,6 +786,8 @@ Skipped — unclassifiable (review manually):
   #789 GHSA-... obscure-pkg — no imports found, scope=unknown
   ...
 ```
+
+The `needs-human-review` bucket is the primary signal that the skill's confidence model is calibrated correctly: if it grows over time, the §2.5.2 CWE checklist or the §2.5.4 symbol-trace heuristics need more coverage. Track this across runs.
 
 Exit code: `1` if `N_SKIPPED_UNCLASS > 0`, else `0`. `N_SKIPPED_ECOSYSTEM` never affects exit code.
 
@@ -745,10 +852,10 @@ done
 
 1. **Only act on `state=open` alerts.** Don't poke at already-dismissed alerts.
 2. **Skip non-pip ecosystems.** GitHub Actions / Docker / npm alerts can appear on Valory repos (e.g. `.github/workflows/*.yml` action pins) — flag them for manual review.
-3. **Conservative default: when uncertain, open an issue, don't dismiss.** A false-positive issue costs one `gh issue close` command; a false-negative dismissal costs a quietly-shipped CVE.
-4. **Two dismissal reasons, two strict criteria.**
-   - `not_used` — Phase 2.4 Signal C proved the package is reachable only from test/dev paths. Comment names the test/dev files.
-   - `inaccurate` — Phase 2.5 proved the CVE's threat-model preconditions are absent in this codebase's usage of the package. Comment names which precondition is absent.
+3. **Conservative default: when uncertain, open an issue, don't dismiss.** A false-positive issue costs one `gh issue close` command; a false-negative dismissal costs a quietly-shipped CVE. The §2.5.6 confidence tier formalizes this — only `high` confidence dismisses autonomously.
+4. **Two dismissal reasons, three strict criteria (incl. confidence).**
+   - `not_used` — Phase 2.4 Signal C proved the package is reachable only from test/dev paths. Comment names the test/dev files. No confidence tier required (the import-graph evidence is direct).
+   - `inaccurate` — Phase 2.5 proved the CVE's threat-model preconditions are absent **AND Phase 2.5.6 returned `high` confidence**. Comment names which checklist Q failed AND references the §2.5.4 symbol-grep result. On `moderate` or `low` confidence, do not dismiss — open an issue tagged `needs-human-review` instead.
    Never use `tolerable_risk` / `fix_started` / `no_bandwidth` — those need human cost/benefit calls the skill never has the context for.
 5. **Dedupe before opening.** Search existing open issues by GHSA ID; never spam duplicates on repeat runs.
 6. **Don't dismiss with no evidence.** Skip + log if neither prod nor test imports are found and the manifest is silent.
@@ -762,9 +869,11 @@ done
 | Surface | What changes |
 | ------- | ------------ |
 | Dependabot alerts — DEV-only path | `state=dismissed`; `dismissed_reason=not_used`; comment includes the test/dev paths the scan found |
-| Dependabot alerts — PROD-but-not-applicable | `state=dismissed`; `dismissed_reason=inaccurate`; comment names the absent CVE precondition + archetype |
-| Repo issues — PROD-applicable | New issues opened with title `[Security][<sev>] <pkg>: <short summary>` (GHSA in body, not title), labels `security,dependabot,triage-dependabot`, body containing alert URL + prod import paths + **exploit-surface analysis** + suggested fix |
+| Dependabot alerts — PROD-but-not-applicable **at high confidence only** | `state=dismissed`; `dismissed_reason=inaccurate`; comment names the failed CWE checklist Q + §2.5.4 symbol-grep result + archetype + confidence tier |
+| Repo issues — PROD-applicable | New issues opened with title `[Security][<sev>] <pkg>: <short summary>` (GHSA in body, not title), labels `security,dependabot,triage-dependabot`, body containing alert URL + prod import paths + **exploit-surface analysis with CWE-checklist answers, vulnerable-symbol trace, and confidence tier** + suggested fix |
+| Repo issues — PROD-not-applicable but confidence below `high` | Same as above, **additionally labeled `needs-human-review`**. Dependabot alert NOT dismissed — the maintainer makes the final call. |
 | Repo issues (existing) | Skipped via dedupe (no edit) |
+| Labels | First-run idempotent creation of `security`, `dependabot`, `triage-dependabot`, `needs-human-review` |
 | Working tree | Nothing — the skill only mutates GitHub state, not files |
 
 ---
