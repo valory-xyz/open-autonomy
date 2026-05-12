@@ -9,16 +9,17 @@ disable-model-invocation: true
 
 Walk every open Dependabot security alert on the current repo. Classify the vulnerable dependency by whether it is **reachable from production code** or **only from tests / dev tooling / CI**. Then act in one pass:
 
-| Classification | Confidence | Action |
-| -------------- | ---------- | ------ |
+| Classification | Confidence + structural | Action |
+| -------------- | ----------------------- | ------ |
 | **Production-reachable AND exploit-applicable** | any | Leave Dependabot alert open. Open a new GitHub issue on the repo that references the alert, names the CVE / GHSA / severity, lists the production paths that pull in the vulnerable package, the exploit-surface analysis, and the suggested upgrade pin. |
-| **Production-reachable but exploit NOT applicable** | **high** | Dismiss the Dependabot alert with `dismissed_reason=inaccurate` and a comment naming the threat-model mismatch. No repo issue. |
-| **Production-reachable but exploit NOT applicable** | **moderate** | Open a repo issue tagged `needs-human-review` with the analysis. Do NOT dismiss — the maintainer makes the final call. |
-| **Production-reachable but exploit NOT applicable** | **low** | Open a repo issue tagged `needs-human-review` (defaults to caution). Do NOT dismiss. |
+| **Production-reachable but exploit NOT applicable** — cli-tool archetype | **high** | Dismiss with `inaccurate` and a comment naming the threat-model mismatch. No repo issue. |
+| **Production-reachable but exploit NOT applicable** — framework / scaffold archetype, §2.5.6b structural-impossibility check **passes** | **high** | Dismiss with `inaccurate` and a comment naming the decisive §2.5.6b condition. No repo issue. |
+| **Production-reachable but exploit NOT applicable** — framework / scaffold archetype, §2.5.6b **fails** (consumer might satisfy preconditions) | any | Open a repo issue tagged `needs-human-review`. Do NOT dismiss. |
+| **Production-reachable but exploit NOT applicable** — any archetype | **moderate** / **low** | Open a repo issue tagged `needs-human-review` (signals not reliable enough for autonomous call). Do NOT dismiss. |
 | **Test / dev / CI-only import path** | n/a | Dismiss with `dismissed_reason=not_used` naming the test/dev paths it was found in. No repo issue. |
 | **Unclassifiable** | n/a | Skip. Print a line to stderr for manual review. **Never** auto-dismiss without evidence. |
 
-Conservative default: **when uncertain about exploit applicability, open the issue.** A false-positive issue is cheap to close after a one-line maintainer comment; a false-negative dismissal hides a real vulnerability. Only dismiss as `inaccurate` when Phase 2.5 reaches **high** confidence that the CVE preconditions are absent. See Phase 2.5 for how the confidence tier is derived.
+Conservative default: **when uncertain about exploit applicability, open the issue.** A false-positive issue is cheap to close after a one-line maintainer comment; a false-negative dismissal hides a real vulnerability. Two paths to autonomous `inaccurate` dismissal: (1) cli-tool + high confidence + preconditions absent; (2) framework / scaffold + high confidence + §2.5.6b structural-impossibility passes all three conditions. Everything else routes to a `needs-human-review` issue. See Phase 2.5 for how the confidence tier and the §2.5.6b check are derived.
 
 This skill runs fully autonomously on invocation — it mutates GitHub state (dismisses alerts, opens issues). Do not invoke from conversational context; require explicit `/triage-dependabot`.
 
@@ -469,21 +470,54 @@ Two heuristics worth applying mechanically:
 - If the advisory's CWE is in the §2.5.2 table AND §2.5.4 produced a definitive symbol-trace result AND the archetype is `cli-tool` or `service` (unambiguous), default to **high**.
 - If the advisory's CWE is NOT in the §2.5.2 table OR the archetype is `unknown`, ceiling is **moderate** regardless of how clean the other signals are. Skip-list this in the §2.5.2 dispatch and the ceiling lifts as soon as someone adds the CWE row.
 
+#### 2.5.6b Structural impossibility check (frameworks / scaffolds only)
+
+The §2.5.5 archetype rule defaults `framework` and `scaffold` to "permissive" — consumers may use the framework in ways this repo can't anticipate, so default to PROD-APPLICABLE. But §2.5.5's prose carries an escape clause: *"unless the CVE is structurally impossible (e.g. an auth CVE in a library that has no auth code at all)."* Without operationalizing it, the matrix routes every framework + precondition-absent case to a `needs-human-review` issue — which produces issue spam for cases that are genuinely autonomous-dismissible (e.g. a GitPython CVE in a framework that only calls `Repo(local_path)` and exposes no clone API).
+
+This step makes the escape clause operational. For framework / scaffold archetypes, **before** falling through to the permissive default in §2.5.7, check whether **all three conditions hold**:
+
+1. **Symbol grep was definitive (§2.5.4)** — the advisory named a specific vulnerable symbol AND the grep returned exactly 0 hits in prod code, with no aliasing / dynamic-dispatch / framework-internal caveats applied. If the advisory is class-wide ("any use of `requests` with proxies"), this condition fails — there's no symbol to grep for, so structural impossibility can't be proven.
+
+2. **Existing import sites are orthogonal in usage** — walk every prod file from §2.4 Signal C and read what the imported symbols are actually used for. Classify each call site as:
+   - `orthogonal` — the imported symbols are used only for purposes the advisory doesn't name. Examples: importing a class but using only its constructor / read-only methods / non-vulnerable methods (e.g. `Repo(local_path)` for HEAD/working-tree reads when the CVE is in `Repo.clone_from`); importing exception classes; importing types/constants.
+   - `vulnerable-adjacent` — the call site actually invokes a method/attribute named by the advisory, OR uses the symbol in a way that could reach the vulnerable code path under normal control flow (e.g. importing `PoolManager` and calling `.request()` when the CVE is in the high-level request path).
+
+   All Signal C call sites must be `orthogonal`. If any is `vulnerable-adjacent`, the check fails — the existing usage is at least one method-call away from the CVE, and a small caller change could complete the path.
+
+   Note: this is a stricter test than §2.5.4 alone. §2.5.4 says "the vulnerable symbol isn't called *right now*"; condition 2 here says "and the framework isn't using the same subsystem in a way that's one step away from calling it."
+
+3. **No public API forwards external inputs to the vulnerable subsystem** — list every `def name(...)` in `PROD_DIRS` whose name does not start with `_` (Python's public-API convention). For each, ask: could the parameters plausibly become the vulnerable kwarg/argument named in the advisory? Examples that fail this check: a public `make_request(url, headers, proxy)` against a urllib3 CVE; a public `clone_or_fetch(remote_url, **opts)` against a GitPython clone CVE. If any public API exposes a parameter that could become the vulnerable input under a downstream consumer's use, the check fails.
+
+When **all three conditions hold**, the framework's code structurally cannot reach the vulnerable surface AND doesn't expose a public API a consumer could exploit. Mark the verdict **NOT-APPLICABLE (structural)** — this is high-confidence on par with cli-tool dismissal, eligible for autonomous `inaccurate` dismissal.
+
+Worked example — **passes**: open-aea + GitPython CVEs (CWE-20, CWE-94, CWE-22 on `clone_from` / `multi_options`). Open-aea imports `from git import Repo` only in `aea-dev-helpers/bump_version.py`, uses it as `Repo(local_path)` to read the working tree, exposes no public API that takes a clone URL or path. (1) symbol grep for `clone_from` / `multi_options` = 0. (2) all imports are read-only Repo operations, orthogonal to the clone subsystem. (3) public API of `aea-dev-helpers` is a CLI bump-version tool — no parameter could become a clone URL. → all three conditions hold → autonomous dismiss.
+
+Worked example — **fails**: a framework that imports `from urllib3 import PoolManager` and exposes `def make_request(url, headers, proxy=None)`. Even if the framework's own callsites don't trigger the CVE, condition (3) fails — the public API forwards user-controlled inputs into the vulnerable subsystem. Must route to `needs-human-review` issue.
+
+The `cli-tool` archetype doesn't need this check — it already gets autonomous dismissal under §2.5.7 directly. The `service` archetype also doesn't get this check — services ARE the consumer (long-running, real attack surface), so framework-style structural-impossibility doesn't apply.
+
 #### 2.5.7 Final verdict + action matrix
 
-Combine §2.5.3 (preconditions match), §2.5.5 (archetype posture), and §2.5.6 (confidence tier) into one action call. The action matrix is conservative on the dismissal side and permissive on the issue side — false-positive issues are cheap, false-negative dismissals are expensive.
+Combine §2.5.3 (preconditions match), §2.5.5 (archetype posture), §2.5.6 (confidence tier), and §2.5.6b (structural-impossibility check for frameworks) into one action call. The action matrix is conservative on the dismissal side and permissive on the issue side — false-positive issues are cheap, false-negative dismissals are expensive. But for framework / scaffold archetypes, §2.5.6b lets the skill bypass the "default to caution" rule when structural impossibility is provable, so we don't drown the human reviewer in spurious issues.
 
-| Preconditions | Archetype | Confidence | Verdict | Action |
-| ------------- | --------- | ---------- | ------- | ------ |
-| All `reachable` | any | high or moderate | **PROD-APPLICABLE** | Open issue (Phase 3.2). If confidence = moderate, additionally label `needs-human-review`. |
-| All `reachable` | any | low | **PROD-APPLICABLE** | Open issue + `needs-human-review` label. Body must call out the uncertainty source(s). |
-| Any `absent` | `cli-tool` | **high** | **NOT-APPLICABLE** | Dismiss with `inaccurate` (Phase 3.1b). Comment names which Q failed and references the §2.5.4 symbol-grep result. |
-| Any `absent` | `cli-tool` | moderate | **NOT-APPLICABLE (low-confidence)** | Open issue + `needs-human-review` label. Do NOT dismiss — the maintainer decides. |
-| Any `absent` | `cli-tool` | low | **NOT-APPLICABLE (low-confidence)** | Open issue + `needs-human-review`. Do NOT dismiss. |
-| Any `absent` | `service` / `framework` / `scaffold` | any | **PROD-APPLICABLE** | Open issue (default to caution; consumers may satisfy the precondition even if this repo doesn't). |
-| Any `unknown` | any | any | **PROD-APPLICABLE** | Open issue + `needs-human-review`. Do NOT dismiss. |
+| Preconditions | Archetype | Confidence | §2.5.6b | Verdict | Action |
+| ------------- | --------- | ---------- | ------- | ------- | ------ |
+| All `reachable` | any | high or moderate | n/a | **PROD-APPLICABLE** | Open issue (Phase 3.2). If confidence = moderate, additionally label `needs-human-review`. |
+| All `reachable` | any | low | n/a | **PROD-APPLICABLE** | Open issue + `needs-human-review` label. Body must call out the uncertainty source(s). |
+| Any `absent` | `cli-tool` | **high** | n/a | **NOT-APPLICABLE** | Dismiss with `inaccurate` (Phase 3.1b). Comment names which Q failed and references the §2.5.4 symbol-grep result. |
+| Any `absent` | `cli-tool` | moderate / low | n/a | **NOT-APPLICABLE (low-conf)** | Open issue + `needs-human-review` label. Do NOT dismiss — the maintainer decides. |
+| Any `absent` | `framework` / `scaffold` | **high** | **passes** | **NOT-APPLICABLE (structural)** | Dismiss with `inaccurate` (Phase 3.1b). Comment names which §2.5.6b condition was decisive — typically the missing public-API surface or the orthogonal import pattern. |
+| Any `absent` | `framework` / `scaffold` | high | **fails** | **PROD-APPLICABLE** | Open issue + `needs-human-review`. Body explains which §2.5.6b condition failed (e.g. "framework exposes `make_request(url, headers, proxy)` — consumer might satisfy CWE-200 Q1+Q3"). |
+| Any `absent` | `framework` / `scaffold` | moderate / low | any | **PROD-APPLICABLE** | Open issue + `needs-human-review`. The signals aren't reliable enough for structural-impossibility to be safe. |
+| Any `absent` | `service` | any | n/a | **PROD-APPLICABLE** | Open issue. Services are long-running and themselves the consumer — structural impossibility doesn't apply. |
+| Any `unknown` | any | any | n/a | **PROD-APPLICABLE** | Open issue + `needs-human-review`. Do NOT dismiss. |
 
-When dismissing as `inaccurate`, the `dismissed_comment` must name **which checklist Q failed** in plain English. "Tomte's link checker (cli-tool) carries no auth headers — CWE-200 Q1 absent. §2.5.4 grep for `assert_hostname` returned 0 hits." That comment is the audit trail; a future reviewer needs enough information to challenge the call without re-running the analysis from scratch.
+When dismissing as `inaccurate`, the `dismissed_comment` must name **which checklist Q failed AND (for framework / scaffold) which §2.5.6b condition was decisive** in plain English. Examples:
+
+- cli-tool: "Tomte's link checker carries no auth headers — CWE-200 Q1 absent. §2.5.4 grep for `connection_from_url` = 0 hits."
+- framework structural: "Open-aea: GitPython CVE not reachable. §2.5.6b — only `Repo(local_path)` read usage in `bump_version.py` (orthogonal), no public API forwards URLs/paths to clone subsystem. §2.5.4 grep for `clone_from`/`multi_options` = 0."
+
+That comment is the audit trail; a future reviewer needs enough information to challenge the call without re-running the analysis from scratch.
 
 #### 2.5.8 Out of scope: PoC harness
 
@@ -565,18 +599,34 @@ Do **not** use `fix_started` or `no_bandwidth` — those mean "we're working on 
 
 ### 3.1b Dismiss a NOT-APPLICABLE alert (Phase 2.5 verdict, **high confidence only**)
 
-For alerts where the package is imported in PROD but Phase 2.5.7 ruled the CVE's preconditions absent AND Phase 2.5.6 returned `high` confidence. **Do not enter this branch on `moderate` or `low` confidence** — those cases must take the issue path (Phase 3.2) with the `needs-human-review` label.
+For alerts where the package is imported in PROD but Phase 2.5.7 ruled the CVE's preconditions absent AND Phase 2.5.6 returned `high` confidence. Two paths into this branch:
 
-The dismissal comment must name the specific checklist Q that failed AND reference the §2.5.4 symbol-grep result — that's the audit trail.
+- **cli-tool path** — archetype is `cli-tool` and `high` confidence (preconditions absent under direct call analysis).
+- **framework-structural path** — archetype is `framework` / `scaffold`, `high` confidence, AND §2.5.6b structural-impossibility check passes all three conditions.
+
+**Do not enter this branch on `moderate` / `low` confidence** OR **on framework/scaffold without §2.5.6b passing** — those cases must take the issue path (Phase 3.2) with the `needs-human-review` label.
+
+The dismissal comment must name the specific checklist Q that failed AND reference the §2.5.4 symbol-grep result. For the framework-structural path, ALSO name which §2.5.6b condition was decisive.
 
 ```bash
 # Required pre-conditions to reach this branch:
-[[ "$VERDICT" == "NOT-APPLICABLE" ]] || { echo "guard: only NOT-APPLICABLE reaches 3.1b"; continue; }
-[[ "$CONFIDENCE" == "high" ]] || { echo "guard: only high-confidence reaches 3.1b — route to 3.2 with needs-human-review"; }
+[[ "$VERDICT" == "NOT-APPLICABLE" ]] || [[ "$VERDICT" == "NOT-APPLICABLE (structural)" ]] \
+  || { echo "guard: only NOT-APPLICABLE / NOT-APPLICABLE (structural) reaches 3.1b"; continue; }
+[[ "$CONFIDENCE" == "high" ]] \
+  || { echo "guard: only high-confidence reaches 3.1b — route to 3.2 with needs-human-review"; continue; }
+if [[ "$ARCHETYPE" == "framework" || "$ARCHETYPE" == "scaffold" ]]; then
+  [[ "$STRUCTURAL_IMPOSSIBLE" == "true" ]] \
+    || { echo "guard: framework/scaffold requires §2.5.6b pass to dismiss — route to 3.2"; continue; }
+fi
 
 # $FAILED_Q is set in §2.5.3 — e.g., "CWE-200 Q1 (no auth headers)"
 # $SYMBOL_TRACE is set in §2.5.4 — e.g., "grep for ProxyManager.connection_from_url: 0 hits"
-DISMISS_COMMENT="Triaged: \`$PKG\` imported in prod, CVE not applicable. $FAILED_Q. $SYMBOL_TRACE. Archetype: $ARCHETYPE. Confidence: high."
+# $STRUCTURAL_REASON is set in §2.5.6b when applicable — names which of the 3 conditions was decisive
+if [[ "$ARCHETYPE" == "framework" || "$ARCHETYPE" == "scaffold" ]]; then
+  DISMISS_COMMENT="Triaged: \`$PKG\` imported in prod, CVE structurally not reachable. $FAILED_Q. $SYMBOL_TRACE. §2.5.6b: $STRUCTURAL_REASON. Archetype: $ARCHETYPE."
+else
+  DISMISS_COMMENT="Triaged: \`$PKG\` imported in prod, CVE not applicable. $FAILED_Q. $SYMBOL_TRACE. Archetype: $ARCHETYPE. Confidence: high."
+fi
 
 if [[ ${#DISMISS_COMMENT} -gt 280 ]]; then
   DISMISS_COMMENT="${DISMISS_COMMENT:0:277}..."
@@ -656,11 +706,12 @@ gh label create needs-human-review    --color FBCA04 --description "Skill confid
 Issue body template (use a heredoc to preserve formatting):
 
 ```bash
-# Build the label list — append needs-human-review when the verdict is NOT-APPLICABLE
-# but the dismissal path was blocked by confidence (Phase 2.5.6/2.5.7), or when the
-# verdict is PROD-APPLICABLE at low/moderate confidence.
+# Build the label list. $NEEDS_REVIEW is set at the §2.5.7 routing decision —
+# true when we land in Phase 3.2 instead of 3.1b because the autonomous-dismissal
+# gate didn't pass (moderate/low confidence, OR framework/scaffold with §2.5.6b
+# failing, OR all-reachable PROD-APPLICABLE at moderate/low confidence).
 LABELS="security,dependabot,triage-dependabot"
-if [[ "$CONFIDENCE" != "high" ]] || [[ "$VERDICT" == "NOT-APPLICABLE" ]]; then
+if [[ "$NEEDS_REVIEW" == "true" ]]; then
   LABELS="$LABELS,needs-human-review"
 fi
 
@@ -702,6 +753,9 @@ $CWE_CHECKLIST_ANSWERS
 
 **Vulnerable-symbol trace (§2.5.4):**
 $SYMBOL_TRACE_RESULT
+
+**Structural-impossibility check (§2.5.6b, framework/scaffold only):**
+$STRUCTURAL_CHECK_RESULT
 
 **Codebase's usage pattern at the import sites:**
 $USAGE_PATTERN_NOTES
@@ -852,10 +906,10 @@ done
 
 1. **Only act on `state=open` alerts.** Don't poke at already-dismissed alerts.
 2. **Skip non-pip ecosystems.** GitHub Actions / Docker / npm alerts can appear on Valory repos (e.g. `.github/workflows/*.yml` action pins) — flag them for manual review.
-3. **Conservative default: when uncertain, open an issue, don't dismiss.** A false-positive issue costs one `gh issue close` command; a false-negative dismissal costs a quietly-shipped CVE. The §2.5.6 confidence tier formalizes this — only `high` confidence dismisses autonomously.
-4. **Two dismissal reasons, three strict criteria (incl. confidence).**
+3. **Conservative default: when uncertain, open an issue, don't dismiss.** A false-positive issue costs one `gh issue close` command; a false-negative dismissal costs a quietly-shipped CVE. The §2.5.6 confidence tier and §2.5.6b structural-impossibility check together formalize this — only `high` confidence + (cli-tool OR framework-with-§2.5.6b-passes) dismisses autonomously. Everything else routes to `needs-human-review`.
+4. **Two dismissal reasons, strict criteria per archetype.**
    - `not_used` — Phase 2.4 Signal C proved the package is reachable only from test/dev paths. Comment names the test/dev files. No confidence tier required (the import-graph evidence is direct).
-   - `inaccurate` — Phase 2.5 proved the CVE's threat-model preconditions are absent **AND Phase 2.5.6 returned `high` confidence**. Comment names which checklist Q failed AND references the §2.5.4 symbol-grep result. On `moderate` or `low` confidence, do not dismiss — open an issue tagged `needs-human-review` instead.
+   - `inaccurate` — Phase 2.5 proved the CVE's threat-model preconditions are absent **AND Phase 2.5.6 returned `high` confidence**, AND either (a) archetype is `cli-tool`, OR (b) archetype is `framework` / `scaffold` AND §2.5.6b structural-impossibility passes all three conditions (symbol-grep definitive zero, all imports orthogonal, no public API forwards external input to vulnerable subsystem). Comment names the failed checklist Q + §2.5.4 symbol-grep result + (for framework/scaffold) the decisive §2.5.6b condition. On `moderate` / `low` confidence OR framework/scaffold with §2.5.6b failing, do not dismiss — open an issue tagged `needs-human-review` instead.
    Never use `tolerable_risk` / `fix_started` / `no_bandwidth` — those need human cost/benefit calls the skill never has the context for.
 5. **Dedupe before opening.** Search existing open issues by GHSA ID; never spam duplicates on repeat runs.
 6. **Don't dismiss with no evidence.** Skip + log if neither prod nor test imports are found and the manifest is silent.
@@ -869,9 +923,9 @@ done
 | Surface | What changes |
 | ------- | ------------ |
 | Dependabot alerts — DEV-only path | `state=dismissed`; `dismissed_reason=not_used`; comment includes the test/dev paths the scan found |
-| Dependabot alerts — PROD-but-not-applicable **at high confidence only** | `state=dismissed`; `dismissed_reason=inaccurate`; comment names the failed CWE checklist Q + §2.5.4 symbol-grep result + archetype + confidence tier |
-| Repo issues — PROD-applicable | New issues opened with title `[Security][<sev>] <pkg>: <short summary>` (GHSA in body, not title), labels `security,dependabot,triage-dependabot`, body containing alert URL + prod import paths + **exploit-surface analysis with CWE-checklist answers, vulnerable-symbol trace, and confidence tier** + suggested fix |
-| Repo issues — PROD-not-applicable but confidence below `high` | Same as above, **additionally labeled `needs-human-review`**. Dependabot alert NOT dismissed — the maintainer makes the final call. |
+| Dependabot alerts — PROD-but-not-applicable, **cli-tool + high confidence** OR **framework/scaffold + high confidence + §2.5.6b passes** | `state=dismissed`; `dismissed_reason=inaccurate`; comment names the failed CWE checklist Q + §2.5.4 symbol-grep result + archetype + (for framework/scaffold) decisive §2.5.6b condition |
+| Repo issues — PROD-applicable | New issues opened with title `[Security][<sev>] <pkg>: <short summary>` (GHSA in body, not title), labels `security,dependabot,triage-dependabot`, body containing alert URL + prod import paths + **exploit-surface analysis with CWE-checklist answers, vulnerable-symbol trace, confidence tier, and (for framework/scaffold) §2.5.6b result** + suggested fix |
+| Repo issues — PROD-not-applicable but autonomous-dismissal gate not met (moderate/low confidence, OR framework/scaffold with §2.5.6b failing) | Same as above, **additionally labeled `needs-human-review`**. Dependabot alert NOT dismissed — the maintainer makes the final call. |
 | Repo issues (existing) | Skipped via dedupe (no edit) |
 | Labels | First-run idempotent creation of `security`, `dependabot`, `triage-dependabot`, `needs-human-review` |
 | Working tree | Nothing — the skill only mutates GitHub state, not files |
