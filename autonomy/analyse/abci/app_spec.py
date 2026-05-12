@@ -209,7 +209,7 @@ class FSMSpecificationLoader:
                 reasons.append("no rounds could be classified by sub-app")
             if (len(dev_subapps) + len(third_party_subapps)) <= 1:
                 reasons.append("all rounds belong to a single sub-app")
-            logging.info(
+            logging.warning(
                 "Composition-aware view not available, using flat diagram: %s",
                 "; ".join(reasons) if reasons else "unknown",
             )
@@ -370,20 +370,25 @@ class FSMSpecificationLoader:
         for final_cls in getattr(abci_app_cls, "final_states", set()) or set():
             round_classes.add(final_cls)
 
+        # Sort by class name first so collision resolution is deterministic
+        # (set iteration order is unstable across runs / sub-app pairs).
         result: Dict[str, str] = {}
-        for cls in round_classes:
+        for cls in sorted(round_classes, key=lambda c: (c.__name__, c.__module__)):
             module = getattr(cls, "__module__", "")
             sub_app = FSMSpecificationLoader._extract_skill_name(module)
-            if sub_app:
-                name = cls.__name__
-                if name in result and result[name] != sub_app:
-                    logging.warning(
-                        "Round name collision: %s appears in %s and %s",
-                        name,
-                        result[name],
-                        sub_app,
-                    )
-                result[name] = sub_app
+            if not sub_app:
+                continue
+            name = cls.__name__
+            if name in result and result[name] != sub_app:
+                logging.warning(
+                    "Round name collision: %s in %s and %s; keeping %s",
+                    name,
+                    result[name],
+                    sub_app,
+                    result[name],
+                )
+                continue
+            result[name] = sub_app
 
         unclassified = {c.__name__ for c in round_classes if c.__name__ not in result}
         if unclassified:

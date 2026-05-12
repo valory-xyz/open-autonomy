@@ -55,15 +55,22 @@ def _load_dev_skill_names(package_path: Path) -> Optional[Set[str]]:
             packages_json = current / "packages.json"
             try:
                 data = json.loads(packages_json.read_text(encoding="utf-8"))
-            except OSError:
+            except OSError as exc:
+                logging.warning(
+                    "Cannot read packages.json at %s: %s", packages_json, exc
+                )
                 return None
             except json.JSONDecodeError as exc:
                 logging.warning("Malformed packages.json at %s: %s", packages_json, exc)
                 return None
+            # Real keys are 4-segment: skill/<author>/<skill_name>/<version>.
             return {
                 key.split("/")[2]
                 for key in data.get("dev", {})
-                if key.startswith("skill/") and len(key.split("/")) >= 3
+                if key.startswith("skill/")
+                and len(key.split("/")) >= 4
+                and key.split("/")[1]
+                and key.split("/")[2]
             }
         current = current.parent
     logging.debug(

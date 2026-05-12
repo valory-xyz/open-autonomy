@@ -778,6 +778,61 @@ class TestDumpMermaid:
         FSMSpecificationLoader.dump_mermaid(self.simple_dfa, out2)
         assert out1.read_text() == out2.read_text()
 
+    def test_deterministic_output_composition(self, tmp_path: Path) -> None:
+        """Composition-aware output is also deterministic across runs."""
+        rounds = {
+            name: _make_mock_round(name, f"packages.valory.skills.{sub}.rounds")
+            for name, sub in (
+                ("RoundARound", "dev_a_abci"),
+                ("RoundBRound", "dev_a_abci"),
+                ("RoundCRound", "dev_b_abci"),
+                ("RoundDRound", "dev_b_abci"),
+                ("RoundERound", "tp_a_abci"),
+                ("RoundFRound", "tp_b_abci"),
+            )
+        }
+
+        class MockApp(_MockAbciApp):
+            """Mock composed app spanning four sub-apps."""
+
+            transition_function = {
+                rounds["RoundARound"]: {object(): rounds["RoundBRound"]},
+                rounds["RoundBRound"]: {object(): rounds["RoundCRound"]},
+                rounds["RoundCRound"]: {object(): rounds["RoundDRound"]},
+                rounds["RoundDRound"]: {object(): rounds["RoundERound"]},
+                rounds["RoundERound"]: {object(): rounds["RoundFRound"]},
+                rounds["RoundFRound"]: {object(): rounds["RoundARound"]},
+            }
+            initial_states = {rounds["RoundARound"]}
+            final_states = set()
+
+        dfa = DFA(
+            label="ComposedAbciApp",
+            states=set(rounds),
+            default_start_state="RoundARound",
+            start_states={"RoundARound"},
+            final_states=set(),
+            alphabet_in={"ev1", "ev2", "ev3", "ev4", "ev5", "ev6"},
+            transition_func={
+                ("RoundARound", "ev1"): "RoundBRound",
+                ("RoundBRound", "ev2"): "RoundCRound",
+                ("RoundCRound", "ev3"): "RoundDRound",
+                ("RoundDRound", "ev4"): "RoundERound",
+                ("RoundERound", "ev5"): "RoundFRound",
+                ("RoundFRound", "ev6"): "RoundARound",
+            },
+        )
+
+        out1, out2 = tmp_path / "a.md", tmp_path / "b.md"
+        for out in (out1, out2):
+            FSMSpecificationLoader.dump_mermaid(
+                dfa,
+                out,
+                abci_app_cls=MockApp,
+                dev_skills={"dev_a_abci", "dev_b_abci"},
+            )
+        assert out1.read_text() == out2.read_text()
+
 
 class TestDumpJsonDeprecation:
     """Test the JSON deprecation warning."""
