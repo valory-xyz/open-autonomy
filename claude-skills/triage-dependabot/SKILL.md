@@ -400,38 +400,74 @@ gh api "/advisories/$GHSA_ID" \
   > "$TMP/advisory_${GHSA_ID}.json"
 ```
 
-Read the `description` and `cwe_ids` fields. The CWE IDs are a strong typed hint about the bug class.
+Read the `description` and `cwe_ids` fields. The advisory **description is the primary source of truth** for §2.5.2 — it carries the specific threat model for *this* advisory, which is usually narrower than the CWE class average. The `cwe_ids` are a hint about the bug class, used as a sanity check (see §2.5.2's reference patterns) and to drive optional MITRE supplementation in §2.5.1b.
 
-#### 2.5.2 Identify the CVE's required preconditions
+#### 2.5.1b MITRE CWE supplementation (optional, sparse-advisory fallback)
 
-Working from the advisory's description AND the `cwe_ids` array fetched in §2.5.1, derive the required preconditions. **Free-form prose against the description is a known failure mode** — reviewers miss preconditions the advisory implies but doesn't spell out. Instead, dispatch on the CWE IDs and answer the checklist questions for each.
+Most GHSA descriptions are rich enough to derive a checklist directly (see §2.5.2). When an advisory is sparse — one-line summary, no code samples, no named vulnerable API — supplement with the MITRE CWE definition for additional context:
 
-For each CWE the advisory carries, walk the matching checklist row. If the advisory carries multiple CWEs, walk every matching row — they're additive, not alternatives. If the CWE is not listed below, fall back to free-form precondition extraction from the description AND mark the analysis as **moderate** confidence (§2.5.6) because the precondition coverage is unstructured.
+```bash
+# Pull the CWE definition for each CWE the advisory carries. MITRE publishes
+# per-CWE JSON; the canonical definition includes description, common
+# consequences, detection methods, mitigations. Use as context for §2.5.2,
+# never as the *primary* source — the advisory's specifics dominate.
+for CWE_ID in $(jq -r '.cwe_ids[]' "$TMP/advisory_${GHSA_ID}.json"); do
+  CWE_NUM="${CWE_ID#CWE-}"
+  curl -sf "https://cwe.mitre.org/data/definitions/${CWE_NUM}.json" \
+    -o "$TMP/cwe_${CWE_NUM}.json" \
+    || echo "WARN: MITRE fetch failed for $CWE_ID — proceeding with advisory text only" >&2
+done
+```
 
-| CWE ID(s) | Bug class | Required preconditions (each MUST be answered explicitly) |
-| --------- | --------- | --------------------------------------------------------- |
-| CWE-200, CWE-201, CWE-209 | Information / header / token leak | Q1: Does the calling code carry sensitive state (auth tokens, session cookies, API keys, user-PII)? Q2: Does the leak path require an attacker-controlled destination (redirect target, URL host, log sink)? Q3: Can the attacker influence that destination given the caller's input model? |
-| CWE-22, CWE-23 | Path traversal | Q1: Does the calling code pass any path or filename argument derived from external input to the vulnerable API? Q2: Are the paths user-supplied, network-supplied, or developer-supplied (hardcoded / generated deterministically from repo state)? |
-| CWE-78, CWE-77, CWE-88 | Command / argument injection | Q1: Does the calling code pass any argument derived from external input to subprocess / shell? Q2: Is the vulnerable API one of the spawn helpers named in the advisory? |
-| CWE-89 | SQL injection | Q1: Does the calling code build queries from any input derived from a non-developer source? Q2: Is the vulnerable codepath one the caller actually invokes (raw-SQL vs ORM-only)? |
-| CWE-94, CWE-502, CWE-915 | Code injection / deserialization RCE | Q1: Does the calling code deserialize, eval, or load any bytes/string derived from an external source? Q2: Is the unsafe loader (pickle / yaml.unsafe_load / unsafe-mode flag) the one invoked, vs the safe variant? |
-| CWE-295, CWE-297, CWE-345, CWE-322 | TLS / cert / signature bypass | Q1: Does the calling code make outbound TLS/HTTPS to hosts that aren't internal? Q2: Is the trust decision based on the vulnerable verification path the advisory names? Q3: Does the caller pass user-controlled hostnames? |
-| CWE-352 | CSRF | Q1: Is there a browser-driven request flow against this code? Q2: Does the vulnerable endpoint exist in our service (vs being a library function we don't expose)? |
-| CWE-400, CWE-409, CWE-770, CWE-789, CWE-1333 | DoS — memory / regex / compression | Q1: Does the calling code accept attacker-controlled bytes/strings of arbitrary length into the vulnerable API? Q2: Does the calling process have an uptime contract (long-running service) where DoS matters, vs one-shot CLI where the process restarts? |
-| CWE-918 | SSRF | Q1: Does the calling code fetch URLs whose host comes from external input? Q2: Is the deployment environment one where internal-network access from the process is sensitive (cloud metadata endpoint, internal services)? |
-| CWE-601 | Open redirect | Q1: Does the calling code expose redirect targets to user-controllable input? Q2: Is the application a web frontend that holds session state worth phishing? |
-| CWE-327, CWE-328, CWE-916 | Weak crypto | Q1: Does the calling code use the vulnerable primitive for a security-relevant purpose (auth, integrity, confidentiality) vs a non-security one (deterministic hash, content-addressing)? |
-| CWE-862, CWE-863 | Missing / incorrect authz | Q1: Does the calling code expose any endpoint or operation gated by the vulnerable check? |
-| CWE-203 | Observable / timing discrepancy | Q1: Does the calling code use the vulnerable comparison in a security-sensitive context (token / signature / password check)? Q2: Is the attacker able to time the operation across many requests (typically requires network-reachable endpoint)? |
-| CWE-326 | Inadequate encryption strength | Q1: Does the calling code use the weak primitive for a security-relevant purpose (auth, integrity, confidentiality)? Q2: Are the keys/parameters under our control or fixed by the spec we implement? (Fold into CWE-327/328/916 row if both fire.) |
-| CWE-674 | Uncontrolled recursion (distinct from CWE-1333 ReDoS) | Q1: Does the calling code accept attacker-controlled depth-bearing input (nested JSON, recursive grammar, deep XML)? Q2: Uptime contract — long-running service where stack-exhaustion DoS matters, vs one-shot CLI? |
-| CWE-732 | Incorrect permission assignment | Q1: Does the calling code create files via the vulnerable API on a shared/multi-user filesystem? Q2: Are the files written sensitive (credentials, tokens, private state)? |
-| CWE-377, CWE-378, CWE-379 | Insecure temp file | Q1: Does the calling code use the vulnerable temp-file API in a shared-tmp-dir context (writable by other local users)? Q2: Are race windows long enough to exploit in practice (file written, then opened, with a gap)? |
-| CWE-426, CWE-427 | Untrusted search path | Q1: Does the calling process spawn subprocesses or load libraries from PATH-resolved names? Q2: Is the PATH attacker-controllable in the deployment environment? |
-| CWE-79 | XSS (cross-site scripting) | Q1: Does the calling code render the vulnerable template / sink to a browser? Q2: Is the data piped into the sink derived from external input? |
-| CWE-20 | Improper input validation (advisory class-wide) | Q1: Does the calling code pass external/attacker-controlled input to the vulnerable API? Q2: What's the downstream consequence if input is malformed (RCE/leak/crash) — and does the calling code shield against it (try/except, validation layer)? |
+When the MITRE fetch succeeds, the fields most useful for §2.5.2 are:
+- `Description` / `Extended_Description` — abstract bug-class description
+- `Common_Consequences` — typed list of impacts (`Confidentiality`, `Integrity`, `Availability`, `Authentication`) which suggests which Qs to ask
+- `Detection_Methods` — hints about what code shapes to grep for
+- `Potential_Mitigations` — inversion of these often surfaces preconditions
 
-Write each Q&A answer down. The dismissed_comment or issue body must reference the specific Q that failed (for `not-applicable`) or passed (for `applicable`). "Q1 absent — link checker carries no auth headers" is auditable; "CVE not applicable" is not.
+This step is **optional and skippable** — most advisories don't need it. Add it to the workflow only when §2.5.2's per-advisory derivation can't produce ≥2 testable Qs from the advisory text alone (the trigger for the §2.5.6 sparse-advisory cap).
+
+#### 2.5.2 Derive the CVE's required preconditions
+
+Read the advisory description fetched in §2.5.1 (and optionally §2.5.1b MITRE supplement) and **derive the precondition checklist directly from it**. The advisory describes the *specific* bug with its *specific* preconditions — that's the source of truth, not a static class-average mapping.
+
+Structure the output as Q1, Q2, … so the audit trail has stable referents. The operator (running this skill via Claude Code, which is the supported mode) reads the advisory text and produces:
+
+1. **A list of preconditions the attacker needs**, extracted from phrases like "An attacker can …", "requires …", "when the application …", "affects code that …" in the advisory description.
+2. **A list of named vulnerable symbols** for §2.5.4 (class.method, function names, kwargs, flags — these are typically formatted in backticks or code blocks in the advisory).
+3. **For each precondition, a testable Q** phrased against the calling code: "Does the calling code do X?" Reword the precondition into a question the §2.5.3 step can answer `reachable` / `absent` / `unknown` against this specific codebase.
+
+The questions should be **as narrow as the advisory allows.** If the advisory names `ProxyManager.connection_from_url(...).urlopen(..., assert_same_host=False)`, don't ask the abstract Q "does the code carry sensitive headers" — ask the sharper "does the code call `ProxyManager.connection_from_url` with `assert_same_host=False` and any sensitive header." Sharper Qs produce sharper verdicts.
+
+Write each Q&A answer down. The audit trail must include the derived Q list verbatim — a future reviewer needs to know what was asked, not just the verdict.
+
+**Reference patterns** (use as a sanity check that you've covered the standard preconditions for the bug class — NOT as a dispatch table). Common CWE classes and the kinds of Qs they typically require:
+
+| CWE ID(s) | Bug class | Typical question shape |
+| --------- | --------- | ---------------------- |
+| CWE-200, CWE-201, CWE-209 | Information / header / token leak | Does calling code carry sensitive state? Does the leak path require attacker-controlled destination? Can the attacker influence that destination? |
+| CWE-22, CWE-23 | Path traversal | Does calling code pass external/attacker-controlled paths to the vulnerable API? |
+| CWE-78, CWE-77, CWE-88 | Command / argument injection | Does calling code pass external args to subprocess / shell? Is the vulnerable spawn helper invoked? |
+| CWE-89 | SQL injection | Does calling code build queries from external strings? Is the vulnerable codepath actually invoked (raw-SQL vs ORM-only)? |
+| CWE-94, CWE-502, CWE-915 | Code injection / deserialization RCE | Does calling code deserialize / eval external bytes? Is the unsafe loader invoked, vs the safe variant? |
+| CWE-295, CWE-297, CWE-345, CWE-322 | TLS / cert / signature bypass | Does calling code make outbound TLS to non-internal hosts? Is the trust decision based on the vulnerable verification path? Are hostnames user-controlled? |
+| CWE-352 | CSRF | Is there a browser-driven request flow? Does the vulnerable endpoint actually exist in our service? |
+| CWE-400, CWE-409, CWE-770, CWE-789, CWE-1333 | DoS — memory / regex / compression | Does calling code accept attacker-controlled bytes of arbitrary length? Uptime contract — long-lived service vs one-shot CLI? |
+| CWE-918 | SSRF | Does calling code fetch URLs with externally-supplied hosts? Is the deployment environment sensitive to internal-network access? |
+| CWE-601 | Open redirect | Does calling code expose redirect targets to user input? Is this a web frontend holding session state? |
+| CWE-327, CWE-328, CWE-326, CWE-916 | Weak crypto | Does calling code use the weak primitive for a security-sensitive purpose? Are keys/parameters under our control? |
+| CWE-862, CWE-863 | Missing / incorrect authz | Does calling code expose any endpoint gated by the vulnerable check? |
+| CWE-203 | Observable / timing discrepancy | Is the vulnerable comparison used in a security-sensitive context? Is timing exploitable across many requests? |
+| CWE-674 | Uncontrolled recursion (distinct from CWE-1333 ReDoS) | Does calling code accept attacker-controlled depth-bearing input? Uptime contract? |
+| CWE-732 | Incorrect permission assignment | Does calling code create files on a shared filesystem via the vulnerable API? Are files sensitive? |
+| CWE-377, CWE-378, CWE-379 | Insecure temp file | Does calling code use vulnerable temp-file API in a shared-tmp context? Are race windows exploitable in practice? |
+| CWE-426, CWE-427 | Untrusted search path | Does the process spawn subprocesses / load libs from PATH-resolved names? Is PATH attacker-controllable? |
+| CWE-79 | XSS | Does calling code render the vulnerable template / sink to a browser? Is data piped into the sink external? |
+| CWE-20 | Improper input validation (class-wide) | Does calling code pass external input to the vulnerable API? Downstream consequence + caller-side shielding? |
+
+The above is a hint about which question shapes typically apply for a CWE class — use it to verify your derived Qs aren't missing a standard precondition. Always derive from the advisory text; never use this table as the sole source.
+
+**Why per-advisory derivation beats a static dispatch:** the same CWE class can describe wildly different bugs. CWE-22 might be "path traversal in `clone_from` clone target" in one advisory and "path traversal in `os.path.join` with `..` segments" in another — the preconditions differ. A static dispatch gives you the *average*; the advisory text gives you the *specific*. For an autonomous-dismissal decision, specific wins.
 
 #### 2.5.3 Map preconditions against the calling code
 
@@ -506,14 +542,14 @@ Derive a confidence tier in `{high, moderate, low}` from the §2.5.3 preconditio
 
 | Confidence | All of these must hold |
 | ---------- | ---------------------- |
-| **high** | Every checklist Q from §2.5.2 was answered `reachable` or `absent` (no `unknown`) **AND** the §2.5.4 vulnerable-symbol trace produced a definitive yes/no (specific symbol named in advisory + grep returned `0` or `>0` hits, no aliasing / framework-internal / dynamic-dispatch caveats applied) **AND** the archetype is unambiguous from §0.1 heuristics |
-| **moderate** | At least one of the above conditions is borderline: one checklist Q is `unknown`, OR the advisory names the CVE class-wide with no specific symbol to grep for, OR the archetype detection landed on `unknown` and defaulted to `framework`, OR the precondition extraction fell back to free-form prose (CWE not in §2.5.2 table) |
-| **low** | Multiple checklist Qs are `unknown`, OR aliasing/framework-internal dispatch is plausible AND the symbol grep returned `0` hits (false-negative risk), OR the calling code reaches the package through a third-party transport whose behavior isn't audited in this repo |
+| **high** | Every Q derived in §2.5.2 was answered `reachable` or `absent` (no `unknown`) **AND** the §2.5.4 vulnerable-symbol trace produced a definitive yes/no (specific symbol named in advisory + grep returned `0` or `>0` hits, no aliasing / framework-internal / dynamic-dispatch caveats applied) **AND** the archetype is unambiguous from §0.1 heuristics **AND** §2.5.2 produced ≥2 testable Qs from the advisory (sparse-advisory check) |
+| **moderate** | At least one of the above conditions is borderline: one Q is `unknown`, OR the advisory names the CVE class-wide with no specific symbol to grep for, OR the archetype detection landed on `unknown` and defaulted to `framework`, OR the advisory was too sparse to derive ≥2 testable Qs even with the §2.5.1b MITRE supplement |
+| **low** | Multiple Qs are `unknown`, OR aliasing/framework-internal dispatch is plausible AND the symbol grep returned `0` hits (false-negative risk), OR the calling code reaches the package through a third-party transport whose behavior isn't audited in this repo |
 
 Two heuristics worth applying mechanically:
 
-- If the advisory's CWE is in the §2.5.2 table AND §2.5.4 produced a definitive symbol-trace result AND the archetype is `cli-tool` or `service` (unambiguous), default to **high**.
-- If the advisory's CWE is NOT in the §2.5.2 table OR the archetype is `unknown`, ceiling is **moderate** regardless of how clean the other signals are. Skip-list this in the §2.5.2 dispatch and the ceiling lifts as soon as someone adds the CWE row.
+- If §2.5.2 derived ≥2 specific testable Qs from the advisory AND §2.5.4 produced a definitive symbol-trace result AND the archetype is `cli-tool` or `service` (unambiguous), default to **high**.
+- If §2.5.2 could only derive ≤1 Q (sparse advisory) OR the archetype is `unknown`, ceiling is **moderate** regardless of how clean the other signals are. The sparse-advisory case is the right signal that we don't know enough to dismiss autonomously — when even MITRE supplementation (§2.5.1b) can't produce a checklist, route to `needs-human-review` rather than guess.
 
 #### 2.5.6b Structural impossibility check (frameworks / scaffolds only)
 
@@ -755,7 +791,7 @@ For alerts where the package is imported in PROD but Phase 2.5.7 ruled the CVE's
 
 **Do not enter this branch on `moderate` / `low` confidence** OR **on framework/scaffold without §2.5.6b passing** — those cases must take the issue path (Phase 3.2) with the `needs-human-review` label.
 
-The dismissal comment must name the specific checklist Q that failed AND reference the §2.5.4 symbol-grep result. For the framework-structural path, ALSO name which §2.5.6b condition was decisive.
+Since §2.5.2 derives a per-advisory checklist that's almost always longer than the 280-char dismissed_comment limit, this branch **always opens a closed audit-trail issue first** (see §3.1c), then embeds the audit issue URL in the dismissed_comment. The dismissal alone isn't a complete audit trail — the closed audit issue is.
 
 ```bash
 # Required pre-conditions to reach this branch:
@@ -768,30 +804,117 @@ if [[ "$ARCHETYPE" == "framework" || "$ARCHETYPE" == "scaffold" ]]; then
     || { echo "guard: framework/scaffold requires §2.5.6b pass to dismiss — route to 3.2"; continue; }
 fi
 
-# $FAILED_Q is set in §2.5.3 — e.g., "CWE-200 Q1 (no auth headers)"
+# $FAILED_Q is set in §2.5.3 — e.g., "Q1 (no auth headers)" (now per-advisory, not CWE-class)
 # $SYMBOL_TRACE is set in §2.5.4 — e.g., "grep `connection_from_url`=0"
 # $STRUCTURAL_REASON is set in §2.5.6b when applicable — e.g., "no public API forwards to ProxyManager"
 #
-# Templates trimmed for the 280-char API limit. The realistic worst case for
-# framework-structural ("multiple CWE Qs absent + long structural reason") used
-# to brush the cap; the shorter forms below leave ~70 chars headroom.
+# Step 1 — open the closed audit-trail issue (see §3.1c). Required for the
+# full per-advisory Q list, which doesn't fit in the 280-char dismissed_comment.
+AUDIT_URL=$(create_audit_issue)   # §3.1c — returns the issue URL on stdout
+[[ -n "$AUDIT_URL" ]] || { echo "ERROR: audit issue creation failed for #$ALERT_NUM — abort dismissal"; SKIPPED+=("$ALERT_NUM:audit-create-error"); continue; }
+
+# Step 2 — dismissed_comment becomes a fixed pointer + one-line summary.
+# Templates fit ~120 chars summary + 90 chars URL within the 280 cap.
 if [[ "$ARCHETYPE" == "framework" || "$ARCHETYPE" == "scaffold" ]]; then
-  DISMISS_COMMENT="\`$PKG\` CVE structurally unreachable ($ARCHETYPE): $FAILED_Q; $SYMBOL_TRACE; structural=$STRUCTURAL_REASON."
+  DISMISS_COMMENT="\`$PKG\` CVE structurally unreachable ($ARCHETYPE, high-conf). Full analysis: $AUDIT_URL"
 else
-  DISMISS_COMMENT="\`$PKG\` CVE not applicable ($ARCHETYPE, high-conf): $FAILED_Q; $SYMBOL_TRACE."
+  DISMISS_COMMENT="\`$PKG\` CVE not applicable ($ARCHETYPE, high-conf). Full analysis: $AUDIT_URL"
 fi
 
 if [[ ${#DISMISS_COMMENT} -gt 280 ]]; then
   DISMISS_COMMENT="${DISMISS_COMMENT:0:277}..."
 fi
 
+# Step 3 — dismiss the alert.
 gh api -X PATCH "repos/$REPO/dependabot/alerts/$ALERT_NUM" \
   -f state="dismissed" \
   -f dismissed_reason="inaccurate" \
   -f dismissed_comment="$DISMISS_COMMENT" \
   --jq '.state' \
-  || { echo "ERROR: failed to dismiss alert #$ALERT_NUM"; SKIPPED+=("$ALERT_NUM:dismiss-api-error"); continue; }
+  || { echo "ERROR: failed to dismiss alert #$ALERT_NUM (audit issue $AUDIT_URL was already created)"; SKIPPED+=("$ALERT_NUM:dismiss-api-error:$AUDIT_URL"); continue; }
 ```
+
+Failure-mode note: if the dismissal fails after the audit issue was created, the audit issue exists as an orphan. Operator should either retry the dismissal or close the audit issue manually. The `SKIPPED` entry carries the audit URL so it can be cleaned up.
+
+### 3.1c Open a closed audit-trail issue (full §2.5 analysis)
+
+Long-form audit record for an `inaccurate` dismissal. Created closed (`gh issue create` then immediate `gh issue close`) so it doesn't show up in default "open issues" views but remains searchable by label (`security-audit`) for verification.
+
+Why this exists: §2.5.2's per-advisory Q list, §2.5.3's per-Q answers, §2.5.4's symbol trace, and §2.5.6b's structural-impossibility result together produce 500–2000 chars of audit content. The Dependabot alert's `dismissed_comment` is capped at 280. The audit issue is the only surface that can carry the full analysis verbatim.
+
+```bash
+# called as: AUDIT_URL=$(create_audit_issue)
+create_audit_issue() {
+  local audit_title audit_body audit_url
+  audit_title="[Security-audit][closed] ${PKG} #${ALERT_NUM} (${GHSA_ID}) — ${DISMISSAL_REASON}"
+  # 70-char title budget — truncate package + GHSA if needed.
+  if [[ ${#audit_title} -gt 70 ]]; then
+    audit_title="${audit_title:0:67}..."
+  fi
+
+  audit_body=$(cat <<EOF
+**Dismissed Dependabot alert:** #${ALERT_NUM} — ${ALERT_URL}
+**Package:** \`${PKG}\` (pip)
+**Severity:** ${SEVERITY}
+**GHSA / CVE:** ${GHSA_ID} / ${CVE_ID}
+**CWE(s):** ${CWE_IDS}
+**Vulnerable range:** \`${VULN_RANGE}\` — first patched in \`${FIRST_PATCHED}\`
+**Archetype:** ${ARCHETYPE}
+**Skill confidence:** ${CONFIDENCE}
+**Dismissal reason:** \`${DISMISSAL_REASON}\` (this audit issue is auto-closed)
+
+## Advisory summary (§2.5.1)
+
+${ADVISORY_SUMMARY}
+
+## Derived precondition checklist (§2.5.2)
+
+The Qs below are derived per-advisory from the GHSA description (and optionally §2.5.1b MITRE supplement), not from a static table. Each Q is answered against this specific codebase in §2.5.3.
+
+${CWE_CHECKLIST_ANSWERS}
+
+## Vulnerable-symbol trace (§2.5.4)
+
+${SYMBOL_TRACE_RESULT}
+
+## Structural-impossibility check (§2.5.6b, framework / scaffold only)
+
+${STRUCTURAL_CHECK_RESULT:-N/A — not a framework / scaffold archetype}
+
+## Decisive reasoning
+
+${APPLICABILITY_REASONING}
+
+## How to challenge this dismissal
+
+If you (the maintainer) judge any Q answer wrong:
+1. Reopen the Dependabot alert via the GitHub Security tab.
+2. Reopen this audit issue and comment with the corrected Q answer + evidence.
+3. If the corrected analysis shows the CVE is applicable, treat as a normal upgrade — the bump can be tracked in a new issue (the skill won't re-open this one).
+
+Skill version / commit: ${SKILL_VERSION:-unknown} (see commit log of the triage-dependabot skill).
+EOF
+)
+
+  audit_url=$(gh issue create --repo "$REPO" \
+    --title "$audit_title" \
+    --label "security,dependabot,triage-dependabot,security-audit" \
+    --body "$audit_body") || return 1
+
+  # Close immediately — the audit issue is a permanent record, not a TODO.
+  gh issue close "$audit_url" --repo "$REPO" --comment "Auto-closed — see Dependabot alert ${ALERT_URL} for the live state." >/dev/null 2>&1 || true
+
+  echo "$audit_url"
+}
+```
+
+The `security-audit` label must be created idempotently up front (alongside the existing `security` / `dependabot` / `triage-dependabot` / `needs-human-review` labels in §3.2):
+
+```bash
+gh label create security-audit  --color C2E0C6 --description "Permanent audit record for a triage-dependabot dismissal (auto-closed)" --repo "$REPO" 2>/dev/null || true
+```
+
+The `not_used` dismissal path (§3.1) does **not** call this — the §2.5 Q analysis doesn't apply to DEV-only dismissals (Signal C is direct import-graph evidence). The 280-char `dismissed_comment` is sufficient there.
 
 ### 3.2 Open a tracking issue for a PROD-APPLICABLE alert
 
@@ -854,6 +977,7 @@ gh label create security              --color B60205 --description "Security vul
 gh label create dependabot            --color 0366D6 --description "Dependabot-reported"     --repo "$REPO" 2>/dev/null || true
 gh label create triage-dependabot     --color 5319E7 --description "Opened by triage-dependabot skill" --repo "$REPO" 2>/dev/null || true
 gh label create needs-human-review    --color FBCA04 --description "Skill confidence below threshold — maintainer call required" --repo "$REPO" 2>/dev/null || true
+gh label create security-audit        --color C2E0C6 --description "Permanent audit record for a triage-dependabot dismissal (auto-closed)" --repo "$REPO" 2>/dev/null || true
 ```
 
 Issue body template (use a heredoc to preserve formatting):
@@ -972,6 +1096,7 @@ Alerts seen:        $N_ALERTS
 Processed:          $N_PROCESS                # respects --limit
 Dismissed (DEV, not_used):     $N_DISMISSED_DEV
 Dismissed (PROD-not-applic, inaccurate, high-conf): $N_DISMISSED_INACCURATE
+Audit-trail issues opened (closed):  $N_AUDIT_ISSUES   # 1 per inaccurate dismissal
 Issue opened (PROD-applicable, high-conf):  $N_OPENED_APPLICABLE
 Issue opened (needs-human-review):  $N_OPENED_REVIEW   # moderate or low confidence
 Skipped (non-pip):              $N_SKIPPED_ECOSYSTEM   # informational, no exit-code impact
@@ -1067,8 +1192,8 @@ done
 2. **Skip non-pip ecosystems.** GitHub Actions / Docker / npm alerts can appear on Valory repos (e.g. `.github/workflows/*.yml` action pins) — flag them for manual review.
 3. **Conservative default: when uncertain, open an issue, don't dismiss.** A false-positive issue costs one `gh issue close` command; a false-negative dismissal costs a quietly-shipped CVE. The §2.5.6 confidence tier and §2.5.6b structural-impossibility check together formalize this — only `high` confidence + (cli-tool OR framework-with-§2.5.6b-passes) dismisses autonomously. Everything else routes to `needs-human-review`.
 4. **Two dismissal reasons, strict criteria per archetype.**
-   - `not_used` — Phase 2.4 Signal C proved the package is reachable only from test/dev paths. Comment names the test/dev files. No confidence tier required (the import-graph evidence is direct).
-   - `inaccurate` — Phase 2.5 proved the CVE's threat-model preconditions are absent **AND Phase 2.5.6 returned `high` confidence**, AND either (a) archetype is `cli-tool`, OR (b) archetype is `framework` / `scaffold` AND §2.5.6b structural-impossibility passes all three conditions (symbol-grep definitive zero, all imports orthogonal, no public API forwards external input to vulnerable subsystem). Comment names the failed checklist Q + §2.5.4 symbol-grep result + (for framework/scaffold) the decisive §2.5.6b condition. On `moderate` / `low` confidence OR framework/scaffold with §2.5.6b failing, do not dismiss — open an issue tagged `needs-human-review` instead.
+   - `not_used` — Phase 2.4 Signal C proved the package is reachable only from test/dev paths. Comment names the test/dev files. No confidence tier required (the import-graph evidence is direct). No audit issue (no Q analysis to record).
+   - `inaccurate` — Phase 2.5 proved the CVE's threat-model preconditions are absent **AND Phase 2.5.6 returned `high` confidence**, AND either (a) archetype is `cli-tool`, OR (b) archetype is `framework` / `scaffold` AND §2.5.6b structural-impossibility passes all three conditions (symbol-grep definitive zero, all imports orthogonal, no public API forwards external input to vulnerable subsystem). **Required side-effect: open a closed audit-trail issue (§3.1c) carrying the full §2.5 analysis BEFORE the dismissal, and embed the audit URL in the dismissed_comment.** The 280-char comment alone is not a complete audit trail; the closed audit issue is. On `moderate` / `low` confidence OR framework/scaffold with §2.5.6b failing, do not dismiss — open an issue tagged `needs-human-review` instead.
    Never use `tolerable_risk` / `fix_started` / `no_bandwidth` — those need human cost/benefit calls the skill never has the context for.
 5. **Dedupe before opening.** Search existing open issues by GHSA ID; never spam duplicates on repeat runs.
 6. **Don't dismiss with no evidence.** Skip + log if neither prod nor test imports are found and the manifest is silent.
@@ -1084,7 +1209,8 @@ done
 | ------- | ------------ |
 | (rerun-dismissed mode) | Nothing — read-only verdict-drift report to stdout |
 | Dependabot alerts — DEV-only path | `state=dismissed`; `dismissed_reason=not_used`; comment includes the test/dev paths the scan found |
-| Dependabot alerts — PROD-but-not-applicable, **cli-tool + high confidence** OR **framework/scaffold + high confidence + §2.5.6b passes** | `state=dismissed`; `dismissed_reason=inaccurate`; comment names the failed CWE checklist Q + §2.5.4 symbol-grep result + archetype + (for framework/scaffold) decisive §2.5.6b condition |
+| Dependabot alerts — PROD-but-not-applicable, **cli-tool + high confidence** OR **framework/scaffold + high confidence + §2.5.6b passes** | `state=dismissed`; `dismissed_reason=inaccurate`; comment carries one-line summary + URL pointer to the audit issue |
+| Closed audit-trail issues — one per `inaccurate` dismissal | New issues opened **and immediately closed** with title `[Security-audit][closed] <pkg> #<n> (<ghsa>) — inaccurate`, label `security,dependabot,triage-dependabot,security-audit`. Body carries the full §2.5 analysis (advisory, derived Qs + answers, symbol trace, structural check, reasoning). Permanent record; never edited by the skill. |
 | Repo issues — PROD-applicable | New issues opened with title `[Security][<sev>] <pkg>: <short summary>` (GHSA in body, not title), labels `security,dependabot,triage-dependabot`, body containing alert URL + prod import paths + **exploit-surface analysis with CWE-checklist answers, vulnerable-symbol trace, confidence tier, and (for framework/scaffold) §2.5.6b result** + suggested fix |
 | Repo issues — PROD-not-applicable but autonomous-dismissal gate not met (moderate/low confidence, OR framework/scaffold with §2.5.6b failing) | Same as above, **additionally labeled `needs-human-review`**. Dependabot alert NOT dismissed — the maintainer makes the final call. |
 | Repo issues (existing) | Skipped via dedupe (no edit) |
