@@ -28,6 +28,26 @@ This skill runs fully autonomously on invocation — it mutates GitHub state (di
 ## Phase 0 — Ground truth
 
 ```bash
+# 0. Platform check. The skill targets Linux + macOS bash; runs untested on
+#    Git Bash / MSYS / Cygwin. Native PowerShell / cmd.exe is not supported
+#    (the skill uses heredocs, process substitution, array expansion).
+case "$(uname -s 2>/dev/null)" in
+  Linux*|Darwin*) ;;  # supported
+  MINGW*|MSYS*|CYGWIN*)
+    echo "WARN: running under $(uname -s) — Git Bash / MSYS path is untested. Most operations should work; report any failures." >&2
+    ;;
+  *)
+    echo "WARN: unrecognized platform $(uname -s). Skill is bash-only and may fail on this OS." >&2
+    ;;
+esac
+
+# Required CLIs — fail fast if anything is missing so the operator gets a clear
+# message instead of a cryptic mid-loop error 40 minutes in.
+for cmd in gh jq python3 grep find sed tr printf mktemp; do
+  command -v "$cmd" >/dev/null 2>&1 \
+    || { echo "ERROR: required CLI not found on PATH: $cmd"; exit 1; }
+done
+
 # 1. Confirm we're in a git repo with a GitHub remote
 gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"' > /tmp/td_repo.txt 2>/dev/null \
   || { echo "ERROR: not in a GitHub repo (gh repo view failed)"; exit 1; }
