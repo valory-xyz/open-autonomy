@@ -382,11 +382,20 @@ Issue title format (under 70 chars). Lead with `[Security]` so the issue is filt
 [Security][<severity>] <package>: <short summary>
 ```
 
-Build the short summary from `.security_advisory.summary`, which Dependabot returns as a string usually of the form `"<package>: <description>."`. Strip the leading `"<package>: "` to avoid `urllib3: urllib3: ...`, drop the trailing period, and truncate so the whole title stays under 70 chars:
+Build the short summary from `.security_advisory.summary`, which Dependabot returns as a string usually of the form `"<package>: <description>."` — but with three real-world wrinkles you have to handle: (1) case mismatch between the advisory's package capitalisation (`Authlib:`) and the API's `.package.name` (`authlib`); (2) some summaries omit the colon entirely (`"GitPython reference APIs has a path traversal..."`); (3) advisories often end with a period.
 
 ```bash
-RAW="${SUMMARY#${PKG}: }"     # strip "PackageName: " prefix
-RAW="${RAW%.}"                 # strip trailing period
+PKG_LOWER=$(tr '[:upper:]' '[:lower:]' <<<"$PKG")
+SUM_LOWER=$(tr '[:upper:]' '[:lower:]' <<<"$SUMMARY")
+RAW="$SUMMARY"
+if [[ "$SUM_LOWER" == "${PKG_LOWER}: "* ]]; then       # case-insensitive "Pkg: " strip
+  RAW="${SUMMARY:$((${#PKG}+2))}"
+elif [[ "$SUM_LOWER" == "${PKG_LOWER} "* ]]; then      # no-colon "Pkg " strip
+  RAW="${SUMMARY:$((${#PKG}+1))}"
+fi
+RAW="${RAW%.}"                                          # strip trailing period
+RAW="$(tr '[:lower:]' '[:upper:]' <<<"${RAW:0:1}")${RAW:1}"  # sentence-case first letter
+
 PREFIX="[Security][${SEVERITY}] ${PKG}: "
 BUDGET=$((70 - ${#PREFIX}))
 if [[ ${#RAW} -gt $BUDGET ]]; then
