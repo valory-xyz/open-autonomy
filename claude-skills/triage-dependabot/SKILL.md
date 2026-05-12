@@ -1,6 +1,6 @@
 ---
 name: triage-dependabot
-description: Triage open Dependabot security alerts on the current GitHub repo. For each alert, decide whether the vulnerable dependency is reachable from production code or only test/dev/CI code. Production-relevant alerts get a tracking issue opened (alert stays open); test-only alerts get dismissed with reason `not_used`. Repo-agnostic — works across the Valory fleet.
+description: Triage open Dependabot security alerts on the current GitHub repo. For each alert, decide (1) whether the vulnerable dependency is reachable from production code, then (2) whether the CVE's threat model is actually exploitable given how this codebase uses the package. Production-AND-applicable alerts get a tracking issue opened; production-but-not-applicable alerts get dismissed with reason `inaccurate`; test/dev-only alerts get dismissed with reason `not_used`. Repo-agnostic — works across the Valory fleet.
 argument-hint: "[--limit N]  # optional cap on alerts processed per run"
 disable-model-invocation: true
 ---
@@ -11,11 +11,12 @@ Walk every open Dependabot security alert on the current repo. Classify the vuln
 
 | Classification | Action |
 | -------------- | ------ |
-| **Production** | Leave Dependabot alert open. Open a new GitHub issue on the repo that references the alert, names the CVE / GHSA / severity, lists the production paths that pull in the vulnerable package, and suggests the upgrade pin. |
-| **Test / dev / CI only** | Dismiss the Dependabot alert via API with `state=dismissed`, `dismissed_reason=not_used`, and a `dismissed_comment` naming the test/dev paths it was found in. No repo issue is opened. |
-| **Unclassifiable** | Skip. Print a line to stderr so the operator can review manually. **Never** auto-dismiss without evidence. |
+| **Production-reachable AND exploit-applicable** | Leave Dependabot alert open. Open a new GitHub issue on the repo that references the alert, names the CVE / GHSA / severity, lists the production paths that pull in the vulnerable package, the exploit-surface analysis, and the suggested upgrade pin. |
+| **Production-reachable but exploit NOT applicable** (CVE's threat model doesn't map to this codebase's usage) | Dismiss the Dependabot alert with `dismissed_reason=inaccurate` and a comment naming the threat-model mismatch. No repo issue. |
+| **Test / dev / CI-only import path** | Dismiss with `dismissed_reason=not_used` naming the test/dev paths it was found in. No repo issue. |
+| **Unclassifiable** | Skip. Print a line to stderr for manual review. **Never** auto-dismiss without evidence. |
 
-Conservative default: **when uncertain, treat as production.** A false-negative dismissal hides a real vulnerability; a false-positive issue is cheap to close.
+Conservative default: **when uncertain about exploit applicability, open the issue.** A false-positive issue is cheap to close after a one-line maintainer comment; a false-negative dismissal hides a real vulnerability. But "import in prod ≠ exploit-applicable" — see Phase 2.5.
 
 This skill runs fully autonomously on invocation — it mutates GitHub state (dismisses alerts, opens issues). Do not invoke from conversational context; require explicit `/triage-dependabot`.
 
@@ -48,6 +49,46 @@ Capture into working memory:
 | `PROD_PATHS` | Default: `autonomy/ packages/ agent/` — adjust to repo. See Phase 2.1 for repo-specific overrides. |
 | `TEST_PATHS` | Default: `tests/ scripts/ .github/` plus every `**/tests/` subdir under `packages/`. |
 | `LIMIT` | Optional `--limit N` arg; otherwise process all open alerts. |
+| `ARCHETYPE` | Repo archetype (see §0.1). Drives the exploit-surface threshold in Phase 2.5. |
+
+### 0.1 Repo archetype
+
+Different archetypes have radically different exploit surfaces for the *same* CVE. A header-leak CVE in `urllib3` matters for an internet-facing web service handling user auth tokens; it doesn't matter for a CLI link checker that holds no auth state. The skill needs this distinction baked into Phase 2.5's reasoning, not bolted on after the fact.
+
+Classify the current repo into one of:
+
+| Archetype | Signal | Exploit-surface posture |
+| --------- | ------ | ----------------------- |
+| `cli-tool` | Entry point is a `console_scripts` / `[tool.poetry.scripts]`, runs once and exits, no long-lived HTTP listener, processes developer-controlled inputs. E.g. tomte, aea-helpers, dev/CI plugins. | **Narrow.** CVEs requiring browser sessions, server-side cookies, persistent attacker control, or untrusted-remote inputs do not apply. Memory-DoS CVEs only matter if uptime is a contract. |
+| `framework` | Library/SDK consumed by other projects. No own entry point. E.g. open-autonomy, open-aea, mech-interact. | **Wide.** Any CVE that consumers may hit applies — must err on the side of bumping, because downstream usage isn't fully known. |
+| `service` | Long-running process, network-facing, handles untrusted input. E.g. middleware HTTP API, mech-server, agent HTTP endpoints. | **Wide.** Default-apply for any CVE in the request/response or auth path. Memory-DoS, header-leak, deserialization CVEs all real. |
+| `scaffold` | A starter template — runtime exposure depends on downstream usage, not on this repo's own code. E.g. olas-sdk-starter. | **Inherit consumer's archetype.** Treat as `framework` unless a specific consumer is in scope. |
+| `unknown` | None of the above. | Default to `framework` posture. |
+
+Heuristics to detect automatically (run in Phase 0):
+
+```bash
+# console_scripts / poetry-scripts hint cli-tool
+HAS_SCRIPTS=$(python3 -c "
+import tomllib, pathlib
+d = tomllib.loads(pathlib.Path('pyproject.toml').read_text())
+print(bool(
+    d.get('project', {}).get('scripts')
+    or d.get('tool', {}).get('poetry', {}).get('scripts')
+))" 2>/dev/null)
+
+# fastapi / flask / aiohttp / uvicorn imports in non-test code hint service
+HAS_SERVER=$(grep -rlE "^(import|from)[[:space:]]+(fastapi|flask|aiohttp\.web|uvicorn|starlette)" \
+  "${PROD_DIRS[@]}" --include="*.py" 2>/dev/null | grep -v "/tests/" | head -1)
+
+# packages/ tree with valory/skills hints framework (open-autonomy fleet)
+HAS_PACKAGES_TREE=$([ -d packages/valory ] && echo "yes" || echo "no")
+
+# starter / template / scaffold in repo name or README hint scaffold
+IS_SCAFFOLD=$(grep -iE "starter|template|scaffold|boilerplate" README.md 2>/dev/null | head -1)
+```
+
+These are hints, not proofs. When the classification is ambiguous, **default to `framework`** so the skill errs on the side of bumping. A human can override by writing `archetype: cli-tool` in a per-repo `.triage-dependabot.yaml` config (future enhancement — for now, hardcode the override at the top of the per-alert loop).
 
 ---
 
@@ -300,7 +341,80 @@ Step 3: classify. The verdict consults all three signals — A (`dependency.scop
 
 Without the Signal B clauses, the verdict drops a real layer of information on the floor — exactly the case where stacking signals is supposed to pay off.
 
-### 2.5 Transitive deps — reverse-resolve the chain
+### 2.5 Exploit-surface analysis — does the CVE's threat model map to this codebase?
+
+**This is the most important step the skill performs**, and the one most likely to be skipped by a naive "imported in prod → open issue" classifier. A CVE describes a *bug under specific preconditions*; whether those preconditions are reachable in *this* codebase is a separate question.
+
+Real failure mode this phase prevents: imagine `urllib3` ships a CVE where the **streaming-redirect path with proxy auth** leaks `Authorization` headers to the redirect target. The codebase imports `urllib3` for a CLI **link checker** that issues stateless HEAD requests to documented URLs and carries no auth headers. Signal C → PROD hit → issue opened → maintainer comments "this CVE doesn't apply to a link checker" → wasted cycles.
+
+This phase exists to catch that case **before** the issue is opened.
+
+#### 2.5.1 Fetch the GHSA's actual description
+
+The Dependabot alert payload's `.security_advisory.summary` is a one-liner. The fuller threat-model description lives in the GHSA database. Pull it:
+
+```bash
+# GitHub Security Advisory full payload, including description + references
+gh api "/advisories/$GHSA_ID" \
+  --jq '{summary: .summary, description: .description, severity: .severity, cwe_ids: [.cwe_ids[]?.cwe_id]}' \
+  > "$TMP/advisory_${GHSA_ID}.json"
+```
+
+Read the `description` and `cwe_ids` fields. The CWE IDs are a strong typed hint about the bug class.
+
+#### 2.5.2 Identify the CVE's required preconditions
+
+Working from the advisory's description, write down (mentally or in scratch state) what an attacker needs in order to trigger the bug:
+
+| Bug class (common CWE patterns) | Typical required preconditions |
+| ------------------------------- | ------------------------------ |
+| Header / cookie / token leak (CWE-200, CWE-201) | Code sends sensitive headers; attacker controls a URL or redirect target |
+| Decompression / zip bomb (CWE-409) | Code reads streaming bodies from attacker-controlled URLs; client process uptime matters |
+| Path traversal (CWE-22) | Code passes attacker-controlled paths to file I/O |
+| Deserialization RCE (CWE-502) | Code deserializes pickle / yaml / msgpack from attacker-controlled bytes |
+| SQL injection (CWE-89) | Code builds queries from attacker-controlled strings |
+| ReDoS (CWE-1333) | Code runs the vulnerable regex against attacker-controlled strings |
+| CSRF (CWE-352) | Server-side web app with browser-driven OAuth / form flows |
+| Command injection (CWE-78) | Code passes attacker-controlled args to subprocess / shell |
+| SSRF (CWE-918) | Code fetches URLs whose host is attacker-controlled |
+| TLS bypass (CWE-295) | Code makes outbound HTTPS to internet-facing hosts |
+| Privilege escalation in deserialized config (CWE-94) | Code loads attacker-controlled config files |
+
+#### 2.5.3 Map preconditions against the calling code
+
+For each PROD import path found in Signal C, **read the calling file** (or the relevant function) and answer:
+
+1. Does the calling code carry the sensitive state the CVE targets? (auth headers? session cookies? privileged file paths? OAuth state?)
+2. Does the calling code accept input from an untrusted source? (network user? HTTP request body? environment variable populated by an external system?) Or is the input developer-controlled (repo source, hardcoded URL, deterministic config)?
+3. Is the calling process long-lived / network-reachable, or one-shot CLI?
+
+Cross-reference the answers against the preconditions from §2.5.2. If **any** required precondition is absent, the CVE is **not applicable** in this codebase even though the package is imported in prod.
+
+#### 2.5.4 The archetype multiplier
+
+Apply the `ARCHETYPE` value from Phase 0.1:
+
+| Archetype | Default exploit-surface posture |
+| --------- | ------------------------------- |
+| `cli-tool` | **Strict** — CVEs requiring browser sessions, long-running listeners, untrusted-remote inputs, server-side state are presumed not-applicable. Memory-DoS CVEs are not-applicable unless uptime is a contractual concern. The CVE must show a concrete exploit chain that fits the CLI usage to count as applicable. |
+| `framework` / `scaffold` | **Permissive** — consumers may use the framework in any archetype, so a CVE that's exploitable in *some* downstream consumer is applicable here. Default to PROD-applicable unless the CVE is structurally impossible (e.g. an auth CVE in a library that has no auth code at all). |
+| `service` | **Permissive** — long-running, network-reachable, often handles user input. Default to PROD-applicable. |
+| `unknown` | Treat as `framework`. |
+
+#### 2.5.5 Final verdict
+
+Combine §2.5.3 (preconditions match) with §2.5.4 (archetype posture):
+
+| §2.5.3 result | §2.5.4 archetype | Verdict |
+| ------------- | ---------------- | ------- |
+| All preconditions reachable | any | **PROD-APPLICABLE** → open issue (Phase 3.2) |
+| One or more preconditions absent | `service` / `framework` / `scaffold` | **PROD-APPLICABLE** → open issue (default to caution; consumers may differ) |
+| One or more preconditions absent | `cli-tool` | **NOT-APPLICABLE** → dismiss with `inaccurate` (Phase 3.3) |
+| Truly ambiguous (precondition reachability not determinable without runtime trace) | any | **PROD-APPLICABLE** → open issue, default to caution |
+
+When dismissing as `inaccurate`, the `dismissed_comment` must name **which precondition is absent** in plain English. "Tomte's link checker carries no auth headers; the CVE requires a sensitive-header forward via redirect — precondition absent." That comment is the audit trail; a future reviewer needs to be able to challenge the call.
+
+### 2.6 Transitive deps — reverse-resolve the chain
 
 For transitive deps (`scope == "unknown"` or no pin in pyproject.toml), figure out which **direct** deps pull the vulnerable package in:
 
@@ -359,11 +473,38 @@ if [[ -z "$TEST_HIT_FILES" ]]; then
 fi
 ```
 
-**Required**: `dismissed_reason` must be one of the GitHub-documented enum values: `fix_started`, `inaccurate`, `no_bandwidth`, `not_used`, `tolerable_risk`. This skill uses `not_used` exclusively — it's the only one that means "the vulnerable code path is not reachable from this project's production surface", which is the only thing the skill verifies.
+**Required**: `dismissed_reason` must be one of the GitHub-documented enum values: `fix_started`, `inaccurate`, `no_bandwidth`, `not_used`, `tolerable_risk`. This skill uses **two** of them, each with strict criteria:
 
-Do **not** use `tolerable_risk` — that's an explicit accept-the-risk decision and requires a human judgment call about exploit difficulty / impact.
+- `not_used` — the package import path is not reachable from production code. Phase 2.4 Signal C decides this. The dismissal comment names the test/dev paths found.
+- `inaccurate` — the package IS imported in production code, but the CVE's threat model preconditions are absent in this codebase's usage. Phase 2.5 decides this. The dismissal comment names which precondition is absent.
 
-### 3.2 Open a tracking issue for a PROD alert
+Do **not** use `tolerable_risk` — that's "the bug is real and reachable, but the impact is low enough that we accept it." It requires a human cost/benefit call; the skill never has the context to make it.
+
+Do **not** use `fix_started` or `no_bandwidth` — those mean "we're working on it" / "we don't have time." Neither describes the skill's actual reasoning.
+
+### 3.1b Dismiss a NOT-APPLICABLE alert (Phase 2.5 verdict)
+
+For alerts where the package is imported in PROD but Phase 2.5 ruled the CVE's preconditions absent. The dismissal comment must name the specific precondition that's absent — that's the audit trail.
+
+```bash
+# $PRECONDITION_ABSENT is set in Phase 2.5.3 — e.g.,
+#   "sensitive-header carriage" / "long-lived process / uptime contract"
+#   / "OAuth browser session" / "deserialization of attacker bytes"
+DISMISS_COMMENT="Triaged: \`$PKG\` imported in prod but CVE threat model not applicable. Required: $PRECONDITION_ABSENT. Archetype: $ARCHETYPE. See $ALERT_URL for the CVE; this codebase does not satisfy the precondition."
+
+if [[ ${#DISMISS_COMMENT} -gt 280 ]]; then
+  DISMISS_COMMENT="${DISMISS_COMMENT:0:277}..."
+fi
+
+gh api -X PATCH "repos/$REPO/dependabot/alerts/$ALERT_NUM" \
+  -f state="dismissed" \
+  -f dismissed_reason="inaccurate" \
+  -f dismissed_comment="$DISMISS_COMMENT" \
+  --jq '.state' \
+  || { echo "ERROR: failed to dismiss alert #$ALERT_NUM"; SKIPPED+=("$ALERT_NUM:dismiss-api-error"); continue; }
+```
+
+### 3.2 Open a tracking issue for a PROD-APPLICABLE alert
 
 Before opening, **dedupe**: search for an existing open issue tagged with the same GHSA ID, to avoid spam on repeat runs.
 
@@ -453,6 +594,20 @@ Triage scan found the vulnerable package imported from the following production 
 $PROD_HIT_FILES_BULLETED
 
 (Scan covered: PROD_DIRS=$PROD_DIRS. Test/dev paths excluded.)
+
+## Exploit-surface analysis
+
+**Repo archetype:** $ARCHETYPE
+
+**CVE preconditions** (from the GHSA description):
+$CVE_PRECONDITIONS
+
+**Codebase's usage pattern at the import sites:**
+$USAGE_PATTERN_NOTES
+
+**Applicability verdict:** $APPLICABILITY_VERDICT — $APPLICABILITY_REASONING
+
+If you (the maintainer) judge the preconditions absent, close this issue and dismiss the linked Dependabot alert with reason \`inaccurate\` and a comment naming the missing precondition.
 
 ## Suggested fix
 
@@ -591,7 +746,10 @@ done
 1. **Only act on `state=open` alerts.** Don't poke at already-dismissed alerts.
 2. **Skip non-pip ecosystems.** GitHub Actions / Docker / npm alerts can appear on Valory repos (e.g. `.github/workflows/*.yml` action pins) — flag them for manual review.
 3. **Conservative default: when uncertain, open an issue, don't dismiss.** A false-positive issue costs one `gh issue close` command; a false-negative dismissal costs a quietly-shipped CVE.
-4. **`dismissed_reason=not_used` only.** That's the only outcome this skill verifies. Never use `tolerable_risk` / `inaccurate` — those need human judgment.
+4. **Two dismissal reasons, two strict criteria.**
+   - `not_used` — Phase 2.4 Signal C proved the package is reachable only from test/dev paths. Comment names the test/dev files.
+   - `inaccurate` — Phase 2.5 proved the CVE's threat-model preconditions are absent in this codebase's usage of the package. Comment names which precondition is absent.
+   Never use `tolerable_risk` / `fix_started` / `no_bandwidth` — those need human cost/benefit calls the skill never has the context for.
 5. **Dedupe before opening.** Search existing open issues by GHSA ID; never spam duplicates on repeat runs.
 6. **Don't dismiss with no evidence.** Skip + log if neither prod nor test imports are found and the manifest is silent.
 7. **Print stderr lines for skips.** The summary table is for the actor; the per-alert skip lines are for the human reviewer paginating through stderr.
@@ -603,8 +761,9 @@ done
 
 | Surface | What changes |
 | ------- | ------------ |
-| Dependabot alerts (DEV) | `state` flipped to `dismissed`; `dismissed_reason=not_used`; `dismissed_comment` includes the test/dev paths the scan found |
-| Repo issues (PROD) | New issues opened with title `[Security][<sev>] <pkg>: <short summary>` (GHSA in body, not title), labels `security,dependabot,triage-dependabot`, body referencing the alert URL + prod import paths + suggested fix |
+| Dependabot alerts — DEV-only path | `state=dismissed`; `dismissed_reason=not_used`; comment includes the test/dev paths the scan found |
+| Dependabot alerts — PROD-but-not-applicable | `state=dismissed`; `dismissed_reason=inaccurate`; comment names the absent CVE precondition + archetype |
+| Repo issues — PROD-applicable | New issues opened with title `[Security][<sev>] <pkg>: <short summary>` (GHSA in body, not title), labels `security,dependabot,triage-dependabot`, body containing alert URL + prod import paths + **exploit-surface analysis** + suggested fix |
 | Repo issues (existing) | Skipped via dedupe (no edit) |
 | Working tree | Nothing — the skill only mutates GitHub state, not files |
 
