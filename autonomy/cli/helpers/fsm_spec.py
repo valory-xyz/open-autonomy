@@ -54,15 +54,11 @@ def _load_dev_skill_names(package_path: Path) -> Optional[Set[str]]:
         if current.name == "packages" and (current / "packages.json").is_file():
             packages_json = current / "packages.json"
             try:
-                data = json.loads(
-                    packages_json.read_text(encoding="utf-8")
-                )
+                data = json.loads(packages_json.read_text(encoding="utf-8"))
             except OSError:
                 return None
             except json.JSONDecodeError as exc:
-                logging.warning(
-                    "Malformed packages.json at %s: %s", packages_json, exc
-                )
+                logging.warning("Malformed packages.json at %s: %s", packages_json, exc)
                 return None
             return {
                 key.split("/")[2]

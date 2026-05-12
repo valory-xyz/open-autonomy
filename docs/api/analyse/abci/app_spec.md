@@ -91,8 +91,9 @@ def dump_json(dfa: "DFA", file: Path) -> None
 
 Dump to a json file (deprecated).
 
-JSON output is deprecated; prefer YAML or Mermaid. Emits a
-DeprecationWarning on use. Will be removed in a future release.
+JSON output is deprecated; prefer YAML or Mermaid. The
+``DeprecationWarning`` is emitted by ``dump()`` so that
+``stacklevel`` always points at the external caller.
 
 **Arguments**:
 
@@ -118,7 +119,7 @@ Dump to a yaml file.
 @staticmethod
 def dump_mermaid(dfa: "DFA",
                  file: Path,
-                 abci_app_cls: Optional[Any] = None,
+                 abci_app_cls: Optional[_AbciAppLike] = None,
                  dev_skills: Optional[Set[str]] = None) -> None
 ```
 
@@ -133,8 +134,9 @@ of ``packages/packages.json``); any sub-app not in this set is
 treated as third-party and collapsed.
 
 Falls back to the flat per-round diagram when ``abci_app_cls`` is
-``None``, when ``dev_skills`` is ``None`` (i.e. no packages.json
-info available), or when all rounds belong to a single sub-app.
+``None``, when ``dev_skills`` is empty or ``None`` (i.e. no
+packages.json info available), or when all rounds belong to a
+single sub-app.
 
 **Arguments**:
 
@@ -155,7 +157,7 @@ def dump(cls,
          dfa: "DFA",
          file: Path,
          spec_format: str = OutputFormats.YAML,
-         abci_app_cls: Optional[Any] = None,
+         abci_app_cls: Optional[_AbciAppLike] = None,
          dev_skills: Optional[Set[str]] = None) -> None
 ```
 

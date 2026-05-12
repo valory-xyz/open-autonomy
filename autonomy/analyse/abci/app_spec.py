@@ -360,9 +360,7 @@ class FSMSpecificationLoader:
                     )
                 result[name] = sub_app
 
-        unclassified = {
-            c.__name__ for c in round_classes if c.__name__ not in result
-        }
+        unclassified = {c.__name__ for c in round_classes if c.__name__ not in result}
         if unclassified:
             logging.warning(
                 "Unclassified rounds (no `skills` segment in __module__): %s",

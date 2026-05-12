@@ -539,7 +539,9 @@ class TestExtractSkillName:
 
     def test_skills_at_end(self) -> None:
         """Path ending with 'skills' (no segment after) returns None."""
-        assert FSMSpecificationLoader._extract_skill_name("packages.valory.skills") is None
+        assert (
+            FSMSpecificationLoader._extract_skill_name("packages.valory.skills") is None
+        )
 
     def test_empty_string(self) -> None:
         """Empty string returns None."""
@@ -564,6 +566,7 @@ class TestBuildRoundToSubapp:
 
         class MockApp(_MockAbciApp):
             """Mock composed app."""
+
             transition_function = {round_a: {}}
             initial_states = {round_a}
             final_states = {round_b}
@@ -582,6 +585,7 @@ class TestBuildRoundToSubapp:
 
         class MockApp(_MockAbciApp):
             """Mock composed app with collision."""
+
             transition_function = {round_a: {round_b: round_b}}
             initial_states = set()
             final_states = set()
@@ -598,6 +602,7 @@ class TestBuildRoundToSubapp:
 
         class MockApp(_MockAbciApp):
             """Mock with unclassified round."""
+
             transition_function = {round_cls: {}}
             initial_states = set()
             final_states = set()
@@ -659,6 +664,7 @@ class TestDumpMermaid:
 
         class MockApp(_MockAbciApp):
             """Mock app."""
+
             transition_function = {round_a: {}, round_b: {}}
             initial_states = {round_a}
             final_states = {round_b}
@@ -683,6 +689,7 @@ class TestDumpMermaid:
 
         class MockApp(_MockAbciApp):
             """Mock app."""
+
             transition_function = {round_a: {}}
             initial_states = set()
             final_states = set()
@@ -711,6 +718,7 @@ class TestDumpMermaid:
 
         class MockApp(_MockAbciApp):
             """Mock composed app."""
+
             transition_function = {
                 round_a: {object(): round_b},
                 round_b: {object(): round_c},
@@ -723,7 +731,10 @@ class TestDumpMermaid:
         dfa = DFA(
             label="ComposedAbciApp",
             states={
-                "RoundARound", "RoundBRound", "RoundCRound", "RoundDRound",
+                "RoundARound",
+                "RoundBRound",
+                "RoundCRound",
+                "RoundDRound",
             },
             default_start_state="RoundARound",
             start_states={"RoundARound"},
