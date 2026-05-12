@@ -94,6 +94,11 @@ Dump to a json file (deprecated).
 JSON output is deprecated; prefer YAML or Mermaid. Emits a
 DeprecationWarning on use. Will be removed in a future release.
 
+**Arguments**:
+
+- `dfa`: DFA object to serialize.
+- `file`: Output file path.
+
 <a id="autonomy.analyse.abci.app_spec.FSMSpecificationLoader.dump_yaml"></a>
 
 #### dump`_`yaml
@@ -131,6 +136,15 @@ Falls back to the flat per-round diagram when ``abci_app_cls`` is
 ``None``, when ``dev_skills`` is ``None`` (i.e. no packages.json
 info available), or when all rounds belong to a single sub-app.
 
+**Arguments**:
+
+- `dfa`: DFA object to render.
+- `file`: Output file path.
+- `abci_app_cls`: Optional composed AbciApp class used to classify
+rounds by sub-app for the composition-aware view.
+- `dev_skills`: Optional set of dev skill names (from
+``packages.json``); sub-apps not in this set are collapsed.
+
 <a id="autonomy.analyse.abci.app_spec.FSMSpecificationLoader.dump"></a>
 
 #### dump
@@ -151,6 +165,15 @@ Dumps this DFA spec. to a file in YAML/JSON/Mermaid format.
 renderer to collapse third-party sub-apps into single nodes while
 keeping dev sub-apps expanded (see ``dump_mermaid``). Other
 formats ignore them.
+
+**Arguments**:
+
+- `dfa`: DFA object to serialize.
+- `file`: Output file path.
+- `spec_format`: One of ``OutputFormats.YAML``, ``JSON``, or
+``MERMAID``.
+- `abci_app_cls`: Optional composed AbciApp class (Mermaid only).
+- `dev_skills`: Optional set of dev skill names (Mermaid only).
 
 <a id="autonomy.analyse.abci.app_spec.DFA"></a>
 
