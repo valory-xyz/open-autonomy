@@ -57,6 +57,18 @@ Capture into working memory:
 TMP=$(mktemp -d)
 set -euo pipefail
 
+# Parse optional --limit N from argv. Default: no cap.
+LIMIT=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --limit) LIMIT="$2"; shift 2 ;;
+    --limit=*) LIMIT="${1#*=}"; shift ;;
+    *) shift ;;
+  esac
+done
+[[ -n "$LIMIT" ]] && [[ ! "$LIMIT" =~ ^[0-9]+$ ]] \
+  && { echo "ERROR: --limit must be a non-negative integer, got: $LIMIT"; exit 1; }
+
 gh api "repos/$REPO/dependabot/alerts?state=open&per_page=100" --paginate \
   > "$TMP/alerts.json" \
   || { echo "ERROR: failed to list Dependabot alerts for $REPO"; exit 1; }
@@ -66,8 +78,16 @@ jq -e 'type == "array"' "$TMP/alerts.json" > /dev/null \
   || { echo "ERROR: alerts response is not a JSON array — likely API error or scope problem"; cat "$TMP/alerts.json" | head -20; exit 1; }
 
 N_ALERTS=$(jq 'length' "$TMP/alerts.json")
-echo "found $N_ALERTS open alerts on $REPO"
+if [[ -n "$LIMIT" && "$LIMIT" -lt "$N_ALERTS" ]]; then
+  echo "found $N_ALERTS open alerts on $REPO; processing first $LIMIT per --limit"
+  N_PROCESS="$LIMIT"
+else
+  echo "found $N_ALERTS open alerts on $REPO"
+  N_PROCESS="$N_ALERTS"
+fi
 ```
+
+The per-alert loop in Phase 3 / the reference loop below must iterate `0..N_PROCESS-1`, not `0..N_ALERTS-1`. Phase 4 summary should report both `seen` (N_ALERTS) and `processed` (N_PROCESS) when they differ, so the operator knows how many alerts remain in the backlog.
 
 Fields used per alert (`jq` paths below):
 
@@ -188,39 +208,65 @@ Step 1: map the package distribution name to its importable top-level module(s).
 
 ```python
 import importlib.metadata as im
+top_modules: list[str] = []
 try:
     files = im.files(pkg) or []
-    top_modules = sorted({
-        str(f).split("/")[0].removesuffix(".py")
+    # Package modules — directories with __init__.py (e.g. requests/__init__.py)
+    pkg_dirs = sorted({
+        str(f).split("/")[0]
         for f in files
-        if str(f).endswith((".py", "/__init__.py")) and "/" in str(f) and not str(f).startswith(".")
+        if str(f).endswith("/__init__.py") and not str(f).startswith(".")
     })
+    # Single-file top-level modules (e.g. six.py, attr.py installed at the
+    # site-packages root with no enclosing package directory).
+    single_files = sorted({
+        str(f).removesuffix(".py")
+        for f in files
+        if str(f).endswith(".py") and "/" not in str(f) and not str(f).startswith(".")
+    })
+    top_modules = sorted(set(pkg_dirs) | set(single_files))
 except im.PackageNotFoundError:
-    # Fallback: try the distribution name itself, common case
+    pass
+
+# Fallback applies on BOTH paths: PackageNotFoundError AND empty-after-filter
+# (e.g. a package that ships only data files, or a metadata listing that
+# matches no .py top-levels). Without this, packages like `six` — which
+# ships as a single top-level file via a stricter installer that records
+# fewer entries — would silently yield an empty grep target.
+if not top_modules:
     top_modules = [pkg.replace("-", "_")]
 ```
 
 If the package isn't installed (deep transitive, never landed in the venv), fall back to the conservative substitution `pkg.replace("-", "_")` and grep both forms.
 
-Step 2: grep each top module under prod paths and test paths:
+Step 2: grep across **every** top-level module the package ships. PyPI packages frequently expose multiple importable top-levels (`setuptools` → `setuptools` + `pkg_resources` + `_distutils_hack`; `protobuf` → `google` for `from google.protobuf...`; `Pillow` → `PIL`). Build an alternation so a single grep catches any of them:
 
 ```bash
-PROD_HITS=$(grep -rlnE "^(import|from)[[:space:]]+($MODULE)([[:space:]]|\.|$)" \
+# Join the list from Step 1 into an alternation, escaping regex metachars
+# (top modules can contain `.` for namespace packages like google.protobuf).
+MODULE_RE=$(printf '%s\n' "${top_modules[@]}" | sed 's/\./\\./g' | paste -sd'|' -)
+
+PROD_HITS=$(grep -rlnE "^(import|from)[[:space:]]+(${MODULE_RE})([[:space:]]|\.|$)" \
   $PROD_DIRS --include="*.py" 2>/dev/null | wc -l | tr -d ' ')
 
-TEST_HITS=$(grep -rlnE "^(import|from)[[:space:]]+($MODULE)([[:space:]]|\.|$)" \
+TEST_HITS=$(grep -rlnE "^(import|from)[[:space:]]+(${MODULE_RE})([[:space:]]|\.|$)" \
   $TEST_DIRS $PKG_TEST_DIRS --include="*.py" 2>/dev/null | wc -l | tr -d ' ')
 ```
 
-The `^(import|from)\s+<mod>([\s.]|$)` anchor is deliberate: it matches `import foo`, `from foo import …`, `from foo.bar import …`, but **not** `# import foo` (comment) or `from foobar import …` (different package).
+The `^(import|from)\s+<mod>([\s.]|$)` anchor is deliberate: it matches `import foo`, `from foo import …`, `from foo.bar import …`, but **not** `# import foo` (comment) or `from foobar import …` (different package). The trailing alternation `([\s.]|$)` is what prevents `foobar` from matching when grepping for `foo`.
 
-Step 3: classify.
+Step 3: classify. The verdict consults all three signals — A (`dependency.scope`), B (`group_for(pkg)` from §2.3), and C (import counts above) — in priority order:
 
-- `PROD_HITS > 0` → **PROD**, regardless of Signal A/B.
+- `PROD_HITS > 0` → **PROD**, regardless of A/B (import-graph evidence wins).
 - `PROD_HITS == 0` AND `TEST_HITS > 0` → **DEV** (only reachable from tests/CI).
-- `PROD_HITS == 0` AND `TEST_HITS == 0` AND `dependency.scope == "development"` → **DEV** (declared dev, no imports anywhere — pin is unused but still scoped dev).
-- `PROD_HITS == 0` AND `TEST_HITS == 0` AND `dependency.scope == "runtime"` → **PROD** (declared prod, even if currently unimported — better to fix the dep than the imports).
-- `PROD_HITS == 0` AND `TEST_HITS == 0` AND `scope == "unknown"` → **UNCLASSIFIABLE** (transitive of an unimported dep; skip and flag for human review).
+- No imports anywhere; classification falls through to A then B:
+  - `scope == "development"` → **DEV**.
+  - `scope == "runtime"` → **PROD** (declared prod, even if currently unimported — better to fix the dep than the imports).
+  - `scope == "unknown"` AND `group_for(pkg) == "prod"` → **PROD** (the project explicitly lists this in `[project] dependencies` / Poetry main → it's production-relevant, dismissing it as unimported would silently bypass an asserted prod dep).
+  - `scope == "unknown"` AND `group_for(pkg) == "dev"` → **DEV** (declared in a dev/test group; no imports means it's safe to dismiss as unused).
+  - `scope == "unknown"` AND `group_for(pkg)` is `None` (true transitive) → **UNCLASSIFIABLE** (no signal at all; skip and flag for human review, or fall through to §2.5 transitive reverse-walk if available).
+
+Without the Signal B clauses, the verdict drops a real layer of information on the floor — exactly the case where stacking signals is supposed to pay off.
 
 ### 2.5 Transitive deps — reverse-resolve the chain
 
@@ -230,10 +276,17 @@ For transitive deps (`scope == "unknown"` or no pin in pyproject.toml), figure o
 # uv repos
 uv tree --package "$PKG" --invert 2>/dev/null
 
-# Poetry repos
-poetry show -t --tree 2>/dev/null | grep -B1 "$PKG"
+# Poetry repos (Poetry >= 1.2): --why prints every direct dep that pulls $PKG
+# transitively, with its full path. This is correct; `poetry show -t | grep -B1`
+# (the obvious-looking form) does NOT walk to the parent — `grep -B1` returns
+# the previous *line* in the tree's flat text output, which is a sibling at
+# the same indent, not the dependency-graph parent. That misidentifies the
+# root and risks silently dismissing transitives whose actual root is a prod
+# dep.
+poetry show --why "$PKG" 2>/dev/null
 
-# Fallback: parse uv.lock / poetry.lock directly for `dependencies` of each root that resolves to PKG
+# Fallback if neither is available: parse uv.lock / poetry.lock directly for
+# `dependencies` entries of each root package and resolve which ones pull $PKG.
 ```
 
 If **every** reverse-dep root is a dev/test group root, mark **DEV**. If **any** reverse-dep root is in `[project] dependencies` (prod), mark **PROD**. This is the right call even if production code itself never does `import <transitive>` — the transitive is in the production install footprint and exploitable at runtime.
@@ -280,6 +333,15 @@ Issue title format (under 70 chars):
 Security: <GHSA_ID> — <PKG> (<SEVERITY>)
 ```
 
+**Pre-create labels idempotently.** `gh issue create --label X` errors with `could not add label: 'X' not found` if the label doesn't already exist in the target repo. Since this skill is repo-agnostic across the Valory fleet, most target repos won't have these labels — every first PROD action would fail without this. Run once per skill invocation, before the per-alert loop:
+
+```bash
+# Idempotent label creation — `2>/dev/null || true` swallows the "already exists" error.
+gh label create security              --color B60205 --description "Security vulnerability" --repo "$REPO" 2>/dev/null || true
+gh label create dependabot            --color 0366D6 --description "Dependabot-reported"     --repo "$REPO" 2>/dev/null || true
+gh label create triage-dependabot     --color 5319E7 --description "Opened by triage-dependabot skill" --repo "$REPO" 2>/dev/null || true
+```
+
 Issue body template (use a heredoc to preserve formatting):
 
 ```bash
@@ -311,7 +373,7 @@ $PROD_HIT_FILES_BULLETED
 
 ## Suggested fix
 
-Upgrade the pin in \`pyproject.toml\` to \`>= $FIRST_PATCHED\` (or the next minor/major if a closer pin exists). If the package is transitive, identify the direct dep pulling it via \`uv tree --package $PKG --invert\` (or \`poetry show -t\`) and bump that.
+Upgrade the pin in \`pyproject.toml\` to \`>= $FIRST_PATCHED\` (or the next minor/major if a closer pin exists). If the package is transitive, identify the direct dep pulling it via \`uv tree --package $PKG --invert\` (or \`poetry show --why $PKG\`) and bump that.
 
 If the package is owned by the open-autonomy / open-aea framework, the bump should go through \`/bump-versions\` instead of a manual pin edit.
 
@@ -340,14 +402,25 @@ Never auto-dismiss a skipped alert. The whole point of skipping is "the skill do
 
 ## Phase 4 — Summary
 
+Bucket skips into two categories so the exit code reflects the actual failure surface:
+
+| Bucket | When | Exit-code impact |
+| ------ | ---- | ---------------- |
+| `non-pip-ecosystem` | Alert's `ecosystem != "pip"` (Docker, npm, GitHub Actions). Expected — the skill scope is pip-only. | None. These are permanent state, not a per-run signal. |
+| `unclassifiable` | Pip alert that fell through every signal (`scope=unknown`, no imports, no pyproject group, no transitive root). Genuinely "skill doesn't know enough". | Exit 1 — this is the real "incomplete run" signal CI/cron should react to. |
+
+A naive `exit 1 if any skip` rule would fire on every run for any repo carrying even one permanent Docker/npm alert, defeating the purpose for cron wrappers.
+
 End with a single stdout block summarising the run:
 
 ```
 === triage-dependabot summary for $REPO ===
 Alerts seen:        $N_ALERTS
+Processed:          $N_PROCESS                # respects --limit
 Dismissed (DEV):    $N_DISMISSED
 Issue opened (PROD): $N_OPENED
-Skipped (UNCLASSIFIABLE): $N_SKIPPED
+Skipped (non-pip):  $N_SKIPPED_ECOSYSTEM      # informational, no exit-code impact
+Skipped (unclassifiable): $N_SKIPPED_UNCLASS  # exits 1 if > 0
 
 Dismissed alerts:
   #123 PyYAML       GHSA-... (test-only: tests/helpers/yaml_loader.py)
@@ -357,12 +430,16 @@ Opened issues:
   #456 https://github.com/owner/repo/issues/456  GHSA-... cryptography
   ...
 
-Skipped (review manually):
+Skipped — non-pip ecosystem (informational):
+  #654 GHSA-... docker-image (ecosystem=docker)
+  ...
+
+Skipped — unclassifiable (review manually):
   #789 GHSA-... obscure-pkg — no imports found, scope=unknown
   ...
 ```
 
-If `N_SKIPPED > 0`, exit code 1 so CI / cron wrappers can spot incomplete runs without parsing the summary.
+Exit code: `1` if `N_SKIPPED_UNCLASS > 0`, else `0`. `N_SKIPPED_ECOSYSTEM` never affects exit code.
 
 ---
 
@@ -421,7 +498,7 @@ done
 5. **Dedupe before opening.** Search existing open issues by GHSA ID; never spam duplicates on repeat runs.
 6. **Don't dismiss with no evidence.** Skip + log if neither prod nor test imports are found and the manifest is silent.
 7. **Print stderr lines for skips.** The summary table is for the actor; the per-alert skip lines are for the human reviewer paginating through stderr.
-8. **Exit non-zero if any alert was skipped.** Lets CI / cron wrappers notice incomplete runs.
+8. **Exit non-zero only if an alert was skipped as `unclassifiable`.** `non-pip-ecosystem` skips are expected and informational — exiting on them would fire on every run for any repo carrying a Docker / npm / GitHub Actions alert, breaking cron wrappers.
 
 ---
 
