@@ -176,20 +176,25 @@ class FSMSpecificationLoader:
         :param dev_skills: Optional set of dev skill names (from
             ``packages.json``); sub-apps not in this set are collapsed.
         """
-        # Classify every round by its owning sub-app and split sub-apps
-        # into dev (expanded) and third-party (collapsed).
+        # A dev sub-app collapses like third-party when it has no internal
+        # transitions (typical for single-round shared recovery skills).
         round_to_subapp = FSMSpecificationLoader._build_round_to_subapp(abci_app_cls)
+        internal_counts: Dict[str, int] = {}
+        for (s1, _), s2 in dfa.transition_func.items():
+            s1_sub = round_to_subapp.get(s1)
+            s2_sub = round_to_subapp.get(s2)
+            if s1_sub is not None and s1_sub == s2_sub:
+                internal_counts[s1_sub] = internal_counts.get(s1_sub, 0) + 1
+
         dev_subapps: Set[str] = set()
         third_party_subapps: Set[str] = set()
         for sub_app in set(round_to_subapp.values()):
-            if dev_skills and sub_app in dev_skills:
+            is_dev = dev_skills is not None and sub_app in dev_skills
+            if is_dev and internal_counts.get(sub_app, 0) > 0:
                 dev_subapps.add(sub_app)
             else:
                 third_party_subapps.add(sub_app)
 
-        # When the FSM lives in a single sub-app (e.g. per-skill analysis)
-        # or we have no dev/third-party split, fall back to the flat
-        # per-round diagram -- no composites, no collapsing.
         flatten = (
             abci_app_cls is None
             or not dev_skills
@@ -218,10 +223,6 @@ class FSMSpecificationLoader:
                 return sub
             return state
 
-        # Bucket transitions:
-        #   - internal-to-dev: kept inside the dev composite
-        #   - intra-third-party: dropped (hidden inside the collapse)
-        #   - cross-app (or flat-mode): emitted at the top level
         internal_per_subapp: Dict[str, Dict[Tuple[str, str], Set[str]]] = {}
         top_level: Dict[Tuple[str, str], Set[str]] = {}
         for (s1, t), s2 in dfa.transition_func.items():
@@ -232,47 +233,60 @@ class FSMSpecificationLoader:
                     internal_per_subapp.setdefault(s1_sub, {}).setdefault(
                         (s1, s2), set()
                     ).add(t)
-                # else third-party -> hidden inside collapse, drop.
                 continue
             d1, d2 = _display(s1), _display(s2)
             if d1 == d2:
-                # post-collapse self-loop; drop.
                 continue
             top_level.setdefault((d1, d2), set()).add(t)
 
         start_states = {_display(s) for s in dfa.start_states}
 
         with open_file(file, "w", encoding="utf-8") as fp:
-            # Wrap in a fenced Markdown block so the file renders inline as
-            # a Mermaid diagram on GitHub / VS Code / docs sites.
+            # Fenced Markdown block so the file renders inline on GitHub /
+            # VS Code / docs sites.
             print("```mermaid", file=fp)
             print("stateDiagram-v2", file=fp)
 
-            # Dev sub-apps: expanded composite states, internal transitions
-            # rendered inside the box.
-            for sub_app in sorted(dev_subapps):
-                print(f"    state {sub_app} {{", file=fp)
-                for (s1, s2), events in sorted(
-                    internal_per_subapp.get(sub_app, {}).items()
-                ):
-                    label = "<br />".join(sorted(events))
-                    print(
-                        f"        {s1} --> {s2}: <center>{label}</center>",
-                        file=fp,
-                    )
-                print("    }", file=fp)
+            # Sub-apps needing an invisible placeholder child so Mermaid
+            # still draws the outer frame (`state X { }` is rejected).
+            hidden_subapps: Set[str] = set()
+            if not flatten:
+                dev_rounds_per_subapp: Dict[str, Set[str]] = {}
+                for round_name, sub_app in round_to_subapp.items():
+                    if sub_app in dev_subapps:
+                        dev_rounds_per_subapp.setdefault(sub_app, set()).add(round_name)
 
-            # Third-party sub-apps: collapsed composite with "..." placeholder
-            # (UML notation for "macro state with hidden internals").
-            for sub_app in sorted(third_party_subapps):
-                print(f"    state {sub_app} {{", file=fp)
-                print(f'        state "..." as {sub_app}_collapsed', file=fp)
-                print("    }", file=fp)
+                for sub_app in sorted(dev_subapps):
+                    rounds = sorted(dev_rounds_per_subapp.get(sub_app, set()))
+                    internal = internal_per_subapp.get(sub_app, {})
+                    print(f"    state {sub_app} {{", file=fp)
+                    if rounds:
+                        # `state "X" as X` (alias form) -- bare `state X`
+                        # triggers Mermaid's missing "roundedWithTitle"
+                        # shape error.
+                        for round_name in rounds:
+                            print(
+                                f'        state "{round_name}" as {round_name}',
+                                file=fp,
+                            )
+                        for (s1, s2), events in sorted(internal.items()):
+                            label = "<br />".join(sorted(events))
+                            print(
+                                f"        {s1} --> {s2}: <center>{label}</center>",
+                                file=fp,
+                            )
+                    else:
+                        print(f'        state " " as {sub_app}_hidden', file=fp)
+                        hidden_subapps.add(sub_app)
+                    print("    }", file=fp)
 
-            # Cross-app and flat-mode transitions at the top level, start
-            # states first.  Both passes are sorted to ensure deterministic
-            # output (non-sorted iteration would depend on dict insertion
-            # order and cause spurious diffs in hash/spec checks).
+                for sub_app in sorted(third_party_subapps):
+                    print(f"    state {sub_app} {{", file=fp)
+                    print(f'        state " " as {sub_app}_hidden', file=fp)
+                    print("    }", file=fp)
+                    hidden_subapps.add(sub_app)
+
+            # Two passes for deterministic output: start states first.
             for (s1, s2), events in sorted(top_level.items()):
                 if s1 in start_states:
                     label = "<br />".join(sorted(events))
@@ -288,10 +302,7 @@ class FSMSpecificationLoader:
                         file=fp,
                     )
 
-            # Visual styling: dev sub-app boxes get a subtle "group" tint,
-            # third-party get the more pronounced macro-state styling so
-            # the two roles are easy to distinguish at a glance.
-            if dev_subapps:
+            if not flatten and dev_subapps:
                 print(
                     "    classDef devGroup "
                     "fill:#f5f9f5,"
@@ -304,17 +315,31 @@ class FSMSpecificationLoader:
                     f"    class {','.join(sorted(dev_subapps))} devGroup",
                     file=fp,
                 )
-            if third_party_subapps:
+            if not flatten and third_party_subapps:
                 print(
                     "    classDef macro "
-                    "fill:#eef2ff,"
-                    "stroke:#1e3a8a,"
+                    "fill:#f5f9f5,"
+                    "stroke:#2e7d32,"
                     "stroke-width:3px,"
                     "font-weight:bold",
                     file=fp,
                 )
                 print(
                     f"    class {','.join(sorted(third_party_subapps))} macro",
+                    file=fp,
+                )
+            if not flatten and hidden_subapps:
+                print(
+                    "    classDef hiddenInner "
+                    "fill:transparent,"
+                    "stroke:transparent,"
+                    "color:transparent",
+                    file=fp,
+                )
+                print(
+                    "    class "
+                    + ",".join(f"{s}_hidden" for s in sorted(hidden_subapps))
+                    + " hiddenInner",
                     file=fp,
                 )
             print("```", file=fp)

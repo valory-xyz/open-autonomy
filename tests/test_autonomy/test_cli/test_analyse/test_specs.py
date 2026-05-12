@@ -761,10 +761,10 @@ class TestDumpMermaid:
         assert "state dev_skill_abci {" in content
         assert "RoundARound --> RoundBRound" in content
 
-        # Third-party sub-app is collapsed with "..." placeholder
+        # Third-party sub-app is collapsed with a hidden placeholder child
         assert "state tp_skill_abci {" in content
-        assert '"..."' in content
-        assert "tp_skill_abci_collapsed" in content
+        assert "tp_skill_abci_hidden" in content
+        assert "classDef hiddenInner" in content
 
         # Styling
         assert "classDef devGroup" in content
