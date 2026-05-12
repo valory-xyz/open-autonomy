@@ -1,7 +1,7 @@
 ---
 name: triage-dependabot
 description: Triage open Dependabot security alerts on the current GitHub repo. For each alert, decide (1) whether the vulnerable dependency is reachable from production code, then (2) whether the CVE's threat model is actually exploitable given how this codebase uses the package. Production-AND-applicable alerts get a tracking issue opened; production-but-not-applicable alerts get dismissed with reason `inaccurate`; test/dev-only alerts get dismissed with reason `not_used`. Repo-agnostic — works across the Valory fleet.
-argument-hint: "[--limit N]  # optional cap on alerts processed per run"
+argument-hint: "[--limit N] [--rerun-dismissed]  # --limit caps alerts processed; --rerun-dismissed walks already-dismissed alerts and reports verdict drift, no mutations"
 disable-model-invocation: true
 ---
 
@@ -101,19 +101,31 @@ These are hints, not proofs. When the classification is ambiguous, **default to 
 TMP=$(mktemp -d)
 set -euo pipefail
 
-# Parse optional --limit N from argv. Default: no cap.
+# Parse argv. --limit N caps the per-run alert count; --rerun-dismissed switches
+# to the read-only verdict-drift report (see §3.0 — no mutations in that mode).
 LIMIT=""
+MODE="live"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --limit) LIMIT="$2"; shift 2 ;;
     --limit=*) LIMIT="${1#*=}"; shift ;;
+    --rerun-dismissed) MODE="rerun-dismissed"; shift ;;
     *) shift ;;
   esac
 done
 [[ -n "$LIMIT" ]] && [[ ! "$LIMIT" =~ ^[0-9]+$ ]] \
   && { echo "ERROR: --limit must be a non-negative integer, got: $LIMIT"; exit 1; }
 
-gh api "repos/$REPO/dependabot/alerts?state=open&per_page=100" --paginate \
+# In rerun mode, walk previously-dismissed alerts. Otherwise (default), walk
+# state=open alerts as normal.
+if [[ "$MODE" == "rerun-dismissed" ]]; then
+  STATE_FILTER="state=dismissed"
+  echo "MODE=rerun-dismissed — read-only verdict-drift report (no mutations)"
+else
+  STATE_FILTER="state=open"
+fi
+
+gh api "repos/$REPO/dependabot/alerts?${STATE_FILTER}&per_page=100" --paginate \
   > "$TMP/alerts.json" \
   || { echo "ERROR: failed to list Dependabot alerts for $REPO"; exit 1; }
 
@@ -178,8 +190,13 @@ TEST_DIRS=(tests scripts .github benchmark examples mints docs)
 # Filter to only existing dirs to avoid `grep: tests: No such file or directory` noise
 TEST_DIRS=($(for d in "${TEST_DIRS[@]}"; do [[ -d "$d" ]] && echo "$d"; done))
 
-# Per-package nested tests/ — these are TEST even though they live under packages/
-mapfile -t PKG_TEST_DIRS < <(find packages plugins -type d -name tests 2>/dev/null)
+# Per-package nested tests/ — these are TEST even though they live under packages/.
+# Use a `while read` loop (not `mapfile`) — macOS ships bash 3.2 by default, and
+# `mapfile` is a bash-4+ builtin. The skill must run on the default macOS shell.
+PKG_TEST_DIRS=()
+while IFS= read -r _d; do
+  PKG_TEST_DIRS+=("$_d")
+done < <(find packages plugins -type d -name tests 2>/dev/null)
 
 export PROD_DIRS TEST_DIRS PKG_TEST_DIRS   # propagate to any python -c / heredoc helpers
 
@@ -385,6 +402,14 @@ For each CWE the advisory carries, walk the matching checklist row. If the advis
 | CWE-601 | Open redirect | Q1: Does the calling code expose redirect targets to user-controllable input? Q2: Is the application a web frontend that holds session state worth phishing? |
 | CWE-327, CWE-328, CWE-916 | Weak crypto | Q1: Does the calling code use the vulnerable primitive for a security-relevant purpose (auth, integrity, confidentiality) vs a non-security one (deterministic hash, content-addressing)? |
 | CWE-862, CWE-863 | Missing / incorrect authz | Q1: Does the calling code expose any endpoint or operation gated by the vulnerable check? |
+| CWE-203 | Observable / timing discrepancy | Q1: Does the calling code use the vulnerable comparison in a security-sensitive context (token / signature / password check)? Q2: Is the attacker able to time the operation across many requests (typically requires network-reachable endpoint)? |
+| CWE-326 | Inadequate encryption strength | Q1: Does the calling code use the weak primitive for a security-relevant purpose (auth, integrity, confidentiality)? Q2: Are the keys/parameters under our control or fixed by the spec we implement? (Fold into CWE-327/328/916 row if both fire.) |
+| CWE-674 | Uncontrolled recursion (distinct from CWE-1333 ReDoS) | Q1: Does the calling code accept attacker-controlled depth-bearing input (nested JSON, recursive grammar, deep XML)? Q2: Uptime contract — long-running service where stack-exhaustion DoS matters, vs one-shot CLI? |
+| CWE-732 | Incorrect permission assignment | Q1: Does the calling code create files via the vulnerable API on a shared/multi-user filesystem? Q2: Are the files written sensitive (credentials, tokens, private state)? |
+| CWE-377, CWE-378, CWE-379 | Insecure temp file | Q1: Does the calling code use the vulnerable temp-file API in a shared-tmp-dir context (writable by other local users)? Q2: Are race windows long enough to exploit in practice (file written, then opened, with a gap)? |
+| CWE-426, CWE-427 | Untrusted search path | Q1: Does the calling process spawn subprocesses or load libraries from PATH-resolved names? Q2: Is the PATH attacker-controllable in the deployment environment? |
+| CWE-79 | XSS (cross-site scripting) | Q1: Does the calling code render the vulnerable template / sink to a browser? Q2: Is the data piped into the sink derived from external input? |
+| CWE-20 | Improper input validation (advisory class-wide) | Q1: Does the calling code pass external/attacker-controlled input to the vulnerable API? Q2: What's the downstream consequence if input is malformed (RCE/leak/crash) — and does the calling code shield against it (try/except, validation layer)? |
 
 Write each Q&A answer down. The dismissed_comment or issue body must reference the specific Q that failed (for `not-applicable`) or passed (for `applicable`). "Q1 absent — link checker carries no auth headers" is auditable; "CVE not applicable" is not.
 
@@ -486,7 +511,55 @@ This step makes the escape clause operational. For framework / scaffold archetyp
 
    Note: this is a stricter test than §2.5.4 alone. §2.5.4 says "the vulnerable symbol isn't called *right now*"; condition 2 here says "and the framework isn't using the same subsystem in a way that's one step away from calling it."
 
-3. **No public API forwards external inputs to the vulnerable subsystem** — list every `def name(...)` in `PROD_DIRS` whose name does not start with `_` (Python's public-API convention). For each, ask: could the parameters plausibly become the vulnerable kwarg/argument named in the advisory? Examples that fail this check: a public `make_request(url, headers, proxy)` against a urllib3 CVE; a public `clone_or_fetch(remote_url, **opts)` against a GitPython clone CVE. If any public API exposes a parameter that could become the vulnerable input under a downstream consumer's use, the check fails.
+3. **No public API forwards external inputs to the vulnerable subsystem** — enumerate the framework's public API and ask whether any parameter could plausibly become the vulnerable kwarg/argument named in the advisory.
+
+   **Enumerate via AST**, not grep — `def name(self, url, ...)` with the body using `urllib3.PoolManager(...)` is the kind of call site that condition 3 cares about, and grep can't reliably extract parameter names from formatted multi-line `def` signatures. Run this once per skill invocation, cache the result:
+
+   ```python
+   # python3 - <<'PY' to scan PROD_DIRS for public-API surface.
+   import ast, pathlib, json, os
+   prod_dirs = os.environ["PROD_DIRS"].split()  # set by §2.1 array expansion
+   public_apis: list[dict] = []
+   for d in prod_dirs:
+       root = pathlib.Path(d)
+       if not root.exists():
+           continue
+       for p in root.rglob("*.py"):
+           parts = str(p).split("/")
+           if "tests" in parts or "build" in parts:
+               continue
+           try:
+               tree = ast.parse(p.read_text())
+           except (SyntaxError, UnicodeDecodeError):
+               continue
+           for node in ast.walk(tree):
+               if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                   continue
+               if node.name.startswith("_"):           # private by convention
+                   continue
+               params = [a.arg for a in node.args.args if a.arg != "self"]
+               kwonly = [a.arg for a in node.args.kwonlyargs]
+               public_apis.append({
+                   "file": str(p), "line": node.lineno, "name": node.name,
+                   "params": params + kwonly,
+               })
+   print(json.dumps(public_apis))
+   PY
+   ```
+
+   **Match against the advisory's vulnerable inputs.** Use the vulnerable-symbol extraction from §2.5.4 step 1 — it already produces a candidate list (function names, kwargs, flags). For each public API in the AST output, check whether any of its parameter names fuzzy-match the advisory's vulnerable inputs. A *match* is one of:
+   - exact name (`proxy`, `url`, `headers`, `cookies`, `target_path`, `multi_options`)
+   - common alias (`url` matches `target_url` / `endpoint` / `remote`; `path` matches `file_path` / `dest`; `options` matches `opts` / `kwargs`)
+   - the parameter is typed as `**kwargs` AND the calling code passes through to the vulnerable API (one-step grep)
+
+   If **zero matches** → condition 3 passes (no public API exposes the vulnerable input). If **any match** → condition 3 fails — the public API plausibly forwards external input to the vulnerable subsystem, route to `needs-human-review`.
+
+   This is intentionally permissive on the *match* side (treats common-alias as a hit) so we err toward human review when the surface is ambiguous, but conservative on the *enumeration* side (only `def` at module top-level or class methods, ignoring private `_name` and dunders).
+
+   Examples:
+   - `def make_request(self, url, headers=None, proxy=None)` in a framework + urllib3 proxy/header CVE → params `[url, headers, proxy]` match `url` + `proxy` + `headers` → **fail**.
+   - `def bump_version(self, package: str, version: str)` in `aea-dev-helpers` + GitPython clone CVE → params `[package, version]` match nothing in `[remote, url, path, clone_target, multi_options]` → **pass**.
+   - `def read_config(self, path: str)` in a framework + GitPython path-traversal CVE → param `path` matches `path` → **fail** (even if the function never touches git, the parameter shape is dangerous when combined with the imported `Repo` class).
 
 When **all three conditions hold**, the framework's code structurally cannot reach the vulnerable surface AND doesn't expose a public API a consumer could exploit. Mark the verdict **NOT-APPLICABLE (structural)** — this is high-confidence on par with cli-tool dismissal, eligible for autonomous `inaccurate` dismissal.
 
@@ -558,6 +631,62 @@ If **every** reverse-dep root is a dev/test group root, mark **DEV**. If **any**
 
 For every alert, take exactly one action: **dismiss**, **open issue**, or **skip**. Build a per-alert audit record so the Phase 4 summary is honest about what happened.
 
+When `MODE=rerun-dismissed`, **Phase 3.0 runs instead of 3.1 / 3.1b / 3.2 / 3.3** — the skill produces a report comparing the new verdict to the recorded `dismissed_reason` for each alert, and takes no actions. Use this after a §2.5 logic change to surface previously-dismissed alerts whose verdict would now differ.
+
+### 3.0 Rerun-dismissed report mode (read-only)
+
+Walks already-dismissed alerts and reports verdict drift between the current skill logic and the historical dismissal. No `gh api PATCH`, no `gh issue create` — the only mutations are to stdout / the report file.
+
+```bash
+# Run §2.4 (Signal C) + §2.5 (exploit-surface) for the alert, producing the
+# same $VERDICT / $CONFIDENCE / $STRUCTURAL_IMPOSSIBLE / $NEW_DISMISSED_REASON
+# variables as the live path. Then compare to recorded fields.
+RECORDED_REASON=$(jq -r ".[$i].dismissed_reason" "$TMP/alerts.json")
+RECORDED_COMMENT=$(jq -r ".[$i].dismissed_comment // \"\"" "$TMP/alerts.json")
+
+# Map the live-path verdict back to the reason the skill *would* use today.
+if [[ "$VERDICT" == "DEV" ]]; then
+  NEW_REASON="not_used"
+elif [[ "$VERDICT" == "NOT-APPLICABLE" || "$VERDICT" == "NOT-APPLICABLE (structural)" ]] \
+   && [[ "$CONFIDENCE" == "high" ]] \
+   && { [[ "$ARCHETYPE" == "cli-tool" ]] || [[ "$STRUCTURAL_IMPOSSIBLE" == "true" ]]; }; then
+  NEW_REASON="inaccurate"
+else
+  NEW_REASON="open-issue"  # would route to Phase 3.2 with needs-human-review under live mode
+fi
+
+case "${RECORDED_REASON}:${NEW_REASON}" in
+  "${RECORDED_REASON}:${RECORDED_REASON}")
+    AGREE+=("$ALERT_NUM $PKG $GHSA_ID ($RECORDED_REASON)") ;;
+  "not_used:inaccurate" | "inaccurate:not_used")
+    REFINE+=("$ALERT_NUM $PKG $GHSA_ID (was=$RECORDED_REASON now=$NEW_REASON — same action, different reason)") ;;
+  *":open-issue")
+    DRIFT+=("$ALERT_NUM $PKG $GHSA_ID (was=$RECORDED_REASON now=open-issue — skill would NO LONGER dismiss; consider reopening manually if applicable)") ;;
+  *)
+    OTHER+=("$ALERT_NUM $PKG $GHSA_ID (was=$RECORDED_REASON now=$NEW_REASON)") ;;
+esac
+```
+
+End of run, print:
+
+```
+=== triage-dependabot rerun-dismissed report for $REPO ===
+Alerts re-evaluated: $N_PROCESS
+Agree (skill still endorses the dismissal): ${#AGREE[@]}
+Refine (same action, different reason — informational): ${#REFINE[@]}
+DRIFT (skill would no longer dismiss): ${#DRIFT[@]}
+Other (verdict swap, e.g. not_used → inaccurate or vice versa): ${#OTHER[@]}
+
+DRIFT — review these manually:
+  ...
+Other — review these manually:
+  ...
+```
+
+**Never auto-reopen a dismissed alert** in this mode. A human dismissal is a human decision; the skill's job is to surface drift, not override the call. If `DRIFT` is non-empty, the operator reviews each entry and decides whether to manually reopen the alert via the GitHub UI or via `gh api -X PATCH ... -f state=open`.
+
+Exit code in rerun mode: `0` if `DRIFT` is empty (skill agrees with all historical dismissals), `1` otherwise.
+
 ### 3.1 Dismiss a DEV-only alert
 
 **`dismissed_comment` has a hard 280-character limit** on the Dependabot alerts API (`HTTP 422: Invalid property /dismissed_comment: Only 280 characters are allowed`). The wordy default below is ~330 chars and **will fail** without truncation. Build a terser default and cap defensively:
@@ -565,7 +694,7 @@ For every alert, take exactly one action: **dismiss**, **open issue**, or **skip
 ```bash
 # Pick a terse, deterministic comment — favour information density over prose,
 # because we lose ~50 chars to the test-hit file list when it's long.
-DISMISS_COMMENT="Triaged: \`$PKG\` only in test/dev (PROD scan: 0 imports). Locations: $TEST_HIT_FILES. Re-evaluate if prod imports \`$PKG\`."
+DISMISS_COMMENT="\`$PKG\` test/dev-only (0 PROD imports). At: $TEST_HIT_FILES. Re-evaluate on new prod imports."
 
 # Hard cap at 280; truncate with an ellipsis so it's obvious the comment was clipped.
 if [[ ${#DISMISS_COMMENT} -gt 280 ]]; then
@@ -584,7 +713,7 @@ When `$TEST_HIT_FILES` is empty (pure transitive dismissals like `pillow` arrivi
 
 ```bash
 if [[ -z "$TEST_HIT_FILES" ]]; then
-  DISMISS_COMMENT="Triaged: \`$PKG\` not imported anywhere (prod or test). Transitive via $REVERSE_DEP_ROOT. Re-evaluate if any code imports \`$PKG\`."
+  DISMISS_COMMENT="\`$PKG\` not imported (prod or test). Transitive via $REVERSE_DEP_ROOT. Re-evaluate on any imports."
 fi
 ```
 
@@ -620,12 +749,16 @@ if [[ "$ARCHETYPE" == "framework" || "$ARCHETYPE" == "scaffold" ]]; then
 fi
 
 # $FAILED_Q is set in §2.5.3 — e.g., "CWE-200 Q1 (no auth headers)"
-# $SYMBOL_TRACE is set in §2.5.4 — e.g., "grep for ProxyManager.connection_from_url: 0 hits"
-# $STRUCTURAL_REASON is set in §2.5.6b when applicable — names which of the 3 conditions was decisive
+# $SYMBOL_TRACE is set in §2.5.4 — e.g., "grep `connection_from_url`=0"
+# $STRUCTURAL_REASON is set in §2.5.6b when applicable — e.g., "no public API forwards to ProxyManager"
+#
+# Templates trimmed for the 280-char API limit. The realistic worst case for
+# framework-structural ("multiple CWE Qs absent + long structural reason") used
+# to brush the cap; the shorter forms below leave ~70 chars headroom.
 if [[ "$ARCHETYPE" == "framework" || "$ARCHETYPE" == "scaffold" ]]; then
-  DISMISS_COMMENT="Triaged: \`$PKG\` imported in prod, CVE structurally not reachable. $FAILED_Q. $SYMBOL_TRACE. §2.5.6b: $STRUCTURAL_REASON. Archetype: $ARCHETYPE."
+  DISMISS_COMMENT="\`$PKG\` CVE structurally unreachable ($ARCHETYPE): $FAILED_Q; $SYMBOL_TRACE; structural=$STRUCTURAL_REASON."
 else
-  DISMISS_COMMENT="Triaged: \`$PKG\` imported in prod, CVE not applicable. $FAILED_Q. $SYMBOL_TRACE. Archetype: $ARCHETYPE. Confidence: high."
+  DISMISS_COMMENT="\`$PKG\` CVE not applicable ($ARCHETYPE, high-conf): $FAILED_Q; $SYMBOL_TRACE."
 fi
 
 if [[ ${#DISMISS_COMMENT} -gt 280 ]]; then
@@ -800,6 +933,8 @@ Never auto-dismiss a skipped alert. The whole point of skipping is "the skill do
 
 ## Phase 4 — Summary
 
+**This phase runs only in live mode.** Under `--rerun-dismissed`, Phase 3.0's verdict-drift block is the entire summary — skip Phase 4 there.
+
 Bucket skips into two categories so the exit code reflects the actual failure surface:
 
 | Bucket | When | Exit-code impact |
@@ -870,7 +1005,11 @@ TEST_DIRS=()
 for d in tests scripts .github benchmark examples mints docs; do
   [[ -d "$d" ]] && TEST_DIRS+=("$d")
 done
-mapfile -t PKG_TEST_DIRS < <(find packages plugins -type d -name tests 2>/dev/null)
+# macOS bash 3.2 compat — `mapfile` is bash 4+, use `while read` instead.
+PKG_TEST_DIRS=()
+while IFS= read -r _d; do
+  PKG_TEST_DIRS+=("$_d")
+done < <(find packages plugins -type d -name tests 2>/dev/null)
 export PROD_DIRS TEST_DIRS PKG_TEST_DIRS
 
 for i in $(seq 0 $((N-1))); do
@@ -915,6 +1054,7 @@ done
 6. **Don't dismiss with no evidence.** Skip + log if neither prod nor test imports are found and the manifest is silent.
 7. **Print stderr lines for skips.** The summary table is for the actor; the per-alert skip lines are for the human reviewer paginating through stderr.
 8. **Exit non-zero only if an alert was skipped as `unclassifiable`.** `non-pip-ecosystem` skips are expected and informational — exiting on them would fire on every run for any repo carrying a Docker / npm / GitHub Actions alert, breaking cron wrappers.
+9. **Rerun-dismissed mode is strictly read-only.** Under `--rerun-dismissed`, the skill MAY NOT call `gh api -X PATCH` or `gh issue create`. Its only output is the verdict-drift report to stdout. A human dismissal is a human decision; the skill's job is to surface drift, not override the call.
 
 ---
 
@@ -922,6 +1062,7 @@ done
 
 | Surface | What changes |
 | ------- | ------------ |
+| (rerun-dismissed mode) | Nothing — read-only verdict-drift report to stdout |
 | Dependabot alerts — DEV-only path | `state=dismissed`; `dismissed_reason=not_used`; comment includes the test/dev paths the scan found |
 | Dependabot alerts — PROD-but-not-applicable, **cli-tool + high confidence** OR **framework/scaffold + high confidence + §2.5.6b passes** | `state=dismissed`; `dismissed_reason=inaccurate`; comment names the failed CWE checklist Q + §2.5.4 symbol-grep result + archetype + (for framework/scaffold) decisive §2.5.6b condition |
 | Repo issues — PROD-applicable | New issues opened with title `[Security][<sev>] <pkg>: <short summary>` (GHSA in body, not title), labels `security,dependabot,triage-dependabot`, body containing alert URL + prod import paths + **exploit-surface analysis with CWE-checklist answers, vulnerable-symbol trace, confidence tier, and (for framework/scaffold) §2.5.6b result** + suggested fix |
