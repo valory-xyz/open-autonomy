@@ -29,9 +29,10 @@ import re
 import textwrap
 import warnings
 from collections import OrderedDict, defaultdict, deque
+from enum import Enum
 from itertools import product
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Protocol, Set, Tuple
+from typing import Any, Dict, List, Optional, Protocol, Set, Tuple, Type
 
 import yaml
 from aea.helpers.io import open_file
@@ -49,6 +50,16 @@ ROUND_CLASS_POST_FIX = "Round"
 ABCI_APP_CLASS_POST_FIX = "AbciApp"
 
 EVENT_PATTERN = re.compile(r"Event\.(\w+)", re.DOTALL)
+# Lines like ``done_event = Event.DONE`` or ``none_event: Enum = Event.X`` at
+# class-body indentation.  These are resolved by attribute lookup rather than
+# textually, so we strip them before regex-scanning the rest of the source.
+EVENT_ATTR_ASSIGN_PATTERN = re.compile(
+    r"^[ \t]+[a-z_]+_event\s*[:=][^\n]*$", re.MULTILINE
+)
+# ``# fsm-specs: returns(EVENT1, EVENT2)`` annotation -- declares events a
+# round emits dynamically (e.g. ``Event(payload_value)``) where the regex
+# scan has no signal.
+FSM_SPECS_RETURNS_PATTERN = re.compile(r"#\s*fsm-specs:\s*returns\s*\(([^)]*)\)")
 ROUND_TIMEOUT_EVENTS = {"ROUND_TIMEOUT"}
 
 
@@ -729,32 +740,99 @@ class DFA:
         )
 
 
-def check_unreferenced_events(abci_app_cls: Any) -> List[str]:
-    """Checks for unreferenced events in the AbciApp.
+def _resolved_event_attr_names(round_cls: Any) -> Set[str]:
+    """Return the names of ``*_event`` Enum values effectively bound on the round.
 
-    Checks that events defined in the AbciApp transition function are referenced
-    in the source code of the corresponding rounds or their superclasses. Note that
-    the function simply checks references in the "raw" source code of the rounds and
-    their (non builtin) superclasses. Therefore, it does not do any kind of static
-    analysis on the source code, nor checks for actual reachability of a return
-    statement returning such events.
+    Walks the MRO leaf-first and resolves each ``<name>_event`` class
+    attribute (``done_event``, ``none_event``, ``no_majority_event``,
+    ``fail_event``, ``negative_event``, ...) to the value defined by the
+    most-derived class that introduces it, then returns the set of
+    ``Enum.name`` values.  Parent-class re-definitions overridden by a
+    subclass are ignored, matching Python's attribute lookup semantics.
+
+    :param round_cls: Round class to inspect.
+    :return: Set of effective ``Enum.name`` values for ``*_event`` attrs.
+    """
+    seen: Dict[str, Any] = {}
+    for base in inspect.getmro(round_cls):
+        if base.__module__ == "builtins":
+            continue
+        for name, value in vars(base).items():
+            if name.endswith("_event") and name not in seen:
+                seen[name] = value
+    return {v.name for v in seen.values() if isinstance(v, Enum)}
+
+
+def _abci_app_event_enum(abci_app_cls: Any) -> Optional[Type[Enum]]:
+    """Return the Event enum class used by the given AbciApp, if discoverable.
+
+    The transitions dict maps each round to ``{Event: NextRound}``; we sniff
+    one Event member to recover its class.  Falls back to inspecting
+    ``event_to_timeout`` if no transition has entries, and returns ``None``
+    if neither yields an Event member.
+
+    :param abci_app_cls: AbciApp class to inspect.
+    :return: The ``Event`` Enum class, or ``None`` if it can't be determined.
+    """
+    for transitions in abci_app_cls.transition_function.values():
+        for event in transitions:
+            if isinstance(event, Enum):
+                return type(event)
+    for event in getattr(abci_app_cls, "event_to_timeout", {}):
+        if isinstance(event, Enum):
+            return type(event)
+    return None
+
+
+def check_unreferenced_events(abci_app_cls: Any) -> List[str]:
+    """Check for unreferenced events in the AbciApp.
+
+    For every round in the transition function, computes the set of events
+    the round can effectively emit and compares it to the events the FSM
+    expects.  An event is considered emitted if it is either:
+
+    1. The effective value of a ``*_event`` class attribute, resolved
+       leaf-first through the MRO (so an override masks the parent value).
+    2. Referenced as ``Event.X`` in the source of the round or any of its
+       non-builtin superclasses, with ``*_event = Event.X`` attribute
+       definitions stripped out (those are covered by case 1, and a
+       parent-class definition would otherwise be reported even after the
+       subclass overrides the attribute).  When the AbciApp's Event enum
+       can be identified, names absent from that enum are dropped to avoid
+       cross-skill collisions (e.g. ``market_manager.Event.FETCH_ERROR``
+       referenced from a parent class living in a different skill).
+    3. Declared via a ``# fsm-specs: returns(EVENT_NAME, ...)`` annotation
+       on the round class -- the supported syntax for rounds that build
+       events dynamically (e.g. ``Event(payload_value)``).
 
     :param abci_app_cls: AbciApp to check unreferenced events.
-    :return: List of error strings
+    :return: List of error strings.
     """
-
     error_strings = []
     abci_app_timeout_events = {k.name for k in abci_app_cls.event_to_timeout.keys()}
+    own_enum = _abci_app_event_enum(abci_app_cls)
+    own_enum_names: Optional[Set[str]] = (
+        set(own_enum.__members__) if own_enum is not None else None
+    )
 
     for round_cls, round_transitions in abci_app_cls.transition_function.items():
         round_transition_events = set(map(lambda x: x.name, round_transitions))
-        referenced_events = set()
-        for base in filter(
-            lambda x: x.__class__.__module__ != "builtins",
-            inspect.getmro(round_cls),
-        ):
-            src = textwrap.dedent(inspect.getsource(base))
-            referenced_events.update(EVENT_PATTERN.findall(src))
+        referenced_events: Set[str] = _resolved_event_attr_names(round_cls)
+        for base in inspect.getmro(round_cls):
+            if base.__module__ == "builtins":
+                continue
+            try:
+                src = textwrap.dedent(inspect.getsource(base))
+            except (OSError, TypeError):  # pragma: no cover
+                continue
+            scan_src = EVENT_ATTR_ASSIGN_PATTERN.sub("", src)
+            for match in EVENT_PATTERN.findall(scan_src):
+                if own_enum_names is None or match in own_enum_names:
+                    referenced_events.add(match)
+            for annotation in FSM_SPECS_RETURNS_PATTERN.findall(src):
+                referenced_events.update(
+                    name.strip() for name in annotation.split(",") if name.strip()
+                )
 
         # Referenced in the the class definition, missing from transition func
         missing_from_transition_func = referenced_events - round_transition_events
