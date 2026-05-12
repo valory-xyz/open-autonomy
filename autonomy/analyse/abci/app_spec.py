@@ -234,10 +234,7 @@ class FSMSpecificationLoader:
                         (s1, s2), set()
                     ).add(t)
                 continue
-            d1, d2 = _display(s1), _display(s2)
-            if d1 == d2:
-                continue
-            top_level.setdefault((d1, d2), set()).add(t)
+            top_level.setdefault((_display(s1), _display(s2)), set()).add(t)
 
         start_states = {_display(s) for s in dfa.start_states}
 
@@ -257,27 +254,26 @@ class FSMSpecificationLoader:
                         dev_rounds_per_subapp.setdefault(sub_app, set()).add(round_name)
 
                 for sub_app in sorted(dev_subapps):
-                    rounds = sorted(dev_rounds_per_subapp.get(sub_app, set()))
+                    # dev_subapps only contains sub-apps with at least one
+                    # internal transition, so dev_rounds_per_subapp[sub_app]
+                    # is guaranteed non-empty here.
+                    rounds = sorted(dev_rounds_per_subapp[sub_app])
                     internal = internal_per_subapp.get(sub_app, {})
                     print(f"    state {sub_app} {{", file=fp)
-                    if rounds:
-                        # `state "X" as X` (alias form) -- bare `state X`
-                        # triggers Mermaid's missing "roundedWithTitle"
-                        # shape error.
-                        for round_name in rounds:
-                            print(
-                                f'        state "{round_name}" as {round_name}',
-                                file=fp,
-                            )
-                        for (s1, s2), events in sorted(internal.items()):
-                            label = "<br />".join(sorted(events))
-                            print(
-                                f"        {s1} --> {s2}: <center>{label}</center>",
-                                file=fp,
-                            )
-                    else:
-                        print(f'        state " " as {sub_app}_hidden', file=fp)
-                        hidden_subapps.add(sub_app)
+                    # `state "X" as X` (alias form) -- bare `state X`
+                    # triggers Mermaid's missing "roundedWithTitle" shape
+                    # error.
+                    for round_name in rounds:
+                        print(
+                            f'        state "{round_name}" as {round_name}',
+                            file=fp,
+                        )
+                    for (s1, s2), events in sorted(internal.items()):
+                        label = "<br />".join(sorted(events))
+                        print(
+                            f"        {s1} --> {s2}: <center>{label}</center>",
+                            file=fp,
+                        )
                     print("    }", file=fp)
 
                 for sub_app in sorted(third_party_subapps):

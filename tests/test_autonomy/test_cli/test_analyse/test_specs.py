@@ -701,6 +701,108 @@ class TestDumpMermaid:
             )
         assert "Composition-aware view not available" in caplog.text
 
+    def test_flat_when_no_rounds_classifiable(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Flat diagram when every round's module lacks a `skills` segment."""
+        # No "skills" in module path -- _extract_skill_name returns None
+        # for every round, so round_to_subapp is empty.
+        round_a = _make_mock_round("StateARound", "some.other.module")
+        round_b = _make_mock_round("StateBRound", "some.other.module")
+
+        class MockApp(_MockAbciApp):
+            """Mock app with unclassifiable rounds."""
+
+            transition_function = {round_a: {object(): round_b}}
+            initial_states = {round_a}
+            final_states = set()
+
+        out = tmp_path / "test.md"
+        with caplog.at_level(logging.WARNING):
+            FSMSpecificationLoader.dump_mermaid(
+                self.simple_dfa,
+                out,
+                abci_app_cls=MockApp,
+                dev_skills={"some_skill"},
+            )
+        assert "no rounds could be classified by sub-app" in caplog.text
+
+    def test_flat_self_loop_preserved(self, tmp_path: Path) -> None:
+        """Legitimate self-loops are preserved in flat mode."""
+        dfa = DFA(
+            label="LoopAbciApp",
+            states={"StateARound", "StateBRound"},
+            default_start_state="StateARound",
+            start_states={"StateARound"},
+            final_states={"StateBRound"},
+            alphabet_in={"retry", "done"},
+            transition_func={
+                ("StateARound", "retry"): "StateARound",
+                ("StateARound", "done"): "StateBRound",
+            },
+        )
+        out = tmp_path / "test.md"
+        FSMSpecificationLoader.dump_mermaid(dfa, out)
+        content = out.read_text()
+        assert "StateARound --> StateARound" in content
+
+    def test_post_collapse_self_loop_dropped(self, tmp_path: Path) -> None:
+        """Intra-third-party transitions collapse to a self-loop and are dropped."""
+        # Two rounds in the SAME third-party sub-app, connected by a
+        # transition.  After _display collapses both to the sub-app name,
+        # the resulting (X, X) self-loop must be dropped.
+        round_a = _make_mock_round(
+            "TpARound", "packages.valory.skills.tp_skill_abci.rounds"
+        )
+        round_b = _make_mock_round(
+            "TpBRound", "packages.valory.skills.tp_skill_abci.rounds"
+        )
+        round_dev = _make_mock_round(
+            "DevRound", "packages.valory.skills.dev_skill_abci.rounds"
+        )
+        round_dev2 = _make_mock_round(
+            "DevTwoRound", "packages.valory.skills.dev_skill_abci.rounds"
+        )
+
+        class MockApp(_MockAbciApp):
+            """Mock composed app."""
+
+            transition_function = {
+                round_a: {object(): round_b},
+                round_b: {object(): round_dev},
+                round_dev: {object(): round_dev2},
+                round_dev2: {object(): round_a},
+            }
+            initial_states = {round_dev}
+            final_states = set()
+
+        dfa = DFA(
+            label="ComposedAbciApp",
+            states={"TpARound", "TpBRound", "DevRound", "DevTwoRound"},
+            default_start_state="DevRound",
+            start_states={"DevRound"},
+            final_states=set(),
+            alphabet_in={"ev_ab", "ev_bd", "ev_dd", "ev_da"},
+            transition_func={
+                ("TpARound", "ev_ab"): "TpBRound",
+                ("TpBRound", "ev_bd"): "DevRound",
+                ("DevRound", "ev_dd"): "DevTwoRound",
+                ("DevTwoRound", "ev_da"): "TpARound",
+            },
+        )
+
+        out = tmp_path / "test.md"
+        FSMSpecificationLoader.dump_mermaid(
+            dfa,
+            out,
+            abci_app_cls=MockApp,
+            dev_skills={"dev_skill_abci"},
+        )
+        content = out.read_text()
+        # The TpARound -> TpBRound edge collapses to tp_skill_abci -> tp_skill_abci
+        # and must be dropped (no top-level self-loop).
+        assert "tp_skill_abci --> tp_skill_abci" not in content
+
     def test_composition_view(self, tmp_path: Path) -> None:
         """Composition-aware view separates dev and third-party sub-apps."""
         round_a = _make_mock_round(
@@ -910,3 +1012,22 @@ class TestLoadDevSkillNames:
 
         assert result is None
         assert "Malformed packages.json" in caplog.text
+
+    def test_unreadable_packages_json_logs_warning(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Unreadable packages.json (OSError) logs a warning and returns None."""
+        packages_dir = tmp_path / "packages"
+        packages_dir.mkdir()
+        (packages_dir / "packages.json").write_text("{}")
+        skill_path = packages_dir / "valory" / "skills" / "my_skill"
+        skill_path.mkdir(parents=True)
+
+        with caplog.at_level(logging.WARNING):
+            with mock.patch.object(
+                Path, "read_text", side_effect=OSError("permission denied")
+            ):
+                result = _load_dev_skill_names(skill_path)
+
+        assert result is None
+        assert "Cannot read packages.json" in caplog.text
