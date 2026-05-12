@@ -748,9 +748,16 @@ Exit code in rerun mode: `0` if `DRIFT` is empty (skill agrees with all historic
 **`dismissed_comment` has a hard 280-character limit** on the Dependabot alerts API (`HTTP 422: Invalid property /dismissed_comment: Only 280 characters are allowed`). The wordy default below is ~330 chars and **will fail** without truncation. Build a terser default and cap defensively:
 
 ```bash
-# Pick a terse, deterministic comment — favour information density over prose,
-# because we lose ~50 chars to the test-hit file list when it's long.
-DISMISS_COMMENT="\`$PKG\` test/dev-only (0 PROD imports). At: $TEST_HIT_FILES. Re-evaluate on new prod imports."
+# Step 1 — open the closed audit-trail issue (see §3.1c). Symmetric with §3.1b:
+# every dismissal — `not_used` or `inaccurate` — gets a closed audit issue,
+# so all dismissals are searchable via the `security-audit` label.
+DISMISSAL_REASON="not_used"
+AUDIT_URL=$(create_audit_issue)
+[[ -n "$AUDIT_URL" ]] || { echo "ERROR: audit issue creation failed for #$ALERT_NUM — abort dismissal"; SKIPPED+=("$ALERT_NUM:audit-create-error"); continue; }
+
+# Step 2 — terse summary + URL pointer to the audit issue. The audit body
+# carries the full Signal C evidence; this comment is just navigation.
+DISMISS_COMMENT="\`$PKG\` test/dev-only (0 PROD imports). Full analysis: $AUDIT_URL"
 
 # Hard cap at 280; truncate with an ellipsis so it's obvious the comment was clipped.
 if [[ ${#DISMISS_COMMENT} -gt 280 ]]; then
@@ -769,7 +776,7 @@ When `$TEST_HIT_FILES` is empty (pure transitive dismissals like `pillow` arrivi
 
 ```bash
 if [[ -z "$TEST_HIT_FILES" ]]; then
-  DISMISS_COMMENT="\`$PKG\` not imported (prod or test). Transitive via $REVERSE_DEP_ROOT. Re-evaluate on any imports."
+  DISMISS_COMMENT="\`$PKG\` not imported (prod or test). Transitive via $REVERSE_DEP_ROOT. Full analysis: $AUDIT_URL"
 fi
 ```
 
@@ -836,33 +843,46 @@ gh api -X PATCH "repos/$REPO/dependabot/alerts/$ALERT_NUM" \
 
 Failure-mode note: if the dismissal fails after the audit issue was created, the audit issue exists as an orphan. Operator should either retry the dismissal or close the audit issue manually. The `SKIPPED` entry carries the audit URL so it can be cleaned up.
 
-### 3.1c Open a closed audit-trail issue (full §2.5 analysis)
+### 3.1c Open a closed audit-trail issue (every dismissal)
 
-Long-form audit record for an `inaccurate` dismissal. Created closed (`gh issue create` then immediate `gh issue close`) so it doesn't show up in default "open issues" views but remains searchable by label (`security-audit`) for verification.
+Long-form audit record for **every** dismissal — both `not_used` and `inaccurate`. Created closed (`gh issue create` then immediate `gh issue close`) so it doesn't appear in default "open issues" views but remains searchable by label (`security-audit`).
 
-Why this exists: §2.5.2's per-advisory Q list, §2.5.3's per-Q answers, §2.5.4's symbol trace, and §2.5.6b's structural-impossibility result together produce 500–2000 chars of audit content. The Dependabot alert's `dismissed_comment` is capped at 280. The audit issue is the only surface that can carry the full analysis verbatim.
+Why this exists: dismissals need an audit trail that's complete and uniformly discoverable. For `inaccurate`, §2.5.2's per-advisory Q list + §2.5.3's per-Q answers + §2.5.4's symbol trace + §2.5.6b's structural-impossibility result together produce 500–2000 chars — far beyond the 280-char `dismissed_comment` cap. For `not_used`, the Signal C evidence usually fits in 280 but the symmetric design ensures `label:security-audit` returns *every* dismissal regardless of reason, which is operationally simpler than two-path search.
+
+The audit body adapts based on `$DISMISSAL_REASON`:
 
 ```bash
 # called as: AUDIT_URL=$(create_audit_issue)
 create_audit_issue() {
-  local audit_title audit_body audit_url
+  local audit_title audit_body audit_url body_analysis
   audit_title="[Security-audit][closed] ${PKG} #${ALERT_NUM} (${GHSA_ID}) — ${DISMISSAL_REASON}"
   # 70-char title budget — truncate package + GHSA if needed.
   if [[ ${#audit_title} -gt 70 ]]; then
     audit_title="${audit_title:0:67}..."
   fi
 
-  audit_body=$(cat <<EOF
-**Dismissed Dependabot alert:** #${ALERT_NUM} — ${ALERT_URL}
-**Package:** \`${PKG}\` (pip)
-**Severity:** ${SEVERITY}
-**GHSA / CVE:** ${GHSA_ID} / ${CVE_ID}
-**CWE(s):** ${CWE_IDS}
-**Vulnerable range:** \`${VULN_RANGE}\` — first patched in \`${FIRST_PATCHED}\`
-**Archetype:** ${ARCHETYPE}
-**Skill confidence:** ${CONFIDENCE}
-**Dismissal reason:** \`${DISMISSAL_REASON}\` (this audit issue is auto-closed)
+  # The analysis body differs by dismissal reason. For not_used, the §2.5
+  # phase didn't run — Signal C alone is the audit evidence. For inaccurate,
+  # the full §2.5 stack ran and produces the long-form analysis.
+  if [[ "$DISMISSAL_REASON" == "not_used" ]]; then
+    body_analysis=$(cat <<EOF
+## Classification: DEV-only (Signal C)
 
+The package is reachable only from test / dev / CI paths. Phase 2.5 (exploit-surface analysis) was NOT run — the verdict is mechanical: 0 prod imports = not exploitable in prod.
+
+**Signal C scan results:**
+- PROD imports found: 0 (across \`${PROD_DIRS[*]}\`)
+- TEST imports found at: ${TEST_HIT_FILES:-none (pure transitive)}
+- Transitive root: ${REVERSE_DEP_ROOT:-N/A — direct dev/test pin}
+- pyproject.toml group: ${PYPROJECT_GROUP:-unknown}
+
+**Why this is a safe dismissal:** the package's vulnerable code paths are not reachable from any code that ships in the production install footprint. Even if the CVE preconditions were satisfied in test code, it would not affect production runtime.
+
+**Re-evaluate this dismissal if:** any code under \`${PROD_DIRS[*]}\` adds an \`import ${PKG}\` line, or the package is moved from a dev/test group to the production dependency list.
+EOF
+)
+  else  # inaccurate
+    body_analysis=$(cat <<EOF
 ## Advisory summary (§2.5.1)
 
 ${ADVISORY_SUMMARY}
@@ -884,12 +904,28 @@ ${STRUCTURAL_CHECK_RESULT:-N/A — not a framework / scaffold archetype}
 ## Decisive reasoning
 
 ${APPLICABILITY_REASONING}
+EOF
+)
+  fi
+
+  audit_body=$(cat <<EOF
+**Dismissed Dependabot alert:** #${ALERT_NUM} — ${ALERT_URL}
+**Package:** \`${PKG}\` (pip)
+**Severity:** ${SEVERITY}
+**GHSA / CVE:** ${GHSA_ID} / ${CVE_ID}
+**CWE(s):** ${CWE_IDS}
+**Vulnerable range:** \`${VULN_RANGE}\` — first patched in \`${FIRST_PATCHED}\`
+**Archetype:** ${ARCHETYPE}
+**Skill confidence:** ${CONFIDENCE:-n/a (not_used path)}
+**Dismissal reason:** \`${DISMISSAL_REASON}\` (this audit issue is auto-closed)
+
+${body_analysis}
 
 ## How to challenge this dismissal
 
-If you (the maintainer) judge any Q answer wrong:
+If you (the maintainer) judge any answer or evidence wrong:
 1. Reopen the Dependabot alert via the GitHub Security tab.
-2. Reopen this audit issue and comment with the corrected Q answer + evidence.
+2. Reopen this audit issue and comment with the corrected analysis + evidence.
 3. If the corrected analysis shows the CVE is applicable, treat as a normal upgrade — the bump can be tracked in a new issue (the skill won't re-open this one).
 
 Skill version / commit: ${SKILL_VERSION:-unknown} (see commit log of the triage-dependabot skill).
@@ -914,7 +950,7 @@ The `security-audit` label must be created idempotently up front (alongside the 
 gh label create security-audit  --color C2E0C6 --description "Permanent audit record for a triage-dependabot dismissal (auto-closed)" --repo "$REPO" 2>/dev/null || true
 ```
 
-The `not_used` dismissal path (§3.1) does **not** call this — the §2.5 Q analysis doesn't apply to DEV-only dismissals (Signal C is direct import-graph evidence). The 280-char `dismissed_comment` is sufficient there.
+**Both** dismissal paths (§3.1 and §3.1b) call this. The `dismissed_comment` ends with `Full analysis: ${AUDIT_URL}` for both. Net effect: `gh issue list --repo "$REPO" --state closed --label security-audit` returns every dismissal the skill has ever performed.
 
 ### 3.2 Open a tracking issue for a PROD-APPLICABLE alert
 
@@ -1096,7 +1132,7 @@ Alerts seen:        $N_ALERTS
 Processed:          $N_PROCESS                # respects --limit
 Dismissed (DEV, not_used):     $N_DISMISSED_DEV
 Dismissed (PROD-not-applic, inaccurate, high-conf): $N_DISMISSED_INACCURATE
-Audit-trail issues opened (closed):  $N_AUDIT_ISSUES   # 1 per inaccurate dismissal
+Audit-trail issues opened (closed):  $N_AUDIT_ISSUES   # 1 per dismissal — symmetric across not_used + inaccurate
 Issue opened (PROD-applicable, high-conf):  $N_OPENED_APPLICABLE
 Issue opened (needs-human-review):  $N_OPENED_REVIEW   # moderate or low confidence
 Skipped (non-pip):              $N_SKIPPED_ECOSYSTEM   # informational, no exit-code impact
@@ -1191,9 +1227,12 @@ done
 1. **Only act on `state=open` alerts.** Don't poke at already-dismissed alerts.
 2. **Skip non-pip ecosystems.** GitHub Actions / Docker / npm alerts can appear on Valory repos (e.g. `.github/workflows/*.yml` action pins) — flag them for manual review.
 3. **Conservative default: when uncertain, open an issue, don't dismiss.** A false-positive issue costs one `gh issue close` command; a false-negative dismissal costs a quietly-shipped CVE. The §2.5.6 confidence tier and §2.5.6b structural-impossibility check together formalize this — only `high` confidence + (cli-tool OR framework-with-§2.5.6b-passes) dismisses autonomously. Everything else routes to `needs-human-review`.
-4. **Two dismissal reasons, strict criteria per archetype.**
-   - `not_used` — Phase 2.4 Signal C proved the package is reachable only from test/dev paths. Comment names the test/dev files. No confidence tier required (the import-graph evidence is direct). No audit issue (no Q analysis to record).
-   - `inaccurate` — Phase 2.5 proved the CVE's threat-model preconditions are absent **AND Phase 2.5.6 returned `high` confidence**, AND either (a) archetype is `cli-tool`, OR (b) archetype is `framework` / `scaffold` AND §2.5.6b structural-impossibility passes all three conditions (symbol-grep definitive zero, all imports orthogonal, no public API forwards external input to vulnerable subsystem). **Required side-effect: open a closed audit-trail issue (§3.1c) carrying the full §2.5 analysis BEFORE the dismissal, and embed the audit URL in the dismissed_comment.** The 280-char comment alone is not a complete audit trail; the closed audit issue is. On `moderate` / `low` confidence OR framework/scaffold with §2.5.6b failing, do not dismiss — open an issue tagged `needs-human-review` instead.
+4. **Two dismissal reasons, strict criteria per archetype.** Both share a uniform audit-trail requirement.
+   - `not_used` — Phase 2.4 Signal C proved the package is reachable only from test/dev paths. Comment names the test/dev files. No confidence tier required (the import-graph evidence is direct).
+   - `inaccurate` — Phase 2.5 proved the CVE's threat-model preconditions are absent **AND Phase 2.5.6 returned `high` confidence**, AND either (a) archetype is `cli-tool`, OR (b) archetype is `framework` / `scaffold` AND §2.5.6b structural-impossibility passes all three conditions (symbol-grep definitive zero, all imports orthogonal, no public API forwards external input to vulnerable subsystem). On `moderate` / `low` confidence OR framework/scaffold with §2.5.6b failing, do not dismiss — open an issue tagged `needs-human-review` instead.
+
+   **Required side-effect (BOTH reasons): open a closed audit-trail issue (§3.1c) BEFORE the dismissal, and embed the audit URL in the dismissed_comment.** The audit issue body adapts to the reason — Signal C evidence for `not_used`, full §2.5 analysis for `inaccurate`. The 280-char comment alone is never a complete audit trail; the closed audit issue is. Uniform audit-issue creation means `gh issue list --label security-audit` returns every dismissal, regardless of reason.
+
    Never use `tolerable_risk` / `fix_started` / `no_bandwidth` — those need human cost/benefit calls the skill never has the context for.
 5. **Dedupe before opening.** Search existing open issues by GHSA ID; never spam duplicates on repeat runs.
 6. **Don't dismiss with no evidence.** Skip + log if neither prod nor test imports are found and the manifest is silent.
@@ -1210,7 +1249,7 @@ done
 | (rerun-dismissed mode) | Nothing — read-only verdict-drift report to stdout |
 | Dependabot alerts — DEV-only path | `state=dismissed`; `dismissed_reason=not_used`; comment includes the test/dev paths the scan found |
 | Dependabot alerts — PROD-but-not-applicable, **cli-tool + high confidence** OR **framework/scaffold + high confidence + §2.5.6b passes** | `state=dismissed`; `dismissed_reason=inaccurate`; comment carries one-line summary + URL pointer to the audit issue |
-| Closed audit-trail issues — one per `inaccurate` dismissal | New issues opened **and immediately closed** with title `[Security-audit][closed] <pkg> #<n> (<ghsa>) — inaccurate`, label `security,dependabot,triage-dependabot,security-audit`. Body carries the full §2.5 analysis (advisory, derived Qs + answers, symbol trace, structural check, reasoning). Permanent record; never edited by the skill. |
+| Closed audit-trail issues — one per dismissal (both `not_used` and `inaccurate`) | New issues opened **and immediately closed** with title `[Security-audit][closed] <pkg> #<n> (<ghsa>) — <reason>`, label `security,dependabot,triage-dependabot,security-audit`. Body adapts to the reason — Signal C evidence for `not_used`, full §2.5 analysis for `inaccurate`. Permanent record; never edited by the skill. Searchable via `gh issue list --state closed --label security-audit`. |
 | Repo issues — PROD-applicable | New issues opened with title `[Security][<sev>] <pkg>: <short summary>` (GHSA in body, not title), labels `security,dependabot,triage-dependabot`, body containing alert URL + prod import paths + **exploit-surface analysis with CWE-checklist answers, vulnerable-symbol trace, confidence tier, and (for framework/scaffold) §2.5.6b result** + suggested fix |
 | Repo issues — PROD-not-applicable but autonomous-dismissal gate not met (moderate/low confidence, OR framework/scaffold with §2.5.6b failing) | Same as above, **additionally labeled `needs-human-review`**. Dependabot alert NOT dismissed — the maintainer makes the final call. |
 | Repo issues (existing) | Skipped via dedupe (no edit) |
