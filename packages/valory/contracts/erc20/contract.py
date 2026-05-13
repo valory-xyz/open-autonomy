@@ -212,7 +212,7 @@ class ERC20TokenContract(Contract):
         data = contract_interface.encode_abi(
             abi_element_identifier="transfer", args=[receiver, amount]
         )
-        return dict(data=data)
+        return dict(data=bytes.fromhex(data[2:]))
 
     @classmethod
     def get_token_symbol(

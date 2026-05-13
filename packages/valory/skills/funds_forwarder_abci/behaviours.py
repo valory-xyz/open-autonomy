@@ -338,8 +338,7 @@ class FundsForwarderBehaviour(FundsForwarderBaseBehaviour):
                 f"Couldn't build ERC20 transfer tx for {token_address}."
             )
             return None
-        data_hex = cast(str, response.state.body["data"])
-        return bytes.fromhex(data_hex[2:])
+        return cast(bytes, response.state.body["data"])
 
 
 class FundsForwarderRoundBehaviour(AbstractRoundBehaviour):

@@ -4,6 +4,9 @@
 
 Generates the specification for a given ABCI app in YAML/JSON/Mermaid format.
 
+JSON output is deprecated and will be removed in a future release; use YAML
+or Mermaid instead.
+
 <a id="autonomy.analyse.abci.app_spec.validate_fsm_spec"></a>
 
 #### validate`_`fsm`_`spec
@@ -86,7 +89,16 @@ Load FSM specification.
 def dump_json(dfa: "DFA", file: Path) -> None
 ```
 
-Dump to a json file.
+Dump to a json file (deprecated).
+
+JSON output is deprecated; prefer YAML or Mermaid. The
+``DeprecationWarning`` is emitted by ``dump()`` so that
+``stacklevel`` always points at the external caller.
+
+**Arguments**:
+
+- `dfa`: DFA object to serialize.
+- `file`: Output file path.
 
 <a id="autonomy.analyse.abci.app_spec.FSMSpecificationLoader.dump_yaml"></a>
 
@@ -105,10 +117,35 @@ Dump to a yaml file.
 
 ```python
 @staticmethod
-def dump_mermaid(dfa: "DFA", file: Path) -> None
+def dump_mermaid(dfa: "DFA",
+                 file: Path,
+                 abci_app_cls: Optional[_AbciAppLike] = None,
+                 dev_skills: Optional[Set[str]] = None) -> None
 ```
 
 Dumps this DFA spec. to a file in Mermaid format.
+
+When ``abci_app_cls`` is supplied AND its rounds span more than one
+sub-app, the diagram collapses every THIRD-PARTY sub-app into a
+single node (one box per sub-app), and leaves dev sub-apps expanded
+with their atomic rounds. ``dev_skills`` is the set of skill names
+the local repo authored (typically derived from the ``dev`` section
+of ``packages/packages.json``); any sub-app not in this set is
+treated as third-party and collapsed.
+
+Falls back to the flat per-round diagram when ``abci_app_cls`` is
+``None``, when ``dev_skills`` is empty or ``None`` (i.e. no
+packages.json info available), or when all rounds belong to a
+single sub-app.
+
+**Arguments**:
+
+- `dfa`: DFA object to render.
+- `file`: Output file path.
+- `abci_app_cls`: Optional composed AbciApp class used to classify
+rounds by sub-app for the composition-aware view.
+- `dev_skills`: Optional set of dev skill names (from
+``packages.json``); sub-apps not in this set are collapsed.
 
 <a id="autonomy.analyse.abci.app_spec.FSMSpecificationLoader.dump"></a>
 
@@ -119,10 +156,26 @@ Dumps this DFA spec. to a file in Mermaid format.
 def dump(cls,
          dfa: "DFA",
          file: Path,
-         spec_format: str = OutputFormats.YAML) -> None
+         spec_format: str = OutputFormats.YAML,
+         abci_app_cls: Optional[_AbciAppLike] = None,
+         dev_skills: Optional[Set[str]] = None) -> None
 ```
 
 Dumps this DFA spec. to a file in YAML/JSON/Mermaid format.
+
+``abci_app_cls`` and ``dev_skills`` are only used by the Mermaid
+renderer to collapse third-party sub-apps into single nodes while
+keeping dev sub-apps expanded (see ``dump_mermaid``). Other
+formats ignore them.
+
+**Arguments**:
+
+- `dfa`: DFA object to serialize.
+- `file`: Output file path.
+- `spec_format`: One of ``OutputFormats.YAML``, ``JSON``, or
+``MERMAID``.
+- `abci_app_cls`: Optional composed AbciApp class (Mermaid only).
+- `dev_skills`: Optional set of dev skill names (Mermaid only).
 
 <a id="autonomy.analyse.abci.app_spec.DFA"></a>
 
