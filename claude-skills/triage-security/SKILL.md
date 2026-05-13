@@ -1,27 +1,40 @@
 ---
-name: triage-dependabot
-description: Triage open Dependabot security alerts on the current GitHub repo. For each alert, decide (1) whether the vulnerable dependency is reachable from production code, then (2) whether the CVE's threat model is actually exploitable given how this codebase uses the package. Production-AND-applicable alerts get a tracking issue opened; production-but-not-applicable alerts get dismissed with reason `inaccurate`; test/dev-only alerts get dismissed with reason `not_used`. Repo-agnostic — works across the Valory fleet.
-argument-hint: "[--limit N] [--rerun-dismissed]  # --limit caps alerts processed; --rerun-dismissed walks already-dismissed alerts and reports verdict drift, no mutations"
+name: triage-security
+description: Triage open security alerts on the current GitHub repo — both Dependabot (dependency CVEs) and Code Scanning (CodeQL / SnykCode / other tools that emit to GitHub's code-scanning API). For each alert, decide whether the bug's threat model is actually exploitable given this codebase's archetype, calling code, and reachability. Applicable findings get a tracking issue opened; not-applicable findings get dismissed with the appropriate per-source reason (`inaccurate` / `not_used` for Dependabot; `false positive` / `used in tests` for Code Scanning). Repo-agnostic — works across the Valory fleet.
+argument-hint: "[--limit N] [--rerun-dismissed] [--source dependabot|code-scanning|both]  # --limit caps alerts processed; --rerun-dismissed walks already-dismissed Dependabot alerts and reports verdict drift (no mutations, Dependabot-only); --source defaults to `both`"
 disable-model-invocation: true
 ---
 
-# Triage Dependabot alerts (prod vs test, then act)
+# Triage security alerts (Dependabot + Code Scanning)
 
-Walk every open Dependabot security alert on the current repo. Classify the vulnerable dependency by whether it is **reachable from production code** or **only from tests / dev tooling / CI**. Then act in one pass:
+Walk every open security alert on the current repo from both Dependabot (`/repos/{r}/dependabot/alerts`) and Code Scanning (`/repos/{r}/code-scanning/alerts`). For each alert, classify by whether it is **reachable from production code** and then whether the bug's **threat model preconditions are satisfied** by this codebase's actual usage. Then act in one pass:
 
-| Classification | Confidence + structural | Action |
-| -------------- | ----------------------- | ------ |
-| **Production-reachable AND exploit-applicable** | any | Leave Dependabot alert open. Open a new GitHub issue on the repo that references the alert, names the CVE / GHSA / severity, lists the production paths that pull in the vulnerable package, the exploit-surface analysis, and the suggested upgrade pin. |
-| **Production-reachable but exploit NOT applicable** — cli-tool archetype | **high** | Dismiss with `inaccurate` and a comment naming the threat-model mismatch. No repo issue. |
-| **Production-reachable but exploit NOT applicable** — framework / scaffold archetype, §2.5.6b structural-impossibility check **passes** | **high** | Dismiss with `inaccurate` and a comment naming the decisive §2.5.6b condition. No repo issue. |
-| **Production-reachable but exploit NOT applicable** — framework / scaffold archetype, §2.5.6b **fails** (consumer might satisfy preconditions) | any | Open a repo issue tagged `needs-human-review`. Do NOT dismiss. |
-| **Production-reachable but exploit NOT applicable** — any archetype | **moderate** / **low** | Open a repo issue tagged `needs-human-review` (signals not reliable enough for autonomous call). Do NOT dismiss. |
-| **Test / dev / CI-only import path** | n/a | Dismiss with `dismissed_reason=not_used` naming the test/dev paths it was found in. No repo issue. |
-| **Unclassifiable** | n/a | Skip. Print a line to stderr for manual review. **Never** auto-dismiss without evidence. |
+| Source | Classification | Confidence + extras | Action |
+| ------ | -------------- | ------------------- | ------ |
+| **Dependabot** | Production-reachable AND exploit-applicable | any | Open tracking issue, leave Dependabot alert open. |
+| **Dependabot** | Production-reachable but exploit NOT applicable — cli-tool | **high** | Dismiss with `inaccurate` (+ audit issue per §3.1c). |
+| **Dependabot** | Production-reachable but exploit NOT applicable — framework / scaffold + §2.5.6b passes | **high** | Dismiss with `inaccurate` (+ audit issue). |
+| **Dependabot** | Production-reachable but exploit NOT applicable — moderate/low conf OR framework + §2.5.6b fails | — | Open issue + `needs-human-review`. Do NOT dismiss. |
+| **Dependabot** | Test / dev / CI-only import path | n/a | Dismiss with `not_used` (+ audit issue). |
+| **Code Scanning** | Rule matches `RULE_HUMAN_REVIEW_PATTERNS` (cert/TLS bypass, injection in prod, hardcoded secrets non-test, auth/authz, RCE/deserialization, path traversal) | any | Open issue + `needs-human-review`. **Never auto-dismiss this rule class.** |
+| **Code Scanning** | Applicable — flagged code is reachable from prod entry point AND §2.5 preconditions hold | any | Open tracking issue, leave code-scanning alert open. |
+| **Code Scanning** | NOT applicable (false positive) — cli-tool + §2.5 ruled preconditions absent | **high** | Dismiss with `false positive` (+ audit issue). |
+| **Code Scanning** | NOT applicable — framework/service archetype OR moderate/low confidence | — | Open issue + `needs-human-review`. Do NOT dismiss. |
+| **Code Scanning** | Flagged file is under `tests/` / `PKG_TEST_DIRS` | n/a | Dismiss with `used in tests` (+ audit issue). |
+| Either source | Unclassifiable | n/a | Skip. stderr line for manual review. **Never** auto-dismiss without evidence. |
 
-Conservative default: **when uncertain about exploit applicability, open the issue.** A false-positive issue is cheap to close after a one-line maintainer comment; a false-negative dismissal hides a real vulnerability. Two paths to autonomous `inaccurate` dismissal: (1) cli-tool + high confidence + preconditions absent; (2) framework / scaffold + high confidence + §2.5.6b structural-impossibility passes all three conditions. Everything else routes to a `needs-human-review` issue. See Phase 2.5 for how the confidence tier and the §2.5.6b check are derived.
+Conservative defaults: **when uncertain, open the issue.** A false-positive issue is cheap to close; a false-negative dismissal hides a real vulnerability. **`won't fix` (code-scanning) and `tolerable_risk` (Dependabot) are never set by the skill** — those are maintainer-only risk-accept calls.
 
-This skill runs fully autonomously on invocation — it mutates GitHub state (dismisses alerts, opens issues). Do not invoke from conversational context; require explicit `/triage-dependabot`.
+Three paths to autonomous dismissal:
+1. Dependabot: cli-tool + high confidence + preconditions absent → `inaccurate`
+2. Dependabot: framework/scaffold + high confidence + §2.5.6b structural-impossibility passes → `inaccurate`
+3. Dependabot: test/dev-only import path (Signal C) → `not_used`
+4. Code-scanning: file under tests/ → `used in tests`
+5. Code-scanning: cli-tool + high confidence + §2.5 preconditions absent + rule NOT in `RULE_HUMAN_REVIEW_PATTERNS` → `false positive`
+
+Every dismissal produces a closed audit-trail issue (§3.1c) labelled `security-audit`. The 280-char `dismissed_comment` carries a one-line summary + audit-issue URL pointer.
+
+This skill runs fully autonomously on invocation — it mutates GitHub state (dismisses alerts, opens issues). Do not invoke from conversational context; require explicit `/triage-security`.
 
 ---
 
@@ -54,15 +67,106 @@ gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"' > /tmp/td_repo.
 REPO=$(cat /tmp/td_repo.txt)
 echo "operating on $REPO"
 
-# 2. Confirm Dependabot alerts API is reachable for this repo
-# (Endpoint requires the alerts feature enabled + token with `security_events` scope.)
-gh api "repos/$REPO/dependabot/alerts?per_page=1" --jq 'length' > /dev/null 2>&1 \
-  || { echo "ERROR: dependabot alerts API unreachable — check repo has Dependabot enabled and gh token has security_events scope"; exit 1; }
+# 2. Confirm alert APIs are reachable. Each is OPTIONAL — the skill can run
+#    against either source, or both. Source selection happens in Phase 1.
+#    Track availability so Phase 1 can fetch only what's actually enabled.
+DEPENDABOT_AVAILABLE="no"
+CODESCAN_AVAILABLE="no"
+if gh api "repos/$REPO/dependabot/alerts?per_page=1" --jq 'length' > /dev/null 2>&1; then
+  DEPENDABOT_AVAILABLE="yes"
+else
+  echo "WARN: Dependabot alerts API unreachable — Dependabot path will be skipped" >&2
+fi
+if gh api "repos/$REPO/code-scanning/alerts?per_page=1" --jq 'length' > /dev/null 2>&1; then
+  CODESCAN_AVAILABLE="yes"
+else
+  echo "WARN: code-scanning alerts API unreachable — code-scanning path will be skipped" >&2
+fi
+[[ "$DEPENDABOT_AVAILABLE" == "no" && "$CODESCAN_AVAILABLE" == "no" ]] \
+  && { echo "ERROR: neither Dependabot nor code-scanning is enabled on $REPO. Nothing to triage."; exit 1; }
 
 # 3. Confirm a Python project layout exists (this skill currently keys off Python ecosystems)
 test -f pyproject.toml \
   || { echo "ERROR: no pyproject.toml — skill only supports Python repos right now"; exit 1; }
 ```
+
+### 0.2 RULE_HUMAN_REVIEW_PATTERNS — code-scanning rule classes that NEVER auto-dismiss
+
+For code-scanning alerts (Phase 2-cs), some bug classes carry **asymmetric risk**: a false-positive dismissal of a real vulnerability is catastrophic, while a false-positive issue is cheap to close. For these classes the skill bypasses §2.5 and routes directly to a `needs-human-review` issue — regardless of how clean the confidence-tier analysis looks.
+
+Pattern-match each alert's `rule.id` (and `rule.tags` for CWE-based matching) against this list. Match → force `needs-human-review`.
+
+```bash
+# Glob patterns matched case-insensitively against alert.rule.id.
+# Add patterns here based on observed false-positive cost vs the
+# blast radius of a real miss. Tested against actual SnykCode + CodeQL
+# rule IDs seen on the Valory fleet.
+RULE_HUMAN_REVIEW_PATTERNS=(
+  # Cert / TLS verification bypass — bypass of HTTPS trust path
+  "*disabled-certificate-check*"
+  "*SSLVerificationBypass*"
+  "*TooPermissiveTrustManager*"
+  "*MissingCertVerification*"
+  "*InsecureProtocol*"
+
+  # Injection — SQL, XSS, command, XML — when fired on prod code
+  "*SQLInjection*"
+  "*XSS*"
+  "*CommandInjection*"
+  "*ShellInjection*"
+  "*InsecureXmlParser*"
+  "*XmlInjection*"
+  "*LdapInjection*"
+  "*TaintedFormatString*"
+
+  # Hardcoded secrets in NON-test code. The /test variants of these
+  # rules are auto-dismissable as `used in tests`; the bare names are not.
+  "*HardcodedPassword"
+  "*HardcodedCredential*"
+  "*HardcodedNonCryptoSecret"
+  "*HardcodedKey"
+  "*EmbeddedCredentials*"
+
+  # Auth / authz — can't statically prove "middleware X handles this"
+  "*MissingAuth*"
+  "*WeakAuthorization*"
+  "*BrokenAccessControl*"
+  "*authentication*"
+  "*authorization*"
+
+  # Deserialization / RCE — highest blast radius
+  "*UnsafeDeserialization*"
+  "*UnsafePickle*"
+  "*PickleLoad*"
+  "*UnsafeYaml*"
+  "*CodeInjection*"
+  "*EvalUsage*"
+  "*UnsafeReflection*"
+
+  # Path traversal — too easy to misjudge input-sourcing
+  "*PathTraversal*"
+  "*TaintedPath*"
+  "*ZipSlip*"
+)
+
+# Helper: does the alert's rule.id match any pattern? (Phase 2-cs uses this.)
+matches_human_review_pattern() {
+  local rule_id="$1"
+  # Lower-case both sides for case-insensitive match
+  local rid_lower="${rule_id,,}"
+  for pat in "${RULE_HUMAN_REVIEW_PATTERNS[@]}"; do
+    local pat_lower="${pat,,}"
+    # Bash glob match; `*foo*` matches "foo" anywhere in rule_id
+    # shellcheck disable=SC2053
+    [[ "$rid_lower" == $pat_lower ]] && return 0
+  done
+  return 1
+}
+```
+
+The list is **deliberately conservative** on injection / RCE / auth — false-positive issues on `*PathTraversal*` are cheap; false-negative dismissals of a real one are expensive. Refine over time based on the actual false-positive rate observed in dismissed audit issues.
+
+The skill does NOT match rule IDs with a `/test` suffix (e.g. `python/NoHardcodedPasswords/test`) against these patterns — those are tool-vendor-tagged test variants and are handled by the file-path-in-tests/ check in Phase 2-cs. Pattern matching applies to the bare (non-/test) rule IDs.
 
 Capture into working memory:
 
@@ -111,61 +215,115 @@ HAS_PACKAGES_TREE=$([ -d packages/valory ] && echo "yes" || echo "no")
 IS_SCAFFOLD=$(grep -iE "starter|template|scaffold|boilerplate" README.md 2>/dev/null | head -1)
 ```
 
-These are hints, not proofs. When the classification is ambiguous, **default to `framework`** so the skill errs on the side of bumping. A human can override by writing `archetype: cli-tool` in a per-repo `.triage-dependabot.yaml` config (future enhancement — for now, hardcode the override at the top of the per-alert loop).
+These are hints, not proofs. When the classification is ambiguous, **default to `framework`** so the skill errs on the side of bumping. A human can override by writing `archetype: cli-tool` in a per-repo `.triage-security.yaml` config (future enhancement — for now, hardcode the override at the top of the per-alert loop).
 
 ---
 
-## Phase 1 — Fetch open Dependabot alerts
+## Phase 1 — Fetch alerts (Dependabot + Code Scanning)
 
 ```bash
 TMP=$(mktemp -d)
 set -euo pipefail
 
-# Parse argv. --limit N caps the per-run alert count; --rerun-dismissed switches
-# to the read-only verdict-drift report (see §3.0 — no mutations in that mode).
+# Parse argv.
+#   --limit N            cap on per-source alerts processed
+#   --rerun-dismissed    Dependabot-only read-only verdict-drift report (§3.0)
+#   --source X           dependabot | code-scanning | both (default: both)
 LIMIT=""
 MODE="live"
+SOURCE="both"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --limit) LIMIT="$2"; shift 2 ;;
     --limit=*) LIMIT="${1#*=}"; shift ;;
     --rerun-dismissed) MODE="rerun-dismissed"; shift ;;
+    --source) SOURCE="$2"; shift 2 ;;
+    --source=*) SOURCE="${1#*=}"; shift ;;
     *) shift ;;
   esac
 done
 [[ -n "$LIMIT" ]] && [[ ! "$LIMIT" =~ ^[0-9]+$ ]] \
   && { echo "ERROR: --limit must be a non-negative integer, got: $LIMIT"; exit 1; }
+case "$SOURCE" in
+  dependabot|code-scanning|both) ;;
+  *) echo "ERROR: --source must be dependabot|code-scanning|both, got: $SOURCE"; exit 1 ;;
+esac
 
-# In rerun mode, walk previously-dismissed alerts. Otherwise (default), walk
-# state=open alerts as normal.
+# rerun-dismissed mode is Dependabot-only. The skill only walks new open
+# code-scanning alerts — never re-evaluates already-dismissed ones (per the
+# operational decision that won't-fix / used-in-tests / false-positive
+# dismissals are final calls; the rerun mode would create noise without
+# operational value here).
 if [[ "$MODE" == "rerun-dismissed" ]]; then
+  if [[ "$SOURCE" == "code-scanning" ]]; then
+    echo "ERROR: --rerun-dismissed is incompatible with --source=code-scanning. Use --source=dependabot or --source=both (code-scanning fetch is skipped in rerun mode)."
+    exit 1
+  fi
+  SOURCE="dependabot"   # silently narrow if user passed --source=both
   STATE_FILTER="state=dismissed"
-  echo "MODE=rerun-dismissed — read-only verdict-drift report (no mutations)"
+  echo "MODE=rerun-dismissed — read-only verdict-drift report on Dependabot dismissals only"
 else
   STATE_FILTER="state=open"
 fi
 
-gh api "repos/$REPO/dependabot/alerts?${STATE_FILTER}&per_page=100" --paginate \
-  > "$TMP/alerts.json" \
-  || { echo "ERROR: failed to list Dependabot alerts for $REPO"; exit 1; }
+# Initialize the unified alert list. Each alert gets a `_source` field
+# inserted at fetch time so Phase 2 can dispatch on it without re-querying.
+echo "[]" > "$TMP/alerts.json"
 
-# Sanity: must be a non-null JSON array
-jq -e 'type == "array"' "$TMP/alerts.json" > /dev/null \
-  || { echo "ERROR: alerts response is not a JSON array — likely API error or scope problem"; cat "$TMP/alerts.json" | head -20; exit 1; }
+if [[ "$SOURCE" == "dependabot" || "$SOURCE" == "both" ]]; then
+  if [[ "$DEPENDABOT_AVAILABLE" == "yes" ]]; then
+    gh api "repos/$REPO/dependabot/alerts?${STATE_FILTER}&per_page=100" --paginate \
+      > "$TMP/alerts_dependabot.json" \
+      || { echo "ERROR: failed to list Dependabot alerts"; exit 1; }
+    jq -e 'type == "array"' "$TMP/alerts_dependabot.json" > /dev/null \
+      || { echo "ERROR: Dependabot response not a JSON array"; head -20 "$TMP/alerts_dependabot.json"; exit 1; }
+    # Tag each alert with `_source: "dependabot"` and merge into the unified list.
+    jq 'map(. + {_source: "dependabot"})' "$TMP/alerts_dependabot.json" \
+      > "$TMP/alerts_dependabot_tagged.json"
+    jq -s 'add' "$TMP/alerts.json" "$TMP/alerts_dependabot_tagged.json" \
+      > "$TMP/alerts_merged.json"
+    mv "$TMP/alerts_merged.json" "$TMP/alerts.json"
+    echo "fetched $(jq 'length' "$TMP/alerts_dependabot_tagged.json") Dependabot alerts"
+  else
+    echo "Dependabot unavailable on $REPO — skipping that source"
+  fi
+fi
+
+if [[ "$SOURCE" == "code-scanning" || "$SOURCE" == "both" ]]; then
+  if [[ "$CODESCAN_AVAILABLE" == "yes" ]]; then
+    gh api "repos/$REPO/code-scanning/alerts?${STATE_FILTER}&per_page=100" --paginate \
+      > "$TMP/alerts_codescan.json" \
+      || { echo "ERROR: failed to list code-scanning alerts"; exit 1; }
+    jq -e 'type == "array"' "$TMP/alerts_codescan.json" > /dev/null \
+      || { echo "ERROR: code-scanning response not a JSON array"; head -20 "$TMP/alerts_codescan.json"; exit 1; }
+    jq 'map(. + {_source: "code-scanning"})' "$TMP/alerts_codescan.json" \
+      > "$TMP/alerts_codescan_tagged.json"
+    jq -s 'add' "$TMP/alerts.json" "$TMP/alerts_codescan_tagged.json" \
+      > "$TMP/alerts_merged.json"
+    mv "$TMP/alerts_merged.json" "$TMP/alerts.json"
+    echo "fetched $(jq 'length' "$TMP/alerts_codescan_tagged.json") code-scanning alerts"
+  else
+    echo "Code scanning unavailable on $REPO — skipping that source"
+  fi
+fi
 
 N_ALERTS=$(jq 'length' "$TMP/alerts.json")
 if [[ -n "$LIMIT" && "$LIMIT" -lt "$N_ALERTS" ]]; then
-  echo "found $N_ALERTS open alerts on $REPO; processing first $LIMIT per --limit"
+  echo "found $N_ALERTS alerts on $REPO ($SOURCE); processing first $LIMIT per --limit"
   N_PROCESS="$LIMIT"
 else
-  echo "found $N_ALERTS open alerts on $REPO"
+  echo "found $N_ALERTS alerts on $REPO ($SOURCE)"
   N_PROCESS="$N_ALERTS"
 fi
 ```
 
 The per-alert loop in Phase 3 / the reference loop below must iterate `0..N_PROCESS-1`, not `0..N_ALERTS-1`. Phase 4 summary should report both `seen` (N_ALERTS) and `processed` (N_PROCESS) when they differ, so the operator knows how many alerts remain in the backlog.
 
-Fields used per alert (`jq` paths below):
+### 1.1 Fields per alert source
+
+The `_source` field added in Phase 1 routes each alert into the correct Phase 2 path.
+
+**Dependabot alert fields:**
 
 | Field | Path |
 | ----- | ---- |
@@ -181,15 +339,48 @@ Fields used per alert (`jq` paths below):
 | Direct/transitive | `.dependency.scope` (`runtime` or `development`) |
 | Manifest path | `.dependency.manifest_path` |
 
+**Code-scanning alert fields:**
+
+| Field | Path |
+| ----- | ---- |
+| Alert number | `.number` |
+| Alert URL | `.html_url` |
+| Tool | `.tool.name` (CodeQL, SnykCode, …) |
+| Rule ID | `.rule.id` |
+| Rule severity | `.rule.severity` (note / warning / error) or `.rule.security_severity_level` (low/medium/high/critical) |
+| Rule description | `.rule.description` (one-liner) |
+| Rule help / extended | `.rule.help` or `.rule.full_description` |
+| Rule tags | `.rule.tags` (array — CWE-N entries surface here as `external/cwe/cwe-N`) |
+| Flagged file | `.most_recent_instance.location.path` |
+| Flagged line range | `.most_recent_instance.location.start_line`, `.end_line` |
+| Flagged code message | `.most_recent_instance.message.text` |
+
 **Skip immediately** any alert where:
 
-- `ecosystem != "pip"` (this skill only handles Python deps right now — flag for operator)
-- `state != "open"` (defensive; we filtered on the query but pagination races happen)
+- (Dependabot) `ecosystem != "pip"` — this skill only handles Python deps right now; bucket as `non-pip-ecosystem` skip (informational, no exit-code impact)
+- `state != "open"` in live mode (defensive; pagination races happen)
 - `auto_dismissed_at != null` (already auto-dismissed by GitHub)
+- (Code Scanning) `.most_recent_instance.location.path == null` — the alert has no resolvable file location; flag for manual review (rare, usually a tool config error)
+- (Code Scanning) flagged file path does not exist in the working tree — likely a stale alert against a now-deleted file; bucket as `stale-alert` skip
 
 ---
 
-## Phase 2 — Classify each alert (production vs test/dev)
+## Phase 2 — Classify each alert (per-source dispatch)
+
+For every alert, the per-source dispatch in Phase 2 produces a normalized classification (`PROD` / `DEV` / `UNCLASSIFIABLE`) and a per-source verdict. Then Phase 2.5 runs the exploit-surface analysis (shared between sources). Finally Phase 3 acts based on the combined verdict.
+
+```bash
+# Per-alert loop dispatch — runs at the top of every iteration.
+SOURCE_OF_THIS_ALERT=$(jq -r ".[$i]._source" "$TMP/alerts.json")
+
+case "$SOURCE_OF_THIS_ALERT" in
+  dependabot) ;;       # fall through to §2.1–§2.4 (existing Dependabot logic)
+  code-scanning) ;;    # jump to §2.cs (new code-scanning logic, below)
+  *) echo "ERROR: unknown _source: $SOURCE_OF_THIS_ALERT"; SKIPPED+=("$ALERT_NUM:unknown-source"); continue ;;
+esac
+```
+
+The Dependabot logic that follows (§2.1–§2.4) is unchanged from the previous skill version. The code-scanning logic (§2.cs) is new and lives after §2.4.
 
 For every alert, gather evidence in a defined order. **First decisive signal wins**, with conservative "default to production" as the tie-breaker.
 
@@ -380,6 +571,119 @@ Step 3: classify. The verdict consults all three signals — A (`dependency.scop
   - `scope == "unknown"` AND `group_for(pkg)` is `None` (true transitive) → **UNCLASSIFIABLE** (no signal at all; skip and flag for human review, or fall through to §2.5 transitive reverse-walk if available).
 
 Without the Signal B clauses, the verdict drops a real layer of information on the floor — exactly the case where stacking signals is supposed to pay off.
+
+### 2.cs Code-scanning classification (alternate to §2.2–§2.4)
+
+For alerts with `_source == "code-scanning"`, the Dependabot signals (A: dependency.scope, B: pyproject group, C: import-graph scan) don't apply — the alert points at a specific line in our own code, not a vulnerable dependency. The code-scanning classification uses three different signals applied in priority order. **First decisive signal wins**.
+
+#### 2.cs.1 Signal F — file location
+
+The flagged file's location alone usually decides DEV vs PROD for code-scanning. Use the same `PROD_DIRS` / `TEST_DIRS` / `PKG_TEST_DIRS` arrays from §2.1.
+
+```bash
+ALERT_FILE=$(jq -r ".[$i].most_recent_instance.location.path" "$TMP/alerts.json")
+ALERT_LINE=$(jq -r ".[$i].most_recent_instance.location.start_line // 0" "$TMP/alerts.json")
+
+# Defensive: file must exist in the working tree. Stale alerts against
+# deleted files get skipped (see Phase 1 skip rules).
+[[ -f "$ALERT_FILE" ]] || { SKIPPED+=("$ALERT_NUM:stale-alert:$ALERT_FILE"); continue; }
+
+# Classify the alert file's location.
+ALERT_IN_TESTS="no"
+ALERT_IN_PROD="no"
+
+# Test paths — top-level and per-package
+for d in "${TEST_DIRS[@]}" "${PKG_TEST_DIRS[@]}"; do
+  if [[ "$ALERT_FILE" == "$d/"* ]] || [[ "$ALERT_FILE" == *"/$d/"* ]]; then
+    ALERT_IN_TESTS="yes"
+    break
+  fi
+done
+
+# Prod paths
+if [[ "$ALERT_IN_TESTS" == "no" ]]; then
+  for d in "${PROD_DIRS[@]}"; do
+    if [[ "$ALERT_FILE" == "$d/"* ]]; then
+      ALERT_IN_PROD="yes"
+      break
+    fi
+  done
+fi
+```
+
+Verdict from Signal F:
+- `ALERT_IN_TESTS == "yes"` → **DEV** → Phase 3.1d dismiss as `used in tests`. Skip §2.5 entirely (the analysis doesn't matter — the bug isn't in prod).
+- `ALERT_IN_PROD == "yes"` → **PROD** → continue to Signal G + §2.5.
+- Neither → **UNCLASSIFIABLE** — file is outside both prod and test trees (scripts/, docs/, top-level config files, etc.). Skip with a stderr note for manual review.
+
+#### 2.cs.2 Signal G — rule-pattern force-review
+
+For PROD-classified alerts, check whether the rule ID matches `RULE_HUMAN_REVIEW_PATTERNS` (§0.2). If yes, skip §2.5 and force route to Phase 3.2 with `needs-human-review`. This is the "high-stakes bug class" carve-out from the design discussion.
+
+```bash
+RULE_ID=$(jq -r ".[$i].rule.id" "$TMP/alerts.json")
+RULE_SEVERITY=$(jq -r ".[$i].rule.severity // .[$i].rule.security_severity_level // \"unknown\"" "$TMP/alerts.json")
+
+if matches_human_review_pattern "$RULE_ID"; then
+  FORCE_REVIEW="true"
+  REVIEW_REASON="rule.id matches RULE_HUMAN_REVIEW_PATTERNS — high-stakes bug class, never auto-dismiss"
+fi
+```
+
+#### 2.cs.3 Signal H — function-privacy heuristic (input to §2.5)
+
+For PROD-classified alerts that didn't get force-reviewed, walk the AST of the flagged file and find the enclosing function for the flagged line. If the enclosing function's name starts with `_` (Python's private-by-convention), that's evidence the flagged code is **less likely** reachable from a public entry point — feeds into §2.5.6 confidence as a positive signal toward "not-applicable" verdicts.
+
+```python
+# python3 - <<'PY' to determine the function privacy of the flagged line.
+import ast, pathlib, os, sys
+file_path = os.environ["ALERT_FILE"]
+target_line = int(os.environ["ALERT_LINE"])
+try:
+    tree = ast.parse(pathlib.Path(file_path).read_text())
+except (SyntaxError, UnicodeDecodeError, FileNotFoundError):
+    print("unknown")
+    sys.exit()
+
+enclosing = None
+for node in ast.walk(tree):
+    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        start = node.lineno
+        end = getattr(node, "end_lineno", start)
+        if start <= target_line <= end:
+            # Take the innermost (largest start_line) enclosing function
+            if enclosing is None or start > enclosing.lineno:
+                enclosing = node
+
+if enclosing is None:
+    print("module-level")  # flagged code is at module scope, not in a function
+elif enclosing.name.startswith("_"):
+    print("private")
+else:
+    print("public")
+PY
+```
+
+The output (`public` / `private` / `module-level` / `unknown`) feeds into §2.5.6 as one of the confidence-tier inputs. `private` shifts confidence toward `high` for not-applicable verdicts (since the code is one layer further from external callers); `module-level` shifts confidence toward `moderate` (executes at import time, less constrained); `public` is neutral.
+
+This is not a reachability proof — a `_helper` can be called from a public API in the same file. But it's a useful priors signal absent a full call-graph trace.
+
+#### 2.cs.4 Signal I — for code-scanning, §2.5.1 source is the rule itself
+
+For Dependabot, §2.5.1 fetches the GHSA description. For code-scanning, the equivalent advisory text comes directly from the alert payload — no external fetch needed:
+
+| Phase 2.5 input | Dependabot source | Code-scanning source |
+| --------------- | ----------------- | -------------------- |
+| `$ADVISORY_DESCRIPTION` | `gh api /advisories/$GHSA_ID .description` | `.rule.help // .rule.full_description // .rule.description` |
+| `$CWE_IDS` | `.security_advisory.cwe_ids` | `.rule.tags` filtered for `external/cwe/cwe-N` patterns, mapped to `CWE-N` form |
+| `$VULNERABLE_SYMBOL` (§2.5.4) | extracted from advisory description | the actual flagged line(s) — pulled from `$ALERT_FILE` via `sed -n "${ALERT_LINE}p"` |
+| `$ADVISORY_SUMMARY` | `.security_advisory.summary` | `.rule.description // .most_recent_instance.message.text` |
+
+§2.5.2 (per-advisory checklist derivation) works the same way — read the rule description, derive Qs against the flagged code. §2.5.4 morphs from "is the vulnerable symbol used anywhere in prod" to "what does the flagged code actually do that triggered this rule" — the answer is already in `$ALERT_FILE` at `$ALERT_LINE`, no grep needed.
+
+#### 2.cs.5 Skip §2.5.6b for code-scanning
+
+The structural-impossibility check (§2.5.6b) is Dependabot-specific — it asks "does the framework's public API expose attacker-controlled input to the vulnerable subsystem of a third-party dep?" For code-scanning, the bug *is* in our code; the structural-impossibility framing doesn't apply. Set `STRUCTURAL_IMPOSSIBLE="n/a"` for code-scanning alerts so the §2.5.7 action matrix routes through the cli-tool / framework / service rows on confidence alone.
 
 ### 2.5 Exploit-surface analysis — does the CVE's threat model map to this codebase?
 
@@ -629,7 +933,9 @@ The `cli-tool` archetype doesn't need this check — it already gets autonomous 
 
 Combine §2.5.3 (preconditions match), §2.5.5 (archetype posture), §2.5.6 (confidence tier), and §2.5.6b (structural-impossibility check for frameworks) into one action call. The action matrix is conservative on the dismissal side and permissive on the issue side — false-positive issues are cheap, false-negative dismissals are expensive. But for framework / scaffold archetypes, §2.5.6b lets the skill bypass the "default to caution" rule when structural impossibility is provable, so we don't drown the human reviewer in spurious issues.
 
-| Preconditions | Archetype | Confidence | §2.5.6b | Verdict | Action |
+**Dependabot action matrix** (unchanged from prior version):
+
+| Preconditions | Archetype | Confidence | §2.5.6b | Verdict | Action (Dependabot) |
 | ------------- | --------- | ---------- | ------- | ------- | ------ |
 | All `reachable` | any | high or moderate | n/a | **PROD-APPLICABLE** | Open issue (Phase 3.2). If confidence = moderate, additionally label `needs-human-review`. |
 | All `reachable` | any | low | n/a | **PROD-APPLICABLE** | Open issue + `needs-human-review` label. Body must call out the uncertainty source(s). |
@@ -641,10 +947,34 @@ Combine §2.5.3 (preconditions match), §2.5.5 (archetype posture), §2.5.6 (con
 | Any `absent` | `service` | any | n/a | **PROD-APPLICABLE** | Open issue. Services are long-running and themselves the consumer — structural impossibility doesn't apply. |
 | Any `unknown` | any | any | n/a | **PROD-APPLICABLE** | Open issue + `needs-human-review`. Do NOT dismiss. |
 
-When dismissing as `inaccurate`, the `dismissed_comment` must name **which checklist Q failed AND (for framework / scaffold) which §2.5.6b condition was decisive** in plain English. Examples:
+**Code-scanning action matrix** (new):
 
-- cli-tool: "Tomte's link checker carries no auth headers — CWE-200 Q1 absent. §2.5.4 grep for `connection_from_url` = 0 hits."
-- framework structural: "Open-aea: GitPython CVE not reachable. §2.5.6b — only `Repo(local_path)` read usage in `bump_version.py` (orthogonal), no public API forwards URLs/paths to clone subsystem. §2.5.4 grep for `clone_from`/`multi_options` = 0."
+| Signal F (file location) | Signal G (rule pattern) | Preconditions | Archetype | Confidence | Verdict | Action (Code Scanning) |
+| ------------------------ | ----------------------- | ------------- | --------- | ---------- | ------- | ---------------------- |
+| **in tests/** | any | n/a | any | n/a | **TEST-ONLY** | Dismiss with `used in tests` (Phase 3.1d). |
+| in prod | **force-review** | n/a | any | n/a | **NEEDS-HUMAN-REVIEW** | Open issue + `needs-human-review`. **NEVER** auto-dismiss this rule class. |
+| in prod | normal | All `reachable` | any | any | **PROD-APPLICABLE** | Open issue. If confidence != high, additionally label `needs-human-review`. |
+| in prod | normal | Any `absent` | `cli-tool` | **high** | **FALSE-POSITIVE** | Dismiss with `false positive` (Phase 3.1e). Comment names the failing Q + Signal H privacy hint. |
+| in prod | normal | Any `absent` | `cli-tool` | moderate / low | NOT-APPLICABLE (low-conf) | Open issue + `needs-human-review`. |
+| in prod | normal | Any `absent` | `framework` / `scaffold` | any | **PROD-APPLICABLE** | Open issue + `needs-human-review`. Consumers may use the framework's public API in ways that hit the flagged path. |
+| in prod | normal | Any `absent` | `service` | any | **PROD-APPLICABLE** | Open issue. Services are themselves the consumer; conservative-by-default. |
+| in prod | normal | Any `unknown` | any | any | **PROD-APPLICABLE** | Open issue + `needs-human-review`. |
+| **unclassifiable file location** | any | n/a | any | n/a | **SKIP** | stderr line for manual review — flagged file outside both prod and test trees. |
+
+The two matrices share the same Phase 2.5 confidence-tier logic. The Dependabot matrix has the extra `§2.5.6b structural-impossibility` column because consumer-context unknowability matters when the bug is in a third-party dep. The code-scanning matrix is **stricter on framework auto-dismissal** — the bug is in our own code, so "consumer might hit this" is even more relevant than in the Dependabot case; no autonomous dismissal for framework/scaffold code-scanning alerts.
+
+When dismissing, the `dismissed_comment` must name:
+- Dependabot `inaccurate`: which checklist Q failed + (framework/scaffold) which §2.5.6b condition was decisive.
+- Dependabot `not_used`: where the test/dev imports were found.
+- Code-scanning `false positive`: which Q failed + Signal H result (function privacy) + reference to the audit issue.
+- Code-scanning `used in tests`: the test path the alert fired against.
+
+Examples:
+
+- Dependabot cli-tool: "Tomte's link checker carries no auth headers — CWE-200 Q1 absent. §2.5.4 grep for `connection_from_url` = 0 hits."
+- Dependabot framework structural: "Open-aea: GitPython CVE not reachable. §2.5.6b — only `Repo(local_path)` read usage in `bump_version.py` (orthogonal), no public API forwards URLs/paths to clone subsystem."
+- Code-scanning cli-tool false-positive: "`python/HardcodedNonCryptoSecret` in `tomte/cli.py:142` — the 'secret' is a deterministic content hash (Q1 absent); function is `_compute_pkg_hash` (private). Not exploitable."
+- Code-scanning used-in-tests: "`python/reDOS` in `tests/test_url_parsing.py:88` — test fixture for a parser; the regex never sees attacker input at runtime."
 
 That comment is the audit trail; a future reviewer needs enough information to challenge the call without re-running the analysis from scratch.
 
@@ -726,7 +1056,7 @@ esac
 End of run, print:
 
 ```
-=== triage-dependabot rerun-dismissed report for $REPO ===
+=== triage-security rerun-dismissed report for $REPO (Dependabot-only) ===
 Alerts re-evaluated: $N_PROCESS
 Agree (skill still endorses the dismissal): ${#AGREE[@]}
 Refine (same action, different reason — informational): ${#REFINE[@]}
@@ -861,12 +1191,22 @@ create_audit_issue() {
     audit_title="${audit_title:0:67}..."
   fi
 
-  # The analysis body differs by dismissal reason. For not_used, the §2.5
-  # phase didn't run — Signal C alone is the audit evidence. For inaccurate,
-  # the full §2.5 stack ran and produces the long-form analysis.
-  if [[ "$DISMISSAL_REASON" == "not_used" ]]; then
-    body_analysis=$(cat <<EOF
-## Classification: DEV-only (Signal C)
+  # Title — varies by source, since code-scanning alerts don't have GHSA IDs.
+  if [[ "$SOURCE_OF_THIS_ALERT" == "code-scanning" ]]; then
+    audit_title="[Security-audit][closed] ${RULE_ID} #${ALERT_NUM} — ${DISMISSAL_REASON}"
+  else
+    audit_title="[Security-audit][closed] ${PKG} #${ALERT_NUM} (${GHSA_ID}) — ${DISMISSAL_REASON}"
+  fi
+  [[ ${#audit_title} -gt 70 ]] && audit_title="${audit_title:0:67}..."
+
+  # The analysis body has FOUR cases — per dismissal reason. For not_used and
+  # used-in-tests, §2.5 didn't run; the body just records the path-based evidence.
+  # For inaccurate and false-positive, the full §2.5 stack ran and the body
+  # carries the long-form Q-checklist analysis.
+  case "$DISMISSAL_REASON" in
+    not_used)
+      body_analysis=$(cat <<EOF
+## Classification: DEV-only (Dependabot Signal C)
 
 The package is reachable only from test / dev / CI paths. Phase 2.5 (exploit-surface analysis) was NOT run — the verdict is mechanical: 0 prod imports = not exploitable in prod.
 
@@ -876,20 +1216,38 @@ The package is reachable only from test / dev / CI paths. Phase 2.5 (exploit-sur
 - Transitive root: ${REVERSE_DEP_ROOT:-N/A — direct dev/test pin}
 - pyproject.toml group: ${PYPROJECT_GROUP:-unknown}
 
-**Why this is a safe dismissal:** the package's vulnerable code paths are not reachable from any code that ships in the production install footprint. Even if the CVE preconditions were satisfied in test code, it would not affect production runtime.
+**Why this is a safe dismissal:** the package's vulnerable code paths are not reachable from any code that ships in the production install footprint.
 
-**Re-evaluate this dismissal if:** any code under \`${PROD_DIRS[*]}\` adds an \`import ${PKG}\` line, or the package is moved from a dev/test group to the production dependency list.
+**Re-evaluate if:** any code under \`${PROD_DIRS[*]}\` adds an \`import ${PKG}\` line, or the package is moved from a dev/test group to the production dependency list.
 EOF
 )
-  else  # inaccurate
-    body_analysis=$(cat <<EOF
-## Advisory summary (§2.5.1)
+      ;;
+    "used in tests")
+      body_analysis=$(cat <<EOF
+## Classification: TEST-ONLY (code-scanning Signal F)
+
+The flagged file is under a test path. Phase 2.5 was NOT run — the bug, even if real, doesn't ship to production.
+
+**Signal F scan result:**
+- Flagged file: \`${ALERT_FILE}\`:${ALERT_LINE}
+- Matched against TEST_DIRS / PKG_TEST_DIRS — file is in a test tree.
+- Rule: \`${RULE_ID}\` (severity: ${RULE_SEVERITY})
+
+**Why this is a safe dismissal:** the flagged code runs only at test/CI time; it does not execute in production deployments.
+
+**Re-evaluate if:** the file is moved out of the test tree into a prod path, or the test scaffolding is repurposed as a runtime helper.
+EOF
+)
+      ;;
+    inaccurate|"false positive")
+      body_analysis=$(cat <<EOF
+## Advisory / rule summary (§2.5.1)
 
 ${ADVISORY_SUMMARY}
 
 ## Derived precondition checklist (§2.5.2)
 
-The Qs below are derived per-advisory from the GHSA description (and optionally §2.5.1b MITRE supplement), not from a static table. Each Q is answered against this specific codebase in §2.5.3.
+The Qs below are derived per-advisory from the GHSA description / code-scanning rule (and optionally §2.5.1b MITRE supplement), not from a static table. Each Q is answered against this specific codebase in §2.5.3.
 
 ${CWE_CHECKLIST_ANSWERS}
 
@@ -897,18 +1255,52 @@ ${CWE_CHECKLIST_ANSWERS}
 
 ${SYMBOL_TRACE_RESULT}
 
-## Structural-impossibility check (§2.5.6b, framework / scaffold only)
+## Structural-impossibility check (§2.5.6b, Dependabot framework/scaffold only)
 
-${STRUCTURAL_CHECK_RESULT:-N/A — not a framework / scaffold archetype}
+${STRUCTURAL_CHECK_RESULT:-N/A — code-scanning alert OR not a framework/scaffold archetype}
+
+## Code-scanning Signal H (function privacy, code-scanning only)
+
+${SIGNAL_H_RESULT:-N/A — Dependabot alert}
 
 ## Decisive reasoning
 
 ${APPLICABILITY_REASONING}
 EOF
 )
-  fi
+      ;;
+    *)
+      body_analysis="(unknown dismissal reason: $DISMISSAL_REASON — please review)"
+      ;;
+  esac
 
-  audit_body=$(cat <<EOF
+  # Header — adapts to source. Dependabot fields vs code-scanning fields.
+  if [[ "$SOURCE_OF_THIS_ALERT" == "code-scanning" ]]; then
+    audit_body=$(cat <<EOF
+**Dismissed code-scanning alert:** #${ALERT_NUM} — ${ALERT_URL}
+**Tool:** ${TOOL:-unknown}
+**Rule ID:** \`${RULE_ID}\`
+**Rule severity:** ${RULE_SEVERITY}
+**CWE(s):** ${CWE_IDS:-none}
+**Flagged file:** \`${ALERT_FILE}\`:${ALERT_LINE}
+**Archetype:** ${ARCHETYPE}
+**Skill confidence:** ${CONFIDENCE:-n/a}
+**Dismissal reason:** \`${DISMISSAL_REASON}\` (this audit issue is auto-closed)
+
+${body_analysis}
+
+## How to challenge this dismissal
+
+If you (the maintainer) judge any answer or evidence wrong:
+1. Reopen the code-scanning alert via the GitHub Security tab.
+2. Reopen this audit issue and comment with the corrected analysis + evidence.
+3. If the corrected analysis shows the finding is applicable, fix the flagged code; track in a new issue if needed.
+
+Skill version / commit: ${SKILL_VERSION:-unknown} (see commit log of the triage-security skill).
+EOF
+)
+  else
+    audit_body=$(cat <<EOF
 **Dismissed Dependabot alert:** #${ALERT_NUM} — ${ALERT_URL}
 **Package:** \`${PKG}\` (pip)
 **Severity:** ${SEVERITY}
@@ -926,50 +1318,115 @@ ${body_analysis}
 If you (the maintainer) judge any answer or evidence wrong:
 1. Reopen the Dependabot alert via the GitHub Security tab.
 2. Reopen this audit issue and comment with the corrected analysis + evidence.
-3. If the corrected analysis shows the CVE is applicable, treat as a normal upgrade — the bump can be tracked in a new issue (the skill won't re-open this one).
+3. If the corrected analysis shows the CVE is applicable, treat as a normal upgrade.
 
-Skill version / commit: ${SKILL_VERSION:-unknown} (see commit log of the triage-dependabot skill).
+Skill version / commit: ${SKILL_VERSION:-unknown} (see commit log of the triage-security skill).
 EOF
 )
+  fi
 
   audit_url=$(gh issue create --repo "$REPO" \
     --title "$audit_title" \
-    --label "security,dependabot,triage-dependabot,security-audit" \
+    --label "security,dependabot,triage-security,security-audit" \
     --body "$audit_body") || return 1
 
   # Close immediately — the audit issue is a permanent record, not a TODO.
-  gh issue close "$audit_url" --repo "$REPO" --comment "Auto-closed — see Dependabot alert ${ALERT_URL} for the live state." >/dev/null 2>&1 || true
+  gh issue close "$audit_url" --repo "$REPO" --comment "Auto-closed — see alert ${ALERT_URL} for the live state." >/dev/null 2>&1 || true
 
   echo "$audit_url"
 }
 ```
 
-The `security-audit` label must be created idempotently up front (alongside the existing `security` / `dependabot` / `triage-dependabot` / `needs-human-review` labels in §3.2):
+The `security-audit` label must be created idempotently up front (alongside the existing `security` / `dependabot` / `triage-security` / `needs-human-review` labels in §3.2):
 
 ```bash
-gh label create security-audit  --color C2E0C6 --description "Permanent audit record for a triage-dependabot dismissal (auto-closed)" --repo "$REPO" 2>/dev/null || true
+gh label create security-audit  --color C2E0C6 --description "Permanent audit record for a triage-security dismissal (auto-closed)" --repo "$REPO" 2>/dev/null || true
 ```
 
-**Both** dismissal paths (§3.1 and §3.1b) call this. The `dismissed_comment` ends with `Full analysis: ${AUDIT_URL}` for both. Net effect: `gh issue list --repo "$REPO" --state closed --label security-audit` returns every dismissal the skill has ever performed.
+**All four dismissal paths** (§3.1 not_used / §3.1b inaccurate / §3.1d used-in-tests / §3.1e false-positive) call `create_audit_issue`. The `dismissed_comment` ends with `Full analysis: ${AUDIT_URL}` for each. Net effect: `gh issue list --repo "$REPO" --state closed --label security-audit` returns every dismissal the skill has ever performed across both Dependabot and code-scanning sources.
 
-### 3.2 Open a tracking issue for a PROD-APPLICABLE alert
+### 3.1d Dismiss a code-scanning alert as `used in tests`
 
-Before opening, **dedupe**: search for an existing open issue tagged with the same GHSA ID, to avoid spam on repeat runs.
+For code-scanning alerts where Signal F (§2.cs.1) found the flagged file under `TEST_DIRS` / `PKG_TEST_DIRS`. The flagged bug, even if real, doesn't ship to production. Symmetric with Dependabot's §3.1 (`not_used`).
 
 ```bash
-EXISTING=$(gh issue list --repo "$REPO" --state open --search "$GHSA_ID in:title,body" --json number,url --jq '.[0].url // ""')
+DISMISSAL_REASON="used in tests"
+AUDIT_URL=$(create_audit_issue)
+[[ -n "$AUDIT_URL" ]] || { echo "ERROR: audit issue creation failed for code-scanning #$ALERT_NUM — abort dismissal"; SKIPPED+=("$ALERT_NUM:audit-create-error"); continue; }
+
+DISMISS_COMMENT="\`${RULE_ID}\` in test path \`${ALERT_FILE}\`:${ALERT_LINE} — not in prod runtime. Full analysis: $AUDIT_URL"
+[[ ${#DISMISS_COMMENT} -gt 280 ]] && DISMISS_COMMENT="${DISMISS_COMMENT:0:277}..."
+
+gh api -X PATCH "repos/$REPO/code-scanning/alerts/$ALERT_NUM" \
+  -f state="dismissed" \
+  -f dismissed_reason="used in tests" \
+  -f dismissed_comment="$DISMISS_COMMENT" \
+  --jq '.state' \
+  || { echo "ERROR: failed to dismiss code-scanning alert #$ALERT_NUM"; SKIPPED+=("$ALERT_NUM:dismiss-api-error:$AUDIT_URL"); continue; }
+```
+
+### 3.1e Dismiss a code-scanning alert as `false positive` (high confidence only)
+
+For code-scanning alerts where:
+1. Signal F (§2.cs.1) classified as PROD (in prod dirs)
+2. Signal G (§2.cs.2) did NOT match `RULE_HUMAN_REVIEW_PATTERNS`
+3. Archetype is `cli-tool`
+4. §2.5 preconditions all `absent` or `reachable` (no `unknown`)
+5. §2.5.6 returned `high` confidence
+
+`framework` / `scaffold` / `service` archetypes never reach this path — code-scanning flags bugs in our own code, so "consumer might hit this" is decisive for framework. The action matrix routes those to issue + needs-human-review.
+
+```bash
+# Guards
+[[ "$VERDICT" == "FALSE-POSITIVE" ]] || { echo "guard: only FALSE-POSITIVE reaches 3.1e"; continue; }
+[[ "$CONFIDENCE" == "high" ]] || { echo "guard: 3.1e requires high confidence"; continue; }
+[[ "$ARCHETYPE" == "cli-tool" ]] || { echo "guard: 3.1e is cli-tool-only; framework/service routes to 3.2"; continue; }
+[[ "$FORCE_REVIEW" != "true" ]] || { echo "guard: rule in RULE_HUMAN_REVIEW_PATTERNS — must route to 3.2"; continue; }
+
+DISMISSAL_REASON="false positive"
+AUDIT_URL=$(create_audit_issue)
+[[ -n "$AUDIT_URL" ]] || { echo "ERROR: audit issue creation failed for #$ALERT_NUM — abort dismissal"; SKIPPED+=("$ALERT_NUM:audit-create-error"); continue; }
+
+# $FAILED_Q from §2.5.3; $SIGNAL_H_RESULT from §2.cs.3 (private/public/module-level)
+DISMISS_COMMENT="\`${RULE_ID}\` in \`${ALERT_FILE}\`:${ALERT_LINE} not applicable (${ARCHETYPE}, high-conf): ${FAILED_Q}; function=${SIGNAL_H_RESULT}. Full analysis: $AUDIT_URL"
+[[ ${#DISMISS_COMMENT} -gt 280 ]] && DISMISS_COMMENT="${DISMISS_COMMENT:0:277}..."
+
+gh api -X PATCH "repos/$REPO/code-scanning/alerts/$ALERT_NUM" \
+  -f state="dismissed" \
+  -f dismissed_reason="false positive" \
+  -f dismissed_comment="$DISMISS_COMMENT" \
+  --jq '.state' \
+  || { echo "ERROR: failed to dismiss code-scanning alert #$ALERT_NUM"; SKIPPED+=("$ALERT_NUM:dismiss-api-error:$AUDIT_URL"); continue; }
+```
+
+**Never** auto-set `won't fix` — that's the maintainer's "we accept the risk" call (analog of Dependabot's `tolerable_risk`).
+
+### 3.2 Open a tracking issue for an APPLICABLE alert (both sources)
+
+Before opening, **dedupe**: search for an existing open issue. The dedupe key differs by source:
+- Dependabot: GHSA ID (unique per CVE).
+- Code-scanning: combination of `rule.id` + `file:line` (uniquely identifies the finding).
+
+```bash
+if [[ "$SOURCE_OF_THIS_ALERT" == "code-scanning" ]]; then
+  # Dedupe by rule.id + file:line; both appear in the issue body
+  DEDUPE_KEY="${RULE_ID} ${ALERT_FILE}:${ALERT_LINE}"
+else
+  DEDUPE_KEY="$GHSA_ID"
+fi
+EXISTING=$(gh issue list --repo "$REPO" --state open --search "\"$DEDUPE_KEY\" in:title,body" --json number,url --jq '.[0].url // ""')
 if [[ -n "$EXISTING" ]]; then
-  echo "skip: existing issue for $GHSA_ID at $EXISTING"
+  echo "skip: existing issue for $DEDUPE_KEY at $EXISTING"
   SKIPPED+=("$ALERT_NUM:existing-issue:$EXISTING")
   continue
 fi
 ```
 
-Issue title format (under 70 chars). Lead with `[Security]` so the issue is filterable, then the **package and a human-readable summary** — the GHSA ID belongs in the body, not the title, because reviewers don't scan ID strings. The skill's dedupe search (`$GHSA_ID in:title,body`) still works because the GHSA appears in the body.
+Issue title format (under 70 chars):
+- Dependabot: `[Security][<severity>] <package>: <short summary>`
+- Code-scanning: `[Security][<severity>] <rule.id>: <file>:<line>`
 
-```
-[Security][<severity>] <package>: <short summary>
-```
+The Dependabot title's GHSA ID lives in the body (dedupe match still works because the GHSA ID appears in the body). For code-scanning, the rule + file:line is enough to identify the finding; severity goes in the title.
 
 Build the short summary from `.security_advisory.summary`, which Dependabot returns as a string usually of the form `"<package>: <description>."` — but with three real-world wrinkles you have to handle: (1) case mismatch between the advisory's package capitalisation (`Authlib:`) and the API's `.package.name` (`authlib`); (2) some summaries omit the colon entirely (`"GitPython reference APIs has a path traversal..."`); (3) advisories often end with a period.
 
@@ -1011,22 +1468,19 @@ The GHSA ID lives in the issue body's `## Dependabot alert` block, which is what
 # Idempotent label creation — `2>/dev/null || true` swallows the "already exists" error.
 gh label create security              --color B60205 --description "Security vulnerability" --repo "$REPO" 2>/dev/null || true
 gh label create dependabot            --color 0366D6 --description "Dependabot-reported"     --repo "$REPO" 2>/dev/null || true
-gh label create triage-dependabot     --color 5319E7 --description "Opened by triage-dependabot skill" --repo "$REPO" 2>/dev/null || true
+gh label create code-scanning         --color 0E8A16 --description "Code-scanning (CodeQL / SnykCode / etc.) reported" --repo "$REPO" 2>/dev/null || true
+gh label create triage-security     --color 5319E7 --description "Opened by triage-security skill" --repo "$REPO" 2>/dev/null || true
 gh label create needs-human-review    --color FBCA04 --description "Skill confidence below threshold — maintainer call required" --repo "$REPO" 2>/dev/null || true
-gh label create security-audit        --color C2E0C6 --description "Permanent audit record for a triage-dependabot dismissal (auto-closed)" --repo "$REPO" 2>/dev/null || true
+gh label create security-audit        --color C2E0C6 --description "Permanent audit record for a triage-security dismissal (auto-closed)" --repo "$REPO" 2>/dev/null || true
 ```
 
-Issue body template (use a heredoc to preserve formatting):
+Issue body template (use a heredoc; per-source branches inside).
+
+For **Dependabot** PROD-applicable / needs-human-review:
 
 ```bash
-# Build the label list. $NEEDS_REVIEW is set at the §2.5.7 routing decision —
-# true when we land in Phase 3.2 instead of 3.1b because the autonomous-dismissal
-# gate didn't pass (moderate/low confidence, OR framework/scaffold with §2.5.6b
-# failing, OR all-reachable PROD-APPLICABLE at moderate/low confidence).
-LABELS="security,dependabot,triage-dependabot"
-if [[ "$NEEDS_REVIEW" == "true" ]]; then
-  LABELS="$LABELS,needs-human-review"
-fi
+LABELS="security,dependabot,triage-security"
+[[ "$NEEDS_REVIEW" == "true" ]] && LABELS="$LABELS,needs-human-review"
 
 ISSUE_URL=$(gh issue create --repo "$REPO" \
   --title "$TITLE" \
@@ -1075,19 +1529,78 @@ $USAGE_PATTERN_NOTES
 
 **Reasoning:** $APPLICABILITY_REASONING
 
-If this issue carries the \`needs-human-review\` label, the skill's confidence was below the threshold required to dismiss autonomously. Maintainer review is required to either (a) confirm the bump should go ahead, or (b) dismiss the linked Dependabot alert with reason \`inaccurate\` and a comment naming the missing precondition. **Escalation path: if the call is contested, write a PoC against this repo's actual usage pattern (out-of-scope for the skill — see §2.5.8 of the skill).**
+If this issue carries the \`needs-human-review\` label, the skill's confidence was below the threshold for autonomous dismissal. Maintainer review: either (a) confirm the bump should go ahead, or (b) dismiss the linked Dependabot alert with reason \`inaccurate\` and a comment naming the missing precondition.
 
 ## Suggested fix
 
-Upgrade the pin in \`pyproject.toml\` to \`>= $FIRST_PATCHED\` (or the next minor/major if a closer pin exists). If the package is transitive, identify the direct dep pulling it via \`uv tree --package $PKG --invert\` (or \`poetry show --why $PKG\`) and bump that.
-
-If the package is owned by the open-autonomy / open-aea framework, the bump should go through \`/bump-versions\` instead of a manual pin edit.
+Upgrade the pin in \`pyproject.toml\` to \`>= $FIRST_PATCHED\` (or the next minor/major if a closer pin exists). If the package is transitive, identify the direct dep via \`uv tree --package $PKG --invert\` (or \`poetry show --why $PKG\`) and bump that. If the package is owned by the open-autonomy / open-aea framework, the bump should go through \`/bump-versions\`.
 
 ## Why this issue exists
 
-Triaged by the \`triage-dependabot\` skill. The Dependabot alert remains open as the source of truth; this issue tracks the in-repo work to fix it.
+Triaged by the \`triage-security\` skill. The Dependabot alert remains open as the source of truth; this issue tracks the in-repo work to fix it.
 EOF
 )")
+```
+
+For **code-scanning** APPLICABLE / needs-human-review (force-review rules always land here):
+
+```bash
+LABELS="security,code-scanning,triage-security"
+[[ "$NEEDS_REVIEW" == "true" || "$FORCE_REVIEW" == "true" ]] && LABELS="$LABELS,needs-human-review"
+
+# Pull the flagged code snippet for the body (5 lines of context around the alert line).
+CONTEXT_START=$((ALERT_LINE - 2)); [[ $CONTEXT_START -lt 1 ]] && CONTEXT_START=1
+CONTEXT_END=$((ALERT_LINE + 2))
+SNIPPET=$(sed -n "${CONTEXT_START},${CONTEXT_END}p" "$ALERT_FILE" 2>/dev/null | head -10)
+
+ISSUE_URL=$(gh issue create --repo "$REPO" \
+  --title "$TITLE" \
+  --label "$LABELS" \
+  --body "$(cat <<EOF
+## Code-scanning alert
+
+- Alert: $ALERT_URL
+- Tool: $TOOL
+- Rule ID: \`$RULE_ID\`
+- Severity: **$RULE_SEVERITY**
+- CWE(s): $CWE_IDS
+- File: \`$ALERT_FILE\`:$ALERT_LINE
+
+## Flagged code
+
+\`\`\`python
+$SNIPPET
+\`\`\`
+
+**Tool message:** $ADVISORY_SUMMARY
+
+## Rule description
+
+$ADVISORY_DESCRIPTION
+
+## Exploit-surface analysis
+
+**Repo archetype:** $ARCHETYPE
+**Skill verdict:** $VERDICT
+**Skill confidence:** $CONFIDENCE
+**Force-review (RULE_HUMAN_REVIEW_PATTERNS match):** ${FORCE_REVIEW:-no}
+**Signal H (function privacy):** ${SIGNAL_H_RESULT:-n/a}
+
+**CWE checklist (§2.5.2):**
+$CWE_CHECKLIST_ANSWERS
+
+**Reasoning:** $APPLICABILITY_REASONING
+
+If this issue carries the \`needs-human-review\` label, the skill could not autonomously dismiss. Maintainer review: either (a) fix the flagged code, then close this issue; or (b) dismiss the linked code-scanning alert with the appropriate reason (\`false positive\` / \`used in tests\` / \`won't fix\`) and close this issue with a comment naming the reason.
+
+**Force-review rule classes** (cert/TLS bypass, injection, hardcoded secrets non-test, auth/authz, RCE/deserialization, path traversal) ALWAYS route here — the skill never auto-dismisses them, even when its analysis says "looks fine."
+
+## Why this issue exists
+
+Triaged by the \`triage-security\` skill. The code-scanning alert remains open as the source of truth; this issue tracks the in-repo work to fix or formally dismiss it.
+EOF
+)")
+```
 
 # `gh issue create` does NOT support `--jq` (that flag is `gh api`-only).
 # The command prints the new issue URL on stdout already, so the command
@@ -1127,37 +1640,61 @@ A naive `exit 1 if any skip` rule would fire on every run for any repo carrying 
 End with a single stdout block summarising the run:
 
 ```
-=== triage-dependabot summary for $REPO ===
-Alerts seen:        $N_ALERTS
-Processed:          $N_PROCESS                # respects --limit
-Dismissed (DEV, not_used):     $N_DISMISSED_DEV
-Dismissed (PROD-not-applic, inaccurate, high-conf): $N_DISMISSED_INACCURATE
-Audit-trail issues opened (closed):  $N_AUDIT_ISSUES   # 1 per dismissal — symmetric across not_used + inaccurate
-Issue opened (PROD-applicable, high-conf):  $N_OPENED_APPLICABLE
-Issue opened (needs-human-review):  $N_OPENED_REVIEW   # moderate or low confidence
+=== triage-security summary for $REPO ===
+Source(s):          $SOURCE                       # dependabot | code-scanning | both
+Alerts seen:        $N_ALERTS (dependabot=$N_DB, code-scanning=$N_CS)
+Processed:          $N_PROCESS                    # respects --limit
+
+— Dependabot —
+Dismissed (DEV, not_used):                    $N_DISMISSED_DEV
+Dismissed (PROD-not-applic, inaccurate):      $N_DISMISSED_INACCURATE
+Issue opened (PROD-applicable, high-conf):    $N_OPENED_APPLICABLE_DB
+Issue opened (needs-human-review):            $N_OPENED_REVIEW_DB
+
+— Code Scanning —
+Dismissed (TEST-ONLY, used in tests):         $N_DISMISSED_CS_TEST
+Dismissed (false positive, high-conf):        $N_DISMISSED_CS_FP
+Issue opened (PROD-applicable):               $N_OPENED_APPLICABLE_CS
+Issue opened (needs-human-review):            $N_OPENED_REVIEW_CS
+  — incl. force-review (RULE_HUMAN_REVIEW_PATTERNS match): $N_FORCE_REVIEW
+
+— Shared —
+Audit-trail issues opened (closed):  $N_AUDIT_ISSUES   # 1 per dismissal across both sources
 Skipped (non-pip):              $N_SKIPPED_ECOSYSTEM   # informational, no exit-code impact
+Skipped (stale-alert):          $N_SKIPPED_STALE       # code-scanning alert against deleted file
 Skipped (unclassifiable):       $N_SKIPPED_UNCLASS     # exits 1 if > 0
 
-Dismissed alerts:
-  #123 PyYAML       GHSA-... (not_used, test-only: tests/helpers/yaml_loader.py)
-  #124 urllib3      GHSA-... (inaccurate, high-conf: CWE-200 Q1 absent, symbol grep 0 hits)
+Dismissed Dependabot alerts:
+  #123 PyYAML       GHSA-... (not_used)
+  #124 urllib3      GHSA-... (inaccurate, high-conf)
+  ...
+
+Dismissed Code-scanning alerts:
+  #45  python/reDOS         tests/test_url.py:88 (used in tests)
+  #51  python/HardcodedNon… autonomy/util.py:142 (false positive, cli-tool high-conf)
   ...
 
 Opened issues:
-  #456 https://github.com/owner/repo/issues/456  GHSA-... cryptography (high-conf applicable)
-  #457 https://github.com/owner/repo/issues/457  GHSA-... requests    (moderate-conf, needs-human-review)
+  #456 …/issues/456  GHSA-... cryptography     (high-conf applicable, Dependabot)
+  #457 …/issues/457  GHSA-... requests         (moderate-conf, needs-human-review, Dependabot)
+  #460 …/issues/460  python/SSLVerificationBy… (force-review, Code Scanning)
   ...
 
 Skipped — non-pip ecosystem (informational):
   #654 GHSA-... docker-image (ecosystem=docker)
   ...
 
+Skipped — stale code-scanning alerts (file deleted):
+  #88  python/unused-import tests/legacy/old.py (file no longer exists)
+  ...
+
 Skipped — unclassifiable (review manually):
   #789 GHSA-... obscure-pkg — no imports found, scope=unknown
+  #92  python/SomeRule scripts/odd.py (outside both PROD_DIRS and TEST_DIRS)
   ...
 ```
 
-The `needs-human-review` bucket is the primary signal that the skill's confidence model is calibrated correctly: if it grows over time, the §2.5.2 CWE checklist or the §2.5.4 symbol-trace heuristics need more coverage. Track this across runs.
+The `needs-human-review` bucket is the primary calibration signal: if it grows over time, either the §2.5.2 CWE checklist or the §0.2 `RULE_HUMAN_REVIEW_PATTERNS` list (for code-scanning) needs refinement.
 
 Exit code: `1` if `N_SKIPPED_UNCLASS > 0`, else `0`. `N_SKIPPED_ECOSYSTEM` never affects exit code.
 
@@ -1224,21 +1761,24 @@ done
 
 ## Hard rules
 
-1. **Only act on `state=open` alerts.** Don't poke at already-dismissed alerts.
-2. **Skip non-pip ecosystems.** GitHub Actions / Docker / npm alerts can appear on Valory repos (e.g. `.github/workflows/*.yml` action pins) — flag them for manual review.
-3. **Conservative default: when uncertain, open an issue, don't dismiss.** A false-positive issue costs one `gh issue close` command; a false-negative dismissal costs a quietly-shipped CVE. The §2.5.6 confidence tier and §2.5.6b structural-impossibility check together formalize this — only `high` confidence + (cli-tool OR framework-with-§2.5.6b-passes) dismisses autonomously. Everything else routes to `needs-human-review`.
-4. **Two dismissal reasons, strict criteria per archetype.** Both share a uniform audit-trail requirement.
-   - `not_used` — Phase 2.4 Signal C proved the package is reachable only from test/dev paths. Comment names the test/dev files. No confidence tier required (the import-graph evidence is direct).
-   - `inaccurate` — Phase 2.5 proved the CVE's threat-model preconditions are absent **AND Phase 2.5.6 returned `high` confidence**, AND either (a) archetype is `cli-tool`, OR (b) archetype is `framework` / `scaffold` AND §2.5.6b structural-impossibility passes all three conditions (symbol-grep definitive zero, all imports orthogonal, no public API forwards external input to vulnerable subsystem). On `moderate` / `low` confidence OR framework/scaffold with §2.5.6b failing, do not dismiss — open an issue tagged `needs-human-review` instead.
+1. **Only act on `state=open` alerts.** Don't poke at already-dismissed alerts (except in `--rerun-dismissed` Dependabot-only read-only mode).
+2. **Skip non-pip Dependabot ecosystems.** GitHub Actions / Docker / npm alerts can appear (e.g. `.github/workflows/*.yml` action pins) — flag them for manual review. The skill is Python-only by current scope.
+3. **Conservative default: when uncertain, open an issue, don't dismiss.** A false-positive issue costs one `gh issue close` command; a false-negative dismissal costs a quietly-shipped vuln. The §2.5.6 confidence tier, §2.5.6b structural-impossibility check, and §0.2 `RULE_HUMAN_REVIEW_PATTERNS` list together formalize this — only `high` confidence + (cli-tool / framework-with-§2.5.6b-passes / file-in-tests/) dismisses autonomously, and code-scanning alerts matching `RULE_HUMAN_REVIEW_PATTERNS` always route to human review regardless of confidence.
+4. **Four dismissal reasons, strict criteria.** All share a uniform audit-trail requirement.
+   - **Dependabot `not_used`** — Phase 2.4 Signal C proved the package is reachable only from test/dev paths. Comment names the test/dev files. No confidence tier required.
+   - **Dependabot `inaccurate`** — Phase 2.5 proved CVE preconditions absent **AND Phase 2.5.6 returned `high` confidence**, AND either (a) archetype is `cli-tool`, OR (b) archetype is `framework` / `scaffold` AND §2.5.6b structural-impossibility passes all three conditions.
+   - **Code-scanning `used in tests`** — Signal F (§2.cs.1) placed the flagged file under `TEST_DIRS` / `PKG_TEST_DIRS`. No §2.5 needed.
+   - **Code-scanning `false positive`** — Phase 2.5 ruled preconditions absent **AND Phase 2.5.6 returned `high` confidence**, AND archetype is `cli-tool`, AND rule does NOT match `RULE_HUMAN_REVIEW_PATTERNS`, AND Signal G (force-review) did not fire. Framework / scaffold / service archetypes never reach this path — code-scanning alerts on consumer-facing or service code always route to human review.
 
-   **Required side-effect (BOTH reasons): open a closed audit-trail issue (§3.1c) BEFORE the dismissal, and embed the audit URL in the dismissed_comment.** The audit issue body adapts to the reason — Signal C evidence for `not_used`, full §2.5 analysis for `inaccurate`. The 280-char comment alone is never a complete audit trail; the closed audit issue is. Uniform audit-issue creation means `gh issue list --label security-audit` returns every dismissal, regardless of reason.
+   **Required side-effect (ALL FOUR reasons): open a closed audit-trail issue (§3.1c) BEFORE the dismissal, and embed the audit URL in the dismissed_comment.** The audit issue body adapts to the reason. The 280-char comment alone is never a complete audit trail; the closed audit issue is. Uniform audit-issue creation means `gh issue list --label security-audit` returns every dismissal regardless of source or reason.
 
-   Never use `tolerable_risk` / `fix_started` / `no_bandwidth` — those need human cost/benefit calls the skill never has the context for.
-5. **Dedupe before opening.** Search existing open issues by GHSA ID; never spam duplicates on repeat runs.
-6. **Don't dismiss with no evidence.** Skip + log if neither prod nor test imports are found and the manifest is silent.
-7. **Print stderr lines for skips.** The summary table is for the actor; the per-alert skip lines are for the human reviewer paginating through stderr.
-8. **Exit non-zero only if an alert was skipped as `unclassifiable`.** `non-pip-ecosystem` skips are expected and informational — exiting on them would fire on every run for any repo carrying a Docker / npm / GitHub Actions alert, breaking cron wrappers.
-9. **Rerun-dismissed mode is strictly read-only.** Under `--rerun-dismissed`, the skill MAY NOT call `gh api -X PATCH` or `gh issue create`. Its only output is the verdict-drift report to stdout. A human dismissal is a human decision; the skill's job is to surface drift, not override the call.
+   **Never use `tolerable_risk` (Dependabot) or `won't fix` (code-scanning) or `fix_started` / `no_bandwidth`.** Those are human risk-accept calls — the skill never has the context to make them.
+5. **`RULE_HUMAN_REVIEW_PATTERNS` (code-scanning) is absolute.** When a code-scanning alert's `rule.id` matches a pattern in the list (§0.2), the skill bypasses §2.5 entirely and opens an issue with `needs-human-review`. **Never auto-dismiss this rule class**, regardless of how clean the confidence-tier analysis looks. These are bug classes where false-negative dismissal cost is too high (cert/TLS bypass, injection in prod, hardcoded secrets non-test, auth/authz, RCE/deserialization, path traversal).
+6. **Dedupe before opening.** Search existing open issues by GHSA ID (Dependabot) or rule.id + file:line (code-scanning); never spam duplicates on repeat runs.
+7. **Don't dismiss with no evidence.** Skip + log if neither prod nor test signals are conclusive.
+8. **Print stderr lines for skips.** The summary table is for the actor; the per-alert skip lines are for the human reviewer paginating through stderr.
+9. **Exit non-zero only if an alert was skipped as `unclassifiable`.** `non-pip-ecosystem` and `stale-alert` skips are expected and informational — exiting on them would fire on every run, breaking cron wrappers.
+10. **Rerun-dismissed mode is Dependabot-only AND strictly read-only.** Under `--rerun-dismissed`, the skill MAY NOT call `gh api -X PATCH` or `gh issue create`. Its only output is the verdict-drift report to stdout. Code-scanning dismissals are never re-evaluated (final-call assumption — see Phase 1 argv validation).
 
 ---
 
@@ -1246,20 +1786,23 @@ done
 
 | Surface | What changes |
 | ------- | ------------ |
-| (rerun-dismissed mode) | Nothing — read-only verdict-drift report to stdout |
-| Dependabot alerts — DEV-only path | `state=dismissed`; `dismissed_reason=not_used`; comment includes the test/dev paths the scan found |
-| Dependabot alerts — PROD-but-not-applicable, **cli-tool + high confidence** OR **framework/scaffold + high confidence + §2.5.6b passes** | `state=dismissed`; `dismissed_reason=inaccurate`; comment carries one-line summary + URL pointer to the audit issue |
-| Closed audit-trail issues — one per dismissal (both `not_used` and `inaccurate`) | New issues opened **and immediately closed** with title `[Security-audit][closed] <pkg> #<n> (<ghsa>) — <reason>`, label `security,dependabot,triage-dependabot,security-audit`. Body adapts to the reason — Signal C evidence for `not_used`, full §2.5 analysis for `inaccurate`. Permanent record; never edited by the skill. Searchable via `gh issue list --state closed --label security-audit`. |
-| Repo issues — PROD-applicable | New issues opened with title `[Security][<sev>] <pkg>: <short summary>` (GHSA in body, not title), labels `security,dependabot,triage-dependabot`, body containing alert URL + prod import paths + **exploit-surface analysis with CWE-checklist answers, vulnerable-symbol trace, confidence tier, and (for framework/scaffold) §2.5.6b result** + suggested fix |
-| Repo issues — PROD-not-applicable but autonomous-dismissal gate not met (moderate/low confidence, OR framework/scaffold with §2.5.6b failing) | Same as above, **additionally labeled `needs-human-review`**. Dependabot alert NOT dismissed — the maintainer makes the final call. |
+| (rerun-dismissed mode, Dependabot-only) | Nothing — read-only verdict-drift report to stdout |
+| **Dependabot** alerts — DEV-only path (Signal C) | `state=dismissed`; `dismissed_reason=not_used`; comment carries one-line summary + audit issue URL |
+| **Dependabot** alerts — PROD-but-not-applicable, cli-tool/framework-with-§2.5.6b + high confidence | `state=dismissed`; `dismissed_reason=inaccurate`; comment carries one-line summary + audit issue URL |
+| **Code-scanning** alerts — file under TEST_DIRS / PKG_TEST_DIRS (Signal F) | `state=dismissed`; `dismissed_reason=used in tests`; comment carries file:line + audit issue URL |
+| **Code-scanning** alerts — false positive, cli-tool + high confidence + rule NOT in `RULE_HUMAN_REVIEW_PATTERNS` | `state=dismissed`; `dismissed_reason=false positive`; comment carries failing Q + Signal H result + audit issue URL |
+| Closed audit-trail issues — one per dismissal across both sources | New issues opened **and immediately closed** with title `[Security-audit][closed] …`, labels `security,dependabot,triage-security,security-audit`. Body adapts by reason (Signal C / Signal F / full §2.5). Permanent record; searchable via `gh issue list --state closed --label security-audit`. |
+| Repo issues — Dependabot PROD-applicable | New issue, title `[Security][<sev>] <pkg>: <summary>`, labels `security,dependabot,triage-security`, body carries exploit-surface analysis + suggested fix |
+| Repo issues — Code-scanning APPLICABLE / force-review | New issue, title `[Security][<sev>] <rule.id>: <file>:<line>`, labels `security,code-scanning,triage-security`, body carries flagged-code snippet + rule description + Signal H + analysis |
+| Repo issues — PROD-not-applicable but autonomous-dismissal gate not met (moderate/low confidence, framework/scaffold with §2.5.6b failing, OR code-scanning RULE_HUMAN_REVIEW_PATTERNS match) | Same as above, **additionally labeled `needs-human-review`**. Underlying alert NOT dismissed — the maintainer makes the final call. |
 | Repo issues (existing) | Skipped via dedupe (no edit) |
-| Labels | First-run idempotent creation of `security`, `dependabot`, `triage-dependabot`, `needs-human-review` |
+| Labels | First-run idempotent creation of `security`, `dependabot`, `code-scanning`, `triage-security`, `needs-human-review`, `security-audit` |
 | Working tree | Nothing — the skill only mutates GitHub state, not files |
 
 ---
 
 ## When NOT to run this skill
 
-- The repo has Dependabot disabled — exit cleanly at Phase 0.
-- You're partway through `/bump-versions` and `pyproject.toml` is in flight — the classification logic reads pyproject as source of truth; mid-bump state could misclassify. Finish the bump first, then triage.
-- The repo has ecosystems beyond pip (Docker, npm, GitHub Actions) that you want triaged — current skill scope is pip only. Extending to other ecosystems means new import-graph resolvers and per-ecosystem prod/test path conventions.
+- Neither Dependabot nor code-scanning is enabled on the repo — exits cleanly at Phase 0.
+- You're partway through `/bump-versions` and `pyproject.toml` is in flight — the Dependabot classification reads pyproject as source of truth; mid-bump state could misclassify. Finish the bump first, then triage.
+- The repo has Dependabot ecosystems beyond pip (Docker, npm, GitHub Actions) that you want triaged — current skill scope is pip-only on the Dependabot side. Code scanning is tool-agnostic (works for any tool that emits to `/code-scanning/alerts`).
