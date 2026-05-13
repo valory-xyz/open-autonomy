@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,10 +19,12 @@
 """FSM spec helpers."""
 
 import importlib
+import json
+import logging
 import os
 from pathlib import Path
 from types import ModuleType
-from typing import Optional, cast
+from typing import Optional, Set, cast
 
 import click
 
@@ -32,6 +34,51 @@ from autonomy.analyse.abci.app_spec import (
     FSMSpecificationLoader,
     check_unreferenced_events,
 )
+
+
+def _load_dev_skill_names(package_path: Path) -> Optional[Set[str]]:
+    """Discover the repo's ``packages.json`` and extract dev skill names.
+
+    Walks parents of ``package_path`` looking for a directory called
+    ``packages`` containing ``packages.json``. The dev section's keys have
+    the shape ``skill/<author>/<skill_name>/<version>``; we return the set
+    of ``<skill_name>`` values. Returns ``None`` if no ``packages.json``
+    is found, in which case the Mermaid dump falls back to the flat
+    per-round diagram (no collapsing).
+
+    :param package_path: Path to the package being analysed.
+    :return: Set of dev skill names, or ``None`` if no ``packages.json`` found.
+    """
+    current = package_path.resolve()
+    while current != current.parent:
+        if current.name == "packages" and (current / "packages.json").is_file():
+            packages_json = current / "packages.json"
+            try:
+                data = json.loads(packages_json.read_text(encoding="utf-8"))
+            except OSError as exc:
+                logging.warning(
+                    "Cannot read packages.json at %s: %s", packages_json, exc
+                )
+                return None
+            except json.JSONDecodeError as exc:
+                logging.warning("Malformed packages.json at %s: %s", packages_json, exc)
+                return None
+            # Real keys are 4-segment: skill/<author>/<skill_name>/<version>.
+            return {
+                key.split("/")[2]
+                for key in data.get("dev", {})
+                if key.startswith("skill/")
+                and len(key.split("/")) >= 4
+                and key.split("/")[1]
+                and key.split("/")[2]
+            }
+        current = current.parent
+    logging.debug(
+        "No packages.json found walking parents of %s; "
+        "composition-aware view unavailable",
+        package_path,
+    )
+    return None
 
 
 def import_and_validate_app_class(module_path: Path, app_class: str) -> ModuleType:
@@ -97,6 +144,8 @@ def update_one(
         dfa,
         spec_file,
         spec_format,
+        abci_app_cls=abci_app_class,
+        dev_skills=_load_dev_skill_names(package_path),
     )
 
 
