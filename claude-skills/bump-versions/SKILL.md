@@ -23,8 +23,11 @@ Run these in parallel before doing anything else:
 # 1. Confirm the current cwd is a Valory downstream repo (must have pyproject.toml + packages/packages.json)
 test -f pyproject.toml && test -f packages/packages.json && echo "OK: looks like a downstream repo"
 
-# 2. Current pins — read pyproject.toml's [project] dependencies block
-grep -E "^\s*\"open-(autonomy|aea)" pyproject.toml
+# 2. Current pins — match both layouts:
+#    - PEP 621 / uv:  dependencies = ["open-autonomy[cli]==X", ...]   (leading quote)
+#    - Poetry:        open-aea = {version = "==X", extras = [...]}     (bare key)
+#    A PEP-621-only pattern silently no-ops on Poetry downstreams.
+grep -E "^\s*(\"open-(autonomy|aea)|open-(autonomy|aea)[A-Za-z0-9_-]*\s*=)" pyproject.toml
 
 # 3. Upstream pins listed for sync-only repos (read the whole [tool.tomte] block)
 sed -n '/^\[tool\.tomte\]/,/^\[/p' pyproject.toml | grep -A100 "^upstream_pins"
@@ -57,7 +60,14 @@ gh api repos/valory-xyz/open-autonomy/releases/latest --jq '.tag_name'
 gh api repos/valory-xyz/open-aea/releases/latest --jq '.tag_name'
 ```
 
-Set `NEW_OA` (e.g. `0.21.20`) and `NEW_OAEA` (e.g. `2.2.3`). If they equal the current pins, **stop and tell the user** — there's nothing to bump.
+Set `NEW_OA` (e.g. `0.21.20`) and `NEW_OAEA` (e.g. `2.2.3`). If they equal the current pins, **stop**: prose-only guidance silently sails past a no-op run and produces a "touched lockfile / re-formatted `packages.json`" PR for zero version change. Gate the rest of the skill on a real diff:
+
+```bash
+if [[ "$NEW_OA" == "$CUR_OA" && "$NEW_OAEA" == "$CUR_OAEA" ]]; then
+  echo "Already at latest (open-autonomy==$CUR_OA, open-aea==$CUR_OAEA). Nothing to bump."
+  exit 0
+fi
+```
 
 ### 1.1 Resolve plugin coupling
 
@@ -100,7 +110,26 @@ gh api "repos/valory-xyz/open-autonomy/contents/pyproject.toml?ref=v$NEW_OA" \
 base64 -d "$TMP/oa_pyproject.b64" | grep -E '^[[:space:]]*open-aea[[:space:]]*='
 ```
 
-If OA `v$NEW_OA` pins a different OAEA version than the user asked for, **trust OA's pin** and override `NEW_OAEA` to match. A mismatch will fail `tox -e check-dependencies` and `autonomy packages sync` later.
+If OA `v$NEW_OA` pins a different OAEA version than the user asked for, **trust OA's pin** and override `NEW_OAEA`. A printed pin line that's only inspected by eye will scroll past in a Claude-driven run — extract, compare, and override programmatically so the mismatch can't reach Phase 3+:
+
+```bash
+OA_PINNED_OAEA=$(
+  base64 -d "$TMP/oa_pyproject.b64" \
+    | grep -E '^[[:space:]]*open-aea[[:space:]]*=' \
+    | grep -oE '==[0-9]+\.[0-9]+\.[0-9]+' \
+    | head -1 \
+    | sed 's/^==//'
+)
+if [[ -z "$OA_PINNED_OAEA" ]]; then
+  echo "ERROR: could not extract open-aea pin from OA pyproject.toml@v$NEW_OA"; exit 1
+fi
+if [[ "$OA_PINNED_OAEA" != "$NEW_OAEA" ]]; then
+  echo "WARNING: OA v$NEW_OA pins open-aea==$OA_PINNED_OAEA; you asked for $NEW_OAEA — overriding to OA's pin."
+  NEW_OAEA="$OA_PINNED_OAEA"
+fi
+```
+
+A mismatch left in place would fail `tox -e check-dependencies` and `autonomy packages sync` hundreds of lines later, with a stack trace that doesn't name Phase 1.2 as the root cause.
 
 ### 1.3 Resolve upstream-repo tags (sync-only repos)
 
@@ -325,7 +354,7 @@ These are easy to miss; sweep them explicitly:
 - `mkdocs.yml` env_vars and template strings
 - `setup.py` if the repo still ships one alongside `pyproject.toml`
 
-If `grep -rn "$CUR_OA\b"` (no `==` prefix) returns hits in non-code paths (READMEs, badges, CHANGELOGs), update those too **when** they're describing the supported version. Don't touch historical changelog entries.
+If `grep -rnE "${CUR_OA}([^0-9]|$)"` (no `==` prefix) returns hits in non-code paths (READMEs, badges, CHANGELOGs), update those too **when** they're describing the supported version. Don't touch historical changelog entries.
 
 ---
 
@@ -361,11 +390,12 @@ Do **not** edit:
 For each change, write the smallest diff that satisfies the guide. Examples of common shapes:
 
 ```python
-# OAEA 2.x: BaseSkillTestCase.setup() → setup_method()
+# OAEA 2.x: BaseSkillTestCase.setup() → setup_method() — rename def AND the super() call site.
 class TestMyBehaviour(BaseSkillTestCase):
 -    def setup(self) -> None:
+-        super().setup()
 +    def setup_method(self) -> None:
-         super().setup_method()
++        super().setup_method()
          ...
 ```
 
@@ -401,7 +431,7 @@ Fetch each upstream's `packages.json` straight from GitHub via `gh api` (same pa
 python3 <<'PY'
 import json, subprocess
 
-local = json.load(open('packages/packages.json'))['third_party']
+local = json.load(open('packages/packages.json')).get('third_party', {})
 
 # (repo, ref) for [tool.tomte] upstream_pins + the two frameworks.
 UPSTREAMS = [
@@ -503,18 +533,20 @@ fi
 echo "using TOX=$TOX"
 ```
 
+**Ordering rule** (per open-autonomy `CLAUDE.md`): `autonomy packages lock` runs **once, at the end**, after every other edit/lint/format step has settled. Locking earlier is wasted work — any subsequent formatter-triggered rewrite under `packages/` re-dirties the fingerprints and forces a re-lock anyway.
+
 ```bash
 # 1. Regenerate the lockfile and install
 uv lock
 uv sync --all-groups
 
-# 2. Re-lock packages (third-party hashes cascade into dev fingerprints)
-autonomy packages lock
-
-# 3. Auto-format (some pin changes trip isort/black)
+# 2. Auto-format first (some pin changes trip isort/black, which would otherwise dirty
+#    packages/ after a too-early `autonomy packages lock`)
 $TOX -e black
 $TOX -e isort
-# Re-run `autonomy packages lock` if anything under packages/ was reformatted
+
+# 3. Lock once, after all edits have settled (third-party hashes cascade into dev fingerprints)
+autonomy packages lock
 
 # 4. Verify lock + format
 $TOX -e black-check
