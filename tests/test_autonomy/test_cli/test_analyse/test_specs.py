@@ -21,12 +21,15 @@
 
 import copy
 import importlib
+import json
+import logging
 import os
 import re
 import shutil
+import warnings
 from enum import Enum
 from pathlib import Path
-from typing import Tuple, cast
+from typing import Any, Dict, Set, Tuple, cast
 from unittest import mock
 
 import pytest
@@ -42,6 +45,7 @@ from autonomy.analyse.abci.app_spec import (
     FSMSpecificationLoader,
     check_unreferenced_events,
 )
+from autonomy.cli.helpers.fsm_spec import _load_dev_skill_names
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
@@ -503,3 +507,527 @@ class TestDFA:
                     ("StateARound", "event_b"): "StateBRoun",
                 },
             )
+
+
+def _make_mock_round(name: str, module: str) -> Any:
+    """Create a mock round class with __name__ and __module__."""
+    cls = type(name, (), {"__module__": module})
+    return cls
+
+
+class _MockAbciApp:
+    """Minimal mock matching the _AbciAppLike protocol."""
+
+    transition_function: Dict[Any, Dict[Any, Any]] = {}
+    initial_states: Set[Any] = set()
+    final_states: Set[Any] = set()
+
+
+class TestExtractSkillName:
+    """Test ``_extract_skill_name``."""
+
+    def test_standard_module_path(self) -> None:
+        """Standard packages path returns the skill name."""
+        result = FSMSpecificationLoader._extract_skill_name(
+            "packages.valory.skills.market_manager_abci.rounds"
+        )
+        assert result == "market_manager_abci"
+
+    def test_no_skills_segment(self) -> None:
+        """Path without a skills segment returns None."""
+        assert FSMSpecificationLoader._extract_skill_name("some.other.module") is None
+
+    def test_skills_at_end(self) -> None:
+        """Path ending with 'skills' (no segment after) returns None."""
+        assert (
+            FSMSpecificationLoader._extract_skill_name("packages.valory.skills") is None
+        )
+
+    def test_empty_string(self) -> None:
+        """Empty string returns None."""
+        assert FSMSpecificationLoader._extract_skill_name("") is None
+
+
+class TestBuildRoundToSubapp:
+    """Test ``_build_round_to_subapp``."""
+
+    def test_none_returns_empty(self) -> None:
+        """Passing None returns an empty dict."""
+        assert FSMSpecificationLoader._build_round_to_subapp(None) == {}
+
+    def test_basic_mapping(self) -> None:
+        """Rounds are mapped to their owning sub-app."""
+        round_a = _make_mock_round(
+            "RoundARound", "packages.valory.skills.skill_a.rounds"
+        )
+        round_b = _make_mock_round(
+            "RoundBRound", "packages.valory.skills.skill_b.rounds"
+        )
+
+        class MockApp(_MockAbciApp):
+            """Mock composed app."""
+
+            transition_function = {round_a: {}}
+            initial_states = {round_a}
+            final_states = {round_b}
+
+        result = FSMSpecificationLoader._build_round_to_subapp(MockApp)
+        assert result == {"RoundARound": "skill_a", "RoundBRound": "skill_b"}
+
+    def test_collision_warning(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Name collision logs a warning."""
+        round_a = _make_mock_round(
+            "SharedRound", "packages.valory.skills.skill_a.rounds"
+        )
+        round_b = _make_mock_round(
+            "SharedRound", "packages.valory.skills.skill_b.rounds"
+        )
+
+        class MockApp(_MockAbciApp):
+            """Mock composed app with collision."""
+
+            transition_function = {round_a: {round_b: round_b}}
+            initial_states = set()
+            final_states = set()
+
+        with caplog.at_level(logging.WARNING):
+            FSMSpecificationLoader._build_round_to_subapp(MockApp)
+
+        assert "Round name collision" in caplog.text
+        assert "SharedRound" in caplog.text
+
+    def test_unclassified_warning(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Rounds without a skills segment log a warning."""
+        round_cls = _make_mock_round("WeirdRound", "some.random.module")
+
+        class MockApp(_MockAbciApp):
+            """Mock with unclassified round."""
+
+            transition_function = {round_cls: {}}
+            initial_states = set()
+            final_states = set()
+
+        with caplog.at_level(logging.WARNING):
+            result = FSMSpecificationLoader._build_round_to_subapp(MockApp)
+
+        assert len(result) == 0
+        assert "Unclassified rounds" in caplog.text
+        assert "WeirdRound" in caplog.text
+
+
+class TestDumpMermaid:
+    """Test ``dump_mermaid`` and the composition-aware view."""
+
+    simple_dfa = DFA(
+        label="SimpleAbciApp",
+        states={"StateARound", "StateBRound", "StateCRound"},
+        default_start_state="StateARound",
+        start_states={"StateARound"},
+        final_states={"StateCRound"},
+        alphabet_in={"event_a", "event_b", "event_c"},
+        transition_func={
+            ("StateARound", "event_b"): "StateBRound",
+            ("StateBRound", "event_a"): "StateARound",
+            ("StateBRound", "event_c"): "StateCRound",
+        },
+    )
+
+    def test_mermaid_fence_wrapping(self, tmp_path: Path) -> None:
+        """Output is wrapped in a ```mermaid fence."""
+        out = tmp_path / "test.md"
+        FSMSpecificationLoader.dump_mermaid(self.simple_dfa, out)
+        content = out.read_text()
+        assert content.startswith("```mermaid\n")
+        assert content.rstrip().endswith("```")
+
+    def test_flat_diagram_when_no_abci_app(self, tmp_path: Path) -> None:
+        """Flat diagram when abci_app_cls is None (per-skill analysis)."""
+        out = tmp_path / "test.md"
+        FSMSpecificationLoader.dump_mermaid(self.simple_dfa, out)
+        content = out.read_text()
+        assert "stateDiagram-v2" in content
+        assert "StateARound" in content
+        assert "StateBRound" in content
+        # No composite state blocks
+        assert "state " not in content.replace("stateDiagram", "")
+
+    def test_flat_when_dev_skills_empty(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Flat diagram when dev_skills is empty set."""
+        round_a = _make_mock_round(
+            "StateARound", "packages.valory.skills.skill_a.rounds"
+        )
+        round_b = _make_mock_round(
+            "StateBRound", "packages.valory.skills.skill_b.rounds"
+        )
+
+        class MockApp(_MockAbciApp):
+            """Mock app."""
+
+            transition_function = {round_a: {}, round_b: {}}
+            initial_states = {round_a}
+            final_states = {round_b}
+
+        out = tmp_path / "test.md"
+        with caplog.at_level(logging.INFO):
+            FSMSpecificationLoader.dump_mermaid(
+                self.simple_dfa, out, abci_app_cls=MockApp, dev_skills=set()
+            )
+        content = out.read_text()
+        # Should be flat (no composite state blocks)
+        assert "classDef devGroup" not in content
+        assert "Composition-aware view not available" in caplog.text
+
+    def test_flat_when_dev_skills_none(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Flat diagram when dev_skills is None."""
+        round_a = _make_mock_round(
+            "StateARound", "packages.valory.skills.skill_a.rounds"
+        )
+
+        class MockApp(_MockAbciApp):
+            """Mock app."""
+
+            transition_function = {round_a: {}}
+            initial_states = set()
+            final_states = set()
+
+        out = tmp_path / "test.md"
+        with caplog.at_level(logging.INFO):
+            FSMSpecificationLoader.dump_mermaid(
+                self.simple_dfa, out, abci_app_cls=MockApp, dev_skills=None
+            )
+        assert "Composition-aware view not available" in caplog.text
+
+    def test_flat_when_no_rounds_classifiable(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Flat diagram when every round's module lacks a `skills` segment."""
+        # No "skills" in module path -- _extract_skill_name returns None
+        # for every round, so round_to_subapp is empty.
+        round_a = _make_mock_round("StateARound", "some.other.module")
+        round_b = _make_mock_round("StateBRound", "some.other.module")
+
+        class MockApp(_MockAbciApp):
+            """Mock app with unclassifiable rounds."""
+
+            transition_function = {round_a: {object(): round_b}}
+            initial_states = {round_a}
+            final_states = set()
+
+        out = tmp_path / "test.md"
+        with caplog.at_level(logging.WARNING):
+            FSMSpecificationLoader.dump_mermaid(
+                self.simple_dfa,
+                out,
+                abci_app_cls=MockApp,
+                dev_skills={"some_skill"},
+            )
+        assert "no rounds could be classified by sub-app" in caplog.text
+
+    def test_flat_self_loop_preserved(self, tmp_path: Path) -> None:
+        """Legitimate self-loops are preserved in flat mode."""
+        dfa = DFA(
+            label="LoopAbciApp",
+            states={"StateARound", "StateBRound"},
+            default_start_state="StateARound",
+            start_states={"StateARound"},
+            final_states={"StateBRound"},
+            alphabet_in={"retry", "done"},
+            transition_func={
+                ("StateARound", "retry"): "StateARound",
+                ("StateARound", "done"): "StateBRound",
+            },
+        )
+        out = tmp_path / "test.md"
+        FSMSpecificationLoader.dump_mermaid(dfa, out)
+        content = out.read_text()
+        assert "StateARound --> StateARound" in content
+
+    def test_post_collapse_self_loop_dropped(self, tmp_path: Path) -> None:
+        """Intra-third-party transitions collapse to a self-loop and are dropped."""
+        # Two rounds in the SAME third-party sub-app, connected by a
+        # transition.  After _display collapses both to the sub-app name,
+        # the resulting (X, X) self-loop must be dropped.
+        round_a = _make_mock_round(
+            "TpARound", "packages.valory.skills.tp_skill_abci.rounds"
+        )
+        round_b = _make_mock_round(
+            "TpBRound", "packages.valory.skills.tp_skill_abci.rounds"
+        )
+        round_dev = _make_mock_round(
+            "DevRound", "packages.valory.skills.dev_skill_abci.rounds"
+        )
+        round_dev2 = _make_mock_round(
+            "DevTwoRound", "packages.valory.skills.dev_skill_abci.rounds"
+        )
+
+        class MockApp(_MockAbciApp):
+            """Mock composed app."""
+
+            transition_function = {
+                round_a: {object(): round_b},
+                round_b: {object(): round_dev},
+                round_dev: {object(): round_dev2},
+                round_dev2: {object(): round_a},
+            }
+            initial_states = {round_dev}
+            final_states = set()
+
+        dfa = DFA(
+            label="ComposedAbciApp",
+            states={"TpARound", "TpBRound", "DevRound", "DevTwoRound"},
+            default_start_state="DevRound",
+            start_states={"DevRound"},
+            final_states=set(),
+            alphabet_in={"ev_ab", "ev_bd", "ev_dd", "ev_da"},
+            transition_func={
+                ("TpARound", "ev_ab"): "TpBRound",
+                ("TpBRound", "ev_bd"): "DevRound",
+                ("DevRound", "ev_dd"): "DevTwoRound",
+                ("DevTwoRound", "ev_da"): "TpARound",
+            },
+        )
+
+        out = tmp_path / "test.md"
+        FSMSpecificationLoader.dump_mermaid(
+            dfa,
+            out,
+            abci_app_cls=MockApp,
+            dev_skills={"dev_skill_abci"},
+        )
+        content = out.read_text()
+        # The TpARound -> TpBRound edge collapses to tp_skill_abci -> tp_skill_abci
+        # and must be dropped (no top-level self-loop).
+        assert "tp_skill_abci --> tp_skill_abci" not in content
+
+    def test_composition_view(self, tmp_path: Path) -> None:
+        """Composition-aware view separates dev and third-party sub-apps."""
+        round_a = _make_mock_round(
+            "RoundARound", "packages.valory.skills.dev_skill_abci.rounds"
+        )
+        round_b = _make_mock_round(
+            "RoundBRound", "packages.valory.skills.dev_skill_abci.rounds"
+        )
+        round_c = _make_mock_round(
+            "RoundCRound", "packages.valory.skills.tp_skill_abci.rounds"
+        )
+        round_d = _make_mock_round(
+            "RoundDRound", "packages.valory.skills.tp_skill_abci.rounds"
+        )
+
+        class MockApp(_MockAbciApp):
+            """Mock composed app."""
+
+            transition_function = {
+                round_a: {object(): round_b},
+                round_b: {object(): round_c},
+                round_c: {object(): round_d},
+                round_d: {object(): round_a},
+            }
+            initial_states = {round_a}
+            final_states = set()
+
+        dfa = DFA(
+            label="ComposedAbciApp",
+            states={
+                "RoundARound",
+                "RoundBRound",
+                "RoundCRound",
+                "RoundDRound",
+            },
+            default_start_state="RoundARound",
+            start_states={"RoundARound"},
+            final_states=set(),
+            alphabet_in={"ev_ab", "ev_bc", "ev_cd", "ev_da"},
+            transition_func={
+                ("RoundARound", "ev_ab"): "RoundBRound",
+                ("RoundBRound", "ev_bc"): "RoundCRound",
+                ("RoundCRound", "ev_cd"): "RoundDRound",
+                ("RoundDRound", "ev_da"): "RoundARound",
+            },
+        )
+
+        out = tmp_path / "test.md"
+        FSMSpecificationLoader.dump_mermaid(
+            dfa,
+            out,
+            abci_app_cls=MockApp,
+            dev_skills={"dev_skill_abci"},
+        )
+        content = out.read_text()
+
+        # Dev sub-app is expanded with internal transitions
+        assert "state dev_skill_abci {" in content
+        assert "RoundARound --> RoundBRound" in content
+
+        # Third-party sub-app is collapsed with a hidden placeholder child
+        assert "state tp_skill_abci {" in content
+        assert "tp_skill_abci_hidden" in content
+        assert "classDef hiddenInner" in content
+
+        # Styling
+        assert "classDef devGroup" in content
+        assert "classDef macro" in content
+
+    def test_deterministic_output(self, tmp_path: Path) -> None:
+        """Output is deterministic across multiple runs."""
+        out1 = tmp_path / "run1.md"
+        out2 = tmp_path / "run2.md"
+        FSMSpecificationLoader.dump_mermaid(self.simple_dfa, out1)
+        FSMSpecificationLoader.dump_mermaid(self.simple_dfa, out2)
+        assert out1.read_text() == out2.read_text()
+
+    def test_deterministic_output_composition(self, tmp_path: Path) -> None:
+        """Composition-aware output is also deterministic across runs."""
+        rounds = {
+            name: _make_mock_round(name, f"packages.valory.skills.{sub}.rounds")
+            for name, sub in (
+                ("RoundARound", "dev_a_abci"),
+                ("RoundBRound", "dev_a_abci"),
+                ("RoundCRound", "dev_b_abci"),
+                ("RoundDRound", "dev_b_abci"),
+                ("RoundERound", "tp_a_abci"),
+                ("RoundFRound", "tp_b_abci"),
+            )
+        }
+
+        class MockApp(_MockAbciApp):
+            """Mock composed app spanning four sub-apps."""
+
+            transition_function = {
+                rounds["RoundARound"]: {object(): rounds["RoundBRound"]},
+                rounds["RoundBRound"]: {object(): rounds["RoundCRound"]},
+                rounds["RoundCRound"]: {object(): rounds["RoundDRound"]},
+                rounds["RoundDRound"]: {object(): rounds["RoundERound"]},
+                rounds["RoundERound"]: {object(): rounds["RoundFRound"]},
+                rounds["RoundFRound"]: {object(): rounds["RoundARound"]},
+            }
+            initial_states = {rounds["RoundARound"]}
+            final_states = set()
+
+        dfa = DFA(
+            label="ComposedAbciApp",
+            states=set(rounds),
+            default_start_state="RoundARound",
+            start_states={"RoundARound"},
+            final_states=set(),
+            alphabet_in={"ev1", "ev2", "ev3", "ev4", "ev5", "ev6"},
+            transition_func={
+                ("RoundARound", "ev1"): "RoundBRound",
+                ("RoundBRound", "ev2"): "RoundCRound",
+                ("RoundCRound", "ev3"): "RoundDRound",
+                ("RoundDRound", "ev4"): "RoundERound",
+                ("RoundERound", "ev5"): "RoundFRound",
+                ("RoundFRound", "ev6"): "RoundARound",
+            },
+        )
+
+        out1, out2 = tmp_path / "a.md", tmp_path / "b.md"
+        for out in (out1, out2):
+            FSMSpecificationLoader.dump_mermaid(
+                dfa,
+                out,
+                abci_app_cls=MockApp,
+                dev_skills={"dev_a_abci", "dev_b_abci"},
+            )
+        assert out1.read_text() == out2.read_text()
+
+
+class TestDumpJsonDeprecation:
+    """Test the JSON deprecation warning."""
+
+    def test_dump_json_deprecation_via_dump(self, tmp_path: Path) -> None:
+        """dump() with JSON format emits DeprecationWarning."""
+        dfa = DFA(
+            label="SimpleAbciApp",
+            states={"StateARound", "StateBRound"},
+            default_start_state="StateARound",
+            start_states={"StateARound"},
+            final_states={"StateBRound"},
+            alphabet_in={"event_a"},
+            transition_func={("StateARound", "event_a"): "StateBRound"},
+        )
+        out = tmp_path / "spec.json"
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            FSMSpecificationLoader.dump(
+                dfa, out, spec_format=FSMSpecificationLoader.OutputFormats.JSON
+            )
+        deprecation_warnings = [
+            x for x in w if issubclass(x.category, DeprecationWarning)
+        ]
+        assert len(deprecation_warnings) == 1
+        assert "deprecated" in str(deprecation_warnings[0].message).lower()
+
+
+class TestLoadDevSkillNames:
+    """Test ``_load_dev_skill_names``."""
+
+    def test_returns_none_when_no_packages_json(self, tmp_path: Path) -> None:
+        """Returns None when no packages.json is found."""
+        pkg = tmp_path / "packages" / "valory" / "skills" / "my_skill"
+        pkg.mkdir(parents=True)
+        assert _load_dev_skill_names(pkg) is None
+
+    def test_extracts_dev_skill_names(self, tmp_path: Path) -> None:
+        """Extracts dev skill names from packages.json."""
+        packages_dir = tmp_path / "packages"
+        packages_dir.mkdir()
+        packages_json = packages_dir / "packages.json"
+        packages_json.write_text(
+            json.dumps(
+                {
+                    "dev": {
+                        "skill/valory/my_skill_abci/0.1.0": "hash1",
+                        "skill/valory/other_skill_abci/0.1.0": "hash2",
+                        "protocol/valory/some_protocol/0.1.0": "hash3",
+                    },
+                    "third_party": {
+                        "skill/valory/tp_skill/0.1.0": "hash4",
+                    },
+                }
+            )
+        )
+        skill_path = packages_dir / "valory" / "skills" / "my_skill_abci"
+        skill_path.mkdir(parents=True)
+
+        result = _load_dev_skill_names(skill_path)
+        assert result == {"my_skill_abci", "other_skill_abci"}
+
+    def test_malformed_json_logs_warning(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Malformed packages.json logs a warning and returns None."""
+        packages_dir = tmp_path / "packages"
+        packages_dir.mkdir()
+        (packages_dir / "packages.json").write_text("{invalid json")
+        skill_path = packages_dir / "valory" / "skills" / "my_skill"
+        skill_path.mkdir(parents=True)
+
+        with caplog.at_level(logging.WARNING):
+            result = _load_dev_skill_names(skill_path)
+
+        assert result is None
+        assert "Malformed packages.json" in caplog.text
+
+    def test_unreadable_packages_json_logs_warning(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Unreadable packages.json (OSError) logs a warning and returns None."""
+        packages_dir = tmp_path / "packages"
+        packages_dir.mkdir()
+        (packages_dir / "packages.json").write_text("{}")
+        skill_path = packages_dir / "valory" / "skills" / "my_skill"
+        skill_path.mkdir(parents=True)
+
+        with caplog.at_level(logging.WARNING):
+            with mock.patch.object(
+                Path, "read_text", side_effect=OSError("permission denied")
+            ):
+                result = _load_dev_skill_names(skill_path)
+
+        assert result is None
+        assert "Cannot read packages.json" in caplog.text
