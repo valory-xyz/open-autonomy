@@ -12,7 +12,7 @@
 | contract/valory/service_registry/0.1.0                        | `bafybeidjbv3oywzzpdxztmy6sum3zjfnnsz6nnyajoou27jxgnsuenkfyi` |
 | contract/valory/gnosis_safe/0.1.0                             | `bafybeia4e324vsfkgsiiv2yxvwq7ztujsypwlexvwhzgvetaiqxagiloym` |
 | contract/valory/multisend/0.1.0                               | `bafybeifenpgnukb27cqm5mkyzevoujxrvlyh7mo6ilv3rpzd4w4qz622ve` |
-| contract/valory/erc20/0.1.0                                   | `bafybeif2ysfwm4spaly2v6lpph5igdbcnz6l4ycqwaufehh6nh3ijrqzcq` |
+| contract/valory/erc20/0.1.0                                   | `bafybeicipw6h7vzkqw4mnznihonjyqcquuzmx3liljycy6tfsvmxyjps5q` |
 | contract/valory/recovery_module/0.1.0                         | `bafybeiarpdwu7lwla7towi3kqvldugrbki6732csapdmca7d6v5byaeyb4` |
 | contract/valory/service_registry_token_utility/0.1.0          | `bafybeibffi2pqwsaj4doxqvkhv5y53sok224724fis7fml2o5azvxwahpq` |
 | contract/valory/squads_multisig/0.1.0                         | `bafybeifm6brr2h6o64rxdo5taaq6yycez7ffqu2jdcr3g7h2oov5m6a3uy` |
@@ -46,7 +46,7 @@
 | skill/valory/squads_transaction_settlement_abci/0.1.0         | `bafybeiduyj6hnm36yb7egwltr2wynqmoi5qssqb3zj43k3ewwn3qsykdie` |
 | skill/valory/test_solana_tx_abci/0.1.0                        | `bafybeicx5p27rsjounas2olguw7u7xfzboqsezthxt3nuwlpspvq75sh4e` |
 | skill/valory/identify_service_owner_abci/0.1.0                | `bafybeie42v5glfknprbfhc6jzpc7a4yyicok6dra3dd3266evts7lv57xi` |
-| skill/valory/funds_forwarder_abci/0.1.0                       | `bafybeih7eaya6ixtsq5455hr7wozeqi7zwlwcp65iv75acb3abosmva2be` |
+| skill/valory/funds_forwarder_abci/0.1.0                       | `bafybeibne5b6ybk7kyu5t65dlmyxqxdqrxmo2f3yspwzenb2gp6n4cn3py` |
 | agent/valory/test_ipfs/0.1.0                                  | `bafybeibig57ftaab46vonrz6tn3xpr2rkmiyxu7645l5unkiw6m76pnqei` |
 | agent/valory/abstract_abci/0.1.0                              | `bafybeihis4j24h7nrjko4d24hokfml4th6ijmxx3nowlb74unsenavy4ye` |
 | agent/valory/counter/0.1.0                                    | `bafybeiaaw7xkiqobwplsq6nv5tpdildize4norqfij6bwktxjd3blm76ce` |

@@ -285,7 +285,7 @@ class TestFundsForwarderBehaviour:
         [
             (
                 ContractApiMessage.Performative.STATE,
-                {"data": "0xabcdef"},
+                {"data": bytes.fromhex("abcdef")},
                 bytes.fromhex("abcdef"),
             ),
             (ContractApiMessage.Performative.ERROR, None, None),
