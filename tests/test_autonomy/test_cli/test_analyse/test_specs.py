@@ -759,34 +759,59 @@ class TestCheckUnreferencedEvents:
         errors = check_unreferenced_events(MockApp)
         assert any("MOCK_TX" in e for e in errors), errors
 
-    def test_event_enum_from_timeout_fallback(self) -> None:
-        """Event enum is recovered from ``event_to_timeout`` when transitions are empty."""
+    def test_composed_app_per_round_enum_resolution(self) -> None:
+        """Each round resolves its own enum (composed AbciApp regression)."""
 
-        class Event(Enum):
-            """Test enum."""
+        class EventA(Enum):
+            """Sub-app A's enum."""
 
             DONE = "DONE"
-            ROUND_TIMEOUT = "ROUND_TIMEOUT"
+            MOCK_TX = "MOCK_TX"
 
-        class Round:
-            """Round with no internal *_event references."""
+        class EventB(Enum):
+            """Sub-app B's enum -- distinct members from A."""
 
-            done_event = Event.DONE
+            DONE = "DONE"
+            FINALIZE = "FINALIZE"
 
-        # Transition function leaves a round entry with no events, so the
-        # enum cannot be recovered from there -- fall back to event_to_timeout.
-        class MockApp:
-            """Mock AbciApp."""
+        class RoundA:
+            """Round in sub-app A; end_block references EventA.MOCK_TX."""
 
-            transition_function: Dict[Any, Dict[Any, Any]] = {Round: {}}
-            event_to_timeout: Dict[Any, float] = {Event.ROUND_TIMEOUT: 30.0}
+            done_event = EventA.DONE
 
-        # The check should run without crashing and recover the enum from
-        # event_to_timeout (covering the timeout-fallback branch).
-        check_unreferenced_events(MockApp)
+            def end_block(self) -> None:
+                """Return Event.MOCK_TX inline (EventA member)."""
+                return EventA.MOCK_TX  # type: ignore[return-value]
 
-    def test_event_enum_none_when_no_enum_anywhere(self) -> None:
-        """``_abci_app_event_enum`` returns None when nothing is an Enum."""
+        class RoundB:
+            """Round in sub-app B; end_block references EventB.FINALIZE."""
+
+            done_event = EventB.DONE
+
+            def end_block(self) -> None:
+                """Return Event.FINALIZE inline (EventB member)."""
+                return EventB.FINALIZE  # type: ignore[return-value]
+
+        # Composed app: transition_function spans both enums.  A global
+        # filter would lock onto one enum and drop the other's references.
+        class MockComposedApp:
+            """Mock composed AbciApp."""
+
+            transition_function: Dict[Any, Dict[Any, Any]] = {
+                RoundA: {EventA.DONE: RoundA},
+                RoundB: {EventB.DONE: RoundB},
+            }
+            event_to_timeout: Dict[Any, float] = {}
+
+        errors = check_unreferenced_events(MockComposedApp)
+        # Both MOCK_TX (A) and FINALIZE (B) must be detected as
+        # "referenced but missing from transition function".
+        flat = " ".join(errors)
+        assert "MOCK_TX" in flat, errors
+        assert "FINALIZE" in flat, errors
+
+    def test_round_event_enum_none_when_no_enum(self) -> None:
+        """Filter degrades to no-op when round has no enum-typed *_event."""
 
         class Round:
             """Plain round, no enum references."""

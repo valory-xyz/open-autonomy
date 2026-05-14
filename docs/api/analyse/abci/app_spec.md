@@ -317,10 +317,11 @@ expects.  An event is considered emitted if it is either:
    non-builtin superclasses, with ``*_event = Event.X`` attribute
    definitions stripped out (those are covered by case 1, and a
    parent-class definition would otherwise be reported even after the
-   subclass overrides the attribute).  When the AbciApp's Event enum
-   can be identified, names absent from that enum are dropped to avoid
-   cross-skill collisions (e.g. ``market_manager.Event.FETCH_ERROR``
-   referenced from a parent class living in a different skill).
+   subclass overrides the attribute).  Each round resolves its own
+   ``Event`` enum from its leaf-most ``*_event`` attribute, so names
+   absent from that enum are dropped to avoid cross-skill collisions
+   (e.g. ``market_manager.Event.FETCH_ERROR`` referenced from a parent
+   class living in a different skill).
 3. Declared via a ``# fsm-specs: returns(EVENT_NAME, ...)`` annotation
    on the round class -- the supported syntax for rounds that build
    events dynamically (e.g. ``Event(payload_value)``).

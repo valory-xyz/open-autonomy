@@ -763,24 +763,25 @@ def _resolved_event_attr_names(round_cls: Any) -> Set[str]:
     return {v.name for v in seen.values() if isinstance(v, Enum)}
 
 
-def _abci_app_event_enum(abci_app_cls: Any) -> Optional[Type[Enum]]:
-    """Return the Event enum class used by the given AbciApp, if discoverable.
+def _round_event_enum(round_cls: Any) -> Optional[Type[Enum]]:
+    """Return the Event Enum class this round emits, if discoverable.
 
-    The transitions dict maps each round to ``{Event: NextRound}``; we sniff
-    one Event member to recover its class.  Falls back to inspecting
-    ``event_to_timeout`` if no transition has entries, and returns ``None``
-    if neither yields an Event member.
+    Walks the MRO leaf-first and returns the type of the first ``*_event``
+    class attribute whose value is an ``Enum`` member.  This is the round's
+    "own" enum, used to filter cross-skill ``Event.X`` collisions; resolving
+    per-round (instead of once for the whole AbciApp) is required for
+    composed AbciApps whose ``transition_function`` legitimately spans
+    multiple sub-apps' enums.
 
-    :param abci_app_cls: AbciApp class to inspect.
+    :param round_cls: Round class to inspect.
     :return: The ``Event`` Enum class, or ``None`` if it can't be determined.
     """
-    for transitions in abci_app_cls.transition_function.values():
-        for event in transitions:
-            if isinstance(event, Enum):
-                return type(event)
-    for event in getattr(abci_app_cls, "event_to_timeout", {}):
-        if isinstance(event, Enum):
-            return type(event)
+    for base in inspect.getmro(round_cls):
+        if base.__module__ == "builtins":
+            continue
+        for name, value in vars(base).items():
+            if name.endswith("_event") and isinstance(value, Enum):
+                return type(value)
     return None
 
 
@@ -797,10 +798,11 @@ def check_unreferenced_events(abci_app_cls: Any) -> List[str]:
        non-builtin superclasses, with ``*_event = Event.X`` attribute
        definitions stripped out (those are covered by case 1, and a
        parent-class definition would otherwise be reported even after the
-       subclass overrides the attribute).  When the AbciApp's Event enum
-       can be identified, names absent from that enum are dropped to avoid
-       cross-skill collisions (e.g. ``market_manager.Event.FETCH_ERROR``
-       referenced from a parent class living in a different skill).
+       subclass overrides the attribute).  Each round resolves its own
+       ``Event`` enum from its leaf-most ``*_event`` attribute, so names
+       absent from that enum are dropped to avoid cross-skill collisions
+       (e.g. ``market_manager.Event.FETCH_ERROR`` referenced from a parent
+       class living in a different skill).
     3. Declared via a ``# fsm-specs: returns(EVENT_NAME, ...)`` annotation
        on the round class -- the supported syntax for rounds that build
        events dynamically (e.g. ``Event(payload_value)``).
@@ -810,14 +812,18 @@ def check_unreferenced_events(abci_app_cls: Any) -> List[str]:
     """
     error_strings = []
     abci_app_timeout_events = {k.name for k in abci_app_cls.event_to_timeout.keys()}
-    own_enum = _abci_app_event_enum(abci_app_cls)
-    own_enum_names: Optional[Set[str]] = (
-        set(own_enum.__members__) if own_enum is not None else None
-    )
 
     for round_cls, round_transitions in abci_app_cls.transition_function.items():
         round_transition_events = set(map(lambda x: x.name, round_transitions))
         referenced_events: Set[str] = _resolved_event_attr_names(round_cls)
+        # Resolve the cross-skill filter enum per-round.  In a composed
+        # AbciApp the transition_function legitimately spans multiple
+        # sub-apps' enums, so a single global filter would drop names that
+        # belong to a sibling sub-app's enum.
+        own_enum = _round_event_enum(round_cls)
+        own_enum_names: Optional[Set[str]] = (
+            set(own_enum.__members__) if own_enum is not None else None
+        )
         for base in inspect.getmro(round_cls):
             if base.__module__ == "builtins":
                 continue
