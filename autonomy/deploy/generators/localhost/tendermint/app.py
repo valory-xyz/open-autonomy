@@ -249,14 +249,24 @@ def create_app(  # pylint: disable=too-many-statements
             )
             priv_key_data = json.loads(priv_key_file.read_text(encoding=ENCODING))
             del priv_key_data["priv_key"]
-            status = requests.get(TM_STATUS_ENDPOINT, timeout=30).json()
+            non_routable, loopback = "0.0.0.0", "127.0.0.1"  # nosec
+            status_url = (
+                f"{tendermint_params.rpc_laddr.replace('tcp', 'http').replace(non_routable, loopback)}"
+                "/status"
+            )
+            status = requests.get(status_url, timeout=30).json()
             priv_key_data["peer_id"] = status["result"]["node_info"]["id"]
             return {
                 "params": priv_key_data,
                 "status": True,
                 "error": None,
             }
-        except (FileNotFoundError, json.JSONDecodeError):
+        except (
+            FileNotFoundError,
+            json.JSONDecodeError,
+            KeyError,
+            requests.RequestException,
+        ):
             return {"params": {}, "status": False, "error": traceback.format_exc()}
 
     @app.post("/params")
@@ -288,7 +298,12 @@ def create_app(  # pylint: disable=too-many-statements
             )
 
             return {"status": True, "error": None}
-        except (FileNotFoundError, json.JSONDecodeError, PermissionError):
+        except (
+            FileNotFoundError,
+            json.JSONDecodeError,
+            PermissionError,
+            KeyError,
+        ):
             return {"status": False, "error": traceback.format_exc()}
 
     @app.route("/gentle_reset")
@@ -299,7 +314,7 @@ def create_app(  # pylint: disable=too-many-statements
             tendermint_node.start()
             return jsonify({"message": "Reset successful.", "status": True}), 200
         except Exception as e:  # pylint: disable=W0703
-            return jsonify({"message": f"Reset failed: {e}", "status": False}), 200
+            return jsonify({"message": f"Reset failed: {e}", "status": False}), 500
 
     @app.route("/app_hash")
     def app_hash() -> Tuple[Any, int]:
@@ -315,7 +330,7 @@ def create_app(  # pylint: disable=too-many-statements
         except Exception as e:  # pylint: disable=W0703
             return (
                 jsonify({"error": f"Could not get the app hash: {str(e)}"}),
-                200,
+                500,
             )
 
     @app.route("/hard_reset")
@@ -340,7 +355,7 @@ def create_app(  # pylint: disable=too-many-statements
             tendermint_node.start()
             return jsonify({"message": "Reset successful.", "status": True}), 200
         except Exception as e:  # pylint: disable=W0703
-            return jsonify({"message": f"Reset failed: {e}", "status": False}), 200
+            return jsonify({"message": f"Reset failed: {e}", "status": False}), 500
 
     @app.errorhandler(404)  # type: ignore
     def handle_notfound(e: NotFound) -> Tuple[Response, int]:

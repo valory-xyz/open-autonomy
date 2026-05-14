@@ -1248,7 +1248,13 @@ class BaseBehaviour(
             num_peers_str = res_body.get("result", {}).get("n_peers", None)
             if num_peers_str is None:
                 return None
-            num_peers = int(num_peers_str)
+            try:
+                num_peers = int(num_peers_str)
+            except (ValueError, TypeError):
+                self.context.logger.warning(
+                    f"Could not parse `n_peers` value: {num_peers_str!r}."
+                )
+                return None
             # num_peers hold the number of peers the tm node we are
             # making the TX to currently has an active connection
             # we add 1 because the node we are making the request through
@@ -1563,7 +1569,10 @@ class BaseBehaviour(
         self._send_transaction_signing_request(transaction, terms)
         signature_response = yield from self.wait_for_message()
         signature_response = cast(SigningMessage, signature_response)
-        tx_hash_backup = signature_response.signed_transaction.body.get("hash")
+        signed_tx_body = getattr(signature_response.signed_transaction, "body", None)
+        tx_hash_backup = (
+            signed_tx_body.get("hash") if isinstance(signed_tx_body, dict) else None
+        )
         if (
             signature_response.performative
             != SigningMessage.Performative.SIGNED_TRANSACTION

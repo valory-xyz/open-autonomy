@@ -667,6 +667,13 @@ class TendermintHandler(Handler):
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> bool:
         """Check if the sender is registered on-chain and if not, reply with an error"""
+        if (
+            self.context.state._round_sequence is None
+        ):  # pylint: disable=protected-access
+            self._reply_with_tendermint_error(
+                message, dialogue, "FSM not yet initialised"
+            )
+            return False
         others_addresses = self.context.state.acn_container()
         if message.sender in others_addresses:
             return True

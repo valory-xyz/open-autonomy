@@ -20,6 +20,7 @@
 """On-chain tools configurations."""
 
 import binascii
+import logging
 import os
 from dataclasses import dataclass
 from enum import Enum
@@ -114,10 +115,19 @@ class ChainType(Enum):
     @property
     def rpc(self) -> Optional[str]:
         """RPC String"""
-        return os.getenv(
-            key=self.rpc_env_name,
-            default=CHAIN_ID_TO_DEFAULT_PUBLIC_RPC.get(self.id) if self.id else None,
-        )
+        configured = os.getenv(self.rpc_env_name)
+        if configured is not None:
+            return configured
+        fallback = CHAIN_ID_TO_DEFAULT_PUBLIC_RPC.get(self.id) if self.id else None
+        if fallback is not None:
+            logging.getLogger(__name__).warning(
+                "%s not set; using default public RPC %s. "
+                "Set %s to use a private endpoint.",
+                self.rpc_env_name,
+                fallback,
+                self.rpc_env_name,
+            )
+        return fallback
 
     @property
     def rpc_env_name(self) -> str:

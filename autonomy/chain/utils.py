@@ -24,7 +24,7 @@ from typing import Dict
 
 from aea.configurations.data_types import PackageId, PublicId
 from aea.crypto.base import LedgerApi
-from aea.helpers.http_requests import ConnectionError as AeaHttpConnectionError
+from aea.helpers.http_requests import exceptions as r_exceptions
 from aea.helpers.http_requests import get as r_get
 
 from autonomy.chain.base import registry_contracts
@@ -75,7 +75,7 @@ def resolve_component_id(
 
     try:
         return r_get(url=metadata_uri, timeout=30).json()
-    except AeaHttpConnectionError as e:
+    except r_exceptions.RequestException as e:
         raise FailedToRetrieveComponentMetadata(
             "Error connecting to the IPFS gateway"
         ) from e
