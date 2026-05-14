@@ -103,11 +103,14 @@ _check_alerts_api "code-scanning"  "repos/$REPO/code-scanning/alerts?per_page=1"
 test -f pyproject.toml \
   || { echo "ERROR: no pyproject.toml — skill only supports Python repos right now"; exit 1; }
 
-# 4. Resolve the skill version so audit issues record exactly which revision
-#    of triage-security made the call. Falls back to "unknown" if the skill
-#    isn't being run from inside a git tree (e.g. extracted tarball).
-SKILL_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]:-${0:-$0}}" 2>/dev/null || echo .)")
-SKILL_VERSION=$(git -C "$SKILL_DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+# 4. Pin the skill version into audit issue bodies. This is a hardcoded date
+#    string, NOT a runtime git-rev-parse: Claude Code executes the skill via
+#    per-call `bash -c` invocations, so `BASH_SOURCE[0]` is empty, `$0` is
+#    `bash`, and any `realpath`+`git -C` chain resolves against the AUDITED
+#    repo's cwd — yielding the audited repo's HEAD, not the skill's. That's
+#    worse than `unknown` (looks authoritative, points at the wrong tree).
+#    Bump this string when the skill itself is updated.
+SKILL_VERSION="2026-05-14"
 export SKILL_VERSION
 ```
 
@@ -223,6 +226,16 @@ Classify the current repo into one of:
 Heuristics to detect automatically (run in Phase 0):
 
 ```bash
+# §0.1 needs PROD_DIRS for the HAS_SERVER grep — build it here even though
+# §2.1 also rebuilds it (both should converge on the same list). Keeping the
+# construction in one place via "build in §0, persist in §2.1" would mean §2.1
+# can't be copy-pasted into a freshly-shelled subprocess; rebuilding the small
+# array twice is cheaper than that fragility.
+PROD_DIRS=()
+for d in autonomy packages plugins libs aea operate agent; do
+  [[ -d "$d" ]] && PROD_DIRS+=("$d")
+done
+
 # console_scripts / poetry-scripts hint cli-tool
 HAS_SCRIPTS=$(python3 -c "
 import tomllib, pathlib
@@ -232,15 +245,40 @@ print(bool(
     or d.get('tool', {}).get('poetry', {}).get('scripts')
 ))" 2>/dev/null)
 
-# fastapi / flask / aiohttp / uvicorn imports in non-test code hint service
-HAS_SERVER=$(grep -rlE "^(import|from)[[:space:]]+(fastapi|flask|aiohttp\.web|uvicorn|starlette)" \
-  "${PROD_DIRS[@]}" --include="*.py" 2>/dev/null | grep -v "/tests/" | head -1)
+# fastapi / flask / aiohttp / uvicorn imports in non-test code hint service.
+# Guard against `PROD_DIRS` being empty — `grep -rlE "..." --include="*.py"`
+# with zero path args reads from stdin and hangs the whole skill run.
+if [[ ${#PROD_DIRS[@]} -gt 0 ]]; then
+  HAS_SERVER=$(grep -rlE "^(import|from)[[:space:]]+(fastapi|flask|aiohttp\.web|uvicorn|starlette)" \
+    "${PROD_DIRS[@]}" --include="*.py" 2>/dev/null | grep -v "/tests/" | head -1)
+else
+  HAS_SERVER=""
+fi
 
 # packages/ tree with valory/skills hints framework (open-autonomy fleet)
 HAS_PACKAGES_TREE=$([ -d packages/valory ] && echo "yes" || echo "no")
 
 # starter / template / scaffold in repo name or README hint scaffold
 IS_SCAFFOLD=$(grep -iE "starter|template|scaffold|boilerplate" README.md 2>/dev/null | head -1)
+
+# Walk the heuristics in priority order and pin ARCHETYPE. Downstream consumers
+# (§2.5.5, §2.5.7, §3.1b, §3.1e, §3.2's issue bodies, the action matrices) all
+# read `$ARCHETYPE` under `set -u` — leaving it unbound is a hard error at the
+# first use. Priority: scaffold > service > framework (packages/) > cli-tool
+# > framework (default, per the "default to framework" rule below).
+if [[ -n "$IS_SCAFFOLD" ]]; then
+  ARCHETYPE="scaffold"
+elif [[ -n "$HAS_SERVER" ]]; then
+  ARCHETYPE="service"
+elif [[ "$HAS_PACKAGES_TREE" == "yes" ]]; then
+  ARCHETYPE="framework"
+elif [[ "$HAS_SCRIPTS" == "True" ]]; then
+  ARCHETYPE="cli-tool"
+else
+  ARCHETYPE="framework"   # default-to-framework — conservative bump posture
+fi
+export ARCHETYPE
+echo "ARCHETYPE=$ARCHETYPE (HAS_SCRIPTS=$HAS_SCRIPTS HAS_SERVER=${HAS_SERVER:+yes} HAS_PACKAGES_TREE=$HAS_PACKAGES_TREE IS_SCAFFOLD=${IS_SCAFFOLD:+yes})"
 ```
 
 These are hints, not proofs. When the classification is ambiguous, **default to `framework`** so the skill errs on the side of bumping. A human can override by writing `archetype: cli-tool` in a per-repo `.triage-security.yaml` config (future enhancement — for now, hardcode the override at the top of the per-alert loop).
@@ -1390,7 +1428,7 @@ If you (the maintainer) judge any answer or evidence wrong:
 2. Reopen this audit issue and comment with the corrected analysis + evidence.
 3. If the corrected analysis shows the finding is applicable, fix the flagged code; track in a new issue if needed.
 
-Skill version / commit: ${SKILL_VERSION:-unknown} (see commit log of the triage-security skill).
+Skill version: ${SKILL_VERSION:-unknown} (hardcoded date string in §0 — see the triage-security skill's git log for the exact revision shipped on that date).
 EOF
 )
   else
@@ -1414,7 +1452,7 @@ If you (the maintainer) judge any answer or evidence wrong:
 2. Reopen this audit issue and comment with the corrected analysis + evidence.
 3. If the corrected analysis shows the CVE is applicable, treat as a normal upgrade.
 
-Skill version / commit: ${SKILL_VERSION:-unknown} (see commit log of the triage-security skill).
+Skill version: ${SKILL_VERSION:-unknown} (hardcoded date string in §0 — see the triage-security skill's git log for the exact revision shipped on that date).
 EOF
 )
   fi
@@ -1522,8 +1560,13 @@ Before opening, **dedupe**: search for an existing open issue. The dedupe key di
 
 ```bash
 if [[ "$SOURCE_OF_THIS_ALERT" == "code-scanning" ]]; then
-  # Dedupe by rule.id + file:line; both appear in the issue body
-  DEDUPE_KEY="${RULE_ID} ${ALERT_FILE}:${ALERT_LINE}"
+  # Dedupe key must match a phrase that actually appears in the title or body.
+  # The title (§3.2 below) is "[Security][<sev>] <rule.id>: <file>:<line>" —
+  # rule.id and file are separated by a colon-space, NOT a single space. A
+  # space-joined key never matches the title and the body splits the two
+  # tokens across separate bullets (each backticked), so phrase search returns
+  # zero hits and every re-run opens a duplicate issue for the same finding.
+  DEDUPE_KEY="${RULE_ID}: ${ALERT_FILE}:${ALERT_LINE}"
 else
   DEDUPE_KEY="$GHSA_ID"
 fi
@@ -1750,6 +1793,30 @@ Bucket skips into two categories so the exit code reflects the actual failure su
 
 A naive `exit 1 if any skip` rule would fire on every run for any repo carrying even one permanent Docker/npm alert, defeating the purpose for cron wrappers.
 
+### 4.0 Derive sub-buckets from the unified `SKIPPED` array
+
+The per-alert loop pushes every skip into a single `SKIPPED` array, tagged with a reason (e.g. `$ALERT_NUM:advisory-fetch-failed:$GHSA_ID`). Before the summary block reads `N_SKIPPED_ECOSYSTEM` / `N_SKIPPED_STALE` / `N_SKIPPED_UNCLASS`, the unified bucket must be routed into the three derived arrays — otherwise the `exit 1 if N_SKIPPED_UNCLASS > 0` escalation can never fire even when a real CVE is silently skipped (advisory fetch returned an error, regex extraction failed, audit-issue create failed, …).
+
+```bash
+# Route every SKIPPED entry into exactly one derived bucket. New skip tags
+# default to UNCLASS so they surface in the exit-1 escalation path — failing
+# loud is the conservative choice for any skip whose category isn't yet
+# classified here.
+for entry in "${SKIPPED[@]:-}"; do
+  case "$entry" in
+    *:non-pip-ecosystem:*)  SKIPPED_ECOSYSTEM+=("$entry") ;;
+    *:stale-alert:*)        SKIPPED_STALE+=("$entry") ;;
+    *:auto-dismissed:*)     : ;;  # informational — GitHub already handled it, no exit-1 impact
+    *)                      SKIPPED_UNCLASS+=("$entry") ;;
+  esac
+done
+N_SKIPPED_ECOSYSTEM=${#SKIPPED_ECOSYSTEM[@]}
+N_SKIPPED_STALE=${#SKIPPED_STALE[@]}
+N_SKIPPED_UNCLASS=${#SKIPPED_UNCLASS[@]}
+```
+
+Tags that route to `UNCLASS` (each one is an "operator needs to look at this" signal): `advisory-fetch-failed`, `advisory-empty`, `empty-module-regex`, `package-name-extraction-failed`, `audit-create-error`, `dismiss-api-error`, `existing-issue`, `unknown-source`. When you add a new skip site to the loop, decide at that moment whether it's truly informational (route via a new `*:tag:*` case) — leaving it to fall through to `UNCLASS` is the safe default.
+
 End with a single stdout block summarising the run:
 
 ```
@@ -1852,6 +1919,29 @@ printf '%s\n' "${TEST_DIRS[@]}"     > "$TMP/test_dirs.txt"
 printf '%s\n' "${PKG_TEST_DIRS[@]}" > "$TMP/pkg_test_dirs.txt"
 export TMP
 
+# §0.1 archetype classification — Phase 2/3 reads `$ARCHETYPE` under `set -u`,
+# so it must be assigned before the per-alert loop. See §0.1 for the canonical
+# version of the heuristics; this is the minimum needed for the loop to run.
+HAS_SCRIPTS=$(python3 -c "
+import tomllib, pathlib
+d = tomllib.loads(pathlib.Path('pyproject.toml').read_text())
+print(bool(d.get('project', {}).get('scripts') or d.get('tool', {}).get('poetry', {}).get('scripts')))" 2>/dev/null)
+if [[ ${#PROD_DIRS[@]} -gt 0 ]]; then
+  HAS_SERVER=$(grep -rlE "^(import|from)[[:space:]]+(fastapi|flask|aiohttp\.web|uvicorn|starlette)" \
+    "${PROD_DIRS[@]}" --include="*.py" 2>/dev/null | grep -v "/tests/" | head -1)
+else
+  HAS_SERVER=""
+fi
+HAS_PACKAGES_TREE=$([ -d packages/valory ] && echo "yes" || echo "no")
+IS_SCAFFOLD=$(grep -iE "starter|template|scaffold|boilerplate" README.md 2>/dev/null | head -1)
+if   [[ -n "$IS_SCAFFOLD"            ]]; then ARCHETYPE="scaffold"
+elif [[ -n "$HAS_SERVER"             ]]; then ARCHETYPE="service"
+elif [[ "$HAS_PACKAGES_TREE" == "yes" ]]; then ARCHETYPE="framework"
+elif [[ "$HAS_SCRIPTS"        == "True" ]]; then ARCHETYPE="cli-tool"
+else                                          ARCHETYPE="framework"
+fi
+export ARCHETYPE
+
 for i in $(seq 0 $((N-1))); do
   ALERT=$(jq ".[$i]" "$TMP/alerts.json")
   ALERT_NUM=$(jq -r '.number' <<<"$ALERT")
@@ -1883,7 +1973,24 @@ for i in $(seq 0 $((N-1))); do
   # … take action per Phase 3 …
 done
 
+# Phase 4 — derive sub-buckets from the unified SKIPPED array, then print summary.
+# See §4.0 for the canonical version of this routing; copy-pasted here so the
+# reference loop is self-contained and the `exit 1 if N_SKIPPED_UNCLASS > 0`
+# escalation actually fires on advisory-fetch-failed / dismiss-api-error / etc.
+for entry in "${SKIPPED[@]:-}"; do
+  case "$entry" in
+    *:non-pip-ecosystem:*)  SKIPPED_ECOSYSTEM+=("$entry") ;;
+    *:stale-alert:*)        SKIPPED_STALE+=("$entry") ;;
+    *:auto-dismissed:*)     : ;;
+    *)                      SKIPPED_UNCLASS+=("$entry") ;;
+  esac
+done
+N_SKIPPED_ECOSYSTEM=${#SKIPPED_ECOSYSTEM[@]}
+N_SKIPPED_STALE=${#SKIPPED_STALE[@]}
+N_SKIPPED_UNCLASS=${#SKIPPED_UNCLASS[@]}
+
 # … print Phase 4 summary …
+[[ "$N_SKIPPED_UNCLASS" -gt 0 ]] && exit 1 || exit 0
 ```
 
 ---
