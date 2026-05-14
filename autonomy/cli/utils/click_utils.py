@@ -62,12 +62,17 @@ def abci_spec_format_flag(
 ) -> Callable:
     """Flags for abci spec outputs formats."""
 
+    deprecated = {FSMSpecificationLoader.OutputFormats.JSON}
+
     def wrapper(f: Callable) -> Callable:
         option_default = default if mark_default else None
         for of in FSMSpecificationLoader.OutputFormats.ALL:
+            help_text = f"{of.title()} file."
+            if of in deprecated:
+                help_text += " (deprecated; use --yaml or --mermaid)"
             option_kwargs: Dict[str, Any] = dict(
                 flag_value=of,
-                help=f"{of.title()} file.",
+                help=help_text,
                 default=option_default,
             )
             f = click.option(
