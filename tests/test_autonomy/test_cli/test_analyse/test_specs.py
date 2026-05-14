@@ -647,7 +647,7 @@ class TestCheckUnreferencedEvents:
             NONE = "NONE"
 
         class ParentRound:
-            """Parent round defines none_event = ParentEvent.FETCH_ERROR."""
+            """Parent round, sub-app A."""
 
             done_event = ParentEvent.DONE
             none_event = ParentEvent.FETCH_ERROR
@@ -737,7 +737,7 @@ class TestCheckUnreferencedEvents:
             MOCK_TX = "MOCK_TX"
 
         class Round:
-            """Round whose end_block returns Event.MOCK_TX inline."""
+            """Round whose end_block returns a tx event inline."""
 
             done_event = Event.DONE
 
@@ -774,23 +774,30 @@ class TestCheckUnreferencedEvents:
             DONE = "DONE"
             FINALIZE = "FINALIZE"
 
+        # Bind ``Event`` as a class-level alias inside each round so the
+        # regex ``Event\.X`` pattern picks up the real return statement
+        # via the ``self.Event.X`` access path.  ``Event`` doesn't end in
+        # ``_event``, so ``_round_event_enum_names`` ignores the alias
+        # (only ``*_event`` attrs are inspected).
         class RoundA:
-            """Round in sub-app A; end_block references EventA.MOCK_TX."""
+            """Round in sub-app A."""
 
+            Event = EventA
             done_event = EventA.DONE
 
             def end_block(self) -> None:
-                """Return Event.MOCK_TX inline (EventA member)."""
-                return EventA.MOCK_TX  # type: ignore[return-value]
+                """Return the round's tx event."""
+                return self.Event.MOCK_TX  # type: ignore[return-value]
 
         class RoundB:
-            """Round in sub-app B; end_block references EventB.FINALIZE."""
+            """Round in sub-app B."""
 
+            Event = EventB
             done_event = EventB.DONE
 
             def end_block(self) -> None:
-                """Return Event.FINALIZE inline (EventB member)."""
-                return EventB.FINALIZE  # type: ignore[return-value]
+                """Return the round's tx event."""
+                return self.Event.FINALIZE  # type: ignore[return-value]
 
         # Composed app: transition_function spans both enums.  A global
         # filter would lock onto one enum and drop the other's references.
@@ -825,6 +832,87 @@ class TestCheckUnreferencedEvents:
         # Should not crash; the cross-skill filter just degrades to "trust
         # every Event.X name" when the enum can't be determined.
         check_unreferenced_events(MockApp)
+
+    def test_missing_timeout_event_not_returned_flagged(self) -> None:
+        """Flag events in transition_function that are not returned or timeout-declared.
+
+        Event appears in ``transition_function`` but is not returned from
+        any round's ``end_block`` and is not declared in
+        ``event_to_timeout`` -- triggers the ``missing_timeout_events``
+        error path.
+        """
+
+        class Event(Enum):
+            """Test enum."""
+
+            DONE = "DONE"
+            UNUSED_TIMEOUT = "UNUSED_TIMEOUT"
+
+        class Round:
+            """Round whose end_block returns the done event."""
+
+            done_event = Event.DONE
+
+            def end_block(self) -> None:
+                """Return the round's done event."""
+                return Event.DONE  # type: ignore[return-value]
+
+        class MockApp:
+            """Mock AbciApp wiring UNUSED_TIMEOUT in the transition function.
+
+            Neither returns it from any round's end_block nor declares it
+            in event_to_timeout.
+            """
+
+            transition_function: Dict[Any, Dict[Any, Any]] = {
+                Round: {Event.DONE: Round, Event.UNUSED_TIMEOUT: Round}
+            }
+            event_to_timeout: Dict[Any, float] = {}
+
+        errors = check_unreferenced_events(MockApp)
+        assert any("UNUSED_TIMEOUT" in e for e in errors), errors
+        assert any(
+            "never returned from any round's `end_block`" in e for e in errors
+        ), errors
+
+    def test_timeout_event_declared_in_event_to_timeout_passes(self) -> None:
+        """Suppress the error when the event is declared in event_to_timeout.
+
+        Same setup as ``test_missing_timeout_event_not_returned_flagged``
+        but the event is also present in ``event_to_timeout`` -- the
+        timeout pass-through must suppress the error.
+        """
+
+        class Event(Enum):
+            """Test enum."""
+
+            DONE = "DONE"
+            ROUND_TIMEOUT = "ROUND_TIMEOUT"
+
+        class Round:
+            """Round whose end_block returns the done event."""
+
+            done_event = Event.DONE
+
+            def end_block(self) -> None:
+                """Return the round's done event."""
+                return Event.DONE  # type: ignore[return-value]
+
+        class MockApp:
+            """Mock AbciApp wiring ROUND_TIMEOUT in the transition function.
+
+            Also declares it in event_to_timeout;
+            check_unreferenced_events must NOT flag it as
+            missing-from-end_block.
+            """
+
+            transition_function: Dict[Any, Dict[Any, Any]] = {
+                Round: {Event.DONE: Round, Event.ROUND_TIMEOUT: Round}
+            }
+            event_to_timeout: Dict[Any, float] = {Event.ROUND_TIMEOUT: 30.0}
+
+        errors = check_unreferenced_events(MockApp)
+        assert not any("ROUND_TIMEOUT" in e for e in errors), errors
 
 
 class TestDumpMermaid:

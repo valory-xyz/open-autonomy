@@ -32,7 +32,7 @@ from collections import OrderedDict, defaultdict, deque
 from enum import Enum
 from itertools import product
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Protocol, Set, Tuple, Type
+from typing import Any, Dict, List, Optional, Protocol, Set, Tuple
 
 import yaml
 from aea.helpers.io import open_file
@@ -53,13 +53,21 @@ EVENT_PATTERN = re.compile(r"Event\.(\w+)", re.DOTALL)
 # Lines like ``done_event = Event.DONE`` or ``none_event: Enum = Event.X`` at
 # class-body indentation.  These are resolved by attribute lookup rather than
 # textually, so we strip them before regex-scanning the rest of the source.
+# Anchored to exactly 4 spaces / 1 tab (class-body indent) so deeper-nested
+# method-body locals like ``result_event = Event.DONE`` -- which are NOT
+# class attributes and need to survive the strip so the regex can pick up
+# the ``Event.X`` reference in the return-path source -- are left alone.
 EVENT_ATTR_ASSIGN_PATTERN = re.compile(
-    r"^[ \t]+[a-z_]+_event\s*[:=][^\n]*$", re.MULTILINE
+    r"^(?:    |\t)[a-z_]+_event\s*[:=][^\n]*$", re.MULTILINE
 )
 # ``# fsm-specs: returns(EVENT1, EVENT2)`` annotation -- declares events a
 # round emits dynamically (e.g. ``Event(payload_value)``) where the regex
-# scan has no signal.
-FSM_SPECS_RETURNS_PATTERN = re.compile(r"#\s*fsm-specs:\s*returns\s*\(([^)]*)\)")
+# scan has no signal.  Anchored to a comment at line start (after optional
+# leading whitespace) so the annotation must appear as a real comment, not
+# inside a string literal or docstring example documenting the syntax.
+FSM_SPECS_RETURNS_PATTERN = re.compile(
+    r"^[ \t]*#\s*fsm-specs:\s*returns\s*\(([^)]*)\)", re.MULTILINE
+)
 ROUND_TIMEOUT_EVENTS = {"ROUND_TIMEOUT"}
 
 
@@ -763,26 +771,33 @@ def _resolved_event_attr_names(round_cls: Any) -> Set[str]:
     return {v.name for v in seen.values() if isinstance(v, Enum)}
 
 
-def _round_event_enum(round_cls: Any) -> Optional[Type[Enum]]:
-    """Return the Event Enum class this round emits, if discoverable.
+def _round_event_enum_names(round_cls: Any) -> Optional[Set[str]]:
+    """Return the union of ``Enum.__members__`` names the round may emit.
 
-    Walks the MRO leaf-first and returns the type of the first ``*_event``
-    class attribute whose value is an ``Enum`` member.  This is the round's
-    "own" enum, used to filter cross-skill ``Event.X`` collisions; resolving
-    per-round (instead of once for the whole AbciApp) is required for
-    composed AbciApps whose ``transition_function`` legitimately spans
-    multiple sub-apps' enums.
+    Walks the MRO and collects EVERY ``*_event`` class attribute whose value
+    is an ``Enum`` member, then returns the UNION of all member names across
+    those enums.  Multi-enum rounds (e.g. ``done_event = EventA.DONE`` plus
+    ``some_event = EventB.X``) are common in cross-skill subclasses; a
+    single-enum filter would lock onto the first enum found in MRO order
+    and silently drop names exclusive to the others.
+
+    Returning a name-set rather than an enum class also models the
+    cross-skill filter directly: we only need to know which names are
+    legitimate emit candidates for this round, not which class they belong
+    to.
 
     :param round_cls: Round class to inspect.
-    :return: The ``Event`` Enum class, or ``None`` if it can't be determined.
+    :return: Set of legitimate ``Event.X`` names, or ``None`` if no
+        ``Enum``-typed ``*_event`` attribute exists anywhere in the MRO.
     """
+    names: Set[str] = set()
     for base in inspect.getmro(round_cls):
         if base.__module__ == "builtins":
             continue
         for name, value in vars(base).items():
             if name.endswith("_event") and isinstance(value, Enum):
-                return type(value)
-    return None
+                names.update(type(value).__members__)
+    return names if names else None
 
 
 def check_unreferenced_events(abci_app_cls: Any) -> List[str]:
@@ -816,14 +831,28 @@ def check_unreferenced_events(abci_app_cls: Any) -> List[str]:
     for round_cls, round_transitions in abci_app_cls.transition_function.items():
         round_transition_events = set(map(lambda x: x.name, round_transitions))
         referenced_events: Set[str] = _resolved_event_attr_names(round_cls)
-        # Resolve the cross-skill filter enum per-round.  In a composed
-        # AbciApp the transition_function legitimately spans multiple
-        # sub-apps' enums, so a single global filter would drop names that
-        # belong to a sibling sub-app's enum.
-        own_enum = _round_event_enum(round_cls)
-        own_enum_names: Optional[Set[str]] = (
-            set(own_enum.__members__) if own_enum is not None else None
-        )
+        # Resolve the cross-skill filter per-round as a UNION of names from
+        # every ``*_event`` Enum on the round.  In a composed AbciApp the
+        # transition_function legitimately spans multiple sub-apps' enums,
+        # so a single global filter would drop names that belong to a
+        # sibling sub-app's enum; within one round, multi-enum bindings are
+        # also possible (e.g. ``done_event: EventA`` + a second
+        # ``*_event: EventB``) and the same logic applies.
+        own_enum_names = _round_event_enum_names(round_cls)
+        if own_enum_names is None:
+            # No ``Enum``-typed ``*_event`` attribute anywhere in the MRO.
+            # The cross-skill filter is unavailable; the regex scan
+            # degrades to "accept every ``Event.X`` name in any MRO
+            # source", which can re-open the false positives the per-round
+            # filter is meant to suppress.  Log once so abstract-base
+            # rounds (and rounds that rely solely on
+            # ``# fsm-specs: returns(...)`` for dispatch) are visible.
+            logging.warning(
+                "check_unreferenced_events: no Enum-typed `*_event` "
+                "attribute resolved for %s; cross-skill filter disabled, "
+                "MRO source scan accepts all matched names.",
+                round_cls.__name__,
+            )
         for base in inspect.getmro(round_cls):
             if base.__module__ == "builtins":
                 continue
@@ -833,7 +862,9 @@ def check_unreferenced_events(abci_app_cls: Any) -> List[str]:
                 continue
             scan_src = EVENT_ATTR_ASSIGN_PATTERN.sub("", src)
             for match in EVENT_PATTERN.findall(scan_src):
-                if own_enum_names is None or match in own_enum_names:
+                if own_enum_names is None:
+                    referenced_events.add(match)
+                elif match in own_enum_names:
                     referenced_events.add(match)
             for annotation in FSM_SPECS_RETURNS_PATTERN.findall(src):
                 referenced_events.update(
