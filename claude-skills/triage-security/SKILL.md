@@ -72,22 +72,43 @@ echo "operating on $REPO"
 #    Track availability so Phase 1 can fetch only what's actually enabled.
 DEPENDABOT_AVAILABLE="no"
 CODESCAN_AVAILABLE="no"
-if gh api "repos/$REPO/dependabot/alerts?per_page=1" --jq 'length' > /dev/null 2>&1; then
-  DEPENDABOT_AVAILABLE="yes"
-else
-  echo "WARN: Dependabot alerts API unreachable — Dependabot path will be skipped" >&2
-fi
-if gh api "repos/$REPO/code-scanning/alerts?per_page=1" --jq 'length' > /dev/null 2>&1; then
-  CODESCAN_AVAILABLE="yes"
-else
-  echo "WARN: code-scanning alerts API unreachable — code-scanning path will be skipped" >&2
-fi
+# Differentiate "feature disabled" (404) from "token missing scope" (401/403).
+# `> /dev/null 2>&1` collapses both into "unavailable" and silently skips
+# every alert when the real cause is a permissions failure. Capture stderr
+# and fail loudly on auth errors so the operator gets an actionable message
+# instead of a clean Phase 4 "0 alerts processed" that masks a broken run.
+_check_alerts_api() {
+  local label="$1" url="$2" err
+  if err=$(gh api "$url" --jq 'length' 2>&1 >/dev/null); then
+    return 0
+  fi
+  # Auth/scope failures look like `HTTP 401`, `HTTP 403`, `Bad credentials`,
+  # or mention `scope` / `requires authentication`. Anything else (most
+  # commonly `HTTP 404` for a disabled feature) is treated as not-enabled.
+  if printf '%s' "$err" | grep -qiE 'HTTP 40[13]|Bad credentials|requires authentication|missing.*scope|needs the .*scope'; then
+    echo "ERROR: gh token lacks required scope for $label alerts on $REPO." >&2
+    echo "       Run: gh auth refresh -h github.com -s security_events" >&2
+    echo "       Underlying error: $err" >&2
+    exit 1
+  fi
+  echo "WARN: $label alerts API unreachable on $REPO (feature likely not enabled) — $label path will be skipped" >&2
+  return 1
+}
+_check_alerts_api "Dependabot"     "repos/$REPO/dependabot/alerts?per_page=1"    && DEPENDABOT_AVAILABLE="yes"
+_check_alerts_api "code-scanning"  "repos/$REPO/code-scanning/alerts?per_page=1" && CODESCAN_AVAILABLE="yes"
 [[ "$DEPENDABOT_AVAILABLE" == "no" && "$CODESCAN_AVAILABLE" == "no" ]] \
   && { echo "ERROR: neither Dependabot nor code-scanning is enabled on $REPO. Nothing to triage."; exit 1; }
 
 # 3. Confirm a Python project layout exists (this skill currently keys off Python ecosystems)
 test -f pyproject.toml \
   || { echo "ERROR: no pyproject.toml — skill only supports Python repos right now"; exit 1; }
+
+# 4. Resolve the skill version so audit issues record exactly which revision
+#    of triage-security made the call. Falls back to "unknown" if the skill
+#    isn't being run from inside a git tree (e.g. extracted tarball).
+SKILL_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]:-${0:-$0}}" 2>/dev/null || echo .)")
+SKILL_VERSION=$(git -C "$SKILL_DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+export SKILL_VERSION
 ```
 
 ### 0.2 RULE_HUMAN_REVIEW_PATTERNS — code-scanning rule classes that NEVER auto-dismiss
@@ -152,10 +173,17 @@ RULE_HUMAN_REVIEW_PATTERNS=(
 # Helper: does the alert's rule.id match any pattern? (Phase 2-cs uses this.)
 matches_human_review_pattern() {
   local rule_id="$1"
-  # Lower-case both sides for case-insensitive match
-  local rid_lower="${rule_id,,}"
+  local rid_lower pat_lower
+  # Lower-case both sides for case-insensitive match. `${var,,}` would be
+  # shorter but is bash 4+ only; macOS ships `/bin/bash` 3.2 (this file
+  # is explicitly bash-3.2-compat — see §2.1 `while read` note and the
+  # reference loop's `mapfile` callout). Using `tr` keeps the safety
+  # guard active on the default macOS shell instead of silently
+  # disabling it (otherwise the function errors → forced-review never
+  # fires for high-stakes rule classes like SQLi / RCE / path-traversal).
+  rid_lower=$(printf '%s' "$rule_id" | tr '[:upper:]' '[:lower:]')
   for pat in "${RULE_HUMAN_REVIEW_PATTERNS[@]}"; do
-    local pat_lower="${pat,,}"
+    pat_lower=$(printf '%s' "$pat" | tr '[:upper:]' '[:lower:]')
     # Bash glob match; `*foo*` matches "foo" anywhere in rule_id
     # shellcheck disable=SC2053
     [[ "$rid_lower" == $pat_lower ]] && return 0
@@ -371,6 +399,20 @@ For every alert, the per-source dispatch in Phase 2 produces a normalized classi
 
 ```bash
 # Per-alert loop dispatch — runs at the top of every iteration.
+# Apply Phase 1's skip-immediately rules first; the reference loop in the
+# bottom of this file shows the full set (`auto_dismissed_at != null`,
+# `ecosystem != pip` for Dependabot, stale file for code-scanning, etc.).
+# Re-stating the auto-dismissed skip here so a copy/paste of just the
+# dispatch block doesn't silently re-process alerts GitHub has already
+# auto-dismissed (which would open a duplicate audit issue and reattempt
+# the PATCH).
+AUTO_DISMISSED_AT=$(jq -r ".[$i].auto_dismissed_at // \"\"" "$TMP/alerts.json")
+if [[ -n "$AUTO_DISMISSED_AT" ]]; then
+  echo "SKIP #$ALERT_NUM: auto-dismissed by GitHub at $AUTO_DISMISSED_AT" >&2
+  SKIPPED+=("$ALERT_NUM:auto-dismissed:$AUTO_DISMISSED_AT")
+  continue
+fi
+
 SOURCE_OF_THIS_ALERT=$(jq -r ".[$i]._source" "$TMP/alerts.json")
 
 case "$SOURCE_OF_THIS_ALERT" in
@@ -396,10 +438,16 @@ for d in autonomy packages plugins libs aea operate agent; do
   [[ -d "$d" ]] && PROD_DIRS+=("$d")
 done
 
-# Test paths — top-level test dirs PLUS in-package `tests/` subdirs that aren't shipped logic
-TEST_DIRS=(tests scripts .github benchmark examples mints docs)
-# Filter to only existing dirs to avoid `grep: tests: No such file or directory` noise
-TEST_DIRS=($(for d in "${TEST_DIRS[@]}"; do [[ -d "$d" ]] && echo "$d"; done))
+# Test paths — top-level test dirs PLUS in-package `tests/` subdirs that aren't shipped logic.
+# Filter to only existing dirs via an explicit loop. `arr=($(...))` would re-split
+# the inner output on `$IFS`, reintroducing the exact pitfall the critical note
+# below warns against (dir names with spaces collapse, empty subshell drops the
+# list entirely on some bash versions).
+_TEST_DIR_CANDIDATES=(tests scripts .github benchmark examples mints docs)
+TEST_DIRS=()
+for d in "${_TEST_DIR_CANDIDATES[@]}"; do
+  [[ -d "$d" ]] && TEST_DIRS+=("$d")
+done
 
 # Per-package nested tests/ — these are TEST even though they live under packages/.
 # Use a `while read` loop (not `mapfile`) — macOS ships bash 3.2 by default, and
@@ -409,7 +457,15 @@ while IFS= read -r _d; do
   PKG_TEST_DIRS+=("$_d")
 done < <(find packages plugins -type d -name tests 2>/dev/null)
 
-export PROD_DIRS TEST_DIRS PKG_TEST_DIRS   # propagate to any python -c / heredoc helpers
+# Bash arrays do NOT survive `export` into subprocesses — only the first element
+# (or nothing, depending on bash version) crosses the boundary, so a child
+# `python -c` reading `os.environ["PROD_DIRS"]` would see a single dir at most.
+# Persist the path sets to files instead so Python heredocs (§2.5.6b AST scan)
+# can read them reliably. `$TMP` is a plain string and DOES inherit fine.
+printf '%s\n' "${PROD_DIRS[@]}"     > "$TMP/prod_dirs.txt"
+printf '%s\n' "${TEST_DIRS[@]}"     > "$TMP/test_dirs.txt"
+printf '%s\n' "${PKG_TEST_DIRS[@]}" > "$TMP/pkg_test_dirs.txt"
+export TMP
 
 echo "PROD_DIRS=${PROD_DIRS[*]}"
 echo "TEST_DIRS=${TEST_DIRS[*]}"
@@ -537,6 +593,18 @@ Step 2: grep across **every** top-level module the package ships. PyPI packages 
 # Join the list from Step 1 into an alternation, escaping regex metachars
 # (top modules can contain `.` for namespace packages like google.protobuf).
 MODULE_RE=$(printf '%s\n' "${top_modules[@]}" | sed 's/\./\\./g' | paste -sd'|' -)
+
+# Defensive: if the upstream pkg-name extraction failed (`jq -r` on a malformed
+# alert returns the literal "null") or the top-modules fallback yielded nothing,
+# MODULE_RE collapses to "" or "null". `grep -E ""` matches every line and
+# `grep -E "null"` matches anything containing the word — either way every
+# alert for this package gets silently misclassified PROD. Skip-and-flag
+# instead so the operator sees what happened.
+if [[ -z "$MODULE_RE" || "$MODULE_RE" == "null" ]]; then
+  echo "WARN: empty/null MODULE_RE for $PKG (Signal C inconclusive) — skipping" >&2
+  SKIPPED+=("$ALERT_NUM:empty-module-regex:$PKG")
+  continue
+fi
 
 # Use "${arr[@]}" array expansion (see §2.1 critical note) — never the
 # unquoted string form, which collapses on subshell boundaries and silently
@@ -698,10 +766,30 @@ This phase exists to catch that case **before** the issue is opened.
 The Dependabot alert payload's `.security_advisory.summary` is a one-liner. The fuller threat-model description lives in the GHSA database. Pull it:
 
 ```bash
-# GitHub Security Advisory full payload, including description + references
-gh api "/advisories/$GHSA_ID" \
-  --jq '{summary: .summary, description: .description, severity: .severity, cwe_ids: [.cwe_ids[]?.cwe_id]}' \
-  > "$TMP/advisory_${GHSA_ID}.json"
+# GitHub Security Advisory full payload, including description + references.
+# Guard the fetch — failures (rate limit, transient 5xx, unknown GHSA) would
+# otherwise write an error JSON body that §2.5.2's checklist derivation
+# silently consumes as "empty advisory", producing low-quality Qs and a
+# bogus dismissal verdict. Treat any failure or empty/null payload as a
+# skip-for-this-alert so the alert lands in the manual-review bucket.
+if ! gh api "/advisories/$GHSA_ID" \
+      --jq '{summary: .summary, description: .description, severity: .severity, cwe_ids: [.cwe_ids[]?.cwe_id]}' \
+      > "$TMP/advisory_${GHSA_ID}.json" 2>"$TMP/advisory_${GHSA_ID}.err"; then
+  echo "ERROR: failed to fetch advisory $GHSA_ID: $(cat "$TMP/advisory_${GHSA_ID}.err" 2>/dev/null)" >&2
+  rm -f "$TMP/advisory_${GHSA_ID}.json"
+  SKIPPED+=("$ALERT_NUM:advisory-fetch-failed:$GHSA_ID")
+  continue
+fi
+# Defensive: ensure the file contains a real advisory object (non-null summary
+# and a non-empty description), not an error response where jq's `?` operator
+# silently produced an object with null fields.
+if ! jq -e '.summary != null and ((.description // "") | length) > 0' \
+      "$TMP/advisory_${GHSA_ID}.json" >/dev/null 2>&1; then
+  echo "ERROR: advisory $GHSA_ID returned empty/malformed payload — manual review" >&2
+  rm -f "$TMP/advisory_${GHSA_ID}.json"
+  SKIPPED+=("$ALERT_NUM:advisory-empty:$GHSA_ID")
+  continue
+fi
 ```
 
 Read the `description` and `cwe_ids` fields. The advisory **description is the primary source of truth** for §2.5.2 — it carries the specific threat model for *this* advisory, which is usually narrower than the CWE class average. The `cwe_ids` are a hint about the bug class, used as a sanity check (see §2.5.2's reference patterns) and to drive optional MITRE supplementation in §2.5.1b.
@@ -877,8 +965,17 @@ This step makes the escape clause operational. For framework / scaffold archetyp
 
    ```python
    # python3 - <<'PY' to scan PROD_DIRS for public-API surface.
+   #
+   # Bash arrays don't survive `export` into subprocesses — `os.environ["PROD_DIRS"]`
+   # would see at most the first element. §2.1 writes the dir list to a file
+   # (`$TMP/prod_dirs.txt`, one dir per line) precisely so this heredoc can
+   # read the full set reliably.
    import ast, pathlib, json, os
-   prod_dirs = os.environ["PROD_DIRS"].split()  # set by §2.1 array expansion
+   prod_dirs = [
+       d for d in pathlib.Path(os.environ["TMP"], "prod_dirs.txt")
+                            .read_text().splitlines()
+       if d
+   ]
    public_apis: list[dict] = []
    for d in prod_dirs:
        root = pathlib.Path(d)
@@ -1184,14 +1281,11 @@ The audit body adapts based on `$DISMISSAL_REASON`:
 ```bash
 # called as: AUDIT_URL=$(create_audit_issue)
 create_audit_issue() {
-  local audit_title audit_body audit_url body_analysis
-  audit_title="[Security-audit][closed] ${PKG} #${ALERT_NUM} (${GHSA_ID}) — ${DISMISSAL_REASON}"
-  # 70-char title budget — truncate package + GHSA if needed.
-  if [[ ${#audit_title} -gt 70 ]]; then
-    audit_title="${audit_title:0:67}..."
-  fi
+  local audit_title audit_body audit_url body_analysis audit_labels
 
   # Title — varies by source, since code-scanning alerts don't have GHSA IDs.
+  # 70-char budget; truncate after the source-specific build so neither
+  # branch silently exceeds it.
   if [[ "$SOURCE_OF_THIS_ALERT" == "code-scanning" ]]; then
     audit_title="[Security-audit][closed] ${RULE_ID} #${ALERT_NUM} — ${DISMISSAL_REASON}"
   else
@@ -1325,13 +1419,32 @@ EOF
 )
   fi
 
+  # Source-aware label list. Code-scanning dismissals must NOT be labelled
+  # `dependabot` — that breaks `gh issue list --label code-scanning --label
+  # security-audit` filtering and confuses anyone scanning audit history.
+  # The `security-audit` label stays constant so the "all dismissals" query
+  # (`--label security-audit`) still returns both sources uniformly.
+  if [[ "$SOURCE_OF_THIS_ALERT" == "code-scanning" ]]; then
+    audit_labels="security,code-scanning,triage-security,security-audit"
+  else
+    audit_labels="security,dependabot,triage-security,security-audit"
+  fi
+
   audit_url=$(gh issue create --repo "$REPO" \
     --title "$audit_title" \
-    --label "security,dependabot,triage-security,security-audit" \
+    --label "$audit_labels" \
     --body "$audit_body") || return 1
 
   # Close immediately — the audit issue is a permanent record, not a TODO.
-  gh issue close "$audit_url" --repo "$REPO" --comment "Auto-closed — see alert ${ALERT_URL} for the live state." >/dev/null 2>&1 || true
+  # Don't `|| true` the close: a failure leaves the audit issue OPEN while
+  # the dismissal still proceeds, breaking the "closed audit issues" invariant
+  # that `gh issue list --state closed --label security-audit` relies on.
+  # Surface the failure to stderr so the operator can close manually; the
+  # dismissal in the caller already has the URL embedded in its comment.
+  if ! gh issue close "$audit_url" --repo "$REPO" \
+        --comment "Auto-closed — see alert ${ALERT_URL} for the live state." >/dev/null 2>&1; then
+    echo "WARN: failed to close audit issue $audit_url — close it manually so \`label:security-audit state:closed\` stays consistent" >&2
+  fi
 
   echo "$audit_url"
 }
@@ -1711,7 +1824,12 @@ REPO=$(gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"')
 gh api "repos/$REPO/dependabot/alerts?state=open&per_page=100" --paginate > "$TMP/alerts.json"
 
 N=$(jq 'length' "$TMP/alerts.json")
-DISMISSED=(); OPENED=(); SKIPPED_ECOSYSTEM=(); SKIPPED_UNCLASS=()
+# `SKIPPED` is the unified bucket — every `SKIPPED+=("$ALERT_NUM:<tag>:...")`
+# call in §2.cs.1, §2.4, §3.1, §3.1b, §3.1d, §3.1e, §3.2 pushes here. Phase 4
+# then derives SKIPPED_ECOSYSTEM / SKIPPED_UNCLASS / SKIPPED_STALE by tag
+# filtering. Declaring all three keeps `set -u` happy if Phase 4 references
+# them directly without going through SKIPPED.
+DISMISSED=(); OPENED=(); SKIPPED=(); SKIPPED_ECOSYSTEM=(); SKIPPED_UNCLASS=(); SKIPPED_STALE=()
 
 # Path sets as bash ARRAYS — see §2.1 critical note. Do not use space-joined
 # strings; they collapse across subshell boundaries and silently null out.
@@ -1728,7 +1846,11 @@ PKG_TEST_DIRS=()
 while IFS= read -r _d; do
   PKG_TEST_DIRS+=("$_d")
 done < <(find packages plugins -type d -name tests 2>/dev/null)
-export PROD_DIRS TEST_DIRS PKG_TEST_DIRS
+# Persist via file (§2.1) — bash arrays don't survive subprocess `export`.
+printf '%s\n' "${PROD_DIRS[@]}"     > "$TMP/prod_dirs.txt"
+printf '%s\n' "${TEST_DIRS[@]}"     > "$TMP/test_dirs.txt"
+printf '%s\n' "${PKG_TEST_DIRS[@]}" > "$TMP/pkg_test_dirs.txt"
+export TMP
 
 for i in $(seq 0 $((N-1))); do
   ALERT=$(jq ".[$i]" "$TMP/alerts.json")
@@ -1743,7 +1865,14 @@ for i in $(seq 0 $((N-1))); do
   VULN_RANGE=$(jq -r '.security_vulnerability.vulnerable_version_range' <<<"$ALERT")
   FIRST_PATCHED=$(jq -r '.security_vulnerability.first_patched_version.identifier // "unknown"' <<<"$ALERT")
   SCOPE=$(jq -r '.dependency.scope // "unknown"' <<<"$ALERT")
+  AUTO_DISMISSED_AT=$(jq -r '.auto_dismissed_at // ""' <<<"$ALERT")
 
+  # Phase 1 skip rules — apply before classification. See §1.1 skip-immediately list.
+  if [[ -n "$AUTO_DISMISSED_AT" ]]; then
+    SKIPPED+=("$ALERT_NUM:auto-dismissed:$AUTO_DISMISSED_AT")
+    echo "SKIP #$ALERT_NUM: auto-dismissed by GitHub at $AUTO_DISMISSED_AT" >&2
+    continue
+  fi
   if [[ "$ECOSYSTEM" != "pip" ]]; then
     SKIPPED+=("$ALERT_NUM:non-pip-ecosystem:$ECOSYSTEM")
     echo "SKIP #$ALERT_NUM: ecosystem=$ECOSYSTEM (only pip is supported)" >&2
