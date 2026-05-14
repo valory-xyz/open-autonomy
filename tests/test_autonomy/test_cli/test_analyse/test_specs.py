@@ -660,9 +660,11 @@ class TestCheckUnreferencedEvents:
 
         app = self._build_app(ChildRound, ChildEvent)
         # The child's transition_function uses ChildEvent; the parent's
-        # FETCH_ERROR must NOT be reported as missing.
+        # FETCH_ERROR must NOT be reported as missing -- AND no other
+        # error should fire either, so the negative assertion is anchored
+        # to the empty-list shape (vacuous-truth-proof).
         errors = check_unreferenced_events(app)
-        assert all("FETCH_ERROR" not in e for e in errors), errors
+        assert errors == [], errors
 
     def test_cross_skill_enum_names_filtered(self) -> None:
         """``Event.X`` references absent from the AbciApp's enum are skipped."""
@@ -693,7 +695,10 @@ class TestCheckUnreferencedEvents:
 
         app = self._build_app(ChildRound, ChildEvent)
         errors = check_unreferenced_events(app)
-        assert all("FETCH_ERROR_FROM_OTHER_SKILL" not in e for e in errors), errors
+        # The cross-skill name must not surface AND no other error
+        # should fire; assert the empty-list shape so the test fails
+        # against a gutted ``check_unreferenced_events``.
+        assert errors == [], errors
 
     def test_fsm_specs_returns_annotation(self) -> None:
         """``# fsm-specs: returns(...)`` annotates dynamically-emitted events."""
@@ -722,10 +727,10 @@ class TestCheckUnreferencedEvents:
         errors = check_unreferenced_events(app)
         # PREPARE_TX and NO_REDEEMING come from the annotation -- they
         # should be considered "referenced" and not show up as
-        # "listed ... but never returned" errors.
-        flat = " ".join(errors)
-        assert "PREPARE_TX" not in flat
-        assert "NO_REDEEMING" not in flat
+        # "listed ... but never returned" errors. Assert the empty-list
+        # shape rather than substring-absence so the test fails against
+        # a gutted ``check_unreferenced_events``.
+        assert errors == [], errors
 
     def test_method_body_event_literal_still_picked_up(self) -> None:
         """``Event.X`` in a method body is still counted as referenced."""
@@ -829,9 +834,11 @@ class TestCheckUnreferencedEvents:
             transition_function: Dict[Any, Dict[Any, Any]] = {Round: {}}
             event_to_timeout: Dict[Any, float] = {}
 
-        # Should not crash; the cross-skill filter just degrades to "trust
-        # every Event.X name" when the enum can't be determined.
-        check_unreferenced_events(MockApp)
+        # Should not crash AND should produce no spurious errors; the
+        # round has no transitions and no source-level Event.X references,
+        # so the degraded-filter path has nothing to over-accept.
+        errors = check_unreferenced_events(MockApp)
+        assert errors == [], errors
 
     def test_missing_timeout_event_not_returned_flagged(self) -> None:
         """Flag events in transition_function that are not returned or timeout-declared.
