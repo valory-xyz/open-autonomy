@@ -19,6 +19,7 @@
 
 """This module contains the slashing rounds."""
 
+import dataclasses
 import json
 from enum import Enum
 from typing import Dict, List, Optional, Set, Tuple, cast
@@ -199,6 +200,34 @@ class StatusResetRound(CollectSameUntilThresholdRound):
     done_event = Event.SLASH_END
     no_majority_event = Event.NO_MAJORITY
     none_event = Event.NONE
+
+
+# Pin the positional zip between `StatusResetPayload` data fields and
+# `StatusResetRound.selection_key` at import time. The 4th payload field
+# `slash_tx_sent` is the legacy name retained for protocol stability; it is
+# written to the DB under the 4th selection_key `slashing_majority_reached`.
+# Renaming the payload field is a consensus-protocol change. Any drift on
+# either side will raise here before a single round executes.
+_STATUS_RESET_PAYLOAD_DATA_FIELDS: Tuple[str, ...] = tuple(
+    field.name
+    for field in dataclasses.fields(StatusResetPayload)
+    if field.name not in {bf.name for bf in dataclasses.fields(BaseTxPayload)}
+)
+assert _STATUS_RESET_PAYLOAD_DATA_FIELDS == (
+    "operators_mapping",
+    "slash_timestamps",
+    "slashing_in_flight",
+    "slash_tx_sent",
+), (
+    "StatusResetPayload data field order drifted from "
+    "StatusResetRound.selection_key (slash_tx_sent maps positionally to "
+    "selection_key slashing_majority_reached); see the StatusResetPayload "
+    "docstring before changing either side."
+)
+assert (
+    _STATUS_RESET_PAYLOAD_DATA_FIELDS[:3] == StatusResetRound.selection_key[:3]
+    and StatusResetRound.selection_key[3] == "slashing_majority_reached"
+), "StatusResetRound.selection_key drifted from StatusResetPayload fields."
 
 
 class PostSlashingTxAbciApp(AbciApp[Event]):

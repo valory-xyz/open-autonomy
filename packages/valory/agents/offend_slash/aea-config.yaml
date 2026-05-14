@@ -33,10 +33,10 @@ skills:
 - valory/abstract_abci:0.1.0:bafybeib5qjkpfsxjcur4asube6kctmy2xsrg2hzcele2tmvsstula4lt54
 - valory/abstract_round_abci:0.1.0:bafybeifkpsljgwqlrnvaqbinndrpb6ihipmkquggw63adjtjaxmaz4haqu
 - valory/offend_abci:0.1.0:bafybeifb3rd4fubxbjvcawjppcznzqwz34ubnrggmbfkbqntwe2jzzjovq
-- valory/offend_slash_abci:0.1.0:bafybeidu57o33wspgiht7bopcqkxfii6i5cbvptf2usazm6kwwtqw7d6hi
+- valory/offend_slash_abci:0.1.0:bafybeigocup4lqjnh7l7ujhcxf5hhixssmpi3kcbafoh2w3623adhnq77e
 - valory/registration_abci:0.1.0:bafybeibxpk5fhl6gwztozb2z6qlygr77lvyhvpv76xth33fgn7tu3lggfi
 - valory/reset_pause_abci:0.1.0:bafybeiefmyje5mptamxyrlk2crq7jg3vmgdfakujz34iowowue2qyiyg3u
-- valory/slashing_abci:0.1.0:bafybeibqfluokwp7klxj6rszlyjh2orhrn7jgeob3ujh4h6gxscbrc2dhu
+- valory/slashing_abci:0.1.0:bafybeictbs2jblmrgffa5x2pqmnq6kwjjpz5zx55ql3vyqhakn2sr52xwa
 - valory/transaction_settlement_abci:0.1.0:bafybeia5bl4643arqkujtd3xdouxgr5gjuknxsl5332qgbxwvae2g7ya6i
 default_ledger: ethereum
 required_ledgers:
