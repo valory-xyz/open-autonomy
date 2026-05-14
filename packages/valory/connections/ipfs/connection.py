@@ -22,7 +22,7 @@ import asyncio
 import os
 import tempfile
 from asyncio import Task
-from concurrent.futures import Executor
+from concurrent.futures import Executor, ThreadPoolExecutor
 from pathlib import Path
 from shutil import rmtree
 from typing import Any, Callable, Dict, Optional, cast
@@ -32,8 +32,6 @@ from aea.connections.base import Connection, ConnectionStates
 from aea.mail.base import Envelope
 from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
-from aea_cli_ipfs.exceptions import DownloadError
-from aea_cli_ipfs.ipfs_client import IPFSError
 from aea_cli_ipfs.ipfs_utils import IPFSTool
 
 from packages.valory.protocols.ipfs import IpfsMessage
@@ -76,6 +74,8 @@ class IpfsConnection(Connection):
     """An async connection for sending and receiving files to IPFS."""
 
     connection_id = PUBLIC_ID
+    DEFAULT_REQUEST_TIMEOUT = 60.0
+    DEFAULT_EXECUTOR_WORKERS = 4
 
     def __init__(self, **kwargs: Any) -> None:
         """
@@ -90,6 +90,9 @@ class IpfsConnection(Connection):
         self.loop_executor: Optional[Executor] = None
         self.dialogues = IpfsDialogues(connection_id=PUBLIC_ID)
         self._response_envelopes: Optional[asyncio.Queue] = None
+        self._request_timeout: Optional[float] = self.configuration.config.get(
+            "request_timeout", self.DEFAULT_REQUEST_TIMEOUT
+        )
 
     @property
     def response_envelopes(self) -> asyncio.Queue:
@@ -104,6 +107,10 @@ class IpfsConnection(Connection):
         """Set up the connection."""
         self.ipfs_tool.check_ipfs_node_running()
         self._response_envelopes = asyncio.Queue()
+        self.loop_executor = ThreadPoolExecutor(
+            max_workers=self.DEFAULT_EXECUTOR_WORKERS,
+            thread_name_prefix="ipfs-conn",
+        )
         self.state = ConnectionStates.connected
 
     async def disconnect(self) -> None:
@@ -117,6 +124,9 @@ class IpfsConnection(Connection):
             if not task.cancelled():  # pragma: nocover
                 task.cancel()
         self._response_envelopes = None
+        if self.loop_executor is not None:
+            self.loop_executor.shutdown(wait=False)
+            self.loop_executor = None
 
         self.state = ConnectionStates.disconnected
 
@@ -151,10 +161,12 @@ class IpfsConnection(Connection):
         if handler is None:
             err = f"Performative `{performative.value}` is not supported."
             self.logger.error(err)
-            task = self.run_async(self._handle_error, err)
+            task = self.run_async(
+                self._handle_error, err, timeout=self._request_timeout
+            )
             return task
         dialogue = self.dialogues.update(message)
-        task = self.run_async(handler, message, dialogue)
+        task = self.run_async(handler, message, dialogue, timeout=self._request_timeout)
         return task
 
     def _handle_store_files(
@@ -201,10 +213,11 @@ class IpfsConnection(Connection):
             # are being uploaded.
             _, hash_, _ = self.ipfs_tool.add(path)
             self.logger.debug(f"Successfully stored files with hash: {hash_}.")
-        except (
-            ValueError,
-            IPFSError,
-        ) as e:  # pragma: no cover
+        except Exception as e:  # pylint: disable=broad-except
+            # Broaden from (ValueError, IPFSError) so network errors
+            # (requests.ConnectionError, OSError, ipfshttpclient.CommunicationError)
+            # surface as ERROR envelopes instead of escaping into the
+            # done-callback and stranding the requesting skill.
             err = str(e)
             self.logger.error(err)
             return self._handle_error(err, dialogue)
@@ -254,22 +267,22 @@ class IpfsConnection(Connection):
         with tempfile.TemporaryDirectory() as tmp_dir:
             try:
                 self.ipfs_tool.download(ipfs_hash, tmp_dir)
-            except (
-                DownloadError,
-                PermissionError,
-                IPFSError,
-            ) as e:
+            except Exception as e:  # pylint: disable=broad-except
                 err = str(e)
                 self.logger.error(err)
                 return self._handle_error(err, dialogue)
 
             files = os.listdir(tmp_dir)
+            if not files:
+                err = f"IPFS download for {ipfs_hash} produced no files"
+                self.logger.error(err)
+                return self._handle_error(err, dialogue)
             if len(files) > 1:
                 self.logger.warning(
                     f"Multiple files or dirs found in {tmp_dir}. "
                     f"The first will be used. "
                 )
-            downloaded_file = files.pop()
+            downloaded_file = files[0]
             base_dir = Path(tmp_dir)
             if os.path.isdir(base_dir / downloaded_file):
                 base_dir = base_dir / downloaded_file
@@ -304,7 +317,11 @@ class IpfsConnection(Connection):
         :param task: the done task.
         """
         request = self.task_to_request.pop(task)
-        response_message: Optional[Message] = task.result()
+        try:
+            response_message: Optional[Message] = task.result()
+        except Exception:  # pylint: disable=broad-except
+            self.logger.exception("IPFS task failed")
+            response_message = None
 
         response_envelope = None
         if response_message is not None:

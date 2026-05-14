@@ -763,7 +763,12 @@ class BaseBehaviour(
                     self.round_sequence.set_block_stall_deadline()
                     return
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
-            except (json.JSONDecodeError, KeyError):  # pragma: nocover
+            except (
+                json.JSONDecodeError,
+                KeyError,
+                TypeError,
+                ValueError,
+            ):  # pragma: nocover
                 self.context.logger.debug(
                     "Tendermint not accepting transactions yet, trying again!"
                 )
@@ -1998,14 +2003,14 @@ class BaseBehaviour(
         status = yield from self._get_status()
         try:
             json_body = json.loads(status.body.decode())
-        except json.JSONDecodeError:
+            remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError):
             self.context.logger.error(
                 "Tendermint not accepting transactions yet, trying again!"
             )
             yield from self.sleep(self.params.sleep_time)
             return False
 
-        remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
         local_height = self.round_sequence.height
         if local_height != remote_height:
             self.context.logger.warning(

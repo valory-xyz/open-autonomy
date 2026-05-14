@@ -77,7 +77,13 @@ class SubgraphClient:
                 f"Subgraph HTTP {resp.status_code} from {self._url}: "
                 f"{resp.text[:200]}"
             )
-        payload = resp.json()
+        try:
+            payload = resp.json()
+        except json.JSONDecodeError as e:
+            raise RuntimeError(
+                f"Subgraph returned non-JSON body from {self._url}: "
+                f"{resp.text[:200]}"
+            ) from e
         if "errors" in payload:
             raise RuntimeError(f"Subgraph query failed: {payload['errors']}")
         if "data" not in payload:

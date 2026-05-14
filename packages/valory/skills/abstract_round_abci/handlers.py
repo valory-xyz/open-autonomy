@@ -59,6 +59,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     TransactionNotValidError,
     TransactionTypeNotRecognizedError,
 )
+from packages.valory.skills.abstract_round_abci.behaviour_utils import SendException
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogue
 from packages.valory.skills.abstract_round_abci.models import (
@@ -426,7 +427,17 @@ class AbstractResponseHandler(Handler, ABC):
         current_behaviour = cast(
             AbstractRoundBehaviour, self.context.behaviours.main
         ).current_behaviour
-        callback(message, current_behaviour)
+        try:
+            callback(message, current_behaviour)
+        except Exception:  # pylint: disable=broad-except
+            self.context.logger.exception(
+                f"Callback for request nonce {request_nonce} raised"
+            )
+            if current_behaviour is not None:
+                try:
+                    current_behaviour.try_send(None)
+                except SendException:
+                    pass
 
     def _get_dialogues_attribute_name(self) -> str:
         """
