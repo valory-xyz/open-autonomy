@@ -62,9 +62,12 @@ EVENT_ATTR_ASSIGN_PATTERN = re.compile(
 )
 # ``# fsm-specs: returns(EVENT1, EVENT2)`` annotation -- declares events a
 # round emits dynamically (e.g. ``Event(payload_value)``) where the regex
-# scan has no signal.  Anchored to a comment at line start (after optional
-# leading whitespace) so the annotation must appear as a real comment, not
-# inside a string literal or docstring example documenting the syntax.
+# scan has no signal.  Anchored to the start of a line so an inline mid-
+# paragraph mention (``This works because # fsm-specs: returns(X)...``)
+# does NOT match; placement inside a class docstring DOES match, and that
+# is the canonical idiom -- the annotation is meant to live in the
+# round's docstring or as a standalone comment block above ``end_block``.
+# The regex is purely textual; it does not parse string-literal context.
 FSM_SPECS_RETURNS_PATTERN = re.compile(
     r"^[ \t]*#\s*fsm-specs:\s*returns\s*\(([^)]*)\)", re.MULTILINE
 )

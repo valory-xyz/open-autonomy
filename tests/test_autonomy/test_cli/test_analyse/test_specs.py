@@ -764,6 +764,48 @@ class TestCheckUnreferencedEvents:
         errors = check_unreferenced_events(MockApp)
         assert any("MOCK_TX" in e for e in errors), errors
 
+    def test_method_body_local_var_event_literal_picked_up(self) -> None:
+        r"""Local-var form of method-body Event.X reference is preserved.
+
+        Specifically pins the ``result_event = Event.X; return result_event``
+        shape against the over-stripping regression
+        ``EVENT_ATTR_ASSIGN_PATTERN`` is anchored to defend against.  If the
+        indent anchor is relaxed back to ``[ \t]+``, the method-body local
+        ``result_event = Event.MOCK_TX`` line would be stripped before the
+        regex scan and the test would fail.
+        """
+
+        class Event(Enum):
+            """Test enum."""
+
+            DONE = "DONE"
+            MOCK_TX = "MOCK_TX"
+
+        class Round:
+            """Round whose end_block assigns to a local var first."""
+
+            done_event = Event.DONE
+
+            def end_block(self) -> None:
+                """Local-var dispatch path."""
+                result_event = Event.MOCK_TX
+                return result_event  # type: ignore[return-value]
+
+        class MockApp:
+            """Mock AbciApp -- transition_function only wires DONE."""
+
+            transition_function: Dict[Any, Dict[Any, Any]] = {
+                Round: {Event.DONE: Round}
+            }
+            event_to_timeout: Dict[Any, float] = {}
+
+        errors = check_unreferenced_events(MockApp)
+        # MOCK_TX must be detected as "referenced but missing from
+        # transition function" even though it never appears on a
+        # ``return Event.X`` line directly -- the regex scan picks it
+        # up from the local-var assignment that survives the strip.
+        assert any("MOCK_TX" in e for e in errors), errors
+
     def test_composed_app_per_round_enum_resolution(self) -> None:
         """Each round resolves its own enum (composed AbciApp regression)."""
 
