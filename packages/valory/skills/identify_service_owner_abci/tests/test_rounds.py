@@ -21,10 +21,17 @@
 
 # pylint: disable=redefined-outer-name,too-few-public-methods
 
+from typing import Dict, FrozenSet
 from unittest.mock import MagicMock
 
 import pytest
 
+from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
+    BaseCollectSameUntilThresholdRoundTest,
+)
+from packages.valory.skills.identify_service_owner_abci.payloads import (
+    IdentifyServiceOwnerPayload,
+)
 from packages.valory.skills.identify_service_owner_abci.rounds import (
     Event,
     FinishedIdentifyServiceOwnerErrorRound,
@@ -33,6 +40,28 @@ from packages.valory.skills.identify_service_owner_abci.rounds import (
     IdentifyServiceOwnerRound,
     SynchronizedData,
 )
+
+
+def _participant_to_payload(
+    participants: FrozenSet[str], service_owner: str
+) -> Dict[str, IdentifyServiceOwnerPayload]:
+    """Build participant-to-payload mapping with the given resolved owner."""
+    return {
+        participant: IdentifyServiceOwnerPayload(
+            sender=participant, service_owner=service_owner
+        )
+        for participant in participants
+    }
+
+
+def _participant_to_none_payload(
+    participants: FrozenSet[str],
+) -> Dict[str, IdentifyServiceOwnerPayload]:
+    """Build participant-to-payload mapping with an unresolved owner."""
+    return {
+        participant: IdentifyServiceOwnerPayload(sender=participant, service_owner=None)
+        for participant in participants
+    }
 
 
 @pytest.fixture
@@ -145,3 +174,58 @@ class TestSynchronizedData:
         data = SynchronizedData(db=mock_db)
         assert data.service_owner == "0xOwner"
         mock_db.get_strict.assert_called_with("service_owner")
+
+
+class TestIdentifyServiceOwnerRound(BaseCollectSameUntilThresholdRoundTest):
+    """Exercise IdentifyServiceOwnerRound through the framework base test."""
+
+    _synchronized_data_class = SynchronizedData
+    _event_class = Event
+
+    def test_done_event(self) -> None:
+        """A threshold of identical non-empty payloads yields ``Event.DONE`` and writes ``service_owner``."""
+        owner = "0xResolvedServiceOwner"
+        test_round = IdentifyServiceOwnerRound(
+            synchronized_data=self.synchronized_data,
+            context=MagicMock(),
+        )
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=_participant_to_payload(self.participants, owner),
+                synchronized_data_update_fn=(
+                    lambda data, _round: data.update(
+                        synchronized_data_class=SynchronizedData,
+                        service_owner=owner,
+                    )
+                ),
+                synchronized_data_attr_checks=[lambda data: data.service_owner],
+                most_voted_payload=owner,
+                exit_event=Event.DONE,
+            )
+        )
+
+    def test_none_event(self) -> None:
+        """A threshold of identical all-``None`` payloads yields ``Event.ERROR``."""
+        test_round = IdentifyServiceOwnerRound(
+            synchronized_data=self.synchronized_data,
+            context=MagicMock(),
+        )
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=_participant_to_none_payload(self.participants),
+                synchronized_data_update_fn=lambda data, _round: data,
+                synchronized_data_attr_checks=[],
+                most_voted_payload=None,
+                exit_event=Event.ERROR,
+            )
+        )
+
+    def test_no_majority_event(self) -> None:
+        """A round in which majority is impossible yields ``Event.NO_MAJORITY``."""
+        test_round = IdentifyServiceOwnerRound(
+            synchronized_data=self.synchronized_data,
+            context=MagicMock(),
+        )
+        self._test_no_majority_event(test_round)

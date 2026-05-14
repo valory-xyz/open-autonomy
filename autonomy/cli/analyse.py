@@ -317,6 +317,8 @@ def _parse_logs(
     type=str,
     default=[
         "abstract_abci",
+        "counter",
+        "counter_client",
     ],
     help="Specify which skills to skip. Eg. -i skill_0 -i skill_1 -i skill_2",
     multiple=True,
@@ -362,6 +364,8 @@ def run_handler_check(
     type=str,
     default=[
         "abstract_abci",
+        "counter",
+        "counter_client",
     ],
     help="Specify which skills to skip. Eg. -i skill_0 -i skill_1 -i skill_2",
     multiple=True,

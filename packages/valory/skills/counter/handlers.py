@@ -37,7 +37,7 @@ def encode_number(value: int) -> bytes:
 
 
 def decode_number(raw: bytes) -> int:
-    """Decode an integer (little-endian)."""
+    """Decode an integer (big-endian)."""
     return int.from_bytes(raw, byteorder="big")
 
 
