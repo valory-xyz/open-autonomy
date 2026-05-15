@@ -5,6 +5,32 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.21` to `v0.21.22`
+
+This release ships the resilience-hardening audit (#2501) and the FSM-correctness audit (#2502), and picks up the `open-aea 2.2.6` bump. There are no API or wire-format changes — downstream apps only need to repin the framework and re-pull package hashes.
+
+### `open-aea` bumped `2.2.5` → `2.2.6`
+
+Update any direct `open-aea` / `open-aea-*` pins in your downstream `pyproject.toml` / `setup.py` / `tox.ini` / Dockerfiles from `==2.2.5` to `==2.2.6`. The `valory/ledger:0.19.0` connection now ships with `open-aea`'s per-attempt `MAX_RETRY_DELAY = 60s` cap on the `get_transaction_receipt` retry loop, which bounds worst-case wall-clock per receipt call.
+
+### Regenerated package hashes
+
+All first-party packages under `packages/valory/` have new IPFS hashes because the `open-aea-*` plugin pins inside each `aea-config.yaml` / `contract.yaml` / `skill.yaml` / `service.yaml` / `connection.yaml` were rewritten as part of the bump. If you maintain a downstream repo that pins `valory/*` packages by hash, run:
+
+```bash
+autonomy packages sync --update-packages
+autonomy packages lock
+```
+
+to pull the regenerated hashes and re-lock your own `packages.json`.
+
+### Concrete upgrade steps
+
+1. Bump `open-autonomy` pin to `==0.21.22` (and any matching `open-aea-test-autonomy` / `open-aea-helpers` pin to `==0.21.22`).
+2. Bump `open-aea` / `open-aea-*` pins to `==2.2.6`.
+3. Run `autonomy packages sync --update-packages` to pull the updated framework packages.
+4. Run `autonomy packages lock` to regenerate downstream package hashes.
+
 ## `v0.21.20` to `v0.21.21`
 
 This is a chore release that picks up the `open-aea 2.2.5` bump and regenerates the package hashes. There are no runtime, API, or wire-format changes in `open-autonomy` itself.
