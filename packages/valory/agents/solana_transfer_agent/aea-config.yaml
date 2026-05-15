@@ -14,7 +14,7 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeibcpvyteijct4rz3zl63sn5zwuiwtn6gt6guvr5gufko4332ybgcu
 - valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
-- valory/ipfs:0.1.0:bafybeigjdn6ddr6xxv5sqobcuxvhinptjei4ulrzrfnrrxxvf3dmhmcd4q
+- valory/ipfs:0.1.0:bafybeicxrwakpakexuixxp6yo25sosikrjs4mvzfvzklpqk5fa3yy3hh5a
 - valory/ledger:0.19.0:bafybeicynh5l5f5f5jpx72qwzis7jvmxk5p4eqltk32uxbj2pgu2x4rqz4
 - valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts:
@@ -31,11 +31,11 @@ protocols:
 - valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
 skills:
 - valory/abstract_abci:0.1.0:bafybeib5qjkpfsxjcur4asube6kctmy2xsrg2hzcele2tmvsstula4lt54
-- valory/abstract_round_abci:0.1.0:bafybeidn3oskhj7hfay3xf6jz4ptyhgfqxj33lqquhqpqxmwvtpljoljsm
-- valory/registration_abci:0.1.0:bafybeialpmmptpufbpyzubf45hyzalxz55ighywk5rtkijo4npvxl54u6y
-- valory/reset_pause_abci:0.1.0:bafybeid2mtaxx57vyptp7groasgdxolmjvoc2dewxlkvt3skvsjamvyb7u
-- valory/squads_transaction_settlement_abci:0.1.0:bafybeidglgtgpijzllclv5buedaxpyvfs7zhlrzkw6dxpnrzpfngq76jca
-- valory/test_solana_tx_abci:0.1.0:bafybeigbysoz5jwcjv6676xwv5rivow55uit3vhejegsxarhbtzru5osfe
+- valory/abstract_round_abci:0.1.0:bafybeiac4k7pta56ydse47dj3cbnniksnrnfhkbpdc2znxqkwatmhavjz4
+- valory/registration_abci:0.1.0:bafybeibh6pbshojws53hvbmgexxwhudkf7smmwyzkzw2mhivwbi3ojey5q
+- valory/reset_pause_abci:0.1.0:bafybeiaexuw5mc6rsvohgltsifck3sgj747rebattvbflzrpwituqzavui
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeie2lxijykdeu7pu2oqalit2tal7uepb3cn4uwuc2uh3ix7ft5wtpa
+- valory/test_solana_tx_abci:0.1.0:bafybeia2c2w2qrii2vtbkimuoxoplxs724zbhq2jhwczeecxfbsrgv2cte
 default_ledger: solana
 required_ledgers:
 - solana

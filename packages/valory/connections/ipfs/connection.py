@@ -162,7 +162,7 @@ class IpfsConnection(Connection):
             err = f"Performative `{performative.value}` is not supported."
             self.logger.error(err)
             task = self.run_async(
-                self._handle_error, err, timeout=self._request_timeout
+                self._handle_error, err, None, timeout=self._request_timeout
             )
             return task
         dialogue = self.dialogues.update(message)
@@ -170,7 +170,7 @@ class IpfsConnection(Connection):
             err = f"Could not update dialogue for message {message}"
             self.logger.error(err)
             return self.run_async(
-                self._handle_error, err, timeout=self._request_timeout
+                self._handle_error, err, None, timeout=self._request_timeout
             )
         task = self.run_async(handler, message, dialogue, timeout=self._request_timeout)
         return task
@@ -190,7 +190,7 @@ class IpfsConnection(Connection):
         if len(files) == 0:
             err = "No files were present."
             self.logger.error(err)
-            return self._handle_error(err, dialogue)
+            return cast(IpfsMessage, self._handle_error(err, dialogue))
         if len(files) == 1:
             # a single file needs to be stored,
             # we don't need to create a dir
@@ -207,7 +207,7 @@ class IpfsConnection(Connection):
                     "If you want to send multiple files as a single dir, "
                     "make sure the their path matches to one directory only."
                 )
-                return self._handle_error(err, dialogue)
+                return cast(IpfsMessage, self._handle_error(err, dialogue))
 
             # "path" is the directory, it's the same for all the files
             path = dirs.pop()
@@ -222,7 +222,7 @@ class IpfsConnection(Connection):
         except Exception as e:  # pylint: disable=broad-except  # noqa: BLE001
             err = str(e)
             self.logger.error(err)
-            return self._handle_error(err, dialogue)
+            return cast(IpfsMessage, self._handle_error(err, dialogue))
         finally:
             self.__remove_filepath(path)
         response_message = cast(
@@ -272,13 +272,13 @@ class IpfsConnection(Connection):
             except Exception as e:  # pylint: disable=broad-except
                 err = str(e)
                 self.logger.error(err)
-                return self._handle_error(err, dialogue)
+                return cast(IpfsMessage, self._handle_error(err, dialogue))
 
             files = os.listdir(tmp_dir)
             if not files:
                 err = f"IPFS download for {ipfs_hash} produced no files"
                 self.logger.error(err)
-                return self._handle_error(err, dialogue)
+                return cast(IpfsMessage, self._handle_error(err, dialogue))
             if len(files) > 1:
                 self.logger.warning(
                     f"Multiple files or dirs found in {tmp_dir}. "
@@ -301,8 +301,27 @@ class IpfsConnection(Connection):
             )
             return response_message
 
-    def _handle_error(self, reason: str, dialogue: BaseDialogue) -> IpfsMessage:
-        """Handler for error messages."""
+    def _handle_error(
+        self, reason: str, dialogue: Optional[BaseDialogue] = None
+    ) -> Optional[IpfsMessage]:
+        """Handler for error messages.
+
+        When ``dialogue`` is ``None`` (e.g. the request message could not be
+        matched against ``IpfsDialogues``, or an unsupported performative was
+        rejected before a dialogue was created), no reply can be built — the
+        helper logs the error and returns ``None`` so the caller's queue path
+        emits a ``None`` envelope and the requesting skill times out via its
+        normal request-timeout flow.
+
+        :param reason: human-readable reason for the error.
+        :param dialogue: the dialogue to reply on, or ``None`` if none exists.
+        :return: an ERROR-performative reply, or ``None`` when no dialogue is available.
+        """
+        if dialogue is None:
+            self.logger.error(
+                "Dropping error response, no dialogue available. Reason: %s", reason
+            )
+            return None
         message = cast(
             IpfsMessage,
             dialogue.reply(

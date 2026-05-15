@@ -217,34 +217,56 @@ class TestIpfsConnection:
             "response. The requesting skill will time out."
         )
 
-    def test_handle_envelope_returns_error_task_when_dialogue_update_is_none(
+    @pytest.mark.asyncio
+    async def test_handle_envelope_dispatches_executable_error_task_when_dialogue_update_is_none(
         self,
     ) -> None:
-        """Request-path None-guard routes to ``_handle_error`` instead of crashing.
+        """Request-path None-guard dispatches an actually-runnable error task.
 
-        If ``dialogues.update(message)`` returns ``None`` on the request
-        path, the connection must NOT pass ``None`` into the per-performative
-        handler (which would crash on ``dialogue.reply(...)``). The audit added
-        the same guard that already protected ``_handle_done_task``.
+        If ``dialogues.update(message)`` returns ``None``, the per-performative
+        handler must not be called (it would crash on ``dialogue.reply(...)``).
+        The fix routes through ``_handle_error`` with ``dialogue=None``; the
+        task body must complete cleanly (returning ``None``) rather than
+        ``TypeError``-ing on a missing positional argument. The previous test
+        mocked ``run_async`` and so never executed the task body — this one
+        awaits the task end-to-end.
         """
+        await self.connection.connect()
         envelope = Envelope(to=str(PUBLIC_ID), sender=ANY_SKILL, message=self.dummy_msg)
-        sentinel_task = MagicMock(name="error-task")
         with mock.patch.object(
             self.connection.dialogues, "update", return_value=None
-        ), mock.patch.object(
-            self.connection, "run_async", return_value=sentinel_task
-        ) as mock_run_async, mock.patch.object(
-            self.connection.logger, "error"
-        ) as mock_log_error:
+        ), mock.patch.object(self.connection.logger, "error") as mock_log_error:
             task = self.connection._handle_envelope(envelope)
-        assert task is sentinel_task
-        # The error path is taken: run_async is called with the _handle_error
-        # bound method, not with the per-performative handler. Bound methods
-        # are re-instantiated on each attribute access, so identity-compare
-        # via __func__ rather than ``is``.
-        called_handler = mock_run_async.call_args.args[0]
-        assert called_handler.__func__ is type(self.connection)._handle_error
+            # The task is real; awaiting it actually runs ``_handle_error``
+            # in the executor. Pre-fix this raised
+            # ``TypeError: _handle_error() missing 1 required positional
+            # argument: 'dialogue'``.
+            result = await task
+        assert result is None
+        # Both the scheduling log and ``_handle_error``'s own "dropping
+        # error response" log fire — the latter proves the task body ran.
+        log_messages = [call.args[0] for call in mock_log_error.call_args_list]
+        assert any(
+            "Could not update dialogue for message" in msg for msg in log_messages
+        )
+        assert any(
+            "Dropping error response, no dialogue available." in msg
+            for msg in log_messages
+        )
+
+    def test_handle_error_returns_none_when_dialogue_is_none(self) -> None:
+        """_handle_error tolerates dialogue=None and logs the dropped reply.
+
+        Direct unit test for the widened signature: passing ``dialogue=None``
+        must return ``None`` and log at error level rather than dereferencing
+        a ``NoneType`` to build the reply.
+        """
+        with mock.patch.object(self.connection.logger, "error") as mock_log_error:
+            result = self.connection._handle_error(reason="dropped", dialogue=None)
+        assert result is None
         mock_log_error.assert_called_once()
+        log_msg = mock_log_error.call_args.args[0]
+        assert "Dropping error response, no dialogue available." in log_msg
 
     def test_handle_error(self) -> None:
         """Test handle_error."""
