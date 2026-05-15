@@ -226,7 +226,7 @@ class TestApiSpecsModel:
                     error_index=None,
                     error_data=None,
                 ),
-                MagicMock(body=b'{"value": "10.232"}'),
+                MagicMock(body=b'{"value": "10.232"}', status_code=200),
                 10.232,
                 None,
             ),
@@ -242,7 +242,8 @@ class TestApiSpecsModel:
                     error_data=None,
                 ),
                 MagicMock(
-                    body=b'{"test": {"response": {"key": ["does_not_matter", "does_not_matter", {"this": "matters"}]}}}'
+                    body=b'{"test": {"response": {"key": ["does_not_matter", "does_not_matter", {"this": "matters"}]}}}',
+                    status_code=200,
                 ),
                 {"this": "matters"},
                 None,
@@ -257,7 +258,7 @@ class TestApiSpecsModel:
                     error_type="str",
                     error_data=None,
                 ),
-                MagicMock(body=b'{"cannot be parsed'),
+                MagicMock(body=b'{"cannot be parsed', status_code=200),
                 None,
                 None,
             ),
@@ -273,7 +274,8 @@ class TestApiSpecsModel:
                 ),
                 MagicMock(
                     # the null will raise `TypeError` and we test that it is handled
-                    body=b'{"test": {"response": {"key": ["does_not_matter", "does_not_matter", null]}}}'
+                    body=b'{"test": {"response": {"key": ["does_not_matter", "does_not_matter", null]}}}',
+                    status_code=200,
                 ),
                 "None",
                 None,
@@ -289,7 +291,8 @@ class TestApiSpecsModel:
                     error_data=None,
                 ),
                 MagicMock(
-                    body=b'{"test": {"response": {"key": ["does_not_matter", "does_not_matter"]}}}'
+                    body=b'{"test": {"response": {"key": ["does_not_matter", "does_not_matter"]}}}',
+                    status_code=200,
                 ),
                 None,
                 None,
@@ -305,7 +308,8 @@ class TestApiSpecsModel:
                     error_data=None,
                 ),
                 MagicMock(
-                    body=b'{"test": {"response": {"key_does_not_match": ["does_not_matter", "does_not_matter"]}}}'
+                    body=b'{"test": {"response": {"key_does_not_match": ["does_not_matter", "does_not_matter"]}}}',
+                    status_code=200,
                 ),
                 None,
                 None,
@@ -322,7 +326,8 @@ class TestApiSpecsModel:
                 ),
                 MagicMock(
                     body=b'{"test": {"response": {"key_does_not_match": ["does_not_matter", "does_not_matter"]}}, '
-                    b'"error": {"key": [0, 1, 2, "test that the error is being parsed correctly"]}}'
+                    b'"error": {"key": [0, 1, 2, "test that the error is being parsed correctly"]}}',
+                    status_code=200,
                 ),
                 None,
                 "test that the error is being parsed correctly",
@@ -344,6 +349,78 @@ class TestApiSpecsModel:
         if response_type is not None:
             assert type(actual) is getattr(builtins, response_type)
         assert api_specs.response_info.error_data == expected_error
+
+    @pytest.mark.parametrize(
+        "api_specs_config, message",
+        (
+            (
+                dict(
+                    **BASE_DUMMY_SPECS_CONFIG,
+                    response_key="value",
+                    response_index=None,
+                    response_type="float",
+                    error_key=None,
+                    error_index=None,
+                    error_data=None,
+                ),
+                MagicMock(body=b"\xff\xfe\xfd", status_code=200),
+            ),
+            (
+                dict(
+                    **BASE_DUMMY_SPECS_CONFIG,
+                    response_key="value",
+                    response_index=None,
+                    response_type="int",
+                    error_key=None,
+                    error_index=None,
+                    error_data=None,
+                ),
+                MagicMock(body=b'{"value": "N/A"}', status_code=200),
+            ),
+            (
+                dict(
+                    **BASE_DUMMY_SPECS_CONFIG,
+                    response_key="value",
+                    response_index=None,
+                    response_type="float",
+                    error_key=None,
+                    error_index=None,
+                    error_data=None,
+                ),
+                MagicMock(body=b'{"value": "null"}', status_code=200),
+            ),
+        ),
+    )
+    def test_process_response_returns_none_on_unparseable_body(
+        self,
+        api_specs_config: dict,
+        message: MagicMock,
+    ) -> None:
+        """Return None on bodies that cannot be decoded or coerced."""
+        api_specs = ApiSpecs(**api_specs_config)
+        assert api_specs.process_response(message) is None
+
+    @pytest.mark.parametrize(
+        "status_code",
+        (500, 502, 503, 504, 600),
+    )
+    def test_process_response_returns_none_on_server_error_status(
+        self,
+        status_code: int,
+    ) -> None:
+        """5xx (including the http_client transport-failure synthetic 600) short-circuit JSON parse."""
+        api_specs = ApiSpecs(
+            **BASE_DUMMY_SPECS_CONFIG,
+            response_key="value",
+            response_index=None,
+            response_type="float",
+            error_key=None,
+            error_index=None,
+            error_data=None,
+        )
+        # Body would parse as valid JSON for a 2xx, but at 5xx we don't try.
+        message = MagicMock(body=b'{"value": "10.232"}', status_code=status_code)
+        assert api_specs.process_response(message) is None
 
     def test_attribute_manipulation(self) -> None:
         """Test manipulating the attributes."""

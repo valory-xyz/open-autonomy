@@ -22,7 +22,7 @@ import asyncio
 import os
 import tempfile
 from asyncio import Task
-from concurrent.futures import Executor
+from concurrent.futures import Executor, ThreadPoolExecutor
 from pathlib import Path
 from shutil import rmtree
 from typing import Any, Callable, Dict, Optional, cast
@@ -32,8 +32,6 @@ from aea.connections.base import Connection, ConnectionStates
 from aea.mail.base import Envelope
 from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
-from aea_cli_ipfs.exceptions import DownloadError
-from aea_cli_ipfs.ipfs_client import IPFSError
 from aea_cli_ipfs.ipfs_utils import IPFSTool
 
 from packages.valory.protocols.ipfs import IpfsMessage
@@ -76,6 +74,8 @@ class IpfsConnection(Connection):
     """An async connection for sending and receiving files to IPFS."""
 
     connection_id = PUBLIC_ID
+    DEFAULT_REQUEST_TIMEOUT = 60.0
+    DEFAULT_EXECUTOR_WORKERS = 4
 
     def __init__(self, **kwargs: Any) -> None:
         """
@@ -90,6 +90,9 @@ class IpfsConnection(Connection):
         self.loop_executor: Optional[Executor] = None
         self.dialogues = IpfsDialogues(connection_id=PUBLIC_ID)
         self._response_envelopes: Optional[asyncio.Queue] = None
+        self._request_timeout: Optional[float] = self.configuration.config.get(
+            "request_timeout", self.DEFAULT_REQUEST_TIMEOUT
+        )
 
     @property
     def response_envelopes(self) -> asyncio.Queue:
@@ -104,6 +107,10 @@ class IpfsConnection(Connection):
         """Set up the connection."""
         self.ipfs_tool.check_ipfs_node_running()
         self._response_envelopes = asyncio.Queue()
+        self.loop_executor = ThreadPoolExecutor(
+            max_workers=self.DEFAULT_EXECUTOR_WORKERS,
+            thread_name_prefix="ipfs-conn",
+        )
         self.state = ConnectionStates.connected
 
     async def disconnect(self) -> None:
@@ -117,6 +124,9 @@ class IpfsConnection(Connection):
             if not task.cancelled():  # pragma: nocover
                 task.cancel()
         self._response_envelopes = None
+        if self.loop_executor is not None:
+            self.loop_executor.shutdown(wait=False)
+            self.loop_executor = None
 
         self.state = ConnectionStates.disconnected
 
@@ -151,10 +161,18 @@ class IpfsConnection(Connection):
         if handler is None:
             err = f"Performative `{performative.value}` is not supported."
             self.logger.error(err)
-            task = self.run_async(self._handle_error, err)
+            task = self.run_async(
+                self._handle_error, err, None, timeout=self._request_timeout
+            )
             return task
         dialogue = self.dialogues.update(message)
-        task = self.run_async(handler, message, dialogue)
+        if dialogue is None:
+            err = f"Could not update dialogue for message {message}"
+            self.logger.error(err)
+            return self.run_async(
+                self._handle_error, err, None, timeout=self._request_timeout
+            )
+        task = self.run_async(handler, message, dialogue, timeout=self._request_timeout)
         return task
 
     def _handle_store_files(
@@ -172,7 +190,7 @@ class IpfsConnection(Connection):
         if len(files) == 0:
             err = "No files were present."
             self.logger.error(err)
-            return self._handle_error(err, dialogue)
+            return cast(IpfsMessage, self._handle_error(err, dialogue))
         if len(files) == 1:
             # a single file needs to be stored,
             # we don't need to create a dir
@@ -189,7 +207,7 @@ class IpfsConnection(Connection):
                     "If you want to send multiple files as a single dir, "
                     "make sure the their path matches to one directory only."
                 )
-                return self._handle_error(err, dialogue)
+                return cast(IpfsMessage, self._handle_error(err, dialogue))
 
             # "path" is the directory, it's the same for all the files
             path = dirs.pop()
@@ -201,13 +219,10 @@ class IpfsConnection(Connection):
             # are being uploaded.
             _, hash_, _ = self.ipfs_tool.add(path)
             self.logger.debug(f"Successfully stored files with hash: {hash_}.")
-        except (
-            ValueError,
-            IPFSError,
-        ) as e:  # pragma: no cover
+        except Exception as e:  # pylint: disable=broad-except  # noqa: BLE001
             err = str(e)
             self.logger.error(err)
-            return self._handle_error(err, dialogue)
+            return cast(IpfsMessage, self._handle_error(err, dialogue))
         finally:
             self.__remove_filepath(path)
         response_message = cast(
@@ -254,22 +269,22 @@ class IpfsConnection(Connection):
         with tempfile.TemporaryDirectory() as tmp_dir:
             try:
                 self.ipfs_tool.download(ipfs_hash, tmp_dir)
-            except (
-                DownloadError,
-                PermissionError,
-                IPFSError,
-            ) as e:
+            except Exception as e:  # pylint: disable=broad-except
                 err = str(e)
                 self.logger.error(err)
-                return self._handle_error(err, dialogue)
+                return cast(IpfsMessage, self._handle_error(err, dialogue))
 
             files = os.listdir(tmp_dir)
+            if not files:
+                err = f"IPFS download for {ipfs_hash} produced no files"
+                self.logger.error(err)
+                return cast(IpfsMessage, self._handle_error(err, dialogue))
             if len(files) > 1:
                 self.logger.warning(
                     f"Multiple files or dirs found in {tmp_dir}. "
                     f"The first will be used. "
                 )
-            downloaded_file = files.pop()
+            downloaded_file = files[0]
             base_dir = Path(tmp_dir)
             if os.path.isdir(base_dir / downloaded_file):
                 base_dir = base_dir / downloaded_file
@@ -286,8 +301,27 @@ class IpfsConnection(Connection):
             )
             return response_message
 
-    def _handle_error(self, reason: str, dialogue: BaseDialogue) -> IpfsMessage:
-        """Handler for error messages."""
+    def _handle_error(
+        self, reason: str, dialogue: Optional[BaseDialogue] = None
+    ) -> Optional[IpfsMessage]:
+        """Handler for error messages.
+
+        When ``dialogue`` is ``None`` (e.g. the request message could not be
+        matched against ``IpfsDialogues``, or an unsupported performative was
+        rejected before a dialogue was created), no reply can be built — the
+        helper logs the error and returns ``None`` so the caller's queue path
+        emits a ``None`` envelope and the requesting skill times out via its
+        normal request-timeout flow.
+
+        :param reason: human-readable reason for the error.
+        :param dialogue: the dialogue to reply on, or ``None`` if none exists.
+        :return: an ERROR-performative reply, or ``None`` when no dialogue is available.
+        """
+        if dialogue is None:
+            self.logger.error(
+                "Dropping error response, no dialogue available. Reason: %s", reason
+            )
+            return None
         message = cast(
             IpfsMessage,
             dialogue.reply(
@@ -304,7 +338,20 @@ class IpfsConnection(Connection):
         :param task: the done task.
         """
         request = self.task_to_request.pop(task)
-        response_message: Optional[Message] = task.result()
+        try:
+            response_message: Optional[Message] = task.result()
+        except Exception as exc:  # pylint: disable=broad-except  # noqa: BLE001
+            self.logger.exception("IPFS task failed")
+            request_message = cast(IpfsMessage, request.message)
+            dialogue = self.dialogues.update(request_message)
+            if dialogue is not None:
+                response_message = cast(Message, self._handle_error(str(exc), dialogue))
+            else:
+                self.logger.error(
+                    "Could not recover dialogue for failed IPFS task; dropping "
+                    "response. The requesting skill will time out."
+                )
+                response_message = None
 
         response_envelope = None
         if response_message is not None:

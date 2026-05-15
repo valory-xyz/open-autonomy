@@ -763,9 +763,16 @@ class BaseBehaviour(
                     self.round_sequence.set_block_stall_deadline()
                     return
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
-            except (json.JSONDecodeError, KeyError):  # pragma: nocover
+            except json.JSONDecodeError:
                 self.context.logger.debug(
                     "Tendermint not accepting transactions yet, trying again!"
+                )
+                yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
+            except (KeyError, TypeError, ValueError) as exc:
+                self.context.logger.warning(
+                    "Unexpected Tendermint status response shape (%s); retrying. "
+                    "This may indicate a Tendermint version mismatch.",
+                    exc,
                 )
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
 
@@ -1243,7 +1250,13 @@ class BaseBehaviour(
             num_peers_str = res_body.get("result", {}).get("n_peers", None)
             if num_peers_str is None:
                 return None
-            num_peers = int(num_peers_str)
+            try:
+                num_peers = int(num_peers_str)
+            except (ValueError, TypeError):
+                self.context.logger.warning(
+                    f"Could not parse `n_peers` value: {num_peers_str!r}."
+                )
+                return None
             # num_peers hold the number of peers the tm node we are
             # making the TX to currently has an active connection
             # we add 1 because the node we are making the request through
@@ -1558,7 +1571,10 @@ class BaseBehaviour(
         self._send_transaction_signing_request(transaction, terms)
         signature_response = yield from self.wait_for_message()
         signature_response = cast(SigningMessage, signature_response)
-        tx_hash_backup = signature_response.signed_transaction.body.get("hash")
+        signed_tx_body = getattr(signature_response.signed_transaction, "body", None)
+        tx_hash_backup = (
+            signed_tx_body.get("hash") if isinstance(signed_tx_body, dict) else None
+        )
         if (
             signature_response.performative
             != SigningMessage.Performative.SIGNED_TRANSACTION
@@ -1998,14 +2014,22 @@ class BaseBehaviour(
         status = yield from self._get_status()
         try:
             json_body = json.loads(status.body.decode())
+            remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
         except json.JSONDecodeError:
             self.context.logger.error(
                 "Tendermint not accepting transactions yet, trying again!"
             )
             yield from self.sleep(self.params.sleep_time)
             return False
+        except (KeyError, TypeError, ValueError) as exc:
+            self.context.logger.error(
+                "Unexpected Tendermint status response shape (%s); retrying. "
+                "This may indicate a Tendermint version mismatch.",
+                exc,
+            )
+            yield from self.sleep(self.params.sleep_time)
+            return False
 
-        remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
         local_height = self.round_sequence.height
         if local_height != remote_height:
             self.context.logger.warning(

@@ -426,7 +426,12 @@ class AbstractResponseHandler(Handler, ABC):
         current_behaviour = cast(
             AbstractRoundBehaviour, self.context.behaviours.main
         ).current_behaviour
-        callback(message, current_behaviour)
+        try:
+            callback(message, current_behaviour)
+        except Exception:  # pylint: disable=broad-except
+            self.context.logger.exception(
+                f"Callback for request nonce {request_nonce} raised"
+            )
 
     def _get_dialogues_attribute_name(self) -> str:
         """
@@ -656,7 +661,13 @@ class TendermintHandler(Handler):
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> bool:
         """Check if the sender is registered on-chain and if not, reply with an error"""
-        others_addresses = self.context.state.acn_container()
+        try:
+            others_addresses = self.context.state.acn_container()
+        except ValueError:
+            self._reply_with_tendermint_error(
+                message, dialogue, "FSM not yet initialised"
+            )
+            return False
         if message.sender in others_addresses:
             return True
 

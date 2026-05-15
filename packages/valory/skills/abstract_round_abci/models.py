@@ -695,7 +695,7 @@ class ApiSpecs(Model, FrozenMixin, TypeCheckMixin):
                 self.response_info.error_index,
                 self.response_info.error_type,
             )
-        except (KeyError, IndexError, TypeError):
+        except (KeyError, IndexError, TypeError, ValueError):
             self.context.logger.error(
                 f"Could not parse error using the given key(s) ({self.response_info.error_key}) "
                 f"and index ({self.response_info.error_index})!"
@@ -711,13 +711,23 @@ class ApiSpecs(Model, FrozenMixin, TypeCheckMixin):
                 self.response_info.response_index,
                 self.response_info.response_type,
             )
-        except (KeyError, IndexError, TypeError) as e:
+        except (KeyError, IndexError, TypeError, ValueError) as e:
             raise UnexpectedResponseError from e
 
     def process_response(self, response: HttpMessage) -> Any:
         """Process response from api."""
-        decoded_response = response.body.decode()
+        try:
+            decoded_response = response.body.decode()
+        except (UnicodeDecodeError, AttributeError):
+            self.context.logger.error("Could not decode response body as UTF-8")
+            return None
         self.response_info.error_data = None
+
+        if response.status_code >= 500:
+            self.context.logger.warning(
+                f"Upstream returned {response.status_code}; treating as transient"
+            )
+            return None
 
         try:
             response_data = json.loads(decoded_response)

@@ -470,6 +470,38 @@ def test_send_a2a_transaction_positive(*_: Any) -> None
 
 Test 'send_a2a_transaction' method, positive case.
 
+<a id="packages.valory.skills.abstract_round_abci.tests.test_behaviours_utils.TestBaseBehaviour.test_check_sync_logs_version_mismatch_for_schema_drift"></a>
+
+#### test`_`check`_`sync`_`logs`_`version`_`mismatch`_`for`_`schema`_`drift
+
+```python
+def test_check_sync_logs_version_mismatch_for_schema_drift(
+        caplog: LogCaptureFixture) -> None
+```
+
+Schema drift triggers the distinct 'version mismatch' warning.
+
+A KeyError/TypeError/ValueError from parsing /status indicates the
+response shape has drifted (e.g. Tendermint renamed a field). The
+widened catch must log the distinct 'version mismatch' warning, not
+the legacy 'not accepting transactions yet' debug message that fits
+the JSONDecodeError case.
+
+<a id="packages.valory.skills.abstract_round_abci.tests.test_behaviours_utils.TestBaseBehaviour.test_check_sync_keeps_legacy_message_for_json_decode_error"></a>
+
+#### test`_`check`_`sync`_`keeps`_`legacy`_`message`_`for`_`json`_`decode`_`error
+
+```python
+def test_check_sync_keeps_legacy_message_for_json_decode_error(
+        caplog: LogCaptureFixture) -> None
+```
+
+Non-JSON status response keeps the legacy debug log.
+
+``JSONDecodeError`` (Tendermint not started yet, returns non-JSON)
+keeps the legacy 'not accepting transactions yet' debug log,
+preserving the distinction that motivated splitting the catch.
+
 <a id="packages.valory.skills.abstract_round_abci.tests.test_behaviours_utils.TestBaseBehaviour.test_async_act_wrapper_agent_sync_mode"></a>
 
 #### test`_`async`_`act`_`wrapper`_`agent`_`sync`_`mode

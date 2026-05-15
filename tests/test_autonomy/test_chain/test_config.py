@@ -19,6 +19,7 @@
 
 """Test the chain configuration."""
 
+import logging
 from typing import Iterable
 
 import pytest
@@ -75,6 +76,42 @@ def test_chain_type_id_known_and_unknown() -> None:
     with pytest.raises(ValueError, match="does not support a chain ID"):
         # SOLANA has no numeric EVM chain id in our mapping and should error
         _ = chain_config.ChainType.SOLANA.id
+
+
+def test_public_rpc_fallback_warns_at_most_once_per_env_name(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Public-RPC fallback warning is emitted at most once per env-var name.
+
+    Reading ``ChainType.rpc`` when the configured env var is unset emits a
+    one-shot warning per env-var name so the fallback to a public RPC is
+    visible without spamming the log on every read. Subsequent reads of the
+    same chain must NOT re-warn.
+
+    :param monkeypatch: pytest fixture used to unset ``ETHEREUM_CHAIN_RPC``.
+    :param caplog: pytest fixture capturing log records emitted by
+        :mod:`autonomy.chain.config`.
+    """
+    monkeypatch.delenv("ETHEREUM_CHAIN_RPC", raising=False)
+    # The warn-once cache is module-level; clear it so the test is
+    # independent of order. Restore at the end so we don't leak state into
+    # later tests.
+    chain_config._PUBLIC_RPC_FALLBACK_WARNED.clear()
+    try:
+        with caplog.at_level(logging.WARNING, logger=chain_config.__name__):
+            _ = chain_config.ChainType.ETHEREUM.rpc
+            _ = chain_config.ChainType.ETHEREUM.rpc
+            _ = chain_config.ChainType.ETHEREUM.rpc
+        warnings = [
+            r
+            for r in caplog.records
+            if "default public RPC" in r.getMessage()
+            and "ETHEREUM_CHAIN_RPC" in r.getMessage()
+        ]
+        assert len(warnings) == 1
+        assert "ETHEREUM_CHAIN_RPC" in chain_config._PUBLIC_RPC_FALLBACK_WARNED
+    finally:
+        chain_config._PUBLIC_RPC_FALLBACK_WARNED.clear()
 
 
 def test_chain_type_rpc_and_env_names(monkeypatch: pytest.MonkeyPatch) -> None:

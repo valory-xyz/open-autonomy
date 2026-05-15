@@ -19,6 +19,7 @@
 
 """Tests for the subgraph client."""
 
+import json
 from unittest import mock
 
 import pytest
@@ -98,3 +99,19 @@ class TestClient:
                 self.client._query("query { ok }")
         # Confirm .json() was NEVER called — the HTTP check short-circuits.
         fake_resp.json.assert_not_called()
+
+    def test_query_raises_on_200_with_malformed_json_body(self) -> None:
+        """Surface a typed RuntimeError when a 200 body is unparseable.
+
+        A 200 response whose body is HTML (e.g. Cloudflare interstitial)
+        bypasses the status-code branch but trips ``json.JSONDecodeError`` in
+        ``resp.json()``. The wrapper must surface a typed ``RuntimeError`` that
+        names the URL, not the raw decoder traceback.
+        """
+        fake_resp = mock.Mock()
+        fake_resp.status_code = 200
+        fake_resp.text = "<html>cloudflare</html>"
+        fake_resp.json.side_effect = json.JSONDecodeError("expecting value", "", 0)
+        with mock.patch("autonomy.chain.subgraph.client.post", return_value=fake_resp):
+            with pytest.raises(RuntimeError, match="Subgraph returned non-JSON body"):
+                self.client._query("query { ok }")

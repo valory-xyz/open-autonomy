@@ -240,6 +240,20 @@ def create_app(  # pylint: disable=too-many-statements
     override_config_toml()
     tendermint_node.start(debug=debug)
 
+    def _tendermint_http_url(path: str) -> str:
+        """Build an HTTP URL on the configured Tendermint RPC.
+
+        Normalises ``tcp://`` and ``0.0.0.0`` for local connectivity.
+
+        :param path: URL path to append to the Tendermint RPC base.
+        :return: fully qualified HTTP URL.
+        """
+        non_routable, loopback = "0.0.0.0", "127.0.0.1"  # nosec
+        base = tendermint_params.rpc_laddr.replace("tcp", "http").replace(
+            non_routable, loopback
+        )
+        return f"{base}{path}"
+
     @app.get("/params")
     def get_params() -> Dict:
         """Get tendermint params."""
@@ -249,14 +263,23 @@ def create_app(  # pylint: disable=too-many-statements
             )
             priv_key_data = json.loads(priv_key_file.read_text(encoding=ENCODING))
             del priv_key_data["priv_key"]
-            status = requests.get(TM_STATUS_ENDPOINT, timeout=30).json()
+            status = requests.get(_tendermint_http_url("/status"), timeout=30).json()
             priv_key_data["peer_id"] = status["result"]["node_info"]["id"]
             return {
                 "params": priv_key_data,
                 "status": True,
                 "error": None,
             }
-        except (FileNotFoundError, json.JSONDecodeError):
+        except (
+            FileNotFoundError,
+            json.JSONDecodeError,
+            KeyError,
+            TypeError,
+            requests.ConnectionError,
+        ):
+            cast(logging.Logger, app.logger).exception(  # pylint: disable=no-member
+                "/params GET failed"
+            )
             return {"params": {}, "status": False, "error": traceback.format_exc()}
 
     @app.post("/params")
@@ -288,7 +311,16 @@ def create_app(  # pylint: disable=too-many-statements
             )
 
             return {"status": True, "error": None}
-        except (FileNotFoundError, json.JSONDecodeError, PermissionError):
+        except (
+            FileNotFoundError,
+            json.JSONDecodeError,
+            PermissionError,
+            KeyError,
+            TypeError,
+        ):
+            cast(logging.Logger, app.logger).exception(  # pylint: disable=no-member
+                "/params POST failed"
+            )
             return {"status": False, "error": traceback.format_exc()}
 
     @app.route("/gentle_reset")
@@ -299,20 +331,21 @@ def create_app(  # pylint: disable=too-many-statements
             tendermint_node.start()
             return jsonify({"message": "Reset successful.", "status": True}), 200
         except Exception as e:  # pylint: disable=W0703
+            logging.getLogger(__name__).exception("/gentle_reset failed")
             return jsonify({"message": f"Reset failed: {e}", "status": False}), 200
 
     @app.route("/app_hash")
     def app_hash() -> Tuple[Any, int]:
         """Get the app hash."""
         try:
-            non_routable, loopback = "0.0.0.0", "127.0.0.1"  # nosec
-            endpoint = f"{tendermint_params.rpc_laddr.replace('tcp', 'http').replace(non_routable, loopback)}/block"
+            endpoint = _tendermint_http_url("/block")
             height = request.args.get("height")
             params = {"height": height} if height is not None else None
             res = requests.get(endpoint, params=params, timeout=30)
             app_hash_ = res.json()["result"]["block"]["header"]["app_hash"]
             return jsonify({"app_hash": app_hash_}), res.status_code
         except Exception as e:  # pylint: disable=W0703
+            logging.getLogger(__name__).exception("/app_hash failed")
             return (
                 jsonify({"error": f"Could not get the app hash: {str(e)}"}),
                 200,
@@ -340,6 +373,7 @@ def create_app(  # pylint: disable=too-many-statements
             tendermint_node.start()
             return jsonify({"message": "Reset successful.", "status": True}), 200
         except Exception as e:  # pylint: disable=W0703
+            logging.getLogger(__name__).exception("/hard_reset failed")
             return jsonify({"message": f"Reset failed: {e}", "status": False}), 200
 
     @app.errorhandler(404)  # type: ignore
