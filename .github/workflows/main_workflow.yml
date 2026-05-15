@@ -259,7 +259,6 @@ jobs:
 
           # pull pre-built images
           docker pull valory/autonolas-registries:latest
-          docker pull valory/contracts-amm:latest
           docker pull valory/safe-contract-net:latest
           docker pull valory/acn-node:latest
           docker pull tendermint/tendermint:v0.34.19
@@ -448,7 +447,6 @@ jobs:
 
           # pull pre-built images
           docker pull valory/autonolas-registries:latest
-          docker pull valory/contracts-amm:latest
           docker pull valory/safe-contract-net:latest
           docker pull tendermint/tendermint:v0.34.19
           docker pull valory/slow-tendermint-server:0.1.0
