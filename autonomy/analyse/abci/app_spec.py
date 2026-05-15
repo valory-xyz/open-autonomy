@@ -777,29 +777,40 @@ def _resolved_event_attr_names(round_cls: Any) -> Set[str]:
 def _round_event_enum_names(round_cls: Any) -> Optional[Set[str]]:
     """Return the union of ``Enum.__members__`` names the round may emit.
 
-    Walks the MRO and collects EVERY ``*_event`` class attribute whose value
-    is an ``Enum`` member, then returns the UNION of all member names across
-    those enums.  Multi-enum rounds (e.g. ``done_event = EventA.DONE`` plus
-    ``some_event = EventB.X``) are common in cross-skill subclasses; a
-    single-enum filter would lock onto the first enum found in MRO order
-    and silently drop names exclusive to the others.
+    Walks the MRO leaf-first and resolves each ``<name>_event`` class
+    attribute to the value defined by the most-derived class that
+    introduces it (mirroring Python attribute lookup and
+    :func:`_resolved_event_attr_names`).  Then unions ``__members__``
+    across the *effective* enum types -- parent-class enums that have
+    been overridden in a subclass do NOT contribute, otherwise the
+    parent's foreign-enum names leak back through the filter and re-open
+    the cross-skill case-3 false positive that the per-round filter is
+    meant to suppress.
+
+    Multi-enum rounds (e.g. ``done_event = EventA.DONE`` plus
+    ``some_event = EventB.X`` on the same class) still work: both names
+    survive the leaf-first walk and contribute their enum's members to
+    the union.
 
     Returning a name-set rather than an enum class also models the
     cross-skill filter directly: we only need to know which names are
-    legitimate emit candidates for this round, not which class they belong
-    to.
+    legitimate emit candidates for this round, not which class they
+    belong to.
 
     :param round_cls: Round class to inspect.
     :return: Set of legitimate ``Event.X`` names, or ``None`` if no
         ``Enum``-typed ``*_event`` attribute exists anywhere in the MRO.
     """
-    names: Set[str] = set()
+    seen: Dict[str, Any] = {}
     for base in inspect.getmro(round_cls):
         if base.__module__ == "builtins":
             continue
         for name, value in vars(base).items():
-            if name.endswith("_event") and isinstance(value, Enum):
-                names.update(type(value).__members__)
+            if name.endswith("_event") and name not in seen and isinstance(value, Enum):
+                seen[name] = type(value)
+    names: Set[str] = set()
+    for enum_cls in seen.values():
+        names.update(enum_cls.__members__)
     return names if names else None
 
 

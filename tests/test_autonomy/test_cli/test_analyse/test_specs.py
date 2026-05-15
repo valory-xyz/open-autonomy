@@ -865,21 +865,102 @@ class TestCheckUnreferencedEvents:
         assert "FINALIZE" in flat, errors
 
     def test_round_event_enum_none_when_no_enum(self) -> None:
-        """Filter degrades to no-op when round has no enum-typed *_event."""
+        """Filter degrades to ACCEPT-ALL when round has no enum-typed *_event.
+
+        Pins the actual ``own_enum_names is None`` → ``accept all matches``
+        contract.  The round has a source-level ``Event.LEGACY`` reference
+        and lists ``LEGACY`` in its transition function but exposes no
+        ``Enum``-typed ``*_event`` attribute, so the per-round filter
+        cannot be built.  In that case the None branch must still add
+        ``LEGACY`` to ``referenced_events`` so the transition entry is
+        satisfied -- if the branch silently dropped the match (the
+        regression OjusWiZard flagged: ``if match in (own_enum_names or
+        set())``), ``LEGACY`` would surface as "missing from
+        transition_function".
+        """
+
+        class SomeEnum(Enum):
+            """Standalone enum -- not bound as a ``*_event`` attribute."""
+
+            LEGACY = "LEGACY"
 
         class Round:
-            """Plain round, no enum references."""
+            """No ``*_event`` Enum attribute, but source references Event.LEGACY.
+
+            The check needs to see Event.LEGACY here for the assertion to
+            fire.
+            """
+
+            def end_block(self) -> Any:  # pragma: no cover -- not executed
+                """Return the legacy event."""
+                # ``Event.LEGACY`` is a regex-only signal here -- the
+                # symbol ``Event`` is intentionally unbound at runtime so
+                # ``_round_event_enum_names`` returns ``None``.
+                return Event.LEGACY  # type: ignore[name-defined,attr-defined]  # noqa: F821
 
         class MockApp:
-            """Degenerate AbciApp."""
+            """Mock AbciApp -- LEGACY is in the transition function."""
 
-            transition_function: Dict[Any, Dict[Any, Any]] = {Round: {}}
+            transition_function: Dict[Any, Dict[Any, Any]] = {
+                Round: {SomeEnum.LEGACY: Round}
+            }
             event_to_timeout: Dict[Any, float] = {}
 
-        # Should not crash AND should produce no spurious errors; the
-        # round has no transitions and no source-level Event.X references,
-        # so the degraded-filter path has nothing to over-accept.
         errors = check_unreferenced_events(MockApp)
+        # The None-branch must ACCEPT ``LEGACY`` so the transition entry
+        # is satisfied.  An accidental ``drop-all`` would surface
+        # ``LEGACY`` as "never returned from any round's end_block".
+        assert errors == [], errors
+
+    def test_round_event_enum_override_aware_union(self) -> None:
+        """_round_event_enum_names walks MRO leaf-first; overrides mask parent enums.
+
+        Pins the override-awareness contract of
+        ``_round_event_enum_names``.  A subclass that overrides ``*_event``
+        with a different enum than the parent's must NOT see the parent's
+        foreign-enum members in the per-round filter; otherwise the
+        parent's docstring/source mention of ``Event.X`` slips through
+        and the cross-skill case-3 false positive re-opens.
+        """
+
+        class ParentEvent(Enum):
+            """Parent enum (different skill)."""
+
+            DONE = "DONE"
+            FETCH_ERROR = "FETCH_ERROR"
+
+        class ChildEvent(Enum):
+            """Child enum -- no FETCH_ERROR."""
+
+            DONE = "DONE"
+
+        class ParentRound:
+            """Parent round.
+
+            Legacy comment mentions Event.FETCH_ERROR -- only in
+            ParentEvent.  If the per-round filter unions the parent's
+            (overridden) enum, this name slips through.
+            """
+
+            done_event = ParentEvent.DONE
+
+        class ChildRound(ParentRound):
+            """Child overrides done_event with its own enum."""
+
+            done_event = ChildEvent.DONE  # type: ignore[assignment]
+
+        class MockApp:
+            """Mock AbciApp -- transition wires only ChildEvent.DONE."""
+
+            transition_function: Dict[Any, Dict[Any, Any]] = {
+                ChildRound: {ChildEvent.DONE: ChildRound}
+            }
+            event_to_timeout: Dict[Any, float] = {}
+
+        errors = check_unreferenced_events(MockApp)
+        # FETCH_ERROR must NOT leak through: ChildRound overrode
+        # done_event to ChildEvent, so _round_event_enum_names should
+        # return {"DONE"} not {"DONE", "FETCH_ERROR"}.
         assert errors == [], errors
 
     def test_missing_timeout_event_not_returned_flagged(self) -> None:
