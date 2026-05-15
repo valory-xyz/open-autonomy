@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2025 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -38,11 +38,16 @@ class Event(Enum):
     """Event enumeration for the Round Count round."""
 
     DONE = "done"
-    ROUND_TIMEOUT = "round_timeout"
 
 
 class RoundCountRound(CollectSameUntilThresholdRound):
-    """A round in which the round count is stored as a list."""
+    """A round in which the round count is stored as a list.
+
+    This is a test scaffold for the hard-reset recovery mechanism. It exercises
+    only the happy path (threshold reached -> Event.DONE). The no-majority and
+    timeout paths are intentionally not wired in transition_function: recovery
+    from disagreement is via Tendermint hard reset, not an FSM transition.
+    """
 
     payload_class = RoundCountPayload
     synchronized_data_class = BaseSynchronizedData
@@ -79,7 +84,7 @@ class RoundCountAbciApp(AbciApp[Event]):
     Final states: {}
 
     Timeouts:
-        round timeout: 30.0
+
     """
 
     initial_round_cls: Type[AbstractRound] = RoundCountRound
@@ -89,7 +94,5 @@ class RoundCountAbciApp(AbciApp[Event]):
             Event.DONE: RoundCountRound,
         }
     }
-    event_to_timeout: Dict[Event, float] = {
-        Event.ROUND_TIMEOUT: 30.0,
-    }
+    event_to_timeout: Dict[Event, float] = {}
     db_pre_conditions: Dict[AppState, Set[str]] = {RoundCountRound: set()}

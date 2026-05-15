@@ -23,7 +23,7 @@ fingerprint:
   tests/test_handlers.py: bafybeihwfaha5ig5kfi6mwfq4souzdklnjxiujnhgvhvbtvpvb3kg4wuju
   tests/test_models.py: bafybeignpytvxrd4s5zymrok7w6nd5oglzuddz2qnhnu7bl4u7hzu3qytu
   tests/test_payloads.py: bafybeieysu4s44o2d4rqndnmrc3en7fswgz6qobitddigdeuwtcdybwzum
-  tests/test_rounds.py: bafybeic2vtzzl3wo5kaf62sbkgm2if4ctdtcaavro47352roudnmyafjdu
+  tests/test_rounds.py: bafybeihcocdxpz4h3iexdpo2btjd6owiglvaoxxjf4w2z2drgqqa2gabsi
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -35,7 +35,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeifkpsljgwqlrnvaqbinndrpb6ihipmkquggw63adjtjaxmaz4haqu
-- valory/transaction_settlement_abci:0.1.0:bafybeicgutwsvsw4x2v4tg34yiomzioiqwwbuywgkmx63lsjexi3ozsnsm
+- valory/transaction_settlement_abci:0.1.0:bafybeia5bl4643arqkujtd3xdouxgr5gjuknxsl5332qgbxwvae2g7ya6i
 behaviours:
   main:
     args: {}
