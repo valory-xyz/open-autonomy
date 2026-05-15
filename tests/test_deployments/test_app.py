@@ -320,6 +320,37 @@ class TestTendermintServerApp(BaseTendermintServerTest):
             assert data["params"] == {}
 
     @wait_for_node_to_run
+    def test_get_params_handles_typeerror_on_non_dict_status_body(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
+        """Non-object JSON from /status surfaces as ``status: False``.
+
+        If Tendermint's ``/status`` (or a maintenance proxy in front of it)
+        returns valid JSON that isn't a dict — e.g. ``null``, ``"maintenance"``,
+        a list — then ``status["result"]`` raises ``TypeError``. The widened
+        catch must convert that to the ``{status: False, error: ...}``
+        contract instead of letting the exception escape to a Flask 500
+        (which would crash the framework caller's ``.json()`` parse).
+
+        :param monkeypatch: pytest fixture used to stub ``app.requests.get``
+            so it returns a response whose ``.json()`` is ``None``.
+        """
+
+        class _FakeResp:
+            @staticmethod
+            def json() -> None:
+                return None
+
+        monkeypatch.setattr(app.requests, "get", lambda *_a, **_kw: _FakeResp())
+        with self.app.test_client() as client:
+            response = client.get("/params")
+            assert response.status_code == 200
+            data = cast(JSONLike, response.get_json())
+            assert data["status"] is False
+            assert data["error"]
+            assert data["params"] == {}
+
+    @wait_for_node_to_run
     def test_update_params_handles_typeerror_on_malformed_body(self) -> None:
         """Malformed-but-JSON-valid POST body surfaces as ``status: False``.
 

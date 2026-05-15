@@ -274,6 +274,7 @@ def create_app(  # pylint: disable=too-many-statements
             FileNotFoundError,
             json.JSONDecodeError,
             KeyError,
+            TypeError,
             requests.ConnectionError,
         ):
             cast(logging.Logger, app.logger).exception(  # pylint: disable=no-member
