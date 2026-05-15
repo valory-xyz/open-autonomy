@@ -244,6 +244,20 @@ def test_handle_negative_cannot_find_callback() -> None
 
 Test the 'handle' method, negative case (cannot find callback).
 
+<a id="packages.valory.skills.abstract_round_abci.tests.test_handlers.TestAbstractResponseHandler.test_handle_swallows_and_logs_callback_exception"></a>
+
+#### test`_`handle`_`swallows`_`and`_`logs`_`callback`_`exception
+
+```python
+def test_handle_swallows_and_logs_callback_exception() -> None
+```
+
+A callback raising must be caught and logged, not propagated.
+
+Drives the defensive ``except Exception`` branch added to
+``AbstractResponseHandler.handle``: without it, a faulty callback
+would tear the round behaviour down for the rest of the FSM.
+
 <a id="packages.valory.skills.abstract_round_abci.tests.test_handlers.TestTendermintHandler"></a>
 
 ## TestTendermintHandler Objects
@@ -316,6 +330,23 @@ def test_handle_not_in_registered_addresses(caplog: LogCaptureFixture) -> None
 ```
 
 Test handle response sender not in registered addresses
+
+<a id="packages.valory.skills.abstract_round_abci.tests.test_handlers.TestTendermintHandler.test_handle_replies_when_acn_container_raises_value_error"></a>
+
+#### test`_`handle`_`replies`_`when`_`acn`_`container`_`raises`_`value`_`error
+
+```python
+def test_handle_replies_when_acn_container_raises_value_error(
+        caplog: LogCaptureFixture) -> None
+```
+
+``acn_container`` raises ValueError before FSM setup completes.
+
+``SharedState.round_sequence`` raises ``ValueError("round sequence not
+available")`` when the FSM hasn't started yet, and that propagates out
+of ``acn_container``. The handler must catch it and reply with the
+canonical "FSM not yet initialised" Tendermint error instead of
+letting the exception escape the FSM loop.
 
 <a id="packages.valory.skills.abstract_round_abci.tests.test_handlers.TestTendermintHandler.test_handle_get_genesis_info"></a>
 

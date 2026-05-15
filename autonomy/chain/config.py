@@ -56,7 +56,7 @@ DEFAULT_LOCAL_CHAIN_ID = 31337
 CUSTOM_CHAIN_RPC = "CUSTOM_CHAIN_RPC"
 ETHEREUM_CHAIN_RPC = "ETHEREUM_CHAIN_RPC"
 
-_PUBLIC_RPC_FALLBACK_WARNED: set = set()
+_PUBLIC_RPC_FALLBACK_WARNED: set[str] = set()
 
 
 def _get_chain_id_for_custom_chain() -> Optional[int]:

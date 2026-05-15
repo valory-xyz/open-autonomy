@@ -294,6 +294,55 @@ class TestTendermintServerApp(BaseTendermintServerTest):
             assert data["error"] is None
 
     @wait_for_node_to_run
+    def test_get_params_returns_503_on_status_fetch_failure(
+        self, monkeypatch: MonkeyPatch
+    ) -> None:
+        """Tendermint /status failure surfaces as ``status: False``.
+
+        A ``ConnectionError`` from the Tendermint /status call routes through
+        the widened catch and returns the ``{status: False, error: ...}``
+        contract instead of crashing the request.
+
+        :param monkeypatch: pytest fixture used to force
+            ``app.requests.get`` to raise ``ConnectionError``.
+        """
+
+        def _raise(*_: object, **__: object) -> object:
+            raise app.requests.ConnectionError("tendermint unreachable")
+
+        monkeypatch.setattr(app.requests, "get", _raise)
+        with self.app.test_client() as client:
+            response = client.get("/params")
+            assert response.status_code == 200
+            data = cast(JSONLike, response.get_json())
+            assert data["status"] is False
+            assert data["error"]
+            assert data["params"] == {}
+
+    @wait_for_node_to_run
+    def test_update_params_handles_typeerror_on_malformed_body(self) -> None:
+        """Malformed-but-JSON-valid POST body surfaces as ``status: False``.
+
+        A POST body with the right keys but a wrong-typed value (e.g.
+        ``validators: null``) raises ``TypeError`` inside ``update_peers`` /
+        ``update_external_address``. The widened catch must convert it to
+        the standard ``{status: False, error: ...}`` response instead of
+        letting the exception propagate to a Flask 500.
+        """
+
+        bad_payload = dict(
+            genesis_config=load_genesis(),
+            validators=None,
+            external_address=DUMMY_EXTERNAL_ADDRESS,
+        )
+        with self.app.test_client() as client:
+            response = client.post("/params", json=bad_payload)
+            assert response.status_code == 200
+            data = cast(JSONLike, response.get_json())
+            assert data["status"] is False
+            assert data["error"]
+
+    @wait_for_node_to_run
     def test_get_and_update(self) -> None:
         """Test get and update Tendermint genesis data"""
 

@@ -408,7 +408,7 @@ class TestApiSpecsModel:
         self,
         status_code: int,
     ) -> None:
-        """5xx and the connection-error sentinel (600) short-circuit JSON parse."""
+        """5xx (including the http_client transport-failure synthetic 600) short-circuit JSON parse."""
         api_specs = ApiSpecs(
             **BASE_DUMMY_SPECS_CONFIG,
             response_key="value",
@@ -418,7 +418,7 @@ class TestApiSpecsModel:
             error_index=None,
             error_data=None,
         )
-        # Body would parse as valid JSON for a 2xx, but at 5xx/600 we don't try.
+        # Body would parse as valid JSON for a 2xx, but at 5xx we don't try.
         message = MagicMock(body=b'{"value": "10.232"}', status_code=status_code)
         assert api_specs.process_response(message) is None
 

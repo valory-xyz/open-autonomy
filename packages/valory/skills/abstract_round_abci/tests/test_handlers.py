@@ -353,6 +353,32 @@ class TestAbstractResponseHandler:
                 MagicMock(performative=HttpMessage.Performative.RESPONSE)
             )
 
+    def test_handle_swallows_and_logs_callback_exception(self) -> None:
+        """A callback raising must be caught and logged, not propagated.
+
+        Drives the defensive ``except Exception`` branch added to
+        ``AbstractResponseHandler.handle``: without it, a faulty callback
+        would tear the round behaviour down for the rest of the FSM.
+        """
+        request_reference = "reference"
+        callback = MagicMock(side_effect=RuntimeError("boom"))
+        self.context.requests.request_id_to_callback = {request_reference: callback}
+        with mock.patch.object(
+            self.handler, "_recover_protocol_dialogues"
+        ) as mock_dialogues_fn:
+            mock_dialogue = MagicMock()
+            mock_dialogue.dialogue_label.dialogue_reference = (request_reference, "")
+            mock_dialogues = MagicMock()
+            mock_dialogues.update = MagicMock(return_value=mock_dialogue)
+            mock_dialogues_fn.return_value = mock_dialogues
+            mock_message = MagicMock(performative=HttpMessage.Performative.RESPONSE)
+            # Must NOT raise — the broad-except in handle() swallows it.
+            self.handler.handle(mock_message)
+        callback.assert_called_once()
+        self.context.logger.exception.assert_called_once_with(
+            f"Callback for request nonce {request_reference} raised"
+        )
+
 
 class TestTendermintHandler:
     """Test Tendermint Handler"""
@@ -427,6 +453,33 @@ class TestTendermintHandler:
         self.handler.handle(message)
         log_message = self.handler.LogMessages.not_in_registered_addresses.value
         assert log_message in caplog.text
+
+    def test_handle_replies_when_acn_container_raises_value_error(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """``acn_container`` raises ValueError before FSM setup completes.
+
+        ``SharedState.round_sequence`` raises ``ValueError("round sequence not
+        available")`` when the FSM hasn't started yet, and that propagates out
+        of ``acn_container``. The handler must catch it and reply with the
+        canonical "FSM not yet initialised" Tendermint error instead of
+        letting the exception escape the FSM loop.
+        """
+        self.context.state = MagicMock(
+            acn_container=MagicMock(
+                side_effect=ValueError("round sequence not available")
+            )
+        )
+        performative = TendermintMessage.Performative.GENESIS_INFO
+        message = TendermintMessage(performative, info="info")  # type: ignore
+        message.sender = "Alice"
+        with mock.patch.object(
+            self.handler, "_reply_with_tendermint_error"
+        ) as mock_reply:
+            self.handler.handle(message)
+        mock_reply.assert_called_once()
+        # The third positional argument is the error string passed back to the peer.
+        assert mock_reply.call_args.args[2] == "FSM not yet initialised"
 
     # request
     def test_handle_get_genesis_info(self, caplog: LogCaptureFixture) -> None:

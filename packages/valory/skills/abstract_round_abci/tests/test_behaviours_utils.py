@@ -794,6 +794,62 @@ class TestBaseBehaviour:
         gen = self.behaviour.send_a2a_transaction(MagicMock())
         try_send(gen)
 
+    def test_check_sync_logs_version_mismatch_for_schema_drift(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Schema drift triggers the distinct 'version mismatch' warning.
+
+        A KeyError/TypeError/ValueError from parsing /status indicates the
+        response shape has drifted (e.g. Tendermint renamed a field). The
+        widened catch must log the distinct 'version mismatch' warning, not
+        the legacy 'not accepting transactions yet' debug message that fits
+        the JSONDecodeError case.
+        """
+        self.behaviour.context.params.tendermint_max_retries = 1
+        self.behaviour.context.params.tendermint_check_sleep_delay = 0
+
+        def _patched_get_status(*_: Any) -> Generator[None, None, MagicMock]:
+            # Valid JSON but missing the expected key — triggers KeyError on
+            # the ``result/sync_info/latest_block_height`` lookup.
+            yield
+            return MagicMock(body=b'{"result": {"sync_info": {}}}')
+
+        with mock.patch.object(
+            BaseBehaviour, "_get_status", _patched_get_status
+        ), caplog.at_level(logging.WARNING):
+            gen = self.behaviour._check_sync()
+            for __ in range(3):
+                try_send(gen)
+        assert "Unexpected Tendermint status response shape" in caplog.text
+        assert "version mismatch" in caplog.text
+        # The schema-drift branch must NOT pull in the legacy transient message.
+        assert "not accepting transactions yet" not in caplog.text
+
+    def test_check_sync_keeps_legacy_message_for_json_decode_error(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Non-JSON status response keeps the legacy debug log.
+
+        ``JSONDecodeError`` (Tendermint not started yet, returns non-JSON)
+        keeps the legacy 'not accepting transactions yet' debug log,
+        preserving the distinction that motivated splitting the catch.
+        """
+        self.behaviour.context.params.tendermint_max_retries = 1
+        self.behaviour.context.params.tendermint_check_sleep_delay = 0
+
+        def _patched_get_status(*_: Any) -> Generator[None, None, MagicMock]:
+            yield
+            return MagicMock(body=b"<html>tendermint not running yet</html>")
+
+        with mock.patch.object(
+            BaseBehaviour, "_get_status", _patched_get_status
+        ), caplog.at_level(logging.DEBUG):
+            gen = self.behaviour._check_sync()
+            for __ in range(3):
+                try_send(gen)
+        assert "Tendermint not accepting transactions yet" in caplog.text
+        assert "version mismatch" not in caplog.text
+
     def test_async_act_wrapper_agent_sync_mode(
         self,
     ) -> None:

@@ -166,6 +166,12 @@ class IpfsConnection(Connection):
             )
             return task
         dialogue = self.dialogues.update(message)
+        if dialogue is None:
+            err = f"Could not update dialogue for message {message}"
+            self.logger.error(err)
+            return self.run_async(
+                self._handle_error, err, timeout=self._request_timeout
+            )
         task = self.run_async(handler, message, dialogue, timeout=self._request_timeout)
         return task
 
@@ -322,6 +328,10 @@ class IpfsConnection(Connection):
             if dialogue is not None:
                 response_message = cast(Message, self._handle_error(str(exc), dialogue))
             else:
+                self.logger.error(
+                    "Could not recover dialogue for failed IPFS task; dropping "
+                    "response. The requesting skill will time out."
+                )
                 response_message = None
 
         response_envelope = None

@@ -149,6 +149,103 @@ class TestIpfsConnection:
         self.connection._handle_done_task(dummy_task)
         assert self.connection.response_envelopes.qsize() == 1
 
+    @pytest.mark.asyncio
+    async def test_handle_done_task_recovers_dialogue_on_task_failure(self) -> None:
+        """Failed task is converted to an error response via dialogue recovery.
+
+        When ``task.result()`` raises, ``_handle_done_task`` must rebuild the
+        dialogue and emit an error response, not blow up. Without the
+        ``try/except`` added in the audit, the broken task would crash the
+        connection's done-callback and silently drop the response.
+        """
+        await self.connection.connect()
+        assert self.connection.response_envelopes.qsize() == 0
+        boom_task = MagicMock(result=MagicMock(side_effect=RuntimeError("boom")))
+        request_message = IpfsMessage(performative=IpfsMessage.Performative.GET_FILES)  # type: ignore
+        request_envelope = MagicMock(
+            to=ANY_SKILL,
+            sender=str(PUBLIC_ID),
+            context=None,
+            message=request_message,
+        )
+        self.connection.task_to_request[boom_task] = request_envelope
+        recovered_dialogue = MagicMock()
+        with mock.patch.object(
+            self.connection.dialogues, "update", return_value=recovered_dialogue
+        ), mock.patch.object(
+            self.connection, "_handle_error", return_value=self.dummy_msg
+        ) as mock_handle_error:
+            self.connection._handle_done_task(boom_task)
+        # Error message put on the response queue, NOT None.
+        assert self.connection.response_envelopes.qsize() == 1
+        envelope = self.connection.response_envelopes.get_nowait()
+        assert envelope is not None
+        mock_handle_error.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_handle_done_task_drops_response_when_dialogue_cannot_be_rebuilt(
+        self,
+    ) -> None:
+        """Unrecoverable dialogue surfaces a logged ``None`` response.
+
+        If the failed task's dialogue also can't be recovered,
+        ``response_message`` falls through to ``None`` and a ``None`` envelope
+        is put on the queue. The recovery-failure branch must log so the
+        silent drop is debuggable.
+        """
+        await self.connection.connect()
+        assert self.connection.response_envelopes.qsize() == 0
+        boom_task = MagicMock(result=MagicMock(side_effect=RuntimeError("boom")))
+        request_message = IpfsMessage(performative=IpfsMessage.Performative.GET_FILES)  # type: ignore
+        request_envelope = MagicMock(
+            to=ANY_SKILL,
+            sender=str(PUBLIC_ID),
+            context=None,
+            message=request_message,
+        )
+        self.connection.task_to_request[boom_task] = request_envelope
+        with mock.patch.object(
+            self.connection.dialogues, "update", return_value=None
+        ), mock.patch.object(self.connection.logger, "error") as mock_log_error:
+            self.connection._handle_done_task(boom_task)
+        # None propagated to the queue; the recovery-failure path is logged.
+        assert self.connection.response_envelopes.qsize() == 1
+        envelope = self.connection.response_envelopes.get_nowait()
+        assert envelope is None
+        mock_log_error.assert_any_call(
+            "Could not recover dialogue for failed IPFS task; dropping "
+            "response. The requesting skill will time out."
+        )
+
+    def test_handle_envelope_returns_error_task_when_dialogue_update_is_none(
+        self,
+    ) -> None:
+        """Request-path None-guard routes to ``_handle_error`` instead of crashing.
+
+        If ``dialogues.update(message)`` returns ``None`` on the request
+        path, the connection must NOT pass ``None`` into the per-performative
+        handler (which would crash on ``dialogue.reply(...)``). The audit added
+        the same guard that already protected ``_handle_done_task``.
+        """
+        envelope = Envelope(to=str(PUBLIC_ID), sender=ANY_SKILL, message=self.dummy_msg)
+        sentinel_task = MagicMock(name="error-task")
+        with mock.patch.object(
+            self.connection.dialogues, "update", return_value=None
+        ), mock.patch.object(
+            self.connection, "run_async", return_value=sentinel_task
+        ) as mock_run_async, mock.patch.object(
+            self.connection.logger, "error"
+        ) as mock_log_error:
+            task = self.connection._handle_envelope(envelope)
+        assert task is sentinel_task
+        # The error path is taken: run_async is called with the _handle_error
+        # bound method, not with the per-performative handler. Bound methods
+        # are re-instantiated on each attribute access, so identity-compare
+        # via __func__ rather than ``is``.
+        called_handler = mock_run_async.call_args.args[0]
+        assert called_handler.__func__ is type(self.connection)._handle_error
+        mock_log_error.assert_called_once()
+
     def test_handle_error(self) -> None:
         """Test handle_error."""
         message = self.connection._handle_error(
@@ -265,6 +362,31 @@ class TestIpfsConnection:
                 assert message is not None
         finally:
             os.unlink(tmp_file.name)
+
+    def test_handle_get_files_returns_error_on_empty_download_dir(self) -> None:
+        """Empty download dir routes to ``_handle_error`` instead of IndexError.
+
+        An IPFS download that produces no files (empty ``os.listdir``) must
+        route through ``_handle_error`` with an explicit message, NOT index
+        into the empty list and raise ``IndexError``. Drives the empty-listdir
+        guard added by the audit.
+        """
+        with mock.patch.object(IPFSTool, "download"), mock.patch.object(
+            os, "listdir", return_value=[]
+        ), mock.patch.object(
+            self.connection, "_handle_error"
+        ) as mock_handle_error, mock.patch.object(
+            self.connection.logger, "error"
+        ):
+            message = IpfsMessage(
+                performative=IpfsMessage.Performative.GET_FILES,  # type: ignore
+                ipfs_hash="bafyemptydir",
+            )
+            self.connection._handle_get_files(message, MagicMock())
+        mock_handle_error.assert_called_once()
+        err_arg = mock_handle_error.call_args.args[0]
+        assert "produced no files" in err_arg
+        assert "bafyemptydir" in err_arg
 
     def test_handle_get_files_with_subdirectory(self) -> None:
         """Test _handle_get_files reads files recursively from subdirectories."""

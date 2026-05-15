@@ -271,7 +271,7 @@ def test_process_response_returns_none_on_server_error_status(
         status_code: int) -> None
 ```
 
-5xx and the connection-error sentinel (600) short-circuit JSON parse.
+5xx (including the http_client transport-failure synthetic 600) short-circuit JSON parse.
 
 <a id="packages.valory.skills.abstract_round_abci.tests.test_models.TestApiSpecsModel.test_attribute_manipulation"></a>
 

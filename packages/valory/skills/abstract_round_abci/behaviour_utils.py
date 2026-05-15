@@ -763,14 +763,16 @@ class BaseBehaviour(
                     self.round_sequence.set_block_stall_deadline()
                     return
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
-            except (
-                json.JSONDecodeError,
-                KeyError,
-                TypeError,
-                ValueError,
-            ):  # pragma: nocover
+            except json.JSONDecodeError:  # pragma: nocover
                 self.context.logger.debug(
                     "Tendermint not accepting transactions yet, trying again!"
+                )
+                yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
+            except (KeyError, TypeError, ValueError) as exc:  # pragma: nocover
+                self.context.logger.warning(
+                    "Unexpected Tendermint status response shape (%s); retrying. "
+                    "This may indicate a Tendermint version mismatch.",
+                    exc,
                 )
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
 

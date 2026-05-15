@@ -315,6 +315,7 @@ def create_app(  # pylint: disable=too-many-statements
             json.JSONDecodeError,
             PermissionError,
             KeyError,
+            TypeError,
         ):
             cast(logging.Logger, app.logger).exception(  # pylint: disable=no-member
                 "/params POST failed"
