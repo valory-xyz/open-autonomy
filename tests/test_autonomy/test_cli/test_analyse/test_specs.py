@@ -963,6 +963,55 @@ class TestCheckUnreferencedEvents:
         # return {"DONE"} not {"DONE", "FETCH_ERROR"}.
         assert errors == [], errors
 
+    def test_round_event_enum_non_enum_override_masks_parent(self) -> None:
+        """Non-Enum leaf override of *_event masks parent's Enum.
+
+        Pins the latent ``isinstance(value, Enum)`` insertion-time
+        regression: when a leaf class opts out of a ``*_event`` via a
+        non-Enum sentinel (e.g. ``done_event = None``), the name MUST
+        still mask the parent's Enum so the parent's foreign-enum
+        members do NOT leak through the per-round filter.  Filtering by
+        ``Enum``-ness at insertion would skip the leaf, let the MRO walk
+        record the parent, and silently undo the override.
+        """
+
+        class ParentEvent(Enum):
+            """Parent enum (different skill)."""
+
+            DONE = "DONE"
+            FETCH_ERROR = "FETCH_ERROR"
+
+        class ChildEvent(Enum):
+            """Child enum -- no FETCH_ERROR."""
+
+            OK = "OK"
+
+        class ParentRound:
+            """Parent. Mentions Event.FETCH_ERROR in docstring."""
+
+            done_event = ParentEvent.DONE
+
+        class ChildRound(ParentRound):
+            """Child opts out via None sentinel; uses ChildEvent elsewhere."""
+
+            done_event = None  # type: ignore[assignment]
+            ok_event = ChildEvent.OK
+
+        class MockApp:
+            """Mock AbciApp -- transition wires only ChildEvent.OK."""
+
+            transition_function: Dict[Any, Dict[Any, Any]] = {
+                ChildRound: {ChildEvent.OK: ChildRound}
+            }
+            event_to_timeout: Dict[Any, float] = {}
+
+        errors = check_unreferenced_events(MockApp)
+        # FETCH_ERROR must NOT leak: ChildRound overrode done_event to
+        # None, which is non-Enum but still a valid attribute-lookup
+        # override.  The helper must record the override at the leaf and
+        # stop the MRO walk for ``done_event``.
+        assert errors == [], errors
+
     def test_missing_timeout_event_not_returned_flagged(self) -> None:
         """Flag events in transition_function that are not returned or timeout-declared.
 

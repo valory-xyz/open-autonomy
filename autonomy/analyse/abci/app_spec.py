@@ -806,11 +806,12 @@ def _round_event_enum_names(round_cls: Any) -> Optional[Set[str]]:
         if base.__module__ == "builtins":
             continue
         for name, value in vars(base).items():
-            if name.endswith("_event") and name not in seen and isinstance(value, Enum):
-                seen[name] = type(value)
+            if name.endswith("_event") and name not in seen:
+                seen[name] = value
     names: Set[str] = set()
-    for enum_cls in seen.values():
-        names.update(enum_cls.__members__)
+    for value in seen.values():
+        if isinstance(value, Enum):
+            names.update(type(value).__members__)
     return names if names else None
 
 
