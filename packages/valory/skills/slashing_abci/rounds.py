@@ -19,6 +19,7 @@
 
 """This module contains the slashing rounds."""
 
+import dataclasses
 import json
 from enum import Enum
 from typing import Dict, List, Optional, Set, Tuple, cast
@@ -184,17 +185,38 @@ class SlashingCheckRound(CollectSameUntilThresholdRound):
         return state, Event.SLASH_START
 
 
+# Derive the StatusResetRound selection_key from StatusResetPayload's data
+# fields so the two are wired by construction rather than by parallel
+# definition. `slash_tx_sent` is the legacy payload field name retained for
+# protocol stability; it is written to the DB under `slashing_majority_reached`
+# via the alias below. Renaming the payload field is a consensus-protocol
+# change and requires updating the alias.
+_STATUS_RESET_PAYLOAD_DATA_FIELDS: Tuple[str, ...] = tuple(
+    field.name
+    for field in dataclasses.fields(StatusResetPayload)
+    if field.name not in {bf.name for bf in dataclasses.fields(BaseTxPayload)}
+)
+_STATUS_RESET_DB_KEY_ALIASES: Dict[str, str] = {
+    "slash_tx_sent": get_name(SynchronizedData.slashing_majority_reached),
+}
+if not set(_STATUS_RESET_DB_KEY_ALIASES).issubset(_STATUS_RESET_PAYLOAD_DATA_FIELDS):
+    # `raise` rather than `assert` so the invariant survives `python -O`.
+    raise AssertionError(
+        "_STATUS_RESET_DB_KEY_ALIASES references payload fields that are no "
+        "longer in StatusResetPayload; update the alias dict before renaming "
+        "the payload field."
+    )
+
+
 class StatusResetRound(CollectSameUntilThresholdRound):
     """Defines the status reset round, which runs after a slash tx has been verified."""
 
     payload_class = StatusResetPayload
     synchronized_data_class = SynchronizedData
     collection_key = get_name(SynchronizedData.participant_to_offence_reset)
-    selection_key = (
-        get_name(SynchronizedData.operators_mapping),
-        get_name(SynchronizedData.slash_timestamps),
-        get_name(SynchronizedData.slashing_in_flight),
-        get_name(SynchronizedData.slashing_majority_reached),
+    selection_key = tuple(
+        _STATUS_RESET_DB_KEY_ALIASES.get(name, name)
+        for name in _STATUS_RESET_PAYLOAD_DATA_FIELDS
     )
     done_event = Event.SLASH_END
     no_majority_event = Event.NO_MAJORITY

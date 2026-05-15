@@ -21,10 +21,15 @@
 
 # pylint: disable=redefined-outer-name,too-few-public-methods
 
+from typing import Dict, FrozenSet
 from unittest.mock import MagicMock
 
 import pytest
 
+from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
+    BaseCollectSameUntilThresholdRoundTest,
+)
+from packages.valory.skills.funds_forwarder_abci.payloads import FundsForwarderPayload
 from packages.valory.skills.funds_forwarder_abci.rounds import (
     Event,
     FinishedFundsForwarderNoTxRound,
@@ -33,6 +38,32 @@ from packages.valory.skills.funds_forwarder_abci.rounds import (
     FundsForwarderRound,
     SynchronizedData,
 )
+
+
+def _participant_to_payload(
+    participants: FrozenSet[str], tx_submitter: str, tx_hash: str
+) -> Dict[str, FundsForwarderPayload]:
+    """Build participant-to-payload mapping with a populated transaction."""
+    return {
+        participant: FundsForwarderPayload(
+            sender=participant,
+            tx_submitter=tx_submitter,
+            tx_hash=tx_hash,
+        )
+        for participant in participants
+    }
+
+
+def _participant_to_none_payload(
+    participants: FrozenSet[str],
+) -> Dict[str, FundsForwarderPayload]:
+    """Build participant-to-payload mapping with no transaction needed."""
+    return {
+        participant: FundsForwarderPayload(
+            sender=participant, tx_submitter=None, tx_hash=None
+        )
+        for participant in participants
+    }
 
 
 @pytest.fixture
@@ -141,3 +172,65 @@ class TestSynchronizedData:
         mock_db.get_strict.return_value = expected
         data = SynchronizedData(db=mock_db)
         assert getattr(data, prop) == expected
+
+
+class TestFundsForwarderRound(BaseCollectSameUntilThresholdRoundTest):
+    """Exercise FundsForwarderRound through the framework base test."""
+
+    _synchronized_data_class = SynchronizedData
+    _event_class = Event
+
+    def test_done_event(self) -> None:
+        """A threshold of identical populated payloads yields ``Event.DONE`` and writes the tx fields."""
+        tx_submitter = "funds_forwarder_round"
+        tx_hash = "0xDeadBeef"
+        test_round = FundsForwarderRound(
+            synchronized_data=self.synchronized_data,
+            context=MagicMock(),
+        )
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=_participant_to_payload(
+                    self.participants, tx_submitter, tx_hash
+                ),
+                synchronized_data_update_fn=(
+                    lambda data, _round: data.update(
+                        synchronized_data_class=SynchronizedData,
+                        tx_submitter=tx_submitter,
+                        most_voted_tx_hash=tx_hash,
+                    )
+                ),
+                synchronized_data_attr_checks=[
+                    lambda data: data.tx_submitter,
+                    lambda data: data.most_voted_tx_hash,
+                ],
+                most_voted_payload=tx_submitter,
+                exit_event=Event.DONE,
+            )
+        )
+
+    def test_none_event(self) -> None:
+        """A threshold of identical all-``None`` payloads yields ``Event.NONE``."""
+        test_round = FundsForwarderRound(
+            synchronized_data=self.synchronized_data,
+            context=MagicMock(),
+        )
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=_participant_to_none_payload(self.participants),
+                synchronized_data_update_fn=lambda data, _round: data,
+                synchronized_data_attr_checks=[],
+                most_voted_payload=None,
+                exit_event=Event.NONE,
+            )
+        )
+
+    def test_no_majority_event(self) -> None:
+        """A round in which majority is impossible yields ``Event.NO_MAJORITY``."""
+        test_round = FundsForwarderRound(
+            synchronized_data=self.synchronized_data,
+            context=MagicMock(),
+        )
+        self._test_no_majority_event(test_round)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -37,7 +37,16 @@ class SlashingTxPayload(BaseTxPayload):
 
 @dataclass(frozen=True)
 class StatusResetPayload(BaseTxPayload):
-    """Represent a transaction payload for resetting the offence status."""
+    """Represent a transaction payload for resetting the offence status.
+
+    Field order is load-bearing: the framework zips these fields positionally
+    with ``StatusResetRound.selection_key`` (defined in ``rounds.py``). In
+    particular, the 4th field ``slash_tx_sent`` is written to the DB under
+    the key ``slashing_majority_reached``. ``BaseTxPayload`` subclasses are
+    serialized over the consensus protocol, so renaming or reordering any
+    field is a protocol-level change and must ride a coordinated skill
+    version bump rather than a hygiene edit.
+    """
 
     # normal payload fields
     operators_mapping: str

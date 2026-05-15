@@ -86,9 +86,8 @@ class _SafeConfiguredHelperIntegration(IntegrationBaseCase, ABC):  # pragma: no 
         for address, p_key in cls.agents.items():
             with tempfile.TemporaryDirectory() as temp_dir:
                 fp = os.path.join(temp_dir, "key.txt")
-                f = open(fp, "w")
-                f.write(p_key)
-                f.close()
+                with open(fp, "w") as f:
+                    f.write(p_key)
                 crypto = make_crypto("ethereum", private_key_path=str(fp))
             cls.safe_owners[address] = crypto
         cls.keeper_address = cls.current_agent

@@ -35,7 +35,7 @@ from packages.valory.protocols.http import (
 
 # pylint: disable=no-name-in-module,import-error
 from packages.valory.skills.counter_client.dialogues import HttpDialogues
-from packages.valory.skills.counter_client.handlers import curdatetime
+from packages.valory.skills.counter_client.utils import curdatetime
 
 
 class BaseBehaviour(Behaviour, ABC):

@@ -19,8 +19,9 @@
 
 """Tests the slashing background rounds."""
 
+import json
 from copy import deepcopy
-from typing import cast
+from typing import Dict, FrozenSet, cast
 from unittest.mock import MagicMock
 
 import pytest
@@ -31,13 +32,18 @@ from packages.valory.skills.abstract_round_abci.base import (
     TransactionNotValidError,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
+    BaseCollectSameUntilThresholdRoundTest,
     BaseRoundTestClass,
 )
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
-from packages.valory.skills.slashing_abci.payloads import SlashingTxPayload
+from packages.valory.skills.slashing_abci.payloads import (
+    SlashingTxPayload,
+    StatusResetPayload,
+)
 from packages.valory.skills.slashing_abci.rounds import (
     Event,
     SlashingCheckRound,
+    StatusResetRound,
 )
 from packages.valory.skills.slashing_abci.rounds import (
     SynchronizedData as SlashingSyncedData,
@@ -53,6 +59,7 @@ class TestSlashingCheckRound(BaseRoundTestClass):
     """Tests for `SlashingCheckRound`."""
 
     _synchronized_data_class = SlashingSyncedData
+    _event_class = Event
 
     def test_run(self) -> None:
         """Run tests."""
@@ -143,3 +150,91 @@ class TestSlashingCheckRound(BaseRoundTestClass):
             match=f"sender {first_payload.sender} has already sent value for round",
         ):
             test_round.process_payload(first_payload)
+
+
+def _participant_to_status_reset(
+    participants: FrozenSet[str],
+    operators_mapping: str,
+    slash_timestamps: str,
+    slashing_in_flight: bool,
+    slash_tx_sent: bool,
+) -> Dict[str, StatusResetPayload]:
+    """Build participant-to-payload mapping for the status reset round."""
+    return {
+        participant: StatusResetPayload(
+            sender=participant,
+            operators_mapping=operators_mapping,
+            slash_timestamps=slash_timestamps,
+            slashing_in_flight=slashing_in_flight,
+            slash_tx_sent=slash_tx_sent,
+        )
+        for participant in participants
+    }
+
+
+class TestStatusResetRound(BaseCollectSameUntilThresholdRoundTest):
+    """Exercise StatusResetRound through the framework base test."""
+
+    _synchronized_data_class = SlashingSyncedData
+    _event_class = Event
+
+    def test_slash_end_event(self) -> None:
+        """A threshold of identical payloads writes the 4-tuple selection_key into the DB and yields ``SLASH_END``.
+
+        The 4th payload field ``slash_tx_sent`` maps positionally to the 4th
+        selection_key ``slashing_majority_reached``; this test pins that
+        mapping so a future reorder of either tuple is caught.
+        """
+        operators_mapping = json.dumps({"operator_a": ["agent_a"]}, sort_keys=True)
+        slash_timestamps = json.dumps({"agent_a": 1700000000}, sort_keys=True)
+        slashing_in_flight = False
+        slash_tx_sent = True
+
+        test_round = StatusResetRound(
+            synchronized_data=self.synchronized_data,
+            context=MagicMock(),
+        )
+
+        def _expected(
+            data: SlashingSyncedData, _round: StatusResetRound
+        ) -> SlashingSyncedData:
+            return cast(
+                SlashingSyncedData,
+                data.update(
+                    synchronized_data_class=SlashingSyncedData,
+                    operators_mapping=operators_mapping,
+                    slash_timestamps=slash_timestamps,
+                    slashing_in_flight=slashing_in_flight,
+                    slashing_majority_reached=slash_tx_sent,
+                ),
+            )
+
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=_participant_to_status_reset(
+                    self.participants,
+                    operators_mapping,
+                    slash_timestamps,
+                    slashing_in_flight,
+                    slash_tx_sent,
+                ),
+                synchronized_data_update_fn=_expected,
+                synchronized_data_attr_checks=[
+                    lambda data: data.operators_mapping,
+                    lambda data: data.slash_timestamps,
+                    lambda data: data.slashing_in_flight,
+                    lambda data: data.slashing_majority_reached,
+                ],
+                most_voted_payload=operators_mapping,
+                exit_event=Event.SLASH_END,
+            )
+        )
+
+    def test_no_majority_event(self) -> None:
+        """A round in which majority is impossible yields ``Event.NO_MAJORITY``."""
+        test_round = StatusResetRound(
+            synchronized_data=self.synchronized_data,
+            context=MagicMock(),
+        )
+        self._test_no_majority_event(test_round)

@@ -305,14 +305,26 @@ Translates an AbciApp class into a DFA.
 def check_unreferenced_events(abci_app_cls: Any) -> List[str]
 ```
 
-Checks for unreferenced events in the AbciApp.
+Check for unreferenced events in the AbciApp.
 
-Checks that events defined in the AbciApp transition function are referenced
-in the source code of the corresponding rounds or their superclasses. Note that
-the function simply checks references in the "raw" source code of the rounds and
-their (non builtin) superclasses. Therefore, it does not do any kind of static
-analysis on the source code, nor checks for actual reachability of a return
-statement returning such events.
+For every round in the transition function, computes the set of events
+the round can effectively emit and compares it to the events the FSM
+expects.  An event is considered emitted if it is either:
+
+1. The effective value of a ``*_event`` class attribute, resolved
+   leaf-first through the MRO (so an override masks the parent value).
+2. Referenced as ``Event.X`` in the source of the round or any of its
+   non-builtin superclasses, with ``*_event = Event.X`` attribute
+   definitions stripped out (those are covered by case 1, and a
+   parent-class definition would otherwise be reported even after the
+   subclass overrides the attribute).  Each round resolves its own
+   ``Event`` enum from its leaf-most ``*_event`` attribute, so names
+   absent from that enum are dropped to avoid cross-skill collisions
+   (e.g. ``market_manager.Event.FETCH_ERROR`` referenced from a parent
+   class living in a different skill).
+3. Declared via a ``# fsm-specs: returns(EVENT_NAME, ...)`` annotation
+   on the round class -- the supported syntax for rounds that build
+   events dynamically (e.g. ``Event(payload_value)``).
 
 **Arguments**:
 
@@ -320,5 +332,5 @@ statement returning such events.
 
 **Returns**:
 
-List of error strings
+List of error strings.
 
