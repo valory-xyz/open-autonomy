@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -229,7 +229,13 @@ def create_app(  # pylint: disable=too-many-statements
                 "status": True,
                 "error": None,
             }
-        except (FileNotFoundError, json.JSONDecodeError):
+        except (
+            FileNotFoundError,
+            json.JSONDecodeError,
+            KeyError,
+            TypeError,
+            requests.ConnectionError,
+        ):
             return {"params": {}, "status": False, "error": traceback.format_exc()}
 
     @app.post("/params")
@@ -261,7 +267,13 @@ def create_app(  # pylint: disable=too-many-statements
             )
 
             return {"status": True, "error": None}
-        except (FileNotFoundError, json.JSONDecodeError, PermissionError):
+        except (
+            FileNotFoundError,
+            json.JSONDecodeError,
+            PermissionError,
+            KeyError,
+            TypeError,
+        ):
             return {"status": False, "error": traceback.format_exc()}
 
     @app.route("/gentle_reset")
