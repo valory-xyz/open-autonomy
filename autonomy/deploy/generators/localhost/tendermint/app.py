@@ -241,8 +241,13 @@ def create_app(  # pylint: disable=too-many-statements
     tendermint_node.start(debug=debug)
 
     def _tendermint_http_url(path: str) -> str:
-        """Build an HTTP URL on the configured Tendermint RPC, normalising
-        `tcp://` and `0.0.0.0` for local connectivity."""
+        """Build an HTTP URL on the configured Tendermint RPC.
+
+        Normalises ``tcp://`` and ``0.0.0.0`` for local connectivity.
+
+        :param path: URL path to append to the Tendermint RPC base.
+        :return: fully qualified HTTP URL.
+        """
         non_routable, loopback = "0.0.0.0", "127.0.0.1"  # nosec
         base = tendermint_params.rpc_laddr.replace("tcp", "http").replace(
             non_routable, loopback
