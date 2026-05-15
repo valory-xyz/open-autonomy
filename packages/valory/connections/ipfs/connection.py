@@ -213,11 +213,7 @@ class IpfsConnection(Connection):
             # are being uploaded.
             _, hash_, _ = self.ipfs_tool.add(path)
             self.logger.debug(f"Successfully stored files with hash: {hash_}.")
-        except Exception as e:  # pylint: disable=broad-except
-            # Broaden from (ValueError, IPFSError) so network errors
-            # (requests.ConnectionError, OSError, ipfshttpclient.CommunicationError)
-            # surface as ERROR envelopes instead of escaping into the
-            # done-callback and stranding the requesting skill.
+        except Exception as e:  # pylint: disable=broad-except  # noqa: BLE001
             err = str(e)
             self.logger.error(err)
             return self._handle_error(err, dialogue)
@@ -319,9 +315,14 @@ class IpfsConnection(Connection):
         request = self.task_to_request.pop(task)
         try:
             response_message: Optional[Message] = task.result()
-        except Exception:  # pylint: disable=broad-except
+        except Exception as exc:  # pylint: disable=broad-except  # noqa: BLE001
             self.logger.exception("IPFS task failed")
-            response_message = None
+            request_message = cast(IpfsMessage, request.message)
+            dialogue = self.dialogues.update(request_message)
+            if dialogue is not None:
+                response_message = cast(Message, self._handle_error(str(exc), dialogue))
+            else:
+                response_message = None
 
         response_envelope = None
         if response_message is not None:

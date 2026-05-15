@@ -64,7 +64,7 @@ from packages.valory.skills.abstract_round_abci.utils import (
 )
 
 MIN_RESET_PAUSE_DURATION = 10
-NUMBER_OF_RETRIES: int = 3
+NUMBER_OF_RETRIES: int = 5
 DEFAULT_BACKOFF_FACTOR: float = 2.0
 DEFAULT_TYPE_NAME: str = "str"
 DEFAULT_CHAIN = "ethereum"
@@ -723,7 +723,7 @@ class ApiSpecs(Model, FrozenMixin, TypeCheckMixin):
             return None
         self.response_info.error_data = None
 
-        if response.status_code >= 500 or response.status_code == 600:
+        if response.status_code >= 500:
             self.context.logger.warning(
                 f"Upstream returned {response.status_code}; treating as transient"
             )

@@ -396,12 +396,7 @@ class TestApiSpecsModel:
         api_specs_config: dict,
         message: MagicMock,
     ) -> None:
-        """`process_response` must return None on body shapes that cannot be decoded
-        or coerced to the configured response type.
-
-        Covers: non-UTF-8 bytes (UnicodeDecodeError), non-coercible int / float
-        strings (ValueError from `int("N/A")` / `float("null")`).
-        """
+        """Return None on bodies that cannot be decoded or coerced."""
         api_specs = ApiSpecs(**api_specs_config)
         assert api_specs.process_response(message) is None
 

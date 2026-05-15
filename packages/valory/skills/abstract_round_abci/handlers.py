@@ -59,7 +59,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     TransactionNotValidError,
     TransactionTypeNotRecognizedError,
 )
-from packages.valory.skills.abstract_round_abci.behaviour_utils import SendException
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogue
 from packages.valory.skills.abstract_round_abci.models import (
@@ -433,11 +432,6 @@ class AbstractResponseHandler(Handler, ABC):
             self.context.logger.exception(
                 f"Callback for request nonce {request_nonce} raised"
             )
-            if current_behaviour is not None:
-                try:
-                    current_behaviour.try_send(None)
-                except SendException:
-                    pass
 
     def _get_dialogues_attribute_name(self) -> str:
         """
@@ -667,14 +661,13 @@ class TendermintHandler(Handler):
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> bool:
         """Check if the sender is registered on-chain and if not, reply with an error"""
-        if (
-            self.context.state._round_sequence is None
-        ):  # pylint: disable=protected-access
+        try:
+            others_addresses = self.context.state.acn_container()
+        except ValueError:
             self._reply_with_tendermint_error(
                 message, dialogue, "FSM not yet initialised"
             )
             return False
-        others_addresses = self.context.state.acn_container()
         if message.sender in others_addresses:
             return True
 

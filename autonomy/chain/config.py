@@ -56,6 +56,8 @@ DEFAULT_LOCAL_CHAIN_ID = 31337
 CUSTOM_CHAIN_RPC = "CUSTOM_CHAIN_RPC"
 ETHEREUM_CHAIN_RPC = "ETHEREUM_CHAIN_RPC"
 
+_PUBLIC_RPC_FALLBACK_WARNED: set = set()
+
 
 def _get_chain_id_for_custom_chain() -> Optional[int]:
     """Get chain if for custom chain from environment"""
@@ -119,13 +121,16 @@ class ChainType(Enum):
         if configured is not None:
             return configured
         fallback = CHAIN_ID_TO_DEFAULT_PUBLIC_RPC.get(self.id) if self.id else None
-        if fallback is not None:
+        if (
+            fallback is not None
+            and self.rpc_env_name not in _PUBLIC_RPC_FALLBACK_WARNED
+        ):
+            _PUBLIC_RPC_FALLBACK_WARNED.add(self.rpc_env_name)
             logging.getLogger(__name__).warning(
-                "%s not set; using default public RPC %s. "
-                "Set %s to use a private endpoint.",
+                "%s not set; using default public RPC %s. Set it to use a "
+                "private endpoint.",
                 self.rpc_env_name,
                 fallback,
-                self.rpc_env_name,
             )
         return fallback
 

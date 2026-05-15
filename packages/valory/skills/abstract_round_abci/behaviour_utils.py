@@ -2013,9 +2013,17 @@ class BaseBehaviour(
         try:
             json_body = json.loads(status.body.decode())
             remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
-        except (json.JSONDecodeError, KeyError, TypeError, ValueError):
+        except json.JSONDecodeError:
             self.context.logger.error(
                 "Tendermint not accepting transactions yet, trying again!"
+            )
+            yield from self.sleep(self.params.sleep_time)
+            return False
+        except (KeyError, TypeError, ValueError) as exc:
+            self.context.logger.error(
+                "Unexpected Tendermint status response shape (%s); retrying. "
+                "This may indicate a Tendermint version mismatch.",
+                exc,
             )
             yield from self.sleep(self.params.sleep_time)
             return False
