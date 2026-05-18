@@ -1,5 +1,14 @@
 # Release History - `open-autonomy`
 
+# 0.21.22 (2026-05-15)
+
+Autonomy:
+- Resilience audit (#2501). Tightens error handling, timeout discipline, and idempotency invariants across the framework's HTTP helpers, the `ipfs` connection, the chain CLI subgraph client, the Tendermint Flask app, and CLI on-chain helpers. No API, ABI, or wire-format changes.
+- FSM correctness audit (#2502). Cures false-positive event references in `analyse abci check-app-specs`, fixes per-round `Event` enum resolution for composed `AbciApp`s so override-aware lookups don't fall back to the parent's enum, and tightens `_round_event_enum_names` to a leaf-first record-then-filter pass. No public API changes.
+
+Framework / dependency bumps:
+- Bumps `open-aea` `2.2.5` → `2.2.6` across `pyproject.toml`, `tox.ini`, `setup.py`, both Dockerfiles' `AEA_VERSION` arg, `deployments/Dockerfiles/autonomy-user/requirements.txt`, the 33 package YAMLs (agents / contracts / `connections/ipfs`) that pin `open-aea-*` dependencies, and the two doc snippets (`docs/guides/define_agent.md`, `docs/advanced_reference/commands/autonomy_build-image.md`). Pulls in `open-aea 2.2.6`'s `ledger` connection (per-attempt `MAX_RETRY_DELAY=60s` cap on `get_transaction_receipt`); the local copy of `packages/valory/connections/ledger/` is replaced by the registry version. No API or wire-format changes; package hashes regenerated via `autonomy packages lock` and `poetry.lock` regenerated to match.
+
 # 0.21.21 (2026-05-11)
 
 Framework / dependency bumps:
