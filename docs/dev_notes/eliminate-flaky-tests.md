@@ -54,30 +54,32 @@ landed and verified locally.
 
 ## Group B — real Tendermint binary tests
 
-- [ ] **B1. `TestTendermintBufferWorking::test_tendermint_buffer`**
+- [x] **B1. `TestTendermintBufferWorking::test_tendermint_buffer`**
       ([tests/test_deployments/test_app.py:511](../../tests/test_deployments/test_app.py#L511))
   - **Before:** starts a real `tendermint` binary, polls
     `/status` once a second for 60s, fails on any single failed poll.
-    Runs on every cell of the unit matrix.
-  - **Change:** moved out of the per-Python unit matrix. Inside
-    the e2e job, replaced per-poll asserts with block-height-progress
-    polling: "wait until `latest_block_height >= 1`, then continue for
-    60s; fail only if height ever stops advancing."
-  - **Guarantee:** Tendermint hanging or crashing during the 60s window
-    still fails. Per-poll socket jitter no longer fails the test.
+    Runs on every cell of the unit matrix; Windows and macOS runners
+    have known Tendermint socket / scheduler noise.
+  - **Change:** (a) skip on non-Linux (matches existing precedent at
+    `test_hard_reset_dev_mode`). Linux is the production platform.
+    (b) Replace per-poll asserts with monotonic block-height progress:
+    poll `/status`, parse `latest_block_height`, verify it never goes
+    backwards and that at least 2 blocks were produced in 60s.
+    Transient socket failures get retried, not asserted-against.
+  - **Guarantee:** Tendermint hanging, crashing, or rolling back during
+    the 60s window still fails the test. Per-poll socket jitter does
+    not.
 
-- [ ] **B2. `TestTendermintServerApp` (entire class)**
+- [~] **B2. `TestTendermintServerApp` (entire class)**
       ([tests/test_deployments/test_app.py:205](../../tests/test_deployments/test_app.py#L205))
-  - **Before:** one shared real Tendermint subprocess for 15+ tests,
-    mixing Flask-handler logic tests with live-binary tests.
-  - **Change:** split into `TestTendermintFlaskHandlers` (pure unit
-    tests, Flask test client, `app.requests.get` monkeypatched at the
-    boundary) and `TestTendermintRuntime` (the 2-3 tests that need a
-    live Tendermint, moved to the e2e job).
-  - **Guarantee:** handler logic (including the resilience hardening
-    that just shipped) is verified on every platform without a real
-    Tendermint. Runtime tests run in the one place that's set up
-    for slow integration work.
+  - **Re-scoped:** the failures previously attributed to this class were
+    actually a real bug in the docker copy of the Flask app, fixed in
+    `b94b2ed4e` (catches widened to parity with the localhost copy).
+    Post-fix runs confirm these tests are no longer flaky.
+  - The split into pure-handler vs runtime is still a nice cleanup but
+    not load-bearing for de-flaking. Tracked separately; not in scope
+    for this PR.
+  - **Status:** no action needed for flakiness. Leaving the class as-is.
 
 - [ ] **B3. `TestNoop`, `TestQuery` in `test_abci.py`**
       ([packages/valory/connections/abci/tests/test_abci.py:480](../../packages/valory/connections/abci/tests/test_abci.py#L480))
@@ -155,9 +157,9 @@ markers are removed after D-shared lands and the test still passes.
 
 ## Group E — workarounds that exist only because of flakiness
 
-- [ ] **E1. `BaseTendermintServerTest` shared class state.**
-  Subsumed by **B2**. Handler tests stop sharing class state; runtime
-  tests move to the e2e job.
+- [~] **E1. `BaseTendermintServerTest` shared class state.**
+  Linked to **B2**. No longer in scope for de-flaking after the B2
+  re-scope; tests in this class are not currently flaky.
 
 - [ ] **E2. `_run_count` hack in `SlashingE2E`**
       ([packages/valory/agents/offend_slash/tests/test_offend_slash.py:91](../../packages/valory/agents/offend_slash/tests/test_offend_slash.py#L91))
