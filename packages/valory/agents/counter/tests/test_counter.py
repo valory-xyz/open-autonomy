@@ -211,10 +211,13 @@ class TestABCICounterSkillMany(
         # start test of the ABCI app
         # check that the initial counter state is 0
         self._query_agents(0)
-        # send transactions to each node, randomly
+        # send transactions to each node, deterministically (seeded so the
+        # routing sequence is identical across runs; a real bug surfaces
+        # consistently rather than one run in twenty).
+        rng = random.Random(0)  # nosec
         for tx_number in range(self.NB_TX):
             time.sleep(0.5)
-            agent_id = random.randint(0, self.NB_AGENTS - 1)  # nosec
+            agent_id = rng.randint(0, self.NB_AGENTS - 1)
             new_value = tx_number + 1
             self._send_tx(new_value, agent_id, 200)
         # wait synchronization

@@ -17,16 +17,16 @@ landed and verified locally.
 
 ## Shared infra
 
-- [ ] **Network helper.** Add `tests/utils/live_fetch.py` exposing
-      `fetch_upstream_or_skip(url, timeout)` and `_live_session()`.
+- [x] **Network helper.** Add `tests/utils/live_fetch.py` exposing
+      `fetch_upstream_or_skip(url, timeout)` and `live_session()`.
       The helper retries `ConnectionError`, `Timeout`, and 5xx with
       exponential backoff (5 attempts, ~31s total wait), then
       `pytest.skip(...)` if still unreachable. Real HTTP errors
-      (4xx, content mismatch) still fail. **Status:** pending.
+      (4xx, content mismatch) still fail.
 
 ## Group A — live network tests (replace bare `requests.get` with the helper)
 
-- [ ] **A1. `TestYamlSnippets::test_run_check`**
+- [x] **A1. `TestYamlSnippets::test_run_check`**
       ([tests/test_docs/test_code_blocks.py:169](../../tests/test_docs/test_code_blocks.py#L169))
   - **Before:** fetches the upstream `fsm_specification.yaml` from
     `raw.githubusercontent.com` and diffs it against the YAML embedded
@@ -35,7 +35,7 @@ landed and verified locally.
   - **Guarantee:** content drift between our docs and upstream is
     still caught. Transient GitHub / DNS noise becomes `SKIPPED`.
 
-- [ ] **A2. `TestAddresses::test_addresses_match`**
+- [x] **A2. `TestAddresses::test_addresses_match`**
       ([tests/test_autonomy/test_chain/test_addresses.py:42](../../tests/test_autonomy/test_chain/test_addresses.py#L42))
   - **Before:** `setup_class` fetches `configuration.json` from GitHub.
     Each parametrized test also calls a live chain RPC to verify the
@@ -45,7 +45,7 @@ landed and verified locally.
   - **Guarantee:** constant-vs-live address drift still fails CI.
     RPC outages and DNS hiccups become `SKIPPED`.
 
-- [ ] **A3. `tests/test_docs/helper.py` (the GitHub fetcher)**
+- [x] **A3. `tests/test_docs/helper.py` (the GitHub fetcher)**
   - **Before:** `read_file_from_repository` makes two unauthenticated
     GitHub calls (api + raw); used by several doc tests.
   - **Change:** both calls go through the live helper.
@@ -170,7 +170,7 @@ markers are removed after D-shared lands and the test still passes.
 
 ## Group F — non-determinism
 
-- [ ] **F1. `random.randint` in `TestABCICounterSkillMany`**
+- [x] **F1. `random.randint` in `TestABCICounterSkillMany`**
       ([packages/valory/agents/counter/tests/test_counter.py:217](../../packages/valory/agents/counter/tests/test_counter.py#L217))
   - **Before:** unseeded `random.randint(0, NB_AGENTS-1)` to pick which
     agent receives each of 15 transactions.

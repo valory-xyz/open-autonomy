@@ -28,6 +28,8 @@ from aea.protocols.generator.common import _camel_case_to_snake_case
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import CHAIN_PROFILES
 
+from tests.utils.live_fetch import fetch_upstream_or_skip
+
 ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/refs/tags/v1.3.0/docs/configuration.json"
 
 
@@ -39,7 +41,7 @@ class TestAddresses:
     @classmethod
     def setup_class(cls) -> None:
         """Setup test class."""
-        chain_configs = requests.get(url=ADDRESS_FILE_URL, timeout=30).json()
+        chain_configs = fetch_upstream_or_skip(ADDRESS_FILE_URL).json()
         cls.contracts = {
             _camel_case_to_snake_case(config["name"]): config["contracts"]
             for config in chain_configs
@@ -72,7 +74,13 @@ class TestAddresses:
             address = contract["address"]
             if name == "service_manager_proxy":
                 monkeypatch.setenv(f"{chain.value.upper()}_CHAIN_RPC", chain.rpc)
-                constant_address = ContractConfigs.service_manager.contracts[chain]
+                try:
+                    constant_address = ContractConfigs.service_manager.contracts[chain]
+                except (requests.ConnectionError, requests.Timeout) as exc:
+                    # An RPC outage is not a test failure. A real drift would
+                    # still surface once the RPC returns, because the constant
+                    # lookup also happens at agent runtime.
+                    pytest.skip(f"chain RPC unreachable for {chain.value}: {exc}")
             elif name == "gnosis_safe_multisig":
                 constant_address = CHAIN_PROFILES[chain.value][
                     "gnosis_safe_proxy_factory"
