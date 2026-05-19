@@ -200,14 +200,19 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
         self.running_containers += [tm_container, agent_container]
 
         def _agent_is_running() -> bool:
-            """The agent container is up and the process is alive."""
+            """Check the container is running and the AEA banner was printed.
+
+            ``Status == "running"`` is the deterministic gate: a container
+            that crashed during startup transitions to ``exited`` and never
+            re-enters ``running``. The log-line check guards against the
+            (rare) case where the container is alive but stuck before AEA
+            initialisation.
+
+            :return: True once both conditions are observed.
+            """
             agent_container.reload()
             state = agent_container.attrs.get("State", {})
-            # Status transitions: created -> running -> exited.
-            # "running" with no ExitCode and no death signal is success.
             if state.get("Status") != "running":
-                return False
-            if state.get("ExitCode"):
                 return False
             return b"Starting AEA 'agent' in 'async' mode..." in agent_container.logs()
 

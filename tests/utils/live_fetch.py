@@ -34,7 +34,7 @@ _DEFAULT_TIMEOUT = 30
 _TRANSIENT_STATUS = (500, 502, 503, 504, 429)
 
 
-def live_session() -> requests.Session:
+def _build_session() -> requests.Session:
     """Build a requests session that retries transient network errors."""
     retry = Retry(
         total=5,
@@ -56,7 +56,6 @@ def live_session() -> requests.Session:
 def fetch_upstream_or_skip(
     url: str,
     timeout: int = _DEFAULT_TIMEOUT,
-    session: requests.Session = None,
 ) -> requests.Response:
     """Fetch a live upstream URL or skip the test if it stays unreachable.
 
@@ -67,12 +66,10 @@ def fetch_upstream_or_skip(
 
     :param url: the upstream URL to fetch.
     :param timeout: per-attempt timeout in seconds.
-    :param session: optional pre-built session (reuses connection pool).
     :return: the successful response.
     """
-    session = session or live_session()
     try:
-        response = session.get(url, timeout=timeout)
+        response = _build_session().get(url, timeout=timeout)
     except (requests.ConnectionError, requests.Timeout) as exc:
         pytest.skip(f"upstream unreachable after retries: {url} ({exc})")
 

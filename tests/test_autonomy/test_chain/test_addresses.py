@@ -24,6 +24,7 @@ import typing as t
 import pytest
 import requests
 from aea.protocols.generator.common import _camel_case_to_snake_case
+from web3.exceptions import Web3Exception
 
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import CHAIN_PROFILES
@@ -76,10 +77,18 @@ class TestAddresses:
                 monkeypatch.setenv(f"{chain.value.upper()}_CHAIN_RPC", chain.rpc)
                 try:
                     constant_address = ContractConfigs.service_manager.contracts[chain]
-                except (requests.ConnectionError, requests.Timeout) as exc:
+                except (
+                    requests.ConnectionError,
+                    requests.Timeout,
+                    requests.HTTPError,
+                    Web3Exception,
+                    ValueError,
+                ) as exc:
                     # An RPC outage is not a test failure. A real drift would
                     # still surface once the RPC returns, because the constant
-                    # lookup also happens at agent runtime.
+                    # lookup also happens at agent runtime. Web3Exception covers
+                    # provider-level errors; ValueError covers JSON-RPC decode
+                    # failures from the web3 transport layer.
                     pytest.skip(f"chain RPC unreachable for {chain.value}: {exc}")
             elif name == "gnosis_safe_multisig":
                 constant_address = CHAIN_PROFILES[chain.value][

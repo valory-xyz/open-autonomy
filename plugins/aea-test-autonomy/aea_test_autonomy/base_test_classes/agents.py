@@ -288,7 +288,15 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
         self.prepare(nb_nodes)
         for agent_id in range(nb_nodes):
             self._launch_agent_i(agent_id)
-        self._wait_for_abci_ports_bound(nb_nodes)
+        try:
+            self._wait_for_abci_ports_bound(nb_nodes)
+        except AssertionError:
+            # An agent failed to bind. The other agents are already running
+            # subprocesses; tear them down so they don't survive into
+            # subsequent tests as orphans.
+            with contextlib.suppress(Exception):
+                self.terminate_agents()
+            raise
 
     # Per-agent budget for the ABCI port to become connectable. A cold
     # Python interpreter on a busy runner can take ~10s to import the agent

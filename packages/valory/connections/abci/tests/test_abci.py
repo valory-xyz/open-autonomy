@@ -27,6 +27,7 @@ import os
 import platform
 import shutil
 import time
+import typing as t
 from abc import ABC, abstractmethod
 from cmath import inf
 from contextlib import suppress
@@ -469,38 +470,47 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
 class TestNoop(BaseABCITest, BaseTestABCITendermintIntegration):
     """Test integration between ABCI connection and Tendermint, without txs."""
 
-    SECONDS = 5
+    DEADLINE_SECONDS = 30.0
 
-    def _latest_block_height(self) -> int:
-        """Return the node's current ``latest_block_height`` (or -1 on failure)."""
+    def _latest_block_height(self) -> t.Optional[int]:
+        """Return the node's ``latest_block_height``, or ``None`` on failure.
+
+        ``None`` is returned only when ``/status`` is unreachable. Schema
+        errors (missing keys, non-int height) are not suppressed and will
+        surface as a real test failure rather than silently retrying.
+
+        :return: the current block height, or ``None`` if the node is
+            unreachable.
+        """
         try:
             response = requests.get(self.tendermint_url() + "/status", timeout=30)
-            response.raise_for_status()
-            return int(response.json()["result"]["sync_info"]["latest_block_height"])
-        except (requests.RequestException, KeyError, ValueError):
-            return -1
+        except requests.RequestException:
+            return None
+        if not response.ok:
+            return None
+        return int(response.json()["result"]["sync_info"]["latest_block_height"])
 
     def test_run(self) -> None:
-        """Assert the node produces blocks.
+        """Assert the node produces at least one new block within the deadline.
 
-        The original implementation slept for N seconds and then did a single
-        /health probe. That conflates "Tendermint is slow to start" with
-        "Tendermint is broken." We assert on the real claim instead: the node
-        must produce at least one block within the deadline.
+        Polling for monotonic ``latest_block_height`` growth distinguishes
+        "Tendermint is slow to start" from "Tendermint has stalled."
         """
-        deadline = time.monotonic() + 30.0
-        starting_height = self._latest_block_height()
+        deadline = time.monotonic() + self.DEADLINE_SECONDS
+        baseline: t.Optional[int] = self._latest_block_height()
         while time.monotonic() < deadline:
             current = self._latest_block_height()
-            if current > starting_height >= 0:
+            if current is None:
+                time.sleep(1)
+                continue
+            if baseline is None:
+                baseline = current
+            elif current > baseline:
                 return  # progress observed
-            if current >= 0 and starting_height < 0:
-                # first successful poll; record baseline and keep going
-                starting_height = current
             time.sleep(1)
         raise AssertionError(
-            "Tendermint produced no new blocks within 30s "
-            f"(starting_height={starting_height})"
+            f"Tendermint produced no new blocks within {self.DEADLINE_SECONDS}s "
+            f"(baseline={baseline})"
         )
 
 

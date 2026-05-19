@@ -23,7 +23,7 @@ import multiprocessing
 import multiprocessing.process
 import os
 import time
-from typing import Tuple, cast
+from typing import Optional, Tuple, cast
 
 import docker
 import pytest
@@ -73,7 +73,7 @@ class TestRunServiceLocally(BaseCliTest):
         """
         client = docker.from_env()
         deadline = time.monotonic() + self.READY_TIMEOUT_SECONDS
-        last_error: object = None
+        last_error: Optional[docker.errors.NotFound] = None
         while time.monotonic() < deadline:
             try:
                 container = client.containers.get(CONTAINER_NAME)
