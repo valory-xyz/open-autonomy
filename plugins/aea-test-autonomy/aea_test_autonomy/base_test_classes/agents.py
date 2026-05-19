@@ -315,13 +315,14 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
         for agent_id in range(nb_nodes):
             port = self.get_abci_port(agent_id)
             deadline = time.monotonic() + self.ABCI_BIND_TIMEOUT_SECONDS
-            last_error: Optional[BaseException] = None
+            last_error: Optional[OSError] = None
             while time.monotonic() < deadline:
                 try:
                     with socket.create_connection(("127.0.0.1", port), timeout=1.0):
                         last_error = None
                         break
-                except (OSError, socket.timeout) as exc:
+                except OSError as exc:
+                    # socket.timeout is a subclass of OSError on Py3.10+
                     last_error = exc
                     time.sleep(self.ABCI_BIND_POLL_INTERVAL)
             if last_error is not None:

@@ -84,6 +84,17 @@ def prepare_and_launch(nb_nodes: int) -> None
 
 Prepare and launch the agents.
 
+After launching, blocks until each agent's ABCI port is accepting
+TCP connections. This eliminates the startup race where the
+Tendermint container (already running from ``setup_class``) dials
+the ABCI port before the agent has finished binding to it, which
+previously surfaced as ``connection refused`` retries that ate
+into the test deadline on slow runners.
+
+**Arguments**:
+
+- `nb_nodes`: total number of agents to prepare and launch.
+
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2End.missing_from_output"></a>
 
 #### missing`_`from`_`output

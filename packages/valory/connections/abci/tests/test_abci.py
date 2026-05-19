@@ -27,13 +27,12 @@ import os
 import platform
 import shutil
 import time
-import typing as t
 from abc import ABC, abstractmethod
 from cmath import inf
 from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Callable, Generator, List, NoReturn, cast
+from typing import Any, Callable, Generator, List, NoReturn, Optional, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -472,7 +471,7 @@ class TestNoop(BaseABCITest, BaseTestABCITendermintIntegration):
 
     DEADLINE_SECONDS = 30.0
 
-    def _latest_block_height(self) -> t.Optional[int]:
+    def _latest_block_height(self) -> Optional[int]:
         """Return the node's ``latest_block_height``, or ``None`` on failure.
 
         ``None`` is returned only when ``/status`` is unreachable. Schema
@@ -497,7 +496,7 @@ class TestNoop(BaseABCITest, BaseTestABCITendermintIntegration):
         "Tendermint is slow to start" from "Tendermint has stalled."
         """
         deadline = time.monotonic() + self.DEADLINE_SECONDS
-        baseline: t.Optional[int] = self._latest_block_height()
+        baseline: Optional[int] = self._latest_block_height()
         while time.monotonic() < deadline:
             current = self._latest_block_height()
             if current is None:
