@@ -23,6 +23,7 @@ import contextlib
 import json
 import logging
 import shutil
+import socket
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -272,11 +273,56 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
             self.run_install()
 
     def prepare_and_launch(self, nb_nodes: int) -> None:
-        """Prepare and launch the agents."""
+        """Prepare and launch the agents.
+
+        After launching, blocks until each agent's ABCI port is accepting
+        TCP connections. This eliminates the startup race where the
+        Tendermint container (already running from ``setup_class``) dials
+        the ABCI port before the agent has finished binding to it, which
+        previously surfaced as ``connection refused`` retries that ate
+        into the test deadline on slow runners.
+        """
         self.processes = dict.fromkeys(range(nb_nodes))
         self.prepare(nb_nodes)
         for agent_id in range(nb_nodes):
             self._launch_agent_i(agent_id)
+        self._wait_for_abci_ports_bound(nb_nodes)
+
+    # Per-agent budget for the ABCI port to become connectable. A cold
+    # Python interpreter on a busy runner can take ~10s to import the agent
+    # and start the ABCI server; we allow 60s before giving up.
+    ABCI_BIND_TIMEOUT_SECONDS: float = 60.0
+    ABCI_BIND_POLL_INTERVAL: float = 0.5
+
+    def _wait_for_abci_ports_bound(self, nb_nodes: int) -> None:
+        """Block until each agent's ABCI port accepts TCP connections.
+
+        :param nb_nodes: total number of agents launched in this test.
+        :raises AssertionError: if any agent fails to bind within the
+            per-agent timeout. Includes diagnostic context (which agent,
+            which port, last connect error) so failures are actionable.
+        """
+        for agent_id in range(nb_nodes):
+            port = self.get_abci_port(agent_id)
+            deadline = time.monotonic() + self.ABCI_BIND_TIMEOUT_SECONDS
+            last_error: Optional[BaseException] = None
+            while time.monotonic() < deadline:
+                try:
+                    with socket.create_connection(
+                        ("127.0.0.1", port), timeout=1.0
+                    ):
+                        last_error = None
+                        break
+                except (OSError, socket.timeout) as exc:
+                    last_error = exc
+                    time.sleep(self.ABCI_BIND_POLL_INTERVAL)
+            if last_error is not None:
+                raise AssertionError(
+                    f"agent {agent_id} did not bind its ABCI port "
+                    f"127.0.0.1:{port} within "
+                    f"{self.ABCI_BIND_TIMEOUT_SECONDS}s "
+                    f"(last error: {last_error})"
+                )
 
     def _launch_agent_i(self, i: int) -> None:
         """Launch the i-th agent."""

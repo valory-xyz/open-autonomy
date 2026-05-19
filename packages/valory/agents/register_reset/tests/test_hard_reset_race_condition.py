@@ -66,7 +66,6 @@ HAPPY_PATH = (
 
 @pytest.mark.e2e
 @pytest.mark.integration
-@pytest.mark.flaky(reruns=1)
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestRaceConditionTendermintReset(UseACNNode, BaseTestEnd2EndExecution):
     """Test that ABCI register-reset skill with 4 agents when resetting Tendermint, with a slow Tendermint server."""

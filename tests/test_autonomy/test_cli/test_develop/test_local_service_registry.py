@@ -55,14 +55,46 @@ class TestRunServiceLocally(BaseCliTest):
         super().setup_method()
         os.chdir(self.t)
 
+    # Marker printed by the hardhat container exactly once it has finished
+    # spinning up. Polling the container's logs for this string is
+    # deterministic; polling the RPC endpoint with a wall-clock budget is not.
+    READY_MARKER = b"Started HTTP and WebSocket JSON-RPC server"
+    READY_TIMEOUT_SECONDS = 300
+
+    def _wait_for_container_ready(self) -> None:
+        """Block until the hardhat container prints its readiness marker.
+
+        Reads the container's accumulated logs once per second. Hardhat
+        prints the JSON-RPC banner exactly once it is ready to accept
+        connections.
+
+        :raises AssertionError: if the marker is not observed within
+            ``READY_TIMEOUT_SECONDS``.
+        """
+        client = docker.from_env()
+        deadline = time.monotonic() + self.READY_TIMEOUT_SECONDS
+        last_error: object = None
+        while time.monotonic() < deadline:
+            try:
+                container = client.containers.get(CONTAINER_NAME)
+                if self.READY_MARKER in container.logs():
+                    return
+            except docker.errors.NotFound as exc:
+                # CLI hasn't created the container yet.
+                last_error = exc
+            time.sleep(1)
+        raise AssertionError(
+            "Hardhat container did not become ready within "
+            f"{self.READY_TIMEOUT_SECONDS}s "
+            f"(last error: {last_error})"
+        )
+
     def test_run_service_locally(
         self,
     ) -> None:
         """Run test."""
 
         self.running_process = self._invoke_command()
-        max_retries = 30
-        timeout = 5
         expected = (
             "Deploying contracts with the account: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
             "Account balance: 10000000000000000000000",
@@ -79,22 +111,17 @@ class TestRunServiceLocally(BaseCliTest):
             "Gnosis Safe Multisend deployed to: 0x9d4454B023096f34B160D6B654540c56A1F81688",
         )
 
-        for _ in range(max_retries):
-            try:
-                res = requests.get(self.expected_network_address, timeout=30)
-                assert res.status_code == 200, "bad response from the network"
-                # we return in this case
-                self._stop_cli_process()
-                captured = cast(CaptureFixture, self.cli_runner.capfd).readouterr()
-                missing = set(expected).difference(captured.out.split("\n"))
-                assert not missing, missing
-                return
-            except requests.ConnectionError:
-                # the container is not yet available
-                time.sleep(timeout)
-
-        self._stop_cli_process()
-        raise AssertionError(f"failed to start network after {max_retries} tries")
+        try:
+            self._wait_for_container_ready()
+            res = requests.get(self.expected_network_address, timeout=30)
+            assert res.status_code == 200, (
+                f"bad response from the network: {res.status_code}"
+            )
+            captured = cast(CaptureFixture, self.cli_runner.capfd).readouterr()
+            missing = set(expected).difference(captured.out.split("\n"))
+            assert not missing, missing
+        finally:
+            self._stop_cli_process()
 
     def _stop_cli_process(
         self,

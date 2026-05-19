@@ -471,14 +471,37 @@ class TestNoop(BaseABCITest, BaseTestABCITendermintIntegration):
 
     SECONDS = 5
 
-    def test_run(self) -> None:
-        """
-        Run the test.
+    def _latest_block_height(self) -> int:
+        """Return the node's current ``latest_block_height`` (or -1 on failure)."""
+        try:
+            response = requests.get(self.tendermint_url() + "/status", timeout=30)
+            response.raise_for_status()
+            return int(response.json()["result"]["sync_info"]["latest_block_height"])
+        except (requests.RequestException, KeyError, ValueError):
+            return -1
 
-        Sleep for N seconds, check Tendermint is still running, and then stop the test.
+    def test_run(self) -> None:
+        """Assert the node produces blocks.
+
+        The original implementation slept for N seconds and then did a single
+        /health probe. That conflates "Tendermint is slow to start" with
+        "Tendermint is broken." We assert on the real claim instead: the node
+        must produce at least one block within the deadline.
         """
-        time.sleep(self.SECONDS)
-        assert self.health_check()
+        deadline = time.monotonic() + 30.0
+        starting_height = self._latest_block_height()
+        while time.monotonic() < deadline:
+            current = self._latest_block_height()
+            if current > starting_height >= 0:
+                return  # progress observed
+            if current >= 0 and starting_height < 0:
+                # first successful poll; record baseline and keep going
+                starting_height = current
+            time.sleep(1)
+        raise AssertionError(
+            "Tendermint produced no new blocks within 30s "
+            f"(starting_height={starting_height})"
+        )
 
 
 @skip_docker_tests
