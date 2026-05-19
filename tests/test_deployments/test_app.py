@@ -533,17 +533,14 @@ class TestTendermintBufferWorking(BaseTendermintServerTest):
             try:
                 res = requests.get(self.tm_status_endpoint, timeout=5)
                 res.raise_for_status()
-                height = int(
-                    res.json()["result"]["sync_info"]["latest_block_height"]
-                )
+                height = int(res.json()["result"]["sync_info"]["latest_block_height"])
             except (requests.RequestException, KeyError, ValueError):
                 # Transient socket / parse hiccup; the next iteration will
                 # observe the real state.
                 time.sleep(1)
                 continue
             assert height >= last_height, (
-                f"Tendermint block height went backwards: "
-                f"{last_height} -> {height}"
+                f"Tendermint block height went backwards: " f"{last_height} -> {height}"
             )
             if height > last_height:
                 progress_count += 1

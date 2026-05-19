@@ -114,9 +114,9 @@ class TestRunServiceLocally(BaseCliTest):
         try:
             self._wait_for_container_ready()
             res = requests.get(self.expected_network_address, timeout=30)
-            assert res.status_code == 200, (
-                f"bad response from the network: {res.status_code}"
-            )
+            assert (
+                res.status_code == 200
+            ), f"bad response from the network: {res.status_code}"
             captured = cast(CaptureFixture, self.cli_runner.capfd).readouterr()
             missing = set(expected).difference(captured.out.split("\n"))
             assert not missing, missing

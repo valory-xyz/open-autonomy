@@ -281,6 +281,8 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
         the ABCI port before the agent has finished binding to it, which
         previously surfaced as ``connection refused`` retries that ate
         into the test deadline on slow runners.
+
+        :param nb_nodes: total number of agents to prepare and launch.
         """
         self.processes = dict.fromkeys(range(nb_nodes))
         self.prepare(nb_nodes)
@@ -308,9 +310,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
             last_error: Optional[BaseException] = None
             while time.monotonic() < deadline:
                 try:
-                    with socket.create_connection(
-                        ("127.0.0.1", port), timeout=1.0
-                    ):
+                    with socket.create_connection(("127.0.0.1", port), timeout=1.0):
                         last_error = None
                         break
                 except (OSError, socket.timeout) as exc:

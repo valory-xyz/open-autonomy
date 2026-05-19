@@ -28,8 +28,7 @@ runner DNS hiccup.
 import pytest
 import requests
 from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
-
+from urllib3.util.retry import Retry  # type: ignore
 
 _DEFAULT_TIMEOUT = 30
 _TRANSIENT_STATUS = (500, 502, 503, 504, 429)
@@ -78,9 +77,7 @@ def fetch_upstream_or_skip(
         pytest.skip(f"upstream unreachable after retries: {url} ({exc})")
 
     if response.status_code in _TRANSIENT_STATUS:
-        pytest.skip(
-            f"upstream returned {response.status_code} after retries: {url}"
-        )
+        pytest.skip(f"upstream returned {response.status_code} after retries: {url}")
 
     response.raise_for_status()
     return response
