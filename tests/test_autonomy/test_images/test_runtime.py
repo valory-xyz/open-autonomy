@@ -199,20 +199,35 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
 
         self.running_containers += [tm_container, agent_container]
 
-        def _check_for_outputs() -> bool:
-            """Check for required outputs."""
+        def _agent_is_running() -> bool:
+            """Check the container is running and the AEA banner was printed.
+
+            ``Status == "running"`` is the deterministic gate: a container
+            that crashed during startup transitions to ``exited`` and never
+            re-enters ``running``. The log-line check guards against the
+            (rare) case where the container is alive but stuck before AEA
+            initialisation.
+
+            :return: True once both conditions are observed.
+            """
+            agent_container.reload()
+            state = agent_container.attrs.get("State", {})
+            if state.get("Status") != "running":
+                return False
             return b"Starting AEA 'agent' in 'async' mode..." in agent_container.logs()
 
         try:
             wait_for_condition(
-                condition_checker=_check_for_outputs,
-                timeout=30,
-                period=1,
+                condition_checker=_agent_is_running,
+                timeout=180,
+                period=2,
             )
             successful = True
         except TimeoutError:
             successful = False
 
-        assert (
-            successful
-        ), f"Agent runtime failed with error: {agent_container.logs().decode()}"
+        assert successful, (
+            "Agent runtime did not become healthy within 180s.\n"
+            f"Container State: {agent_container.attrs.get('State')}\n"
+            f"Container logs:\n{agent_container.logs().decode(errors='replace')}"
+        )

@@ -8,10 +8,10 @@ fingerprint:
   README.md: bafybeiasjwf6kbarer3lyrgik3kravnh35cs743xeun2n5pqssdf5hjzda
   __init__.py: bafybeihpqeerwvdztwaovdaas3lecjxztp7yectgjsqbk4phmpdjnww6fi
   tests/__init__.py: bafybeic5zltt6wlvoegj2tfewe6qgr5f743lef4d6bkgvlqyfsnleiyb6y
-  tests/test_offend_slash.py: bafybeic62qhx2glxfv3itse7ykc5eybmvdubdqs5pdcnfhc7j6axnvpwfe
+  tests/test_offend_slash.py: bafybeidmobwyroxqq2yrmv6mj26armuxt4uyciip32u5xw5la7yl3msyhe
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeibcpvyteijct4rz3zl63sn5zwuiwtn6gt6guvr5gufko4332ybgcu
+- valory/abci:0.1.0:bafybeibzec5d2q6jrmassbbu4yddb4vvxrwedqyqjixqaimklnp2z4glri
 - valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
 - valory/ipfs:0.1.0:bafybeicxrwakpakexuixxp6yo25sosikrjs4mvzfvzklpqk5fa3yy3hh5a
 - valory/ledger:0.19.0:bafybeicynh5l5f5f5jpx72qwzis7jvmxk5p4eqltk32uxbj2pgu2x4rqz4
@@ -30,14 +30,14 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 - valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
 skills:
-- valory/abstract_abci:0.1.0:bafybeib5qjkpfsxjcur4asube6kctmy2xsrg2hzcele2tmvsstula4lt54
-- valory/abstract_round_abci:0.1.0:bafybeibvbfkmkqjidukhkzzz7nd33gna64hjhcn3blon5xcleilbt63zn4
-- valory/offend_abci:0.1.0:bafybeiajf2qlcnyl2hc6ujtkba3frz4pgdjkk2x3wxxoty7evvijn6urgq
-- valory/offend_slash_abci:0.1.0:bafybeidjhn2qrcpjkf6bsdpggy2hxwa7zgb5lw37b2qqialotxs5btplgu
-- valory/registration_abci:0.1.0:bafybeihkfla7hppssqk2dojuxjuy233jrilablud4avtazagt2javcihya
-- valory/reset_pause_abci:0.1.0:bafybeiakhczviqep47o5txatkdbzui6bk5o554cnspdkauapvmdykk2tkm
-- valory/slashing_abci:0.1.0:bafybeif4psjeb2u5dpzcrtcxhhzokplmgfzuzinss3pmfbx6hblxoeqrim
-- valory/transaction_settlement_abci:0.1.0:bafybeiceijjjlvbq2tnadeqdrm7nka7gqgwzvmlgjuzbacgnkljry5h72a
+- valory/abstract_abci:0.1.0:bafybeia47agymvemumeznqekg3dlgycasiztnmjv2ifoux27cotrthzqs4
+- valory/abstract_round_abci:0.1.0:bafybeifisr6rjusq2zms4kmxchux7fx4kadnl5axzhumgujyazedqh4qoi
+- valory/offend_abci:0.1.0:bafybeihmqsoa3qanpr4umzeflxcgw4kikdbshlrvyfn4pu3s6oem3b2hmu
+- valory/offend_slash_abci:0.1.0:bafybeieeufc6t5uaszn5jyxv2xcvhqivwhfiiqvsgjk6sn5pbyjltc2v4i
+- valory/registration_abci:0.1.0:bafybeialjgbeu46r7k3rhzkxeqtnhj4swpfefkme6lyp3ymqooycgwaa6q
+- valory/reset_pause_abci:0.1.0:bafybeiciarjvunss2uwqf3lxxwkiewrsfili3q4bd724wq5ve3gpxf6cna
+- valory/slashing_abci:0.1.0:bafybeifwkzvkfauhpcl5kejnwtqsrpb7uxe37c3zhwbooigt6ocurjk3e4
+- valory/transaction_settlement_abci:0.1.0:bafybeielbeldf3pfnv65d4m5rzhzeu2ywzrxravztopieyaj56bt5v4a2a
 default_ledger: ethereum
 required_ledgers:
 - ethereum

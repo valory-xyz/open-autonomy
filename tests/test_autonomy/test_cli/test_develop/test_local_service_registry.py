@@ -23,7 +23,7 @@ import multiprocessing
 import multiprocessing.process
 import os
 import time
-from typing import Tuple, cast
+from typing import Optional, Tuple, cast
 
 import docker
 import pytest
@@ -55,14 +55,70 @@ class TestRunServiceLocally(BaseCliTest):
         super().setup_method()
         os.chdir(self.t)
 
+    # Total budget for the hardhat container to come up and start
+    # answering JSON-RPC requests. Generous because the container has to
+    # pull the image, install npm deps, and deploy ~12 contracts on a
+    # cold runner.
+    READY_TIMEOUT_SECONDS = 300
+
+    def _wait_for_rpc_ready(self) -> None:
+        """Block until the hardhat RPC dispatches a JSON-RPC call.
+
+        Sends an ``eth_chainId`` request and waits for a well-formed
+        JSON-RPC response with a ``result`` field. This is the ground-
+        truth gate because it's the same shape production callers use;
+        a bare HTTP-200 only proves the listener is bound, not that
+        JSON-RPC dispatch works.
+
+        On timeout the most recent container log tail (200 lines) is
+        attached to the AssertionError for diagnostics.
+
+        :raises AssertionError: if no valid JSON-RPC response is
+            observed within ``READY_TIMEOUT_SECONDS``.
+        """
+        deadline = time.monotonic() + self.READY_TIMEOUT_SECONDS
+        last_error: Optional[Exception] = None
+        payload = {"jsonrpc": "2.0", "method": "eth_chainId", "params": [], "id": 1}
+        while time.monotonic() < deadline:
+            try:
+                res = requests.post(
+                    self.expected_network_address, json=payload, timeout=5
+                )
+                if res.status_code == 200:
+                    body = res.json()
+                    if isinstance(body, dict) and "result" in body:
+                        return
+                    last_error = AssertionError(
+                        f"RPC returned 200 but body lacked `result`: {body!r}"
+                    )
+                else:
+                    last_error = AssertionError(f"RPC returned {res.status_code}")
+            except requests.RequestException as exc:
+                last_error = exc
+            time.sleep(2)
+
+        # Diagnostic-only: container logs may explain why the RPC never
+        # came up (image pull failure, contract deploy crash, etc).
+        diagnostic = ""
+        try:
+            client = docker.from_env()
+            container = client.containers.get(CONTAINER_NAME)
+            diagnostic = container.logs(tail=200).decode(errors="replace")
+        except (docker.errors.NotFound, docker.errors.APIError) as exc:
+            diagnostic = f"(could not fetch container logs: {exc})"
+        raise AssertionError(
+            "Hardhat RPC did not become ready within "
+            f"{self.READY_TIMEOUT_SECONDS}s "
+            f"(last error: {last_error})\n"
+            f"Container logs (tail):\n{diagnostic}"
+        )
+
     def test_run_service_locally(
         self,
     ) -> None:
         """Run test."""
 
         self.running_process = self._invoke_command()
-        max_retries = 30
-        timeout = 5
         expected = (
             "Deploying contracts with the account: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
             "Account balance: 10000000000000000000000",
@@ -79,22 +135,13 @@ class TestRunServiceLocally(BaseCliTest):
             "Gnosis Safe Multisend deployed to: 0x9d4454B023096f34B160D6B654540c56A1F81688",
         )
 
-        for _ in range(max_retries):
-            try:
-                res = requests.get(self.expected_network_address, timeout=30)
-                assert res.status_code == 200, "bad response from the network"
-                # we return in this case
-                self._stop_cli_process()
-                captured = cast(CaptureFixture, self.cli_runner.capfd).readouterr()
-                missing = set(expected).difference(captured.out.split("\n"))
-                assert not missing, missing
-                return
-            except requests.ConnectionError:
-                # the container is not yet available
-                time.sleep(timeout)
-
-        self._stop_cli_process()
-        raise AssertionError(f"failed to start network after {max_retries} tries")
+        try:
+            self._wait_for_rpc_ready()
+            captured = cast(CaptureFixture, self.cli_runner.capfd).readouterr()
+            missing = set(expected).difference(captured.out.split("\n"))
+            assert not missing, missing
+        finally:
+            self._stop_cli_process()
 
     def _stop_cli_process(
         self,

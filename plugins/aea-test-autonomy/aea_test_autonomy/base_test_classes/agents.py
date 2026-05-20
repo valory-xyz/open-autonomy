@@ -23,6 +23,7 @@ import contextlib
 import json
 import logging
 import shutil
+import socket
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -272,11 +273,82 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
             self.run_install()
 
     def prepare_and_launch(self, nb_nodes: int) -> None:
-        """Prepare and launch the agents."""
+        """Prepare and launch the agents.
+
+        After launching, blocks until each agent's ABCI port is accepting
+        TCP connections (unless the mock Tendermint mixin is in use, which
+        doesn't bind a real port). This eliminates the startup race where
+        the Tendermint container (already running from ``setup_class``)
+        dials the ABCI port before the agent has finished binding to it,
+        which previously surfaced as ``connection refused`` retries that
+        ate into the test deadline on slow runners.
+
+        :param nb_nodes: total number of agents to prepare and launch.
+        """
         self.processes = dict.fromkeys(range(nb_nodes))
         self.prepare(nb_nodes)
         for agent_id in range(nb_nodes):
             self._launch_agent_i(agent_id)
+        if self.USE_MOCK:
+            # UseMockTendermint replaces the ABCI server with an in-process
+            # mock channel; no TCP port is bound, so the barrier would just
+            # spin for the full timeout and then fail. Skip it.
+            return
+        try:
+            self._wait_for_abci_ports_bound(nb_nodes)
+        except AssertionError:
+            # An agent failed to bind. The other agents are already running
+            # subprocesses; tear them down so they don't survive into
+            # subsequent tests as orphans.
+            with contextlib.suppress(Exception):
+                self.terminate_agents()
+            raise
+
+    # Shared budget for ALL agents' ABCI ports to become connectable.
+    # Agents are launched in parallel, so a single deadline applies to
+    # all of them — sequencing the checks would otherwise multiply this
+    # budget by ``nb_nodes`` on a totally-dead launch.
+    ABCI_BIND_TIMEOUT_SECONDS: float = 60.0
+    ABCI_BIND_POLL_INTERVAL: float = 0.5
+
+    def _wait_for_abci_ports_bound(self, nb_nodes: int) -> None:
+        """Block until every agent's ABCI port accepts TCP connections.
+
+        Walks the still-unbound ports in a round-robin under one shared
+        deadline. A dead agent doesn't burn the budget for the others;
+        the AssertionError lists every agent that failed to bind in one
+        report instead of one-per-serial-timeout.
+
+        :param nb_nodes: total number of agents launched in this test.
+        :raises AssertionError: if any agent fails to bind within the
+            shared timeout. Includes diagnostic context (which agents,
+            which ports, last connect error per agent).
+        """
+        unbound: Dict[int, int] = {
+            agent_id: self.get_abci_port(agent_id) for agent_id in range(nb_nodes)
+        }
+        last_errors: Dict[int, OSError] = {}
+        deadline = time.monotonic() + self.ABCI_BIND_TIMEOUT_SECONDS
+        while unbound and time.monotonic() < deadline:
+            for agent_id, port in list(unbound.items()):
+                try:
+                    with socket.create_connection(("127.0.0.1", port), timeout=1.0):
+                        del unbound[agent_id]
+                except OSError as exc:
+                    # socket.timeout is a subclass of OSError on Py3.10+
+                    last_errors[agent_id] = exc
+            if unbound:
+                time.sleep(self.ABCI_BIND_POLL_INTERVAL)
+        if unbound:
+            details = ", ".join(
+                f"agent {aid} (127.0.0.1:{port}, last error: "
+                f"{last_errors.get(aid, 'no attempt completed')})"
+                for aid, port in sorted(unbound.items())
+            )
+            raise AssertionError(
+                f"agents did not bind their ABCI ports within "
+                f"{self.ABCI_BIND_TIMEOUT_SECONDS}s: {details}"
+            )
 
     def _launch_agent_i(self, i: int) -> None:
         """Launch the i-th agent."""

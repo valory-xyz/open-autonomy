@@ -62,7 +62,6 @@ HAPPY_PATH = (
 
 @pytest.mark.e2e
 @pytest.mark.integration
-@pytest.mark.flaky(reruns=1)
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestTendermintStartup(UseRegistries, UseACNNode, BaseTestEnd2EndExecution):
     """Test the ABCI register-reset skill with 4 agents starting up."""
@@ -115,7 +114,6 @@ class TestTendermintReset(UseRegistries, UseACNNode, BaseTestEnd2EndExecution):
 
 @pytest.mark.e2e
 @pytest.mark.integration
-@pytest.mark.flaky(reruns=1)
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestTendermintResetInterrupt(UseRegistries, UseACNNode, BaseTestEnd2EndExecution):
     """Test the ABCI register-reset skill with 4 agents when an agent gets interrupted on Tendermint reset."""
@@ -148,7 +146,6 @@ class TestTendermintResetInterrupt(UseRegistries, UseACNNode, BaseTestEnd2EndExe
 
 @pytest.mark.e2e
 @pytest.mark.integration
-@pytest.mark.flaky(reruns=1)
 class TestTendermintResetInterruptNoRejoin(TestTendermintResetInterrupt):
     """
     Test a Tendermint reset case for the ABCI register-reset skill.

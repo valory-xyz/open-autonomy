@@ -361,12 +361,22 @@ class TestMintComponents(BaseChainInteractionTest):
     def test_fail_dependency_does_not_match_service(
         self,
     ) -> None:
-        """Test token id retrieval failure."""
+        """Test token id retrieval failure.
+
+        Patches the subgraph to return a deterministic ``publicId`` that
+        does NOT match the service's expected dependency. Without the
+        patch the test would depend on subgraph.autonolas.tech being up
+        and returning a specific shape — any 5xx outage produces a
+        ``Subgraph HTTP 5xx`` RuntimeError that masks the actual
+        assertion this test is verifying.
+        """
         with mock.patch.object(
             ChainConfigs, "get", return_value=ChainConfigs.local
         ), mock.patch(
             "autonomy.chain.utils.resolve_component_id",
             return_value={"name": "skill/author/name"},
+        ), patch_subgraph(
+            response=[{"tokenId": 1, "publicId": "valory/hello_world"}]
         ):
             result = self.run_cli(
                 commands=(

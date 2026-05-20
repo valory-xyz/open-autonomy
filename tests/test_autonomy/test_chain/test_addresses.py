@@ -24,26 +24,79 @@ import typing as t
 import pytest
 import requests
 from aea.protocols.generator.common import _camel_case_to_snake_case
+from web3.exceptions import (
+    BadFunctionCallOutput,
+    BadResponseFormat,
+    ProviderConnectionError,
+    TooManyRequests,
+)
 
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import CHAIN_PROFILES
 
+from tests.utils.live_fetch import fetch_upstream_or_skip
+
 ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/refs/tags/v1.3.0/docs/configuration.json"
+
+# Transport-level errors from the chain RPC call inside DynamicContract.
+# Other web3 exceptions (e.g. InvalidAddress, ContractLogicError) are real
+# bugs the test exists to catch — let those propagate.
+_TRANSIENT_RPC_ERRORS = (
+    requests.ConnectionError,
+    requests.Timeout,
+    requests.HTTPError,
+    BadResponseFormat,
+    BadFunctionCallOutput,
+    ProviderConnectionError,
+    TooManyRequests,
+)
 
 
 class TestAddresses:
     """Test addresses."""
 
-    contracts: t.Dict[str, t.List[t.Dict[str, str]]]
+    # Lazy class-level cache of the upstream configuration. Each
+    # parametrized test calls ``_get_contracts``; the first call drives
+    # the fetch and the rest reuse the result. Letting each test call
+    # ``pytest.skip`` individually keeps every skipped case visible in
+    # the pytest report — fetching from ``setup_class`` would make the
+    # whole class silently vanish on a GitHub outage.
+    _contracts: t.Optional[t.Dict[str, t.List[t.Dict[str, str]]]] = None
+    # When the first fetch fails (``pytest.skip`` raised), record that
+    # so subsequent parametrized calls short-circuit instead of paying
+    # the ~31s retry budget again for each remaining chain.
+    _fetch_failed: bool = False
 
     @classmethod
-    def setup_class(cls) -> None:
-        """Setup test class."""
-        chain_configs = requests.get(url=ADDRESS_FILE_URL, timeout=30).json()
-        cls.contracts = {
-            _camel_case_to_snake_case(config["name"]): config["contracts"]
-            for config in chain_configs
-        }
+    def _get_contracts(cls) -> t.Dict[str, t.List[t.Dict[str, str]]]:
+        """Fetch (or return cached) upstream contracts mapping.
+
+        Calls ``pytest.skip`` inside the current test if the upstream is
+        unreachable. The skip outcome is cached at class scope so a
+        persistent outage costs one retry budget total, not one per
+        parametrized variant.
+
+        :return: the contracts dict keyed by chain name.
+        """
+        if cls._fetch_failed:
+            pytest.skip(
+                f"upstream {ADDRESS_FILE_URL} already failed earlier in this run"
+            )
+        if cls._contracts is None:
+            try:
+                chain_configs = fetch_upstream_or_skip(ADDRESS_FILE_URL).json()
+            except pytest.skip.Exception:
+                # The fetch helper raised ``Skipped`` after exhausting
+                # retries. Record the outcome so subsequent parametrized
+                # iterations skip immediately, then re-raise to skip
+                # the current one.
+                cls._fetch_failed = True
+                raise
+            cls._contracts = {
+                _camel_case_to_snake_case(config["name"]): config["contracts"]
+                for config in chain_configs
+            }
+        return cls._contracts
 
     @pytest.mark.parametrize(argnames="chain", argvalues=list(ChainType))
     def test_addresses_match(
@@ -59,10 +112,11 @@ class TestAddresses:
         ):
             return
 
+        contracts_by_chain = self._get_contracts()
         if chain == ChainType.ETHEREUM:
-            contracts = self.contracts["mainnet"]
+            contracts = contracts_by_chain["mainnet"]
         else:
-            contracts = self.contracts[chain.value]
+            contracts = contracts_by_chain[chain.value]
 
         for contract in contracts:
             name = _camel_case_to_snake_case(contract["name"]).replace("_l2", "")
@@ -72,7 +126,13 @@ class TestAddresses:
             address = contract["address"]
             if name == "service_manager_proxy":
                 monkeypatch.setenv(f"{chain.value.upper()}_CHAIN_RPC", chain.rpc)
-                constant_address = ContractConfigs.service_manager.contracts[chain]
+                try:
+                    constant_address = ContractConfigs.service_manager.contracts[chain]
+                except _TRANSIENT_RPC_ERRORS as exc:
+                    # Transport-level RPC failure. A real drift would still
+                    # surface once the RPC returns, because this same lookup
+                    # happens at agent runtime.
+                    pytest.skip(f"chain RPC unreachable for {chain.value}: {exc}")
             elif name == "gnosis_safe_multisig":
                 constant_address = CHAIN_PROFILES[chain.value][
                     "gnosis_safe_proxy_factory"

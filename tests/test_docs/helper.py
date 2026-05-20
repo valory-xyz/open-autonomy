@@ -25,9 +25,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
-import requests
-
 from tests.conftest import ROOT_DIR
+from tests.utils.live_fetch import fetch_upstream_or_skip
 
 IPFS_HASH_REGEX = r"bafybei[A-Za-z0-9]{52}"
 PYTHON_LINE_COMMENT_REGEX = r"^#.*\n"
@@ -96,26 +95,16 @@ def read_file_from_repository(url: str) -> str:
     owner, repo, _, file_path = match.groups()
 
     repo_api_url = f"https://api.github.com/repos/{owner}/{repo}/releases/latest"
-    response = requests.get(repo_api_url, timeout=30)
-
-    if response.status_code == 200:
-        release_info = response.json()
-        latest_release_tag = release_info["tag_name"]
-        raw_github_url = f"https://raw.githubusercontent.com/{owner}/{repo}/{latest_release_tag}/{file_path}"
-        return read_file_from_url(raw_github_url)
-    else:
-        raise Exception(
-            f"Failed to fetch release information from GitHub API for {owner}/{repo}: {response.text}."
-        )
+    response = fetch_upstream_or_skip(repo_api_url)
+    release_info = response.json()
+    latest_release_tag = release_info["tag_name"]
+    raw_github_url = f"https://raw.githubusercontent.com/{owner}/{repo}/{latest_release_tag}/{file_path}"
+    return read_file_from_url(raw_github_url)
 
 
 def read_file_from_url(url: str) -> str:
     """Loads a file into a string"""
-    response = requests.get(url, timeout=30)
-    if response.status_code == 200:
-        return response.text
-    else:
-        raise Exception(f"Failed to fetch data from URL {url}: {response.text}.")
+    return fetch_upstream_or_skip(url).text
 
 
 def remove_line_comments(string: str) -> str:

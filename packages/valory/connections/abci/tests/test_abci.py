@@ -32,7 +32,7 @@ from cmath import inf
 from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Callable, Generator, List, NoReturn, cast
+from typing import Any, Callable, Generator, List, NoReturn, Optional, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -469,16 +469,57 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
 class TestNoop(BaseABCITest, BaseTestABCITendermintIntegration):
     """Test integration between ABCI connection and Tendermint, without txs."""
 
-    SECONDS = 5
+    DEADLINE_SECONDS = 30.0
+
+    # Per-request timeout. Kept well below ``DEADLINE_SECONDS`` so a
+    # single hanging /status (TCP accepted but never answered) doesn't
+    # consume the whole assertion budget in one call.
+    REQUEST_TIMEOUT_SECONDS = 5
+
+    def _latest_block_height(self) -> Optional[int]:
+        """Return the node's block height, or ``None`` on transport failure.
+
+        ``None`` is returned ONLY when the request itself fails (DNS,
+        connect refused, timeout). 5xx, 4xx, and schema errors propagate
+        — a node that returns 503 for 30s is a real failure, not "node
+        not up yet", and the assertion message at the top level needs
+        to surface that.
+
+        :return: the current block height, or ``None`` if the node is
+            unreachable at the transport layer.
+        """
+        try:
+            response = requests.get(
+                self.tendermint_url() + "/status",
+                timeout=self.REQUEST_TIMEOUT_SECONDS,
+            )
+        except requests.RequestException:
+            return None
+        response.raise_for_status()
+        return int(response.json()["result"]["sync_info"]["latest_block_height"])
 
     def test_run(self) -> None:
-        """
-        Run the test.
+        """Assert the node produces at least one new block within the deadline.
 
-        Sleep for N seconds, check Tendermint is still running, and then stop the test.
+        Polling for monotonic ``latest_block_height`` growth distinguishes
+        "Tendermint is slow to start" from "Tendermint has stalled."
         """
-        time.sleep(self.SECONDS)
-        assert self.health_check()
+        deadline = time.monotonic() + self.DEADLINE_SECONDS
+        baseline: Optional[int] = self._latest_block_height()
+        while time.monotonic() < deadline:
+            current = self._latest_block_height()
+            if current is None:
+                time.sleep(1)
+                continue
+            if baseline is None:
+                baseline = current
+            elif current > baseline:
+                return  # progress observed
+            time.sleep(1)
+        raise AssertionError(
+            f"Tendermint produced no new blocks within {self.DEADLINE_SECONDS}s "
+            f"(baseline={baseline})"
+        )
 
 
 @skip_docker_tests

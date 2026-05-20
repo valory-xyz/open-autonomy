@@ -338,9 +338,10 @@ Test integration between ABCI connection and Tendermint, without txs.
 def test_run() -> None
 ```
 
-Run the test.
+Assert the node produces at least one new block within the deadline.
 
-Sleep for N seconds, check Tendermint is still running, and then stop the test.
+Polling for monotonic ``latest_block_height`` growth distinguishes
+"Tendermint is slow to start" from "Tendermint has stalled."
 
 <a id="packages.valory.connections.abci.tests.test_abci.TestQuery"></a>
 
