@@ -29,7 +29,7 @@ import subprocess  # nosec
 import tempfile
 import time
 from pathlib import Path
-from typing import Any, Callable, Dict, Set, cast
+from typing import Any, Callable, Dict, Optional, Set, cast
 from unittest import mock
 
 import pytest
@@ -521,9 +521,11 @@ class TestTendermintBufferWorking(BaseTendermintServerTest):
         """Assert Tendermint keeps making progress for the test window.
 
         The claim is "the node is alive and producing blocks", not
-        "every single /status poll succeeds." Polling for monotonic
-        ``latest_block_height`` growth tracks the real claim; transient
-        socket-level hiccups are retried without failing the test.
+        "every single /status poll succeeds." A baseline height is
+        captured on the first successful observation; the test passes
+        only when a *later* observation reports a strictly higher
+        height (proving forward progress, not just that the node is
+        reachable).
 
         Schema errors (missing keys, non-int height) are NOT suppressed
         and surface as the actual exception so a Tendermint version
@@ -532,7 +534,7 @@ class TestTendermintBufferWorking(BaseTendermintServerTest):
         """
 
         deadline = time.monotonic() + 120.0
-        last_height: int = -1
+        baseline: Optional[int] = None
         while time.monotonic() < deadline:
             try:
                 res = requests.get(self.tm_status_endpoint, timeout=5)
@@ -543,16 +545,20 @@ class TestTendermintBufferWorking(BaseTendermintServerTest):
                 continue
             res.raise_for_status()
             height = int(res.json()["result"]["sync_info"]["latest_block_height"])
-            assert height >= last_height, (
-                f"Tendermint block height went backwards: " f"{last_height} -> {height}"
-            )
-            if height > last_height:
-                return  # one observed forward step proves liveness
+            if baseline is None:
+                baseline = height
+            elif height > baseline:
+                return  # observed advance proves liveness
+            elif height < baseline:
+                raise AssertionError(
+                    f"Tendermint block height went backwards: "
+                    f"{baseline} -> {height}"
+                )
             time.sleep(1)
 
         raise AssertionError(
             f"Tendermint did not advance ``latest_block_height`` within "
-            f"120s (last_height={last_height})"
+            f"120s (baseline={baseline})"
         )
 
 

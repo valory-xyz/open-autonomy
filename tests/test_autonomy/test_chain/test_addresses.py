@@ -55,26 +55,43 @@ _TRANSIENT_RPC_ERRORS = (
 class TestAddresses:
     """Test addresses."""
 
-    # Class-level cache of the upstream configuration. ``None`` until the
-    # first call to ``_get_contracts`` succeeds (lazy fetch). Storing the
-    # result here lets each parametrized test call ``pytest.skip``
-    # individually if the upstream is unreachable, which keeps every
-    # skipped case visible in the pytest report — fetching from
-    # ``setup_class`` would make the whole class silently vanish on a
-    # GitHub outage.
+    # Lazy class-level cache of the upstream configuration. Each
+    # parametrized test calls ``_get_contracts``; the first call drives
+    # the fetch and the rest reuse the result. Letting each test call
+    # ``pytest.skip`` individually keeps every skipped case visible in
+    # the pytest report — fetching from ``setup_class`` would make the
+    # whole class silently vanish on a GitHub outage.
     _contracts: t.Optional[t.Dict[str, t.List[t.Dict[str, str]]]] = None
+    # When the first fetch fails (``pytest.skip`` raised), record that
+    # so subsequent parametrized calls short-circuit instead of paying
+    # the ~31s retry budget again for each remaining chain.
+    _fetch_failed: bool = False
 
     @classmethod
     def _get_contracts(cls) -> t.Dict[str, t.List[t.Dict[str, str]]]:
         """Fetch (or return cached) upstream contracts mapping.
 
         Calls ``pytest.skip`` inside the current test if the upstream is
-        unreachable.
+        unreachable. The skip outcome is cached at class scope so a
+        persistent outage costs one retry budget total, not one per
+        parametrized variant.
 
         :return: the contracts dict keyed by chain name.
         """
+        if cls._fetch_failed:
+            pytest.skip(
+                f"upstream {ADDRESS_FILE_URL} already failed earlier in this run"
+            )
         if cls._contracts is None:
-            chain_configs = fetch_upstream_or_skip(ADDRESS_FILE_URL).json()
+            try:
+                chain_configs = fetch_upstream_or_skip(ADDRESS_FILE_URL).json()
+            except pytest.skip.Exception:
+                # The fetch helper raised ``Skipped`` after exhausting
+                # retries. Record the outcome so subsequent parametrized
+                # iterations skip immediately, then re-raise to skip
+                # the current one.
+                cls._fetch_failed = True
+                raise
             cls._contracts = {
                 _camel_case_to_snake_case(config["name"]): config["contracts"]
                 for config in chain_configs

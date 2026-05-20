@@ -304,41 +304,51 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
                 self.terminate_agents()
             raise
 
-    # Per-agent budget for the ABCI port to become connectable. A cold
-    # Python interpreter on a busy runner can take ~10s to import the agent
-    # and start the ABCI server; we allow 60s before giving up.
+    # Shared budget for ALL agents' ABCI ports to become connectable.
+    # Agents are launched in parallel, so a single deadline applies to
+    # all of them — sequencing the checks would otherwise multiply this
+    # budget by ``nb_nodes`` on a totally-dead launch.
     ABCI_BIND_TIMEOUT_SECONDS: float = 60.0
     ABCI_BIND_POLL_INTERVAL: float = 0.5
 
     def _wait_for_abci_ports_bound(self, nb_nodes: int) -> None:
-        """Block until each agent's ABCI port accepts TCP connections.
+        """Block until every agent's ABCI port accepts TCP connections.
+
+        Walks the still-unbound ports in a round-robin under one shared
+        deadline. A dead agent doesn't burn the budget for the others;
+        the AssertionError lists every agent that failed to bind in one
+        report instead of one-per-serial-timeout.
 
         :param nb_nodes: total number of agents launched in this test.
         :raises AssertionError: if any agent fails to bind within the
-            per-agent timeout. Includes diagnostic context (which agent,
-            which port, last connect error) so failures are actionable.
+            shared timeout. Includes diagnostic context (which agents,
+            which ports, last connect error per agent).
         """
-        for agent_id in range(nb_nodes):
-            port = self.get_abci_port(agent_id)
-            deadline = time.monotonic() + self.ABCI_BIND_TIMEOUT_SECONDS
-            connected = False
-            last_error: Optional[OSError] = None
-            while time.monotonic() < deadline:
+        unbound: Dict[int, int] = {
+            agent_id: self.get_abci_port(agent_id) for agent_id in range(nb_nodes)
+        }
+        last_errors: Dict[int, OSError] = {}
+        deadline = time.monotonic() + self.ABCI_BIND_TIMEOUT_SECONDS
+        while unbound and time.monotonic() < deadline:
+            for agent_id, port in list(unbound.items()):
                 try:
                     with socket.create_connection(("127.0.0.1", port), timeout=1.0):
-                        connected = True
-                        break
+                        del unbound[agent_id]
                 except OSError as exc:
                     # socket.timeout is a subclass of OSError on Py3.10+
-                    last_error = exc
-                    time.sleep(self.ABCI_BIND_POLL_INTERVAL)
-            if not connected:
-                raise AssertionError(
-                    f"agent {agent_id} did not bind its ABCI port "
-                    f"127.0.0.1:{port} within "
-                    f"{self.ABCI_BIND_TIMEOUT_SECONDS}s "
-                    f"(last error: {last_error})"
-                )
+                    last_errors[agent_id] = exc
+            if unbound:
+                time.sleep(self.ABCI_BIND_POLL_INTERVAL)
+        if unbound:
+            details = ", ".join(
+                f"agent {aid} (127.0.0.1:{port}, last error: "
+                f"{last_errors.get(aid, 'no attempt completed')})"
+                for aid, port in sorted(unbound.items())
+            )
+            raise AssertionError(
+                f"agents did not bind their ABCI ports within "
+                f"{self.ABCI_BIND_TIMEOUT_SECONDS}s: {details}"
+            )
 
     def _launch_agent_i(self, i: int) -> None:
         """Launch the i-th agent."""

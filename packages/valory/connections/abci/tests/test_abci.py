@@ -471,6 +471,11 @@ class TestNoop(BaseABCITest, BaseTestABCITendermintIntegration):
 
     DEADLINE_SECONDS = 30.0
 
+    # Per-request timeout. Kept well below ``DEADLINE_SECONDS`` so a
+    # single hanging /status (TCP accepted but never answered) doesn't
+    # consume the whole assertion budget in one call.
+    REQUEST_TIMEOUT_SECONDS = 5
+
     def _latest_block_height(self) -> Optional[int]:
         """Return the node's block height, or ``None`` on transport failure.
 
@@ -484,7 +489,10 @@ class TestNoop(BaseABCITest, BaseTestABCITendermintIntegration):
             unreachable at the transport layer.
         """
         try:
-            response = requests.get(self.tendermint_url() + "/status", timeout=30)
+            response = requests.get(
+                self.tendermint_url() + "/status",
+                timeout=self.REQUEST_TIMEOUT_SECONDS,
+            )
         except requests.RequestException:
             return None
         response.raise_for_status()
