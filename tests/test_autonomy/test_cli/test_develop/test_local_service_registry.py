@@ -62,29 +62,38 @@ class TestRunServiceLocally(BaseCliTest):
     READY_TIMEOUT_SECONDS = 300
 
     def _wait_for_rpc_ready(self) -> None:
-        """Block until the hardhat RPC endpoint accepts requests.
+        """Block until the hardhat RPC dispatches a JSON-RPC call.
 
-        The RPC's response to ``eth_chainId`` is the ground-truth gate
-        because that's what production callers will use. A docker log
-        banner is a *proxy* — it can print before ``listen()`` actually
-        accepts connections, and it has changed text between hardhat
-        versions before.
+        Sends an ``eth_chainId`` request and waits for a well-formed
+        JSON-RPC response with a ``result`` field. This is the ground-
+        truth gate because it's the same shape production callers use;
+        a bare HTTP-200 only proves the listener is bound, not that
+        JSON-RPC dispatch works.
 
         On timeout the most recent container log tail (200 lines) is
         attached to the AssertionError for diagnostics.
 
-        :raises AssertionError: if no successful RPC response is
+        :raises AssertionError: if no valid JSON-RPC response is
             observed within ``READY_TIMEOUT_SECONDS``.
         """
         deadline = time.monotonic() + self.READY_TIMEOUT_SECONDS
         last_error: Optional[Exception] = None
+        payload = {"jsonrpc": "2.0", "method": "eth_chainId", "params": [], "id": 1}
         while time.monotonic() < deadline:
             try:
-                res = requests.get(self.expected_network_address, timeout=5)
+                res = requests.post(
+                    self.expected_network_address, json=payload, timeout=5
+                )
                 if res.status_code == 200:
-                    return
-                last_error = AssertionError(f"RPC returned {res.status_code}")
-            except requests.ConnectionError as exc:
+                    body = res.json()
+                    if isinstance(body, dict) and "result" in body:
+                        return
+                    last_error = AssertionError(
+                        f"RPC returned 200 but body lacked `result`: {body!r}"
+                    )
+                else:
+                    last_error = AssertionError(f"RPC returned {res.status_code}")
+            except requests.RequestException as exc:
                 last_error = exc
             time.sleep(2)
 

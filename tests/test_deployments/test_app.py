@@ -533,7 +533,6 @@ class TestTendermintBufferWorking(BaseTendermintServerTest):
 
         deadline = time.monotonic() + 120.0
         last_height: int = -1
-        progress_count = 0
         while time.monotonic() < deadline:
             try:
                 res = requests.get(self.tm_status_endpoint, timeout=5)
@@ -548,13 +547,7 @@ class TestTendermintBufferWorking(BaseTendermintServerTest):
                 f"Tendermint block height went backwards: " f"{last_height} -> {height}"
             )
             if height > last_height:
-                progress_count += 1
-                last_height = height
-                if progress_count >= 1:
-                    # A single observed advance is proof of liveness;
-                    # there is no value in continuing to poll once the
-                    # node has demonstrated forward progress.
-                    return
+                return  # one observed forward step proves liveness
             time.sleep(1)
 
         raise AssertionError(
