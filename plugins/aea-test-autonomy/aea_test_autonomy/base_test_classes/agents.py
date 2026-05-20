@@ -276,11 +276,12 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
         """Prepare and launch the agents.
 
         After launching, blocks until each agent's ABCI port is accepting
-        TCP connections. This eliminates the startup race where the
-        Tendermint container (already running from ``setup_class``) dials
-        the ABCI port before the agent has finished binding to it, which
-        previously surfaced as ``connection refused`` retries that ate
-        into the test deadline on slow runners.
+        TCP connections (unless the mock Tendermint mixin is in use, which
+        doesn't bind a real port). This eliminates the startup race where
+        the Tendermint container (already running from ``setup_class``)
+        dials the ABCI port before the agent has finished binding to it,
+        which previously surfaced as ``connection refused`` retries that
+        ate into the test deadline on slow runners.
 
         :param nb_nodes: total number of agents to prepare and launch.
         """
@@ -288,6 +289,11 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
         self.prepare(nb_nodes)
         for agent_id in range(nb_nodes):
             self._launch_agent_i(agent_id)
+        if self.USE_MOCK:
+            # UseMockTendermint replaces the ABCI server with an in-process
+            # mock channel; no TCP port is bound, so the barrier would just
+            # spin for the full timeout and then fail. Skip it.
+            return
         try:
             self._wait_for_abci_ports_bound(nb_nodes)
         except AssertionError:
@@ -315,17 +321,18 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
         for agent_id in range(nb_nodes):
             port = self.get_abci_port(agent_id)
             deadline = time.monotonic() + self.ABCI_BIND_TIMEOUT_SECONDS
+            connected = False
             last_error: Optional[OSError] = None
             while time.monotonic() < deadline:
                 try:
                     with socket.create_connection(("127.0.0.1", port), timeout=1.0):
-                        last_error = None
+                        connected = True
                         break
                 except OSError as exc:
                     # socket.timeout is a subclass of OSError on Py3.10+
                     last_error = exc
                     time.sleep(self.ABCI_BIND_POLL_INTERVAL)
-            if last_error is not None:
+            if not connected:
                 raise AssertionError(
                     f"agent {agent_id} did not bind its ABCI port "
                     f"127.0.0.1:{port} within "

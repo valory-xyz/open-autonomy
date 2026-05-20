@@ -472,21 +472,22 @@ class TestNoop(BaseABCITest, BaseTestABCITendermintIntegration):
     DEADLINE_SECONDS = 30.0
 
     def _latest_block_height(self) -> Optional[int]:
-        """Return the node's ``latest_block_height``, or ``None`` on failure.
+        """Return the node's block height, or ``None`` on transport failure.
 
-        ``None`` is returned only when ``/status`` is unreachable. Schema
-        errors (missing keys, non-int height) are not suppressed and will
-        surface as a real test failure rather than silently retrying.
+        ``None`` is returned ONLY when the request itself fails (DNS,
+        connect refused, timeout). 5xx, 4xx, and schema errors propagate
+        — a node that returns 503 for 30s is a real failure, not "node
+        not up yet", and the assertion message at the top level needs
+        to surface that.
 
         :return: the current block height, or ``None`` if the node is
-            unreachable.
+            unreachable at the transport layer.
         """
         try:
             response = requests.get(self.tendermint_url() + "/status", timeout=30)
         except requests.RequestException:
             return None
-        if not response.ok:
-            return None
+        response.raise_for_status()
         return int(response.json()["result"]["sync_info"]["latest_block_height"])
 
     def test_run(self) -> None:

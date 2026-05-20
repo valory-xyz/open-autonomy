@@ -55,38 +55,53 @@ class TestRunServiceLocally(BaseCliTest):
         super().setup_method()
         os.chdir(self.t)
 
-    # Marker printed by the hardhat container exactly once it has finished
-    # spinning up. Polling the container's logs for this string is
-    # deterministic; polling the RPC endpoint with a wall-clock budget is not.
-    READY_MARKER = b"Started HTTP and WebSocket JSON-RPC server"
+    # Total budget for the hardhat container to come up and start
+    # answering JSON-RPC requests. Generous because the container has to
+    # pull the image, install npm deps, and deploy ~12 contracts on a
+    # cold runner.
     READY_TIMEOUT_SECONDS = 300
 
-    def _wait_for_container_ready(self) -> None:
-        """Block until the hardhat container prints its readiness marker.
+    def _wait_for_rpc_ready(self) -> None:
+        """Block until the hardhat RPC endpoint accepts requests.
 
-        Reads the container's accumulated logs once per second. Hardhat
-        prints the JSON-RPC banner exactly once it is ready to accept
-        connections.
+        The RPC's response to ``eth_chainId`` is the ground-truth gate
+        because that's what production callers will use. A docker log
+        banner is a *proxy* — it can print before ``listen()`` actually
+        accepts connections, and it has changed text between hardhat
+        versions before.
 
-        :raises AssertionError: if the marker is not observed within
-            ``READY_TIMEOUT_SECONDS``.
+        On timeout the most recent container log tail (200 lines) is
+        attached to the AssertionError for diagnostics.
+
+        :raises AssertionError: if no successful RPC response is
+            observed within ``READY_TIMEOUT_SECONDS``.
         """
-        client = docker.from_env()
         deadline = time.monotonic() + self.READY_TIMEOUT_SECONDS
-        last_error: Optional[docker.errors.NotFound] = None
+        last_error: Optional[Exception] = None
         while time.monotonic() < deadline:
             try:
-                container = client.containers.get(CONTAINER_NAME)
-                if self.READY_MARKER in container.logs():
+                res = requests.get(self.expected_network_address, timeout=5)
+                if res.status_code == 200:
                     return
-            except docker.errors.NotFound as exc:
-                # CLI hasn't created the container yet.
+                last_error = AssertionError(f"RPC returned {res.status_code}")
+            except requests.ConnectionError as exc:
                 last_error = exc
-            time.sleep(1)
+            time.sleep(2)
+
+        # Diagnostic-only: container logs may explain why the RPC never
+        # came up (image pull failure, contract deploy crash, etc).
+        diagnostic = ""
+        try:
+            client = docker.from_env()
+            container = client.containers.get(CONTAINER_NAME)
+            diagnostic = container.logs(tail=200).decode(errors="replace")
+        except (docker.errors.NotFound, docker.errors.APIError) as exc:
+            diagnostic = f"(could not fetch container logs: {exc})"
         raise AssertionError(
-            "Hardhat container did not become ready within "
+            "Hardhat RPC did not become ready within "
             f"{self.READY_TIMEOUT_SECONDS}s "
-            f"(last error: {last_error})"
+            f"(last error: {last_error})\n"
+            f"Container logs (tail):\n{diagnostic}"
         )
 
     def test_run_service_locally(
@@ -112,11 +127,7 @@ class TestRunServiceLocally(BaseCliTest):
         )
 
         try:
-            self._wait_for_container_ready()
-            res = requests.get(self.expected_network_address, timeout=30)
-            assert (
-                res.status_code == 200
-            ), f"bad response from the network: {res.status_code}"
+            self._wait_for_rpc_ready()
             captured = cast(CaptureFixture, self.cli_runner.capfd).readouterr()
             missing = set(expected).difference(captured.out.split("\n"))
             assert not missing, missing

@@ -35,12 +35,17 @@ _TRANSIENT_STATUS = (500, 502, 503, 504, 429)
 
 
 def _build_session() -> requests.Session:
-    """Build a requests session that retries transient network errors."""
+    """Build a requests session that retries transient network errors.
+
+    urllib3 counts connect / read / status failures against ``total``,
+    not in addition to it — setting them individually here would shorten
+    the effective retry count on mixed failure sequences. ``total=5`` is
+    the single source of truth.
+
+    :return: the configured session.
+    """
     retry = Retry(
         total=5,
-        connect=5,
-        read=5,
-        status=5,
         status_forcelist=_TRANSIENT_STATUS,
         backoff_factor=1.0,
         raise_on_status=False,
@@ -59,14 +64,22 @@ def fetch_upstream_or_skip(
 ) -> requests.Response:
     """Fetch a live upstream URL or skip the test if it stays unreachable.
 
-    Retries connect/read errors and transient 5xx / 429 responses with
-    exponential backoff. If the request still fails after retries, the
-    test is skipped rather than failed. Real upstream data mismatches
-    surface to the caller via the response object as usual.
+    Behaviour by response category:
+
+    - **Connect / read / timeout failure** after exhausting retries:
+      the test is **skipped** (``pytest.skip``). These are infra-level
+      problems that don't indicate a real bug in the subject under test.
+    - **5xx / 429** after exhausting retries: the test is **skipped**.
+      Same reasoning — transient upstream unavailability.
+    - **4xx** (other than 429): the test **fails** via
+      ``response.raise_for_status``. A 404 means the URL is wrong
+      (a real bug) and a 403 from GitHub means the access pattern is
+      wrong; neither should be silently swallowed.
+    - **2xx**: the response is returned to the caller.
 
     :param url: the upstream URL to fetch.
     :param timeout: per-attempt timeout in seconds.
-    :return: the successful response.
+    :return: the successful (2xx) response.
     """
     try:
         response = _build_session().get(url, timeout=timeout)
@@ -76,5 +89,6 @@ def fetch_upstream_or_skip(
     if response.status_code in _TRANSIENT_STATUS:
         pytest.skip(f"upstream returned {response.status_code} after retries: {url}")
 
+    # 4xx (other than 429) is a real bug — surface it.
     response.raise_for_status()
     return response
