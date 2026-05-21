@@ -1613,7 +1613,7 @@ class TendermintNode:
 
         :param params: the parameters.
         :param logger: the logger.
-        :param write_to_log: Forward subprocess output lines to the configured logger.
+        :param write_to_log: Forward subprocess output lines to the configured logger. Blank lines are skipped.
         """
         self.params = params
         self._process: Optional[subprocess.Popen] = None

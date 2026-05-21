@@ -28,7 +28,7 @@ import stat
 import traceback
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, cast
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import requests
 from flask import Flask, Response, jsonify, request
@@ -41,8 +41,8 @@ except ImportError:
 
 ENCODING = "utf-8"
 DEFAULT_LOG_FILE = "log.log"
-DEFAULT_LOG_FILE_MAX_BYTES = 50 * 1024 * 1024  # 50MB
-LOGGING_FORMAT = "%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s"
+DEFAULT_LOG_FILE_MAX_BYTES: int = 50 * 1024 * 1024  # 50MB
+LOGGING_FORMAT: str = "%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s"
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
 CONFIG_OVERRIDE = [
     ("fast_sync = true", "fast_sync = false"),
@@ -206,20 +206,29 @@ def create_app(  # pylint: disable=too-many-statements
 
     app = Flask(__name__)
 
-    # `app.logger` is resolved by module name, so repeat `create_app` calls
-    # share the same Logger instance. Skip attaching a second handler on the
-    # same path to keep the attachment idempotent.
-    log_file = os.environ.get("LOG_FILE", DEFAULT_LOG_FILE)
-    flask_logger = cast(logging.Logger, app.logger)
-    log_file_abs = os.path.abspath(log_file)
+    # `app.logger` is keyed by the ``import_name`` passed to ``Flask(__name__)``,
+    # so repeat ``create_app`` calls in the same process share one Logger
+    # instance. Skip attaching a second handler on the same path to keep this
+    # idempotent.
+    log_file = os.path.abspath(os.environ.get("LOG_FILE") or DEFAULT_LOG_FILE)
+    flask_logger = app.logger
     already_attached = any(
-        isinstance(h, RotatingFileHandler) and h.baseFilename == log_file_abs
+        isinstance(h, RotatingFileHandler) and h.baseFilename == log_file
         for h in flask_logger.handlers
     )
     if not already_attached:
-        max_bytes = int(
-            os.environ.get("LOG_FILE_MAX_BYTES", DEFAULT_LOG_FILE_MAX_BYTES)
-        )
+        raw_max_bytes = os.environ.get("LOG_FILE_MAX_BYTES")
+        try:
+            max_bytes = (
+                int(raw_max_bytes) if raw_max_bytes else DEFAULT_LOG_FILE_MAX_BYTES
+            )
+        except ValueError:
+            flask_logger.warning(
+                "Invalid LOG_FILE_MAX_BYTES=%r; falling back to %d bytes.",
+                raw_max_bytes,
+                DEFAULT_LOG_FILE_MAX_BYTES,
+            )
+            max_bytes = DEFAULT_LOG_FILE_MAX_BYTES
         file_handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=1)
         file_handler.setFormatter(logging.Formatter(LOGGING_FORMAT))
         flask_logger.addHandler(file_handler)
@@ -265,18 +274,12 @@ def create_app(  # pylint: disable=too-many-statements
 
         try:
             data: Dict = json.loads(request.get_data().decode(ENCODING))
-            cast(logging.Logger, app.logger).debug(  # pylint: disable=no-member
-                f"Data update requested with data={data}"
-            )
+            flask_logger.debug(f"Data update requested with data={data}")
 
-            cast(logging.Logger, app.logger).info(  # pylint: disable=no-member
-                "Updating genesis config."
-            )
+            flask_logger.info("Updating genesis config.")
             update_genesis_config(data=data)
 
-            cast(logging.Logger, app.logger).info(  # pylint: disable=no-member
-                "Updating peristent peers."
-            )
+            flask_logger.info("Updating peristent peers.")
             config_path = Path(os.environ["TMHOME"]) / "config" / "config.toml"
             update_peers(
                 validators=data["validators"],
@@ -351,13 +354,13 @@ def create_app(  # pylint: disable=too-many-statements
     @app.errorhandler(404)  # type: ignore
     def handle_notfound(e: NotFound) -> Response:
         """Handle server error."""
-        cast(logging.Logger, app.logger).info(e)  # pylint: disable=E
+        flask_logger.info(e)
         return Response("Not Found", status=404, mimetype="application/json")
 
     @app.errorhandler(500)  # type: ignore
     def handle_server_error(e: InternalServerError) -> Response:
         """Handle server error."""
-        cast(logging.Logger, app.logger).info(e)  # pylint: disable=E
+        flask_logger.info(e)
         return Response("Error Closing Node", status=500, mimetype="application/json")
 
     return app, tendermint_node

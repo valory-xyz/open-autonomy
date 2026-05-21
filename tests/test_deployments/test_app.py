@@ -19,10 +19,12 @@
 
 """Tests for the Tendermint com server."""
 
+import inspect
 import json
 import logging
 import os
 import platform
+import re
 import shutil
 import stat
 import subprocess  # nosec
@@ -100,14 +102,10 @@ def test_period_dumper(monkeypatch: MonkeyPatch) -> None:
 def test_create_app_installs_single_rotating_file_handler(
     monkeypatch: MonkeyPatch, write_to_log_env: str
 ) -> None:
-    """Test that `create_app` attaches exactly one RotatingFileHandler.
+    """`create_app` attaches exactly one RotatingFileHandler on LOG_FILE.
 
-    The handler is added to `app.logger` and no FileHandler is added to the root
-    logger, regardless of `WRITE_TO_LOG`. This is the safety net for the rotation
-    bug: previously `basicConfig` opened a non-rotating FileHandler on the root
-    logger pointing at the same path as the rotating handler, so after rotation
-    the non-rotating handler kept writing to the renamed file and disk usage
-    grew unbounded.
+    The handler is on ``app.logger``. No ``FileHandler`` is attached to the
+    root logger. Holds for both ``WRITE_TO_LOG=true`` and ``WRITE_TO_LOG=false``.
 
     :param monkeypatch: the pytest monkeypatch fixture.
     :param write_to_log_env: the parametrized value for the WRITE_TO_LOG env var.
@@ -149,12 +147,10 @@ def test_create_app_installs_single_rotating_file_handler(
             ), "create_app must attach exactly one RotatingFileHandler on LOG_FILE"
             assert our_handlers[0].maxBytes == 1048576
 
-            root_logger = logging.getLogger()
-            assert not any(
-                isinstance(h, logging.FileHandler) and h.baseFilename == str(log_file)
-                for h in root_logger.handlers
-            ), "root logger must not have a FileHandler on LOG_FILE"
-
+            # The "no FileHandler on root" invariant is enforced statically by
+            # ``test_basicconfig_does_not_set_filename`` — checking root
+            # handlers at runtime is unreliable because pytest's log-capture
+            # plugin attaches its own ``_FileHandler`` on ``os.devnull``.
             assert tendermint_node.write_to_log is (write_to_log_env == "true")
         finally:
             for h in list(flask_logger.handlers):
@@ -271,6 +267,54 @@ def test_tendermint_node_log_skips_empty_lines() -> None:
         node.log("real line\n")
 
     assert logger.info.call_args_list == [mock.call("real line")]
+
+
+def test_basicconfig_does_not_set_filename() -> None:
+    """``logging.basicConfig`` in ``app.py`` must not pass ``filename=``.
+
+    A ``filename=`` arg attaches a non-rotating ``FileHandler`` to the root
+    logger and reintroduces the orphaned-handler-after-rotation bug: after
+    the ``RotatingFileHandler`` on ``app.logger`` rotates the file, the
+    non-rotating root handler keeps writing to the renamed file. This is the
+    static-source guard that catches that regression directly (the runtime
+    check on root logger handlers is unreliable because pytest's log-capture
+    plugin attaches its own handler at module import).
+    """
+
+    source = inspect.getsource(app)
+    match = re.search(r"logging\.basicConfig\(([^)]*?)\)", source, re.DOTALL)
+    assert match is not None, "logging.basicConfig call not found in app module"
+    assert "filename" not in match.group(1), (
+        "logging.basicConfig must not pass filename=; doing so reintroduces "
+        "the orphaned-handler-after-rotation bug. Use the RotatingFileHandler "
+        "attached to app.logger in create_app instead."
+    )
+
+
+def test_tendermint_node_log_does_not_forward_when_write_to_log_disabled() -> None:
+    """`TendermintNode.log()` does not forward output when write_to_log is False.
+
+    Locks in the off-path semantic: ``WRITE_TO_LOG=false`` must keep
+    subprocess stdout out of the configured logger, even though the
+    ``RotatingFileHandler`` is now attached to ``app.logger`` unconditionally
+    by ``create_app``.
+    """
+
+    logger = mock.MagicMock(spec=logging.Logger)
+    params = TendermintParams(proxy_app="kvstore")
+    node = TendermintNode(
+        params=params,
+        logger=cast(logging.Logger, logger),
+        write_to_log=False,
+    )
+
+    with mock.patch.object(
+        TendermintNode, "_write_to_console", staticmethod(lambda line: None)
+    ):
+        node.log("real line\n")
+        node.log("another line\n")
+
+    logger.info.assert_not_called()
 
 
 # base classes

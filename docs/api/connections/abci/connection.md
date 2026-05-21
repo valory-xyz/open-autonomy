@@ -896,7 +896,7 @@ Initialize a Tendermint node.
 
 - `params`: the parameters.
 - `logger`: the logger.
-- `write_to_log`: Forward subprocess output lines to the configured logger.
+- `write_to_log`: Forward subprocess output lines to the configured logger. Blank lines are skipped.
 
 <a id="packages.valory.connections.abci.connection.TendermintNode.init"></a>
 
