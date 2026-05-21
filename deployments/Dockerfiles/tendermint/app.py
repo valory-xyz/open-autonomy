@@ -26,8 +26,9 @@ import re
 import shutil
 import stat
 import traceback
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, cast
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import requests
 from flask import Flask, Response, jsonify, request
@@ -40,6 +41,8 @@ except ImportError:
 
 ENCODING = "utf-8"
 DEFAULT_LOG_FILE = "log.log"
+DEFAULT_LOG_FILE_MAX_BYTES: int = 50 * 1024 * 1024  # 50MB
+LOGGING_FORMAT: str = "%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s"
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
 CONFIG_OVERRIDE = [
     ("fast_sync = true", "fast_sync = false"),
@@ -48,12 +51,6 @@ CONFIG_OVERRIDE = [
 ]
 DOCKER_INTERNAL_HOST = "host.docker.internal"
 TM_STATUS_ENDPOINT = "http://localhost:26657/status"
-
-logging.basicConfig(
-    filename=os.environ.get("LOG_FILE", DEFAULT_LOG_FILE),
-    level=logging.DEBUG,
-    format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s",  # noqa : W1309
-)
 
 
 def load_genesis() -> Any:
@@ -202,7 +199,43 @@ def create_app(  # pylint: disable=too-many-statements
         use_grpc=os.environ["USE_GRPC"] == "true",
     )
 
+    # Attach the rotating file handler to the *root* logger before
+    # ``Flask(__name__)`` is constructed. Flask's ``create_logger`` calls
+    # ``has_level_handler(app.logger)``, which walks up the propagation
+    # chain; if root already has a reachable handler, Flask skips
+    # injecting its own ``default_handler`` (a stderr ``StreamHandler``).
+    # With the rotating handler owned by root, ``app.logger``, werkzeug,
+    # and any third-party loggers all funnel into the same file by
+    # propagation, matching pre-PR behaviour. The container console still
+    # receives raw Tendermint output via ``TendermintNode._write_to_console``
+    # so there is no double-write.
+    log_file = os.path.abspath(os.environ.get("LOG_FILE") or DEFAULT_LOG_FILE)
+    root_logger = logging.getLogger()
+    already_attached = any(
+        isinstance(h, RotatingFileHandler) and h.baseFilename == log_file
+        for h in root_logger.handlers
+    )
+    if not already_attached:
+        raw_max_bytes = os.environ.get("LOG_FILE_MAX_BYTES")
+        try:
+            max_bytes = (
+                int(raw_max_bytes) if raw_max_bytes else DEFAULT_LOG_FILE_MAX_BYTES
+            )
+        except ValueError:
+            root_logger.warning(
+                "Invalid LOG_FILE_MAX_BYTES=%r; falling back to %d bytes.",
+                raw_max_bytes,
+                DEFAULT_LOG_FILE_MAX_BYTES,
+            )
+            max_bytes = DEFAULT_LOG_FILE_MAX_BYTES
+        root_logger.setLevel(logging.DEBUG)
+        file_handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=1)
+        file_handler.setFormatter(logging.Formatter(LOGGING_FORMAT))
+        root_logger.addHandler(file_handler)
+
     app = Flask(__name__)
+    flask_logger = app.logger
+
     period_dumper = PeriodDumper(logger=app.logger, dump_dir=dump_dir)
     tendermint_node = TendermintNode(
         tendermint_params,
@@ -244,18 +277,12 @@ def create_app(  # pylint: disable=too-many-statements
 
         try:
             data: Dict = json.loads(request.get_data().decode(ENCODING))
-            cast(logging.Logger, app.logger).debug(  # pylint: disable=no-member
-                f"Data update requested with data={data}"
-            )
+            flask_logger.debug(f"Data update requested with data={data}")
 
-            cast(logging.Logger, app.logger).info(  # pylint: disable=no-member
-                "Updating genesis config."
-            )
+            flask_logger.info("Updating genesis config.")
             update_genesis_config(data=data)
 
-            cast(logging.Logger, app.logger).info(  # pylint: disable=no-member
-                "Updating peristent peers."
-            )
+            flask_logger.info("Updating peristent peers.")
             config_path = Path(os.environ["TMHOME"]) / "config" / "config.toml"
             update_peers(
                 validators=data["validators"],
@@ -330,13 +357,13 @@ def create_app(  # pylint: disable=too-many-statements
     @app.errorhandler(404)  # type: ignore
     def handle_notfound(e: NotFound) -> Response:
         """Handle server error."""
-        cast(logging.Logger, app.logger).info(e)  # pylint: disable=E
+        flask_logger.info(e)
         return Response("Not Found", status=404, mimetype="application/json")
 
     @app.errorhandler(500)  # type: ignore
     def handle_server_error(e: InternalServerError) -> Response:
         """Handle server error."""
-        cast(logging.Logger, app.logger).info(e)  # pylint: disable=E
+        flask_logger.info(e)
         return Response("Error Closing Node", status=500, mimetype="application/json")
 
     return app, tendermint_node
