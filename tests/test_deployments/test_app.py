@@ -28,8 +28,9 @@ import stat
 import subprocess  # nosec
 import tempfile
 import time
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Set, cast
+from typing import Any, Callable, Dict, List, Optional, Set, cast
 from unittest import mock
 
 import pytest
@@ -50,6 +51,9 @@ from deployments.Dockerfiles.tendermint.app import (  # type: ignore
     load_genesis,
     override_config_toml,
     update_peers,
+)
+from deployments.Dockerfiles.tendermint.tendermint import (  # type: ignore
+    TendermintParams,
 )
 
 ENCODING = "utf-8"
@@ -90,6 +94,103 @@ def test_period_dumper(monkeypatch: MonkeyPatch) -> None:
         period_dumper.dump_period()
 
     shutil.rmtree(period_dumper.dump_dir)
+
+
+@pytest.mark.parametrize("write_to_log_env", ["true", "false"])
+def test_create_app_installs_single_rotating_file_handler(
+    monkeypatch: MonkeyPatch, write_to_log_env: str
+) -> None:
+    """Test that `create_app` attaches exactly one RotatingFileHandler.
+
+    The handler is added to `app.logger` and no FileHandler is added to the root
+    logger, regardless of `WRITE_TO_LOG`. This is the safety net for the rotation
+    bug: previously `basicConfig` opened a non-rotating FileHandler on the root
+    logger pointing at the same path as the rotating handler, so after rotation
+    the non-rotating handler kept writing to the renamed file and disk usage
+    grew unbounded.
+
+    :param monkeypatch: the pytest monkeypatch fixture.
+    :param write_to_log_env: the parametrized value for the WRITE_TO_LOG env var.
+    """
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp = Path(tmp_dir)
+        tm_home = tmp / "tm"
+        (tm_home / "config").mkdir(parents=True)
+        (tm_home / "config" / "config.toml").write_text(
+            DUMMY_CONFIG_TOML, encoding=ENCODING
+        )
+        log_file = tmp / "log.log"
+        dump_dir = tmp / "dump"
+
+        monkeypatch.setenv("PROXY_APP", "kvstore")
+        monkeypatch.setenv("CREATE_EMPTY_BLOCKS", "true")
+        monkeypatch.setenv("TMHOME", str(tm_home))
+        monkeypatch.setenv("USE_GRPC", "false")
+        monkeypatch.setenv("LOG_FILE", str(log_file))
+        monkeypatch.setenv("LOG_FILE_MAX_BYTES", "1048576")
+        monkeypatch.setenv("WRITE_TO_LOG", write_to_log_env)
+
+        monkeypatch.setattr(TendermintNode, "init", lambda self: None)
+        monkeypatch.setattr(TendermintNode, "start", lambda self, debug=False: None)
+
+        flask_app, tendermint_node = create_app(dump_dir=dump_dir, debug=False)
+
+        try:
+            rotating_handlers = [
+                h
+                for h in cast(logging.Logger, flask_app.logger).handlers
+                if isinstance(h, RotatingFileHandler)
+            ]
+            assert len(rotating_handlers) == 1
+            handler = rotating_handlers[0]
+            assert handler.baseFilename == str(log_file)
+            assert handler.maxBytes == 1048576
+
+            root_logger = logging.getLogger()
+            assert not any(
+                isinstance(h, logging.FileHandler) and h.baseFilename == str(log_file)
+                for h in root_logger.handlers
+            ), "root logger must not have a FileHandler on LOG_FILE"
+
+            assert tendermint_node.write_to_log is (write_to_log_env == "true")
+        finally:
+            for h in list(cast(logging.Logger, flask_app.logger).handlers):
+                if isinstance(h, RotatingFileHandler):
+                    cast(logging.Logger, flask_app.logger).removeHandler(h)
+                    h.close()
+            shutil.rmtree(dump_dir, ignore_errors=True)
+
+
+def test_tendermint_node_log_skips_empty_lines() -> None:
+    """Test that `TendermintNode.log()` skips blank/whitespace-only lines.
+
+    Without this guard, every blank line in Tendermint's stdout produces an
+    empty log record and floods the file.
+    """
+
+    received: List[str] = []
+
+    class _CaptureLogger(logging.Logger):
+        def info(  # type: ignore[override]
+            self, msg: Any, *args: Any, **kwargs: Any
+        ) -> None:
+            received.append(msg)
+
+    params = TendermintParams(proxy_app="kvstore")
+    node = TendermintNode(
+        params=params, logger=_CaptureLogger("test"), write_to_log=True
+    )
+
+    with mock.patch.object(
+        TendermintNode, "_write_to_console", staticmethod(lambda line: None)
+    ):
+        node.log("\n")
+        node.log("   \t  ")
+        node.log("")
+        node.log("real line\n")
+
+    assert received == ["real line"]
 
 
 # base classes

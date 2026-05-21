@@ -26,6 +26,7 @@ import re
 import shutil
 import stat
 import traceback
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, cast
 
@@ -40,6 +41,8 @@ except ImportError:
 
 ENCODING = "utf-8"
 DEFAULT_LOG_FILE = "log.log"
+DEFAULT_LOG_FILE_MAX_BYTES = 50 * 1024 * 1024  # 50MB
+LOGGING_FORMAT = "%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s"
 IS_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
 CONFIG_OVERRIDE = [
     ("fast_sync = true", "fast_sync = false"),
@@ -50,9 +53,8 @@ DOCKER_INTERNAL_HOST = "host.docker.internal"
 TM_STATUS_ENDPOINT = "http://localhost:26657/status"
 
 logging.basicConfig(
-    filename=os.environ.get("LOG_FILE", DEFAULT_LOG_FILE),
     level=logging.DEBUG,
-    format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s",  # noqa : W1309
+    format=LOGGING_FORMAT,
 )
 
 
@@ -203,6 +205,13 @@ def create_app(  # pylint: disable=too-many-statements
     )
 
     app = Flask(__name__)
+
+    log_file = os.environ.get("LOG_FILE", DEFAULT_LOG_FILE)
+    max_bytes = int(os.environ.get("LOG_FILE_MAX_BYTES", DEFAULT_LOG_FILE_MAX_BYTES))
+    file_handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=1)
+    file_handler.setFormatter(logging.Formatter(LOGGING_FORMAT))
+    cast(logging.Logger, app.logger).addHandler(file_handler)
+
     period_dumper = PeriodDumper(logger=app.logger, dump_dir=dump_dir)
     tendermint_node = TendermintNode(
         tendermint_params,

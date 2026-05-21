@@ -22,12 +22,6 @@ Max we'll consume on a read stream (1 MiB)
 
 Max size of varint we support
 
-<a id="packages.valory.connections.abci.connection.DEFAULT_LOG_FILE_MAX_BYTES"></a>
-
-#### DEFAULT`_`LOG`_`FILE`_`MAX`_`BYTES
-
-50MB
-
 <a id="packages.valory.connections.abci.connection.DecodeVarintError"></a>
 
 ## DecodeVarintError Objects
@@ -902,7 +896,7 @@ Initialize a Tendermint node.
 
 - `params`: the parameters.
 - `logger`: the logger.
-- `write_to_log`: Write to log file.
+- `write_to_log`: Forward subprocess output lines to the configured logger.
 
 <a id="packages.valory.connections.abci.connection.TendermintNode.init"></a>
 
@@ -942,7 +936,7 @@ Stop a Tendermint node process.
 def log(line: str) -> None
 ```
 
-Open and write a line to the log file.
+Write a subprocess output line to console and, if enabled, to the logger.
 
 <a id="packages.valory.connections.abci.connection.TendermintNode.prune_blocks"></a>
 
