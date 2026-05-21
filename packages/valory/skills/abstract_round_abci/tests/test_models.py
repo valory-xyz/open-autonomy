@@ -55,6 +55,7 @@ from packages.valory.skills.abstract_round_abci.models import (
     GenesisConsensusParams,
     GenesisEvidence,
     GenesisValidator,
+    MAX_SUGGESTED_SLEEP_TIME,
     MIN_RESET_PAUSE_DURATION,
     NUMBER_OF_RETRIES,
     Requests,
@@ -173,14 +174,65 @@ class TestApiSpecsModel:
         assert self.api_specs.response_info.error_type == "str"
         assert self.api_specs.response_info.error_data is None
 
-    @pytest.mark.parametrize("retries", range(10))
-    def test_suggested_sleep_time(self, retries: int) -> None:
-        """Test `suggested_sleep_time`"""
+    @pytest.mark.parametrize(
+        "retries, expected",
+        [
+            (0, 1.0),
+            (5, 32.0),
+            (9, 512.0),
+            (11, 2048.0),
+            # 2**12 = 4096 > 3600 = MAX_SUGGESTED_SLEEP_TIME, so the cap engages
+            (12, MAX_SUGGESTED_SLEEP_TIME),
+            (50, MAX_SUGGESTED_SLEEP_TIME),
+        ],
+    )
+    def test_suggested_sleep_time(self, retries: int, expected: float) -> None:
+        """Test that `suggested_sleep_time` is capped at MAX_SUGGESTED_SLEEP_TIME."""
         self.api_specs.retries_info.retries_attempted = retries
-        assert (
-            self.api_specs.retries_info.suggested_sleep_time
-            == DEFAULT_BACKOFF_FACTOR**retries
-        )
+        assert self.api_specs.retries_info.suggested_sleep_time == expected
+
+    def test_suggested_sleep_time_warning_fires_once_per_sequence(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """The cap warning fires exactly once per retry sequence.
+
+        At ``retries=12`` (the first retry where ``2**retries > MAX``) the
+        warning fires once. Subsequent reads at higher retries within the
+        same sequence do not refire. After ``reset_retries`` lowers the raw
+        sleep time back under the cap, a new sequence can warn again.
+        """
+        info = self.api_specs.retries_info
+
+        def _read_at(retries: int) -> None:
+            info.retries_attempted = retries
+            _ = info.suggested_sleep_time
+
+        def _cap_warnings() -> int:
+            return sum(1 for r in caplog.records if "capped" in r.getMessage().lower())
+
+        boundary = 12  # 2**12 = 4096 > 3600 = MAX_SUGGESTED_SLEEP_TIME
+        with caplog.at_level(
+            logging.WARNING,
+            logger="aea.packages.valory.skills.abstract_round_abci.models",
+        ):
+            # Below the cap: no warning.
+            _read_at(boundary - 1)
+            assert _cap_warnings() == 0
+            # First retry where the cap engages: one warning.
+            _read_at(boundary)
+            assert _cap_warnings() == 1
+            assert f"after {boundary} retries" in caplog.records[-1].getMessage()
+            # Re-reading at the boundary does not refire the warning.
+            _read_at(boundary)
+            assert _cap_warnings() == 1
+            # Further retries within the same sequence do not refire either.
+            _read_at(boundary + 1)
+            assert _cap_warnings() == 1
+            # Drop back below the cap to simulate ``reset_retries``;
+            # a new sequence crossing the cap must warn again.
+            _read_at(0)
+            _read_at(boundary)
+            assert _cap_warnings() == 2
 
     def test_retries(
         self,

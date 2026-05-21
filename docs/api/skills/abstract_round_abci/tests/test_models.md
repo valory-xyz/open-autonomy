@@ -39,11 +39,38 @@ Test initialization.
 #### test`_`suggested`_`sleep`_`time
 
 ```python
-@pytest.mark.parametrize("retries", range(10))
-def test_suggested_sleep_time(retries: int) -> None
+@pytest.mark.parametrize(
+    "retries, expected",
+    [
+        (0, 1.0),
+        (5, 32.0),
+        (9, 512.0),
+        (11, 2048.0),
+        # 2**12 = 4096 > 3600 = MAX_SUGGESTED_SLEEP_TIME, so the cap engages
+        (12, MAX_SUGGESTED_SLEEP_TIME),
+        (50, MAX_SUGGESTED_SLEEP_TIME),
+    ],
+)
+def test_suggested_sleep_time(retries: int, expected: float) -> None
 ```
 
-Test `suggested_sleep_time`
+Test that `suggested_sleep_time` is capped at MAX_SUGGESTED_SLEEP_TIME.
+
+<a id="packages.valory.skills.abstract_round_abci.tests.test_models.TestApiSpecsModel.test_suggested_sleep_time_warning_fires_once_per_sequence"></a>
+
+#### test`_`suggested`_`sleep`_`time`_`warning`_`fires`_`once`_`per`_`sequence
+
+```python
+def test_suggested_sleep_time_warning_fires_once_per_sequence(
+        caplog: pytest.LogCaptureFixture) -> None
+```
+
+The cap warning fires exactly once per retry sequence.
+
+At ``retries=12`` (the first retry where ``2**retries > MAX``) the
+warning fires once. Subsequent reads at higher retries within the
+same sequence do not refire. After ``reset_retries`` lowers the raw
+sleep time back under the cap, a new sequence can warn again.
 
 <a id="packages.valory.skills.abstract_round_abci.tests.test_models.TestApiSpecsModel.test_retries"></a>
 

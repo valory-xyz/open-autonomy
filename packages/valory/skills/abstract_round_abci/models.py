@@ -21,9 +21,10 @@
 
 import inspect
 import json
+import logging
 from abc import ABC, ABCMeta
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from time import time
@@ -68,6 +69,11 @@ NUMBER_OF_RETRIES: int = 5
 DEFAULT_BACKOFF_FACTOR: float = 2.0
 DEFAULT_TYPE_NAME: str = "str"
 DEFAULT_CHAIN = "ethereum"
+MAX_SUGGESTED_SLEEP_TIME: float = (
+    3600.0  # one hour; stays well below datetime overflow threshold
+)
+
+_logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.models")
 
 
 class FrozenMixin:  # pylint: disable=too-few-public-methods
@@ -597,6 +603,10 @@ class RetriesInfo(TypeCheckMixin):
     retries: int
     backoff_factor: float
     retries_attempted: int = 0
+    # Tracks whether the cap-engaged warning has already been emitted for the
+    # current retry sequence. Resets automatically when ``retries_attempted``
+    # drops the raw sleep time back under the cap (e.g. after a reset).
+    _cap_warned: bool = field(default=False, init=False, repr=False, compare=False)
 
     @classmethod
     def from_json_dict(cls, kwargs: Dict) -> "RetriesInfo":
@@ -607,8 +617,32 @@ class RetriesInfo(TypeCheckMixin):
 
     @property
     def suggested_sleep_time(self) -> float:
-        """The suggested amount of time to sleep."""
-        return self.backoff_factor**self.retries_attempted
+        """The suggested amount of time to sleep, capped at ``MAX_SUGGESTED_SLEEP_TIME``.
+
+        The cap prevents callers that pass the result to ``datetime.timedelta``
+        from raising ``OverflowError`` when ``retries_attempted`` grows large
+        (e.g. against a persistently failing remote). A single ``WARNING`` is
+        emitted per ``RetriesInfo`` instance the first time the cap engages
+        for a given retry sequence. The latch resets whenever the raw sleep
+        time drops back under the cap, so a fresh sequence after
+        ``reset_retries`` can warn again.
+
+        :return: the suggested sleep time in seconds.
+        """
+        raw = self.backoff_factor**self.retries_attempted
+        if raw <= MAX_SUGGESTED_SLEEP_TIME:
+            self._cap_warned = False
+            return raw
+        if not self._cap_warned:
+            self._cap_warned = True
+            _logger.warning(
+                "Suggested sleep time capped at %d seconds after %d retries "
+                "(backoff_factor=%s). Check remote health and backoff configuration.",
+                MAX_SUGGESTED_SLEEP_TIME,
+                self.retries_attempted,
+                self.backoff_factor,
+            )
+        return MAX_SUGGESTED_SLEEP_TIME
 
 
 @dataclass(frozen=True)
