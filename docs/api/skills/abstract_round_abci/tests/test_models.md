@@ -46,8 +46,8 @@ Test initialization.
         (5, 32.0),
         (9, 512.0),
         (11, 2048.0),
-        (12, float(MAX_SUGGESTED_SLEEP_TIME)),
-        (50, float(MAX_SUGGESTED_SLEEP_TIME)),
+        (12, MAX_SUGGESTED_SLEEP_TIME),
+        (50, MAX_SUGGESTED_SLEEP_TIME),
     ],
 )
 def test_suggested_sleep_time(retries: int, expected: float) -> None

@@ -24,6 +24,7 @@
 import builtins
 import json
 import logging
+import math
 import re
 from collections import OrderedDict
 from dataclasses import dataclass
@@ -181,8 +182,8 @@ class TestApiSpecsModel:
             (5, 32.0),
             (9, 512.0),
             (11, 2048.0),
-            (12, float(MAX_SUGGESTED_SLEEP_TIME)),
-            (50, float(MAX_SUGGESTED_SLEEP_TIME)),
+            (12, MAX_SUGGESTED_SLEEP_TIME),
+            (50, MAX_SUGGESTED_SLEEP_TIME),
         ],
     )
     def test_suggested_sleep_time(self, retries: int, expected: float) -> None:
@@ -197,7 +198,7 @@ class TestApiSpecsModel:
         info = self.api_specs.retries_info
         with caplog.at_level(
             logging.WARNING,
-            logger="packages.valory.skills.abstract_round_abci.models",
+            logger="aea.packages.valory.skills.abstract_round_abci.models",
         ):
             for retries in range(0, 20):
                 info.retries_attempted = retries
@@ -206,7 +207,10 @@ class TestApiSpecsModel:
             r for r in caplog.records if "capped" in r.getMessage().lower()
         ]
         assert len(warning_records) == 1
-        assert "after 12 retries" in warning_records[0].getMessage()
+        expected_boundary = (
+            math.floor(math.log(MAX_SUGGESTED_SLEEP_TIME, DEFAULT_BACKOFF_FACTOR)) + 1
+        )
+        assert f"after {expected_boundary} retries" in warning_records[0].getMessage()
 
     def test_retries(
         self,

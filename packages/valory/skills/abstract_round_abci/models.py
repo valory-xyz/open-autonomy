@@ -69,11 +69,11 @@ NUMBER_OF_RETRIES: int = 5
 DEFAULT_BACKOFF_FACTOR: float = 2.0
 DEFAULT_TYPE_NAME: str = "str"
 DEFAULT_CHAIN = "ethereum"
-MAX_SUGGESTED_SLEEP_TIME: int = (
-    3600  # one hour; stays well below datetime overflow threshold
+MAX_SUGGESTED_SLEEP_TIME: float = (
+    3600.0  # one hour; stays well below datetime overflow threshold
 )
 
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.models")
 
 
 class FrozenMixin:  # pylint: disable=too-few-public-methods
@@ -615,10 +615,12 @@ class RetriesInfo(TypeCheckMixin):
     def suggested_sleep_time(self) -> float:
         """The suggested amount of time to sleep, capped at ``MAX_SUGGESTED_SLEEP_TIME``.
 
-        The cap protects against ``OverflowError`` in downstream ``datetime``
-        arithmetic when ``retries_attempted`` grows large (e.g. against a
-        persistently failing remote). A warning is emitted at the retry count
-        where the cap first engages so operators can investigate.
+        The cap prevents callers that pass the result to ``datetime.timedelta``
+        from raising ``OverflowError`` when ``retries_attempted`` grows large
+        (e.g. against a persistently failing remote). Reading this property at
+        the retry count where the cap first engages emits a warning, so
+        operators can investigate; the warning fires again on each new
+        increment sequence (e.g. after ``reset_retries``).
 
         :return: the suggested sleep time in seconds.
         """
@@ -628,13 +630,13 @@ class RetriesInfo(TypeCheckMixin):
         prior = self.backoff_factor ** max(self.retries_attempted - 1, 0)
         if prior <= MAX_SUGGESTED_SLEEP_TIME:
             _logger.warning(
-                "Suggested sleep time capped at %s seconds after %d retries "
+                "Suggested sleep time capped at %d seconds after %d retries "
                 "(backoff_factor=%s). Check remote health and backoff configuration.",
                 MAX_SUGGESTED_SLEEP_TIME,
                 self.retries_attempted,
                 self.backoff_factor,
             )
-        return float(MAX_SUGGESTED_SLEEP_TIME)
+        return MAX_SUGGESTED_SLEEP_TIME
 
 
 @dataclass(frozen=True)

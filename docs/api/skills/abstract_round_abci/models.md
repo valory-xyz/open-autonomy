@@ -421,10 +421,12 @@ def suggested_sleep_time() -> float
 
 The suggested amount of time to sleep, capped at ``MAX_SUGGESTED_SLEEP_TIME``.
 
-The cap protects against ``OverflowError`` in downstream ``datetime``
-arithmetic when ``retries_attempted`` grows large (e.g. against a
-persistently failing remote). A warning is emitted at the retry count
-where the cap first engages so operators can investigate.
+The cap prevents callers that pass the result to ``datetime.timedelta``
+from raising ``OverflowError`` when ``retries_attempted`` grows large
+(e.g. against a persistently failing remote). Reading this property at
+the retry count where the cap first engages emits a warning, so
+operators can investigate; the warning fires again on each new
+increment sequence (e.g. after ``reset_retries``).
 
 **Returns**:
 
