@@ -52,11 +52,6 @@ CONFIG_OVERRIDE = [
 DOCKER_INTERNAL_HOST = "host.docker.internal"
 TM_STATUS_ENDPOINT = "http://localhost:26657/status"
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format=LOGGING_FORMAT,
-)
-
 
 def load_genesis() -> Any:
     """Load genesis file."""
@@ -204,17 +199,21 @@ def create_app(  # pylint: disable=too-many-statements
         use_grpc=os.environ["USE_GRPC"] == "true",
     )
 
-    app = Flask(__name__)
-
-    # `app.logger` is keyed by the ``import_name`` passed to ``Flask(__name__)``,
-    # so repeat ``create_app`` calls in the same process share one Logger
-    # instance. Skip attaching a second handler on the same path to keep this
-    # idempotent.
+    # Attach the rotating file handler to the *root* logger before
+    # ``Flask(__name__)`` is constructed. Flask's ``create_logger`` calls
+    # ``has_level_handler(app.logger)``, which walks up the propagation
+    # chain; if root already has a reachable handler, Flask skips
+    # injecting its own ``default_handler`` (a stderr ``StreamHandler``).
+    # With the rotating handler owned by root, ``app.logger``, werkzeug,
+    # and any third-party loggers all funnel into the same file by
+    # propagation, matching pre-PR behaviour. The container console still
+    # receives raw Tendermint output via ``TendermintNode._write_to_console``
+    # so there is no double-write.
     log_file = os.path.abspath(os.environ.get("LOG_FILE") or DEFAULT_LOG_FILE)
-    flask_logger = app.logger
+    root_logger = logging.getLogger()
     already_attached = any(
         isinstance(h, RotatingFileHandler) and h.baseFilename == log_file
-        for h in flask_logger.handlers
+        for h in root_logger.handlers
     )
     if not already_attached:
         raw_max_bytes = os.environ.get("LOG_FILE_MAX_BYTES")
@@ -223,27 +222,19 @@ def create_app(  # pylint: disable=too-many-statements
                 int(raw_max_bytes) if raw_max_bytes else DEFAULT_LOG_FILE_MAX_BYTES
             )
         except ValueError:
-            flask_logger.warning(
+            root_logger.warning(
                 "Invalid LOG_FILE_MAX_BYTES=%r; falling back to %d bytes.",
                 raw_max_bytes,
                 DEFAULT_LOG_FILE_MAX_BYTES,
             )
             max_bytes = DEFAULT_LOG_FILE_MAX_BYTES
+        root_logger.setLevel(logging.DEBUG)
         file_handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=1)
         file_handler.setFormatter(logging.Formatter(LOGGING_FORMAT))
-        flask_logger.addHandler(file_handler)
-        # ``basicConfig`` installs a ``StreamHandler`` on the root logger
-        # (no ``filename=``), and ``app.logger`` propagates to root by
-        # default. With propagation on, every ``flask_logger.info(...)``
-        # call would also reach root's stderr handler, duplicating
-        # subprocess output in container logs (raw line on stdout via
-        # ``TendermintNode._write_to_console``, formatted line on stderr
-        # via root). Disable propagation so the rotating file handler is
-        # the only sink for ``app.logger``; subprocess stdout is preserved
-        # via the direct ``_write_to_console`` write. Trade-off: Flask
-        # route logs and ``PeriodDumper`` logs are now file-only, no
-        # stderr echo.
-        flask_logger.propagate = False
+        root_logger.addHandler(file_handler)
+
+    app = Flask(__name__)
+    flask_logger = app.logger
 
     period_dumper = PeriodDumper(logger=app.logger, dump_dir=dump_dir)
     tendermint_node = TendermintNode(

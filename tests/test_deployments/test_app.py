@@ -19,12 +19,10 @@
 
 """Tests for the Tendermint com server."""
 
-import inspect
 import json
 import logging
 import os
 import platform
-import re
 import shutil
 import stat
 import subprocess  # nosec
@@ -102,10 +100,13 @@ def test_period_dumper(monkeypatch: MonkeyPatch) -> None:
 def test_create_app_installs_single_rotating_file_handler(
     monkeypatch: MonkeyPatch, write_to_log_env: str
 ) -> None:
-    """`create_app` attaches exactly one RotatingFileHandler on LOG_FILE.
+    """`create_app` attaches exactly one RotatingFileHandler on LOG_FILE to root.
 
-    The handler is on ``app.logger``. No ``FileHandler`` is attached to the
-    root logger. Holds for both ``WRITE_TO_LOG=true`` and ``WRITE_TO_LOG=false``.
+    The handler lives on the *root* logger so that ``app.logger``, werkzeug,
+    and any third-party loggers all funnel into the same file by propagation.
+    ``app.logger`` must not own a separate ``RotatingFileHandler`` on the
+    same path (the single-owner invariant). Holds for both ``WRITE_TO_LOG=true``
+    and ``WRITE_TO_LOG=false``.
 
     :param monkeypatch: the pytest monkeypatch fixture.
     :param write_to_log_env: the parametrized value for the WRITE_TO_LOG env var.
@@ -134,52 +135,53 @@ def test_create_app_installs_single_rotating_file_handler(
 
         flask_app, tendermint_node = create_app(dump_dir=dump_dir, debug=False)
         flask_logger = cast(logging.Logger, flask_app.logger)
+        root_logger = logging.getLogger()
 
         try:
-            our_handlers = [
+            root_handlers = [
                 h
-                for h in flask_logger.handlers
+                for h in root_logger.handlers
                 if isinstance(h, RotatingFileHandler)
                 and h.baseFilename == str(log_file)
             ]
             assert (
-                len(our_handlers) == 1
-            ), "create_app must attach exactly one RotatingFileHandler on LOG_FILE"
-            assert our_handlers[0].maxBytes == 1048576
-            assert our_handlers[0].backupCount == 1, (
+                len(root_handlers) == 1
+            ), "create_app must attach exactly one RotatingFileHandler on LOG_FILE to root"
+            assert root_handlers[0].maxBytes == 1048576
+            assert root_handlers[0].backupCount == 1, (
                 "backupCount must be 1; a regression to 0 would silently "
                 "discard the rotated log file"
             )
 
-            # Propagation must be off so ``app.logger`` does not echo to
-            # root's stderr StreamHandler. Without this, every subprocess
-            # line reaches container logs on both stdout (via
-            # ``_write_to_console``) and stderr (via propagation).
-            assert (
-                flask_logger.propagate is False
-            ), "create_app must disable app.logger.propagate"
+            # Single-owner invariant: ``app.logger`` must not have its own
+            # ``RotatingFileHandler`` on ``LOG_FILE``. The file is owned by
+            # root and reached via propagation. A regression that re-attaches
+            # the handler on ``app.logger`` would re-introduce double-writes
+            # (one via app.logger's handler, one via propagation to root's).
+            app_logger_own_rotating = [
+                h for h in flask_logger.handlers if isinstance(h, RotatingFileHandler)
+            ]
+            assert app_logger_own_rotating == [], (
+                "app.logger must not own a RotatingFileHandler; the file is "
+                "owned by root and reached via propagation"
+            )
 
-            # The "no FileHandler on root" invariant is enforced statically by
-            # ``test_basicconfig_does_not_set_filename`` — checking root
-            # handlers at runtime is unreliable because pytest's log-capture
-            # plugin attaches its own ``_FileHandler`` on ``os.devnull``.
             assert tendermint_node.write_to_log is (write_to_log_env == "true")
         finally:
-            for h in list(flask_logger.handlers):
+            for h in list(root_logger.handlers):
                 if isinstance(h, RotatingFileHandler) and h.baseFilename == str(
                     log_file
                 ):
-                    flask_logger.removeHandler(h)
+                    root_logger.removeHandler(h)
                     h.close()
 
 
 def test_create_app_is_idempotent_on_repeat_calls(monkeypatch: MonkeyPatch) -> None:
-    """Test that calling `create_app` twice does not stack handlers on app.logger.
+    """`create_app` called twice does not stack handlers on the root logger.
 
-    Flask's ``app.logger`` is keyed by module name, so two ``create_app`` calls
-    in the same process share the same Logger instance. Without an idempotency
-    guard, every call would append another ``RotatingFileHandler`` and the same
-    log line would be written N times to the same file.
+    Without the idempotency guard, every call would append another
+    ``RotatingFileHandler`` to root and the same log line would be written
+    N times to the same file.
 
     :param monkeypatch: the pytest monkeypatch fixture.
     """
@@ -203,30 +205,27 @@ def test_create_app_is_idempotent_on_repeat_calls(monkeypatch: MonkeyPatch) -> N
         monkeypatch.setattr(TendermintNode, "init", lambda self: None)
         monkeypatch.setattr(TendermintNode, "start", lambda self, debug=False: None)
 
-        flask_app_a, _ = create_app(dump_dir=tmp / "dump_a", debug=False)
-        flask_app_b, _ = create_app(dump_dir=tmp / "dump_b", debug=False)
-        flask_logger = cast(logging.Logger, flask_app_a.logger)
-        # `app_b.logger` is the same Logger instance as `app_a.logger`
-        # because Flask resolves it by module name.
-        assert flask_logger is cast(logging.Logger, flask_app_b.logger)
+        create_app(dump_dir=tmp / "dump_a", debug=False)
+        create_app(dump_dir=tmp / "dump_b", debug=False)
+        root_logger = logging.getLogger()
 
         try:
-            our_handlers = [
+            root_handlers = [
                 h
-                for h in flask_logger.handlers
+                for h in root_logger.handlers
                 if isinstance(h, RotatingFileHandler)
                 and h.baseFilename == str(log_file)
             ]
-            assert len(our_handlers) == 1, (
-                "create_app must not stack a second RotatingFileHandler "
-                "on LOG_FILE when called more than once"
+            assert len(root_handlers) == 1, (
+                "create_app must not stack a second RotatingFileHandler on "
+                "root when called more than once"
             )
         finally:
-            for h in list(flask_logger.handlers):
+            for h in list(root_logger.handlers):
                 if isinstance(h, RotatingFileHandler) and h.baseFilename == str(
                     log_file
                 ):
-                    flask_logger.removeHandler(h)
+                    root_logger.removeHandler(h)
                     h.close()
 
 
@@ -281,28 +280,6 @@ def test_tendermint_node_log_skips_empty_lines() -> None:
     assert logger.info.call_args_list == [mock.call("real line")]
 
 
-def test_basicconfig_does_not_set_filename() -> None:
-    """``logging.basicConfig`` in ``app.py`` must not pass ``filename=``.
-
-    A ``filename=`` arg attaches a non-rotating ``FileHandler`` to the root
-    logger and reintroduces the orphaned-handler-after-rotation bug: after
-    the ``RotatingFileHandler`` on ``app.logger`` rotates the file, the
-    non-rotating root handler keeps writing to the renamed file. This is the
-    static-source guard that catches that regression directly (the runtime
-    check on root logger handlers is unreliable because pytest's log-capture
-    plugin attaches its own handler at module import).
-    """
-
-    source = inspect.getsource(app)
-    match = re.search(r"logging\.basicConfig\(([^)]*?)\)", source, re.DOTALL)
-    assert match is not None, "logging.basicConfig call not found in app module"
-    assert "filename" not in match.group(1), (
-        "logging.basicConfig must not pass filename=; doing so reintroduces "
-        "the orphaned-handler-after-rotation bug. Use the RotatingFileHandler "
-        "attached to app.logger in create_app instead."
-    )
-
-
 def test_create_app_rotates_log_file_at_max_bytes(monkeypatch: MonkeyPatch) -> None:
     """Rotation moves LOG_FILE to LOG_FILE.1 once writes exceed maxBytes.
 
@@ -341,8 +318,8 @@ def test_create_app_rotates_log_file_at_max_bytes(monkeypatch: MonkeyPatch) -> N
         monkeypatch.setattr(TendermintNode, "init", lambda self: None)
         monkeypatch.setattr(TendermintNode, "start", lambda self, debug=False: None)
 
-        flask_app, _ = create_app(dump_dir=tmp / "dump", debug=False)
-        flask_logger = cast(logging.Logger, flask_app.logger)
+        create_app(dump_dir=tmp / "dump", debug=False)
+        root_logger = logging.getLogger()
 
         try:
             # Write until the first rotation occurs, then stop. If we kept
@@ -351,7 +328,7 @@ def test_create_app_rotates_log_file_at_max_bytes(monkeypatch: MonkeyPatch) -> N
             # after rotation" assertion below would no longer mean what
             # it says.
             for i in range(50):
-                flask_logger.info("pre-rotation line %d %s", i, "x" * 60)
+                root_logger.info("pre-rotation line %d %s", i, "x" * 60)
                 if rotated.exists():
                     break
             else:  # pragma: no cover
@@ -365,7 +342,7 @@ def test_create_app_rotates_log_file_at_max_bytes(monkeypatch: MonkeyPatch) -> N
             # Post-rotation writes are short enough to fit in the fresh
             # ``log.log`` without triggering a second rotation.
             for i in range(3):
-                flask_logger.info("marker%d", i)
+                root_logger.info("marker%d", i)
 
             current_content = log_file.read_text(encoding=ENCODING)
             assert (
@@ -381,11 +358,11 @@ def test_create_app_rotates_log_file_at_max_bytes(monkeypatch: MonkeyPatch) -> N
                 "marker" not in rotated_content
             ), "post-rotation write leaked into the rotated log.log.1"
         finally:
-            for h in list(flask_logger.handlers):
+            for h in list(root_logger.handlers):
                 if isinstance(h, RotatingFileHandler) and h.baseFilename == str(
                     log_file
                 ):
-                    flask_logger.removeHandler(h)
+                    root_logger.removeHandler(h)
                     h.close()
 
 
@@ -765,23 +742,13 @@ class TestTendermintHardResetServer(BaseTendermintServerTest):
         logging.error(f"expected: {path}")
         assert not path.exists()
 
-        # ``create_app`` sets ``app.logger.propagate = False`` to prevent
-        # subprocess-line double-output via root's stderr ``StreamHandler``.
-        # ``caplog`` attaches its capture handler to root, so attach it
-        # directly to ``app.logger`` here to capture
-        # ``PeriodDumper.dump_period``'s log message.
-        flask_logger = self.app.logger
-        flask_logger.addHandler(caplog.handler)
-        try:
-            with self.app.test_client() as client:
-                with mock.patch.object(app, "IS_DEV_MODE", return_value=True):
-                    response = client.get("/hard_reset")
-                    assert response.status_code == 200
-                    data = cast(JSONLike, response.get_json())
-                    assert data["status"] is True
-                    assert "Dumped data for period" in caplog.text
-        finally:
-            flask_logger.removeHandler(caplog.handler)
+        with self.app.test_client() as client:
+            with mock.patch.object(app, "IS_DEV_MODE", return_value=True):
+                response = client.get("/hard_reset")
+                assert response.status_code == 200
+                data = cast(JSONLike, response.get_json())
+                assert data["status"] is True
+                assert "Dumped data for period" in caplog.text
 
         assert path.exists()
         expected = {"config", "tendermint.log", "data"}
