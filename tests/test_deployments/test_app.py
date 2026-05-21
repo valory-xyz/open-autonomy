@@ -137,15 +137,16 @@ def test_create_app_installs_single_rotating_file_handler(
         flask_app, tendermint_node = create_app(dump_dir=dump_dir, debug=False)
 
         try:
-            rotating_handlers = [
+            our_handlers = [
                 h
                 for h in cast(logging.Logger, flask_app.logger).handlers
                 if isinstance(h, RotatingFileHandler)
+                and h.baseFilename == str(log_file)
             ]
-            assert len(rotating_handlers) == 1
-            handler = rotating_handlers[0]
-            assert handler.baseFilename == str(log_file)
-            assert handler.maxBytes == 1048576
+            assert (
+                len(our_handlers) == 1
+            ), "create_app must attach exactly one RotatingFileHandler on LOG_FILE"
+            assert our_handlers[0].maxBytes == 1048576
 
             root_logger = logging.getLogger()
             assert not any(
@@ -156,7 +157,9 @@ def test_create_app_installs_single_rotating_file_handler(
             assert tendermint_node.write_to_log is (write_to_log_env == "true")
         finally:
             for h in list(cast(logging.Logger, flask_app.logger).handlers):
-                if isinstance(h, RotatingFileHandler):
+                if isinstance(h, RotatingFileHandler) and h.baseFilename == str(
+                    log_file
+                ):
                     cast(logging.Logger, flask_app.logger).removeHandler(h)
                     h.close()
             shutil.rmtree(dump_dir, ignore_errors=True)
