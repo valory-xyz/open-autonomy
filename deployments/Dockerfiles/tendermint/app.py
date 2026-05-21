@@ -232,6 +232,18 @@ def create_app(  # pylint: disable=too-many-statements
         file_handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=1)
         file_handler.setFormatter(logging.Formatter(LOGGING_FORMAT))
         flask_logger.addHandler(file_handler)
+        # ``basicConfig`` installs a ``StreamHandler`` on the root logger
+        # (no ``filename=``), and ``app.logger`` propagates to root by
+        # default. With propagation on, every ``flask_logger.info(...)``
+        # call would also reach root's stderr handler, duplicating
+        # subprocess output in container logs (raw line on stdout via
+        # ``TendermintNode._write_to_console``, formatted line on stderr
+        # via root). Disable propagation so the rotating file handler is
+        # the only sink for ``app.logger``; subprocess stdout is preserved
+        # via the direct ``_write_to_console`` write. Trade-off: Flask
+        # route logs and ``PeriodDumper`` logs are now file-only, no
+        # stderr echo.
+        flask_logger.propagate = False
 
     period_dumper = PeriodDumper(logger=app.logger, dump_dir=dump_dir)
     tendermint_node = TendermintNode(

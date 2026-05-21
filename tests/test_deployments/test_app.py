@@ -146,6 +146,18 @@ def test_create_app_installs_single_rotating_file_handler(
                 len(our_handlers) == 1
             ), "create_app must attach exactly one RotatingFileHandler on LOG_FILE"
             assert our_handlers[0].maxBytes == 1048576
+            assert our_handlers[0].backupCount == 1, (
+                "backupCount must be 1; a regression to 0 would silently "
+                "discard the rotated log file"
+            )
+
+            # Propagation must be off so ``app.logger`` does not echo to
+            # root's stderr StreamHandler. Without this, every subprocess
+            # line reaches container logs on both stdout (via
+            # ``_write_to_console``) and stderr (via propagation).
+            assert (
+                flask_logger.propagate is False
+            ), "create_app must disable app.logger.propagate"
 
             # The "no FileHandler on root" invariant is enforced statically by
             # ``test_basicconfig_does_not_set_filename`` — checking root
@@ -289,6 +301,92 @@ def test_basicconfig_does_not_set_filename() -> None:
         "the orphaned-handler-after-rotation bug. Use the RotatingFileHandler "
         "attached to app.logger in create_app instead."
     )
+
+
+def test_create_app_rotates_log_file_at_max_bytes(monkeypatch: MonkeyPatch) -> None:
+    """Rotation moves LOG_FILE to LOG_FILE.1 once writes exceed maxBytes.
+
+    Post-rotation writes must land in the fresh ``log.log`` only; the
+    renamed ``log.log.1`` must be frozen. This exercises the precise
+    failure mode the PR fixes — with a single rotating handler owning
+    the file, the renamed log stops receiving writes after rotation.
+    (The orphaned-FD bug would manifest as post-rotation writes leaking
+    into the renamed file via a stale descriptor on a second
+    non-rotating handler.)
+
+    :param monkeypatch: the pytest monkeypatch fixture.
+    """
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp = Path(tmp_dir)
+        tm_home = tmp / "tm"
+        (tm_home / "config").mkdir(parents=True)
+        (tm_home / "config" / "config.toml").write_text(
+            DUMMY_CONFIG_TOML, encoding=ENCODING
+        )
+        log_file = tmp / "log.log"
+        rotated = tmp / "log.log.1"
+
+        monkeypatch.setenv("PROXY_APP", "kvstore")
+        monkeypatch.setenv("CREATE_EMPTY_BLOCKS", "true")
+        monkeypatch.setenv("TMHOME", str(tm_home))
+        monkeypatch.setenv("USE_GRPC", "false")
+        monkeypatch.setenv("LOG_FILE", str(log_file))
+        # Cap big enough that the post-rotation markers fit in a fresh
+        # ``log.log`` without triggering a second rotation, small enough
+        # that the pre-rotation loop reaches it within a few dozen lines.
+        monkeypatch.setenv("LOG_FILE_MAX_BYTES", "2000")
+        monkeypatch.setenv("WRITE_TO_LOG", "true")
+
+        monkeypatch.setattr(TendermintNode, "init", lambda self: None)
+        monkeypatch.setattr(TendermintNode, "start", lambda self, debug=False: None)
+
+        flask_app, _ = create_app(dump_dir=tmp / "dump", debug=False)
+        flask_logger = cast(logging.Logger, flask_app.logger)
+
+        try:
+            # Write until the first rotation occurs, then stop. If we kept
+            # writing past the first rotation, additional rotations would
+            # overwrite ``log.log.1`` and the "rotated file is frozen
+            # after rotation" assertion below would no longer mean what
+            # it says.
+            for i in range(50):
+                flask_logger.info("pre-rotation line %d %s", i, "x" * 60)
+                if rotated.exists():
+                    break
+            else:  # pragma: no cover
+                raise AssertionError(
+                    "RotatingFileHandler did not rotate the log file within "
+                    "50 writes; maxBytes may be too high for this test"
+                )
+
+            rotated_size_before = rotated.stat().st_size
+
+            # Post-rotation writes are short enough to fit in the fresh
+            # ``log.log`` without triggering a second rotation.
+            for i in range(3):
+                flask_logger.info("marker%d", i)
+
+            current_content = log_file.read_text(encoding=ENCODING)
+            assert (
+                "marker0" in current_content
+            ), "post-rotation write did not reach the fresh log.log"
+
+            assert rotated.stat().st_size == rotated_size_before, (
+                "rotated log.log.1 grew after rotation; a non-rotating "
+                "handler is writing through a stale file descriptor"
+            )
+            rotated_content = rotated.read_text(encoding=ENCODING)
+            assert (
+                "marker" not in rotated_content
+            ), "post-rotation write leaked into the rotated log.log.1"
+        finally:
+            for h in list(flask_logger.handlers):
+                if isinstance(h, RotatingFileHandler) and h.baseFilename == str(
+                    log_file
+                ):
+                    flask_logger.removeHandler(h)
+                    h.close()
 
 
 def test_tendermint_node_log_does_not_forward_when_write_to_log_disabled() -> None:
