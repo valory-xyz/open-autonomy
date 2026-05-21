@@ -24,7 +24,7 @@ import json
 import logging
 from abc import ABC, ABCMeta
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from time import time
@@ -603,6 +603,10 @@ class RetriesInfo(TypeCheckMixin):
     retries: int
     backoff_factor: float
     retries_attempted: int = 0
+    # Tracks whether the cap-engaged warning has already been emitted for the
+    # current retry sequence. Resets automatically when ``retries_attempted``
+    # drops the raw sleep time back under the cap (e.g. after a reset).
+    _cap_warned: bool = field(default=False, init=False, repr=False, compare=False)
 
     @classmethod
     def from_json_dict(cls, kwargs: Dict) -> "RetriesInfo":
@@ -617,18 +621,20 @@ class RetriesInfo(TypeCheckMixin):
 
         The cap prevents callers that pass the result to ``datetime.timedelta``
         from raising ``OverflowError`` when ``retries_attempted`` grows large
-        (e.g. against a persistently failing remote). Reading this property at
-        the retry count where the cap first engages emits a warning, so
-        operators can investigate; the warning fires again on each new
-        increment sequence (e.g. after ``reset_retries``).
+        (e.g. against a persistently failing remote). A single ``WARNING`` is
+        emitted per ``RetriesInfo`` instance the first time the cap engages
+        for a given retry sequence. The latch resets whenever the raw sleep
+        time drops back under the cap, so a fresh sequence after
+        ``reset_retries`` can warn again.
 
         :return: the suggested sleep time in seconds.
         """
         raw = self.backoff_factor**self.retries_attempted
         if raw <= MAX_SUGGESTED_SLEEP_TIME:
+            self._cap_warned = False
             return raw
-        prior = self.backoff_factor ** max(self.retries_attempted - 1, 0)
-        if prior <= MAX_SUGGESTED_SLEEP_TIME:
+        if not self._cap_warned:
+            self._cap_warned = True
             _logger.warning(
                 "Suggested sleep time capped at %d seconds after %d retries "
                 "(backoff_factor=%s). Check remote health and backoff configuration.",

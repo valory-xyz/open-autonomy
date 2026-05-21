@@ -46,7 +46,7 @@ To follow the next sections, you need to populate the local registry with a numb
         "protocol/valory/ledger_api/1.0.0": "bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi",
         "protocol/valory/tendermint/0.1.0": "bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq",
         "skill/valory/abstract_abci/0.1.0": "bafybeia47agymvemumeznqekg3dlgycasiztnmjv2ifoux27cotrthzqs4",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeigd2djrj5ff6t2phdlnczgkvpdh62gv6pmkgkvsrwz7efidsuctru",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeicfgjykehgnowujvg2z74kqlqao7l3h7joktkj5lwp4eilxpsyyae",
         "skill/valory/hello_world_abci/0.1.0": "bafybeihlwaujzwwnduhdsgdozllykt6or6wsik44fr2dtupioe2epnfkxq",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu"
     }
