@@ -765,13 +765,23 @@ class TestTendermintHardResetServer(BaseTendermintServerTest):
         logging.error(f"expected: {path}")
         assert not path.exists()
 
-        with self.app.test_client() as client:
-            with mock.patch.object(app, "IS_DEV_MODE", return_value=True):
-                response = client.get("/hard_reset")
-                assert response.status_code == 200
-                data = cast(JSONLike, response.get_json())
-                assert data["status"] is True
-                assert "Dumped data for period" in caplog.text
+        # ``create_app`` sets ``app.logger.propagate = False`` to prevent
+        # subprocess-line double-output via root's stderr ``StreamHandler``.
+        # ``caplog`` attaches its capture handler to root, so attach it
+        # directly to ``app.logger`` here to capture
+        # ``PeriodDumper.dump_period``'s log message.
+        flask_logger = self.app.logger
+        flask_logger.addHandler(caplog.handler)
+        try:
+            with self.app.test_client() as client:
+                with mock.patch.object(app, "IS_DEV_MODE", return_value=True):
+                    response = client.get("/hard_reset")
+                    assert response.status_code == 200
+                    data = cast(JSONLike, response.get_json())
+                    assert data["status"] is True
+                    assert "Dumped data for period" in caplog.text
+        finally:
+            flask_logger.removeHandler(caplog.handler)
 
         assert path.exists()
         expected = {"config", "tendermint.log", "data"}
