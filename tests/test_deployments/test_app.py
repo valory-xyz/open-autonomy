@@ -28,6 +28,7 @@ import stat
 import subprocess  # nosec
 import tempfile
 import time
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Set, cast
 from unittest import mock
@@ -50,6 +51,9 @@ from deployments.Dockerfiles.tendermint.app import (  # type: ignore
     load_genesis,
     override_config_toml,
     update_peers,
+)
+from deployments.Dockerfiles.tendermint.tendermint import (  # type: ignore
+    TendermintParams,
 )
 
 ENCODING = "utf-8"
@@ -90,6 +94,302 @@ def test_period_dumper(monkeypatch: MonkeyPatch) -> None:
         period_dumper.dump_period()
 
     shutil.rmtree(period_dumper.dump_dir)
+
+
+@pytest.mark.parametrize("write_to_log_env", ["true", "false"])
+def test_create_app_installs_single_rotating_file_handler(
+    monkeypatch: MonkeyPatch, write_to_log_env: str
+) -> None:
+    """`create_app` attaches exactly one RotatingFileHandler on LOG_FILE to root.
+
+    The handler lives on the *root* logger so that ``app.logger``, werkzeug,
+    and any third-party loggers all funnel into the same file by propagation.
+    ``app.logger`` must not own a separate ``RotatingFileHandler`` on the
+    same path (the single-owner invariant). Holds for both ``WRITE_TO_LOG=true``
+    and ``WRITE_TO_LOG=false``.
+
+    :param monkeypatch: the pytest monkeypatch fixture.
+    :param write_to_log_env: the parametrized value for the WRITE_TO_LOG env var.
+    """
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp = Path(tmp_dir)
+        tm_home = tmp / "tm"
+        (tm_home / "config").mkdir(parents=True)
+        (tm_home / "config" / "config.toml").write_text(
+            DUMMY_CONFIG_TOML, encoding=ENCODING
+        )
+        log_file = tmp / "log.log"
+        dump_dir = tmp / "dump"
+
+        monkeypatch.setenv("PROXY_APP", "kvstore")
+        monkeypatch.setenv("CREATE_EMPTY_BLOCKS", "true")
+        monkeypatch.setenv("TMHOME", str(tm_home))
+        monkeypatch.setenv("USE_GRPC", "false")
+        monkeypatch.setenv("LOG_FILE", str(log_file))
+        monkeypatch.setenv("LOG_FILE_MAX_BYTES", "1048576")
+        monkeypatch.setenv("WRITE_TO_LOG", write_to_log_env)
+
+        monkeypatch.setattr(TendermintNode, "init", lambda self: None)
+        monkeypatch.setattr(TendermintNode, "start", lambda self, debug=False: None)
+
+        flask_app, tendermint_node = create_app(dump_dir=dump_dir, debug=False)
+        flask_logger = cast(logging.Logger, flask_app.logger)
+        root_logger = logging.getLogger()
+
+        try:
+            root_handlers = [
+                h
+                for h in root_logger.handlers
+                if isinstance(h, RotatingFileHandler)
+                and h.baseFilename == str(log_file)
+            ]
+            assert (
+                len(root_handlers) == 1
+            ), "create_app must attach exactly one RotatingFileHandler on LOG_FILE to root"
+            assert root_handlers[0].maxBytes == 1048576
+            assert root_handlers[0].backupCount == 1, (
+                "backupCount must be 1; a regression to 0 would silently "
+                "discard the rotated log file"
+            )
+
+            # Single-owner invariant: ``app.logger`` must not have its own
+            # ``RotatingFileHandler`` on ``LOG_FILE``. The file is owned by
+            # root and reached via propagation. A regression that re-attaches
+            # the handler on ``app.logger`` would re-introduce double-writes
+            # (one via app.logger's handler, one via propagation to root's).
+            app_logger_own_rotating = [
+                h for h in flask_logger.handlers if isinstance(h, RotatingFileHandler)
+            ]
+            assert app_logger_own_rotating == [], (
+                "app.logger must not own a RotatingFileHandler; the file is "
+                "owned by root and reached via propagation"
+            )
+
+            assert tendermint_node.write_to_log is (write_to_log_env == "true")
+        finally:
+            for h in list(root_logger.handlers):
+                if isinstance(h, RotatingFileHandler) and h.baseFilename == str(
+                    log_file
+                ):
+                    root_logger.removeHandler(h)
+                    h.close()
+
+
+def test_create_app_is_idempotent_on_repeat_calls(monkeypatch: MonkeyPatch) -> None:
+    """`create_app` called twice does not stack handlers on the root logger.
+
+    Without the idempotency guard, every call would append another
+    ``RotatingFileHandler`` to root and the same log line would be written
+    N times to the same file.
+
+    :param monkeypatch: the pytest monkeypatch fixture.
+    """
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp = Path(tmp_dir)
+        tm_home = tmp / "tm"
+        (tm_home / "config").mkdir(parents=True)
+        (tm_home / "config" / "config.toml").write_text(
+            DUMMY_CONFIG_TOML, encoding=ENCODING
+        )
+        log_file = tmp / "log.log"
+
+        monkeypatch.setenv("PROXY_APP", "kvstore")
+        monkeypatch.setenv("CREATE_EMPTY_BLOCKS", "true")
+        monkeypatch.setenv("TMHOME", str(tm_home))
+        monkeypatch.setenv("USE_GRPC", "false")
+        monkeypatch.setenv("LOG_FILE", str(log_file))
+        monkeypatch.setenv("WRITE_TO_LOG", "true")
+
+        monkeypatch.setattr(TendermintNode, "init", lambda self: None)
+        monkeypatch.setattr(TendermintNode, "start", lambda self, debug=False: None)
+
+        create_app(dump_dir=tmp / "dump_a", debug=False)
+        create_app(dump_dir=tmp / "dump_b", debug=False)
+        root_logger = logging.getLogger()
+
+        try:
+            root_handlers = [
+                h
+                for h in root_logger.handlers
+                if isinstance(h, RotatingFileHandler)
+                and h.baseFilename == str(log_file)
+            ]
+            assert len(root_handlers) == 1, (
+                "create_app must not stack a second RotatingFileHandler on "
+                "root when called more than once"
+            )
+        finally:
+            for h in list(root_logger.handlers):
+                if isinstance(h, RotatingFileHandler) and h.baseFilename == str(
+                    log_file
+                ):
+                    root_logger.removeHandler(h)
+                    h.close()
+
+
+def test_tendermint_node_init_does_not_attach_handlers() -> None:
+    """Test that ``TendermintNode.__init__`` does not attach handlers to its logger.
+
+    The rotation safety net relies on ``create_app`` being the sole owner of the
+    file handler. If a future refactor reintroduces the ``RotatingFileHandler``
+    setup inside ``TendermintNode.__init__``, ``create_app`` and the node would
+    each attach their own handler on the same path, recreating the double-write
+    / orphaned-handler-after-rotation bug. ``__init__`` must therefore be a
+    no-op on ``logger.handlers``.
+    """
+
+    fresh_logger = logging.getLogger(
+        "test_tendermint_node_init_does_not_attach_handlers"
+    )
+    fresh_logger.handlers = []
+    handlers_before = list(fresh_logger.handlers)
+
+    params = TendermintParams(proxy_app="kvstore")
+    TendermintNode(params=params, logger=fresh_logger, write_to_log=True)
+
+    assert (
+        fresh_logger.handlers == handlers_before
+    ), "TendermintNode.__init__ must not mutate logger.handlers"
+
+
+def test_tendermint_node_log_skips_empty_lines() -> None:
+    """Test that `TendermintNode.log()` skips blank/whitespace-only lines.
+
+    Without this guard, every blank line in Tendermint's stdout produces an
+    empty log record and floods the file.
+    """
+
+    logger = mock.MagicMock(spec=logging.Logger)
+    params = TendermintParams(proxy_app="kvstore")
+    node = TendermintNode(
+        params=params,
+        logger=cast(logging.Logger, logger),
+        write_to_log=True,
+    )
+
+    with mock.patch.object(
+        TendermintNode, "_write_to_console", staticmethod(lambda line: None)
+    ):
+        node.log("\n")
+        node.log("   \t  ")
+        node.log("")
+        node.log("real line\n")
+
+    assert logger.info.call_args_list == [mock.call("real line")]
+
+
+def test_create_app_rotates_log_file_at_max_bytes(monkeypatch: MonkeyPatch) -> None:
+    """Rotation moves LOG_FILE to LOG_FILE.1 once writes exceed maxBytes.
+
+    Post-rotation writes must land in the fresh ``log.log`` only; the
+    renamed ``log.log.1`` must be frozen. This exercises the precise
+    failure mode the PR fixes — with a single rotating handler owning
+    the file, the renamed log stops receiving writes after rotation.
+    (The orphaned-FD bug would manifest as post-rotation writes leaking
+    into the renamed file via a stale descriptor on a second
+    non-rotating handler.)
+
+    :param monkeypatch: the pytest monkeypatch fixture.
+    """
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp = Path(tmp_dir)
+        tm_home = tmp / "tm"
+        (tm_home / "config").mkdir(parents=True)
+        (tm_home / "config" / "config.toml").write_text(
+            DUMMY_CONFIG_TOML, encoding=ENCODING
+        )
+        log_file = tmp / "log.log"
+        rotated = tmp / "log.log.1"
+
+        monkeypatch.setenv("PROXY_APP", "kvstore")
+        monkeypatch.setenv("CREATE_EMPTY_BLOCKS", "true")
+        monkeypatch.setenv("TMHOME", str(tm_home))
+        monkeypatch.setenv("USE_GRPC", "false")
+        monkeypatch.setenv("LOG_FILE", str(log_file))
+        # Cap big enough that the post-rotation markers fit in a fresh
+        # ``log.log`` without triggering a second rotation, small enough
+        # that the pre-rotation loop reaches it within a few dozen lines.
+        monkeypatch.setenv("LOG_FILE_MAX_BYTES", "2000")
+        monkeypatch.setenv("WRITE_TO_LOG", "true")
+
+        monkeypatch.setattr(TendermintNode, "init", lambda self: None)
+        monkeypatch.setattr(TendermintNode, "start", lambda self, debug=False: None)
+
+        create_app(dump_dir=tmp / "dump", debug=False)
+        root_logger = logging.getLogger()
+
+        try:
+            # Write until the first rotation occurs, then stop. If we kept
+            # writing past the first rotation, additional rotations would
+            # overwrite ``log.log.1`` and the "rotated file is frozen
+            # after rotation" assertion below would no longer mean what
+            # it says.
+            for i in range(50):
+                root_logger.info("pre-rotation line %d %s", i, "x" * 60)
+                if rotated.exists():
+                    break
+            else:  # pragma: no cover
+                raise AssertionError(
+                    "RotatingFileHandler did not rotate the log file within "
+                    "50 writes; maxBytes may be too high for this test"
+                )
+
+            rotated_size_before = rotated.stat().st_size
+
+            # Post-rotation writes are short enough to fit in the fresh
+            # ``log.log`` without triggering a second rotation.
+            for i in range(3):
+                root_logger.info("marker%d", i)
+
+            current_content = log_file.read_text(encoding=ENCODING)
+            assert (
+                "marker0" in current_content
+            ), "post-rotation write did not reach the fresh log.log"
+
+            assert rotated.stat().st_size == rotated_size_before, (
+                "rotated log.log.1 grew after rotation; a non-rotating "
+                "handler is writing through a stale file descriptor"
+            )
+            rotated_content = rotated.read_text(encoding=ENCODING)
+            assert (
+                "marker" not in rotated_content
+            ), "post-rotation write leaked into the rotated log.log.1"
+        finally:
+            for h in list(root_logger.handlers):
+                if isinstance(h, RotatingFileHandler) and h.baseFilename == str(
+                    log_file
+                ):
+                    root_logger.removeHandler(h)
+                    h.close()
+
+
+def test_tendermint_node_log_does_not_forward_when_write_to_log_disabled() -> None:
+    """`TendermintNode.log()` does not forward output when write_to_log is False.
+
+    Locks in the off-path semantic: ``WRITE_TO_LOG=false`` must keep
+    subprocess stdout out of the configured logger, even though the
+    ``RotatingFileHandler`` is now attached to ``app.logger`` unconditionally
+    by ``create_app``.
+    """
+
+    logger = mock.MagicMock(spec=logging.Logger)
+    params = TendermintParams(proxy_app="kvstore")
+    node = TendermintNode(
+        params=params,
+        logger=cast(logging.Logger, logger),
+        write_to_log=False,
+    )
+
+    with mock.patch.object(
+        TendermintNode, "_write_to_console", staticmethod(lambda line: None)
+    ):
+        node.log("real line\n")
+        node.log("another line\n")
+
+    logger.info.assert_not_called()
 
 
 # base classes

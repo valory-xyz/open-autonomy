@@ -14,7 +14,7 @@ fingerprint:
   behaviours.py: bafybeihav5qqxbj6gb2nrjbguvxc3nqjafbk6sudxnwyky3krjejcq2kvy
   common.py: bafybeigzo5pvbjuruhpiq754wgemyd7qw2lzzds3p7q6k3oqivig6yq46i
   dialogues.py: bafybeiezwvocuzmpjmvk3lichudpmgdju32izj37qyogeorj2w6klsjrx4
-  handlers.py: bafybeihrza6ktvq65hmthiapq5w5iz5xnsbujloz4jciz3xvc2hof7uza4
+  handlers.py: bafybeig3oc4kp2ekh6xqqz6v5cemy3677zdksfjkq322r7wvpqr5yuksy4
   io_/__init__.py: bafybeihv6ytxeo5jkbdlqjum4pfo4aaluvw4m7c55k5xncvvs7ubrlokhy
   io_/ipfs.py: bafybeihqatdfin72wmofxl3ozokcl4gc4jtpxfqrol77dkf3iks6fih5au
   io_/load.py: bafybeigpo2fb2i2w5ibmtiwxopte6ypwndnpauefqwyeldy2ad4ksy3x34
@@ -60,7 +60,7 @@ fingerprint:
   utils.py: bafybeicwlsniy35agxz6z4765mchmgnzcggnu5rjbf2lollabfhmatvcyi
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeibzec5d2q6jrmassbbu4yddb4vvxrwedqyqjixqaimklnp2z4glri
+- valory/abci:0.1.0:bafybeiafvaguchnkp2fmhf6gtayc3gpnxkglagghb4ukbqtouni5tveigi
 - valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
 - valory/ipfs:0.1.0:bafybeicxrwakpakexuixxp6yo25sosikrjs4mvzfvzklpqk5fa3yy3hh5a
 - valory/ledger:0.19.0:bafybeicynh5l5f5f5jpx72qwzis7jvmxk5p4eqltk32uxbj2pgu2x4rqz4
@@ -76,7 +76,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 - valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
 skills:
-- valory/abstract_abci:0.1.0:bafybeia47agymvemumeznqekg3dlgycasiztnmjv2ifoux27cotrthzqs4
+- valory/abstract_abci:0.1.0:bafybeie5et43th2nta76cd3kpm3fmurd7oyzk3qxim76octvt56m6r2poi
 behaviours:
   main:
     args: {}

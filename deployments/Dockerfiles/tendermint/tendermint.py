@@ -27,7 +27,6 @@ import signal
 import subprocess  # nosec:
 import sys
 from logging import Logger
-from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from threading import Event, Thread
 from typing import Any, Dict, List, Optional
@@ -36,8 +35,6 @@ _TCP = "tcp://"
 ENCODING = "utf-8"
 DEFAULT_P2P_LISTEN_ADDRESS = f"{_TCP}0.0.0.0:26656"
 DEFAULT_RPC_LISTEN_ADDRESS = f"{_TCP}0.0.0.0:26657"
-DEFAULT_TENDERMINT_LOG_FILE = "tendermint.log"
-DEFAULT_LOG_FILE_MAX_BYTES = 50 * 1024 * 1024  # 50MB
 
 
 class StoppableThread(
@@ -154,25 +151,14 @@ class TendermintNode:
 
         :param params: the parameters.
         :param logger: the logger.
-        :param write_to_log: Write to log file.
+        :param write_to_log: Forward subprocess output lines to the configured logger. Blank lines are skipped.
         """
         self.params = params
         self._process: Optional[subprocess.Popen] = None
         self._monitoring: Optional[StoppableThread] = None
         self._stopping = False
         self.logger = logger or logging.getLogger()
-        self.log_file = os.environ.get("LOG_FILE", DEFAULT_TENDERMINT_LOG_FILE)
         self.write_to_log = write_to_log
-
-        if self.write_to_log:
-            max_bytes = int(
-                os.environ.get("LOG_FILE_MAX_BYTES", DEFAULT_LOG_FILE_MAX_BYTES)
-            )
-            handler = RotatingFileHandler(
-                self.log_file, maxBytes=max_bytes, backupCount=1
-            )
-            handler.setFormatter(logging.Formatter("%(message)s"))
-            self.logger.addHandler(handler)
 
     def _build_init_command(self) -> List[str]:
         """Build the 'init' command."""
@@ -312,10 +298,12 @@ class TendermintNode:
         sys.stdout.flush()
 
     def log(self, line: str) -> None:
-        """Open and write a line to the log file."""
+        """Write a subprocess output line to console and, if enabled, to the logger."""
         self._write_to_console(line=line)
         if self.write_to_log:
-            self.logger.info(line.strip())
+            stripped = line.strip()
+            if stripped:
+                self.logger.info(stripped)
 
     def prune_blocks(self) -> int:
         """Prune blocks from the Tendermint state"""
