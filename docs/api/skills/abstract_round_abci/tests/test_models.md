@@ -39,11 +39,32 @@ Test initialization.
 #### test`_`suggested`_`sleep`_`time
 
 ```python
-@pytest.mark.parametrize("retries", range(10))
-def test_suggested_sleep_time(retries: int) -> None
+@pytest.mark.parametrize(
+    "retries, expected",
+    [
+        (0, 1.0),
+        (5, 32.0),
+        (9, 512.0),
+        (11, 2048.0),
+        (12, float(MAX_SUGGESTED_SLEEP_TIME)),
+        (50, float(MAX_SUGGESTED_SLEEP_TIME)),
+    ],
+)
+def test_suggested_sleep_time(retries: int, expected: float) -> None
 ```
 
-Test `suggested_sleep_time`
+Test that `suggested_sleep_time` is capped and never raises.
+
+<a id="packages.valory.skills.abstract_round_abci.tests.test_models.TestApiSpecsModel.test_suggested_sleep_time_warning_fires_once_at_cap_boundary"></a>
+
+#### test`_`suggested`_`sleep`_`time`_`warning`_`fires`_`once`_`at`_`cap`_`boundary
+
+```python
+def test_suggested_sleep_time_warning_fires_once_at_cap_boundary(
+        caplog: pytest.LogCaptureFixture) -> None
+```
+
+The cap warning fires only at the retry where the cap first engages.
 
 <a id="packages.valory.skills.abstract_round_abci.tests.test_models.TestApiSpecsModel.test_retries"></a>
 

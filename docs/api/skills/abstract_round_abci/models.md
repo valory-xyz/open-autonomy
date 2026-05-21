@@ -419,7 +419,16 @@ Initialize a retries info object from kwargs.
 def suggested_sleep_time() -> float
 ```
 
-The suggested amount of time to sleep.
+The suggested amount of time to sleep, capped at ``MAX_SUGGESTED_SLEEP_TIME``.
+
+The cap protects against ``OverflowError`` in downstream ``datetime``
+arithmetic when ``retries_attempted`` grows large (e.g. against a
+persistently failing remote). A warning is emitted at the retry count
+where the cap first engages so operators can investigate.
+
+**Returns**:
+
+the suggested sleep time in seconds.
 
 <a id="packages.valory.skills.abstract_round_abci.models.TendermintRecoveryParams"></a>
 

@@ -21,6 +21,7 @@
 
 import inspect
 import json
+import logging
 from abc import ABC, ABCMeta
 from collections import Counter
 from dataclasses import dataclass
@@ -68,6 +69,11 @@ NUMBER_OF_RETRIES: int = 5
 DEFAULT_BACKOFF_FACTOR: float = 2.0
 DEFAULT_TYPE_NAME: str = "str"
 DEFAULT_CHAIN = "ethereum"
+MAX_SUGGESTED_SLEEP_TIME: int = (
+    3600  # one hour; stays well below datetime overflow threshold
+)
+
+_logger = logging.getLogger(__name__)
 
 
 class FrozenMixin:  # pylint: disable=too-few-public-methods
@@ -607,8 +613,28 @@ class RetriesInfo(TypeCheckMixin):
 
     @property
     def suggested_sleep_time(self) -> float:
-        """The suggested amount of time to sleep."""
-        return self.backoff_factor**self.retries_attempted
+        """The suggested amount of time to sleep, capped at ``MAX_SUGGESTED_SLEEP_TIME``.
+
+        The cap protects against ``OverflowError`` in downstream ``datetime``
+        arithmetic when ``retries_attempted`` grows large (e.g. against a
+        persistently failing remote). A warning is emitted at the retry count
+        where the cap first engages so operators can investigate.
+
+        :return: the suggested sleep time in seconds.
+        """
+        raw = self.backoff_factor**self.retries_attempted
+        if raw <= MAX_SUGGESTED_SLEEP_TIME:
+            return raw
+        prior = self.backoff_factor ** max(self.retries_attempted - 1, 0)
+        if prior <= MAX_SUGGESTED_SLEEP_TIME:
+            _logger.warning(
+                "Suggested sleep time capped at %s seconds after %d retries "
+                "(backoff_factor=%s). Check remote health and backoff configuration.",
+                MAX_SUGGESTED_SLEEP_TIME,
+                self.retries_attempted,
+                self.backoff_factor,
+            )
+        return float(MAX_SUGGESTED_SLEEP_TIME)
 
 
 @dataclass(frozen=True)

@@ -55,6 +55,7 @@ from packages.valory.skills.abstract_round_abci.models import (
     GenesisConsensusParams,
     GenesisEvidence,
     GenesisValidator,
+    MAX_SUGGESTED_SLEEP_TIME,
     MIN_RESET_PAUSE_DURATION,
     NUMBER_OF_RETRIES,
     Requests,
@@ -173,14 +174,39 @@ class TestApiSpecsModel:
         assert self.api_specs.response_info.error_type == "str"
         assert self.api_specs.response_info.error_data is None
 
-    @pytest.mark.parametrize("retries", range(10))
-    def test_suggested_sleep_time(self, retries: int) -> None:
-        """Test `suggested_sleep_time`"""
+    @pytest.mark.parametrize(
+        "retries, expected",
+        [
+            (0, 1.0),
+            (5, 32.0),
+            (9, 512.0),
+            (11, 2048.0),
+            (12, float(MAX_SUGGESTED_SLEEP_TIME)),
+            (50, float(MAX_SUGGESTED_SLEEP_TIME)),
+        ],
+    )
+    def test_suggested_sleep_time(self, retries: int, expected: float) -> None:
+        """Test that `suggested_sleep_time` is capped and never raises."""
         self.api_specs.retries_info.retries_attempted = retries
-        assert (
-            self.api_specs.retries_info.suggested_sleep_time
-            == DEFAULT_BACKOFF_FACTOR**retries
-        )
+        assert self.api_specs.retries_info.suggested_sleep_time == expected
+
+    def test_suggested_sleep_time_warning_fires_once_at_cap_boundary(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """The cap warning fires only at the retry where the cap first engages."""
+        info = self.api_specs.retries_info
+        with caplog.at_level(
+            logging.WARNING,
+            logger="packages.valory.skills.abstract_round_abci.models",
+        ):
+            for retries in range(0, 20):
+                info.retries_attempted = retries
+                _ = info.suggested_sleep_time
+        warning_records = [
+            r for r in caplog.records if "capped" in r.getMessage().lower()
+        ]
+        assert len(warning_records) == 1
+        assert "after 12 retries" in warning_records[0].getMessage()
 
     def test_retries(
         self,
