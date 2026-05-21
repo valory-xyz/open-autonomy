@@ -30,7 +30,7 @@ import tempfile
 import time
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, cast
+from typing import Any, Callable, Dict, Optional, Set, cast
 from unittest import mock
 
 import pytest
@@ -135,11 +135,12 @@ def test_create_app_installs_single_rotating_file_handler(
         monkeypatch.setattr(TendermintNode, "start", lambda self, debug=False: None)
 
         flask_app, tendermint_node = create_app(dump_dir=dump_dir, debug=False)
+        flask_logger = cast(logging.Logger, flask_app.logger)
 
         try:
             our_handlers = [
                 h
-                for h in cast(logging.Logger, flask_app.logger).handlers
+                for h in flask_logger.handlers
                 if isinstance(h, RotatingFileHandler)
                 and h.baseFilename == str(log_file)
             ]
@@ -156,13 +157,94 @@ def test_create_app_installs_single_rotating_file_handler(
 
             assert tendermint_node.write_to_log is (write_to_log_env == "true")
         finally:
-            for h in list(cast(logging.Logger, flask_app.logger).handlers):
+            for h in list(flask_logger.handlers):
                 if isinstance(h, RotatingFileHandler) and h.baseFilename == str(
                     log_file
                 ):
-                    cast(logging.Logger, flask_app.logger).removeHandler(h)
+                    flask_logger.removeHandler(h)
                     h.close()
-            shutil.rmtree(dump_dir, ignore_errors=True)
+
+
+def test_create_app_is_idempotent_on_repeat_calls(monkeypatch: MonkeyPatch) -> None:
+    """Test that calling `create_app` twice does not stack handlers on app.logger.
+
+    Flask's ``app.logger`` is keyed by module name, so two ``create_app`` calls
+    in the same process share the same Logger instance. Without an idempotency
+    guard, every call would append another ``RotatingFileHandler`` and the same
+    log line would be written N times to the same file.
+
+    :param monkeypatch: the pytest monkeypatch fixture.
+    """
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp = Path(tmp_dir)
+        tm_home = tmp / "tm"
+        (tm_home / "config").mkdir(parents=True)
+        (tm_home / "config" / "config.toml").write_text(
+            DUMMY_CONFIG_TOML, encoding=ENCODING
+        )
+        log_file = tmp / "log.log"
+
+        monkeypatch.setenv("PROXY_APP", "kvstore")
+        monkeypatch.setenv("CREATE_EMPTY_BLOCKS", "true")
+        monkeypatch.setenv("TMHOME", str(tm_home))
+        monkeypatch.setenv("USE_GRPC", "false")
+        monkeypatch.setenv("LOG_FILE", str(log_file))
+        monkeypatch.setenv("WRITE_TO_LOG", "true")
+
+        monkeypatch.setattr(TendermintNode, "init", lambda self: None)
+        monkeypatch.setattr(TendermintNode, "start", lambda self, debug=False: None)
+
+        flask_app_a, _ = create_app(dump_dir=tmp / "dump_a", debug=False)
+        flask_app_b, _ = create_app(dump_dir=tmp / "dump_b", debug=False)
+        flask_logger = cast(logging.Logger, flask_app_a.logger)
+        # `app_b.logger` is the same Logger instance as `app_a.logger`
+        # because Flask resolves it by module name.
+        assert flask_logger is cast(logging.Logger, flask_app_b.logger)
+
+        try:
+            our_handlers = [
+                h
+                for h in flask_logger.handlers
+                if isinstance(h, RotatingFileHandler)
+                and h.baseFilename == str(log_file)
+            ]
+            assert len(our_handlers) == 1, (
+                "create_app must not stack a second RotatingFileHandler "
+                "on LOG_FILE when called more than once"
+            )
+        finally:
+            for h in list(flask_logger.handlers):
+                if isinstance(h, RotatingFileHandler) and h.baseFilename == str(
+                    log_file
+                ):
+                    flask_logger.removeHandler(h)
+                    h.close()
+
+
+def test_tendermint_node_init_does_not_attach_handlers() -> None:
+    """Test that ``TendermintNode.__init__`` does not attach handlers to its logger.
+
+    The rotation safety net relies on ``create_app`` being the sole owner of the
+    file handler. If a future refactor reintroduces the ``RotatingFileHandler``
+    setup inside ``TendermintNode.__init__``, ``create_app`` and the node would
+    each attach their own handler on the same path, recreating the double-write
+    / orphaned-handler-after-rotation bug. ``__init__`` must therefore be a
+    no-op on ``logger.handlers``.
+    """
+
+    fresh_logger = logging.getLogger(
+        "test_tendermint_node_init_does_not_attach_handlers"
+    )
+    fresh_logger.handlers = []
+    handlers_before = list(fresh_logger.handlers)
+
+    params = TendermintParams(proxy_app="kvstore")
+    TendermintNode(params=params, logger=fresh_logger, write_to_log=True)
+
+    assert (
+        fresh_logger.handlers == handlers_before
+    ), "TendermintNode.__init__ must not mutate logger.handlers"
 
 
 def test_tendermint_node_log_skips_empty_lines() -> None:
@@ -172,17 +254,12 @@ def test_tendermint_node_log_skips_empty_lines() -> None:
     empty log record and floods the file.
     """
 
-    received: List[str] = []
-
-    class _CaptureLogger(logging.Logger):
-        def info(  # type: ignore[override]
-            self, msg: Any, *args: Any, **kwargs: Any
-        ) -> None:
-            received.append(msg)
-
+    logger = mock.MagicMock(spec=logging.Logger)
     params = TendermintParams(proxy_app="kvstore")
     node = TendermintNode(
-        params=params, logger=_CaptureLogger("test"), write_to_log=True
+        params=params,
+        logger=cast(logging.Logger, logger),
+        write_to_log=True,
     )
 
     with mock.patch.object(
@@ -193,7 +270,7 @@ def test_tendermint_node_log_skips_empty_lines() -> None:
         node.log("")
         node.log("real line\n")
 
-    assert received == ["real line"]
+    assert logger.info.call_args_list == [mock.call("real line")]
 
 
 # base classes

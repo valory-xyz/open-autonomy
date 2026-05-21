@@ -206,11 +206,23 @@ def create_app(  # pylint: disable=too-many-statements
 
     app = Flask(__name__)
 
+    # `app.logger` is resolved by module name, so repeat `create_app` calls
+    # share the same Logger instance. Skip attaching a second handler on the
+    # same path to keep the attachment idempotent.
     log_file = os.environ.get("LOG_FILE", DEFAULT_LOG_FILE)
-    max_bytes = int(os.environ.get("LOG_FILE_MAX_BYTES", DEFAULT_LOG_FILE_MAX_BYTES))
-    file_handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=1)
-    file_handler.setFormatter(logging.Formatter(LOGGING_FORMAT))
-    cast(logging.Logger, app.logger).addHandler(file_handler)
+    flask_logger = cast(logging.Logger, app.logger)
+    log_file_abs = os.path.abspath(log_file)
+    already_attached = any(
+        isinstance(h, RotatingFileHandler) and h.baseFilename == log_file_abs
+        for h in flask_logger.handlers
+    )
+    if not already_attached:
+        max_bytes = int(
+            os.environ.get("LOG_FILE_MAX_BYTES", DEFAULT_LOG_FILE_MAX_BYTES)
+        )
+        file_handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=1)
+        file_handler.setFormatter(logging.Formatter(LOGGING_FORMAT))
+        flask_logger.addHandler(file_handler)
 
     period_dumper = PeriodDumper(logger=app.logger, dump_dir=dump_dir)
     tendermint_node = TendermintNode(
