@@ -442,6 +442,11 @@ class PyProjectTomlConfig:
         `optional = true` deps are visible), and dev/test-only entries
         (e.g. `pytest-asyncio` in the `dev` group) no longer need to be
         duplicated into main deps to satisfy the check.
+
+        :param pyproject_path: path to the pyproject.toml file.
+        :param exclude: package names to omit from iteration / check.
+        :return: a `PyProjectTomlConfig` instance, or `None` if the
+            file has no `[tool.poetry.dependencies]` table.
         """
         with open(pyproject_path, "rb") as _pyproject_fp:
             config = tomllib.load(_pyproject_fp)

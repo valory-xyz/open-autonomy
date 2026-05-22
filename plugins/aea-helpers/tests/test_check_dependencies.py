@@ -21,13 +21,10 @@
 import textwrap
 from pathlib import Path
 
+from aea_helpers.check_dependencies import PyProjectTomlConfig
 from packaging.specifiers import SpecifierSet
 
-from aea_helpers.check_dependencies import PyProjectTomlConfig
-
-
-SAMPLE_PYPROJECT = textwrap.dedent(
-    """\
+SAMPLE_PYPROJECT = textwrap.dedent("""\
     [tool.poetry]
     name = "demo"
     version = "0.1.0"
@@ -55,8 +52,7 @@ SAMPLE_PYPROJECT = textwrap.dedent(
 
     [tool.poetry.group.docs.dependencies]
     mkdocs = "==1.6.0"
-    """
-)
+    """)
 
 
 def _write_pyproject(tmp_path: Path) -> Path:
@@ -111,8 +107,7 @@ def test_load_includes_other_groups(tmp_path: Path) -> None:
 
 def test_main_deps_win_over_group_deps_on_name_collision(tmp_path: Path) -> None:
     """If the same package appears in both main and a group, main wins."""
-    content = textwrap.dedent(
-        """\
+    content = textwrap.dedent("""\
         [tool.poetry]
         name = "demo"
         version = "0.1.0"
@@ -125,8 +120,7 @@ def test_main_deps_win_over_group_deps_on_name_collision(tmp_path: Path) -> None
 
         [tool.poetry.group.dev.dependencies]
         protobuf = "*"
-        """
-    )
+        """)
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(content)
     config = PyProjectTomlConfig.load(pyproject)
