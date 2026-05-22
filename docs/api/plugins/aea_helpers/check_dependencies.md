@@ -281,6 +281,23 @@ def load(
 
 Load pyproject.toml dependencies.
 
+Reads `[tool.poetry.dependencies]` plus every
+`[tool.poetry.group.*.dependencies]` table. Dict-form entries are
+treated as declared even when they omit the `extras` key (so
+`optional = true` deps are visible), and dev/test-only entries
+(e.g. `pytest-asyncio` in the `dev` group) no longer need to be
+duplicated into main deps to satisfy the check.
+
+**Arguments**:
+
+- `pyproject_path`: path to the pyproject.toml file.
+- `exclude`: package names to omit from iteration / check.
+
+**Returns**:
+
+a `PyProjectTomlConfig` instance, or `None` if the
+file has no `[tool.poetry.dependencies]` table.
+
 <a id="plugins.aea-helpers.aea_helpers.check_dependencies.PyProjectTomlConfig.dump"></a>
 
 #### dump
