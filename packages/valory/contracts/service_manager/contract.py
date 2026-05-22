@@ -29,26 +29,11 @@ from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 
+from autonomy.chain.constants import SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS
+
 PUBLIC_ID = PublicId.from_str("valory/service_manager:0.1.0")
 ETHEREUM_ERC20 = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
 ETHEREUM_IDENTIFIER = "ethereum"
-SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS = (
-    # Mainnets (source: autonolas-registries/docs/configuration.json on main).
-    1,  # ethereum
-    137,  # polygon
-    100,  # gnosis
-    42161,  # arbitrum
-    10,  # optimism
-    8453,  # base
-    42220,  # celo
-    34443,  # mode
-    # Testnets / dev
-    31337,  # hardhat local
-    10200,  # chiado (gnosis testnet)
-    421614,  # arbitrum sepolia
-    11155420,  # optimism sepolia
-    84532,  # base sepolia
-)
 SERVICE_MANAGER_BUILD = "ServiceManager.json"
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"

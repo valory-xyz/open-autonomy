@@ -29,10 +29,6 @@ from autonomy import AUTONOMY_DIR
 from autonomy.constants import VALORY
 from autonomy.data import DATA_DIR
 
-from packages.valory.contracts.service_manager.contract import (  # noqa: F401  pylint: disable=unused-import
-    SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS,
-)
-
 CONTRACTS_DIR_FRAMEWORK = DATA_DIR / CONTRACTS
 CONTRACTS_DIR_LOCAL = (
     AUTONOMY_DIR.parent / PACKAGES / VALORY / CONTRACTS
@@ -304,7 +300,20 @@ ERC8004_IDENTITY_REGISTRY_BRIDGER_CONTRACT = PublicId.from_str(
     "valory/erc8004_identity_registry_bridger"
 )
 
-# `SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS` is sourced from the contract
-# package via the top-of-file re-export so existing
-# `from autonomy.chain.constants import SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS`
-# call sites keep working.
+SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS = (
+    # Mainnets (source: autonolas-registries/docs/configuration.json on main).
+    1,  # ethereum
+    137,  # polygon
+    100,  # gnosis
+    42161,  # arbitrum
+    10,  # optimism
+    8453,  # base
+    42220,  # celo
+    34443,  # mode
+    # Testnets / dev
+    31337,  # hardhat local
+    10200,  # chiado (gnosis testnet)
+    421614,  # arbitrum sepolia
+    11155420,  # optimism sepolia
+    84532,  # base sepolia
+)

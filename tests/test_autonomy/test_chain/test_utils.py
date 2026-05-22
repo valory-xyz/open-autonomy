@@ -221,10 +221,10 @@ def test_compatible_chains_covers_autonolas_registries_deployments() -> None:
         ) as response:
             raw = response.read()
     except (urllib.error.URLError, TimeoutError) as exc:
-        raise RuntimeError(
+        pytest.skip(
             f"Could not fetch {AUTONOLAS_REGISTRIES_CONFIG_URL}: {exc}. "
             "Run with `-m 'not integration'` to skip this check offline."
-        ) from exc
+        )
 
     config = json.loads(raw)
     upstream_chains = {
@@ -248,6 +248,6 @@ def test_compatible_chains_covers_autonolas_registries_deployments() -> None:
     assert not missing, (
         "Olas has `ServiceRegistryTokenUtility` deployed on chains that are "
         "not in `SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS`. Add them to "
-        "`packages/valory/contracts/service_manager/contract.py` and re-lock: "
+        "`autonomy/chain/constants.py` and re-lock: "
         f"{missing}. Source: {AUTONOLAS_REGISTRIES_CONFIG_URL}"
     )
