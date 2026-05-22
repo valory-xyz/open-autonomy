@@ -22,6 +22,7 @@
 # pylint: disable=protected-access
 
 import json
+import logging
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime
@@ -31,6 +32,7 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
+from _pytest.logging import LogCaptureFixture
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
@@ -276,25 +278,44 @@ class TestSlashingCheckBehaviour(BaseSlashingTest):
         self.current_behaviour._check_offence_status()
         assert self.current_behaviour._slash_amounts == expected_amounts
 
-    def test_check_offence_status_before_first_transition(self) -> None:
-        """Test `_check_offence_status` skips the check when no round transition has been completed."""
+    def test_check_offence_status_before_first_transition(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Test `_check_offence_status` skips the check and warns once when no round transition has been completed."""
         self.fast_forward(data={"slash_timestamps": json.dumps({"agent": 0})})
         # repeating this check for the `current_behaviour` here to avoid `mypy` reporting:
         # `error: Item "None" of "Optional[BaseBehaviour]" has no attribute "context"` when accessing the context below
         assert self.current_behaviour is not None
 
-        self.current_behaviour._slash_amounts = {"agent": "something_random"}
+        # a non-empty offence status ensures the pre-fix code path (which read the
+        # timestamp inside the per-agent loop) would actually have been exercised
         self.current_behaviour.round_sequence._offence_status = {  # type: ignore
             "agent": MagicMock(
                 slash_amount=MagicMock(return_value=DUMMY_SLASH_THRESHOLD + 1)
             )
         }
-        # no round transition has been completed yet
-        self.current_behaviour.round_sequence._last_round_transition_timestamp = None
 
-        # must not raise `ValueError`; the check is skipped and no amounts are recorded
-        self.current_behaviour._check_offence_status()
+        with mock.patch.object(
+            type(self.current_behaviour.round_sequence),
+            "last_round_transition_timestamp",
+            new_callable=mock.PropertyMock,
+            side_effect=ValueError(
+                "Trying to access `last_round_transition_timestamp` while no "
+                "transition has been completed yet."
+            ),
+        ), caplog.at_level(logging.WARNING):
+            # must not raise `ValueError`; the check is skipped and no amounts are
+            # recorded. Called twice to assert the `WARNING` is latched.
+            self.current_behaviour._check_offence_status()
+            self.current_behaviour._check_offence_status()
+
         assert self.current_behaviour._slash_amounts == {}
+        assert (
+            caplog.text.count(
+                "Slashing check ran before any round transition has been completed"
+            )
+            == 1
+        )
 
     @dataclass
     class SlashingCheckBehaviourTestCase:

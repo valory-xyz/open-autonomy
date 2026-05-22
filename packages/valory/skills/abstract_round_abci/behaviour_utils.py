@@ -1930,7 +1930,7 @@ class BaseBehaviour(
             # e.g. right after the round sequence was reset to its default
             # parameters while recovering agent <-> Tendermint communication.
             # Fall back to the default reset parameters, mirroring the
-            # `default`/`on_startup` branch above and `_TmManager._get_reset_params`.
+            # `default`/`on_startup` branch above and `TmManager._get_reset_params`.
             self.context.logger.warning(
                 "Tendermint hard reset requested before any round transition "
                 "has been completed; using default reset parameters."

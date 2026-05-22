@@ -1434,7 +1434,8 @@ Test `_get_reset_params` method.
 #### test`_`get`_`reset`_`params`_`before`_`first`_`transition
 
 ```python
-def test_get_reset_params_before_first_transition() -> None
+def test_get_reset_params_before_first_transition(
+        caplog: LogCaptureFixture) -> None
 ```
 
 Test `_get_reset_params` falls back to default params before the first round transition.

@@ -2176,7 +2176,9 @@ class TestBaseBehaviour:
 
             assert actual == expected
 
-    def test_get_reset_params_before_first_transition(self) -> None:
+    def test_get_reset_params_before_first_transition(
+        self, caplog: LogCaptureFixture
+    ) -> None:
         """Test `_get_reset_params` falls back to default params before the first round transition."""
 
         class _NoTransitionRoundSequence:
@@ -2194,8 +2196,16 @@ class TestBaseBehaviour:
 
         # A non-startup hard reset requested before any transition must not crash;
         # it falls back to the default reset params (`None`) instead of letting the
-        # `ValueError` propagate and terminate the agent.
-        assert self.behaviour._get_reset_params(default=False) is None
+        # `ValueError` propagate and terminate the agent, and logs a `WARNING`.
+        with caplog.at_level(logging.WARNING):
+            assert self.behaviour._get_reset_params(default=False) is None
+
+        assert (
+            caplog.text.count(
+                "Tendermint hard reset requested before any round transition"
+            )
+            == 1
+        )
 
     @mock.patch.object(BaseBehaviour, "_start_reset")
     @mock.patch.object(BaseBehaviour, "_is_timeout_expired")

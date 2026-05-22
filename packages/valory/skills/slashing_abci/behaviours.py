@@ -119,6 +119,9 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
         """Initialize the slashing check behaviour."""
         super().__init__(**kwargs)
         self._slash_amounts: Dict[str, float] = {}
+        # latches the "no round transition" warning so it is emitted once per
+        # no-transition window rather than on every `async_act` tick
+        self._warned_no_transition: bool = False
 
     @property
     def synchronized_data(self) -> SlashingSyncedData:
@@ -211,11 +214,17 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
             # `_last_round_transition_timestamp` during an agent <-> Tendermint
             # communication recovery while restoring the offence status. Skip the
             # check; `async_act` retries once a transition has been completed.
-            self.context.logger.warning(
-                "Slashing check ran before any round transition has been "
-                "completed; skipping until the next transition."
-            )
+            # The warning is latched, as `async_act` calls this on every tick
+            # (`sleep_time` defaults to 1s), so it is emitted once per window.
+            if not self._warned_no_transition:
+                self.context.logger.warning(
+                    "Slashing check ran before any round transition has been "
+                    "completed; skipping until the next transition."
+                )
+                self._warned_no_transition = True
             return
+
+        self._warned_no_transition = False
 
         for agent, status in self.offence_status.items():
             amount = status.slash_amount(
