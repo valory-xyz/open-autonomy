@@ -22,7 +22,6 @@
 # pylint: disable=protected-access
 
 import json
-import logging
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime
@@ -32,7 +31,6 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
-from _pytest.logging import LogCaptureFixture
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
@@ -278,9 +276,7 @@ class TestSlashingCheckBehaviour(BaseSlashingTest):
         self.current_behaviour._check_offence_status()
         assert self.current_behaviour._slash_amounts == expected_amounts
 
-    def test_check_offence_status_before_first_transition(
-        self, caplog: LogCaptureFixture
-    ) -> None:
+    def test_check_offence_status_before_first_transition(self) -> None:
         """Test `_check_offence_status` skips the check and warns once when no round transition has been completed."""
         self.fast_forward(data={"slash_timestamps": json.dumps({"agent": 0})})
         # repeating this check for the `current_behaviour` here to avoid `mypy` reporting:
@@ -303,18 +299,20 @@ class TestSlashingCheckBehaviour(BaseSlashingTest):
                 "Trying to access `last_round_transition_timestamp` while no "
                 "transition has been completed yet."
             ),
-        ), caplog.at_level(logging.WARNING):
+        ), mock.patch.object(
+            self.current_behaviour.context.logger, "warning"
+        ) as mock_warning:
             # must not raise `ValueError`; the check is skipped and no amounts are
             # recorded. Called twice to assert the `WARNING` is latched.
             self.current_behaviour._check_offence_status()
             self.current_behaviour._check_offence_status()
 
         assert self.current_behaviour._slash_amounts == {}
+        # the warning is latched, so it is emitted once across the two calls
+        mock_warning.assert_called_once()
         assert (
-            caplog.text.count(
-                "Slashing check ran before any round transition has been completed"
-            )
-            == 1
+            "Slashing check ran before any round transition has been completed"
+            in mock_warning.call_args.args[0]
         )
 
     @dataclass
