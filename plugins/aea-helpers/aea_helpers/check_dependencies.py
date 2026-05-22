@@ -401,36 +401,71 @@ class PyProjectTomlConfig:
 
         return None, 0
 
+    @staticmethod
+    def _normalize_version(version: str) -> str:
+        """Normalize a poetry version constraint to a pip-style specifier."""
+        if version in ("", "*"):
+            return ""
+        if version.startswith("^"):
+            return version.replace("^", "==", 1)
+        if re.match(r"^\d", version):
+            return f"=={version}"
+        return version
+
+    @classmethod
+    def _dependency_from_spec(cls, name: str, spec: Any) -> Optional[Dependency]:
+        """Build a Dependency from a poetry dep spec (string or dict)."""
+        if isinstance(spec, str):
+            return Dependency(name=name, version=cls._normalize_version(spec))
+        if isinstance(spec, dict):
+            data = cast(Dict, spec)
+            kwargs: Dict[str, Any] = {
+                "name": name,
+                "version": cls._normalize_version(data.get("version", "")),
+            }
+            if "extras" in data:
+                kwargs["extras"] = data["extras"]
+            return Dependency(**kwargs)
+        # Lists (multiple constraints with markers) and other shapes are
+        # rare in our repos; ignore rather than crash.
+        return None
+
     @classmethod
     def load(
         cls, pyproject_path: Path, exclude: Optional[List[str]] = None
     ) -> Optional["PyProjectTomlConfig"]:
-        """Load pyproject.toml dependencies."""
+        """Load pyproject.toml dependencies.
+
+        Reads `[tool.poetry.dependencies]` plus every
+        `[tool.poetry.group.*.dependencies]` table. Dict-form entries are
+        treated as declared even when they omit the `extras` key (so
+        `optional = true` deps are visible), and dev/test-only entries
+        (e.g. `pytest-asyncio` in the `dev` group) no longer need to be
+        duplicated into main deps to satisfy the check.
+        """
         with open(pyproject_path, "rb") as _pyproject_fp:
             config = tomllib.load(_pyproject_fp)
         dependencies: OrderedDictType[str, Dependency] = OrderedDict()
         try:
-            config["tool"]["poetry"]["dependencies"]
+            main_deps = config["tool"]["poetry"]["dependencies"]
         except KeyError:
             return None
-        for name, version in config["tool"]["poetry"]["dependencies"].items():
-            if isinstance(version, str):
-                dependencies[name] = Dependency(
-                    name=name,
-                    version=version.replace("^", "==") if version != "*" else "",
-                )
-                continue
-            data = cast(Dict, version)
-            if "extras" in data:
-                version = data["version"]
-                if re.match(r"^\d", version):
-                    version = f"=={version}"
-                dependencies[name] = Dependency(
-                    name=name,
-                    version=version,
-                    extras=data["extras"],
-                )
-                continue
+
+        def _ingest(table: Dict[str, Any]) -> None:
+            for name, spec in table.items():
+                if name in dependencies:
+                    continue
+                dep = cls._dependency_from_spec(name, spec)
+                if dep is None:
+                    continue
+                dependencies[name] = dep
+
+        _ingest(main_deps)
+        group_tables = config.get("tool", {}).get("poetry", {}).get("group", {}) or {}
+        for group in group_tables.values():
+            group_deps = group.get("dependencies") if isinstance(group, dict) else None
+            if isinstance(group_deps, dict):
+                _ingest(group_deps)
 
         return cls(
             dependencies=dependencies,
