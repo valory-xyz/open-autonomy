@@ -29,6 +29,10 @@ from autonomy import AUTONOMY_DIR
 from autonomy.constants import VALORY
 from autonomy.data import DATA_DIR
 
+from packages.valory.contracts.service_manager.contract import (  # noqa: F401  pylint: disable=unused-import
+    SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS,
+)
+
 CONTRACTS_DIR_FRAMEWORK = DATA_DIR / CONTRACTS
 CONTRACTS_DIR_LOCAL = (
     AUTONOMY_DIR.parent / PACKAGES / VALORY / CONTRACTS
@@ -300,18 +304,7 @@ ERC8004_IDENTITY_REGISTRY_BRIDGER_CONTRACT = PublicId.from_str(
     "valory/erc8004_identity_registry_bridger"
 )
 
-SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS = (
-    1,
-    5,
-    31337,
-    100,
-    10200,
-    42161,
-    421614,
-    10,
-    11155420,
-    8453,
-    84532,
-    42220,
-    42220,
-)
+# `SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS` is sourced from the contract
+# package via the top-of-file re-export so existing
+# `from autonomy.chain.constants import SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS`
+# call sites keep working.

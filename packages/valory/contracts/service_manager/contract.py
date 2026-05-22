@@ -33,11 +33,21 @@ PUBLIC_ID = PublicId.from_str("valory/service_manager:0.1.0")
 ETHEREUM_ERC20 = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
 ETHEREUM_IDENTIFIER = "ethereum"
 SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS = (
-    1,
-    5,
-    31337,
-    100,
-    10200,
+    # Mainnets (source: autonolas-registries/docs/configuration.json on main).
+    1,  # ethereum
+    137,  # polygon
+    100,  # gnosis
+    42161,  # arbitrum
+    10,  # optimism
+    8453,  # base
+    42220,  # celo
+    34443,  # mode
+    # Testnets / dev
+    31337,  # hardhat local
+    10200,  # chiado (gnosis testnet)
+    421614,  # arbitrum sepolia
+    11155420,  # optimism sepolia
+    84532,  # base sepolia
 )
 SERVICE_MANAGER_BUILD = "ServiceManager.json"
 _logger = logging.getLogger(
