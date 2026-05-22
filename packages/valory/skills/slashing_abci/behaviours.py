@@ -203,8 +203,11 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
         self._slash_amounts = {}
 
         try:
-            last_round_transition_timestamp = timegm(
-                self.round_sequence.last_round_transition_timestamp.utctimetuple()
+            # only the property access can raise `ValueError`; the `timegm`
+            # conversion is kept outside the `try` so an unrelated error is not
+            # misattributed to "no transition completed"
+            last_round_transition_datetime = (
+                self.round_sequence.last_round_transition_timestamp
             )
         except ValueError:
             # No round transition has been completed yet, so there is nothing to
@@ -225,6 +228,9 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
             return
 
         self._warned_no_transition = False
+        last_round_transition_timestamp = timegm(
+            last_round_transition_datetime.utctimetuple()
+        )
 
         for agent, status in self.offence_status.items():
             amount = status.slash_amount(

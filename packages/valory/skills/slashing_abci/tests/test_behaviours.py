@@ -277,7 +277,7 @@ class TestSlashingCheckBehaviour(BaseSlashingTest):
         assert self.current_behaviour._slash_amounts == expected_amounts
 
     def test_check_offence_status_before_first_transition(self) -> None:
-        """Test `_check_offence_status` skips the check and warns once when no round transition has been completed."""
+        """Test `_check_offence_status` skips the check and re-warns once per no-transition window."""
         self.fast_forward(data={"slash_timestamps": json.dumps({"agent": 0})})
         # repeating this check for the `current_behaviour` here to avoid `mypy` reporting:
         # `error: Item "None" of "Optional[BaseBehaviour]" has no attribute "context"` when accessing the context below
@@ -291,29 +291,50 @@ class TestSlashingCheckBehaviour(BaseSlashingTest):
             )
         }
 
+        no_transition_error = ValueError(
+            "Trying to access `last_round_transition_timestamp` while no "
+            "transition has been completed yet."
+        )
         with mock.patch.object(
             type(self.current_behaviour.round_sequence),
             "last_round_transition_timestamp",
             new_callable=mock.PropertyMock,
-            side_effect=ValueError(
-                "Trying to access `last_round_transition_timestamp` while no "
-                "transition has been completed yet."
-            ),
+            # raise before the first transition, then yield a real timestamp once
+            # a transition completes, then raise again for a fresh window
+            side_effect=[
+                no_transition_error,
+                no_transition_error,
+                datetime(2000, 1, 1),
+                no_transition_error,
+            ],
         ), mock.patch.object(
             self.current_behaviour.context.logger, "warning"
         ) as mock_warning:
-            # must not raise `ValueError`; the check is skipped and no amounts are
-            # recorded. Called twice to assert the `WARNING` is latched.
+            # before the first transition: must not raise `ValueError`; the check
+            # is skipped, no amounts recorded, and the WARNING is latched so it
+            # fires once across the two ticks
             self.current_behaviour._check_offence_status()
             self.current_behaviour._check_offence_status()
+            assert self.current_behaviour._slash_amounts == {}
+            assert self.current_behaviour._warned_no_transition is True
+            mock_warning.assert_called_once()
+            assert (
+                "Slashing check ran before any round transition has been completed"
+                in mock_warning.call_args.args[0]
+            )
 
-        assert self.current_behaviour._slash_amounts == {}
-        # the warning is latched, so it is emitted once across the two calls
-        mock_warning.assert_called_once()
-        assert (
-            "Slashing check ran before any round transition has been completed"
-            in mock_warning.call_args.args[0]
-        )
+            # a completed transition takes the success path: the latch is cleared
+            # and the slashable offence is recorded
+            self.current_behaviour._check_offence_status()
+            assert self.current_behaviour._warned_no_transition is False
+            assert self.current_behaviour._slash_amounts == {
+                "agent": DUMMY_SLASH_THRESHOLD + 1
+            }
+
+            # a fresh no-transition window re-emits the WARNING (latch was reset)
+            self.current_behaviour._check_offence_status()
+            assert mock_warning.call_count == 2
+            assert self.current_behaviour._slash_amounts == {}
 
     @dataclass
     class SlashingCheckBehaviourTestCase:
