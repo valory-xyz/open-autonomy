@@ -1429,6 +1429,17 @@ def test_get_reset_params(default: bool, timestamp: datetime, height: int,
 
 Test `_get_reset_params` method.
 
+<a id="packages.valory.skills.abstract_round_abci.tests.test_behaviours_utils.TestBaseBehaviour.test_get_reset_params_before_first_transition"></a>
+
+#### test`_`get`_`reset`_`params`_`before`_`first`_`transition
+
+```python
+def test_get_reset_params_before_first_transition(
+        caplog: LogCaptureFixture) -> None
+```
+
+Test `_get_reset_params` falls back to default params before the first round transition.
+
 <a id="packages.valory.skills.abstract_round_abci.tests.test_behaviours_utils.TestBaseBehaviour.test_reset_tendermint_with_wait_timeout_expired"></a>
 
 #### test`_`reset`_`tendermint`_`with`_`wait`_`timeout`_`expired
