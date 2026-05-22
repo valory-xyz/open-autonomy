@@ -19,6 +19,9 @@
 
 """Test utils."""
 
+import json
+import urllib.error
+import urllib.request
 from json import JSONDecodeError
 from typing import Dict
 from unittest import mock
@@ -33,6 +36,11 @@ from autonomy.chain.utils import (
     is_service_manager_token_compatible_chain,
     parse_public_id_from_metadata,
     resolve_component_id,
+)
+
+AUTONOLAS_REGISTRIES_CONFIG_URL = (
+    "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/"
+    "main/docs/configuration.json"
 )
 
 
@@ -192,3 +200,54 @@ def test_is_service_manager_token_compatible_chain() -> None:
 
     ledger_api.api.eth.chain_id = -1
     assert is_service_manager_token_compatible_chain(ledger_api) is False
+
+
+@pytest.mark.integration
+def test_compatible_chains_covers_autonolas_registries_deployments() -> None:
+    """Drift-check the constant against `autonolas-registries`.
+
+    Every chain Olas has deployed `ServiceRegistryTokenUtility` to must
+    appear in `SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS`. Source of truth is
+    `autonolas-registries/docs/configuration.json` on `main`. Fetched live
+    so a new mainnet deployment fails this test loudly instead of silently
+    drifting.
+    """
+
+    from autonomy.chain.constants import SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS
+
+    try:
+        with urllib.request.urlopen(  # nosec — fixed valory-xyz URL
+            AUTONOLAS_REGISTRIES_CONFIG_URL, timeout=30
+        ) as response:
+            raw = response.read()
+    except (urllib.error.URLError, TimeoutError) as exc:
+        raise RuntimeError(
+            f"Could not fetch {AUTONOLAS_REGISTRIES_CONFIG_URL}: {exc}. "
+            "Run with `-m 'not integration'` to skip this check offline."
+        ) from exc
+
+    config = json.loads(raw)
+    upstream_chains = {
+        int(chain["chainId"]): chain.get("name", "<unnamed>")
+        for chain in config
+        if any(
+            contract.get("name") == "ServiceRegistryTokenUtility"
+            for contract in chain.get("contracts", [])
+        )
+    }
+    assert upstream_chains, (
+        "autonolas-registries configuration.json returned zero chains with "
+        "`ServiceRegistryTokenUtility` — schema may have changed."
+    )
+
+    missing = {
+        chain_id: name
+        for chain_id, name in upstream_chains.items()
+        if chain_id not in SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS
+    }
+    assert not missing, (
+        "Olas has `ServiceRegistryTokenUtility` deployed on chains that are "
+        "not in `SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS`. Add them to "
+        "`packages/valory/contracts/service_manager/contract.py` and re-lock: "
+        f"{missing}. Source: {AUTONOLAS_REGISTRIES_CONFIG_URL}"
+    )
