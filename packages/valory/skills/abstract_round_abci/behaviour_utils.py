@@ -1919,9 +1919,24 @@ class BaseBehaviour(
         if default:
             return None
 
-        last_round_transition_timestamp = (
-            self.round_sequence.last_round_transition_timestamp
-        )
+        try:
+            last_round_transition_timestamp = (
+                self.round_sequence.last_round_transition_timestamp
+            )
+        except ValueError:
+            # No round transition has been completed yet, so there is no
+            # timestamp to anchor the new genesis to. This can happen when a
+            # hard reset is requested before the first transition of a period,
+            # e.g. right after the round sequence was reset to its default
+            # parameters while recovering agent <-> Tendermint communication.
+            # Fall back to the default reset parameters, mirroring the
+            # `default`/`on_startup` branch above and `_TmManager._get_reset_params`.
+            self.context.logger.warning(
+                "Tendermint hard reset requested before any round transition "
+                "has been completed; using default reset parameters."
+            )
+            return None
+
         genesis_time = last_round_transition_timestamp.astimezone(
             datetime.timezone.utc
         ).strftime(GENESIS_TIME_FMT)

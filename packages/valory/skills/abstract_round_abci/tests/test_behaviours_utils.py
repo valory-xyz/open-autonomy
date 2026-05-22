@@ -2176,6 +2176,27 @@ class TestBaseBehaviour:
 
             assert actual == expected
 
+    def test_get_reset_params_before_first_transition(self) -> None:
+        """Test `_get_reset_params` falls back to default params before the first round transition."""
+
+        class _NoTransitionRoundSequence:
+            """A round sequence stub whose timestamp access raises, as the real property does."""
+
+            @property
+            def last_round_transition_timestamp(self) -> datetime:
+                """Mimic `RoundSequence.last_round_transition_timestamp` before any transition."""
+                raise ValueError(
+                    "Trying to access `last_round_transition_timestamp` while no "
+                    "transition has been completed yet."
+                )
+
+        self.context_mock.state.round_sequence = _NoTransitionRoundSequence()
+
+        # A non-startup hard reset requested before any transition must not crash;
+        # it falls back to the default reset params (`None`) instead of letting the
+        # `ValueError` propagate and terminate the agent.
+        assert self.behaviour._get_reset_params(default=False) is None
+
     @mock.patch.object(BaseBehaviour, "_start_reset")
     @mock.patch.object(BaseBehaviour, "_is_timeout_expired")
     def test_reset_tendermint_with_wait_timeout_expired(self, *_: mock.Mock) -> None:

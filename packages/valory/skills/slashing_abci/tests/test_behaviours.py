@@ -276,6 +276,26 @@ class TestSlashingCheckBehaviour(BaseSlashingTest):
         self.current_behaviour._check_offence_status()
         assert self.current_behaviour._slash_amounts == expected_amounts
 
+    def test_check_offence_status_before_first_transition(self) -> None:
+        """Test `_check_offence_status` skips the check when no round transition has been completed."""
+        self.fast_forward(data={"slash_timestamps": json.dumps({"agent": 0})})
+        # repeating this check for the `current_behaviour` here to avoid `mypy` reporting:
+        # `error: Item "None" of "Optional[BaseBehaviour]" has no attribute "context"` when accessing the context below
+        assert self.current_behaviour is not None
+
+        self.current_behaviour._slash_amounts = {"agent": "something_random"}
+        self.current_behaviour.round_sequence._offence_status = {  # type: ignore
+            "agent": MagicMock(
+                slash_amount=MagicMock(return_value=DUMMY_SLASH_THRESHOLD + 1)
+            )
+        }
+        # no round transition has been completed yet
+        self.current_behaviour.round_sequence._last_round_transition_timestamp = None
+
+        # must not raise `ValueError`; the check is skipped and no amounts are recorded
+        self.current_behaviour._check_offence_status()
+        assert self.current_behaviour._slash_amounts == {}
+
     @dataclass
     class SlashingCheckBehaviourTestCase:
         """Test case parametrization for the `SlashingCheckBehaviour`."""

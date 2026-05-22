@@ -199,6 +199,24 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
         """Check the offence status, calculate the slash amount per operator, and assign it to `_slash_amounts`."""
         self._slash_amounts = {}
 
+        try:
+            last_round_transition_timestamp = timegm(
+                self.round_sequence.last_round_transition_timestamp.utctimetuple()
+            )
+        except ValueError:
+            # No round transition has been completed yet, so there is nothing to
+            # compare the slash cooldown against. This can happen when the slashing
+            # background app runs before the first transition of a period, e.g.
+            # right after `RoundSequence.reset_state` clears
+            # `_last_round_transition_timestamp` during an agent <-> Tendermint
+            # communication recovery while restoring the offence status. Skip the
+            # check; `async_act` retries once a transition has been completed.
+            self.context.logger.warning(
+                "Slashing check ran before any round transition has been "
+                "completed; skipping until the next transition."
+            )
+            return
+
         for agent, status in self.offence_status.items():
             amount = status.slash_amount(
                 self.params.light_slash_unit_amount,
@@ -210,9 +228,6 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
             # This ensures that the comparison being performed is against 0.
             last_slashed_timestamp = self.synchronized_data.slash_timestamps.get(
                 agent, -self.params.slash_cooldown_hours
-            )
-            last_round_transition_timestamp = timegm(
-                self.round_sequence.last_round_transition_timestamp.utctimetuple()
             )
 
             if (
