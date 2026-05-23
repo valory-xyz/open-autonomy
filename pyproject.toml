@@ -18,6 +18,12 @@ include = [
 ]
 
 [tool.poetry.dependencies]
+# `[tool.poetry.dependencies]` models the dev environment Poetry sets
+# up when `poetry install` is run on a checkout of this repo; `setup.py`
+# is the authoritative (and intentionally narrower) manifest used for
+# the published wheel. Adding a dep here will NOT make it ship to PyPI
+# users — mirror it into `setup.py`'s `install_requires` if it's
+# genuinely runtime.
 python = ">=3.10,<3.15"
 # Core runtime
 open-aea = { version = "==2.2.6", extras = ["all"] }

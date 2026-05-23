@@ -154,3 +154,162 @@ def test_exclude_argument_filters_iteration(tmp_path: Path) -> None:
     names = {dep.name for dep in config}
     assert "mkdocs" not in names
     assert "docker" not in names
+
+
+def test_iter_scopes_to_main_deps(tmp_path: Path) -> None:
+    """`__iter__` yields main-deps only; group entries are reserved for lookups.
+
+    Group deps live in `self.dependencies` so package-YAML →
+    pyproject `check()` lookups succeed, but they must not be surfaced
+    when cross-comparing pyproject against `tox.ini` (which only carries
+    main runtime deps).
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    """
+    config = PyProjectTomlConfig.load(_write_pyproject(tmp_path))
+    assert config is not None
+    iterated = {dep.name for dep in config}
+    # Main-deps present:
+    assert "open-aea" in iterated
+    assert "docker" in iterated
+    # Group-only deps absent from iteration but still accessible via check():
+    assert "pytest-asyncio" not in iterated
+    assert "Flask" not in iterated
+    assert "mkdocs" not in iterated
+    assert "pytest-asyncio" in config.dependencies
+    assert "Flask" in config.dependencies
+
+
+def test_dump_does_not_hoist_group_deps_to_main(tmp_path: Path) -> None:
+    """`dump()` rewrites only main-dep lines; group lines are preserved verbatim.
+
+    Regression guard for the `--update` mode corruption described in
+    the review: prior to scoping, `dump()` would either rewrite group
+    lines through `Dependency.to_pipfile_string()` (stripping
+    `optional` / `path` / `develop` / `markers`) or, in the OAEA
+    variant, hoist them into `[tool.poetry.dependencies]`.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    """
+    pyproject = _write_pyproject(tmp_path)
+    original = pyproject.read_text()
+    config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    config.dump()
+    after = pyproject.read_text()
+    # Group section is left untouched line-for-line.
+    for line in (
+        'pytest-asyncio = "*"',
+        'Flask = ">=3.1.0,<4.0.0"',
+        'open-aea-helpers = { path = "plugins/aea-helpers", develop = true }',
+        'mkdocs = "==1.6.0"',
+    ):
+        assert line in original
+        assert line in after, f"Group line {line!r} corrupted by dump()"
+    # Group deps are NOT copied into the main `[tool.poetry.dependencies]`
+    # block (which lives between the two table headers).
+    main_section = after.split("[tool.poetry.extras]")[0]
+    for group_name in ("pytest-asyncio", "Flask", "open-aea-helpers", "mkdocs"):
+        assert (
+            f"{group_name} = " not in main_section
+        ), f"Group dep {group_name!r} hoisted into main"
+
+
+def test_load_skips_list_form_spec(tmp_path: Path) -> None:
+    """List-form specs (multi-constraint with markers) are skipped, not crashed on."""
+    content = textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["demo"]
+
+        [tool.poetry.dependencies]
+        python = ">=3.10,<3.15"
+        requests = "*"
+
+        [[tool.poetry.dependencies.weird]]
+        version = "==1.0"
+        python = "<3.12"
+        """)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+    config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    # `requests` parses normally; the list-form `weird` entry is skipped.
+    assert "requests" in config.dependencies
+    assert "weird" not in config.dependencies
+
+
+def test_load_handles_malformed_group_table(tmp_path: Path) -> None:
+    """A `[tool.poetry.group]` whose entries lack `dependencies` is tolerated."""
+    content = textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["demo"]
+
+        [tool.poetry.dependencies]
+        python = ">=3.10,<3.15"
+        requests = "*"
+
+        [tool.poetry.group.dev]
+        optional = true
+        """)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+    config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    assert "requests" in config.dependencies
+
+
+def test_load_handles_no_group_table(tmp_path: Path) -> None:
+    """A pyproject.toml with `[tool.poetry.dependencies]` but no groups loads cleanly."""
+    content = textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["demo"]
+
+        [tool.poetry.dependencies]
+        python = ">=3.10,<3.15"
+        requests = "*"
+        """)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+    config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    assert {dep.name for dep in config} == {"requests"}
+
+
+def test_load_normalizes_bare_numeric_string(tmp_path: Path) -> None:
+    """Bare-numeric string entries (`"7.0.0"`) get `==` prefixed."""
+    content = textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["demo"]
+
+        [tool.poetry.dependencies]
+        python = ">=3.10,<3.15"
+        somepkg = "7.0.0"
+        """)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+    config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    assert SpecifierSet(config.dependencies["somepkg"].version) == SpecifierSet(
+        "==7.0.0"
+    )
+
+
+def test_load_normalizes_flask_range_specifier(tmp_path: Path) -> None:
+    """Range specifiers (`>=3.1.0,<4.0.0`) survive normalization unchanged."""
+    config = PyProjectTomlConfig.load(_write_pyproject(tmp_path))
+    assert config is not None
+    assert SpecifierSet(config.dependencies["Flask"].version) == SpecifierSet(
+        ">=3.1.0,<4.0.0"
+    )

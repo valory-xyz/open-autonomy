@@ -231,7 +231,8 @@ Class to represent pyproject.toml file.
 def __init__(dependencies: OrderedDictType[str, Dependency],
              config: Dict[str, Dict],
              file: Path,
-             exclude: Optional[List[str]] = None) -> None
+             exclude: Optional[List[str]] = None,
+             main_dep_names: Optional[Set[str]] = None) -> None
 ```
 
 Initialize object.
@@ -288,6 +289,11 @@ treated as declared even when they omit the `extras` key (so
 (e.g. `pytest-asyncio` in the `dev` group) no longer need to be
 duplicated into main deps to satisfy the check.
 
+Group-origin entries enter `self.dependencies` for `check()`
+lookups but are excluded from `__iter__` / `dump()` so that
+cross-validation against `tox.ini` and `--update` rewrites stay
+scoped to main runtime deps. See `__init__` for the rationale.
+
 **Arguments**:
 
 - `pyproject_path`: path to the pyproject.toml file.
@@ -295,8 +301,10 @@ duplicated into main deps to satisfy the check.
 
 **Returns**:
 
-a `PyProjectTomlConfig` instance, or `None` if the
-file has no `[tool.poetry.dependencies]` table.
+a `PyProjectTomlConfig` instance, or `None` if the file
+has no `[tool.poetry.dependencies]` table (the `except
+KeyError` also triggers on a missing `[tool]` /
+`[tool.poetry]` parent).
 
 <a id="plugins.aea-helpers.aea_helpers.check_dependencies.PyProjectTomlConfig.dump"></a>
 

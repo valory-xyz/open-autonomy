@@ -32,7 +32,7 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional
 from typing import OrderedDict as OrderedDictType
-from typing import Tuple, cast
+from typing import Set, Tuple, cast
 
 import click
 from aea.configurations.data_types import Dependency
@@ -363,18 +363,33 @@ class PyProjectTomlConfig:
         config: Dict[str, Dict],
         file: Path,
         exclude: Optional[List[str]] = None,
+        main_dep_names: Optional[Set[str]] = None,
     ) -> None:
         """Initialize object."""
         self.dependencies = dependencies
         self.config = config
         self.file = file
         self.ignore = list(set(self.ignore + (exclude or [])))
+        # When `main_dep_names` is provided, `__iter__` and `dump()` are
+        # scoped to those entries. Group-only entries still live in
+        # `self.dependencies` so `check()` lookups succeed (e.g. a
+        # `pytest-asyncio` declared in `[tool.poetry.group.dev.dependencies]`
+        # must satisfy a package-YAML dependency declaration), but they
+        # don't get cross-compared against `tox.ini` or rewritten by
+        # `--update` mode (which would strip dict-form metadata such as
+        # `optional`, `path`, `develop`, `markers`).
+        self._main_dep_names: Optional[Set[str]] = (
+            set(main_dep_names) if main_dep_names is not None else None
+        )
 
     def __iter__(self) -> Iterator[Dependency]:
         """Iterate dependencies."""
-        for dependency in self.dependencies.values():
-            if dependency.name not in self.ignore:
-                yield dependency
+        for name, dependency in self.dependencies.items():
+            if dependency.name in self.ignore:
+                continue
+            if self._main_dep_names is not None and name not in self._main_dep_names:
+                continue
+            yield dependency
 
     def update(self, dependency: Dependency) -> None:
         """Update dependency specifier."""
@@ -407,8 +422,13 @@ class PyProjectTomlConfig:
         if version in ("", "*"):
             return ""
         if version.startswith("^"):
+            # Deliberately lossy: PEP 440 has no caret, and the checker
+            # compares specifiers as plain strings against package YAMLs
+            # which use `==X.Y.Z`. Collapsing `^X.Y.Z` to `==X.Y.Z`
+            # matches that convention; the upper bound (`<(X+1).0.0`)
+            # implied by Poetry's caret semantics is dropped here.
             return version.replace("^", "==", 1)
-        if re.match(r"^\d", version):
+        if version[0].isdigit():
             return f"=={version}"
         return version
 
@@ -418,16 +438,21 @@ class PyProjectTomlConfig:
         if isinstance(spec, str):
             return Dependency(name=name, version=cls._normalize_version(spec))
         if isinstance(spec, dict):
-            data = cast(Dict, spec)
-            kwargs: Dict[str, Any] = {
-                "name": name,
-                "version": cls._normalize_version(data.get("version", "")),
-            }
-            if "extras" in data:
-                kwargs["extras"] = data["extras"]
-            return Dependency(**kwargs)
+            return Dependency(
+                name=name,
+                version=cls._normalize_version(spec.get("version", "")),
+                extras=spec.get("extras"),
+            )
         # Lists (multiple constraints with markers) and other shapes are
-        # rare in our repos; ignore rather than crash.
+        # rare in our repos; surface them as a warning so a future
+        # contributor knows the entry was skipped rather than silently
+        # treated as declared.
+        logging.warning(
+            "Skipping unrecognized dependency spec for %r in pyproject.toml: "
+            "expected str or dict, got %s.",
+            name,
+            type(spec).__name__,
+        )
         return None
 
     @classmethod
@@ -443,10 +468,17 @@ class PyProjectTomlConfig:
         (e.g. `pytest-asyncio` in the `dev` group) no longer need to be
         duplicated into main deps to satisfy the check.
 
+        Group-origin entries enter `self.dependencies` for `check()`
+        lookups but are excluded from `__iter__` / `dump()` so that
+        cross-validation against `tox.ini` and `--update` rewrites stay
+        scoped to main runtime deps. See `__init__` for the rationale.
+
         :param pyproject_path: path to the pyproject.toml file.
         :param exclude: package names to omit from iteration / check.
-        :return: a `PyProjectTomlConfig` instance, or `None` if the
-            file has no `[tool.poetry.dependencies]` table.
+        :return: a `PyProjectTomlConfig` instance, or `None` if the file
+            has no `[tool.poetry.dependencies]` table (the `except
+            KeyError` also triggers on a missing `[tool]` /
+            `[tool.poetry]` parent).
         """
         with open(pyproject_path, "rb") as _pyproject_fp:
             config = tomllib.load(_pyproject_fp)
@@ -459,6 +491,15 @@ class PyProjectTomlConfig:
         def _ingest(table: Dict[str, Any]) -> None:
             for name, spec in table.items():
                 if name in dependencies:
+                    # Main is ingested first, so this branch only fires
+                    # when a group entry collides with a main entry.
+                    # Main wins (tighter version pins in dev groups are
+                    # not the checker's concern); flag the silent drop.
+                    logging.warning(
+                        "Dependency %r appears in multiple pyproject.toml "
+                        "tables; keeping the first occurrence (main wins).",
+                        name,
+                    )
                     continue
                 dep = cls._dependency_from_spec(name, spec)
                 if dep is None:
@@ -466,7 +507,15 @@ class PyProjectTomlConfig:
                 dependencies[name] = dep
 
         _ingest(main_deps)
-        group_tables = config.get("tool", {}).get("poetry", {}).get("group", {}) or {}
+        main_dep_names: Set[str] = set(dependencies)
+
+        group_tables = config["tool"]["poetry"].get("group", {})
+        if not isinstance(group_tables, dict):
+            logging.warning(
+                "[tool.poetry.group] in %s is not a table; ignoring.",
+                pyproject_path,
+            )
+            group_tables = {}
         for group in group_tables.values():
             group_deps = group.get("dependencies") if isinstance(group, dict) else None
             if isinstance(group_deps, dict):
@@ -477,6 +526,7 @@ class PyProjectTomlConfig:
             config=config,
             file=pyproject_path,
             exclude=exclude,
+            main_dep_names=main_dep_names,
         )
 
     def dump(self) -> None:
@@ -488,6 +538,14 @@ class PyProjectTomlConfig:
                 update += f"{line}\n"
                 continue
             package, *_ = line.split(" = ")
+            # Only rewrite lines that correspond to main runtime deps.
+            # Group lines (and unrelated `key = value` lines elsewhere
+            # in the file) are passed through verbatim — rewriting them
+            # via `Dependency.to_pipfile_string()` would strip
+            # `optional` / `path` / `develop` / `markers` keys.
+            if self._main_dep_names is not None and package not in self._main_dep_names:
+                update += f"{line}\n"
+                continue
             dep = self.dependencies.get(package)
             if dep is None:
                 update += f"{line}\n"
