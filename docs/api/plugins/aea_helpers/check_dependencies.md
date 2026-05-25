@@ -232,7 +232,8 @@ def __init__(dependencies: OrderedDictType[str, Dependency],
              config: Dict[str, Dict],
              file: Path,
              exclude: Optional[List[str]] = None,
-             main_dep_names: Optional[Set[str]] = None) -> None
+             main_dep_names: Optional[Set[str]] = None,
+             string_dep_names: Optional[Set[str]] = None) -> None
 ```
 
 Initialize object.
@@ -315,6 +316,14 @@ def dump() -> None
 ```
 
 Dump to file.
+
+Only rewrites lines inside ``[tool.poetry.dependencies]`` that
+originated from a plain-string spec (e.g. ``requests = "*"``).
+Dict-form entries (``docker = { version = "==7.1.0", optional =
+true }``) carry metadata that ``Dependency.to_pipfile_string()``
+cannot represent, so they pass through verbatim.  Lines in other
+TOML sections (``[tool.poetry.extras]``, group tables, etc.) are
+never touched.
 
 <a id="plugins.aea-helpers.aea_helpers.check_dependencies.load_packages_dependencies"></a>
 

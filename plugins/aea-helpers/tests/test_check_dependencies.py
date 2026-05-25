@@ -394,6 +394,8 @@ def test_dump_preserves_main_dict_form_and_extras_collision(
     `[tool.poetry.dependencies]` (dict-form) and
     `[tool.poetry.extras]` (list-form), dump() must leave both
     lines intact.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
     """
     content = textwrap.dedent("""\
         [tool.poetry]
