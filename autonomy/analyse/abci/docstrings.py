@@ -75,6 +75,16 @@ def docstring_abci_app(abci_app: Any) -> str:  # pylint: disable-msg=too-many-lo
     )
 
 
+def _next_non_blank_line_starts_docstring(file_content: str, after_pos: int) -> bool:
+    """Return True if the next non-blank line after ``after_pos`` starts with a triple-quote."""
+    tail = file_content[after_pos:]
+    for raw_line in tail.splitlines()[1:]:
+        if raw_line.strip() == "":
+            continue
+        return raw_line.lstrip().startswith('"""')
+    return False
+
+
 def compare_docstring_content(
     file_content: str,
     docstring: str,
@@ -99,16 +109,25 @@ def compare_docstring_content(
             regex_with_docstring, updated_class, file_content, flags=re.MULTILINE
         )
 
-    # Class header is present but no docstring matched. Negative lookahead
-    # skips classes that already have a docstring the strict pattern missed,
-    # so we never insert a second docstring next to an existing one.
-    regex_no_docstring = (
-        r'class [A-Za-z]+\(AbciApp\[Event\]\):([a-zA-Z \#:=\-]+)?(?!\s*\n\s*""")'
+    # Fall back to inserting a docstring into a class that has none.
+    # Anchor the class header to end-of-line, then check the next non-blank
+    # line explicitly so trailing inline comments and tab-indented existing
+    # docstrings do not bypass the check.
+    regex_header_only = re.compile(
+        r"^class [A-Za-z]+\(AbciApp\[Event\]\):([a-zA-Z \#:=\-]+)?$",
+        flags=re.MULTILINE,
     )
-    match = re.search(regex_no_docstring, file_content)
+    match = regex_header_only.search(file_content)
     if match is None:
         return False, ""
-    group, *_ = cast(re.Match, match).groups()
+    if _next_non_blank_line_starts_docstring(file_content, match.end()):
+        # An existing docstring sits below the header (possibly with quirky
+        # whitespace the strict pattern above missed); do not double-insert.
+        return False, ""
+    group = match.group(1)
     markers = group if group is not None else ""
     updated_class = f"class {abci_app_name}(AbciApp[Event]):{markers}{docstring}"
-    return True, re.sub(regex_no_docstring, updated_class, file_content, count=1)
+    return (
+        True,
+        file_content[: match.start()] + updated_class + file_content[match.end() :],
+    )

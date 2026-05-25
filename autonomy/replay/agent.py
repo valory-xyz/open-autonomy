@@ -48,7 +48,14 @@ class AgentRunner:
     agent_alias: str = "agent"
 
     def __init__(self, agent_id: int, agent_data: Dict, registry_path: Path) -> None:
-        """Initialize object."""
+        """Initialize object.
+
+        :param agent_id: numeric id of the agent service entry.
+        :param agent_data: docker-compose service block for the agent.
+        :param registry_path: registry path forwarded to ``aea fetch``.
+        :raises ValueError: if the service block is missing ``environment`` or
+            an env entry is not formatted as ``KEY=VALUE``.
+        """
 
         self.agent_id = agent_id
         self.agent_data = agent_data
@@ -57,9 +64,20 @@ class AgentRunner:
         self.agent_dir = TemporaryDirectory()  # pylint: disable=consider-using-with
         self.cwd = Path(".").resolve().absolute()
 
-        agent_env_data = self.agent_data["environment"]
+        agent_env_data = self.agent_data.get("environment")
+        if agent_env_data is None:
+            raise ValueError(
+                f"docker-compose service for agent {agent_id} has no "
+                "`environment` block; cannot construct the agent runtime env."
+            )
         for env_var in agent_env_data:
-            key, value = env_var.split("=")
+            if "=" not in env_var:
+                raise ValueError(
+                    f"docker-compose env entry {env_var!r} is not "
+                    "formatted as KEY=VALUE."
+                )
+            # split(_, 1) so VALUES containing '=' (e.g. base64 tokens) are kept whole.
+            key, value = env_var.split("=", 1)
             if key.endswith(TENDERMINT_URL_PARAM.upper()) or key.endswith(
                 TENDERMINT_COM_URL_PARAM.upper()
             ):
@@ -73,19 +91,36 @@ class AgentRunner:
     def start(
         self,
     ) -> None:
-        """Start process."""
+        """Start process.
+
+        :raises ValueError: if required env vars (``AEA_AGENT``, ``AEA_KEY``)
+            are not present in the docker-compose service block. A common
+            cause is replaying against a build dir generated before the
+            ``VALORY_APPLICATION`` → ``AEA_AGENT`` rename.
+        """
 
         agent_dir = Path(self.agent_dir.name)
         os.chdir(agent_dir)
 
-        print(f"Loading {self.agent_env['AEA_AGENT']}")
+        aea_agent = self.agent_env.get("AEA_AGENT")
+        if aea_agent is None:
+            raise ValueError(
+                "Missing `AEA_AGENT` in the docker-compose env block. "
+                "Regenerate the build directory if it was produced before the "
+                "`VALORY_APPLICATION` → `AEA_AGENT` rename."
+            )
+        aea_key = self.agent_env.get("AEA_KEY")
+        if aea_key is None:
+            raise ValueError("Missing `AEA_KEY` in the docker-compose env block.")
+
+        print(f"Loading {aea_agent}")
         subprocess.run(  # nosec  # pylint: disable=subprocess-run-check
             [
                 *self.aea_cli,
                 "--registry-path",
                 str(self.registry_path),
                 "fetch",
-                self.agent_env["AEA_AGENT"],
+                aea_agent,
                 "--local",
                 "--alias",
                 self.agent_alias,
@@ -94,7 +129,7 @@ class AgentRunner:
         )
         os.chdir(agent_dir / self.agent_alias)
         Path(agent_dir, self.agent_alias, ETHEREUM_PRIVATE_KEY_FILE).write_text(
-            self.agent_env["AEA_KEY"], encoding="utf-8"
+            aea_key, encoding="utf-8"
         )
 
         subprocess.run(  # nosec # pylint: disable=subprocess-run-check

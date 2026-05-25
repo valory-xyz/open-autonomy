@@ -80,9 +80,11 @@ def run_agent(agent: int, build_path: Path, registry_path: Path) -> None:
             f"Available services: {sorted(services)}"
         )
     agent_data = services[service_key]
-    runner = AgentRunner(agent, agent_data, registry_path)
+    with reraise_as_click_exception(ValueError):
+        runner = AgentRunner(agent, agent_data, registry_path)
     try:
-        runner.start()
+        with reraise_as_click_exception(ValueError):
+            runner.start()
         while True:  # pragma: nocover
             time.sleep(1)
     except KeyboardInterrupt:

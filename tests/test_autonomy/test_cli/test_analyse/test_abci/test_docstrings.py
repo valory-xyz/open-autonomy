@@ -97,3 +97,55 @@ def test_compare_docstring_content_inserts_when_class_has_no_docstring() -> None
     assert (
         "initial_round_cls = OffendRound" in updated
     ), "the original body must be preserved after the docstring is inserted"
+
+    # Second pass must be a no-op (idempotent).
+    success_again, updated_again = compare_docstring_content(
+        updated, docstring, abci_app_name
+    )
+    assert success_again is True
+    assert updated_again == updated, "second pass must not insert a duplicate docstring"
+
+
+def test_compare_docstring_content_skips_inline_comment_with_existing_docstring() -> (
+    None
+):
+    """Skip insertion when an existing docstring follows a class header with an inline comment.
+
+    Regression guard for a regex backtracking case: the previous
+    negative-lookahead could match a header carrying a trailing inline comment
+    and then evaluate the lookahead past the comment, missing an adjacent
+    existing docstring on the next line.
+    """
+
+    docstring = docstring_abci_app(OffendAbciApp)
+    abci_app_name = OffendAbciApp.__name__
+
+    file_content = (
+        f"class {abci_app_name}(AbciApp[Event]): # marker\n"
+        '    """custom docstring with characters the strict regex rejects: $%*"""\n'
+        "    initial_round_cls = OffendRound\n"
+    )
+
+    success, updated = compare_docstring_content(file_content, docstring, abci_app_name)
+    assert (
+        success is False
+    ), "must not insert a second docstring when one already exists after the class header"
+    assert updated == ""
+
+
+def test_compare_docstring_content_skips_tab_indented_existing_docstring() -> None:
+    """Skip insertion when an existing docstring is tab-indented or separated by a blank line."""
+
+    docstring = docstring_abci_app(OffendAbciApp)
+    abci_app_name = OffendAbciApp.__name__
+
+    file_content = (
+        f"class {abci_app_name}(AbciApp[Event]):\n"
+        "\n"
+        '\t"""tab-indented docstring with $%* characters."""\n'
+        "    initial_round_cls = OffendRound\n"
+    )
+
+    success, updated = compare_docstring_content(file_content, docstring, abci_app_name)
+    assert success is False
+    assert updated == ""

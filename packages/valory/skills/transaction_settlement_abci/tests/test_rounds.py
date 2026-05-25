@@ -904,6 +904,31 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
         ):
             SynchronizeLateMessagesPayload(sender=sender, tx_hashes=tx_hashes)
 
+    def test_malformed_payload_rejected_via_from_json(self) -> None:
+        """``from_json`` re-raises ``TransactionNotValidError`` on bad tx_hashes.
+
+        The abci ``check_tx``/``deliver_tx`` handlers decode a remote payload
+        via ``BaseTxPayload.from_json``, which calls the dataclass constructor
+        and triggers ``__post_init__``. Build a valid payload first to obtain
+        the on-wire dict shape, mutate ``tx_hashes`` to a length that violates
+        ``TX_HASH_LENGTH``, then attempt to round-trip through ``from_json``.
+        The framework relies on this raising a type the handler already
+        catches.
+        """
+
+        good_hashes = "0" * TX_HASH_LENGTH
+        good_payload = SynchronizeLateMessagesPayload(
+            sender="agent", tx_hashes=good_hashes
+        )
+        wire_dict = good_payload.json
+        wire_dict["tx_hashes"] = "0" * (TX_HASH_LENGTH - 1)
+
+        with pytest.raises(
+            TransactionNotValidError,
+            match="Expecting serialized data of chunk size",
+        ):
+            BaseTxPayload.from_json(wire_dict)
+
 
 def test_synchronized_datas() -> None:
     """Test SynchronizedData."""

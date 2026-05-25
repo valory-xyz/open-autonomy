@@ -14,6 +14,11 @@ def fix_address_books(build_dir: Path) -> None
 
 Update address books in data dump to use them in replays.
 
+Malformed individual peer entries (missing ``addr``/``ip`` keys or
+a non-dotted IP) are skipped with a warning so a single bad entry
+does not leave the addrbook half-rewritten and abort the sweep of
+the remaining files.
+
 **Arguments**:
 
 - `build_dir`: build directory containing the tendermint state dump.

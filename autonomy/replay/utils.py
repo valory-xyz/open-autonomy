@@ -31,16 +31,36 @@ from autonomy.deploy.constants import PERSISTENT_DATA_DIR, TM_STATE_DIR
 def fix_address_books(build_dir: Path) -> None:
     """Update address books in data dump to use them in replays.
 
+    Malformed individual peer entries (missing ``addr``/``ip`` keys or
+    a non-dotted IP) are skipped with a warning so a single bad entry
+    does not leave the addrbook half-rewritten and abort the sweep of
+    the remaining files.
+
     :param build_dir: build directory containing the tendermint state dump.
     """
     for addr_file in sorted(
         (build_dir / PERSISTENT_DATA_DIR / TM_STATE_DIR).glob("**/addrbook.json")
     ):
         addr_data = json.loads(addr_file.read_text())
-        for i in range(len(addr_data["addrs"])):
-            *_, post_fix = addr_data["addrs"][i]["addr"]["ip"].split(".")
-            addr_data["addrs"][i]["addr"]["ip"] = "127.0.0.1"
-            addr_data["addrs"][i]["addr"]["port"] = int(f"2663{int(post_fix) - 3}")
+        for entry in addr_data.get("addrs") or []:
+            addr = entry.get("addr") if isinstance(entry, dict) else None
+            if not isinstance(addr, dict):
+                print(f"Skipping malformed peer entry in {addr_file}: {entry!r}")
+                continue
+            ip = addr.get("ip")
+            if not isinstance(ip, str) or "." not in ip:
+                print(f"Skipping peer with non-dotted IP in {addr_file}: {ip!r}")
+                continue
+            *_, post_fix = ip.split(".")
+            try:
+                new_port = int(f"2663{int(post_fix) - 3}")
+            except ValueError:
+                print(
+                    f"Skipping peer with non-numeric IP suffix in {addr_file}: {ip!r}"
+                )
+                continue
+            addr["ip"] = "127.0.0.1"
+            addr["port"] = new_port
 
         addr_file.write_text(json.dumps(addr_data, indent=4))
         print(f"Updated {addr_file}")
