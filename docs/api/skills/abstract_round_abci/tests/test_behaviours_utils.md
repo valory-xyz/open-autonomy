@@ -943,6 +943,16 @@ def test_send_transaction_request(use_flashbots: bool,
 
 Test '_send_transaction_request'.
 
+<a id="packages.valory.skills.abstract_round_abci.tests.test_behaviours_utils.TestBaseBehaviour.test_send_transaction_request_use_all_builders_off"></a>
+
+#### test`_`send`_`transaction`_`request`_`use`_`all`_`builders`_`off
+
+```python
+def test_send_transaction_request_use_all_builders_off() -> None
+```
+
+Flashbots kwargs honour ``use_all_builders=False``.
+
 <a id="packages.valory.skills.abstract_round_abci.tests.test_behaviours_utils.TestBaseBehaviour.test_send_transaction_receipt_request"></a>
 
 #### test`_`send`_`transaction`_`receipt`_`request

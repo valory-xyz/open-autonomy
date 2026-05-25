@@ -39,6 +39,7 @@ from aea.cli.utils.package_utils import (
 )
 from aea.configurations.constants import DEFAULT_README_FILE, SERVICE, SERVICES
 from aea.configurations.data_types import PublicId
+from aea.exceptions import AEAValidationError
 from aea.helpers.cid import to_v1
 
 from autonomy.configurations.base import (
@@ -155,7 +156,7 @@ def fetch_service_local(
 def publish_service_package(click_context: click.Context, registry: str) -> None:
     """Publish a service package."""
 
-    with reraise_as_click_exception(FileNotFoundError, ValueError):
+    with reraise_as_click_exception(FileNotFoundError, ValueError, AEAValidationError):
         service_config = load_item_config(
             SERVICE, Path(click_context.obj.cwd), PACKAGE_TYPE_TO_CONFIG_CLASS
         )

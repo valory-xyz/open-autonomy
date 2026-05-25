@@ -33,6 +33,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     SelectKeeperPayload,
     SignaturePayload,
     SynchronizeLateMessagesPayload,
+    TX_HASH_LENGTH,
     ValidatePayload,
 )
 
@@ -78,7 +79,7 @@ def test_tx_history_payload() -> None:
 def test_synchronize_payload() -> None:
     """Test `SynchronizeLateMessagesPayload`."""
 
-    tx_hashes = "test"
+    tx_hashes = "a" * TX_HASH_LENGTH
     payload = SynchronizeLateMessagesPayload(sender="sender", tx_hashes=tx_hashes)
 
     assert payload.tx_hashes == tx_hashes

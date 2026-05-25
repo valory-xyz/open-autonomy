@@ -19,16 +19,8 @@
 
 """Constants for the replay module."""
 
-TENDERMINT_BIN_NAME = "tendermint"
-
-PERIOD_DIR_PREFIX = "period_"
-NODE_DIR_PREFIX = "node"
-DATA_DIR_NAME = "data"
-PRIV_VALIDATOR_STATE_FILENAME = "priv_validator_state.json"
-
-# Port templates: the last digit slot is filled with the node id.
+# Tendermint addresses used by the replay runner. The trailing digit slot is
+# filled with the node id so the per-node ports do not collide.
 P2P_LADDR_TEMPLATE = "tcp://127.0.0.1:2663{node_id}"
 RPC_LADDR_TEMPLATE = "tcp://localhost:2664{node_id}"
 PROXY_APP_TEMPLATE = "tcp://localhost:2665{node_id}"
-
-PROCESS_STOP_TIMEOUT_SECONDS = 5

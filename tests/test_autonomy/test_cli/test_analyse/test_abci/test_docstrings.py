@@ -76,3 +76,24 @@ def test_compare_docstring_content() -> None:
     assert not mutated_content == file_content
     result = compare_docstring_content(mutated_content, docstring, abci_app_name)
     assert result == (True, file_content)
+
+
+def test_compare_docstring_content_inserts_when_class_has_no_docstring() -> None:
+    """Generate a docstring when the AbciApp class has no docstring yet."""
+
+    docstring = docstring_abci_app(OffendAbciApp)
+    abci_app_name = OffendAbciApp.__name__
+
+    # Synthetic file content with a class header but no docstring body.
+    file_content = (
+        f"class {abci_app_name}(AbciApp[Event]):\n"
+        "    initial_round_cls = OffendRound\n"
+    )
+
+    success, updated = compare_docstring_content(file_content, docstring, abci_app_name)
+    assert success is True
+    assert f"class {abci_app_name}(AbciApp[Event]):" in updated
+    assert '"""' in updated
+    assert (
+        "initial_round_cls = OffendRound" in updated
+    ), "the original body must be preserved after the docstring is inserted"

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,9 +20,12 @@
 """This module contains the transaction payloads for common apps."""
 
 from dataclasses import dataclass
-from typing import ClassVar, Dict, Optional, Union
+from typing import Dict, Optional, Union
 
-from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
+from packages.valory.skills.abstract_round_abci.base import (
+    BaseTxPayload,
+    TransactionNotValidError,
+)
 
 TX_HASH_LENGTH = 66
 
@@ -60,16 +63,14 @@ class CheckTransactionHistoryPayload(BaseTxPayload):
 class SynchronizeLateMessagesPayload(BaseTxPayload):
     """Represent a transaction payload of type 'synchronize'."""
 
-    HASH_LENGTH: ClassVar[int] = TX_HASH_LENGTH
-
     tx_hashes: str
 
     def __post_init__(self) -> None:
         """Validate the serialized hash chunks."""
         content = self.tx_hashes
-        if not content or len(content) % self.HASH_LENGTH:
-            raise ValueError(
-                f"Expecting serialized data of chunk size {self.HASH_LENGTH}, "
+        if not content or len(content) % TX_HASH_LENGTH:
+            raise TransactionNotValidError(
+                f"Expecting serialized data of chunk size {TX_HASH_LENGTH}, "
                 f"got: {content}"
             )
 

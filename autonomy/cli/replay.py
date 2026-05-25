@@ -69,7 +69,7 @@ def run_agent(agent: int, build_path: Path, registry_path: Path) -> None:
     registry_path = Path(registry_path).absolute()
 
     docker_compose_file = build_path / DOCKER_COMPOSE_YAML
-    with reraise_as_click_exception(FileNotFoundError, yaml.YAMLError):
+    with reraise_as_click_exception(FileNotFoundError, yaml.YAMLError, ValueError):
         docker_compose_config = load_docker_config(docker_compose_file)
 
     services = docker_compose_config.get("services") or {}
@@ -103,7 +103,7 @@ def run_tendermint(build_dir: Path) -> None:
     build_dir = Path(build_dir).absolute()
     dump_dir = build_dir / PERSISTENT_DATA_DIR / TM_STATE_DIR
 
-    with reraise_as_click_exception(FileNotFoundError, json.JSONDecodeError):
+    with reraise_as_click_exception(OSError, json.JSONDecodeError):
         fix_address_books(build_dir)
         fix_config_files(build_dir)
 

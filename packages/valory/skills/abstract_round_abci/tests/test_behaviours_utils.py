@@ -1433,6 +1433,31 @@ class TestBaseBehaviour:
             actual_kwargs = create_mock.call_args[1]
             assert actual_kwargs == expected_kwargs
 
+    def test_send_transaction_request_use_all_builders_off(self) -> None:
+        """Flashbots kwargs honour ``use_all_builders=False``."""
+        with mock.patch.object(
+            self.behaviour.context.ledger_api_dialogues,
+            "create",
+            return_value=(MagicMock(), MagicMock()),
+        ) as create_mock:
+            self.behaviour._send_transaction_request(
+                MagicMock(
+                    signed_transaction=SignedTransaction(
+                        ledger_id="ethereum", body={"test_tx": "test_tx"}
+                    )
+                ),
+                use_flashbots=True,
+                target_block_numbers=None,
+                chain_id=None,
+                raise_on_failed_simulation=False,
+                use_all_builders=False,
+            )
+            create_mock.assert_called_once()
+            actual_kwargs = create_mock.call_args[1]
+            assert (
+                actual_kwargs["kwargs"].body["use_all_builders"] is False
+            ), "use_all_builders=False must be propagated to the LedgerApiMessage kwargs"
+
     def test_send_transaction_receipt_request(self) -> None:
         """Test '_send_transaction_receipt_request'."""
         with mock.patch.object(

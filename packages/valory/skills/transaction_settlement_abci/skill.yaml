@@ -14,7 +14,7 @@ fingerprint:
   handlers.py: bafybeiat5xsopw26jtai4522mqmdawwtpo6zrh7m44xeygxrcxrw7vau44
   models.py: bafybeibydhjaejzshpsjmijtrhkw3xe5wv5ver2fiapqrhtvke63fsbr5e
   payload_tools.py: bafybeiczc3fsh5vzemcrncuu6imjd3z7zghgkf2tvsulxqxoqsm4sygepu
-  payloads.py: bafybeibd5ob7iev2pjqp2dorfbbgtiom34tfmaun6xp7vodgihlim3dnda
+  payloads.py: bafybeig4cholqtkrfeu2w6hhhrfdoc4eutyl3s3zifabjy4xk4u7wf76je
   rounds.py: bafybeif4lkp6xythbs5mhb452l45tmoo3ntvhjp7kgss3twq5tcgytnzom
   test_tools/__init__.py: bafybeibj2blgxzvcgdi5gzcnlzs2nt7bpdifzvjjlxlrkeutjy2qrqbwau
   test_tools/integration.py: bafybeiflsv6pzrhrp3okbnq4vt7ukosy6dwfmzmqbcddkugatszfypu4fq
@@ -24,8 +24,8 @@ fingerprint:
   tests/test_handlers.py: bafybeievntkwacpfaom3qabvrlworjqyd4sgfjknjlhys7f5tuq7725xli
   tests/test_models.py: bafybeibygolruswzijjcu2yx24fv7ils2bgxsn2bkbe7j5x3aucei35mqu
   tests/test_payload_tools.py: bafybeihmgkcrlqhz4ncak276lnccmilig6gx3crmn33n46jcco6g5pzrje
-  tests/test_payloads.py: bafybeidvjqvjvnuw5vt4zgnqwzopvprznmefosqy3wcxukvobaiishygze
-  tests/test_rounds.py: bafybeibfhlzd7ifwigihy62jqg37od7ymbrgmgkxjqug45ndrwmnto625i
+  tests/test_payloads.py: bafybeifajwo2nfea72d7ehlunc426cherzwrpkiosvp4u7eo26qq74ptua
+  tests/test_rounds.py: bafybeigi7hlaaguyonw5uk6tydjl2zkig7qanlsj4o7mheko5t4lkqeqcm
   tests/test_tools/__init__.py: bafybeiaq2ftmklvu5vqq6vdfa7mrlmrnusluki35jm5n2yzf57ox5dif74
   tests/test_tools/test_integration.py: bafybeigxjaf4ucqbthbvbe6w3ah3lvnk2wbp4cllulmnykc7oegzc5lnni
 fingerprint_ignore_patterns: []
@@ -38,7 +38,7 @@ protocols:
 - valory/contract_api:1.0.0:bafybeibld2xb5m7kyluiptkamp4nrt6oeomkohz7a3yppbv2oo7qw2e4la
 - valory/ledger_api:1.0.0:bafybeiecq56phjfws36rgrefw6niyo4ezesloodsfis647mpm5ygqo4ysi
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeif7fdvpq526pcicby52crnhtwfoiymy5wugwqicstagj7nunbfhi4
+- valory/abstract_round_abci:0.1.0:bafybeiehfh24aafkx7jer5tfn5k47sziak6jy5otiij2u6yoxw4vwx7rtq
 behaviours:
   main:
     args: {}

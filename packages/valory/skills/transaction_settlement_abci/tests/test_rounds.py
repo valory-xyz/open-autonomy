@@ -52,6 +52,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     CollectionRound,
     MAX_INT_256,
+    TransactionNotValidError,
     VotingRound,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
@@ -897,7 +898,10 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
             test_round.check_payload(payload)
             return
 
-        with pytest.raises(ValueError, match="Expecting serialized data of chunk size"):
+        with pytest.raises(
+            TransactionNotValidError,
+            match="Expecting serialized data of chunk size",
+        ):
             SynchronizeLateMessagesPayload(sender=sender, tx_hashes=tx_hashes)
 
 
