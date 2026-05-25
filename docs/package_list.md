@@ -8,7 +8,7 @@
 | contract/valory/component_registry/0.1.0                      | `bafybeifw5idncydcocirjh4rpt35ucvuj3ujfdsve2vggwln2xrfiehhwy` |
 | contract/valory/agent_registry/0.1.0                          | `bafybeihndb57u3da2ollttbkm56te6ihekh5pesmxruk4sxn6psnz2ycri` |
 | contract/valory/registries_manager/0.1.0                      | `bafybeic2kelhn46qfuxxyze2ylsp6hisvvojrvd6lcejvyim73tolv4tzi` |
-| contract/valory/service_manager/0.1.0                         | `bafybeib5ygki3hvbk7wdzs64i5x73l6px7ml4xa3veqomusxp6cbmndl6e` |
+| contract/valory/service_manager/0.1.0                         | `bafybeiajabhnomwkswuzk6eib7frl4jh25hmfh6dvvlmnpnzi3rmnwwdfu` |
 | contract/valory/service_registry/0.1.0                        | `bafybeiccha6qwov4pqsnnhnprldppaqlb7djcujcqqlmtgbukq4a5fmvvq` |
 | contract/valory/gnosis_safe/0.1.0                             | `bafybeieaxcd3wrjxgw7yzmlbxr6tcwj3u7kiixb6fzu2shwy5hthzzyxuq` |
 | contract/valory/multisend/0.1.0                               | `bafybeih73g7nltnmfqfa75qurljjk7xu7cvd3d2uzt4bqogcw5rgrrmu2m` |
