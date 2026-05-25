@@ -37,7 +37,7 @@ SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS = (
     1,  # ethereum
     137,  # polygon
     100,  # gnosis
-    42161,  # arbitrum
+    42161,  # arbitrum_one
     10,  # optimism
     8453,  # base
     42220,  # celo

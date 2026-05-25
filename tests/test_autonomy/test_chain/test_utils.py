@@ -220,15 +220,15 @@ def test_compatible_chains_covers_autonolas_registries_deployments() -> None:
             AUTONOLAS_REGISTRIES_CONFIG_URL, timeout=30
         ) as response:
             raw = response.read()
-    except (urllib.error.URLError, TimeoutError) as exc:
+        config = json.loads(raw)
+    except (urllib.error.URLError, TimeoutError, JSONDecodeError) as exc:
         pytest.skip(
             f"Could not fetch {AUTONOLAS_REGISTRIES_CONFIG_URL}: {exc}. "
             "Run with `-m 'not integration'` to skip this check offline."
         )
 
-    config = json.loads(raw)
     upstream_chains = {
-        int(chain["chainId"]): chain.get("name", "<unnamed>")
+        int(chain["chainId"]): chain["name"]
         for chain in config
         if any(
             contract.get("name") == "ServiceRegistryTokenUtility"
@@ -247,7 +247,37 @@ def test_compatible_chains_covers_autonolas_registries_deployments() -> None:
     }
     assert not missing, (
         "Olas has `ServiceRegistryTokenUtility` deployed on chains that are "
-        "not in `SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS`. Add them to "
-        "`autonomy/chain/constants.py` and re-lock: "
+        "not in `SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS`. Add them to BOTH "
+        "`autonomy/chain/constants.py` and "
+        "`packages/valory/contracts/service_manager/contract.py` (the test "
+        "below enforces parity), then re-lock packages: "
         f"{missing}. Source: {AUTONOLAS_REGISTRIES_CONFIG_URL}"
+    )
+
+
+def test_compatible_chains_match_across_autonomy_and_package() -> None:
+    """Enforce parity of the two copies of the chain-compatibility tuple.
+
+    `SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS` is duplicated in
+    `autonomy/chain/constants.py` and
+    `packages/valory/contracts/service_manager/contract.py` because the
+    contract package cannot import from the framework. A chain added to
+    one but not the other would silently drift, which is the regression
+    that opened #2254.
+    """
+
+    from autonomy.chain.constants import (
+        SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS as AUTONOMY_CHAINS,
+    )
+
+    from packages.valory.contracts.service_manager.contract import (
+        SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS as PACKAGE_CHAINS,
+    )
+
+    assert set(AUTONOMY_CHAINS) == set(PACKAGE_CHAINS), (
+        "`SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS` diverges between "
+        "`autonomy/chain/constants.py` and "
+        "`packages/valory/contracts/service_manager/contract.py`. "
+        f"autonomy-only: {sorted(set(AUTONOMY_CHAINS) - set(PACKAGE_CHAINS))}; "
+        f"package-only: {sorted(set(PACKAGE_CHAINS) - set(AUTONOMY_CHAINS))}."
     )
