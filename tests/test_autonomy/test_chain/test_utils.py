@@ -220,11 +220,19 @@ def test_compatible_chains_covers_autonolas_registries_deployments() -> None:
             AUTONOLAS_REGISTRIES_CONFIG_URL, timeout=30
         ) as response:
             raw = response.read()
-        config = json.loads(raw)
-    except (urllib.error.URLError, TimeoutError, JSONDecodeError) as exc:
+    except (urllib.error.URLError, TimeoutError) as exc:
         pytest.skip(
             f"Could not fetch {AUTONOLAS_REGISTRIES_CONFIG_URL}: {exc}. "
             "Run with `-m 'not integration'` to skip this check offline."
+        )
+
+    try:
+        config = json.loads(raw)
+    except JSONDecodeError as exc:
+        pytest.fail(
+            f"Upstream {AUTONOLAS_REGISTRIES_CONFIG_URL} returned malformed "
+            f"JSON: {exc}. Either upstream is broken or the URL no longer "
+            "serves JSON — investigate, do not skip."
         )
 
     upstream_chains = {
@@ -249,8 +257,9 @@ def test_compatible_chains_covers_autonolas_registries_deployments() -> None:
         "Olas has `ServiceRegistryTokenUtility` deployed on chains that are "
         "not in `SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS`. Add them to BOTH "
         "`autonomy/chain/constants.py` and "
-        "`packages/valory/contracts/service_manager/contract.py` (the test "
-        "below enforces parity), then re-lock packages: "
+        "`packages/valory/contracts/service_manager/contract.py` "
+        "(`test_compatible_chains_match_across_autonomy_and_package` "
+        "enforces parity), then re-lock packages: "
         f"{missing}. Source: {AUTONOLAS_REGISTRIES_CONFIG_URL}"
     )
 
@@ -273,6 +282,16 @@ def test_compatible_chains_match_across_autonomy_and_package() -> None:
     from packages.valory.contracts.service_manager.contract import (
         SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS as PACKAGE_CHAINS,
     )
+
+    # In-copy duplicate check: the original #2254 bug was Celo (42220) listed
+    # twice in the autonomy tuple. A pure `set()` equality below would silently
+    # collapse duplicates, so check each tuple individually first.
+    for name, chains in (
+        ("autonomy/chain/constants.py", AUTONOMY_CHAINS),
+        ("packages/valory/contracts/service_manager/contract.py", PACKAGE_CHAINS),
+    ):
+        dupes = sorted({c for c in chains if chains.count(c) > 1})
+        assert not dupes, f"Duplicate chain IDs in {name}: {dupes}"
 
     assert set(AUTONOMY_CHAINS) == set(PACKAGE_CHAINS), (
         "`SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS` diverges between "
