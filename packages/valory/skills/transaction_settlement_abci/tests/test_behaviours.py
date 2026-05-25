@@ -1332,8 +1332,11 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
         self._check_behaviour_id(SynchronizeLateMessagesBehaviour)  # type: ignore
 
         if not late_messages:
+            # No locally-collected late tx hashes: async_act must short-circuit
+            # before constructing the payload. SynchronizeLateMessagesPayload's
+            # __post_init__ rejects an empty `tx_hashes`, so a regression here
+            # would crash the agent rather than send an empty payload.
             self.behaviour.act_wrapper()
-            self.mock_a2a_transaction()
             self._test_done_flag_set()
             self.end_round(TransactionSettlementEvent.DONE)
             self._check_behaviour_id(CheckLateTxHashesBehaviour)  # type: ignore

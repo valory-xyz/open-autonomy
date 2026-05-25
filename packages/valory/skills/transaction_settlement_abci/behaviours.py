@@ -720,6 +720,19 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
                 self._tx_hashes += cast(str, tx_data["tx_digest"])
                 return
 
+            if not self._tx_hashes:
+                # No locally-collected late tx hashes to broadcast. Skip the
+                # send rather than construct an empty payload — the payload's
+                # __post_init__ enforces the chunk-length invariant and would
+                # raise here. Letting the round finish via other agents'
+                # contributions matches the prior behaviour where an empty
+                # payload was rejected by the round-side check.
+                self.context.logger.info(
+                    "No late-arriving tx hashes to synchronize; skipping send."
+                )
+                self.set_done()
+                return
+
             payload = SynchronizeLateMessagesPayload(
                 self.context.agent_address, self._tx_hashes
             )
