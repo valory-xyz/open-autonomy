@@ -745,6 +745,9 @@ SigningMessage object
 ```python
 def send_raw_transaction(
     transaction: RawTransaction,
+    use_flashbots: bool = False,
+    target_block_numbers: Optional[List[int]] = None,
+    raise_on_failed_simulation: bool = False,
     chain_id: Optional[str] = None
 ) -> Generator[
         None,
@@ -768,6 +771,12 @@ _send_transaction_request:
 **Arguments**:
 
 - `transaction`: transaction data
+- `use_flashbots`: retained for downstream API compatibility after the
+upstream ``open-aea-ledger-ethereum-flashbots`` plugin was removed
+(see HISTORY.md, v0.21.17). Accepted but no longer routes through
+a flashbots branch.
+- `target_block_numbers`: retained for the same compatibility reason as ``use_flashbots``.
+- `raise_on_failed_simulation`: retained for the same compatibility reason as ``use_flashbots``.
 - `chain_id`: the chain name to use for the ledger call
 
 **Returns**:

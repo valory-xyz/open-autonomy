@@ -53,10 +53,12 @@ Start process.
 
 **Raises**:
 
-- `ValueError`: if required env vars (``AEA_AGENT``, ``AEA_KEY``)
-are not present in the docker-compose service block. A common
-cause is replaying against a build dir generated before the
+- `ValueError`: if ``AEA_AGENT`` is not present in the
+docker-compose service block. A common cause is replaying
+against a build dir generated before the
 ``VALORY_APPLICATION`` → ``AEA_AGENT`` rename.
+- `ValueError`: if ``AEA_KEY`` is not present in the
+docker-compose service block.
 
 <a id="autonomy.replay.agent.AgentRunner.stop"></a>
 

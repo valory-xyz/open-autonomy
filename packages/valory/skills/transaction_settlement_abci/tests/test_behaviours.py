@@ -354,7 +354,7 @@ class TestTransactionSettlementBaseBehaviour(TransactionSettlementFSMBehaviourBa
         # call `_get_tx_data`
         tx_data_iterator = cast(
             TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
-        )._get_tx_data(message)
+        )._get_tx_data(message, use_flashbots=False)
 
         if message.performative == ContractApiMessage.Performative.RAW_TRANSACTION:
             next(tx_data_iterator)
@@ -1345,6 +1345,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
 
             def _dummy_get_tx_data(
                 _current_message: ContractApiMessage,
+                _use_flashbots: bool,
                 chain_id: Optional[str] = None,
             ) -> Generator[None, None, TxDataType]:
                 yield

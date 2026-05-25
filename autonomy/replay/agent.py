@@ -63,6 +63,7 @@ class AgentRunner:
         self.agent_env = os.environ.copy()
         self.agent_dir = TemporaryDirectory()  # pylint: disable=consider-using-with
         self.cwd = Path(".").resolve().absolute()
+        self.process: Optional[subprocess.Popen] = None  # nosec
 
         agent_env_data = self.agent_data.get("environment")
         if agent_env_data is None:
@@ -93,10 +94,12 @@ class AgentRunner:
     ) -> None:
         """Start process.
 
-        :raises ValueError: if required env vars (``AEA_AGENT``, ``AEA_KEY``)
-            are not present in the docker-compose service block. A common
-            cause is replaying against a build dir generated before the
+        :raises ValueError: if ``AEA_AGENT`` is not present in the
+            docker-compose service block. A common cause is replaying
+            against a build dir generated before the
             ``VALORY_APPLICATION`` → ``AEA_AGENT`` rename.
+        :raises ValueError: if ``AEA_KEY`` is not present in the
+            docker-compose service block.
         """
 
         agent_dir = Path(self.agent_dir.name)

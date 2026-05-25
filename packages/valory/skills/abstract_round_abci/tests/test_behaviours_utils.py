@@ -1400,6 +1400,40 @@ class TestBaseBehaviour:
             actual_kwargs = create_mock.call_args[1]
             assert actual_kwargs == expected_kwargs
 
+    def test_send_transaction_request_flashbots_args_are_inert(self) -> None:
+        """Flashbots-era kwargs are accepted for downstream API compatibility but do not change the request.
+
+        The skill-level use_flashbots / target_block_numbers /
+        raise_on_failed_simulation parameters were intentionally preserved
+        after the upstream flashbots plugin was removed (HISTORY.md v0.21.17).
+        Locks in that passing them produces the same plain
+        SEND_SIGNED_TRANSACTION shape as omitting them.
+        """
+        with mock.patch.object(
+            self.behaviour.context.ledger_api_dialogues,
+            "create",
+            return_value=(MagicMock(), MagicMock()),
+        ) as create_mock:
+            self.behaviour._send_transaction_request(
+                MagicMock(
+                    signed_transaction=SignedTransaction(
+                        ledger_id="ethereum", body={"test_tx": "test_tx"}
+                    )
+                ),
+                use_flashbots=True,
+                target_block_numbers=[1, 2, 3],
+                raise_on_failed_simulation=True,
+            )
+            create_mock.assert_called_once()
+            actual_kwargs = create_mock.call_args[1]
+            assert (
+                actual_kwargs["performative"]
+                == LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION
+            ), "flashbots params must not flip the performative anymore"
+            assert (
+                "kwargs" not in actual_kwargs
+            ), "flashbots params must not produce any LedgerApiMessage.Kwargs entries"
+
     def test_send_transaction_receipt_request(self) -> None:
         """Test '_send_transaction_receipt_request'."""
         with mock.patch.object(

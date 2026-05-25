@@ -910,6 +910,22 @@ def test_send_transaction_request(chain_id: Optional[str],
 
 Test '_send_transaction_request'.
 
+<a id="packages.valory.skills.abstract_round_abci.tests.test_behaviours_utils.TestBaseBehaviour.test_send_transaction_request_flashbots_args_are_inert"></a>
+
+#### test`_`send`_`transaction`_`request`_`flashbots`_`args`_`are`_`inert
+
+```python
+def test_send_transaction_request_flashbots_args_are_inert() -> None
+```
+
+Flashbots-era kwargs are accepted for downstream API compatibility but do not change the request.
+
+The skill-level use_flashbots / target_block_numbers /
+raise_on_failed_simulation parameters were intentionally preserved
+after the upstream flashbots plugin was removed (HISTORY.md v0.21.17).
+Locks in that passing them produces the same plain
+SEND_SIGNED_TRANSACTION shape as omitting them.
+
 <a id="packages.valory.skills.abstract_round_abci.tests.test_behaviours_utils.TestBaseBehaviour.test_send_transaction_receipt_request"></a>
 
 #### test`_`send`_`transaction`_`receipt`_`request

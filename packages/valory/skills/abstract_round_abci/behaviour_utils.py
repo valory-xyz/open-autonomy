@@ -1030,10 +1030,13 @@ class BaseBehaviour(
         ] = self.get_callback_request()
         self.context.decision_maker_message_queue.put_nowait(signing_msg)
 
-    def _send_transaction_request(
+    def _send_transaction_request(  # pylint: disable=unused-argument
         self,
         signing_msg: SigningMessage,
+        use_flashbots: bool = False,
+        target_block_numbers: Optional[List[int]] = None,
         chain_id: Optional[str] = None,
+        raise_on_failed_simulation: bool = False,
     ) -> None:
         """
         Send transaction request.
@@ -1044,7 +1047,13 @@ class BaseBehaviour(
         Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
         :param signing_msg: signing message
+        :param use_flashbots: retained for downstream API compatibility after the
+            upstream ``open-aea-ledger-ethereum-flashbots`` plugin was removed
+            (see HISTORY.md, v0.21.17). The flashbots routing branch is gone;
+            the parameter is accepted but no longer changes the request shape.
+        :param target_block_numbers: retained for the same compatibility reason as ``use_flashbots``.
         :param chain_id: the chain name to use for the ledger call
+        :param raise_on_failed_simulation: retained for the same compatibility reason as ``use_flashbots``.
         """
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
@@ -1492,6 +1501,9 @@ class BaseBehaviour(
     def send_raw_transaction(
         self,
         transaction: RawTransaction,
+        use_flashbots: bool = False,
+        target_block_numbers: Optional[List[int]] = None,
+        raise_on_failed_simulation: bool = False,
         chain_id: Optional[str] = None,
     ) -> Generator[
         None,
@@ -1512,6 +1524,12 @@ class BaseBehaviour(
             Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
         :param transaction: transaction data
+        :param use_flashbots: retained for downstream API compatibility after the
+            upstream ``open-aea-ledger-ethereum-flashbots`` plugin was removed
+            (see HISTORY.md, v0.21.17). Accepted but no longer routes through
+            a flashbots branch.
+        :param target_block_numbers: retained for the same compatibility reason as ``use_flashbots``.
+        :param raise_on_failed_simulation: retained for the same compatibility reason as ``use_flashbots``.
         :param chain_id: the chain name to use for the ledger call
         :yield: SigningMessage object
         :return: transaction hash
@@ -1548,7 +1566,13 @@ class BaseBehaviour(
         self.context.logger.info(
             f"Received signature response: {signature_response}\n Sending transaction..."
         )
-        self._send_transaction_request(signature_response, chain_id)
+        self._send_transaction_request(
+            signature_response,
+            use_flashbots,
+            target_block_numbers,
+            chain_id,
+            raise_on_failed_simulation,
+        )
         transaction_digest_msg = yield from self.wait_for_message()
         transaction_digest_msg = cast(LedgerApiMessage, transaction_digest_msg)
         performative = transaction_digest_msg.performative
