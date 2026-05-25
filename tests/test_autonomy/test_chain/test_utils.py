@@ -220,6 +220,22 @@ def test_compatible_chains_covers_autonolas_registries_deployments() -> None:
             AUTONOLAS_REGISTRIES_CONFIG_URL, timeout=30
         ) as response:
             raw = response.read()
+    except urllib.error.HTTPError as exc:
+        # 404 / 410 / etc. mean the URL or branch was renamed / moved.
+        # Skipping here would silently disable the drift check forever —
+        # the failure mode this test exists to catch. Fail loud instead.
+        if 400 <= exc.code < 500:
+            pytest.fail(
+                f"Upstream {AUTONOLAS_REGISTRIES_CONFIG_URL} returned "
+                f"HTTP {exc.code}: {exc.reason}. The source URL is likely "
+                "wrong (renamed file, moved out of docs/, or off `main`). "
+                "Update the URL or restore the file."
+            )
+        # 5xx is treated like a connectivity blip below.
+        pytest.skip(
+            f"Upstream {AUTONOLAS_REGISTRIES_CONFIG_URL} returned "
+            f"HTTP {exc.code}: {exc.reason}."
+        )
     except (urllib.error.URLError, TimeoutError) as exc:
         pytest.skip(
             f"Could not fetch {AUTONOLAS_REGISTRIES_CONFIG_URL}: {exc}. "
