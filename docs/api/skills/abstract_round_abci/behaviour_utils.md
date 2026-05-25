@@ -745,11 +745,7 @@ SigningMessage object
 ```python
 def send_raw_transaction(
     transaction: RawTransaction,
-    use_flashbots: bool = False,
-    target_block_numbers: Optional[List[int]] = None,
-    raise_on_failed_simulation: bool = False,
-    chain_id: Optional[str] = None,
-    use_all_builders: bool = True
+    chain_id: Optional[str] = None
 ) -> Generator[
         None,
         Union[None, SigningMessage, LedgerApiMessage],
@@ -772,11 +768,7 @@ _send_transaction_request:
 **Arguments**:
 
 - `transaction`: transaction data
-- `use_flashbots`: whether to use flashbots for the transaction or not
-- `target_block_numbers`: the target block numbers in case we are using flashbots
-- `raise_on_failed_simulation`: whether to raise an exception if the transaction fails the simulation or not
 - `chain_id`: the chain name to use for the ledger call
-- `use_all_builders`: when using flashbots, broadcast to every supported builder.
 
 **Returns**:
 

@@ -115,7 +115,6 @@ GENESIS_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 INITIAL_APP_HASH = ""
 INITIAL_HEIGHT = "0"
 TM_REQ_TIMEOUT = 5  # 5 seconds
-FLASHBOTS_LEDGER_ID = "ethereum_flashbots"
 SOLANA_LEDGER_ID = "solana"
 
 
@@ -1034,11 +1033,7 @@ class BaseBehaviour(
     def _send_transaction_request(
         self,
         signing_msg: SigningMessage,
-        use_flashbots: bool = False,
-        target_block_numbers: Optional[List[int]] = None,
         chain_id: Optional[str] = None,
-        raise_on_failed_simulation: bool = False,
-        use_all_builders: bool = True,
     ) -> None:
         """
         Send transaction request.
@@ -1049,11 +1044,7 @@ class BaseBehaviour(
         Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
         :param signing_msg: signing message
-        :param use_flashbots: whether to use flashbots for the transaction or not
-        :param target_block_numbers: the target block numbers in case we are using flashbots
         :param chain_id: the chain name to use for the ledger call
-        :param raise_on_failed_simulation: whether to raise an exception if the simulation fails or not.
-        :param use_all_builders: when using flashbots, broadcast to every supported builder.
         """
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
@@ -1064,36 +1055,11 @@ class BaseBehaviour(
         ] = dict(
             counterparty=LEDGER_API_ADDRESS,
             performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION,
+            signed_transaction=signing_msg.signed_transaction,
         )
         if chain_id:
             kwargs = LedgerApiMessage.Kwargs({"chain_id": chain_id})
             create_kwargs.update(dict(kwargs=kwargs))
-
-        if use_flashbots:
-            _kwargs = {
-                "chain_id": chain_id,
-                "raise_on_failed_simulation": raise_on_failed_simulation,
-                "use_all_builders": use_all_builders,
-            }
-            if target_block_numbers is not None:
-                _kwargs["target_block_numbers"] = target_block_numbers  # type: ignore
-            create_kwargs.update(
-                dict(
-                    performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTIONS,
-                    # we do not support sending multiple signed txs and receiving multiple tx hashes yet
-                    signed_transactions=LedgerApiMessage.SignedTransactions(
-                        ledger_id=FLASHBOTS_LEDGER_ID,
-                        signed_transactions=[signing_msg.signed_transaction.body],
-                    ),
-                    kwargs=LedgerApiMessage.Kwargs(_kwargs),
-                )
-            )
-        else:
-            create_kwargs.update(
-                dict(
-                    signed_transaction=signing_msg.signed_transaction,
-                )
-            )
 
         ledger_api_msg, ledger_api_dialogue = ledger_api_dialogues.create(
             **create_kwargs
@@ -1526,11 +1492,7 @@ class BaseBehaviour(
     def send_raw_transaction(
         self,
         transaction: RawTransaction,
-        use_flashbots: bool = False,
-        target_block_numbers: Optional[List[int]] = None,
-        raise_on_failed_simulation: bool = False,
         chain_id: Optional[str] = None,
-        use_all_builders: bool = True,
     ) -> Generator[
         None,
         Union[None, SigningMessage, LedgerApiMessage],
@@ -1550,11 +1512,7 @@ class BaseBehaviour(
             Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
         :param transaction: transaction data
-        :param use_flashbots: whether to use flashbots for the transaction or not
-        :param target_block_numbers: the target block numbers in case we are using flashbots
-        :param raise_on_failed_simulation: whether to raise an exception if the transaction fails the simulation or not
         :param chain_id: the chain name to use for the ledger call
-        :param use_all_builders: when using flashbots, broadcast to every supported builder.
         :yield: SigningMessage object
         :return: transaction hash
         """
@@ -1590,14 +1548,7 @@ class BaseBehaviour(
         self.context.logger.info(
             f"Received signature response: {signature_response}\n Sending transaction..."
         )
-        self._send_transaction_request(
-            signature_response,
-            use_flashbots,
-            target_block_numbers,
-            chain_id,
-            raise_on_failed_simulation,
-            use_all_builders,
-        )
+        self._send_transaction_request(signature_response, chain_id)
         transaction_digest_msg = yield from self.wait_for_message()
         transaction_digest_msg = cast(LedgerApiMessage, transaction_digest_msg)
         performative = transaction_digest_msg.performative

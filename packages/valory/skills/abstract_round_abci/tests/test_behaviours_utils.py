@@ -31,7 +31,6 @@ from typing import (
     Callable,
     Dict,
     Generator,
-    List,
     Optional,
     Tuple,
     Type,
@@ -61,7 +60,6 @@ from packages.valory.protocols.ipfs import IpfsMessage
 from packages.valory.protocols.ipfs.dialogues import IpfsDialogue
 from packages.valory.protocols.ledger_api.custom_types import (
     SignedTransaction,
-    SignedTransactions,
     TransactionDigest,
     TransactionDigests,
 )
@@ -1353,49 +1351,9 @@ class TestBaseBehaviour:
             self.behaviour._send_transaction_signing_request(MagicMock(), MagicMock())
 
     @pytest.mark.parametrize(
-        "use_flashbots, target_block_numbers, expected_kwargs",
+        "chain_id, expected_kwargs",
         (
             (
-                True,
-                None,
-                dict(
-                    counterparty=LEDGER_API_ADDRESS,
-                    performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTIONS,
-                    signed_transactions=SignedTransactions(
-                        ledger_id="ethereum_flashbots",
-                        signed_transactions=[{"test_tx": "test_tx"}],
-                    ),
-                    kwargs=LedgerApiMessage.Kwargs(
-                        {
-                            "chain_id": None,
-                            "raise_on_failed_simulation": False,
-                            "use_all_builders": True,
-                        }
-                    ),
-                ),
-            ),
-            (
-                True,
-                [1, 2, 3],
-                dict(
-                    counterparty=LEDGER_API_ADDRESS,
-                    performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTIONS,
-                    signed_transactions=SignedTransactions(
-                        ledger_id="ethereum_flashbots",
-                        signed_transactions=[{"test_tx": "test_tx"}],
-                    ),
-                    kwargs=LedgerApiMessage.Kwargs(
-                        {
-                            "chain_id": None,
-                            "raise_on_failed_simulation": False,
-                            "use_all_builders": True,
-                            "target_block_numbers": [1, 2, 3],
-                        }
-                    ),
-                ),
-            ),
-            (
-                False,
                 None,
                 dict(
                     counterparty=LEDGER_API_ADDRESS,
@@ -1405,12 +1363,22 @@ class TestBaseBehaviour:
                     ),
                 ),
             ),
+            (
+                "ethereum",
+                dict(
+                    counterparty=LEDGER_API_ADDRESS,
+                    performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION,
+                    signed_transaction=SignedTransaction(
+                        ledger_id="ethereum", body={"test_tx": "test_tx"}
+                    ),
+                    kwargs=LedgerApiMessage.Kwargs({"chain_id": "ethereum"}),
+                ),
+            ),
         ),
     )
     def test_send_transaction_request(
         self,
-        use_flashbots: bool,
-        target_block_numbers: Optional[List[int]],
+        chain_id: Optional[str],
         expected_kwargs: Any,
     ) -> None:
         """Test '_send_transaction_request'."""
@@ -1425,38 +1393,12 @@ class TestBaseBehaviour:
                         ledger_id="ethereum", body={"test_tx": "test_tx"}
                     )
                 ),
-                use_flashbots,
-                target_block_numbers,
+                chain_id=chain_id,
             )
             create_mock.assert_called_once()
             # not using `create_mock.call_args.kwargs` because it is not compatible with Python 3.7
             actual_kwargs = create_mock.call_args[1]
             assert actual_kwargs == expected_kwargs
-
-    def test_send_transaction_request_use_all_builders_off(self) -> None:
-        """Flashbots kwargs honour ``use_all_builders=False``."""
-        with mock.patch.object(
-            self.behaviour.context.ledger_api_dialogues,
-            "create",
-            return_value=(MagicMock(), MagicMock()),
-        ) as create_mock:
-            self.behaviour._send_transaction_request(
-                MagicMock(
-                    signed_transaction=SignedTransaction(
-                        ledger_id="ethereum", body={"test_tx": "test_tx"}
-                    )
-                ),
-                use_flashbots=True,
-                target_block_numbers=None,
-                chain_id=None,
-                raise_on_failed_simulation=False,
-                use_all_builders=False,
-            )
-            create_mock.assert_called_once()
-            actual_kwargs = create_mock.call_args[1]
-            assert (
-                actual_kwargs["kwargs"].body["use_all_builders"] is False
-            ), "use_all_builders=False must be propagated to the LedgerApiMessage kwargs"
 
     def test_send_transaction_receipt_request(self) -> None:
         """Test '_send_transaction_receipt_request'."""

@@ -165,9 +165,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
     def _get_tx_data(
         self,
         message: ContractApiMessage,
-        use_flashbots: bool,
         manual_gas_limit: int = 0,
-        raise_on_failed_simulation: bool = False,
         chain_id: Optional[str] = None,
     ) -> Generator[None, None, TxDataType]:
         """Get the transaction data from a `ContractApiMessage`."""
@@ -204,8 +202,6 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         # Send transaction
         tx_digest, rpc_status = yield from self.send_raw_transaction(
             message.raw_transaction,
-            use_flashbots,
-            raise_on_failed_simulation=raise_on_failed_simulation,
             chain_id=chain_id,
         )
 
@@ -703,14 +699,6 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
         self._messages_iterator: Iterator[ContractApiMessage] = iter(
             self.params.mutable_params.late_messages
         )
-        self.use_flashbots = False
-
-    def setup(self) -> None:
-        """Setup the `SynchronizeLateMessagesBehaviour`."""
-        tx_params = skill_input_hex_to_payload(
-            self.synchronized_data.most_voted_tx_hash
-        )
-        self.use_flashbots = tx_params["use_flashbots"]
 
     def async_act(self) -> Generator:
         """Do the action."""
@@ -723,7 +711,6 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
                 )
                 tx_data = yield from self._get_tx_data(
                     current_message,
-                    self.use_flashbots,
                     chain_id=chain_id,
                 )
                 self.context.logger.info(
@@ -921,9 +908,7 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
 
         tx_data = yield from self._get_tx_data(
             contract_api_msg,
-            tx_params["use_flashbots"],
             tx_params["gas_limit"],
-            tx_params["raise_on_failed_simulation"],
             chain_id,
         )
         return tx_data
