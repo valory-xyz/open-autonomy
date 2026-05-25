@@ -29,8 +29,17 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from autonomy.deploy._http_server import App as Flask
-
-# TODO: extract constants
+from autonomy.replay.constants import (
+    DATA_DIR_NAME,
+    NODE_DIR_PREFIX,
+    P2P_LADDR_TEMPLATE,
+    PERIOD_DIR_PREFIX,
+    PRIV_VALIDATOR_STATE_FILENAME,
+    PROCESS_STOP_TIMEOUT_SECONDS,
+    PROXY_APP_TEMPLATE,
+    RPC_LADDR_TEMPLATE,
+    TENDERMINT_BIN_NAME,
+)
 
 
 class RanOutOfDumpsToReplay(Exception):
@@ -70,10 +79,10 @@ class TendermintRunner:
         """Returns the last block height before dumping."""
         state_file = (
             self.dump_dir
-            / f"period_{self.period}"
-            / f"node{self.node_id}"
-            / "data"
-            / "priv_validator_state.json"
+            / f"{PERIOD_DIR_PREFIX}{self.period}"
+            / f"{NODE_DIR_PREFIX}{self.node_id}"
+            / DATA_DIR_NAME
+            / PRIV_VALIDATOR_STATE_FILENAME
         )
         state_data = json.loads(state_file.read_text())
         return int(state_data.get("height", 0))
@@ -83,7 +92,7 @@ class TendermintRunner:
     ) -> None:
         """Start tendermint process."""
 
-        tendermint_bin = shutil.which("tendermint")
+        tendermint_bin = shutil.which(TENDERMINT_BIN_NAME)
         if tendermint_bin is None:
             raise ValueError("Cannot find tendermint installation.")
 
@@ -91,12 +100,16 @@ class TendermintRunner:
             [
                 str(tendermint_bin),
                 "node",
-                f"--p2p.laddr=tcp://127.0.0.1:2663{self.node_id}",
-                f"--rpc.laddr=tcp://localhost:2664{self.node_id}",
-                f"--proxy_app=tcp://localhost:2665{self.node_id}",
+                f"--p2p.laddr={P2P_LADDR_TEMPLATE.format(node_id=self.node_id)}",
+                f"--rpc.laddr={RPC_LADDR_TEMPLATE.format(node_id=self.node_id)}",
+                f"--proxy_app={PROXY_APP_TEMPLATE.format(node_id=self.node_id)}",
                 "--consensus.create_empty_blocks=true",
                 "--home",
-                str(self.dump_dir / f"period_{self.period}" / f"node{self.node_id}"),
+                str(
+                    self.dump_dir
+                    / f"{PERIOD_DIR_PREFIX}{self.period}"
+                    / f"{NODE_DIR_PREFIX}{self.node_id}"
+                ),
             ],
         )
 
@@ -111,7 +124,7 @@ class TendermintRunner:
         if self.process.returncode is None:  # stop only pending processes
             os.kill(self.process.pid, signal.SIGTERM)
 
-        self.process.wait(timeout=5)
+        self.process.wait(timeout=PROCESS_STOP_TIMEOUT_SECONDS)
         self.process.terminate()
         self.process = None
 
@@ -130,11 +143,11 @@ class TendermintNetwork:
         """Initialize object."""
 
         self.dump_dir = dump_dir
-        self.reset_periods = len(list(dump_dir.glob("period_*")))
+        self.reset_periods = len(list(dump_dir.glob(f"{PERIOD_DIR_PREFIX}*")))
         if self.reset_periods == 0:
             raise FileNotFoundError(f"Can't find period dumps in {dump_dir}")
 
-        self.number_of_nodes = len(list((dump_dir / "period_0").iterdir()))
+        self.number_of_nodes = len(list((dump_dir / f"{PERIOD_DIR_PREFIX}0").iterdir()))
         if self.number_of_nodes == 0:
             raise FileNotFoundError("Can't find dumped nodes.")
 

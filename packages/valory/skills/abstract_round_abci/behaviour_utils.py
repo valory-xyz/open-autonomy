@@ -1038,6 +1038,7 @@ class BaseBehaviour(
         target_block_numbers: Optional[List[int]] = None,
         chain_id: Optional[str] = None,
         raise_on_failed_simulation: bool = False,
+        use_all_builders: bool = True,
     ) -> None:
         """
         Send transaction request.
@@ -1052,6 +1053,7 @@ class BaseBehaviour(
         :param target_block_numbers: the target block numbers in case we are using flashbots
         :param chain_id: the chain name to use for the ledger call
         :param raise_on_failed_simulation: whether to raise an exception if the simulation fails or not.
+        :param use_all_builders: when using flashbots, broadcast to every supported builder.
         """
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
@@ -1071,7 +1073,7 @@ class BaseBehaviour(
             _kwargs = {
                 "chain_id": chain_id,
                 "raise_on_failed_simulation": raise_on_failed_simulation,
-                "use_all_builders": True,  # TODO: make this a proper parameter
+                "use_all_builders": use_all_builders,
             }
             if target_block_numbers is not None:
                 _kwargs["target_block_numbers"] = target_block_numbers  # type: ignore
@@ -1528,6 +1530,7 @@ class BaseBehaviour(
         target_block_numbers: Optional[List[int]] = None,
         raise_on_failed_simulation: bool = False,
         chain_id: Optional[str] = None,
+        use_all_builders: bool = True,
     ) -> Generator[
         None,
         Union[None, SigningMessage, LedgerApiMessage],
@@ -1551,6 +1554,7 @@ class BaseBehaviour(
         :param target_block_numbers: the target block numbers in case we are using flashbots
         :param raise_on_failed_simulation: whether to raise an exception if the transaction fails the simulation or not
         :param chain_id: the chain name to use for the ledger call
+        :param use_all_builders: when using flashbots, broadcast to every supported builder.
         :yield: SigningMessage object
         :return: transaction hash
         """
@@ -1592,6 +1596,7 @@ class BaseBehaviour(
             target_block_numbers,
             chain_id,
             raise_on_failed_simulation,
+            use_all_builders,
         )
         transaction_digest_msg = yield from self.wait_for_message()
         transaction_digest_msg = cast(LedgerApiMessage, transaction_digest_msg)

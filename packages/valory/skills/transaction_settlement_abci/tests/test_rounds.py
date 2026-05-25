@@ -42,7 +42,6 @@ from unittest.mock import MagicMock
 import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (
-    ABCIAppInternalError,
     AbciAppDB,
 )
 from packages.valory.skills.abstract_round_abci.base import (
@@ -53,7 +52,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     CollectionRound,
     MAX_INT_256,
-    TransactionNotValidError,
     VotingRound,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
@@ -881,8 +879,8 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
         )
 
     @pytest.mark.parametrize("correct_serialization", (True, False))
-    def test_check_payload(self, correct_serialization: bool) -> None:
-        """Test the `check_payload` method."""
+    def test_payload_validates_hash_length(self, correct_serialization: bool) -> None:
+        """Reject tx_hashes that do not align to TX_HASH_LENGTH."""
 
         test_round = SynchronizeLateMessagesRound(
             synchronized_data=self.synchronized_data,
@@ -893,22 +891,14 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
         if not correct_serialization:
             hash_length -= 1
         tx_hashes = "0" * hash_length
-        payload = SynchronizeLateMessagesPayload(sender=sender, tx_hashes=tx_hashes)
 
         if correct_serialization:
+            payload = SynchronizeLateMessagesPayload(sender=sender, tx_hashes=tx_hashes)
             test_round.check_payload(payload)
             return
 
-        with pytest.raises(
-            TransactionNotValidError, match="Expecting serialized data of chunk size"
-        ):
-            test_round.check_payload(payload)
-
-        with pytest.raises(
-            ABCIAppInternalError, match="Expecting serialized data of chunk size"
-        ):
-            test_round.process_payload(payload)
-        assert payload not in test_round.collection
+        with pytest.raises(ValueError, match="Expecting serialized data of chunk size"):
+            SynchronizeLateMessagesPayload(sender=sender, tx_hashes=tx_hashes)
 
 
 def test_synchronized_datas() -> None:

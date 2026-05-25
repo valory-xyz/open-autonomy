@@ -22,6 +22,7 @@
 import json
 import re
 from abc import ABC, abstractmethod
+from functools import cached_property
 from pathlib import Path
 from textwrap import dedent, indent
 from typing import Dict, List
@@ -109,7 +110,7 @@ class AbstractFileGenerator(ABC):
         """Payloads"""
         return [s.replace(ROUND, PAYLOAD) for s in self.rounds]
 
-    @property  # TODO: functools cached property
+    @cached_property
     def template_kwargs(self) -> Dict[str, str]:
         """All keywords for string formatting of templates"""
 

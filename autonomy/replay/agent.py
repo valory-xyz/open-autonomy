@@ -78,15 +78,14 @@ class AgentRunner:
         agent_dir = Path(self.agent_dir.name)
         os.chdir(agent_dir)
 
-        # TODO: replace with more appropriate env var name; we mean an agent here
-        print(f"Loading {self.agent_env['VALORY_APPLICATION']}")
+        print(f"Loading {self.agent_env['AEA_AGENT']}")
         subprocess.run(  # nosec  # pylint: disable=subprocess-run-check
             [
                 *self.aea_cli,
                 "--registry-path",
                 str(self.registry_path),
                 "fetch",
-                self.agent_env["VALORY_APPLICATION"],
+                self.agent_env["AEA_AGENT"],
                 "--local",
                 "--alias",
                 self.agent_alias,

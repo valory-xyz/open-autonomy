@@ -82,19 +82,33 @@ def compare_docstring_content(
 ) -> Tuple[bool, str]:
     """Update docstrings."""
 
-    # TOFIX: check fails if the docstring is not defined, update regex and add better checks
-
-    regex = r'class [A-Za-z]+\(AbciApp\[Event\]\):([a-zA-Z \#:=\-]+)?\n    """[A-Za-z]+\n[a-zA-Z0-9 :{},._\-\n]+"""'
     docstring = "\n".join(
         map(lambda x: f"{INDENT}{x}" if len(x) else x, docstring.split("\n"))
     )
 
-    match = re.search(regex, file_content)
+    regex_with_docstring = (
+        r"class [A-Za-z]+\(AbciApp\[Event\]\):([a-zA-Z \#:=\-]+)?\n"
+        r'    """[A-Za-z]+\n[a-zA-Z0-9 :{},._\-\n]+"""'
+    )
+    match = re.search(regex_with_docstring, file_content)
+    if match is not None:
+        group, *_ = cast(re.Match, match).groups()
+        markers = group if group is not None else ""
+        updated_class = f"class {abci_app_name}(AbciApp[Event]):{markers}{docstring}"
+        return True, re.sub(
+            regex_with_docstring, updated_class, file_content, flags=re.MULTILINE
+        )
+
+    # Class header is present but no docstring matched. Negative lookahead
+    # skips classes that already have a docstring the strict pattern missed,
+    # so we never insert a second docstring next to an existing one.
+    regex_no_docstring = (
+        r'class [A-Za-z]+\(AbciApp\[Event\]\):([a-zA-Z \#:=\-]+)?(?!\s*\n\s*""")'
+    )
+    match = re.search(regex_no_docstring, file_content)
     if match is None:
         return False, ""
     group, *_ = cast(re.Match, match).groups()
     markers = group if group is not None else ""
-
     updated_class = f"class {abci_app_name}(AbciApp[Event]):{markers}{docstring}"
-    updated_content = re.sub(regex, updated_class, file_content, flags=re.MULTILINE)
-    return True, updated_content
+    return True, re.sub(regex_no_docstring, updated_class, file_content, count=1)

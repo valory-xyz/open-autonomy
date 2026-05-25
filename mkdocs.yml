@@ -154,6 +154,7 @@ nav:
               - Templates: 'api/deploy/generators/kubernetes/templates.md'
         - Replay:
           - Agent: 'api/replay/agent.md'
+          - Constants: 'api/replay/constants.md'
           - Tendermint: 'api/replay/tendermint.md'
           - Utils: 'api/replay/utils.md'
         - FSM:

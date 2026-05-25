@@ -20,9 +20,11 @@
 """This module contains the transaction payloads for common apps."""
 
 from dataclasses import dataclass
-from typing import Dict, Optional, Union
+from typing import ClassVar, Dict, Optional, Union
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
+
+TX_HASH_LENGTH = 66
 
 
 @dataclass(frozen=True)
@@ -58,7 +60,18 @@ class CheckTransactionHistoryPayload(BaseTxPayload):
 class SynchronizeLateMessagesPayload(BaseTxPayload):
     """Represent a transaction payload of type 'synchronize'."""
 
+    HASH_LENGTH: ClassVar[int] = TX_HASH_LENGTH
+
     tx_hashes: str
+
+    def __post_init__(self) -> None:
+        """Validate the serialized hash chunks."""
+        content = self.tx_hashes
+        if not content or len(content) % self.HASH_LENGTH:
+            raise ValueError(
+                f"Expecting serialized data of chunk size {self.HASH_LENGTH}, "
+                f"got: {content}"
+            )
 
 
 @dataclass(frozen=True)

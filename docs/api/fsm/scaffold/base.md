@@ -138,7 +138,7 @@ Payloads
 #### template`_`kwargs
 
 ```python
-@property
+@cached_property
 def template_kwargs() -> Dict[str, str]
 ```
 
