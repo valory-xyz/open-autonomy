@@ -364,22 +364,27 @@ class PyProjectTomlConfig:
         file: Path,
         exclude: Optional[List[str]] = None,
         main_dep_names: Optional[Set[str]] = None,
+        string_dep_names: Optional[Set[str]] = None,
     ) -> None:
         """Initialize object."""
         self.dependencies = dependencies
         self.config = config
         self.file = file
         self.ignore = list(set(self.ignore + (exclude or [])))
-        # When `main_dep_names` is provided, `__iter__` and `dump()` are
-        # scoped to those entries. Group-only entries still live in
-        # `self.dependencies` so `check()` lookups succeed (e.g. a
-        # `pytest-asyncio` declared in `[tool.poetry.group.dev.dependencies]`
-        # must satisfy a package-YAML dependency declaration), but they
-        # don't get cross-compared against `tox.ini` or rewritten by
-        # `--update` mode (which would strip dict-form metadata such as
-        # `optional`, `path`, `develop`, `markers`).
+        # When `main_dep_names` is provided, `__iter__` is scoped to
+        # those entries.  Group-only entries still live in
+        # `self.dependencies` so `check()` lookups succeed, but they
+        # don't get cross-compared against `tox.ini`.
         self._main_dep_names: Optional[Set[str]] = (
-            set(main_dep_names) if main_dep_names is not None else None
+            main_dep_names if main_dep_names is not None else None
+        )
+        # Names of deps that originated from a plain-string spec in
+        # pyproject.toml (e.g. `requests = "*"`).  Only these are safe
+        # to rewrite via `Dependency.to_pipfile_string()` in `dump()`;
+        # dict-form entries carry metadata (`optional`, `path`,
+        # `develop`, `markers`) that the serializer would strip.
+        self._string_dep_names: Optional[Set[str]] = (
+            string_dep_names if string_dep_names is not None else None
         )
 
     def __iter__(self) -> Iterator[Dependency]:
@@ -433,7 +438,9 @@ class PyProjectTomlConfig:
         return version
 
     @classmethod
-    def _dependency_from_spec(cls, name: str, spec: Any) -> Optional[Dependency]:
+    def _dependency_from_spec(
+        cls, name: str, spec: Any, pyproject_path: Path
+    ) -> Optional[Dependency]:
         """Build a Dependency from a poetry dep spec (string or dict)."""
         if isinstance(spec, str):
             return Dependency(name=name, version=cls._normalize_version(spec))
@@ -448,9 +455,10 @@ class PyProjectTomlConfig:
         # contributor knows the entry was skipped rather than silently
         # treated as declared.
         logging.warning(
-            "Skipping unrecognized dependency spec for %r in pyproject.toml: "
+            "Skipping unrecognized dependency spec for %r in %s: "
             "expected str or dict, got %s.",
             name,
+            pyproject_path,
             type(spec).__name__,
         )
         return None
@@ -483,6 +491,7 @@ class PyProjectTomlConfig:
         with open(pyproject_path, "rb") as _pyproject_fp:
             config = tomllib.load(_pyproject_fp)
         dependencies: OrderedDictType[str, Dependency] = OrderedDict()
+        string_dep_names: Set[str] = set()
         try:
             main_deps = config["tool"]["poetry"]["dependencies"]
         except KeyError:
@@ -496,15 +505,18 @@ class PyProjectTomlConfig:
                     # Main wins (tighter version pins in dev groups are
                     # not the checker's concern); flag the silent drop.
                     logging.warning(
-                        "Dependency %r appears in multiple pyproject.toml "
+                        "Dependency %r appears in multiple %s "
                         "tables; keeping the first occurrence (main wins).",
                         name,
+                        pyproject_path,
                     )
                     continue
-                dep = cls._dependency_from_spec(name, spec)
+                dep = cls._dependency_from_spec(name, spec, pyproject_path)
                 if dep is None:
                     continue
                 dependencies[name] = dep
+                if isinstance(spec, str):
+                    string_dep_names.add(name)
 
         _ingest(main_deps)
         main_dep_names: Set[str] = set(dependencies)
@@ -516,10 +528,17 @@ class PyProjectTomlConfig:
                 pyproject_path,
             )
             group_tables = {}
-        for group in group_tables.values():
+        for group_name, group in group_tables.items():
             group_deps = group.get("dependencies") if isinstance(group, dict) else None
             if isinstance(group_deps, dict):
                 _ingest(group_deps)
+            else:
+                logging.warning(
+                    "[tool.poetry.group.%s.dependencies] in %s is not a "
+                    "table or is missing; skipping group.",
+                    group_name,
+                    pyproject_path,
+                )
 
         return cls(
             dependencies=dependencies,
@@ -527,23 +546,42 @@ class PyProjectTomlConfig:
             file=pyproject_path,
             exclude=exclude,
             main_dep_names=main_dep_names,
+            string_dep_names=string_dep_names,
         )
 
     def dump(self) -> None:
-        """Dump to file."""
+        """Dump to file.
+
+        Only rewrites lines inside ``[tool.poetry.dependencies]`` that
+        originated from a plain-string spec (e.g. ``requests = "*"``).
+        Dict-form entries (``docker = { version = "==7.1.0", optional =
+        true }``) carry metadata that ``Dependency.to_pipfile_string()``
+        cannot represent, so they pass through verbatim.  Lines in other
+        TOML sections (``[tool.poetry.extras]``, group tables, etc.) are
+        never touched.
+        """
         update = ""
         content = self.file.read_text(encoding="utf-8")
+        in_main_deps = False
         for line in content.split("\n"):
-            if " = " not in line:
+            stripped = line.strip()
+            # Track TOML section headers to scope rewrites.
+            if stripped.startswith("["):
+                in_main_deps = stripped == "[tool.poetry.dependencies]"
+                update += f"{line}\n"
+                continue
+            if not in_main_deps or " = " not in line:
                 update += f"{line}\n"
                 continue
             package, *_ = line.split(" = ")
-            # Only rewrite lines that correspond to main runtime deps.
-            # Group lines (and unrelated `key = value` lines elsewhere
-            # in the file) are passed through verbatim — rewriting them
-            # via `Dependency.to_pipfile_string()` would strip
-            # `optional` / `path` / `develop` / `markers` keys.
-            if self._main_dep_names is not None and package not in self._main_dep_names:
+            # Only rewrite deps that originated from a plain-string
+            # spec.  Dict-form entries would lose `optional` / `path` /
+            # `develop` / `markers` if serialized through
+            # `Dependency.to_pipfile_string()`.
+            if (
+                self._string_dep_names is not None
+                and package not in self._string_dep_names
+            ):
                 update += f"{line}\n"
                 continue
             dep = self.dependencies.get(package)
