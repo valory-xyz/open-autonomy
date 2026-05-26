@@ -52,7 +52,7 @@ class AgentRunner:
 
         :param agent_id: numeric id of the agent service entry.
         :param agent_data: docker-compose service block for the agent.
-        :param registry_path: registry path forwarded to ``aea fetch``.
+        :param registry_path: local registry path used when fetching the agent package.
         :raises ValueError: if the service block is missing ``environment`` or
             an env entry is not formatted as ``KEY=VALUE``.
         """

@@ -34,7 +34,7 @@ Initialize object.
 
 - `agent_id`: numeric id of the agent service entry.
 - `agent_data`: docker-compose service block for the agent.
-- `registry_path`: registry path forwarded to ``aea fetch``.
+- `registry_path`: local registry path used when fetching the agent package.
 
 **Raises**:
 
