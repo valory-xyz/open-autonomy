@@ -102,9 +102,9 @@ class AgentRunner:
             docker-compose service block.
         """
 
-        agent_dir = Path(self.agent_dir.name)
-        os.chdir(agent_dir)
-
+        # Validate before any side effects so a missing env var does not
+        # leave the process with cwd pointing inside the (about to be
+        # cleaned up) temporary agent directory.
         aea_agent = self.agent_env.get("AEA_AGENT")
         if aea_agent is None:
             raise ValueError(
@@ -115,6 +115,9 @@ class AgentRunner:
         aea_key = self.agent_env.get("AEA_KEY")
         if aea_key is None:
             raise ValueError("Missing `AEA_KEY` in the docker-compose env block.")
+
+        agent_dir = Path(self.agent_dir.name)
+        os.chdir(agent_dir)
 
         print(f"Loading {aea_agent}")
         subprocess.run(  # nosec  # pylint: disable=subprocess-run-check
