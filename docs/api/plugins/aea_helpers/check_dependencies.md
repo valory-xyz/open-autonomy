@@ -233,7 +233,8 @@ def __init__(dependencies: OrderedDictType[str, Dependency],
              file: Path,
              exclude: Optional[List[str]] = None,
              main_dep_names: Optional[Set[str]] = None,
-             string_dep_names: Optional[Set[str]] = None) -> None
+             string_dep_names: Optional[Set[str]] = None,
+             group_dep_names: Optional[Set[str]] = None) -> None
 ```
 
 Initialize object.
@@ -295,6 +296,11 @@ lookups but are excluded from `__iter__` / `dump()` so that
 cross-validation against `tox.ini` and `--update` rewrites stay
 scoped to main runtime deps. See `__init__` for the rationale.
 
+A malformed/unreadable file is logged and propagated (the
+``TOMLDecodeError`` / ``OSError`` is re-raised) so a corrupt
+pyproject fails the check rather than being silently treated as
+"no deps to verify".
+
 **Arguments**:
 
 - `pyproject_path`: path to the pyproject.toml file.
@@ -323,9 +329,12 @@ Rewrites string-form main deps in place inside
 package-/tox-discovered names not yet in pyproject) at the end of
 that table.  Dict-form entries
 (``docker = { version = "==7.1.0", optional = true }``) carry
-metadata that ``Dependency.to_pipfile_string()`` cannot
-represent, so they pass through verbatim; every other section,
-plus comments and inline-table formatting, is left untouched.
+metadata the ``name = version`` form can't represent, so they
+pass through verbatim — which also means an ``update()`` to a
+dict-form dep is not re-emitted (`update()` warns about that).
+Every other section, plus comments (including trailing in-line
+comments on rewritten lines), inline-table formatting and the
+original newline style, is left untouched.
 
 <a id="plugins.aea-helpers.aea_helpers.check_dependencies.load_packages_dependencies"></a>
 

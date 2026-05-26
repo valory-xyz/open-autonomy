@@ -79,6 +79,8 @@ def test_load_includes_main_dict_entries_without_extras(tmp_path: Path) -> None:
     assert config is not None
     assert "docker" in config.dependencies
     assert "open-aea-ledger-ethereum-hwi" in config.dependencies
+    # No `extras` key -> `Dependency` normalizes the absent value to [].
+    assert config.dependencies["docker"].extras == []
 
 
 def test_load_includes_main_dict_entries_with_extras(tmp_path: Path) -> None:
@@ -524,3 +526,106 @@ def test_dump_preserves_comments_and_inline_tables(tmp_path: Path) -> None:
     # Inline table is not expanded into a [tool.poetry.dependencies.docker] sub-table.
     assert 'docker = { version = "==7.1.0", optional = true }' in after
     assert "[tool.poetry.dependencies.docker]" not in after
+
+
+def test_dump_preserves_trailing_comment_on_rewrite(tmp_path: Path) -> None:
+    """A trailing in-line comment survives when dump() rewrites the version.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    """
+    content = textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["demo"]
+
+        [tool.poetry.dependencies]
+        python = ">=3.10,<3.15"
+        requests = "^2.0.0"  # required by skill-X
+        """)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+    config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    config.dump()
+    after = pyproject.read_text()
+    assert "requests" in after
+    assert "# required by skill-X" in after
+    assert '"^2.0.0"' not in after  # the value was actually rewritten
+
+
+def test_dump_no_space_form_yields_no_duplicate(tmp_path: Path) -> None:
+    """A no-space `pkg="ver"` line is rewritten in place, not duplicated.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    """
+    content = textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["demo"]
+
+        [tool.poetry.dependencies]
+        python = ">=3.10,<3.15"
+        flask=">=2.0"
+        """)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+    config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    config.dump()
+    after = pyproject.read_text()
+    assert after.count("flask") == 1, "no-space form produced a duplicate key"
+    parsed = tomllib.loads(after)
+    assert "flask" in parsed["tool"]["poetry"]["dependencies"]
+
+
+def test_load_raises_on_malformed_toml(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """A malformed pyproject raises (so CI fails) and logs a readable error.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    :param caplog: pytest log-capture fixture for the parse error.
+    """
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text("this is not valid TOML at all [[[\n")
+    with caplog.at_level(logging.ERROR):
+        with pytest.raises(tomllib.TOMLDecodeError):
+            PyProjectTomlConfig.load(pyproject)
+    assert any(
+        "Failed to parse" in r.getMessage() for r in caplog.records
+    ), "expected a logged parse error before the raise"
+
+
+def test_load_warns_on_non_string_version(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """A non-string `version` (e.g. int) is treated as unconstrained + warned.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    :param caplog: pytest log-capture fixture for the warning.
+    """
+    content = textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["demo"]
+
+        [tool.poetry.dependencies]
+        python = ">=3.10,<3.15"
+        somepkg = { version = 7 }
+        """)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+    with caplog.at_level(logging.WARNING):
+        config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    assert config.dependencies["somepkg"].version == ""
+    assert any(
+        "somepkg" in r.getMessage() and "Non-string version" in r.getMessage()
+        for r in caplog.records
+    ), "expected a warning for the non-string version"
