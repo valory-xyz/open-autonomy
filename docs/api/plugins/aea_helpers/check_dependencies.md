@@ -315,15 +315,17 @@ KeyError` also triggers on a missing `[tool]` /
 def dump() -> None
 ```
 
-Dump to file.
+Dump to file (line-based, preserving comments and formatting).
 
-Only rewrites lines inside ``[tool.poetry.dependencies]`` that
-originated from a plain-string spec (e.g. ``requests = "*"``).
-Dict-form entries (``docker = { version = "==7.1.0", optional =
-true }``) carry metadata that ``Dependency.to_pipfile_string()``
-cannot represent, so they pass through verbatim.  Lines in other
-TOML sections (``[tool.poetry.extras]``, group tables, etc.) are
-never touched.
+Rewrites string-form main deps in place inside
+``[tool.poetry.dependencies]`` and appends any newly-added deps
+(e.g. introduced by ``update()`` in ``--update`` mode, which adds
+package-/tox-discovered names not yet in pyproject) at the end of
+that table.  Dict-form entries
+(``docker = { version = "==7.1.0", optional = true }``) carry
+metadata that ``Dependency.to_pipfile_string()`` cannot
+represent, so they pass through verbatim; every other section,
+plus comments and inline-table formatting, is left untouched.
 
 <a id="plugins.aea-helpers.aea_helpers.check_dependencies.load_packages_dependencies"></a>
 
