@@ -49,6 +49,7 @@ SAMPLE_PYPROJECT = textwrap.dedent("""\
     docker = { version = "==7.1.0", optional = true }
     open-aea-ledger-ethereum-hwi = { version = "==2.2.1", optional = true }
     open-aea-ledger-ethereum = { version = "==2.2.1", optional = true, extras = [] }
+    pywin32 = { version = ">=304", markers = "sys_platform == 'win32'" }
 
     [tool.poetry.extras]
     docker = ["docker"]
@@ -141,10 +142,10 @@ def test_main_deps_win_over_group_deps_on_name_collision(
     assert SpecifierSet(config.dependencies["protobuf"].version) == SpecifierSet(
         "==4.25.0"
     )
-    assert any(
-        "'protobuf'" in r.message and "keeping the first occurrence" in r.message
-        for r in caplog.records
-    ), "expected collision warning for 'protobuf'"
+    msg = next(r.getMessage() for r in caplog.records if "protobuf" in r.getMessage())
+    # Names the dep, says main wins, and logs both colliding versions.
+    assert "main wins" in msg
+    assert "==4.25.0" in msg and "*" in msg
 
 
 def test_load_returns_none_when_no_poetry_table(tmp_path: Path) -> None:
@@ -209,47 +210,35 @@ def test_dump_does_not_hoist_group_deps_to_main(tmp_path: Path) -> None:
     :param tmp_path: pytest-provided temp dir for the sample pyproject.
     """
     pyproject = _write_pyproject(tmp_path)
-    original = pyproject.read_text()
     config = PyProjectTomlConfig.load(pyproject)
     assert config is not None
     config.dump()
-    after = pyproject.read_text()
+    # Parse the rewritten file structurally — substring matches would be
+    # brittle against inline-table whitespace reformatting.
+    parsed = tomllib.loads(pyproject.read_text())
+    poetry = parsed["tool"]["poetry"]
+    main_deps = poetry["dependencies"]
 
-    # --- Group lines are untouched ---
-    for line in (
-        'pytest-asyncio = "*"',
-        'Flask = ">=3.1.0,<4.0.0"',
-        'open-aea-helpers = { path = "plugins/aea-helpers", develop = true }',
-        'mkdocs = "==1.6.0"',
-    ):
-        assert line in original
-        assert line in after, f"Group line {line!r} corrupted by dump()"
+    # --- Main dict-form deps keep their metadata (not flattened) ---
+    assert main_deps["docker"] == {"version": "==7.1.0", "optional": True}
+    assert main_deps["open-aea-ledger-ethereum-hwi"] == {
+        "version": "==2.2.1",
+        "optional": True,
+    }
+    # Environment markers survive (would install on every OS if dropped).
+    assert main_deps["pywin32"].get("markers") == "sys_platform == 'win32'"
 
-    # --- Main dict-form deps keep their metadata ---
-    assert (
-        'docker = { version = "==7.1.0", optional = true }' in after
-    ), "Main dict-form dep 'docker' lost optional=true"
-    assert (
-        'open-aea-ledger-ethereum-hwi = { version = "==2.2.1", optional = true }'
-        in after
-    ), "Main dict-form dep 'open-aea-ledger-ethereum-hwi' lost optional=true"
+    # --- [tool.poetry.extras] lists survive ---
+    assert poetry["extras"]["docker"] == ["docker"]
+    assert poetry["extras"]["hwi"] == ["open-aea-ledger-ethereum-hwi"]
 
-    # --- [tool.poetry.extras] list survives ---
-    assert (
-        'docker = ["docker"]' in after
-    ), "[tool.poetry.extras] docker list corrupted by dump()"
-    assert (
-        'hwi = ["open-aea-ledger-ethereum-hwi"]' in after
-    ), "[tool.poetry.extras] hwi list corrupted by dump()"
-
-    # --- Group deps are NOT in the main section ---
-    # Parse the dumped file and check the main deps table directly.
-    parsed = tomllib.loads(after)
-    main_keys = set(parsed["tool"]["poetry"]["dependencies"].keys())
+    # --- Group deps stay in their group tables, not hoisted into main ---
     for group_name in ("pytest-asyncio", "Flask", "open-aea-helpers", "mkdocs"):
         assert (
-            group_name not in main_keys
+            group_name not in main_deps
         ), f"Group dep {group_name!r} hoisted into main"
+    assert "pytest-asyncio" in poetry["group"]["dev"]["dependencies"]
+    assert "mkdocs" in poetry["group"]["docs"]["dependencies"]
 
 
 def test_load_skips_list_form_spec(
@@ -280,7 +269,7 @@ def test_load_skips_list_form_spec(
     assert "requests" in config.dependencies
     assert "weird" not in config.dependencies
     assert any(
-        "'weird'" in r.message and "expected str or dict" in r.message
+        "'weird'" in r.getMessage() and "expected str or dict" in r.getMessage()
         for r in caplog.records
     ), "expected skip-warning for list-form 'weird'"
 
@@ -310,7 +299,7 @@ def test_load_handles_malformed_group_table(
     assert config is not None
     assert "requests" in config.dependencies
     assert any(
-        "dev" in r.message and "not a table or is missing" in r.message
+        "dev" in r.getMessage() and "not a table or is missing" in r.getMessage()
         for r in caplog.records
     ), "expected warning for malformed group 'dev'"
 
@@ -408,6 +397,7 @@ def test_dump_preserves_main_dict_form_and_extras_collision(
         python = ">=3.10,<3.15"
         requests = "*"
         docker = { version = "==7.1.0", optional = true }
+        pywin32 = { version = ">=304", markers = "sys_platform == 'win32'" }
 
         [tool.poetry.extras]
         docker = ["docker"]
@@ -420,15 +410,51 @@ def test_dump_preserves_main_dict_form_and_extras_collision(
     config = PyProjectTomlConfig.load(pyproject)
     assert config is not None
     config.dump()
-    after = pyproject.read_text()
+    # Structural assertions (robust to inline-table whitespace reformatting).
+    parsed = tomllib.loads(pyproject.read_text())
+    main_deps = parsed["tool"]["poetry"]["dependencies"]
+    # Main dict-form dep keeps optional=true (not flattened to a string).
+    assert main_deps["docker"] == {"version": "==7.1.0", "optional": True}
+    # Environment markers survive.
+    assert main_deps["pywin32"].get("markers") == "sys_platform == 'win32'"
+    # Extras list (name collides with the dict-form dep) survives intact.
+    assert parsed["tool"]["poetry"]["extras"]["docker"] == ["docker"]
+    # Group dep is not hoisted into main.
+    assert "protobuf" not in main_deps
 
-    # Main dict-form dep keeps optional=true
-    assert (
-        'docker = { version = "==7.1.0", optional = true }' in after
-    ), "dump() corrupted main dict-form dep 'docker'"
-    # Extras list survives
-    assert (
-        'docker = ["docker"]' in after
-    ), "dump() corrupted [tool.poetry.extras] docker list"
-    # Group line is untouched
-    assert 'protobuf = "*"' in after
+
+def test_group_vs_group_collision_keeps_first_group(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Two groups declaring the same dep: first wins, warning must not say 'main wins'.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    :param caplog: pytest log-capture fixture for the collision warning.
+    """
+    content = textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["demo"]
+
+        [tool.poetry.dependencies]
+        python = ">=3.10,<3.15"
+
+        [tool.poetry.group.dev.dependencies]
+        requests = "==1.0.0"
+
+        [tool.poetry.group.docs.dependencies]
+        requests = "==2.0.0"
+        """)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+    with caplog.at_level(logging.WARNING):
+        config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    assert SpecifierSet(config.dependencies["requests"].version) == SpecifierSet(
+        "==1.0.0"
+    )
+    msg = next(r.getMessage() for r in caplog.records if "requests" in r.getMessage())
+    assert "main wins" not in msg
+    assert "multiple groups" in msg

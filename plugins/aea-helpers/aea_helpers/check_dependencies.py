@@ -374,18 +374,15 @@ class PyProjectTomlConfig:
         # When `main_dep_names` is provided, `__iter__` is scoped to
         # those entries.  Group-only entries still live in
         # `self.dependencies` so `check()` lookups succeed, but they
-        # don't get cross-compared against `tox.ini`.
-        self._main_dep_names: Optional[Set[str]] = (
-            main_dep_names if main_dep_names is not None else None
-        )
+        # don't get cross-compared against `tox.ini`.  `None` is the
+        # documented "unset" value, so plain assignment.
+        self._main_dep_names = main_dep_names
         # Names of deps that originated from a plain-string spec in
         # pyproject.toml (e.g. `requests = "*"`).  Only these are safe
         # to rewrite via `Dependency.to_pipfile_string()` in `dump()`;
         # dict-form entries carry metadata (`optional`, `path`,
         # `develop`, `markers`) that the serializer would strip.
-        self._string_dep_names: Optional[Set[str]] = (
-            string_dep_names if string_dep_names is not None else None
-        )
+        self._string_dep_names = string_dep_names
 
     def __iter__(self) -> Iterator[Dependency]:
         """Iterate dependencies."""
@@ -422,8 +419,14 @@ class PyProjectTomlConfig:
         return None, 0
 
     @staticmethod
-    def _normalize_version(version: str) -> str:
+    def _normalize_version(version: Any) -> str:
         """Normalize a poetry version constraint to a pip-style specifier."""
+        # TOML can legally produce a non-string `version` (e.g.
+        # `version = 7` -> int). The type hint promises str, but the
+        # caller passes `spec.get("version", "")` straight from parsed
+        # TOML, so guard rather than trust.
+        if not isinstance(version, str):
+            return ""
         if version in ("", "*"):
             return ""
         if version.startswith("^"):
@@ -488,8 +491,14 @@ class PyProjectTomlConfig:
             KeyError` also triggers on a missing `[tool]` /
             `[tool.poetry]` parent).
         """
-        with open(pyproject_path, "rb") as _pyproject_fp:
-            config = tomllib.load(_pyproject_fp)
+        try:
+            with open(pyproject_path, "rb") as _pyproject_fp:
+                config = tomllib.load(_pyproject_fp)
+        except (tomllib.TOMLDecodeError, OSError) as exc:
+            # A malformed/truncated file shouldn't kill a monorepo sweep
+            # with an opaque traceback; surface it and skip this file.
+            logging.error("Failed to parse %s: %s", pyproject_path, exc)
+            return None
         dependencies: OrderedDictType[str, Dependency] = OrderedDict()
         string_dep_names: Set[str] = set()
         try:
@@ -497,19 +506,36 @@ class PyProjectTomlConfig:
         except KeyError:
             return None
 
+        # Populated after the main ingest so `_ingest` (closure) can tell
+        # a main-vs-group collision from a group-vs-group one.
+        main_dep_names: Set[str] = set()
+
         def _ingest(table: Dict[str, Any]) -> None:
             for name, spec in table.items():
                 if name in dependencies:
-                    # Main is ingested first, so this branch only fires
-                    # when a group entry collides with a main entry.
-                    # Main wins (tighter version pins in dev groups are
-                    # not the checker's concern); flag the silent drop.
-                    logging.warning(
-                        "Dependency %r appears in multiple %s "
-                        "tables; keeping the first occurrence (main wins).",
-                        name,
-                        pyproject_path,
-                    )
+                    # `_ingest` runs once for main then once per group, so
+                    # a collision is either main-vs-group or group-vs-group.
+                    # The kept value is whatever landed first; only call it
+                    # "main wins" when main is actually involved.
+                    kept = dependencies[name].version or "*"
+                    if name in main_dep_names:
+                        logging.warning(
+                            "Dependency %r appears in both main and a group "
+                            "in %s; main wins (kept %r, dropped %r).",
+                            name,
+                            pyproject_path,
+                            kept,
+                            spec,
+                        )
+                    else:
+                        logging.warning(
+                            "Dependency %r appears in multiple groups in %s; "
+                            "first occurrence wins (kept %r, dropped %r).",
+                            name,
+                            pyproject_path,
+                            kept,
+                            spec,
+                        )
                     continue
                 dep = cls._dependency_from_spec(name, spec, pyproject_path)
                 if dep is None:
@@ -519,7 +545,7 @@ class PyProjectTomlConfig:
                     string_dep_names.add(name)
 
         _ingest(main_deps)
-        main_dep_names: Set[str] = set(dependencies)
+        main_dep_names.update(dependencies)
 
         group_tables = config["tool"]["poetry"].get("group", {})
         if not isinstance(group_tables, dict):
