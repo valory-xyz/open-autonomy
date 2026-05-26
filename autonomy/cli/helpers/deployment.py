@@ -114,15 +114,6 @@ def _build_dirs(build_dir: Path, mkdir: Optional[List[str]] = None) -> None:
     ] + mkdirs:
         path = Path(build_dir, *dir_path)
         path.mkdir(exist_ok=True, parents=True)
-        # TOFIX: remove this safely
-        try:
-            os.chown(path, 1000, 1000)
-        except PermissionError:  # pragma: no cover
-            click.echo(
-                f"Updating permissions failed for {path}, please do it manually."
-            )
-        except AttributeError:  # pragma: no cover
-            continue
 
 
 def _print_log(build_dir: Path, project_name: Optional[str]) -> None:

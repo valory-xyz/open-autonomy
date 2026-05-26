@@ -258,16 +258,6 @@ def is_error(ret: Result) -> TypeGuard[AutonomyTypeError]
 
 Check error.
 
-<a id="packages.valory.skills.abstract_round_abci.utils.is_typeddict"></a>
-
-#### is`_`typeddict
-
-```python
-def is_typeddict(ty: Type[Any]) -> TypeGuard
-```
-
-Check typeddict.
-
 <a id="packages.valory.skills.abstract_round_abci.utils.check_type"></a>
 
 #### check`_`type

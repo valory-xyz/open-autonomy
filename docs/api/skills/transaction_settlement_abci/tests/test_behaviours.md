@@ -697,6 +697,22 @@ def test_async_act(late_messages: List[MagicMock]) -> None
 
 Test `async_act`
 
+<a id="packages.valory.skills.transaction_settlement_abci.tests.test_behaviours.TestSynchronizeLateMessagesBehaviour.test_short_circuit_clears_nondefault_late_messages"></a>
+
+#### test`_`short`_`circuit`_`clears`_`nondefault`_`late`_`messages
+
+```python
+def test_short_circuit_clears_nondefault_late_messages() -> None
+```
+
+Short-circuit must reset a pre-existing non-default ``late_messages``.
+
+With a non-empty ``late_messages`` going in plus a dummy
+``_get_tx_data`` that returns an empty ``tx_digest``, the local
+``_tx_hashes`` accumulator stays empty after the iterator drains.
+That triggers the short-circuit, and the assertion below catches
+any regression that drops the ``late_messages = []`` reset.
+
 <a id="packages.valory.skills.transaction_settlement_abci.tests.test_behaviours.TestResetBehaviour"></a>
 
 ## TestResetBehaviour Objects

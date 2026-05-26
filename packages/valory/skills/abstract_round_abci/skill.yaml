@@ -10,7 +10,7 @@ fingerprint:
   __init__.py: bafybeicp5mrmo4k5wkcljgr47vr4xafgum7iuobwwr2uujgkm3uspenc2m
   abci_app_chain.py: bafybeigkdzpx5g5uxura36y5bjgqkh7spq6ll2mnufco6pbhs4gkxwzhum
   base.py: bafybeifb5efbfjn3edt2ehafrdutdw576lzuf5cbakr4frvnmzydgzkgk4
-  behaviour_utils.py: bafybeibff57fybcxccfelhoityoo6lkqv7fv7a75wgh6opg7cykrozacxm
+  behaviour_utils.py: bafybeihypkdkxfzwx3biidaymyqj5e74rvehkzcyed5iqcwmrgoopgqffq
   behaviours.py: bafybeihav5qqxbj6gb2nrjbguvxc3nqjafbk6sudxnwyky3krjejcq2kvy
   common.py: bafybeigzo5pvbjuruhpiq754wgemyd7qw2lzzds3p7q6k3oqivig6yq46i
   dialogues.py: bafybeiezwvocuzmpjmvk3lichudpmgdju32izj37qyogeorj2w6klsjrx4
@@ -41,7 +41,7 @@ fingerprint:
   tests/test_base.py: bafybeih3zxczktfmrx6epmre55guoqvipbqd6wj44atutjwqytysvhnlcy
   tests/test_base_rounds.py: bafybeid2aaaki3lq4ryak6cgkz4hqtq53bvurupu27hoyzmk5pjozraz6i
   tests/test_behaviours.py: bafybeiegtts556tcs2x42y5cfonuc266okddkbvsqwtcjidf7l3mos66eu
-  tests/test_behaviours_utils.py: bafybeifmvx5escyda4ih6ummic2v62k35y47grv43yxemyxnd6g6firtqi
+  tests/test_behaviours_utils.py: bafybeiheyfn733cshsnmnf5jnkdqakn7yzbqqpxm2eno5s6jimyut3fjqy
   tests/test_common.py: bafybeifqx3chzb3uxzagqk3olv3rldjnefuxobnsbg6wwf34xofi7ihik4
   tests/test_dialogues.py: bafybeigpfrslqaz2yullyehia5bsl7cmy2qqxtz627ig7rbrypw5xfzeum
   tests/test_handlers.py: bafybeibxnygya75im25v4vakehhv7riwxuki3tsyjzp7arqcghea6nso5i
@@ -57,7 +57,7 @@ fingerprint:
   tests/test_tools/test_integration.py: bafybeig25ktj2bcq6pbyobrkk25rahwfgbrd4di4eipk535jivhdvxag4y
   tests/test_tools/test_rounds.py: bafybeiavengy2zq56qb5jm322k3dw5sx3vw7l4oefxppmfiuavgkpagjvy
   tests/test_utils.py: bafybeibjmxkne6pkbyypcdt2elxan6w6oddl2kefjdcoom2i2bmlq2cwie
-  utils.py: bafybeicwlsniy35agxz6z4765mchmgnzcggnu5rjbf2lollabfhmatvcyi
+  utils.py: bafybeigr5q464qemt6axayrswxzdwjl7t6idxg6axuyjrbukj6tevfx4oy
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeiafvaguchnkp2fmhf6gtayc3gpnxkglagghb4ukbqtouni5tveigi

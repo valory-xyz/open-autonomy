@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 import json
 import re
 from abc import ABC, abstractmethod
+from functools import cached_property
 from pathlib import Path
 from textwrap import dedent, indent
 from typing import Dict, List
@@ -109,7 +110,7 @@ class AbstractFileGenerator(ABC):
         """Payloads"""
         return [s.replace(ROUND, PAYLOAD) for s in self.rounds]
 
-    @property  # TODO: functools cached property
+    @cached_property
     def template_kwargs(self) -> Dict[str, str]:
         """All keywords for string formatting of templates"""
 

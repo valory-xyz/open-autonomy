@@ -82,6 +82,11 @@ def hash_payload_to_hex(safe_tx_hash: str,
 
 Serialise to a hex string.
 
+``use_flashbots`` and ``raise_on_failed_simulation`` are retained for
+on-wire payload compatibility with running services. The flashbots
+ledger plugin was removed upstream, so the consuming behaviour no
+longer acts on these values.
+
 <a id="packages.valory.skills.transaction_settlement_abci.payload_tools.skill_input_hex_to_payload"></a>
 
 #### skill`_`input`_`hex`_`to`_`payload

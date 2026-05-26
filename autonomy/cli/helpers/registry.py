@@ -19,7 +19,6 @@
 
 """Component registry helpers."""
 
-import os
 import shutil
 import tempfile
 from pathlib import Path
@@ -40,6 +39,7 @@ from aea.cli.utils.package_utils import (
 )
 from aea.configurations.constants import DEFAULT_README_FILE, SERVICE, SERVICES
 from aea.configurations.data_types import PublicId
+from aea.exceptions import AEAValidationError
 from aea.helpers.cid import to_v1
 
 from autonomy.configurations.base import (
@@ -156,10 +156,10 @@ def fetch_service_local(
 def publish_service_package(click_context: click.Context, registry: str) -> None:
     """Publish a service package."""
 
-    # TODO ensure we have error handling here.
-    service_config = load_item_config(
-        SERVICE, Path(click_context.obj.cwd), PACKAGE_TYPE_TO_CONFIG_CLASS
-    )
+    with reraise_as_click_exception(FileNotFoundError, ValueError, AEAValidationError):
+        service_config = load_item_config(
+            SERVICE, Path(click_context.obj.cwd), PACKAGE_TYPE_TO_CONFIG_CLASS
+        )
 
     if registry == REGISTRY_REMOTE:
         if get_default_remote_registry() == REMOTE_IPFS:
@@ -218,10 +218,8 @@ def publish_service_local(ctx: Context, public_id: PublicId) -> None:
         SERVICES,
         public_id.name,
     )
-    author_dir = Path(target_dir).parent
-    if not os.path.exists(author_dir):
-        os.makedirs(author_dir, exist_ok=True)
-    # TODO: also make services dir?
+    services_dir = Path(target_dir).parent
+    services_dir.mkdir(parents=True, exist_ok=True)
 
     shutil.copytree(ctx.cwd, target_dir)
     click.echo(

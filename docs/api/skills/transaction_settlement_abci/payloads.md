@@ -59,6 +59,16 @@ class SynchronizeLateMessagesPayload(BaseTxPayload)
 
 Represent a transaction payload of type 'synchronize'.
 
+<a id="packages.valory.skills.transaction_settlement_abci.payloads.SynchronizeLateMessagesPayload.__post_init__"></a>
+
+#### `__`post`_`init`__`
+
+```python
+def __post_init__() -> None
+```
+
+Validate the serialized hash chunks.
+
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.SignaturePayload"></a>
 
 ## SignaturePayload Objects

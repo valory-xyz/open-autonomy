@@ -19,10 +19,12 @@
 
 """Develop CLI module."""
 
+import json
 import time
 from pathlib import Path
 
 import click
+import yaml
 from aea.cli.utils.click_utils import reraise_as_click_exception
 from aea.configurations.constants import PACKAGES
 
@@ -67,13 +69,22 @@ def run_agent(agent: int, build_path: Path, registry_path: Path) -> None:
     registry_path = Path(registry_path).absolute()
 
     docker_compose_file = build_path / DOCKER_COMPOSE_YAML
-    # TODO: handle file not present, file corrupted
-    docker_compose_config = load_docker_config(docker_compose_file)
-    # TODO: add JSONSchemaValidator to above loading logic to ensure the below fields are present
-    agent_data = docker_compose_config["services"][f"abci{agent}"]
-    runner = AgentRunner(agent, agent_data, registry_path)
+    with reraise_as_click_exception(FileNotFoundError, yaml.YAMLError, ValueError):
+        docker_compose_config = load_docker_config(docker_compose_file)
+
+    services = docker_compose_config.get("services") or {}
+    service_key = f"abci{agent}"
+    if service_key not in services:
+        raise click.ClickException(
+            f"Agent {agent} not found in build at {docker_compose_file}. "
+            f"Available services: {sorted(services)}"
+        )
+    agent_data = services[service_key]
+    with reraise_as_click_exception(ValueError):
+        runner = AgentRunner(agent, agent_data, registry_path)
     try:
-        runner.start()
+        with reraise_as_click_exception(ValueError):
+            runner.start()
         while True:  # pragma: nocover
             time.sleep(1)
     except KeyboardInterrupt:
@@ -94,9 +105,11 @@ def run_tendermint(build_dir: Path) -> None:
     build_dir = Path(build_dir).absolute()
     dump_dir = build_dir / PERSISTENT_DATA_DIR / TM_STATE_DIR
 
-    # TODO: missing error handling
-    fix_address_books(build_dir)
-    fix_config_files(build_dir)
+    with reraise_as_click_exception(
+        OSError, json.JSONDecodeError, KeyError, ValueError
+    ):
+        fix_address_books(build_dir)
+        fix_config_files(build_dir)
 
     proxy_app, tendermint_network = build_tendermint_apps()
 

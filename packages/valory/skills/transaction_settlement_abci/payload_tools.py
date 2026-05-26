@@ -103,7 +103,13 @@ def hash_payload_to_hex(  # pylint: disable=too-many-locals
     gas_limit: int = 0,
     raise_on_failed_simulation: bool = False,
 ) -> str:
-    """Serialise to a hex string."""
+    """Serialise to a hex string.
+
+    ``use_flashbots`` and ``raise_on_failed_simulation`` are retained for
+    on-wire payload compatibility with running services. The flashbots
+    ledger plugin was removed upstream, so the consuming behaviour no
+    longer acts on these values.
+    """
     if len(safe_tx_hash) != 64:  # should be exactly 32 bytes!
         raise ValueError(
             "cannot encode safe_tx_hash of non-32 bytes"

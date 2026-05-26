@@ -19,6 +19,7 @@
 
 """Test replay tools."""
 
+import json
 import shutil
 import subprocess  # nosec
 import tempfile
@@ -29,13 +30,14 @@ from unittest import mock
 import pytest
 
 from autonomy.deploy.base import TENDERMINT_COM_URL_PARAM, TENDERMINT_URL_PARAM
-from autonomy.deploy.constants import TM_STATE_DIR
+from autonomy.deploy.constants import PERSISTENT_DATA_DIR, TM_STATE_DIR
 from autonomy.replay.agent import AgentRunner
 from autonomy.replay.tendermint import (
     RanOutOfDumpsToReplay,
     TendermintRunner,
     build_tendermint_apps,
 )
+from autonomy.replay.utils import fix_address_books
 
 from tests.conftest import ROOT_DIR
 
@@ -49,7 +51,7 @@ AGENT_DATA = {
     "environment": [
         "LOG_FILE=/logs/aea_0.txt",
         "ID=0",
-        "VALORY_APPLICATION=valory/offend_slash:0.1.0:bafybeideb6b5k4i6z7bm3p53eydxgknmwdefo2oshcnlxthjc6oxeox7ua",
+        "AEA_AGENT=valory/offend_slash:0.1.0:bafybeideb6b5k4i6z7bm3p53eydxgknmwdefo2oshcnlxthjc6oxeox7ua",
         "ABCI_HOST=abci0",
         f"SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_{TENDERMINT_URL_PARAM.upper()}=http://node0:26657",
         f"SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_{TENDERMINT_COM_URL_PARAM.upper()}=http://node0:8080",
@@ -215,3 +217,67 @@ def test_agent_runner() -> None:
 
     agent_runner.stop()
     assert agent_runner.process is None
+
+
+def _addrbook_at(dump_root: Path, node_id: int, payload: dict) -> Path:
+    """Write a synthetic ``addrbook.json`` under the expected glob path."""
+    node_dir = dump_root / PERSISTENT_DATA_DIR / TM_STATE_DIR / f"node{node_id}"
+    node_dir.mkdir(parents=True, exist_ok=True)
+    addr_file = node_dir / "addrbook.json"
+    addr_file.write_text(json.dumps(payload))
+    return addr_file
+
+
+@pytest.mark.parametrize(
+    "addr_payload, expect_mutation",
+    (
+        # Missing "addr" key — entry must be skipped, file rewritten unchanged.
+        ({"addrs": [{"ip": "1.2.3.4"}]}, False),
+        # Non-dotted IP — entry must be skipped.
+        ({"addrs": [{"addr": {"ip": "not-an-ip"}}]}, False),
+        # Non-numeric trailing octet — entry must be skipped.
+        ({"addrs": [{"addr": {"ip": "1.2.3.abc"}}]}, False),
+        # Healthy entry — must be rewritten with replay-local ip/port.
+        (
+            {"addrs": [{"addr": {"ip": "10.0.0.6", "port": 26656}}]},
+            True,
+        ),
+    ),
+)
+def test_fix_address_books_skips_malformed_entries(
+    addr_payload: dict, expect_mutation: bool
+) -> None:
+    """Malformed peer entries are skipped without aborting the whole sweep."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        build_dir = Path(temp_dir)
+        addr_file = _addrbook_at(build_dir, 0, addr_payload)
+        fix_address_books(build_dir)
+        result = json.loads(addr_file.read_text())
+        if expect_mutation:
+            assert result["addrs"][0]["addr"]["ip"] == "127.0.0.1"
+            assert (
+                result["addrs"][0]["addr"]["port"]
+                != addr_payload["addrs"][0]["addr"]["port"]
+            )
+        else:
+            assert result == addr_payload, (
+                "malformed entry must be preserved unchanged so the addrbook "
+                "is not left half-rewritten"
+            )
+
+
+def test_fix_address_books_continues_past_malformed_peer_to_subsequent_files() -> None:
+    """A malformed peer in one addrbook does not stop processing the next file."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        build_dir = Path(temp_dir)
+        bad = _addrbook_at(build_dir, 0, {"addrs": [{"ip": "1.2.3.4"}]})
+        good_payload = {"addrs": [{"addr": {"ip": "10.0.0.7", "port": 26656}}]}
+        good = _addrbook_at(build_dir, 1, good_payload)
+
+        fix_address_books(build_dir)
+
+        # First file untouched (entry was malformed, skipped).
+        assert json.loads(bad.read_text()) == {"addrs": [{"ip": "1.2.3.4"}]}
+        # Second file rewritten with replay-local values — proves the sweep did not abort.
+        result = json.loads(good.read_text())
+        assert result["addrs"][0]["addr"]["ip"] == "127.0.0.1"

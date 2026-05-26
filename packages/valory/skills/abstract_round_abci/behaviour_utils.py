@@ -115,7 +115,6 @@ GENESIS_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 INITIAL_APP_HASH = ""
 INITIAL_HEIGHT = "0"
 TM_REQ_TIMEOUT = 5  # 5 seconds
-FLASHBOTS_LEDGER_ID = "ethereum_flashbots"
 SOLANA_LEDGER_ID = "solana"
 
 
@@ -1048,11 +1047,31 @@ class BaseBehaviour(
         Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
         :param signing_msg: signing message
-        :param use_flashbots: whether to use flashbots for the transaction or not
-        :param target_block_numbers: the target block numbers in case we are using flashbots
+        :param use_flashbots: retained for downstream API compatibility after the
+            upstream ``open-aea-ledger-ethereum-flashbots`` plugin was removed
+            (see HISTORY.md, v0.21.17). The flashbots routing branch is gone;
+            the parameter is accepted but no longer changes the request shape.
+        :param target_block_numbers: retained for the same compatibility reason as ``use_flashbots``.
         :param chain_id: the chain name to use for the ledger call
-        :param raise_on_failed_simulation: whether to raise an exception if the simulation fails or not.
+        :param raise_on_failed_simulation: retained for the same compatibility reason as ``use_flashbots``.
         """
+        if (
+            use_flashbots
+            or target_block_numbers is not None
+            or raise_on_failed_simulation
+        ):
+            # Operator observability: a caller that still asks for flashbots
+            # routing or simulation-protection needs to know those flags now
+            # have no effect. Log it explicitly so it shows up in debugging
+            # without the operator having to know the plugin was removed
+            # upstream.
+            self.context.logger.warning(
+                "Flashbots-era args (`use_flashbots`, `target_block_numbers`, "
+                "`raise_on_failed_simulation`) were passed but the "
+                "`open-aea-ledger-ethereum-flashbots` plugin was removed "
+                "upstream; transaction will be sent via the standard "
+                "`SEND_SIGNED_TRANSACTION` path."
+            )
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
         )
@@ -1062,36 +1081,11 @@ class BaseBehaviour(
         ] = dict(
             counterparty=LEDGER_API_ADDRESS,
             performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION,
+            signed_transaction=signing_msg.signed_transaction,
         )
         if chain_id:
             kwargs = LedgerApiMessage.Kwargs({"chain_id": chain_id})
             create_kwargs.update(dict(kwargs=kwargs))
-
-        if use_flashbots:
-            _kwargs = {
-                "chain_id": chain_id,
-                "raise_on_failed_simulation": raise_on_failed_simulation,
-                "use_all_builders": True,  # TODO: make this a proper parameter
-            }
-            if target_block_numbers is not None:
-                _kwargs["target_block_numbers"] = target_block_numbers  # type: ignore
-            create_kwargs.update(
-                dict(
-                    performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTIONS,
-                    # we do not support sending multiple signed txs and receiving multiple tx hashes yet
-                    signed_transactions=LedgerApiMessage.SignedTransactions(
-                        ledger_id=FLASHBOTS_LEDGER_ID,
-                        signed_transactions=[signing_msg.signed_transaction.body],
-                    ),
-                    kwargs=LedgerApiMessage.Kwargs(_kwargs),
-                )
-            )
-        else:
-            create_kwargs.update(
-                dict(
-                    signed_transaction=signing_msg.signed_transaction,
-                )
-            )
 
         ledger_api_msg, ledger_api_dialogue = ledger_api_dialogues.create(
             **create_kwargs
@@ -1547,9 +1541,12 @@ class BaseBehaviour(
             Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
         :param transaction: transaction data
-        :param use_flashbots: whether to use flashbots for the transaction or not
-        :param target_block_numbers: the target block numbers in case we are using flashbots
-        :param raise_on_failed_simulation: whether to raise an exception if the transaction fails the simulation or not
+        :param use_flashbots: retained for downstream API compatibility after the
+            upstream ``open-aea-ledger-ethereum-flashbots`` plugin was removed
+            (see HISTORY.md, v0.21.17). Accepted but no longer routes through
+            a flashbots branch.
+        :param target_block_numbers: retained for the same compatibility reason as ``use_flashbots``.
+        :param raise_on_failed_simulation: retained for the same compatibility reason as ``use_flashbots``.
         :param chain_id: the chain name to use for the ledger call
         :yield: SigningMessage object
         :return: transaction hash

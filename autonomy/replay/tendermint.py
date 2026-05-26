@@ -29,8 +29,12 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from autonomy.deploy._http_server import App as Flask
-
-# TODO: extract constants
+from autonomy.deploy.constants import TENDERMINT_BIN_UNIX
+from autonomy.replay.constants import (
+    P2P_LADDR_TEMPLATE,
+    PROXY_APP_TEMPLATE,
+    RPC_LADDR_TEMPLATE,
+)
 
 
 class RanOutOfDumpsToReplay(Exception):
@@ -83,7 +87,7 @@ class TendermintRunner:
     ) -> None:
         """Start tendermint process."""
 
-        tendermint_bin = shutil.which("tendermint")
+        tendermint_bin = shutil.which(TENDERMINT_BIN_UNIX)
         if tendermint_bin is None:
             raise ValueError("Cannot find tendermint installation.")
 
@@ -91,9 +95,9 @@ class TendermintRunner:
             [
                 str(tendermint_bin),
                 "node",
-                f"--p2p.laddr=tcp://127.0.0.1:2663{self.node_id}",
-                f"--rpc.laddr=tcp://localhost:2664{self.node_id}",
-                f"--proxy_app=tcp://localhost:2665{self.node_id}",
+                f"--p2p.laddr={P2P_LADDR_TEMPLATE.format(node_id=self.node_id)}",
+                f"--rpc.laddr={RPC_LADDR_TEMPLATE.format(node_id=self.node_id)}",
+                f"--proxy_app={PROXY_APP_TEMPLATE.format(node_id=self.node_id)}",
                 "--consensus.create_empty_blocks=true",
                 "--home",
                 str(self.dump_dir / f"period_{self.period}" / f"node{self.node_id}"),
