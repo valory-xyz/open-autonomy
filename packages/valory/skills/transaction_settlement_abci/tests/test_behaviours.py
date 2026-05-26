@@ -1340,14 +1340,14 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
                 TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
             )
             self.behaviour.act_wrapper()
-            self._test_done_flag_set()
-            # Short-circuit must clear the mutable params so stale tx_hash /
-            # late_messages do not leak into the next period — mirrors the
-            # post-send reset on the happy path.
+            # Short-circuit fires set_done() synchronously. Assert on the
+            # behaviour bound before act_wrapper because the FSM advances past
+            # `current_behaviour` after `set_done`.
+            assert behaviour.is_done()
+            # mutable_params are reset so stale tx_hash / late_messages do not
+            # leak into the next period.
             assert behaviour.params.mutable_params.tx_hash == ""
             assert behaviour.params.mutable_params.late_messages == []
-            self.end_round(TransactionSettlementEvent.DONE)
-            self._check_behaviour_id(CheckLateTxHashesBehaviour)  # type: ignore
 
         else:
 
@@ -1367,6 +1367,80 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
             )._get_tx_data = _dummy_get_tx_data  # type: ignore
             for _ in range(len(late_messages)):
                 self.behaviour.act_wrapper()
+
+    def test_short_circuit_clears_nondefault_late_messages(self) -> None:
+        """Short-circuit must reset a pre-existing non-default ``late_messages``.
+
+        With a non-empty ``late_messages`` going in plus a dummy
+        ``_get_tx_data`` that returns an empty ``tx_digest``, the local
+        ``_tx_hashes`` accumulator stays empty after the iterator drains.
+        That triggers the short-circuit, and the assertion below catches
+        any regression that drops the ``late_messages = []`` reset.
+        """
+        participants = (self.skill.skill_context.agent_address, "a_1", "a_2")
+        seeded_late_messages = [MagicMock()]
+        cast(
+            TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
+        ).params.mutable_params.late_messages = seeded_late_messages
+        self.fast_forward_to_behaviour(
+            behaviour=self.behaviour,
+            behaviour_id=SynchronizeLateMessagesBehaviour.auto_behaviour_id(),
+            synchronized_data=TransactionSettlementSynchronizedSata(
+                AbciAppDB(
+                    setup_data=dict(
+                        participants=[participants],
+                        participant_to_signature=[{}],
+                        safe_contract_address=["safe_contract_address"],
+                        most_voted_tx_hash=[
+                            hash_payload_to_hex(
+                                "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                                1,
+                                1,
+                                "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
+                                b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+                                b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                            )
+                        ],
+                    ),
+                )
+            ),
+        )
+        self._check_behaviour_id(SynchronizeLateMessagesBehaviour)  # type: ignore
+
+        def _empty_digest_get_tx_data(
+            _current_message: ContractApiMessage,
+            _use_flashbots: bool,
+            chain_id: Optional[str] = None,
+        ) -> Generator[None, None, TxDataType]:
+            yield
+            return {
+                "status": VerificationStatus.PENDING,
+                "tx_digest": "",
+            }
+
+        behaviour = cast(
+            TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
+        )
+        behaviour._get_tx_data = _empty_digest_get_tx_data  # type: ignore
+
+        # Drive the generator until the iterator is exhausted and the
+        # empty-_tx_hashes short-circuit fires. Each act_wrapper consumes one
+        # yield; the dummy yields once per message, the framework needs an
+        # extra tick to roll over to a fresh async_act, and a final tick to
+        # hit the short-circuit branch.
+        for _ in range(10):
+            self.behaviour.act_wrapper()
+            if behaviour.is_done():
+                break
+        else:
+            raise AssertionError(
+                "short-circuit did not fire within the expected number of acts"
+            )
+
+        assert behaviour.params.mutable_params.late_messages == [], (
+            "short-circuit must clear the seeded late_messages to prevent stale "
+            "state from leaking into the next period"
+        )
 
 
 class TestResetBehaviour(TransactionSettlementFSMBehaviourBaseCase):
