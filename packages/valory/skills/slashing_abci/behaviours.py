@@ -119,6 +119,9 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
         """Initialize the slashing check behaviour."""
         super().__init__(**kwargs)
         self._slash_amounts: Dict[str, float] = {}
+        # latches the "no round transition" warning so it is emitted once per
+        # no-transition window rather than on every `async_act` tick
+        self._warned_no_transition: bool = False
 
     @property
     def synchronized_data(self) -> SlashingSyncedData:
@@ -199,6 +202,36 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
         """Check the offence status, calculate the slash amount per operator, and assign it to `_slash_amounts`."""
         self._slash_amounts = {}
 
+        try:
+            # only the property access can raise `ValueError`; the `timegm`
+            # conversion is kept outside the `try` so an unrelated error is not
+            # misattributed to "no transition completed"
+            last_round_transition_datetime = (
+                self.round_sequence.last_round_transition_timestamp
+            )
+        except ValueError:
+            # No round transition has been completed yet, so there is nothing to
+            # compare the slash cooldown against. This can happen when the slashing
+            # background app runs before the first transition of a period, e.g.
+            # right after `RoundSequence.reset_state` clears
+            # `_last_round_transition_timestamp` during an agent <-> Tendermint
+            # communication recovery while restoring the offence status. Skip the
+            # check; `async_act` retries once a transition has been completed.
+            # The warning is latched, as `async_act` calls this on every tick
+            # (`sleep_time` defaults to 1s), so it is emitted once per window.
+            if not self._warned_no_transition:
+                self.context.logger.warning(
+                    "Slashing check ran before any round transition has been "
+                    "completed; skipping until the next transition."
+                )
+                self._warned_no_transition = True
+            return
+
+        self._warned_no_transition = False
+        last_round_transition_timestamp = timegm(
+            last_round_transition_datetime.utctimetuple()
+        )
+
         for agent, status in self.offence_status.items():
             amount = status.slash_amount(
                 self.params.light_slash_unit_amount,
@@ -210,9 +243,6 @@ class SlashingCheckBehaviour(SlashingBaseBehaviour):
             # This ensures that the comparison being performed is against 0.
             last_slashed_timestamp = self.synchronized_data.slash_timestamps.get(
                 agent, -self.params.slash_cooldown_hours
-            )
-            last_round_transition_timestamp = timegm(
-                self.round_sequence.last_round_transition_timestamp.utctimetuple()
             )
 
             if (

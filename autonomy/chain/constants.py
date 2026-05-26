@@ -301,17 +301,19 @@ ERC8004_IDENTITY_REGISTRY_BRIDGER_CONTRACT = PublicId.from_str(
 )
 
 SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS = (
-    1,
-    5,
-    31337,
-    100,
-    10200,
-    42161,
-    421614,
-    10,
-    11155420,
-    8453,
-    84532,
-    42220,
-    42220,
+    # Mainnets (source: autonolas-registries/docs/configuration.json on main).
+    1,  # ethereum
+    137,  # polygon
+    100,  # gnosis
+    42161,  # arbitrum_one
+    10,  # optimism
+    8453,  # base
+    42220,  # celo
+    34443,  # mode
+    # Testnets / dev
+    31337,  # hardhat local
+    10200,  # chiado (gnosis testnet)
+    421614,  # arbitrum sepolia
+    11155420,  # optimism sepolia
+    84532,  # base sepolia
 )
