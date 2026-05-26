@@ -879,52 +879,9 @@ Test '_send_signing_request'.
 
 ```python
 @pytest.mark.parametrize(
-    "use_flashbots, target_block_numbers, expected_kwargs",
+    "chain_id, expected_kwargs",
     (
         (
-            True,
-            None,
-            dict(
-                counterparty=LEDGER_API_ADDRESS,
-                performative=LedgerApiMessage.Performative.
-                SEND_SIGNED_TRANSACTIONS,
-                signed_transactions=SignedTransactions(
-                    ledger_id="ethereum_flashbots",
-                    signed_transactions=[{
-                        "test_tx": "test_tx"
-                    }],
-                ),
-                kwargs=LedgerApiMessage.Kwargs({
-                    "chain_id": None,
-                    "raise_on_failed_simulation": False,
-                    "use_all_builders": True,
-                }),
-            ),
-        ),
-        (
-            True,
-            [1, 2, 3],
-            dict(
-                counterparty=LEDGER_API_ADDRESS,
-                performative=LedgerApiMessage.Performative.
-                SEND_SIGNED_TRANSACTIONS,
-                signed_transactions=SignedTransactions(
-                    ledger_id="ethereum_flashbots",
-                    signed_transactions=[{
-                        "test_tx": "test_tx"
-                    }],
-                ),
-                kwargs=LedgerApiMessage.Kwargs(
-                    {
-                        "chain_id": None,
-                        "raise_on_failed_simulation": False,
-                        "use_all_builders": True,
-                        "target_block_numbers": [1, 2, 3],
-                    }),
-            ),
-        ),
-        (
-            False,
             None,
             dict(
                 counterparty=LEDGER_API_ADDRESS,
@@ -934,14 +891,40 @@ Test '_send_signing_request'.
                     ledger_id="ethereum", body={"test_tx": "test_tx"}),
             ),
         ),
+        (
+            "ethereum",
+            dict(
+                counterparty=LEDGER_API_ADDRESS,
+                performative=LedgerApiMessage.Performative.
+                SEND_SIGNED_TRANSACTION,
+                signed_transaction=SignedTransaction(
+                    ledger_id="ethereum", body={"test_tx": "test_tx"}),
+                kwargs=LedgerApiMessage.Kwargs({"chain_id": "ethereum"}),
+            ),
+        ),
     ),
 )
-def test_send_transaction_request(use_flashbots: bool,
-                                  target_block_numbers: Optional[List[int]],
+def test_send_transaction_request(chain_id: Optional[str],
                                   expected_kwargs: Any) -> None
 ```
 
 Test '_send_transaction_request'.
+
+<a id="packages.valory.skills.abstract_round_abci.tests.test_behaviours_utils.TestBaseBehaviour.test_send_transaction_request_flashbots_args_are_inert"></a>
+
+#### test`_`send`_`transaction`_`request`_`flashbots`_`args`_`are`_`inert
+
+```python
+def test_send_transaction_request_flashbots_args_are_inert() -> None
+```
+
+Flashbots-era kwargs are accepted for downstream API compatibility but do not change the request.
+
+The skill-level use_flashbots / target_block_numbers /
+raise_on_failed_simulation parameters were intentionally preserved
+after the upstream flashbots plugin was removed (HISTORY.md v0.21.17).
+Locks in that passing them produces the same plain
+SEND_SIGNED_TRANSACTION shape as omitting them.
 
 <a id="packages.valory.skills.abstract_round_abci.tests.test_behaviours_utils.TestBaseBehaviour.test_send_transaction_receipt_request"></a>
 

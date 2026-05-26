@@ -317,21 +317,6 @@ def ganache_configuration() -> Dict
 
 Get the Ganache configuration for testing purposes.
 
-<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.ganache_scope_function"></a>
-
-#### ganache`_`scope`_`function
-
-```python
-@pytest.fixture(scope="function")
-def ganache_scope_function(ganache_configuration: Dict,
-                           ganache_addr: str,
-                           ganache_port: int,
-                           timeout: float = 2.0,
-                           max_attempts: int = 10) -> Generator
-```
-
-Launch the Ganache image. This fixture is scoped to a function which means it will destroyed at the end of the test.
-
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.ganache_scope_class"></a>
 
 #### ganache`_`scope`_`class

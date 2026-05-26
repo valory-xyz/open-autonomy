@@ -286,23 +286,6 @@ def ganache_configuration() -> Dict:
     return GANACHE_CONFIGURATION
 
 
-# TODO: remove as not used
-@pytest.fixture(scope="function")
-def ganache_scope_function(
-    ganache_configuration: Dict,  # pylint: disable=redefined-outer-name
-    ganache_addr: str,  # pylint: disable=redefined-outer-name
-    ganache_port: int,  # pylint: disable=redefined-outer-name
-    timeout: float = 2.0,
-    max_attempts: int = 10,
-) -> Generator:
-    """Launch the Ganache image. This fixture is scoped to a function which means it will destroyed at the end of the test."""
-    client = docker.from_env()
-    image = GanacheDockerImage(
-        client, ganache_addr, ganache_port, config=ganache_configuration
-    )
-    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
-
-
 @pytest.fixture(scope="class")
 def ganache_scope_class(
     ganache_configuration: Dict,  # pylint: disable=redefined-outer-name

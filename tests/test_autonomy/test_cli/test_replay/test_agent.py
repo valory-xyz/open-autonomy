@@ -25,6 +25,8 @@ from pathlib import Path
 from typing import Any, Tuple
 from unittest import mock
 
+import pytest
+
 from autonomy.cli import cli
 from autonomy.constants import DEFAULT_BUILD_FOLDER
 from autonomy.deploy.base import (
@@ -54,7 +56,7 @@ DOCKER_COMPOSE_DATA = {
                 "ID=DUMMY",
                 "LOG_FILE=DUMMY",
                 "AEA_KEY=DUMMY",
-                "VALORY_APPLICATION=DUMMY",
+                "AEA_AGENT=DUMMY",
                 "ABCI_HOST=DUMMY",
                 f"SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_{TENDERMINT_URL_PARAM.upper()}=DUMMY",
                 f"SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_{TENDERMINT_COM_URL_PARAM.upper()}=DUMMY",
@@ -81,6 +83,73 @@ def ctrl_c(*args: Any) -> None:
     """Send control C."""
 
     raise KeyboardInterrupt()
+
+
+class TestAgentRunnerValidation:
+    """Unit-level coverage for the ``AgentRunner`` env-validation paths.
+
+    These exercise the new ``ValueError`` guards added so that a build
+    directory missing required env vars or carrying malformed entries
+    surfaces a single-line Click error instead of a Python traceback.
+    """
+
+    @staticmethod
+    def _service_with_env(env: list) -> dict:
+        """Build a minimal docker-compose service block with the given env list."""
+        return {
+            "image": "valory/test:0.1.0",
+            "environment": env,
+        }
+
+    def test_init_rejects_service_without_environment_block(self) -> None:
+        """``AgentRunner.__init__`` rejects a service dict missing ``environment``."""
+        with pytest.raises(ValueError, match=r"has no .environment. block"):
+            AgentRunner(0, {"image": "valory/test:0.1.0"}, Path("."))
+
+    def test_init_rejects_env_entry_without_equals_sign(self) -> None:
+        """``AgentRunner.__init__`` rejects env entries not formatted as KEY=VALUE."""
+        with pytest.raises(ValueError, match=r"not.*formatted as KEY=VALUE"):
+            AgentRunner(
+                0,
+                self._service_with_env(["AEA_AGENT", "AEA_KEY=key"]),
+                Path("."),
+            )
+
+    def test_init_preserves_equals_in_value(self) -> None:
+        """Values containing ``=`` (e.g. base64 tokens) must round-trip whole.
+
+        Splitting on the first ``=`` only is what makes this work.
+        """
+        runner = AgentRunner(
+            0,
+            self._service_with_env(["TOKEN=aGVsbG8=world=", "AEA_AGENT=v/a:0:b"]),
+            Path("."),
+        )
+        assert runner.agent_env["TOKEN"] == "aGVsbG8=world="
+
+    def test_start_rejects_missing_aea_agent(self, tmp_path: Path) -> None:
+        """``start()`` raises ValueError with the rename hint when ``AEA_AGENT`` is absent."""
+        runner = AgentRunner(
+            0,
+            self._service_with_env(["AEA_KEY=0xabc"]),
+            tmp_path,
+        )
+        with pytest.raises(ValueError, match=r"VALORY_APPLICATION.*AEA_AGENT.*rename"):
+            runner.start()
+
+    def test_start_rejects_missing_aea_key(self, tmp_path: Path) -> None:
+        """``start()`` raises ValueError when ``AEA_KEY`` is absent."""
+        runner = AgentRunner(
+            0,
+            self._service_with_env(["AEA_AGENT=valory/agent:0.1.0:bafy"]),
+            tmp_path,
+        )
+        # Bypass the aea fetch subprocess so we exercise only the env-var guard
+        # path; the test would otherwise spawn a real subprocess and fail in CI.
+        with mock.patch("autonomy.replay.agent.subprocess"), pytest.raises(
+            ValueError, match=r"AEA_KEY"
+        ):
+            runner.start()
 
 
 @skip_docker_tests

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2022-2026 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -61,8 +61,9 @@ def test_docstring_abci_app() -> None:
 def test_compare_docstring_content() -> None:
     """Test compare_docstring_content"""
 
-    # no regex match
-    assert compare_docstring_content("", "", "") == (False, "")
+    # No AbciApp[Event] header found at all — distinct from "skipped because a
+    # docstring already exists" so the caller can short-circuit cleanly.
+    assert compare_docstring_content("", "", "") == (None, "")
 
     # identical - no update
     docstring = docstring_abci_app(OffendAbciApp)
@@ -76,3 +77,101 @@ def test_compare_docstring_content() -> None:
     assert not mutated_content == file_content
     result = compare_docstring_content(mutated_content, docstring, abci_app_name)
     assert result == (True, file_content)
+
+
+def test_compare_docstring_content_inserts_when_class_has_no_docstring() -> None:
+    """Generate a docstring when the AbciApp class has no docstring yet."""
+
+    docstring = docstring_abci_app(OffendAbciApp)
+    abci_app_name = OffendAbciApp.__name__
+
+    # Synthetic file content with a class header but no docstring body.
+    file_content = (
+        f"class {abci_app_name}(AbciApp[Event]):\n"
+        "    initial_round_cls = OffendRound\n"
+    )
+
+    success, updated = compare_docstring_content(file_content, docstring, abci_app_name)
+    assert success is True
+    assert f"class {abci_app_name}(AbciApp[Event]):" in updated
+    assert '"""' in updated
+    assert (
+        "initial_round_cls = OffendRound" in updated
+    ), "the original body must be preserved after the docstring is inserted"
+
+    # Second pass must be a no-op (idempotent).
+    success_again, updated_again = compare_docstring_content(
+        updated, docstring, abci_app_name
+    )
+    assert success_again is True
+    assert updated_again == updated, "second pass must not insert a duplicate docstring"
+
+
+def test_compare_docstring_content_skips_inline_comment_with_existing_docstring() -> (
+    None
+):
+    """Skip insertion when an existing docstring follows a class header with an inline comment.
+
+    Regression guard for a regex backtracking case: the previous
+    negative-lookahead could match a header carrying a trailing inline comment
+    and then evaluate the lookahead past the comment, missing an adjacent
+    existing docstring on the next line.
+    """
+
+    docstring = docstring_abci_app(OffendAbciApp)
+    abci_app_name = OffendAbciApp.__name__
+
+    file_content = (
+        f"class {abci_app_name}(AbciApp[Event]): # marker\n"
+        '    """custom docstring with characters the strict regex rejects: $%*"""\n'
+        "    initial_round_cls = OffendRound\n"
+    )
+
+    success, updated = compare_docstring_content(file_content, docstring, abci_app_name)
+    assert (
+        success is False
+    ), "must not insert a second docstring when one already exists after the class header"
+    assert updated == ""
+
+
+def test_compare_docstring_content_skips_tab_indented_existing_docstring() -> None:
+    """Skip insertion when an existing docstring is tab-indented or separated by a blank line."""
+
+    docstring = docstring_abci_app(OffendAbciApp)
+    abci_app_name = OffendAbciApp.__name__
+
+    file_content = (
+        f"class {abci_app_name}(AbciApp[Event]):\n"
+        "\n"
+        '\t"""tab-indented docstring with $%* characters."""\n'
+        "    initial_round_cls = OffendRound\n"
+    )
+
+    success, updated = compare_docstring_content(file_content, docstring, abci_app_name)
+    assert success is False
+    assert updated == ""
+
+
+def test_compare_docstring_content_skips_comment_between_header_and_existing_docstring() -> (
+    None
+):
+    """Skip insertion when a ``# comment`` sits between the class header and its docstring.
+
+    The previous lookahead only walked whitespace lines, so an explanatory
+    comment between the header and the docstring let the no-docstring branch
+    insert a duplicate above the existing one.
+    """
+
+    docstring = docstring_abci_app(OffendAbciApp)
+    abci_app_name = OffendAbciApp.__name__
+
+    file_content = (
+        f"class {abci_app_name}(AbciApp[Event]):\n"
+        "    # explanatory note from the original author\n"
+        '    """custom docstring with $%* characters."""\n'
+        "    initial_round_cls = OffendRound\n"
+    )
+
+    success, updated = compare_docstring_content(file_content, docstring, abci_app_name)
+    assert success is False
+    assert updated == ""

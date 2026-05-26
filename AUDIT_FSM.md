@@ -140,9 +140,9 @@ These were flagged during the audit but confirmed as correct after manual verifi
 - **File:** `packages/valory/skills/abstract_round_abci/test_tools/base.py:336-386`
 - **Analysis:** Same pattern as T4/T5. The helper tests that behaviours handle the signing → HTTP submit → HTTP confirm flow correctly and transition state. Validating real transaction serialization and signature verification is the concern of integration/e2e tests, not behaviour unit tests.
 
-### `ganache_scope_function` fixture kept for downstream compatibility (T9)
-- **File:** `plugins/aea-test-autonomy/aea_test_autonomy/fixture_helpers.py:241-256`
-- **Analysis:** Marked `# TODO: remove as not used` by original authors, but `aea-test-autonomy` is a public plugin used by downstream projects. Removing it could break consumers who import the fixture. Safe to leave as-is.
+### ~~`ganache_scope_function` fixture kept for downstream compatibility (T9)~~ — **RESOLVED**
+- **File:** `plugins/aea-test-autonomy/aea_test_autonomy/fixture_helpers.py`
+- **Resolution:** Removed in #2527 after confirming zero callers across valory-xyz and downstream Olas/Valory clones.
 
 ### `sys.getsizeof()` used for transaction size validation (F3)
 - **File:** `packages/valory/skills/abstract_round_abci/base.py:246, 269`

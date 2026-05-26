@@ -26,12 +26,10 @@ from enum import Enum
 from typing import Deque, Dict, List, Mapping, Optional, Set, Tuple, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
-    ABCIAppInternalError,
     AbciApp,
     AbciAppTransitionFunction,
     AppState,
     BaseSynchronizedData,
-    BaseTxPayload,
     COLLECTION_KEY_ATTRIBUTE,
     CollectDifferentUntilThresholdRound,
     CollectNonEmptyUntilThresholdRound,
@@ -41,7 +39,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     NONE_EVENT_ATTRIBUTE,
     OnlyKeeperSendsRound,
     SELECTION_KEY_ATTRIBUTE,
-    TransactionNotValidError,
     VALUE_NOT_PROVIDED,
     VotingRound,
     get_name,
@@ -59,11 +56,11 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     SelectKeeperPayload,
     SignaturePayload,
     SynchronizeLateMessagesPayload,
+    TX_HASH_LENGTH,
     ValidatePayload,
 )
 
 ADDRESS_LENGTH = 42
-TX_HASH_LENGTH = 66
 RETRIES_LENGTH = 64
 
 
@@ -542,8 +539,6 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
     required_block_confirmations = 3
     selection_key = get_name(SynchronizedData.late_arriving_tx_hashes)
     collection_key = get_name(SynchronizedData.participant_to_late_messages)
-    # if the payload is serialized to bytes, we verify that the length specified matches
-    _hash_length = TX_HASH_LENGTH
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
@@ -581,30 +576,6 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
             ),
         )
         return synchronized_data, event
-
-    def process_payload(self, payload: BaseTxPayload) -> None:
-        """Process payload."""
-        # TODO: move check into payload definition via `post_init`
-        payload = cast(SynchronizeLateMessagesPayload, payload)
-        if self._hash_length:
-            content = payload.tx_hashes
-            if not content or len(content) % self._hash_length:
-                msg = f"Expecting serialized data of chunk size {self._hash_length}"
-                raise ABCIAppInternalError(f"{msg}, got: {content} in {self.round_id}")
-        super().process_payload(payload)
-
-    def check_payload(self, payload: BaseTxPayload) -> None:
-        """Check Payload"""
-        # TODO: move check into payload definition via `post_init`
-        payload = cast(SynchronizeLateMessagesPayload, payload)
-        if self._hash_length:
-            content = payload.tx_hashes
-            if not content or len(content) % self._hash_length:
-                msg = f"Expecting serialized data of chunk size {self._hash_length}"
-                raise TransactionNotValidError(
-                    f"{msg}, got: {content} in {self.round_id}"
-                )
-        super().check_payload(payload)
 
 
 class FinishedTransactionSubmissionRound(DegenerateRound, ABC):

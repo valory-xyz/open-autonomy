@@ -222,8 +222,7 @@ def check(  # pylint: disable=too-many-return-statements
     if not isinstance(value, type) and dataclasses.is_dataclass(ty):
         # dataclass
         return check_dataclass(value, ty)
-    if is_typeddict(ty):
-        # should use `typing.is_typeddict` in future
+    if typing.is_typeddict(ty):
         return check_typeddict(value, ty)
     to = get_origin(ty)
     if to is not None:
@@ -379,16 +378,6 @@ def is_typevar(ty: Type[Any]) -> TypeGuard[TypeVar]:
 def is_error(ret: Result) -> TypeGuard[AutonomyTypeError]:
     """Check error."""
     return ret is not None
-
-
-def is_typeddict(ty: Type[Any]) -> TypeGuard:  # type: ignore
-    """Check typeddict."""
-    # TODO: Should use `typing.is_typeddict` in future
-    #       or, use publich API
-    T = "_TypedDictMeta"
-    if hasattr(typing, T) and isinstance(ty, getattr(typing, T)):
-        return True
-    return False
 
 
 def check_type(name: str, value: Any, type_hint: Any) -> None:

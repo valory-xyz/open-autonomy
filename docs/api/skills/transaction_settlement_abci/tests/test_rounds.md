@@ -601,16 +601,34 @@ def test_runs(missed_messages: int,
 
 Runs tests.
 
-<a id="packages.valory.skills.transaction_settlement_abci.tests.test_rounds.TestSynchronizeLateMessagesRound.test_check_payload"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.tests.test_rounds.TestSynchronizeLateMessagesRound.test_payload_validates_hash_length"></a>
 
-#### test`_`check`_`payload
+#### test`_`payload`_`validates`_`hash`_`length
 
 ```python
 @pytest.mark.parametrize("correct_serialization", (True, False))
-def test_check_payload(correct_serialization: bool) -> None
+def test_payload_validates_hash_length(correct_serialization: bool) -> None
 ```
 
-Test the `check_payload` method.
+Reject tx_hashes that do not align to TX_HASH_LENGTH.
+
+<a id="packages.valory.skills.transaction_settlement_abci.tests.test_rounds.TestSynchronizeLateMessagesRound.test_malformed_payload_rejected_via_from_json"></a>
+
+#### test`_`malformed`_`payload`_`rejected`_`via`_`from`_`json
+
+```python
+def test_malformed_payload_rejected_via_from_json() -> None
+```
+
+``from_json`` re-raises ``TransactionNotValidError`` on bad tx_hashes.
+
+The abci ``check_tx``/``deliver_tx`` handlers decode a remote payload
+via ``BaseTxPayload.from_json``, which calls the dataclass constructor
+and triggers ``__post_init__``. Build a valid payload first to obtain
+the on-wire dict shape, mutate ``tx_hashes`` to a length that violates
+``TX_HASH_LENGTH``, then attempt to round-trip through ``from_json``.
+The framework relies on this raising a type the handler already
+catches.
 
 <a id="packages.valory.skills.transaction_settlement_abci.tests.test_rounds.test_synchronized_datas"></a>
 

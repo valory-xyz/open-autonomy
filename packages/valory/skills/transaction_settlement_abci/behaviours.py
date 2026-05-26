@@ -165,12 +165,19 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
     def _get_tx_data(
         self,
         message: ContractApiMessage,
-        use_flashbots: bool,
+        use_flashbots: bool = False,
         manual_gas_limit: int = 0,
         raise_on_failed_simulation: bool = False,
         chain_id: Optional[str] = None,
     ) -> Generator[None, None, TxDataType]:
-        """Get the transaction data from a `ContractApiMessage`."""
+        """Get the transaction data from a `ContractApiMessage`.
+
+        ``use_flashbots`` and ``raise_on_failed_simulation`` are retained for
+        downstream API compatibility after the upstream flashbots plugin was
+        removed (see HISTORY.md, v0.21.17). They are forwarded to
+        ``send_raw_transaction`` but no longer route through a flashbots
+        branch.
+        """
         tx_data: TxDataType = {
             "status": VerificationStatus.PENDING,
             "keepers": self.synchronized_data.keepers,
@@ -731,6 +738,21 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
                 )
                 # here, we concatenate the tx_hashes of all the late-arriving messages. Later, we will parse them.
                 self._tx_hashes += cast(str, tx_data["tx_digest"])
+                return
+
+            if not self._tx_hashes:
+                # No locally-collected late tx hashes to broadcast. Skip the
+                # send rather than construct an empty payload — the payload's
+                # __post_init__ enforces the chunk-length invariant and would
+                # raise here. Mirror the post-send reset so stale mutable
+                # params don't leak into a subsequent period, and let the
+                # round finish via other agents' contributions.
+                self.context.logger.info(
+                    "No late-arriving tx hashes to synchronize; skipping send."
+                )
+                self.params.mutable_params.tx_hash = ""
+                self.params.mutable_params.late_messages = []
+                self.set_done()
                 return
 
             payload = SynchronizeLateMessagesPayload(

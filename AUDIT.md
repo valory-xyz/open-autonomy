@@ -160,9 +160,9 @@
 - **Files:** `autonomy/cli/scaffold_fsm.py:91`, `autonomy/cli/deploy.py:491`, `autonomy/cli/hash.py:52`
 - **Assessment:** Nice-to-have. The runtime warnings are already in place.
 
-### L12. `ganache_scope_function` fixture marked `# TODO: remove as not used` — **ACKNOWLEDGED**
-- **File:** `plugins/aea-test-autonomy/aea_test_autonomy/fixture_helpers.py:241`
-- **Assessment:** Dead code. Can be removed but may require checking downstream consumers.
+### L12. ~~`ganache_scope_function` fixture marked `# TODO: remove as not used`~~ — **RESOLVED**
+- **File:** `plugins/aea-test-autonomy/aea_test_autonomy/fixture_helpers.py`
+- **Resolution:** Removed in #2527 after confirming zero callers across valory-xyz and downstream Olas/Valory clones.
 
 ### L13. ~~Multiple dependency specification files with drifting version pins~~ **RESOLVED**
 - **Files:** `pyproject.toml`, `setup.py`, `tox.ini`, `Pipfile`
@@ -206,7 +206,7 @@
 | L3 | Fix "of of" typo | Done |
 | L5 | Fix copy-paste docstrings | Done |
 | L10 | Narrow `filterwarnings` to specific warnings | Deferred — needs investigation |
-| L12 | Remove dead `ganache_scope_function` | Deferred — needs downstream check |
+| L12 | Remove dead `ganache_scope_function` | Resolved in #2527 |
 | L17 | Fix unsafe `e.args` destructuring | Done |
 | L18 | Fix "Usefule" typo | Done |
 | M5 | Rename `deplopyment_type` to `deployment_type` | Done |

@@ -771,9 +771,12 @@ _send_transaction_request:
 **Arguments**:
 
 - `transaction`: transaction data
-- `use_flashbots`: whether to use flashbots for the transaction or not
-- `target_block_numbers`: the target block numbers in case we are using flashbots
-- `raise_on_failed_simulation`: whether to raise an exception if the transaction fails the simulation or not
+- `use_flashbots`: retained for downstream API compatibility after the
+upstream ``open-aea-ledger-ethereum-flashbots`` plugin was removed
+(see HISTORY.md, v0.21.17). Accepted but no longer routes through
+a flashbots branch.
+- `target_block_numbers`: retained for the same compatibility reason as ``use_flashbots``.
+- `raise_on_failed_simulation`: retained for the same compatibility reason as ``use_flashbots``.
 - `chain_id`: the chain name to use for the ledger call
 
 **Returns**:
