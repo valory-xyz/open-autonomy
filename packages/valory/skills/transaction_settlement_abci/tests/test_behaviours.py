@@ -1336,8 +1336,16 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
             # before constructing the payload. SynchronizeLateMessagesPayload's
             # __post_init__ rejects an empty `tx_hashes`, so a regression here
             # would crash the agent rather than send an empty payload.
+            behaviour = cast(
+                TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
+            )
             self.behaviour.act_wrapper()
             self._test_done_flag_set()
+            # Short-circuit must clear the mutable params so stale tx_hash /
+            # late_messages do not leak into the next period — mirrors the
+            # post-send reset on the happy path.
+            assert behaviour.params.mutable_params.tx_hash == ""
+            assert behaviour.params.mutable_params.late_messages == []
             self.end_round(TransactionSettlementEvent.DONE)
             self._check_behaviour_id(CheckLateTxHashesBehaviour)  # type: ignore
 

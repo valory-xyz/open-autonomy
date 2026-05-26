@@ -29,9 +29,27 @@ docstring
 #### compare`_`docstring`_`content
 
 ```python
-def compare_docstring_content(file_content: str, docstring: str,
-                              abci_app_name: str) -> Tuple[bool, str]
+def compare_docstring_content(
+        file_content: str, docstring: str,
+        abci_app_name: str) -> Tuple[Optional[bool], str]
 ```
 
 Update docstrings.
+
+Three result shapes let the caller distinguish "nothing to do because the
+file has no ``AbciApp[Event]`` class header" from "the class was found
+but already carries a docstring".
+
+**Arguments**:
+
+- `file_content`: source text of the rounds module.
+- `docstring`: expected docstring to insert or compare against.
+- `abci_app_name`: class name to substitute into the class header.
+
+**Returns**:
+
+``(True, updated_content)`` when content was rewritten,
+``(False, "")`` when a header was found but an existing docstring
+sits below it, ``(None, "")`` when no ``AbciApp[Event]`` header
+exists in the file.
 

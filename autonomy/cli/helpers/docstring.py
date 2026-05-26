@@ -69,11 +69,19 @@ def analyse_docstrings(
             original_content = Path(cast(str, module.__file__)).read_text(
                 encoding="utf-8"
             )
-            has_docstring, expected_content = compare_docstring_content(
+            result, expected_content = compare_docstring_content(
                 file_content=original_content, docstring=docstring, abci_app_name=obj
             )
 
-            if not has_docstring and update:
+            if result is None:
+                # `compare_docstring_content` could not find the AbciApp[Event]
+                # class header in the source text (e.g. the class is built via
+                # metaclass machinery or has an unusual definition). Nothing to
+                # rewrite mechanically; treat as up-to-date and let the caller
+                # decide on the runtime warning.
+                return False
+
+            if not result and update:
                 click.echo(
                     f"App definition in {module_path} does not contain well formatted docstring, please update it manually"
                 )

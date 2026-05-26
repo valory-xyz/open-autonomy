@@ -61,8 +61,9 @@ def test_docstring_abci_app() -> None:
 def test_compare_docstring_content() -> None:
     """Test compare_docstring_content"""
 
-    # no regex match
-    assert compare_docstring_content("", "", "") == (False, "")
+    # No AbciApp[Event] header found at all — distinct from "skipped because a
+    # docstring already exists" so the caller can short-circuit cleanly.
+    assert compare_docstring_content("", "", "") == (None, "")
 
     # identical - no update
     docstring = docstring_abci_app(OffendAbciApp)
@@ -143,6 +144,31 @@ def test_compare_docstring_content_skips_tab_indented_existing_docstring() -> No
         f"class {abci_app_name}(AbciApp[Event]):\n"
         "\n"
         '\t"""tab-indented docstring with $%* characters."""\n'
+        "    initial_round_cls = OffendRound\n"
+    )
+
+    success, updated = compare_docstring_content(file_content, docstring, abci_app_name)
+    assert success is False
+    assert updated == ""
+
+
+def test_compare_docstring_content_skips_comment_between_header_and_existing_docstring() -> (
+    None
+):
+    """Skip insertion when a ``# comment`` sits between the class header and its docstring.
+
+    The previous lookahead only walked whitespace lines, so an explanatory
+    comment between the header and the docstring let the no-docstring branch
+    insert a duplicate above the existing one.
+    """
+
+    docstring = docstring_abci_app(OffendAbciApp)
+    abci_app_name = OffendAbciApp.__name__
+
+    file_content = (
+        f"class {abci_app_name}(AbciApp[Event]):\n"
+        "    # explanatory note from the original author\n"
+        '    """custom docstring with $%* characters."""\n'
         "    initial_round_cls = OffendRound\n"
     )
 

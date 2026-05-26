@@ -42,14 +42,17 @@ def fix_address_books(build_dir: Path) -> None:
         (build_dir / PERSISTENT_DATA_DIR / TM_STATE_DIR).glob("**/addrbook.json")
     ):
         addr_data = json.loads(addr_file.read_text())
+        skipped = 0
         for entry in addr_data.get("addrs") or []:
             addr = entry.get("addr") if isinstance(entry, dict) else None
             if not isinstance(addr, dict):
                 print(f"Skipping malformed peer entry in {addr_file}: {entry!r}")
+                skipped += 1
                 continue
             ip = addr.get("ip")
             if not isinstance(ip, str) or "." not in ip:
                 print(f"Skipping peer with non-dotted IP in {addr_file}: {ip!r}")
+                skipped += 1
                 continue
             *_, post_fix = ip.split(".")
             try:
@@ -58,12 +61,19 @@ def fix_address_books(build_dir: Path) -> None:
                 print(
                     f"Skipping peer with non-numeric IP suffix in {addr_file}: {ip!r}"
                 )
+                skipped += 1
                 continue
             addr["ip"] = "127.0.0.1"
             addr["port"] = new_port
 
         addr_file.write_text(json.dumps(addr_data, indent=4))
-        print(f"Updated {addr_file}")
+        if skipped:
+            print(
+                f"Updated {addr_file} ({skipped} malformed peer(s) skipped and "
+                "preserved unchanged in the rewritten file)"
+            )
+        else:
+            print(f"Updated {addr_file}")
 
 
 def fix_config_files(build_dir: Path) -> None:

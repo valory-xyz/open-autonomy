@@ -20,7 +20,7 @@
 """Analyse ABCI app definitions for docstrings."""
 
 import re
-from typing import Any, Tuple, cast
+from typing import Any, Optional, Tuple, cast
 
 INDENT = " " * 4
 NEWLINE = "\n"
@@ -75,13 +75,22 @@ def docstring_abci_app(abci_app: Any) -> str:  # pylint: disable-msg=too-many-lo
     )
 
 
-def _next_non_blank_line_starts_docstring(file_content: str, after_pos: int) -> bool:
-    """Return True if the next non-blank line after ``after_pos`` starts with a triple-quote."""
+def _next_significant_line_starts_docstring(file_content: str, after_pos: int) -> bool:
+    """Return True if the next non-blank, non-comment line after ``after_pos`` starts with a triple-quote.
+
+    Blank lines and ``#`` comment lines are skipped so an existing docstring
+    preceded by a comment or by extra whitespace is still detected.
+
+    :param file_content: full source text to scan.
+    :param after_pos: byte offset into ``file_content`` to start scanning past.
+    :return: True if the next significant line opens a triple-quoted string.
+    """
     tail = file_content[after_pos:]
     for raw_line in tail.splitlines()[1:]:
-        if raw_line.strip() == "":
+        stripped = raw_line.lstrip()
+        if stripped == "" or stripped.startswith("#"):
             continue
-        return raw_line.lstrip().startswith('"""')
+        return stripped.startswith('"""')
     return False
 
 
@@ -89,8 +98,21 @@ def compare_docstring_content(
     file_content: str,
     docstring: str,
     abci_app_name: str,
-) -> Tuple[bool, str]:
-    """Update docstrings."""
+) -> Tuple[Optional[bool], str]:
+    """Update docstrings.
+
+    Three result shapes let the caller distinguish "nothing to do because the
+    file has no ``AbciApp[Event]`` class header" from "the class was found
+    but already carries a docstring".
+
+    :param file_content: source text of the rounds module.
+    :param docstring: expected docstring to insert or compare against.
+    :param abci_app_name: class name to substitute into the class header.
+    :return: ``(True, updated_content)`` when content was rewritten,
+        ``(False, "")`` when a header was found but an existing docstring
+        sits below it, ``(None, "")`` when no ``AbciApp[Event]`` header
+        exists in the file.
+    """
 
     docstring = "\n".join(
         map(lambda x: f"{INDENT}{x}" if len(x) else x, docstring.split("\n"))
@@ -110,19 +132,21 @@ def compare_docstring_content(
         )
 
     # Fall back to inserting a docstring into a class that has none.
-    # Anchor the class header to end-of-line, then check the next non-blank
-    # line explicitly so trailing inline comments and tab-indented existing
-    # docstrings do not bypass the check.
+    # Anchor the class header to end-of-line, then check the next significant
+    # line explicitly so trailing inline comments, tab-indented existing
+    # docstrings, and existing docstrings preceded by a `# note` comment
+    # all skip insertion rather than double-inserting.
     regex_header_only = re.compile(
         r"^class [A-Za-z]+\(AbciApp\[Event\]\):([a-zA-Z \#:=\-]+)?$",
         flags=re.MULTILINE,
     )
     match = regex_header_only.search(file_content)
     if match is None:
-        return False, ""
-    if _next_non_blank_line_starts_docstring(file_content, match.end()):
+        return None, ""
+    if _next_significant_line_starts_docstring(file_content, match.end()):
         # An existing docstring sits below the header (possibly with quirky
-        # whitespace the strict pattern above missed); do not double-insert.
+        # whitespace or a leading comment the strict pattern above missed);
+        # do not double-insert.
         return False, ""
     group = match.group(1)
     markers = group if group is not None else ""

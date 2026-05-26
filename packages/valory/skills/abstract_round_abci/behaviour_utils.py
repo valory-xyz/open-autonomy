@@ -1030,7 +1030,7 @@ class BaseBehaviour(
         ] = self.get_callback_request()
         self.context.decision_maker_message_queue.put_nowait(signing_msg)
 
-    def _send_transaction_request(  # pylint: disable=unused-argument
+    def _send_transaction_request(
         self,
         signing_msg: SigningMessage,
         use_flashbots: bool = False,
@@ -1055,6 +1055,23 @@ class BaseBehaviour(
         :param chain_id: the chain name to use for the ledger call
         :param raise_on_failed_simulation: retained for the same compatibility reason as ``use_flashbots``.
         """
+        if (
+            use_flashbots
+            or target_block_numbers is not None
+            or raise_on_failed_simulation
+        ):
+            # Operator observability: a caller that still asks for flashbots
+            # routing or simulation-protection needs to know those flags now
+            # have no effect. Log it explicitly so it shows up in debugging
+            # without the operator having to know the plugin was removed
+            # upstream.
+            self.context.logger.warning(
+                "Flashbots-era args (`use_flashbots`, `target_block_numbers`, "
+                "`raise_on_failed_simulation`) were passed but the "
+                "`open-aea-ledger-ethereum-flashbots` plugin was removed "
+                "upstream; transaction will be sent via the standard "
+                "`SEND_SIGNED_TRANSACTION` path."
+            )
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
         )
