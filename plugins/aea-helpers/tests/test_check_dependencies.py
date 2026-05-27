@@ -839,3 +839,76 @@ def test_split_inline_comment(line: str, expected: tuple) -> None:
     :param expected: the expected ``(code, comment)`` tuple.
     """
     assert _split_inline_comment(line) == expected
+
+
+def test_dump_handles_subtable_form_dep(tmp_path: Path) -> None:
+    """A `[tool.poetry.dependencies.<pkg>]` sub-table isn't duplicated on dump().
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    """
+    content = textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["demo"]
+
+        [tool.poetry.dependencies]
+        python = ">=3.10,<3.15"
+        requests = "*"
+
+        [tool.poetry.dependencies.docker]
+        version = "==7.1.0"
+        optional = true
+        """)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+    config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    assert "docker" in config.dependencies
+    config.dump()
+    with pyproject.open("rb") as fp:
+        reloaded = tomllib.load(fp)
+    docker = reloaded["tool"]["poetry"]["dependencies"]["docker"]
+    assert isinstance(docker, dict)
+    assert docker.get("optional") is True
+    assert pyproject.read_text().count("docker") == 1
+
+
+def test_update_no_warn_for_string_main_dep_also_in_group(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """No false `will_not_persist` warning when a string main dep also has a group entry.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    :param caplog: pytest log-capture fixture.
+    """
+    content = textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["demo"]
+
+        [tool.poetry.dependencies]
+        python = ">=3.10,<3.15"
+        requests = "*"
+
+        [tool.poetry.group.dev.dependencies]
+        requests = "==2.0"
+        """)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+    config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    with caplog.at_level(logging.WARNING):
+        config.update(Dependency(name="requests", version="==3.0"))
+    assert not any(
+        "requests" in r.getMessage() and "dump() will not write it" in r.getMessage()
+        for r in caplog.records
+    ), "string-form main dep is rewritten by dump(); must not warn"
+    config.dump()
+    parsed = tomllib.loads(pyproject.read_text())
+    assert SpecifierSet(
+        str(parsed["tool"]["poetry"]["dependencies"]["requests"])
+    ) == SpecifierSet("==3.0")

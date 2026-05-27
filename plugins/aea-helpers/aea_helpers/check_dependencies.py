@@ -437,22 +437,24 @@ class PyProjectTomlConfig:
             return
         if dependency.name in self.dependencies and dependency.version == "":
             return
-        # `dump()` only rewrites string-form *main* dep lines, so an
-        # update to anything else is an in-memory-only change that the
-        # file won't reflect: group-origin deps (rewritten only in their
-        # own table, which dump() leaves verbatim) and dict-form main
+        # `dump()` only persists a dep that appears as a string-form line
+        # in the *main* table (rewritten in place); everything else is an
+        # in-memory-only change the file won't reflect — group-origin deps
+        # (dump leaves their table verbatim) and dict-/sub-table-form main
         # deps (carry `optional`/`markers`/etc. the rewrite can't emit).
         # Warn so a `--update` that appears to do nothing isn't silent.
+        # NB: a name in both main (string) and a group is still persisted
+        # via the main line, so key on string∩main rather than group
+        # membership (group_dep_names can include collision-dropped names).
+        is_string_form_main_dep = (
+            self._string_dep_names is not None
+            and dependency.name in self._string_dep_names
+            and dependency.name in (self._main_dep_names or set())
+        )
         will_not_persist = (
             self._string_dep_names is not None
             and dependency.name in self.dependencies
-            and (
-                dependency.name in self._group_dep_names
-                or (
-                    dependency.name in (self._main_dep_names or set())
-                    and dependency.name not in self._string_dep_names
-                )
-            )
+            and not is_string_form_main_dep
         )
         if will_not_persist:
             logging.warning(
@@ -704,16 +706,21 @@ class PyProjectTomlConfig:
         main_insert_idx: Optional[int] = None
 
         def _flush_new_main_deps() -> None:
-            # Deps in `self.dependencies` that never appeared as a line in
-            # the main table and aren't group-origin are newly added (via
-            # `update()`); emit them as plain-string form (`update()`
-            # never carries dict-form metadata). Group-origin deps stay
-            # in their own tables.
+            # Append only *genuinely new* deps (added via `update()`,
+            # never present at load) as plain-string form. Excludes:
+            # group-origin deps (stay in their own tables) and any name
+            # already loaded as a main dep — `_main_dep_names`. The latter
+            # matters for sub-table form (`[tool.poetry.dependencies.X]`):
+            # such a dep is in `self.dependencies` but never appears as a
+            # `name = ...` line, so without this guard it would be wrongly
+            # re-emitted as a plain line, duplicating the sub-table and
+            # producing invalid TOML.
             pending = [
                 (name, dep)
                 for name, dep in self.dependencies.items()
                 if name not in seen
                 and name not in self._group_dep_names
+                and name not in (self._main_dep_names or set())
                 and name not in self.ignore
             ]
             if not pending:
