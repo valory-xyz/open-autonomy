@@ -730,13 +730,14 @@ def test_dump_handles_header_with_trailing_comment(tmp_path: Path) -> None:
     assert '"^7.0.0"' not in after
 
 
-def test_load_returns_none_on_non_dict_dependencies(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
-    """A non-table `[tool.poetry.dependencies]` value fails cleanly (no crash).
+def test_load_raises_on_non_dict_dependencies(tmp_path: Path) -> None:
+    """A non-table `[tool.poetry.dependencies]` value is a config error, not a no-op.
+
+    A missing key means "no poetry section" (load returns None, exit 0), but a
+    wrong-shape table is a genuine error and must fail the check rather than be
+    silently reported as success.
 
     :param tmp_path: pytest-provided temp dir for the sample pyproject.
-    :param caplog: pytest log-capture fixture for the warning.
     """
     content = textwrap.dedent("""\
         [tool.poetry]
@@ -748,10 +749,8 @@ def test_load_returns_none_on_non_dict_dependencies(
         """)
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(content)
-    with caplog.at_level(logging.WARNING):
-        result = PyProjectTomlConfig.load(pyproject)
-    assert result is None
-    assert any("is not a table" in r.getMessage() for r in caplog.records)
+    with pytest.raises(ValueError, match="is not a table"):
+        PyProjectTomlConfig.load(pyproject)
 
 
 def test_dump_appends_new_dep_when_deps_is_last_section(tmp_path: Path) -> None:
@@ -912,3 +911,80 @@ def test_update_no_warn_for_string_main_dep_also_in_group(
     assert SpecifierSet(
         str(parsed["tool"]["poetry"]["dependencies"]["requests"])
     ) == SpecifierSet("==3.0")
+
+
+def test_update_keeps_existing_version_when_rediscovered_empty(
+    tmp_path: Path,
+) -> None:
+    """A re-discovered dep with an empty version must not clobber a pinned one.
+
+    Package YAMLs may declare a dependency with no version; that empty spec must
+    not overwrite the pin already recorded in pyproject.toml — exactly the
+    silent dependency drift the checker exists to prevent.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    """
+    content = textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["demo"]
+
+        [tool.poetry.dependencies]
+        python = ">=3.10,<3.15"
+        requests = "==2.0.0"
+        """)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+    config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    config.update(Dependency(name="requests", version=""))
+    assert config.dependencies["requests"].version == "==2.0.0"
+
+
+def test_dump_does_not_rewrite_ignored_dep(tmp_path: Path) -> None:
+    """dump() leaves `self.ignore` rows (e.g. `python`) byte-for-byte intact.
+
+    `__iter__`/`check()`/`update()` all skip ignored names; dump()'s rewrite
+    guard must too, or a caret-form `python = "^3.10"` would be lossily
+    collapsed to `==3.10` even though the row is meant to be untouched.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    """
+    content = textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["demo"]
+
+        [tool.poetry.dependencies]
+        python = "^3.10"
+        web3 = "^7.0.0"
+        """)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+    config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    config.dump()
+    after = pyproject.read_text()
+    assert 'python = "^3.10"' in after  # ignored row untouched
+    assert '"^7.0.0"' not in after  # non-ignored row still normalized
+
+
+def test_init_rejects_mismatched_dep_name_sets() -> None:
+    """Constructing with only one of main/string dep-name sets is illegal.
+
+    `update()` keys its persistence warning on string∩main while dump() keys on
+    string membership alone; allowing one set without the other lets the two
+    disagree (warn "dump() won't write it" for a dep dump() does write).
+    """
+    with pytest.raises(ValueError, match="both be set or"):
+        PyProjectTomlConfig(
+            dependencies=OrderedDict(),
+            config={},
+            file=Path("pyproject.toml"),
+            main_dep_names=None,
+            string_dep_names={"requests"},
+        )

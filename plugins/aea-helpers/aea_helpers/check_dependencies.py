@@ -421,6 +421,16 @@ class PyProjectTomlConfig:
         # captured at load so `dump()` doesn't re-walk `self.config` and
         # doesn't hoist group deps into the main table.
         self._group_dep_names = group_dep_names or set()
+        # `update()`'s persistence warning keys on string∩main, while
+        # `dump()` rewrites on string membership alone. With main scoped but
+        # string un-scoped (or vice-versa) the two disagree — `update()`
+        # would warn "dump() won't write it" for a dep `dump()` does write.
+        # `load()` always supplies both or neither, so enforce that here.
+        if (main_dep_names is None) != (string_dep_names is None):
+            raise ValueError(
+                "main_dep_names and string_dep_names must both be set or "
+                "both be None"
+            )
 
     def __iter__(self) -> Iterator[Dependency]:
         """Iterate dependencies."""
@@ -585,14 +595,16 @@ class PyProjectTomlConfig:
         except KeyError:
             return None
         if not isinstance(main_deps, dict):
-            # Syntactically valid TOML but wrong shape (e.g.
-            # `dependencies = ["foo"]`); fail cleanly instead of an
-            # opaque AttributeError on `.items()`.
-            logging.warning(
-                "[tool.poetry.dependencies] in %s is not a table; skipping.",
-                pyproject_path,
+            # Syntactically valid TOML but wrong shape (e.g. PEP-621-style
+            # `dependencies = ["foo"]`). Unlike a missing key — which
+            # legitimately means "no poetry section" and returns None — a
+            # malformed table is a real config error, so fail the check
+            # (non-zero exit) rather than silently report success.
+            raise ValueError(
+                f"[tool.poetry.dependencies] in {pyproject_path} is not a "
+                f"table (got {type(main_deps).__name__}); expected a "
+                f"key-value mapping of dependency specifiers"
             )
-            return None
 
         # Populated after the main ingest so `_ingest` (closure) can tell
         # a main-vs-group collision from a group-vs-group one.
@@ -756,12 +768,17 @@ class PyProjectTomlConfig:
                     # re-appended as a duplicate by `_flush_new_main_deps`.
                     package = match.group(1)
                     seen.add(package)
-                    # Only rewrite plain-string deps; dict-form lines (and
-                    # the `python = ...` marker) pass through verbatim so
-                    # `optional` / `path` / `develop` / `markers` survive.
-                    if package in self.dependencies and (
-                        self._string_dep_names is None
-                        or package in self._string_dep_names
+                    # Only rewrite plain-string deps; dict-form lines pass
+                    # through verbatim so `optional` / `path` / `develop` /
+                    # `markers` survive. `self.ignore` rows (e.g. `python`)
+                    # are left untouched to match `update()` / `__iter__`.
+                    if (
+                        package in self.dependencies
+                        and package not in self.ignore
+                        and (
+                            self._string_dep_names is None
+                            or package in self._string_dep_names
+                        )
                     ):
                         _, comment = _split_inline_comment(body)
                         out.append(
