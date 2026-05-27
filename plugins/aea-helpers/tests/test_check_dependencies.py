@@ -26,7 +26,10 @@ from pathlib import Path
 
 import pytest
 from aea.configurations.data_types import Dependency
-from aea_helpers.check_dependencies import PyProjectTomlConfig
+from aea_helpers.check_dependencies import (
+    PyProjectTomlConfig,
+    _split_inline_comment,
+)
 from packaging.specifiers import SpecifierSet
 
 if sys.version_info >= (3, 11):
@@ -629,3 +632,210 @@ def test_load_warns_on_non_string_version(
         "somepkg" in r.getMessage() and "Non-string version" in r.getMessage()
         for r in caplog.records
     ), "expected a warning for the non-string version"
+
+
+def test_update_warns_on_dict_form_main_dep(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """update() warns when targeting a dict-form main dep dump() won't re-emit.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    :param caplog: pytest log-capture fixture for the warning.
+    """
+    content = textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["demo"]
+
+        [tool.poetry.dependencies]
+        python = ">=3.10,<3.15"
+        docker = { version = "==7.1.0", optional = true }
+        """)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+    config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    with caplog.at_level(logging.WARNING):
+        config.update(Dependency(name="docker", version="==8.0.0"))
+    assert any(
+        "docker" in r.getMessage() and "dump() will not write it" in r.getMessage()
+        for r in caplog.records
+    )
+    assert config.dependencies["docker"].version == "==8.0.0"
+    config.dump()
+    assert 'docker = { version = "==7.1.0", optional = true }' in pyproject.read_text()
+
+
+def test_update_warns_on_string_form_group_dep(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """update() warns for a string-form *group* dep — dump() never re-emits it.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    :param caplog: pytest log-capture fixture for the warning.
+    """
+    content = textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["demo"]
+
+        [tool.poetry.dependencies]
+        python = ">=3.10,<3.15"
+
+        [tool.poetry.group.dev.dependencies]
+        werkzeug = "*"
+        """)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+    config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    with caplog.at_level(logging.WARNING):
+        config.update(Dependency(name="werkzeug", version="==3.1"))
+    assert any(
+        "werkzeug" in r.getMessage() and "dump() will not write it" in r.getMessage()
+        for r in caplog.records
+    )
+    assert config.dependencies["werkzeug"].version == "==3.1"
+    config.dump()
+    assert 'werkzeug = "*"' in pyproject.read_text()
+
+
+def test_dump_handles_header_with_trailing_comment(tmp_path: Path) -> None:
+    """A trailing comment on the deps header doesn't make dump() a no-op.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    """
+    content = textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["demo"]
+
+        [tool.poetry.dependencies]  # main runtime
+        python = ">=3.10,<3.15"
+        web3 = "^7.0.0"
+        """)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+    config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    config.dump()
+    after = pyproject.read_text()
+    assert "# main runtime" in after
+    assert '"^7.0.0"' not in after
+
+
+def test_load_returns_none_on_non_dict_dependencies(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """A non-table `[tool.poetry.dependencies]` value fails cleanly (no crash).
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    :param caplog: pytest log-capture fixture for the warning.
+    """
+    content = textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["demo"]
+        dependencies = ["foo", "bar"]
+        """)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+    with caplog.at_level(logging.WARNING):
+        result = PyProjectTomlConfig.load(pyproject)
+    assert result is None
+    assert any("is not a table" in r.getMessage() for r in caplog.records)
+
+
+def test_dump_appends_new_dep_when_deps_is_last_section(tmp_path: Path) -> None:
+    """End-of-loop flush: a new dep lands at the tail when deps is the last table.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    """
+    content = textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["demo"]
+
+        [tool.poetry.dependencies]
+        python = ">=3.10,<3.15"
+        requests = "*"
+        """)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+    config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    config.update(Dependency(name="newdep", version="==1.0.0"))
+    config.dump()
+    parsed = tomllib.loads(pyproject.read_text())
+    assert "newdep" in parsed["tool"]["poetry"]["dependencies"]
+
+
+@pytest.mark.parametrize("eol", ["\n", "\r\n"])
+def test_dump_preserves_line_endings(tmp_path: Path, eol: str) -> None:
+    """dump() rewrites the file with the same newline style it read.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    :param eol: the newline style to author the fixture with.
+    """
+    lines = [
+        "[tool.poetry]",
+        'name = "demo"',
+        'version = "0.1.0"',
+        'description = ""',
+        'authors = ["demo"]',
+        "",
+        "[tool.poetry.dependencies]",
+        'python = ">=3.10,<3.15"',
+        'web3 = "^7.0.0"',
+        "",
+    ]
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_bytes(eol.join(lines).encode("utf-8"))
+    config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    config.dump()
+    raw = pyproject.read_bytes()
+    if eol == "\r\n":
+        assert b"\r\n" in raw
+    else:
+        assert b"\r\n" not in raw
+
+
+def test_check_returns_ok_for_matching_group_dep(tmp_path: Path) -> None:
+    """check() succeeds for a present-and-matching group-origin dep.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    """
+    config = PyProjectTomlConfig.load(_write_pyproject(tmp_path))
+    assert config is not None
+    result = config.check(Dependency(name="Flask", version=">=3.1.0,<4.0.0"))
+    assert result == (None, 0)
+
+
+@pytest.mark.parametrize(
+    "line, expected",
+    [
+        ('requests = "*"', ('requests = "*"', "")),
+        ('requests = "*"  # http', ('requests = "*"', "  # http")),
+        ('requests = "*"# tight', ('requests = "*"', "# tight")),
+        ("# whole line", ("", "# whole line")),
+        ("requests = '#-not-a-comment'", ("requests = '#-not-a-comment'", "")),
+    ],
+)
+def test_split_inline_comment(line: str, expected: tuple) -> None:
+    """`_split_inline_comment` is quote-aware and preserves the gap.
+
+    :param line: the input TOML line body.
+    :param expected: the expected ``(code, comment)`` tuple.
+    """
+    assert _split_inline_comment(line) == expected
