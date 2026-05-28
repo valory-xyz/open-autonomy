@@ -5,6 +5,41 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.22` to `v0.21.23`
+
+This release picks up the `open-aea 2.2.7` bump and drops three OA-side workarounds against upstream fixes ([#2528](https://github.com/valory-xyz/open-autonomy/pull/2528)). It also ships an operator-visible logging-behaviour change (open-aea [#917](https://github.com/valory-xyz/open-aea/pull/917) removes an orphan stderr `StreamHandler` from the root logger) and a `PyNaCl >= 1.6.2` floor that clears [CVE-2025-69277](https://github.com/advisories/GHSA-mrfv-m5wm-5w6w). No API or wire-format changes.
+
+### `open-aea` bumped `2.2.6` → `2.2.7`
+
+Update any direct `open-aea` / `open-aea-*` pins in your downstream `pyproject.toml` / `setup.py` / `tox.ini` / Dockerfiles from `==2.2.6` to `==2.2.7`. Upstream highlights:
+
+- **Canonical skill / contract / connection module paths** ([#918](https://github.com/valory-xyz/open-aea/pull/918)): the skill loader now stamps every loaded class's `__module__` as `packages.<author>.skills.<name>.<file>` (and the equivalents for contracts / connections). `load_module` registers the module in `sys.modules` and reuses the cached object on subsequent loads — eliminates the dual-class-object problem that `_MetaPayload.registry` previously had to paper over.
+- **New public `parse_service_yaml(file_pointer) -> (head, overrides)` helper** in `aea.configurations.loader`. Raises `ValueError("Service configuration file was empty.")` on empty / scalar / non-mapping head, so malformed service YAML surfaces at parse time instead of as a downstream `AttributeError`.
+- **`scaffold_item` restores `ctx.cwd` via `try/finally`** — downstream wrappers that bracketed the call with their own save/restore can drop it.
+- **Logging fix** ([#917](https://github.com/valory-xyz/open-aea/pull/917)): the two module-top `logging.basicConfig(...)` calls that fired as a side effect of `import aea.cli` are gone. Under an agent config without a `root:` block in `logging_config`, third-party `INFO`/`DEBUG` records (`urllib3.connectionpool`, `web3.providers.HTTPProvider`, `requests`, etc.) now go silent; `WARNING+` falls through to Python's `logging.lastResort`. Operators who want the previous behaviour should add a `root:` block routing through their declared handlers (see the agent configs under `packages/valory/agents/` for examples).
+- **Env-var encoding for bash-unsafe dict keys** ([#915](https://github.com/valory-xyz/open-aea/pull/915)): dicts keyed by strings that don't match `^[A-Za-z_][A-Za-z0-9_]*$` are now JSON-encoded as a single env var instead of being silently mangled by per-key flatten. Resolves [#2243](https://github.com/valory-xyz/open-autonomy/issues/2243).
+
+### `PyNaCl >= 1.6.2` floor
+
+The transitive chain `open-autonomy → open-aea-ledger-cosmos → cosmpy → pynacl` previously resolved to `1.6.0`, which carries [CVE-2025-69277](https://github.com/advisories/GHSA-mrfv-m5wm-5w6w) (bundled libsodium incomplete-disallowed-inputs). This release adds an explicit `PyNaCl >= 1.6.2` floor to `pyproject.toml` and `setup.py`. Downstream consumers clear the advisory on a routine `open-autonomy` bump.
+
+### Regenerated package hashes
+
+All first-party packages under `packages/valory/` have new IPFS hashes because the `open-aea-*` plugin pins inside each `aea-config.yaml` / `contract.yaml` / `skill.yaml` / `service.yaml` / `connection.yaml` were rewritten as part of the bump, plus the 10 reference agent configs gained an explicit `root:` block in `logging_config`. If you maintain a downstream repo that pins `valory/*` packages by hash, run:
+
+```bash
+autonomy packages sync --update-packages
+autonomy packages lock
+```
+
+### Concrete upgrade steps
+
+1. Bump `open-autonomy` pin to `==0.21.23` (and any matching `open-aea-test-autonomy` / `open-aea-helpers` pin to `==0.21.23`).
+2. Bump `open-aea` / `open-aea-*` pins to `==2.2.7`.
+3. If your agent's `logging_config` doesn't already define a `root:` block, add one routing through your declared handlers — otherwise third-party `INFO`/`DEBUG` records go silent.
+4. Run `autonomy packages sync --update-packages` to pull the updated framework packages.
+5. Run `autonomy packages lock` to regenerate downstream package hashes.
+
 ## `v0.21.21` to `v0.21.22`
 
 This release ships the resilience-hardening audit (#2501) and the FSM-correctness audit (#2502), and picks up the `open-aea 2.2.6` bump. There are no API or wire-format changes — downstream apps only need to repin the framework and re-pull package hashes.

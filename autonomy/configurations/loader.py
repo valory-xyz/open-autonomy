@@ -30,9 +30,9 @@ from aea.configurations.base import (
     ProtocolConfig,
     SkillConfig,
 )
+from aea.configurations.loader import parse_service_yaml
 from aea.helpers.env_vars import apply_env_variables
 from aea.helpers.io import open_file
-from aea.helpers.yaml_utils import yaml_load_all
 
 from autonomy.configurations.base import Service, load_dependencies
 
@@ -60,16 +60,14 @@ def load_service_config(
             stacklevel=2,
         )
 
-    # TODO: align with open-aea _load_service_config & handle data == None and other validation errors
     with open_file(
         service_path / Service.default_configuration_filename, "r", encoding="utf-8"
     ) as fp:
-        data = yaml_load_all(fp)
+        service_config, overrides = parse_service_yaml(fp)
 
-    # Here we apply the environment variables to base service config only
-    # We apply the environment variables to the overrides when processing
-    # them to export as environment variables
-    service_config, *overrides = data
+    # Here we apply the environment variables to base service config only.
+    # The overrides keep their raw form; env variables are applied on them
+    # when they are processed for export.
     service_config = apply_env_variables(
         service_config, env_variables=os.environ.copy()
     )
