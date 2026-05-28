@@ -84,29 +84,45 @@ class TestServiceConfig:
             assert value == dummy_service[0][key]
 
     def test_empty_service_yaml_raises_value_error(self) -> None:
-        """An empty ``service.yaml`` surfaces a ``ValueError`` at parse time
-        (open-aea ``parse_service_yaml``) instead of an opaque downstream
-        ``AttributeError`` from the validator.
+        """Empty ``service.yaml`` raises ``ValueError`` at parse time.
+
+        The parse-time guard surfaces the misuse with a readable message
+        instead of propagating an opaque downstream failure.
         """
         self.service_file.write_text("")
         with pytest.raises(ValueError, match="Service configuration file was empty"):
             load_service_config(self.t)
 
     def test_scalar_head_service_yaml_raises_value_error(self) -> None:
-        """A non-mapping head document (here: a bare scalar) raises
-        ``ValueError`` at parse time with a message that names the offending
-        type, rather than failing later with a confusing ``AttributeError``.
+        """Scalar head document raises ``ValueError`` at parse time.
+
+        The error message names the offending Python type so the operator
+        can pinpoint the malformed document.
         """
         self.service_file.write_text("just_a_string\n")
-        with pytest.raises(ValueError, match="must be a YAML mapping"):
+        with pytest.raises(ValueError, match="must be a YAML mapping, got str"):
             load_service_config(self.t)
 
     def test_sequence_head_service_yaml_raises_value_error(self) -> None:
-        """A sequence head document (``[]``) raises ``ValueError`` at parse
-        time — same parse-time guard as the empty / scalar cases.
+        """Sequence head document raises ``ValueError`` at parse time.
+
+        The error message names the offending Python type — distinguishing
+        a list head from a scalar head.
         """
         self.service_file.write_text("[]\n")
-        with pytest.raises(ValueError, match="must be a YAML mapping"):
+        with pytest.raises(ValueError, match="must be a YAML mapping, got list"):
+            load_service_config(self.t)
+
+    def test_none_head_service_yaml_raises_value_error(self) -> None:
+        """Bare ``---`` head document raises ``ValueError`` at parse time.
+
+        Same parse-time guard as the scalar / sequence cases; pinned
+        separately because a bare doc-separator is a common pattern
+        operators write when sketching the override section before
+        filling in the head.
+        """
+        self.service_file.write_text("---\n")
+        with pytest.raises(ValueError, match="must be a YAML mapping, got NoneType"):
             load_service_config(self.t)
 
     def test_check_overrides_valid_fail_missing_overrides(
