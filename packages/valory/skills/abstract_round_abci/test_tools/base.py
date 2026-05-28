@@ -20,6 +20,7 @@
 """Tests for valory/abstract_round_abci skill's behaviours."""
 
 import json
+import sys
 from abc import ABC
 from copy import copy
 from enum import Enum
@@ -90,6 +91,17 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
         # to modify the old mapping during the execution of the tests.
         cls.old_tx_type_to_payload_cls = copy(_MetaPayload.registry)
         _MetaPayload.registry = {}
+        # Force load_module to re-execute the skill's source files so
+        # _MetaPayload re-fires for every payload class.
+        skill_dotted_path = (
+            f"packages.{cls.path_to_skill.parent.parent.name}"
+            f".skills.{cls.path_to_skill.name}"
+        )
+        for module_key in list(sys.modules):
+            if module_key == skill_dotted_path or module_key.startswith(
+                skill_dotted_path + "."
+            ):
+                sys.modules.pop(module_key, None)
         super().setup_class(**kwargs)  # pylint: disable=no-value-for-parameter
         assert (
             cls._skill.skill_context._agent_context is not None
