@@ -124,7 +124,7 @@ If you have [populated the local registry](./overview_of_the_development_process
           open-aea-ledger-ethereum:
             version: ==2.2.7
           open-aea-test-autonomy:
-            version: ==0.21.22
+            version: ==0.21.23
         default_connection: null
         ---
         public_id: valory/hello_world_abci:0.1.0

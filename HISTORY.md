@@ -1,5 +1,24 @@
 # Release History - `open-autonomy`
 
+# 0.21.23 (2026-05-28)
+
+Framework / dependency bumps:
+
+- Bumps `open-aea` `2.2.6` → `2.2.7` across `pyproject.toml`, `setup.py`, `tox.ini`, `skaffold.yaml`, both Dockerfiles' `AEA_VERSION` arg, `deployments/Dockerfiles/autonomy-user/requirements.txt`, the 33 package YAMLs that pin `open-aea-*` dependencies, the two doc snippets (`docs/guides/define_agent.md`, `docs/advanced_reference/commands/autonomy_build-image.md`), and `CLAUDE.md`. Pulls in [open-aea 2.2.7](https://github.com/valory-xyz/open-aea/releases/tag/v2.2.7): canonical `packages.<author>.skills.<name>.<file>` `__module__` stamping for skill / contract / connection loaders ([#918](https://github.com/valory-xyz/open-aea/pull/918)), a public `aea.configurations.loader.parse_service_yaml(file_pointer) -> (head, overrides)` helper, `scaffold_item` `ctx.cwd` restoration via `try/finally`, double-logging fix ([#917](https://github.com/valory-xyz/open-aea/pull/917)), env-var JSON-encoding for bash-unsafe dict keys ([#915](https://github.com/valory-xyz/open-aea/pull/915)), and the `aea-ci-helpers` group/optional-without-`extras` parsing fix ([#916](https://github.com/valory-xyz/open-aea/pull/916)). No API or wire-format changes; package hashes regenerated via `autonomy packages lock` and `poetry.lock` regenerated to match. #2528
+
+Autonomy:
+
+- Drops three OA-side workarounds against `open-aea 2.2.7`'s upstream fixes:
+  - `autonomy/configurations/loader.py`: local `yaml_load_all` + tuple-unpack replaced by `parse_service_yaml(fp)`; the new helper raises `ValueError("Service configuration file was empty.")` on empty / scalar / non-mapping head, surfacing the failure at parse time rather than as a downstream `AttributeError`.
+  - `autonomy/cli/scaffold_fsm.py`: drops the `preserve_cwd = ctx.cwd ... ctx.cwd = preserve_cwd` bracket around `scaffold_item(...)` — `scaffold_item` now saves and restores `ctx.cwd` via `try/finally` internally.
+  - `packages/valory/skills/transaction_settlement_abci/test_tools/integration.py`: changes shape (not removed). The old FIXME loop rewrote each payload's `_metaclass_registry_key` from a relative short form to the absolute long form; the skill loader now stamps `__module__` as the canonical long form natively, so `_MetaPayload` registration (`abstract_round_abci/base.py:185`) and lookup (`base.py:222`) build the same key shape. But open-aea v2.2.7's `load_module` `sys.modules` short-circuit (the dual-class-object fix) means `FSMBehaviourBaseCase.setup_class`'s `_MetaPayload.registry = {}` clear leaves the registry empty after the subsequent skill load — the metaclass `__new__` doesn't re-fire on the cached module. Replaced with a one-line manual re-registration of `SignaturePayload` under its canonical key in `_TxHelperIntegration.sign_tx`. #2528
+- Tangential cleanup: `autonomy/fsm/scaffold/scaffold_skill.py` switches the `fingerprint_item(ctx, SKILL, ...)` call to `fingerprint_package_by_path(...)` — eliminates the `ctx.cwd` swap that the caller previously needed when `--to-local-registry` was set. #2528
+- Operator-visible logging behaviour change for `open-aea 2.2.7`'s [#917](https://github.com/valory-xyz/open-aea/pull/917) (orphan stderr `StreamHandler` removed from the root logger): adds an explicit `root:` block to the ten reference agent configs that ship a full `logging_config` (`register_reset`, `abstract_abci`, `registration_start_up`, `offend_slash`, `counter`, `register_reset_recovery`, `register_termination`, `solana_transfer_agent`, `test_abci`, `test_ipfs`) so third-party `INFO`/`DEBUG` records (web3, urllib3, requests) keep printing out of the box. `counter_client` has a minimal `logging_config` (no handlers defined) by design and is intentionally not touched. `test_abci` ships only a `console` handler so its `root:` block routes through `console` alone; the other nine route through both `logfile` and `console`. #2528
+
+Security:
+
+- Adds an explicit `PyNaCl >= 1.6.2` floor in `pyproject.toml` and `setup.py` to clear [GHSA-mrfv-m5wm-5w6w / CVE-2025-69277](https://github.com/advisories/GHSA-mrfv-m5wm-5w6w) (bundled libsodium incomplete-disallowed-inputs advisory). The transitive chain (`open-autonomy → open-aea-ledger-cosmos → cosmpy → pynacl`) had been resolving to `1.6.0`. Cosmpy's metadata declares `pynacl==1.6.0` but pip's modern resolver accepts the explicit floor and installs `1.6.2` cleanly (verified in a clean venv). Closes #2526 (point 1). #2528
+
 # 0.21.22 (2026-05-15)
 
 Autonomy:
