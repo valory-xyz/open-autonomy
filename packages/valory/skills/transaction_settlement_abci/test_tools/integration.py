@@ -43,6 +43,7 @@ from packages.valory.protocols.ledger_api.custom_types import (
     TransactionDigest,
     TransactionReceipt,
 )
+from packages.valory.skills.abstract_round_abci.base import _MetaPayload
 from packages.valory.skills.abstract_round_abci.test_tools.integration import (
     ExpectedContentType,
     ExpectedTypesType,
@@ -139,6 +140,10 @@ class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
                 sender=address,
                 signature=signature_hex,
             ).json
+
+        _MetaPayload.registry[
+            f"{SignaturePayload.__module__}.{SignaturePayload.__name__}"
+        ] = SignaturePayload
 
         self.tx_settlement_synchronized_data.update(
             participant_to_signature=participant_to_signature,
