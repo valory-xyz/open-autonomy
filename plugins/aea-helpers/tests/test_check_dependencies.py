@@ -465,10 +465,14 @@ def test_group_vs_group_collision_keeps_first_group(
     assert "multiple groups" in msg
 
 
-def test_dump_persists_newly_added_dep(tmp_path: Path) -> None:
+def test_dump_persists_newly_added_dep(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
     """A main dep added via update() is written to the main table on dump().
 
     :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    :param caplog: pytest log-capture fixture; asserts no false
+        ``will_not_persist`` warning fires for a genuinely-new dep.
     """
     content = textwrap.dedent("""\
         [tool.poetry]
@@ -489,7 +493,15 @@ def test_dump_persists_newly_added_dep(tmp_path: Path) -> None:
     config = PyProjectTomlConfig.load(pyproject)
     assert config is not None
     # Simulate `--update` discovering a package-YAML dep not yet in pyproject.
-    config.update(Dependency(name="newdep", version="==1.0.0"))
+    with caplog.at_level(logging.WARNING):
+        config.update(Dependency(name="newdep", version="==1.0.0"))
+    # No spurious "dump() will not write it" warning for a genuinely-new dep
+    # (the `is_string_form_main_dep` short-circuit is the only thing
+    # suppressing the warning; this guards against regressions in that path).
+    assert not any(
+        "newdep" in r.getMessage() and "dump() will not write it" in r.getMessage()
+        for r in caplog.records
+    )
     config.dump()
     parsed = tomllib.loads(pyproject.read_text())
     deps = parsed["tool"]["poetry"]["dependencies"]
@@ -988,3 +1000,71 @@ def test_init_rejects_mismatched_dep_name_sets() -> None:
             main_dep_names=None,
             string_dep_names={"requests"},
         )
+
+
+def test_load_warns_when_main_deps_missing(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """A missing `[tool.poetry.dependencies]` table logs a warning, not silent.
+
+    A misspelled section header (e.g. `[tool.poetry.dependencis]`) would
+    otherwise let `_check()` skip pyproject cross-validation with no signal;
+    the warning ensures a structurally-broken pyproject is visible.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    :param caplog: pytest log-capture fixture.
+    """
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+
+        [tool.poetry.dependencis]
+        requests = "*"
+        """))
+    with caplog.at_level(logging.WARNING):
+        result = PyProjectTomlConfig.load(pyproject)
+    assert result is None
+    assert any(
+        "No [tool.poetry.dependencies]" in r.getMessage() for r in caplog.records
+    ), "expected a warning when the main deps table is missing"
+
+
+def test_load_handles_non_table_group_root(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """`[tool.poetry.group]` being a scalar/list doesn't crash; it warns.
+
+    Covers the outer `isinstance(group_tables, dict)` guard. Without it,
+    iterating non-table group root would `AttributeError` on `.items()`.
+
+    :param tmp_path: pytest-provided temp dir for the sample pyproject.
+    :param caplog: pytest log-capture fixture.
+    """
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(textwrap.dedent("""\
+        [tool.poetry]
+        name = "demo"
+        group = "not a table"
+
+        [tool.poetry.dependencies]
+        python = ">=3.10,<3.15"
+        requests = "*"
+        """))
+    with caplog.at_level(logging.WARNING):
+        config = PyProjectTomlConfig.load(pyproject)
+    assert config is not None
+    assert "requests" in config.dependencies
+    assert any(
+        "[tool.poetry.group]" in r.getMessage() and "not a table" in r.getMessage()
+        for r in caplog.records
+    )
+
+
+def test_load_raises_on_missing_file(tmp_path: Path) -> None:
+    """A missing file path raises (covers the `OSError` arm of `load()`).
+
+    :param tmp_path: pytest-provided temp dir holding the (nonexistent) path.
+    """
+    with pytest.raises(OSError):
+        PyProjectTomlConfig.load(tmp_path / "does_not_exist.toml")

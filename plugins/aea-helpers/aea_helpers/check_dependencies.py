@@ -49,6 +49,10 @@ ANY_SPECIFIER = "*"
 # Matches a top-level TOML key assignment at the very start of a line
 # (no leading whitespace, so indented inner lines of a multi-line inline
 # table are not matched). Tolerant of the no-space form (`pkg="*"`).
+# Also matches bare top-level metadata keys (`version`, `name`, etc.) that
+# could in theory appear at the top of a misformatted `[tool.poetry.dependencies]`
+# table; the passthrough branch handles them since they won't be in
+# `self.dependencies`.
 _DEP_LINE_RE = re.compile(r"^([A-Za-z0-9_.\-]+)\s*=")
 
 
@@ -456,6 +460,9 @@ class PyProjectTomlConfig:
         # NB: a name in both main (string) and a group is still persisted
         # via the main line, so key on string∩main rather than group
         # membership (group_dep_names can include collision-dropped names).
+        # `or set()` is defensive; the __init__ invariant + the
+        # `_string_dep_names is not None` short-circuit above mean
+        # `_main_dep_names` is in practice always a `Set` when this runs.
         is_string_form_main_dep = (
             self._string_dep_names is not None
             and dependency.name in self._string_dep_names
@@ -593,6 +600,13 @@ class PyProjectTomlConfig:
         try:
             main_deps = config["tool"]["poetry"]["dependencies"]
         except KeyError:
+            # A misspelled section (e.g. `[tool.poetry.dependencis]`) would
+            # otherwise silently pass the check — log so a structurally
+            # broken pyproject doesn't go undetected.
+            logging.warning(
+                "No [tool.poetry.dependencies] in %s; skipping pyproject check.",
+                pyproject_path,
+            )
             return None
         if not isinstance(main_deps, dict):
             # Syntactically valid TOML but wrong shape (e.g. PEP-621-style
