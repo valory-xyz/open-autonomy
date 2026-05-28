@@ -101,10 +101,7 @@ def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None:
     _add_abstract_round_abci_if_not_present(ctx)
 
     # scaffold AEA skill - as usual
-    # TODO: open-aea/aea/cli/scaffold.py:279 bad trick with update of ctx.cwd
-    preserve_cwd = ctx.cwd
     scaffold_item(ctx, SKILL, skill_name)
-    ctx.cwd = preserve_cwd
     scaffold_fsm.do_scaffolding()
 
     if ctx.config[TO_LOCAL_REGISTRY_FLAG]:

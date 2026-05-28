@@ -32,11 +32,11 @@ def get_all_extras() -> Dict:
     # `open-aea[all]` (which implies its own `[cli]` extra), so we only
     # need to declare the IPFS CLI plugin here.
     cli_deps = [
-        "open-aea-cli-ipfs==2.2.6",
+        "open-aea-cli-ipfs==2.2.7",
     ]
 
     chain_deps = [
-        "open-aea-ledger-ethereum==2.2.6",
+        "open-aea-ledger-ethereum==2.2.7",
     ]
 
     docker_deps = [
@@ -44,7 +44,7 @@ def get_all_extras() -> Dict:
     ]
 
     hwi_deps = [
-        "open-aea-ledger-ethereum-hwi==2.2.6",
+        "open-aea-ledger-ethereum-hwi==2.2.7",
     ]
 
     extras = {
@@ -71,7 +71,11 @@ all_extras = get_all_extras()
 
 
 base_deps = [
-    "open-aea[all]==2.2.6",
+    "open-aea[all]==2.2.7",
+    # Transitive pin via `open-aea-ledger-cosmos -> cosmpy -> pynacl`;
+    # floor at `1.6.2` to clear GHSA-mrfv-m5wm-5w6w / CVE-2025-69277
+    # (open-autonomy#2526 point 1).
+    "PyNaCl>=1.6.2",
 ]
 base_deps.extend(all_extras["cli"])
 

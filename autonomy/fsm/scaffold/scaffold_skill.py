@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Type
 
 import click
-from aea.cli.fingerprint import fingerprint_item
+from aea.cli.fingerprint import fingerprint_package_by_path
 from aea.cli.utils.context import Context
 from aea.configurations.base import (
     AgentConfig,
@@ -37,7 +37,6 @@ from aea.configurations.base import (
 from aea.configurations.constants import (
     DEFAULT_AEA_CONFIG_FILE,
     DEFAULT_SKILL_CONFIG_FILE,
-    SKILL,
     SKILLS,
 )
 
@@ -99,12 +98,16 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         self._update_models(config)
         self._update_dependencies(config)
         self.ctx.skill_loader.dump(config, self.skill_config_path.open("w"))
-        # TODO: update fingerprint_item to use path instead of context
-        preserve_cwd = self.ctx.cwd
         if self.ctx.config.get(TO_LOCAL_REGISTRY_FLAG):
-            self.ctx.cwd = Path(self.ctx.registry_path) / self.ctx.agent_config.author
-        fingerprint_item(self.ctx, SKILL, config.public_id)
-        self.ctx.cwd = preserve_cwd
+            package_dir = (
+                Path(self.ctx.registry_path)
+                / self.ctx.agent_config.author
+                / SKILLS
+                / config.public_id.name
+            )
+        else:
+            package_dir = Path(self.ctx.cwd) / SKILLS / config.public_id.name
+        fingerprint_package_by_path(package_dir)
 
     def _update_behaviours(self, config: SkillConfig) -> None:
         """Update the behaviours section of the skill configuration."""
