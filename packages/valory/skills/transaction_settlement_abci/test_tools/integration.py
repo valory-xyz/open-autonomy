@@ -43,6 +43,7 @@ from packages.valory.protocols.ledger_api.custom_types import (
     TransactionDigest,
     TransactionReceipt,
 )
+from packages.valory.skills.abstract_round_abci.base import _MetaPayload
 from packages.valory.skills.abstract_round_abci.test_tools.integration import (
     ExpectedContentType,
     ExpectedTypesType,
@@ -139,6 +140,20 @@ class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
                 sender=address,
                 signature=signature_hex,
             ).json
+
+        # ``FSMBehaviourBaseCase.setup_class`` clears ``_MetaPayload.registry``
+        # before loading the skill via ``aea.test_tools.BaseSkillTestCase``.
+        # Open-aea 2.2.7's ``load_module`` short-circuits on ``sys.modules``
+        # cache hits (the dual-class-object fix), so the metaclass does not
+        # re-fire during that load and the registry stays empty for any
+        # payload class whose module was already imported earlier in the
+        # process (e.g. ``SignaturePayload`` above). Re-register the class
+        # under its canonical key so the ``BaseTxPayload.from_json`` lookup
+        # below — invoked by the ``participant_to_signature`` property
+        # readback — succeeds.
+        _MetaPayload.registry[
+            f"{SignaturePayload.__module__}.{SignaturePayload.__name__}"
+        ] = SignaturePayload
 
         self.tx_settlement_synchronized_data.update(
             participant_to_signature=participant_to_signature,
