@@ -83,6 +83,32 @@ class TestServiceConfig:
                 continue
             assert value == dummy_service[0][key]
 
+    def test_empty_service_yaml_raises_value_error(self) -> None:
+        """An empty ``service.yaml`` surfaces a ``ValueError`` at parse time
+        (open-aea ``parse_service_yaml``) instead of an opaque downstream
+        ``AttributeError`` from the validator.
+        """
+        self.service_file.write_text("")
+        with pytest.raises(ValueError, match="Service configuration file was empty"):
+            load_service_config(self.t)
+
+    def test_scalar_head_service_yaml_raises_value_error(self) -> None:
+        """A non-mapping head document (here: a bare scalar) raises
+        ``ValueError`` at parse time with a message that names the offending
+        type, rather than failing later with a confusing ``AttributeError``.
+        """
+        self.service_file.write_text("just_a_string\n")
+        with pytest.raises(ValueError, match="must be a YAML mapping"):
+            load_service_config(self.t)
+
+    def test_sequence_head_service_yaml_raises_value_error(self) -> None:
+        """A sequence head document (``[]``) raises ``ValueError`` at parse
+        time — same parse-time guard as the empty / scalar cases.
+        """
+        self.service_file.write_text("[]\n")
+        with pytest.raises(ValueError, match="must be a YAML mapping"):
+            load_service_config(self.t)
+
     def test_check_overrides_valid_fail_missing_overrides(
         self,
     ) -> None:

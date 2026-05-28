@@ -47,6 +47,10 @@ logging_config:
       handlers:
       - console
       propagate: true
+  root:
+    handlers:
+    - console
+    level: INFO
 dependencies:
   open-aea-ledger-ethereum:
     version: ==2.2.7

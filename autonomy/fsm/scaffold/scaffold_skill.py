@@ -98,16 +98,12 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         self._update_models(config)
         self._update_dependencies(config)
         self.ctx.skill_loader.dump(config, self.skill_config_path.open("w"))
-        if self.ctx.config.get(TO_LOCAL_REGISTRY_FLAG):
-            package_dir = (
-                Path(self.ctx.registry_path)
-                / self.ctx.agent_config.author
-                / SKILLS
-                / config.public_id.name
-            )
-        else:
-            package_dir = Path(self.ctx.cwd) / SKILLS / config.public_id.name
-        fingerprint_package_by_path(package_dir)
+        base = (
+            Path(self.ctx.registry_path) / self.ctx.agent_config.author
+            if self.ctx.config.get(TO_LOCAL_REGISTRY_FLAG)
+            else Path(self.ctx.cwd)
+        )
+        fingerprint_package_by_path(base / SKILLS / config.public_id.name)
 
     def _update_behaviours(self, config: SkillConfig) -> None:
         """Update the behaviours section of the skill configuration."""
