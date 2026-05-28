@@ -60,12 +60,10 @@ certifi = "*"
 multidict = "*"
 asn1crypto = ">=1.4.0,<1.5.0"
 ecdsa = "*"
-# Transitive pin via `open-aea-ledger-cosmos -> cosmpy -> pynacl`.
-# Floor at `1.6.2` to clear GHSA-mrfv-m5wm-5w6w / CVE-2025-69277
-# (bundled libsodium incomplete-disallowed-inputs advisory) which the
-# transitive default (`1.6.0`) carries. Cosmpy's metadata says
-# `pynacl==1.6.0` but the modern pip resolver accepts the explicit
-# floor and installs `1.6.2`. See open-autonomy#2526 point 1.
+# Clears GHSA-mrfv-m5wm-5w6w / CVE-2025-69277. The floor backtracks
+# `cosmpy 0.11.2 -> 0.11.1` within `open-aea-ledger-cosmos 2.2.7`'s
+# range, because `0.11.2` hard-pins `pynacl==1.6.0` while `0.11.1`
+# has no pynacl pin. Inert here — no runtime code imports cosmpy.
 PyNaCl = ">=1.6.2"
 py-ecc = ">=8,<10"
 

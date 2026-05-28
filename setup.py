@@ -72,9 +72,10 @@ all_extras = get_all_extras()
 
 base_deps = [
     "open-aea[all]==2.2.7",
-    # Transitive pin via `open-aea-ledger-cosmos -> cosmpy -> pynacl`;
-    # floor at `1.6.2` to clear GHSA-mrfv-m5wm-5w6w / CVE-2025-69277
-    # (open-autonomy#2526 point 1).
+    # Clears GHSA-mrfv-m5wm-5w6w / CVE-2025-69277. The floor backtracks
+    # `cosmpy 0.11.2 -> 0.11.1` within `open-aea-ledger-cosmos 2.2.7`'s
+    # range (`0.11.2` hard-pins `pynacl==1.6.0`, `0.11.1` has no pin).
+    # Inert here — no runtime code imports cosmpy.
     "PyNaCl>=1.6.2",
 ]
 base_deps.extend(all_extras["cli"])
