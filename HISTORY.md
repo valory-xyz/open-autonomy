@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+# 0.21.24 (2026-06-08)
+
+Framework / dependency bumps:
+
+- Bumps `open-aea` `2.2.7` → `2.2.8` across `pyproject.toml`, `setup.py`, `tox.ini`, `skaffold.yaml`, both Dockerfiles' `AEA_VERSION` arg, `deployments/Dockerfiles/autonomy-user/requirements.txt`, the 34 package YAMLs that pin `open-aea-*` dependencies, and the two doc snippets (`docs/guides/define_agent.md`, `docs/advanced_reference/commands/autonomy_build-image.md`). Package hashes regenerated via `autonomy packages lock` and `poetry.lock` regenerated to match.
+
 # 0.21.23 (2026-05-28)
 
 Framework / dependency bumps:

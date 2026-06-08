@@ -13,11 +13,11 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeiafvaguchnkp2fmhf6gtayc3gpnxkglagghb4ukbqtouni5tveigi
 - valory/http_client:0.23.0:bafybeihel6sg2yayxu7lqygaswdgciaxpqrgsbl5rwx74c6znu5qz2edd4
-- valory/ipfs:0.1.0:bafybeihxytzo7tunodztv424xsnnufewbowucdsxtdzdcik2rskcn7plta
+- valory/ipfs:0.1.0:bafybeiauzadmxhrlupb7u3uwszfbpvlbutc5ai2t2bru7yna6vxwcc7fkq
 - valory/ledger:0.19.0:bafybeicynh5l5f5f5jpx72qwzis7jvmxk5p4eqltk32uxbj2pgu2x4rqz4
 - valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts:
-- valory/service_registry:0.1.0:bafybeihktixbuw7dz3oa2xzfvpuchbnid7eob224n3spm77xx2yj2wixcm
+- valory/service_registry:0.1.0:bafybeidd75mgpzpypdl5k4544i2whazm3iz3ys3cmla5m3rxjmoj5a3wba
 protocols:
 - open_aea/signing:1.0.0:bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye
 - valory/abci:0.1.0:bafybeiak4pwac3pwjtd7weskxdhkrcopckr32vtazfbuteu6yqjkwarpte
@@ -29,8 +29,8 @@ protocols:
 - valory/tendermint:0.1.0:bafybeihzb7e32f7jcrzvubilqaxzmyk7ea6ss3pg3tliatdlrr76qeknyq
 skills:
 - valory/abstract_abci:0.1.0:bafybeie5et43th2nta76cd3kpm3fmurd7oyzk3qxim76octvt56m6r2poi
-- valory/abstract_round_abci:0.1.0:bafybeicioxhbhnsoqyqvkeevd7df7r2vubbiglyf7ucps2el73objazjsq
-- valory/registration_abci:0.1.0:bafybeihjhbn5seffyu5cwugvm26fkamp3svhggmtzh577daijgl2ksxs3e
+- valory/abstract_round_abci:0.1.0:bafybeicz6kzjc5sfsjwmetueizhi5xzw2eit4h6amfsc62lbcttxxchd4m
+- valory/registration_abci:0.1.0:bafybeihk3swaukl5unnow2zu5fc4opjth2t2uomtv7u5ea6qiurrd2jybu
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -67,9 +67,9 @@ logging_config:
     level: INFO
 dependencies:
   open-aea-ledger-cosmos:
-    version: ==2.2.7
+    version: ==2.2.8
   open-aea-ledger-ethereum:
-    version: ==2.2.7
+    version: ==2.2.8
 skill_exception_policy: just_log
 connection_exception_policy: just_log
 customs: []

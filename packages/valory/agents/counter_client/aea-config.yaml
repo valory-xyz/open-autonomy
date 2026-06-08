@@ -28,7 +28,7 @@ logging_config:
   version: 1
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.2.7
+    version: ==2.2.8
 customs: []
 default_connection: null
 ---
