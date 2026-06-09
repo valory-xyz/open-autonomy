@@ -194,6 +194,7 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
         """Make a transaction and return a receipt"""
         retries = 0
         deadline = datetime.now().timestamp() + self.timeout
+        last_error: Optional[Exception] = None
         while retries < self.retries and deadline >= datetime.now().timestamp():
             retries += 1
             try:
@@ -215,6 +216,7 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
             except get_requests_connection_error() as e:
                 raise RPCError("Cannot connect to the given RPC") from e
             except Exception as e:  # pylint: disable=broad-except
+                last_error = e
                 error = str(e)
                 if not should_retry(error):
                     raise ChainInteractionError(error) from e
@@ -239,9 +241,10 @@ class TxSettler:  # pylint: disable=too-many-instance-attributes
                 )
                 time.sleep(self.sleep)
 
-        raise ChainTimeoutError(
-            f"Failed to send transaction after {self.retries} retries"
-        )
+        message = f"Failed to send transaction after {self.retries} retries"
+        if last_error is not None:
+            message = f"{message}: {last_error}"
+        raise ChainTimeoutError(message) from last_error
 
     def settle(self) -> "TxSettler":
         """Wait for the tx to be mined."""

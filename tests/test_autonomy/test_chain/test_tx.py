@@ -281,6 +281,48 @@ def test_timeout() -> None:
         settler.transact()
 
 
+def test_timeout_preserves_last_error() -> None:
+    """Timeout should carry the last underlying error so callers can classify it."""
+
+    underlying = (
+        "{'code': -32000, 'message': "
+        "'intrinsic gas too low: gas 0, minimum needed 24796'}"
+    )
+
+    def _raise(*args: Any, **kwargs: Any) -> None:
+        raise Exception(underlying)
+
+    settler = TxSettler(
+        ledger_api=mock.Mock(
+            send_signed_transaction=_raise,
+            try_get_gas_pricing=lambda **kwargs: {
+                "maxFeePerGas": 100,
+                "maxPriorityFeePerGas": 100,
+            },
+            update_with_gas_estimate=lambda tx: tx,
+        ),
+        crypto=mock.Mock(
+            sign_transaction=lambda transaction: transaction,
+        ),
+        chain_type=ChainType.LOCAL,
+        tx_builder=lambda: {},
+        retries=2,
+        sleep=0.01,
+    )
+
+    with mock.patch("autonomy.chain.tx.time.sleep"):
+        with pytest.raises(ChainTimeoutError) as exc_info:
+            settler.transact()
+
+    raised = exc_info.value
+    assert "Failed to send transaction after 2 retries" in str(raised)
+    # The retryable -32000 rejection that drove every retry must survive in the
+    # message and as the exception cause, instead of being dropped.
+    assert underlying in str(raised)
+    assert raised.__cause__ is not None
+    assert str(raised.__cause__) == underlying
+
+
 @mock.patch("autonomy.chain.tx.logger")
 def test_settle_waits_until_rpc_syncs(logger: mock.Mock) -> None:
     """Test settler loops until RPC catches up with receipt block."""
