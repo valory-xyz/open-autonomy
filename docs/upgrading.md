@@ -5,6 +5,23 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.23` to `v0.21.24`
+
+This release bumps `open-aea` `2.2.7` → `2.2.8`. No API or wire-format changes.
+
+### `open-aea` bumped `2.2.7` → `2.2.8`
+
+Update any direct `open-aea` / `open-aea-*` pins in your downstream `pyproject.toml` / `setup.py` / `tox.ini` / Dockerfiles from `==2.2.7` to `==2.2.8`.
+
+### Regenerated package hashes
+
+All first-party packages under `packages/valory/` have new IPFS hashes because the `open-aea-*` plugin pins inside each `aea-config.yaml` / `contract.yaml` / `skill.yaml` / `connection.yaml` were rewritten as part of the bump. If you maintain a downstream repo that pins `valory/*` packages by hash, run:
+
+```bash
+autonomy packages sync
+autonomy packages lock
+```
+
 ## `v0.21.22` to `v0.21.23`
 
 This release picks up the `open-aea 2.2.7` bump and drops three OA-side workarounds against upstream fixes ([#2528](https://github.com/valory-xyz/open-autonomy/pull/2528)). It also ships an operator-visible logging-behaviour change (open-aea [#917](https://github.com/valory-xyz/open-aea/pull/917) removes an orphan stderr `StreamHandler` from the root logger) and a `PyNaCl >= 1.6.2` floor that clears [CVE-2025-69277](https://github.com/advisories/GHSA-mrfv-m5wm-5w6w). No API or wire-format changes.

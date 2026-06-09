@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+# 0.21.24 (2026-06-08)
+
+Framework / dependency bumps:
+
+- Bumps `open-aea` `2.2.7` → `2.2.8` across `pyproject.toml`, `setup.py`, `tox.ini`, `skaffold.yaml`, both Dockerfiles' `AEA_VERSION` arg, `deployments/Dockerfiles/autonomy-user/requirements.txt`, the 34 package YAMLs that pin `open-aea-*` dependencies, and the two doc snippets (`docs/guides/define_agent.md`, `docs/advanced_reference/commands/autonomy_build-image.md`). Pulls in [open-aea 2.2.8](https://github.com/valory-xyz/open-aea/releases/tag/v2.2.8): thread-safety fix in `try_get_gas_pricing` eliminating a race condition in the Ethereum ledger plugin's gas-price cache under concurrent callers ([#921](https://github.com/valory-xyz/open-aea/pull/921)). No API or wire-format changes; `autonomy/constants.py` `ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH` resynced to the relocked IPFS hash; package hashes regenerated via `autonomy packages lock` and `poetry.lock` regenerated to match. #2531
+
 # 0.21.23 (2026-05-28)
 
 Framework / dependency bumps:
