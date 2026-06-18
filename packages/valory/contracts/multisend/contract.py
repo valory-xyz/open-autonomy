@@ -56,7 +56,12 @@ def encode_data(tx: Dict) -> bytes:
     value = bytes.fromhex(
         "{:0>64x}".format(cast(int, tx.get("value")))
     )  # Value 32 bytes
-    data = cast(bytes, tx.get("data", b""))
+    data = tx.get("data", b"")
+    if isinstance(data, str):
+        # web3 v7 returns call data as a 0x-prefixed HexStr; coerce to bytes
+        # so the concatenation below does not raise ``can't concat str to bytes``.
+        data = bytes.fromhex(data[2:] if data.startswith("0x") else data)
+    data = cast(bytes, data)
     data_length = bytes.fromhex("{:0>64x}".format(len(data)))  # Data length 32 bytes
     return operation + to + value + data_length + data
 
