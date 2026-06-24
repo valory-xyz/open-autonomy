@@ -11,7 +11,7 @@ fingerprint:
   build/ServiceManagerToken.json: bafybeig77qi2tyo3uw2wxocpxonhdteo33thyu5ycn75h6m7cu3ku2hygy
   contract.py: bafybeiaemfmcuwqs23k7japqimlqf3ub26nep6yzzy7obyacygma77hdbm
   tests/__init__.py: bafybeifehip3omosjvpq3uqvxomtgrmqjoqdttyzhvu2qysybjf6btwkpi
-  tests/test_contract.py: bafybeialbpg3w6nii6a5in2talhc45h2sexyozgcwherdmxgbjqxlk3f3q
+  tests/test_contract.py: bafybeicdnkuccj37zytma6dunb6kwqmptxavg5fbv7phxoqzom6nietzju
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: ServiceManagerContract
