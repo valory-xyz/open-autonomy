@@ -122,9 +122,9 @@ If you have [populated the local registry](./overview_of_the_development_process
               propagate: true
         dependencies:
           open-aea-ledger-ethereum:
-            version: ==2.2.8
+            version: ==2.2.9
           open-aea-test-autonomy:
-            version: ==0.21.24
+            version: ==0.21.25
         default_connection: null
         ---
         public_id: valory/hello_world_abci:0.1.0
