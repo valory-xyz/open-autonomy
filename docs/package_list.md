@@ -7,8 +7,8 @@
 | contract/valory/gnosis_safe_proxy_factory/0.1.0               | `bafybeigr6ugkp6bxwnbkecktotekcjihabb6eudh3bgcnjfdorwosygile` |
 | contract/valory/component_registry/0.1.0                      | `bafybeigynthvqus7uk3nko4b4ddfzkrt4zopm5hyy3xqyr2mnh7zoptm2u` |
 | contract/valory/agent_registry/0.1.0                          | `bafybeia6gfxdfpr4apeqd6s4777d7yf6qya2slu3ccqmwiapxe72ckvsiq` |
-| contract/valory/registries_manager/0.1.0                      | `bafybeifzvfha5amcduqldwe64nvka35u46whkwiazt2echigi5b77t2rrm` |
-| contract/valory/service_manager/0.1.0                         | `bafybeigslbszqzsc2nqptsfy4d7pipyzsqo2rsgkvvgpx7o6pbnppedwam` |
+| contract/valory/registries_manager/0.1.0                      | `bafybeidp6xpk5pxbabcwf5itdh7s4y7u3cwe2gnaabmfsxtd2qt7xwteby` |
+| contract/valory/service_manager/0.1.0                         | `bafybeig7hpp5rzvs3at4jczdkbuditdds6ltyvgye4ptawaesdjmouyam4` |
 | contract/valory/service_registry/0.1.0                        | `bafybeicbfffywnaaehptzasxsdoyguuurpleirsnor5xf7rqk57isjkury` |
 | contract/valory/gnosis_safe/0.1.0                             | `bafybeiek7zs3r5c4wspwwuvnhunc2ddvccbsuy3xccedbjffju5eywp3ju` |
 | contract/valory/multisend/0.1.0                               | `bafybeifqtf24h7lhhbairveqmq2klhvbswajmbpoyqj4xrgye7c22pxubi` |
