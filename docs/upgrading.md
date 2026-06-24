@@ -13,14 +13,14 @@ This release bumps `open-aea` `2.2.8` → `2.2.9`. No API or wire-format changes
 
 Update any direct `open-aea` / `open-aea-*` pins in your downstream `pyproject.toml` / `setup.py` / `tox.ini` / Dockerfiles from `==2.2.8` to `==2.2.9`. Upstream highlights:
 
-- **`EthereumApi.build_transaction` now passes `from` in the built `tx_params`** ([#925](https://github.com/valory-xyz/open-aea/pull/925)). Pre-flight gas estimation (`update_with_gas_estimate` → `eth_estimateGas`) previously simulated the transaction with no `from`, so the RPC treated `msg.sender` as the zero address. ERC20 / marketplace contracts that branch on `msg.sender` therefore reverted at the estimation step (e.g. `approve` hitting `require(owner != address(0))`, balance-tracker `transferFrom` failing on `allowance[0x0]`) even though the real signed transaction would succeed. Downstream consumers that disabled gas estimation as a workaround can re-enable it on 2.2.9.
+- **`EthereumApi.build_transaction` now passes `from` in the built `tx_params`** ([#925](https://github.com/valory-xyz/open-aea/pull/925)). Pre-flight gas estimation (`update_with_gas_estimate` → `eth_estimateGas`) previously simulated the transaction with no `from`, so the RPC treated `msg.sender` as the zero address. ERC20 / marketplace contracts that branch on `msg.sender` therefore reverted at the estimation step (e.g. `approve` hitting `require(owner != address(0))`, balance-tracker `transferFrom` failing on `allowance[0x0]`) even though the real signed transaction would succeed. Consumers who disabled gas estimation specifically to work around the zero-address `msg.sender` revert may be able to re-enable it on 2.2.9.
 
 ### Regenerated package hashes
 
 All first-party packages under `packages/valory/` have new IPFS hashes because the `open-aea-*` plugin pins inside each `aea-config.yaml` / `contract.yaml` / `skill.yaml` / `connection.yaml` were rewritten as part of the bump. If you maintain a downstream repo that pins `valory/*` packages by hash, run:
 
 ```bash
-autonomy packages sync
+autonomy packages sync --update-packages
 autonomy packages lock
 ```
 
