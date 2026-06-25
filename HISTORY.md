@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+# 0.21.25 (2026-06-24)
+
+Framework / dependency bumps:
+
+- Bumps `open-aea` `2.2.8` → `2.2.9` across `pyproject.toml`, `setup.py`, `tox.ini`, `skaffold.yaml`, both Dockerfiles' `AEA_VERSION` arg, `deployments/Dockerfiles/autonomy-user/requirements.txt`, the 33 package YAMLs that pin `open-aea-*` dependencies, the two doc snippets (`docs/guides/define_agent.md`, `docs/advanced_reference/commands/autonomy_build-image.md`), and `CLAUDE.md`. Pulls in [open-aea 2.2.9](https://github.com/valory-xyz/open-aea/releases/tag/v2.2.9): `EthereumApi.build_transaction` now propagates the sender as `from` in the built `tx_params`, so `eth_estimateGas` simulates with the actual sender instead of `msg.sender = 0x0` — fixing spurious pre-flight reverts on ERC20 / marketplace flows that branch on `msg.sender` ([#925](https://github.com/valory-xyz/open-aea/pull/925)). No API or wire-format changes; `autonomy/constants.py` `ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH` resynced to the relocked IPFS hash; package hashes regenerated via `autonomy packages lock` and `poetry.lock` regenerated to match. #2535
+
 # 0.21.24 (2026-06-08)
 
 Framework / dependency bumps:

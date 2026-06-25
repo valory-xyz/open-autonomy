@@ -55,7 +55,7 @@ logging_config:
     level: INFO
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==2.2.8
+    version: ==2.2.9
 customs: []
 default_connection: null
 ---

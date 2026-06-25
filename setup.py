@@ -32,11 +32,11 @@ def get_all_extras() -> Dict:
     # `open-aea[all]` (which implies its own `[cli]` extra), so we only
     # need to declare the IPFS CLI plugin here.
     cli_deps = [
-        "open-aea-cli-ipfs==2.2.8",
+        "open-aea-cli-ipfs==2.2.9",
     ]
 
     chain_deps = [
-        "open-aea-ledger-ethereum==2.2.8",
+        "open-aea-ledger-ethereum==2.2.9",
     ]
 
     docker_deps = [
@@ -44,7 +44,7 @@ def get_all_extras() -> Dict:
     ]
 
     hwi_deps = [
-        "open-aea-ledger-ethereum-hwi==2.2.8",
+        "open-aea-ledger-ethereum-hwi==2.2.9",
     ]
 
     extras = {
@@ -71,9 +71,9 @@ all_extras = get_all_extras()
 
 
 base_deps = [
-    "open-aea[all]==2.2.8",
+    "open-aea[all]==2.2.9",
     # Clears GHSA-mrfv-m5wm-5w6w / CVE-2025-69277. The floor backtracks
-    # `cosmpy 0.11.2 -> 0.11.1` within `open-aea-ledger-cosmos 2.2.8`'s
+    # `cosmpy 0.11.2 -> 0.11.1` within `open-aea-ledger-cosmos 2.2.9`'s
     # range (`0.11.2` hard-pins `pynacl==1.6.0`, `0.11.1` has no pin).
     # Inert here — no runtime code imports cosmpy.
     "PyNaCl>=1.6.2",
