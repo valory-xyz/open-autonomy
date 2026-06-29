@@ -69,7 +69,7 @@ class ERC8004IdentityRegistryBridgerContract(Contract):
 
         return {
             "to": contract_address,
-            "data": txd[2:],
+            "data": bytes.fromhex(txd[2:]),
             "operation": MultiSendOperation.CALL,
             "value": 0,
         }
