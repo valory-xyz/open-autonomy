@@ -18,9 +18,9 @@
 | contract/valory/squads_multisig/0.1.0                         | `bafybeidti5ocru2ov7rgxasv5tqyc3cz7vixelkagd3h3hjtr5mjzdrapa` |
 | contract/valory/multicall2/0.1.0                              | `bafybeifoltz5j2voopihpfku5oxf55c6bqprqgizhjz7qe32q2cbi3zdxy` |
 | contract/valory/poly_safe_creator_with_recovery_module/0.1.0  | `bafybeihxiiucd7rvizjpobbivil6doionychrck7lownbgfvaxye3prc2u` |
-| contract/valory/sign_message_lib/0.1.0                        | `bafybeie3o6blzgoejkenv37x3pn7hkfgy4zkcbxshkkmvfrtptpky4oswy` |
+| contract/valory/sign_message_lib/0.1.0                        | `bafybeihjzuyywusbmtyofuotcfkgpzy3sr247s6fap2vpg5zb7hahao7sa` |
 | contract/valory/erc8004_identity_registry/0.1.0               | `bafybeid2xd46zn2yp6ggnh6jy4jm2s5b6nnm5pskpebjasziyr2diqseuq` |
-| contract/valory/erc8004_identity_registry_bridger/0.1.0       | `bafybeiatua7v2lm2kbtha47jc5wsmpxlcxnmoy32vffnlx4xlubww2wjvi` |
+| contract/valory/erc8004_identity_registry_bridger/0.1.0       | `bafybeigpqy2lu2fbnjh2tketkozziuqb4l5jzbsmf7nztmioihqfkoahou` |
 | contract/valory/staking_activity_checker/0.1.0                | `bafybeicfvf4f25eon2iqjezztiistcifyfltbezz2ilc55lxtpjwkybf74` |
 | contract/valory/staking_token/0.1.0                           | `bafybeihqnd5ot5w56i37pvzucsfoljhl5oi36ridluvtikzzbczqjztffi` |
 | contract/valory/agent_mech/0.1.0                              | `bafybeidrkuruvewbi7xmi7py26ylgpcslmr5yuyu4tw6o7uekolmsj2zqa` |
