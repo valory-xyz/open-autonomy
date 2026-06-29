@@ -8,7 +8,7 @@ aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeih7guwgkfzpknjxg53ankzedjfakrpnyx7e5gvykcyntadrq7wgoi
   build/SignMessageLib.json: bafybeia4ktcx53routje6rae3lwcdz6e3l4ex73k6ilefh635z2lnci3lu
-  contract.py: bafybeiducvma2vm4eevy5t6rzq3two7g4lagvfgcazg7e3u7dx2mqr57sa
+  contract.py: bafybeihz7xhzgilof7sp37v7ls2vnhl57il33qx52pqu2u5hi3l2l6wzdi
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: SignMessageLibContract
