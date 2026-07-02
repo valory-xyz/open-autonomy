@@ -576,6 +576,31 @@ class MechMarketplaceContract(Contract):
         return dict(data=balance_tracker_address)
 
     @classmethod
+    def get_chain_id(
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+    ) -> JSONLike:
+        """Fetch the immutable chain id baked into the marketplace."""
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
+        chain_id = contract_instance.functions.chainId().call()
+        return dict(data=chain_id)
+
+    @classmethod
+    def get_nonce(
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        sender: str,
+    ) -> JSONLike:
+        """Fetch the marketplace's per-sender nonce (mapNonces(sender))."""
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+
+        nonce = contract_instance.functions.mapNonces(sender).call()
+        return dict(data=nonce)
+
+    @classmethod
     def get_fee(
         cls,
         ledger_api: EthereumApi,
