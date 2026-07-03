@@ -24,7 +24,7 @@
 | contract/valory/staking_activity_checker/0.1.0                | `bafybeicfvf4f25eon2iqjezztiistcifyfltbezz2ilc55lxtpjwkybf74` |
 | contract/valory/staking_token/0.1.0                           | `bafybeihqnd5ot5w56i37pvzucsfoljhl5oi36ridluvtikzzbczqjztffi` |
 | contract/valory/agent_mech/0.1.0                              | `bafybeidrkuruvewbi7xmi7py26ylgpcslmr5yuyu4tw6o7uekolmsj2zqa` |
-| contract/valory/mech_marketplace/0.1.0                        | `bafybeigogarcl665ugno5nrs6larfv7mfksggtoowgtqqlcleigiiisfgm` |
+| contract/valory/mech_marketplace/0.1.0                        | `bafybeigrcnjaycggulxyx2tsjub4ssjij66d7nfzsavo6gd54hm7beliiu` |
 | connection/valory/abci/0.1.0                                  | `bafybeiafvaguchnkp2fmhf6gtayc3gpnxkglagghb4ukbqtouni5tveigi` |
 | connection/valory/ipfs/0.1.0                                  | `bafybeidob3tcdebjbm4ovwqoz4v2egf7nvoui3hu5on4o3apfchr6rpwwa` |
 | skill/valory/test_ipfs_abci/0.1.0                             | `bafybeigfidi4tc3dnwfbhhxzchqzj4pot43iw5ymso3sbrbscgqanjhxp4` |

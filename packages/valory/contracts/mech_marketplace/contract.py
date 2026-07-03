@@ -581,7 +581,7 @@ class MechMarketplaceContract(Contract):
         ledger_api: EthereumApi,
         contract_address: str,
     ) -> JSONLike:
-        """Fetch the immutable chain id baked into the marketplace."""
+        """Fetch the marketplace's chain id (chainId())."""
         contract_instance = cls.get_instance(ledger_api, contract_address)
 
         chain_id = contract_instance.functions.chainId().call()
@@ -592,12 +592,12 @@ class MechMarketplaceContract(Contract):
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
-        sender: str,
+        sender_address: str,
     ) -> JSONLike:
-        """Fetch the marketplace's per-sender nonce (mapNonces(sender))."""
+        """Fetch the marketplace's per-sender nonce (mapNonces(sender_address))."""
         contract_instance = cls.get_instance(ledger_api, contract_address)
 
-        nonce = contract_instance.functions.mapNonces(sender).call()
+        nonce = contract_instance.functions.mapNonces(sender_address).call()
         return dict(data=nonce)
 
     @classmethod
