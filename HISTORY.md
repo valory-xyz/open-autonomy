@@ -1,5 +1,15 @@
 # Release History - `open-autonomy`
 
+# 0.21.26 (2026-07-02)
+
+Feature additions:
+
+- Extends the canonical `mech_marketplace` contract wrapper (`packages/valory/contracts/mech_marketplace/contract.py`) with two additive read methods that off-chain-request paths need to derive `request_id` client-side: `get_chain_id()` reads `chainId()` for the EIP-712 domain binding, and `get_nonce(sender_address)` reads `mapNonces(sender_address)` for the per-requester nonce slot. Both return the framework's standard `{"data": ...}` shape, matching the sibling `get_balance_tracker_for_mech_type` and `get_fee` views. No existing method is renamed or resignatured; downstream consumers pick this up via a routine `third_party` hash bump at their next re-lock. #2537
+
+Framework / dependency bumps:
+
+- Bounds `pytest` to `>=8,<9` in `pyproject.toml` so future `poetry lock` regens don't silently drift across pytest major versions. The previous constraint was `pytest = "*"`, which had already pulled in `pytest 9.1.1` on a stray re-lock; the bound restores `pytest 8.4.2` and defers 9.x adoption until it's validated end-to-end. #2537
+
 # 0.21.25 (2026-06-24)
 
 Framework / dependency bumps:

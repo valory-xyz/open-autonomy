@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "open-autonomy"
-version = "0.21.25"
+version = "0.21.26"
 description = "Open Autonomy Framework"
 authors = ["developer-valory <develope@valory.xyz>"]
 license = "Apache-2.0"
@@ -115,7 +115,10 @@ open-aea-helpers = { path = "plugins/aea-helpers", develop = true }
 # `test_tools/` so skill imports work without pytest installed).
 open-aea-test-autonomy = { path = "plugins/aea-test-autonomy", develop = true }
 hypothesis = "*"
-pytest = "*"
+# Bounded to <9 to prevent unreviewed drift across pytest major versions
+# (pytest 9 removes deprecated APIs and can silently break plugins /
+# tox invocations on re-lock). Revisit once 9.x is validated end-to-end.
+pytest = ">=8,<9"
 pytest-asyncio = "*"
 # Used by the docker-compose tendermint sidecar
 # (`deployments/Dockerfiles/tendermint/app.py`) and a legacy test helper
