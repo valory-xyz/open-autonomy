@@ -71,13 +71,13 @@ jobs:
         # Use || true to not fail the pipeline
       - name: Snyk Code test
         continue-on-error: true
-        run: snyk code test --sarif > snyk-code.sarif
+        run: snyk code test --remote-repo-url=https://github.com/${{ github.repository }} --sarif > snyk-code.sarif
 
         # Runs Snyk Open Source (SCA) analysis and uploads result to Snyk.
       - name: Snyk Open Source monitor
         continue-on-error: true
         run: |
-          snyk monitor --all-projects --exclude=deployments
+          snyk monitor --remote-repo-url=https://github.com/${{ github.repository }} --all-projects --exclude=deployments
 
       #   # Runs Snyk Infrastructure as Code (IaC) analysis and uploads result to Snyk.
       #   # Use || true to not fail the pipeline.
