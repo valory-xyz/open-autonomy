@@ -5,6 +5,24 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.26` to `v0.21.27`
+
+### `open-aea-ledger-solana` moved to a `[solana]` extra
+
+`open-aea-ledger-solana` is no longer a hard dependency of `open-autonomy`, and is **not** part of `[all]`.
+
+**If your service uses Solana** (any of `contracts/squads_multisig`, `skills/squads_transaction_settlement_abci`, `skills/test_solana_tx_abci`, `agents/solana_transfer_agent`), add the extra:
+
+```bash
+pip install open-autonomy[solana]
+```
+
+`[all]` does not imply `[solana]`, so combine them if you need both: `open-autonomy[all,solana]`. The same applies to `deployments/Dockerfiles/autonomy-user/requirements.txt`-style pins in downstream images.
+
+**If your service does not use Solana**, no action is required — and this release unblocks a dependency conflict you may have been hitting. The plugin pulled in `solana<0.34.0`, which caps `websockets<12.0`, so any downstream needing modern `websockets` (e.g. `google-genai>=1.0`, which requires `websockets>=13.0`) could not resolve against `open-autonomy` `0.21.20`–`0.21.26`. It failed with `ResolutionImpossible`, or on `pip>=26.2` the less obvious `resolution-too-deep`. If you pinned `open-autonomy<=0.21.19`, forced a `websockets` override, or vendored a constraints file to work around it, drop the workaround.
+
+This supersedes the "`open-aea-ledger-solana` re-enabled" note under `v0.21.19` to `v0.21.20` below: letting `open-autonomy[all]` pull the plugin in is no longer the recommended path.
+
 ## `v0.21.24` to `v0.21.25`
 
 This release bumps `open-aea` `2.2.8` → `2.2.9`. No API or wire-format changes.

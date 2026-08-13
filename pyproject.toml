@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "open-autonomy"
-version = "0.21.26"
+version = "0.21.27"
 description = "Open Autonomy Framework"
 authors = ["developer-valory <develope@valory.xyz>"]
 license = "Apache-2.0"
@@ -31,13 +31,20 @@ open-aea = { version = "==2.2.9", extras = ["all"] }
 # `open-aea[all]`; only the IPFS CLI plugin is autonomy-specific.
 open-aea-cli-ipfs = "==2.2.9"
 # Optional plugins — declared via extras below.
-# [hwi] and [docker] are intentionally kept out of [all]:
+# [hwi], [docker] and [solana] are intentionally kept out of [all]:
 #   * HWI's transitive chain (ledgerwallet -> hidapi + Pillow) has
 #     no armv7 wheels, breaking multi-platform Docker image builds.
 #   * `docker` is only needed for docker-compose deployments; users
 #     deploying to Kubernetes or localhost don't need it.
+#   * `open-aea-ledger-solana` caps `websockets<12` via `solana<0.34`,
+#     unresolvable against modern-websockets downstreams. Only
+#     `contracts/squads_multisig` imports it. Must stay out of [all]:
+#     `open-aea-test-autonomy` pins `open-autonomy[all,docker]`, which
+#     would otherwise reimpose the cap on every downstream test env.
+#     Revisit when the plugin accepts `solana>=0.36.2`.
 open-aea-ledger-ethereum = {version = "==2.2.9", optional = true}
 open-aea-ledger-ethereum-hwi = {version = "==2.2.9", optional = true}
+open-aea-ledger-solana = {version = "==2.2.9", optional = true}
 docker = {version = "==7.1.0", optional = true}
 
 # ---------------------------------------------------------------------------
@@ -57,7 +64,8 @@ docker = {version = "==7.1.0", optional = true}
 #     corresponding package YAML.
 # ---------------------------------------------------------------------------
 open-aea-ledger-cosmos = "==2.2.9"
-open-aea-ledger-solana = "==2.2.9"
+# `open-aea-ledger-solana` belongs here too, but is declared optional
+# above and exposed via the [solana] extra.
 web3 = "*"
 requests = "*"
 grpcio = "==1.78.0"
@@ -91,6 +99,10 @@ docker = [
 ]
 hwi = [
     "open-aea-ledger-ethereum-hwi",
+]
+# Excluded from [all] — see the dependency declaration above.
+solana = [
+    "open-aea-ledger-solana",
 ]
 all = [
     "open-aea-cli-ipfs",
