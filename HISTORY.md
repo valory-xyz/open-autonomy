@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+# 0.21.27 (2026-08-13)
+
+Framework / dependency bumps:
+
+- Moves `open-aea-ledger-solana` from a hard runtime dependency to an optional `[solana]` extra, kept out of `[all]`. #2489 (closing #2479) re-enabled the plugin as a top-level dep in `0.21.20`, which dragged `solana<0.34.0` → `websockets<12.0` into every install. That cap cannot co-resolve with modern-websockets downstreams such as `google-genai>=1.0` (`websockets>=13.0`), so `pip install open-autonomy==0.21.26 google-genai==1.17.0` failed with `ResolutionImpossible` — or `resolution-too-deep` on `pip>=26.2` — breaking image builds for services that never touch Solana. Only `packages/valory/contracts/squads_multisig` imports the plugin; nothing under `autonomy/` does. The `[all]` exclusion is load-bearing given `open-aea-test-autonomy`'s `open-autonomy[all,docker]` pin (#2490). Solana users install `open-autonomy[solana]`; the dev env is unaffected (`poetry install --all-extras`). An upstream widening to `solana>=0.36.2` — the first release accepting `websockets>=13`, which also needs `solders>=0.23` — remains the better long-term fix. #2541
+
 # 0.21.26 (2026-07-02)
 
 Feature additions:

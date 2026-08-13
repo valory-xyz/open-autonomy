@@ -175,9 +175,10 @@ typing-extensions = {version = ">=4.2", markers = "python_version < \"3.13\""}
 name = "anchorpy"
 version = "0.20.2"
 description = "The Python Anchor client."
-optional = false
+optional = true
 python-versions = "~=3.9"
 groups = ["main"]
+markers = "extra == \"solana\""
 files = [
     {file = "anchorpy-0.20.2-py3-none-any.whl", hash = "sha256:052bfc69eb490de4cbd805f8c122b8270ca16ed086d745b3397836fc489490b9"},
     {file = "anchorpy-0.20.2.tar.gz", hash = "sha256:92c89e6dba67a8dd6514173190cda9cb2c8ab10d7cd874003091c201771cb129"},
@@ -202,9 +203,10 @@ pytest = ["py (>=1.11.0,<2)", "pytest (>=7.2.0,<8)", "pytest-asyncio (>=0.21.0,<
 name = "anchorpy-core"
 version = "0.2.0"
 description = "Python bindings for Anchor Rust code"
-optional = false
+optional = true
 python-versions = ">=3.9"
 groups = ["main"]
+markers = "extra == \"solana\""
 files = [
     {file = "anchorpy_core-0.2.0-cp37-abi3-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:f04928c0916e8a5cba5986a85db682df19e204bb424bdea49b8a46fc45f2fc66"},
     {file = "anchorpy_core-0.2.0-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0e37373336fa735f7f3f5eab8f3b090c8a39ef48f3f4f367ad703c7643260560"},
@@ -238,9 +240,10 @@ files = [
 name = "anyio"
 version = "4.14.1"
 description = "High-level concurrency and networking framework on top of asyncio or Trio"
-optional = false
+optional = true
 python-versions = ">=3.10"
 groups = ["main"]
+markers = "extra == \"solana\""
 files = [
     {file = "anyio-4.14.1-py3-none-any.whl", hash = "sha256:4e5533c5b8ff0a24f5d7a176cbe6877129cd183893f66b537f8f227d10527d72"},
     {file = "anyio-4.14.1.tar.gz", hash = "sha256:8d648a3544c1a700e3ff78615cd679e4c5c3f149904287e73687b2596963629e"},
@@ -342,9 +345,10 @@ extras = ["regex"]
 name = "based58"
 version = "0.1.1"
 description = "A fast Python library for Base58 and Base58Check"
-optional = false
+optional = true
 python-versions = ">=3.7"
 groups = ["main"]
+markers = "extra == \"solana\""
 files = [
     {file = "based58-0.1.1-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:745851792ce5fada615f05ec61d7f360d19c76950d1e86163b2293c63a5d43bc"},
     {file = "based58-0.1.1-cp37-abi3-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:f8448a71678bd1edc0a464033695686461ab9d6d0bc3282cb29b94f883583572"},
@@ -582,9 +586,10 @@ files = [
 name = "borsh-construct"
 version = "0.1.0"
 description = "Python implementation of Borsh serialization, built on the Construct library."
-optional = false
+optional = true
 python-versions = ">=3.8.3,<4.0.0"
 groups = ["main"]
+markers = "extra == \"solana\""
 files = [
     {file = "borsh-construct-0.1.0.tar.gz", hash = "sha256:c916758ceba70085d8f456a1cc26991b88cb64233d347767766473b651b37263"},
     {file = "borsh_construct-0.1.0-py3-none-any.whl", hash = "sha256:f584c791e2a03f8fc36e6c13011a27bcaf028c9c54ba89cd70f485a7d1c687ed"},
@@ -977,9 +982,10 @@ markers = {main = "platform_system == \"Windows\" or sys_platform == \"win32\""}
 name = "construct"
 version = "2.10.68"
 description = "A powerful declarative symmetric parser/builder for binary data"
-optional = false
+optional = true
 python-versions = ">=3.6"
 groups = ["main"]
+markers = "extra == \"hwi\" or extra == \"solana\""
 files = [
     {file = "construct-2.10.68.tar.gz", hash = "sha256:7b2a3fd8e5f597a5aa1d614c3bd516fa065db01704c72a1efaaeec6ef23d8b45"},
 ]
@@ -991,9 +997,10 @@ extras = ["arrow", "cloudpickle", "enum34", "lz4", "numpy", "ruamel.yaml"]
 name = "construct-typing"
 version = "0.5.6"
 description = "Extension for the python package 'construct' that adds typing features"
-optional = false
+optional = true
 python-versions = ">=3.7"
 groups = ["main"]
+markers = "extra == \"solana\""
 files = [
     {file = "construct-typing-0.5.6.tar.gz", hash = "sha256:0dc501351cd6b308f15ec54e5fe7c0fbc07cc1530a1b77b4303062a0a93c1297"},
     {file = "construct_typing-0.5.6-py3-none-any.whl", hash = "sha256:39c948329e880564e33521cba497b21b07967c465b9c9037d6334e2cffa1ced9"},
@@ -1135,9 +1142,10 @@ toml = ["tomli ; python_full_version <= \"3.11.0a6\""]
 name = "cryptography"
 version = "49.0.0"
 description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
-optional = false
+optional = true
 python-versions = "!=3.9.0,!=3.9.1,>=3.9"
 groups = ["main"]
+markers = "extra == \"hwi\" or extra == \"solana\""
 files = [
     {file = "cryptography-49.0.0-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:966fe0e9c67490071f14c0d2b1cb2dfb3023c5ce39457343931415f08382f2db"},
     {file = "cryptography-49.0.0-cp311-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:36d1709f992593689b45bda411498d62c6e365f2ca00b84657d4dadd24de16db"},
@@ -2086,9 +2094,10 @@ protobuf = ["grpcio-tools (>=1.78.0)"]
 name = "h11"
 version = "0.16.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
-optional = false
+optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"solana\""
 files = [
     {file = "h11-0.16.0-py3-none-any.whl", hash = "sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86"},
     {file = "h11-0.16.0.tar.gz", hash = "sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1"},
@@ -2219,9 +2228,10 @@ files = [
 name = "httpcore"
 version = "1.0.9"
 description = "A minimal low-level HTTP client."
-optional = false
+optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"solana\""
 files = [
     {file = "httpcore-1.0.9-py3-none-any.whl", hash = "sha256:2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55"},
     {file = "httpcore-1.0.9.tar.gz", hash = "sha256:6e34463af53fd2ab5d807f399a9b45ea31c3dfa2276f15a2c3f00afff6e176e8"},
@@ -2241,9 +2251,10 @@ trio = ["trio (>=0.22.0,<1.0)"]
 name = "httpx"
 version = "0.28.1"
 description = "The next generation HTTP client."
-optional = false
+optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"solana\""
 files = [
     {file = "httpx-0.28.1-py3-none-any.whl", hash = "sha256:d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad"},
     {file = "httpx-0.28.1.tar.gz", hash = "sha256:75e98c5f16b0f35b567856f597f06ff2270a374470a5c2392242528e3e3e42fc"},
@@ -2370,9 +2381,10 @@ i18n = ["Babel (>=2.7)"]
 name = "jsonalias"
 version = "0.1.1"
 description = "A microlibrary that defines a Json type alias for Python."
-optional = false
+optional = true
 python-versions = ">=3.7,<4.0"
 groups = ["main"]
+markers = "extra == \"solana\""
 files = [
     {file = "jsonalias-0.1.1-py3-none-any.whl", hash = "sha256:a56d2888e6397812c606156504e861e8ec00e188005af149f003c787db3d3f18"},
     {file = "jsonalias-0.1.1.tar.gz", hash = "sha256:64f04d935397d579fc94509e1fcb6212f2d081235d9d6395bd10baedf760a769"},
@@ -3031,7 +3043,7 @@ pyyaml = ">=6.0.1,<7"
 
 [[package]]
 name = "open-aea-helpers"
-version = "0.21.26"
+version = "0.21.27"
 description = "CLI helpers for CI and dependency management in AEA-based projects."
 optional = false
 python-versions = "*"
@@ -3111,9 +3123,10 @@ open-aea-ledger-ethereum = ">=2.2.9,<2.3.0"
 name = "open-aea-ledger-solana"
 version = "2.2.9"
 description = "Python package wrapping the public and private key cryptography and ledger api of solana."
-optional = false
+optional = true
 python-versions = "<3.15,>=3.10"
 groups = ["main"]
+markers = "extra == \"solana\""
 files = [
     {file = "open_aea_ledger_solana-2.2.9-py3-none-any.whl", hash = "sha256:40898cb42dc8d15b8d4e49c2ca04999fa47f4d91ec1b9f8ab2ba21d6cb1c8895"},
     {file = "open_aea_ledger_solana-2.2.9.tar.gz", hash = "sha256:32d6f02c2051f8183921e92da51d8e034d2e1d4d2bc845319bb2bad220089ae6"},
@@ -3128,7 +3141,7 @@ solders = ">=0.21.0,<0.22.0"
 
 [[package]]
 name = "open-aea-test-autonomy"
-version = "0.21.25"
+version = "0.21.27"
 description = "Plugin containing test tools for open-autonomy packages."
 optional = false
 python-versions = "*"
@@ -3794,9 +3807,10 @@ windows-terminal = ["colorama (>=0.4.6)"]
 name = "pyheck"
 version = "0.1.5"
 description = "Python bindings for heck, the Rust case conversion library"
-optional = false
+optional = true
 python-versions = ">=3.7"
 groups = ["main"]
+markers = "extra == \"solana\""
 files = [
     {file = "pyheck-0.1.5-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:44caf2b7a49d71fdeb0469e9f35886987ad815a8638b3c5b5c83f351d6aed413"},
     {file = "pyheck-0.1.5-cp37-abi3-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:316a842b94beff6e59a97dbcc590e9be92a932e59126b0faa9ac750384f27eaf"},
@@ -4537,9 +4551,10 @@ files = [
 name = "solana"
 version = "0.33.0"
 description = "Solana Python API"
-optional = false
+optional = true
 python-versions = "<4.0,>=3.8"
 groups = ["main"]
+markers = "extra == \"solana\""
 files = [
     {file = "solana-0.33.0-py3-none-any.whl", hash = "sha256:45e4bd8f9d8dbb431eca8f01ca6be766ceeed5f31e502af337c45e2d891bc8d0"},
     {file = "solana-0.33.0.tar.gz", hash = "sha256:f2166e1d17dce3fc3064b3b2e08ee8e7efad7811082e0a5b2818211edb1a4d16"},
@@ -4556,9 +4571,10 @@ websockets = ">=9.0,<12.0"
 name = "solders"
 version = "0.21.0"
 description = "Python bindings for Solana Rust tools"
-optional = false
+optional = true
 python-versions = ">=3.7"
 groups = ["main"]
+markers = "extra == \"solana\""
 files = [
     {file = "solders-0.21.0-cp37-abi3-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:7df88e59aea016644c0b2eac84f2f931d5aa570c654132770263b26f2928fdb7"},
     {file = "solders-0.21.0-cp37-abi3-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:a11dfc5933707c466880ef2116f1bffc74659bf677b79479f4280247d60543c9"},
@@ -4603,9 +4619,10 @@ files = [
 name = "sumtypes"
 version = "0.1a6"
 description = "Algebraic types for Python (notably providing Sum Types, aka Tagged Unions)"
-optional = false
+optional = true
 python-versions = "*"
 groups = ["main"]
+markers = "extra == \"solana\""
 files = [
     {file = "sumtypes-0.1a6-py2.py3-none-any.whl", hash = "sha256:3e9d71322dd927d25d935072f8be7daec655ea292fd392359a5bb2c1e53dfdc3"},
     {file = "sumtypes-0.1a6.tar.gz", hash = "sha256:1a6ff095e06a1885f340ddab803e0f38e3f9bed81f9090164ca9682e04e96b43"},
@@ -4679,9 +4696,10 @@ files = [
 name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
-optional = false
+optional = true
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 groups = ["main"]
+markers = "extra == \"solana\""
 files = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
     {file = "toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f"},
@@ -4808,6 +4826,7 @@ description = "List processing tools and functional utilities"
 optional = false
 python-versions = ">=3.5"
 groups = ["main"]
+markers = "implementation_name == \"pypy\" or implementation_name == \"cpython\" or extra == \"solana\""
 files = [
     {file = "toolz-0.11.2-py3-none-any.whl", hash = "sha256:a5700ce83414c64514d82d60bcda8aabfde092d1c1a8663f9200c07fdcc6da8f"},
     {file = "toolz-0.11.2.tar.gz", hash = "sha256:6b312d5e15138552f1bda8a4e66c30e236c831b612b2bf0005f8a1df10a4bc33"},
@@ -5353,8 +5372,9 @@ chain = ["open-aea-ledger-ethereum"]
 cli = ["open-aea-cli-ipfs"]
 docker = ["docker"]
 hwi = ["open-aea-ledger-ethereum-hwi"]
+solana = ["open-aea-ledger-solana"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "eb3879d7f2bb3245f7fdb360fbb14f9da3738ceb7386d05468a95f581344c72d"
+content-hash = "531f66a75c93b88124b4764c4421845488b76fd9571239059d2fe9df4a9b6c46"

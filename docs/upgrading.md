@@ -5,6 +5,24 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.26` to `v0.21.27`
+
+### `open-aea-ledger-solana` moved to a `[solana]` extra
+
+`open-aea-ledger-solana` is no longer a hard dependency of `open-autonomy`, and is **not** part of `[all]`.
+
+**If your service uses Solana** (any of `contracts/squads_multisig`, `skills/squads_transaction_settlement_abci`, `skills/test_solana_tx_abci`, `agents/solana_transfer_agent`), add the extra:
+
+```bash
+pip install open-autonomy[solana]
+```
+
+`[all]` does not imply `[solana]`, so combine them if you need both: `open-autonomy[all,solana]`. The same applies to `deployments/Dockerfiles/autonomy-user/requirements.txt`-style pins in downstream images.
+
+**If your service does not use Solana**, no action is required — and this release unblocks a dependency conflict you may have been hitting. The plugin pulled in `solana<0.34.0`, which caps `websockets<12.0`, so any downstream needing modern `websockets` (e.g. `google-genai>=1.0`, which requires `websockets>=13.0`) could not resolve against `open-autonomy` `0.21.20`–`0.21.26`. It failed with `ResolutionImpossible`, or on `pip>=26.2` the less obvious `resolution-too-deep`. If you pinned `open-autonomy<=0.21.19`, forced a `websockets` override, or vendored a constraints file to work around it, drop the workaround.
+
+This supersedes the "`open-aea-ledger-solana` re-enabled" note under `v0.21.19` to `v0.21.20` below: letting `open-autonomy[all]` pull the plugin in is no longer the recommended path.
+
 ## `v0.21.24` to `v0.21.25`
 
 This release bumps `open-aea` `2.2.8` → `2.2.9`. No API or wire-format changes.
@@ -162,6 +180,10 @@ A `GitPython>=3.1.47` security floor (`GHSA-rpm5-65cw-6hj4`, `GHSA-x2qx-6953-848
 If you call `aea-helpers bin-template-path` from your own tooling — `make eject-contracts` and the PyInstaller build do — it no longer crashes with `AttributeError: module 'sys' has no attribute '_MEIPASS'` when run from a regular Python interpreter. No changes required on your side.
 
 ### `open-aea-ledger-solana` re-enabled
+
+!!! warning "Superseded — do not follow this step against `0.21.27` or later"
+
+    From `0.21.27` the plugin is an optional `[solana]` extra and is **not** part of `[all]`, so relying on `open-autonomy[all]` to supply it no longer works. Install `open-autonomy[solana]` instead — see the `v0.21.26` to `v0.21.27` section above.
 
 The plugin had been excluded from `[all]` since `0.21.17` because of a transitive `construct<=2.10.61` cap. Open-aea `2.2.2` removed the cap, and `0.21.20` re-includes the plugin. If you removed an explicit `open-aea-ledger-solana` pin as a workaround, you can let `open-autonomy[all]` pull it back in.
 

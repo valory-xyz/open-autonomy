@@ -40,6 +40,8 @@ EJECT_CONTRACTS_PATTERN = re.compile(
     r"^eject-contracts:\s*\n\s*@for contract in ([^;]+);", re.MULTILINE
 )
 CONTRACTS_INCLUDE_PATH = "autonomy/data/contracts/**/*"
+SOLANA_PLUGIN = "open-aea-ledger-solana"
+SOLANA_EXTRA = "solana"
 
 
 def _parse_eject_contracts() -> List[str]:
@@ -81,6 +83,45 @@ def test_pyproject_includes_ejected_contracts() -> None:
     assert {"sdist", "wheel"} <= formats, (
         f"`[tool.poetry] include` for {CONTRACTS_INCLUDE_PATH!r} must "
         f"declare both 'sdist' and 'wheel' formats; found {sorted(formats)}."
+    )
+
+
+def test_solana_plugin_stays_an_opt_in_extra() -> None:
+    """``open-aea-ledger-solana`` must stay optional and out of ``[all]``.
+
+    The plugin transitively caps ``websockets<12`` (via ``solana<0.34``),
+    which cannot co-resolve with any modern-websockets consumer. While it
+    sat in the main dependency table every downstream inherited that cap,
+    breaking installs for services that never touch Solana.
+
+    Keeping it out of ``[all]`` is the load-bearing half: the
+    ``open-aea-test-autonomy`` plugin pins ``open-autonomy[all,docker]``,
+    so folding the plugin back into ``[all]`` would silently reimpose the
+    cap on every downstream test environment — with no failing test to
+    show for it. This is that failing test.
+    """
+    pyproject = tomllib.loads((ROOT_DIR / "pyproject.toml").read_text())
+    poetry = pyproject.get("tool", {}).get("poetry", {})
+    spec = poetry.get("dependencies", {}).get(SOLANA_PLUGIN)
+
+    assert isinstance(spec, dict) and spec.get("optional") is True, (
+        f"`{SOLANA_PLUGIN}` must be declared with `optional = true` in "
+        "[tool.poetry.dependencies]; otherwise poetry-core emits it as an "
+        "unconditional requirement and every install inherits the "
+        "`websockets<12` cap."
+    )
+
+    extras = poetry.get("extras", {})
+    assert SOLANA_PLUGIN in extras.get(SOLANA_EXTRA, []), (
+        f"`{SOLANA_PLUGIN}` must be reachable through the "
+        f"[{SOLANA_EXTRA}] extra, or Solana services have no supported "
+        "way to install it."
+    )
+    assert SOLANA_PLUGIN not in extras.get("all", []), (
+        f"`{SOLANA_PLUGIN}` must stay out of the [all] extra. "
+        "`open-aea-test-autonomy` pins `open-autonomy[all,docker]`, so "
+        "including it here reimposes the `websockets<12` cap on every "
+        "downstream test environment."
     )
 
 
