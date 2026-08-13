@@ -181,6 +181,10 @@ If you call `aea-helpers bin-template-path` from your own tooling — `make ejec
 
 ### `open-aea-ledger-solana` re-enabled
 
+!!! warning "Superseded — do not follow this step against `0.21.27` or later"
+
+    From `0.21.27` the plugin is an optional `[solana]` extra and is **not** part of `[all]`, so relying on `open-autonomy[all]` to supply it no longer works. Install `open-autonomy[solana]` instead — see the `v0.21.26` to `v0.21.27` section above.
+
 The plugin had been excluded from `[all]` since `0.21.17` because of a transitive `construct<=2.10.61` cap. Open-aea `2.2.2` removed the cap, and `0.21.20` re-includes the plugin. If you removed an explicit `open-aea-ledger-solana` pin as a workaround, you can let `open-autonomy[all]` pull it back in.
 
 ### Tooling: `tomte` bumped `0.6.5` → `0.7.0`, `setup.cfg` removed

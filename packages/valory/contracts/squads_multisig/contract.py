@@ -28,9 +28,17 @@ from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
-from aea_ledger_solana import (  # type: ignore[import-not-found]  # pylint: disable=import-error  # noqa: E501
-    SolanaApi,
-)
+
+try:
+    from aea_ledger_solana import (  # type: ignore[import-not-found]  # pylint: disable=import-error  # noqa: E501
+        SolanaApi,
+    )
+except ImportError as exc:  # pragma: no cover
+    raise ImportError(
+        "The Solana ledger plugin is required by the `squads_multisig` "
+        "contract but is not installed. It ships as an optional extra: "
+        "`pip install open-autonomy[solana]`."
+    ) from exc
 
 Pubkey = Any  # defined in solders.pubkey
 Keypair = Any  # defined in solders.keypair

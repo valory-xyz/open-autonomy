@@ -18,12 +18,13 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-# `[tool.poetry.dependencies]` models the dev environment Poetry sets
-# up when `poetry install` is run on a checkout of this repo; `setup.py`
-# is the authoritative (and intentionally narrower) manifest used for
-# the published wheel. Adding a dep here will NOT make it ship to PyPI
-# users — mirror it into `setup.py`'s `install_requires` if it's
-# genuinely runtime.
+# What ships to PyPI is rendered from THIS table: `make dist` runs
+# `python -m build`, which resolves the `poetry.core.masonry.api`
+# backend declared under `[build-system]` below, so poetry-core writes
+# `requires_dist` from here. The root `setup.py` is not on that path —
+# it is reached only by the legacy `make install` target, and its
+# `install_requires` / `extras_require` never reach published
+# metadata. Declare runtime deps here.
 python = ">=3.10,<3.15"
 # Core runtime
 open-aea = { version = "==2.2.9", extras = ["all"] }
@@ -64,8 +65,9 @@ docker = {version = "==7.1.0", optional = true}
 #     corresponding package YAML.
 # ---------------------------------------------------------------------------
 open-aea-ledger-cosmos = "==2.2.9"
-# `open-aea-ledger-solana` belongs here too, but is declared optional
-# above and exposed via the [solana] extra.
+# `open-aea-ledger-solana` is deliberately NOT in this group: it is
+# kept optional above to avoid the `websockets<12` cap, and reaches
+# users through the [solana] extra. Do not move it here.
 web3 = "*"
 requests = "*"
 grpcio = "==1.78.0"
