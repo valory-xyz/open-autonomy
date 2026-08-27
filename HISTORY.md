@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+# 0.21.28 (2026-08-27)
+
+Autonomy:
+
+- Makes `autonomy analyse service` select the chained ABCI skill deterministically. `_get_chained_abci_skill` iterated `AgentConfig.skills` -- a `Set[PublicId]` -- and returned the first non-abstract skill that declares `abstract_round_abci` as a dependency, so an agent shipping more than one qualifying skill had its winner decided by set iteration order, i.e. by `PYTHONHASHSEED`. On `valory-xyz/trader`, where both `trader_abci` and `funds_manager` qualify, seeds `0` and `1` selected `funds_manager` while `2` and `3` selected `trader_abci`; that coin flip is why trader carries `analyse-service` commented out of its `common_checks` workflow with the note that it "is checking funds manager skill which is not an ABCI skill" -- a description of one face of the coin rather than a stable property. Selection now collects every qualifying candidate and picks the one that nothing else in the agent declares as a dependency -- the root of the dependency DAG, which is what a chained app is -- and raises a `ClickException` naming the candidates when there is no single root, instead of silently picking one. Dependency edges are read from every skill the agent overrides rather than from the candidates alone, so a chain composed through an abstract intermediate still resolves to its single root; candidates are matched on the versioned identifier so two versions of one skill stay distinct, while the edges themselves are compared version-insensitively so a stale dependency pin still registers. The replaced code carried a comment recording the assumption that had been broken: "makes an assumption skills other than the chained/main abci are defined as abstract". Verified deterministic across six `PYTHONHASHSEED` values against trader's packages and across all four services in `trader` and `optimus`; optimus's `basius` service, previously blocked by this bug, now reports its real findings. No API changes. #2543
+
 # 0.21.27 (2026-08-13)
 
 Framework / dependency bumps:

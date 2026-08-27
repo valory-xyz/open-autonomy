@@ -21,9 +21,11 @@
 
 import logging
 from copy import deepcopy
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from unittest import mock
 
+import click
+import pytest
 from aea.configurations.base import AgentConfig, SkillConfig
 from aea.configurations.data_types import (
     ComponentId,
@@ -37,6 +39,7 @@ from aea_cli_ipfs.ipfs_utils import IPFSDaemon, IPFSTool
 from requests.exceptions import ConnectionError as RequestConnectionError
 
 from autonomy.analyse.service import ServiceAnalyser
+from autonomy.cli.helpers.analyse import _get_chained_abci_skill
 from autonomy.configurations.base import Service
 
 from tests.test_autonomy.test_cli.base import BaseCliTest
@@ -924,3 +927,217 @@ class TestCheckSuccessful(BaseAnalyseServiceTest):
             "valory/termination_abci:any is not defined as a dependency" in caplog.text
         )
         assert "valory/slashing_abci:any is not defined as a dependency" in caplog.text
+
+
+class TestChainedAbciSkillSelection:
+    """Selecting the chained ABCI skill when several candidates qualify."""
+
+    def _skill(
+        self, name: str, extra_skills: List[str], abci: bool = True
+    ) -> Dict[str, Any]:
+        config = get_dummy_skill_config()
+        config["name"] = name
+        config["skills"] = (config["skills"] if abci else []) + extra_skills
+        return config
+
+    def _run(
+        self,
+        chained_deps: List[str],
+        abstract: Optional[str] = None,
+        helper_is_abci: bool = True,
+    ) -> Optional[SkillConfig]:
+        helper = SkillConfig.from_json(
+            self._skill("aaa_dependency", [], abci=helper_is_abci)
+        )
+        chained = SkillConfig.from_json(self._skill("zzz_chained", chained_deps))
+        by_name = {"aaa_dependency": helper, "zzz_chained": chained}
+
+        agent_json = get_dummy_agent_config()
+        agent_json["skills"] = [
+            "valory/aaa_dependency:0.1.0",
+            "valory/zzz_chained:0.1.0",
+        ]
+        agent_config = AgentConfig.from_json(agent_json)
+        agent_config.component_configurations = {
+            ComponentId(ComponentType.SKILL, PublicId.from_str(skill)): (
+                {"is_abstract": True} if abstract and abstract in skill else {}
+            )
+            for skill in agent_json["skills"]
+        }
+
+        with mock.patch(
+            "autonomy.cli.helpers.analyse._load_from_local",
+            side_effect=lambda package_id, **_: by_name[package_id.public_id.name],
+        ):
+            return _get_chained_abci_skill(
+                agent_config=agent_config, package_manager=mock.MagicMock()
+            )
+
+    def test_the_dependency_root_wins_not_the_first_alphabetically(self) -> None:
+        """Selection follows the dependency edge, not the name order.
+
+        The fixture names make the dependency sort before the root, as
+        `funds_manager` does before `trader_abci`, so a `sorted()`-only
+        fix would pick the wrong skill here. Keep them that way.
+        """
+        chained = self._run(["valory/aaa_dependency:0.1.0"])
+        assert chained is not None and chained.public_id.name == "zzz_chained"
+
+    def test_the_dependency_edge_survives_a_stale_version_pin(self) -> None:
+        """A dependency pinned to another version is still the same skill.
+
+        Matching on the versioned id instead would see no edge between the
+        two candidates and abort as ambiguous.
+        """
+        chained = self._run(["valory/aaa_dependency:0.2.0"])
+        assert chained is not None and chained.public_id.name == "zzz_chained"
+
+    def test_a_skill_marked_abstract_by_an_override_is_not_a_candidate(self) -> None:
+        """An `is_abstract` override removes a skill from the running.
+
+        The two candidates are otherwise unrelated, so without the override
+        this would be reported as ambiguous rather than resolved.
+        """
+        chained = self._run([], abstract="aaa_dependency")
+        assert chained is not None and chained.public_id.name == "zzz_chained"
+
+    def test_an_abstract_intermediate_still_yields_one_root(self) -> None:
+        """Composition through an abstract skill is a real dependency edge.
+
+        `zzz_chained` reaches `aaa_dependency` only via the abstract
+        `mmm_middle`. Reading edges off the candidates alone would miss that
+        hop and report two roots for a chain that plainly has one.
+        """
+        by_name = {
+            "aaa_dependency": SkillConfig.from_json(self._skill("aaa_dependency", [])),
+            "mmm_middle": SkillConfig.from_json(
+                self._skill("mmm_middle", ["valory/aaa_dependency:0.1.0"])
+            ),
+            "zzz_chained": SkillConfig.from_json(
+                self._skill("zzz_chained", ["valory/mmm_middle:0.1.0"])
+            ),
+        }
+        agent_json = get_dummy_agent_config()
+        agent_json["skills"] = [f"valory/{name}:0.1.0" for name in by_name]
+        agent_config = AgentConfig.from_json(agent_json)
+        agent_config.component_configurations = {
+            ComponentId(ComponentType.SKILL, PublicId.from_str(skill)): (
+                {"is_abstract": True} if "mmm_middle" in skill else {}
+            )
+            for skill in agent_json["skills"]
+        }
+
+        with mock.patch(
+            "autonomy.cli.helpers.analyse._load_from_local",
+            side_effect=lambda package_id, **_: by_name[package_id.public_id.name],
+        ):
+            chained = _get_chained_abci_skill(
+                agent_config=agent_config, package_manager=mock.MagicMock()
+            )
+
+        assert chained is not None and chained.public_id.name == "zzz_chained"
+
+    def test_two_versions_of_one_skill_are_not_silently_merged(self) -> None:
+        """Two versions of a skill are two candidates, so this is ambiguous.
+
+        Keying candidates on the version-stripped id would collapse them and
+        return one arbitrarily, discarding the other without a word.
+        """
+        config = SkillConfig.from_json(self._skill("dup_skill", []))
+        agent_json = get_dummy_agent_config()
+        agent_json["skills"] = ["valory/dup_skill:0.1.0", "valory/dup_skill:0.2.0"]
+        agent_config = AgentConfig.from_json(agent_json)
+        agent_config.component_configurations = {
+            ComponentId(ComponentType.SKILL, PublicId.from_str(skill)): {}
+            for skill in agent_json["skills"]
+        }
+
+        with mock.patch(
+            "autonomy.cli.helpers.analyse._load_from_local",
+            side_effect=lambda package_id, **_: config,
+        ), pytest.raises(
+            click.ClickException, match="Could not determine the chained ABCI skill"
+        ):
+            _get_chained_abci_skill(
+                agent_config=agent_config, package_manager=mock.MagicMock()
+            )
+
+    def test_a_skill_without_the_abci_dependency_is_not_a_candidate(self) -> None:
+        """Only skills depending on `abstract_round_abci` are in the running.
+
+        Without that gate `aaa_dependency` would be a second candidate that
+        nothing declares, and the two would be reported as ambiguous.
+        """
+        chained = self._run([], helper_is_abci=False)
+        assert chained is not None and chained.public_id.name == "zzz_chained"
+
+    def test_no_qualifying_skill_returns_none(self) -> None:
+        """The caller tells "none found" from "ambiguous" by the return value.
+
+        Zero candidates is a `None`, not a `ClickException`; the CLI turns it
+        into its own message listing the possible causes.
+        """
+        config = SkillConfig.from_json(self._skill("aaa_dependency", [], abci=False))
+        agent_json = get_dummy_agent_config()
+        agent_json["skills"] = ["valory/aaa_dependency:0.1.0"]
+        agent_config = AgentConfig.from_json(agent_json)
+        agent_config.component_configurations = {
+            ComponentId(
+                ComponentType.SKILL, PublicId.from_str("valory/aaa_dependency:0.1.0")
+            ): {}
+        }
+
+        with mock.patch(
+            "autonomy.cli.helpers.analyse._load_from_local",
+            side_effect=lambda package_id, **_: config,
+        ):
+            assert (
+                _get_chained_abci_skill(
+                    agent_config=agent_config, package_manager=mock.MagicMock()
+                )
+                is None
+            )
+
+    def test_no_root_at_all_is_reported_separately(self) -> None:
+        """Every candidate being depended on is a different fault to two roots.
+
+        An abstract skill declaring the chained app leaves no root at all, so
+        the advice for the two-root case -- relate them by a dependency --
+        would be actively wrong here.
+        """
+        by_name = {
+            "aaa_dependency": SkillConfig.from_json(self._skill("aaa_dependency", [])),
+            "zzz_chained": SkillConfig.from_json(
+                self._skill("zzz_chained", ["valory/aaa_dependency:0.1.0"])
+            ),
+            "mmm_middle": SkillConfig.from_json(
+                self._skill("mmm_middle", ["valory/zzz_chained:0.1.0"])
+            ),
+        }
+        agent_json = get_dummy_agent_config()
+        agent_json["skills"] = [f"valory/{name}:0.1.0" for name in by_name]
+        agent_config = AgentConfig.from_json(agent_json)
+        agent_config.component_configurations = {
+            ComponentId(ComponentType.SKILL, PublicId.from_str(skill)): (
+                {"is_abstract": True} if "mmm_middle" in skill else {}
+            )
+            for skill in agent_json["skills"]
+        }
+
+        with mock.patch(
+            "autonomy.cli.helpers.analyse._load_from_local",
+            side_effect=lambda package_id, **_: by_name[package_id.public_id.name],
+        ), pytest.raises(click.ClickException, match="none of them composes the rest"):
+            _get_chained_abci_skill(
+                agent_config=agent_config, package_manager=mock.MagicMock()
+            )
+
+    def test_candidates_with_no_single_root_are_reported(self) -> None:
+        """Two unrelated candidates are ambiguous, so the command says so."""
+        with pytest.raises(
+            click.ClickException, match="Could not determine the chained ABCI skill"
+        ) as excinfo:
+            self._run([])
+
+        assert "valory/aaa_dependency:0.1.0" in excinfo.value.message
+        assert "valory/zzz_chained:0.1.0" in excinfo.value.message
