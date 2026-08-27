@@ -5,6 +5,29 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.27` to `v0.21.28`
+
+### `autonomy analyse service` reports an ambiguous chained ABCI skill instead of guessing
+
+`analyse service` used to pick the chained ABCI skill by iterating the agent's `skills`
+set and taking the first non-abstract entry that depended on `abstract_round_abci`.
+With more than one qualifying skill the winner depended on `PYTHONHASHSEED`, so the
+command could report different findings run to run for the same agent.
+
+It now selects the skill that nothing else in the agent declares as a dependency -- the
+root of the dependency graph. If there is no single root, the command fails with:
+
+```
+Could not determine the chained ABCI skill; N non-abstract skills depend on
+`abstract_round_abci` and none is the sole root of the others: ...
+```
+
+No action is needed for agents that already have one chained app. If you hit this
+error, the agent declares several non-abstract skills that depend on
+`abstract_round_abci` with no dependency relating them: either mark the non-chained
+ones `is_abstract: true`, or declare the dependency between them so the chained app
+composes the others.
+
 ## `v0.21.26` to `v0.21.27`
 
 ### `open-aea-ledger-solana` moved to a `[solana]` extra
