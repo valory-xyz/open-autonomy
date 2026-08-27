@@ -317,9 +317,12 @@ def _get_chained_abci_skill(
     :param is_on_chain_check: A boolean flag to specify whether this is an on-chain
                             check or a local check
     :return: Skill configuration object if found
+    :raises ClickException: If the chained ABCI skill cannot be identified.
     """
 
-    for skill_id in agent_config.skills:
+    candidates: Dict[PublicId, SkillConfig] = {}
+    declared_dependencies: Set[PublicId] = set()
+    for skill_id in sorted(agent_config.skills, key=str):
         override = agent_config.component_configurations.get(
             ComponentId(component_type=ComponentType.SKILL, public_id=skill_id)
         )
@@ -342,6 +345,10 @@ def _get_chained_abci_skill(
             ),
         )
 
+        declared_dependencies.update(
+            dependency.to_any() for dependency in skill_config.skills
+        )
+
         # Check if the skill override has the `is_abstract` property set to true
         if override.get("is_abstract", False):
             continue
@@ -354,11 +361,32 @@ def _get_chained_abci_skill(
         if not _has_abstract_round_abci_skill_as_dependency(skill_config=skill_config):
             continue
 
-        # This statement makes an assumption skills other than the chained/main
-        # abci are defined as abstract
-        return skill_config
+        candidates[skill_id.without_hash()] = skill_config
 
-    return None
+    if not candidates:
+        return None
+
+    if len(candidates) > 1:
+        # The chained app composes the others, so it is the one nothing
+        # else in the agent declares as a dependency.
+        roots = [
+            skill_config
+            for public_id, skill_config in candidates.items()
+            if public_id.to_any() not in declared_dependencies
+        ]
+        if len(roots) != 1:
+            raise click.ClickException(
+                "Could not determine the chained ABCI skill; "
+                f"{len(candidates)} non-abstract skills depend on "
+                "`abstract_round_abci` and none is the sole root of the "
+                "others: "
+                + ", ".join(sorted(map(str, candidates)))
+                + "\nMark the non-chained ones as abstract, or declare the "
+                "dependency between them."
+            )
+        return roots[0]
+
+    return next(iter(candidates.values()))
 
 
 def _get_ipfs_pins(is_on_chain_check: bool = False) -> Set[str]:
