@@ -1,5 +1,15 @@
 # Release History - `open-autonomy`
 
+# 0.21.29 (2026-09-11)
+
+Feature additions:
+
+- Adds Robinhood Chain (chain ID `4663`) support: `ChainType.ROBINHOOD`, its registry contract profile from autonolas-registries `docs/configuration.json`, a default public RPC (`https://rpc.mainnet.chain.robinhood.com`, overridable with `ROBINHOOD_CHAIN_RPC`), a `--use-robinhood` flag on `mint`, `service`, `fetch`, `analyse` and `deploy`, and `4663` in `SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS`. `test_addresses_match` skips Robinhood until autonolas-registries tags a release that includes it; the latest tag, `v1.3.3`, does not.
+
+Chores:
+
+- Fixes `generate_contract_list.py`, which failed with `KeyError: 'arbitrumOne'` after autonolas-registries renamed the chain to `arbitrum`.
+
 # 0.21.28 (2026-08-27)
 
 Autonomy:

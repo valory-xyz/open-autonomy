@@ -5,6 +5,10 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.28` to `v0.21.29`
+
+This release adds Robinhood Chain support (chain ID `4663`, `--use-robinhood`). No API or wire-format changes; downstream apps only need to repin the framework and re-pull package hashes.
+
 ## `v0.21.27` to `v0.21.28`
 
 ### `autonomy analyse service` reports an ambiguous chained ABCI skill instead of guessing
