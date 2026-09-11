@@ -111,6 +111,8 @@ class TestAddresses:
             ChainType.POLYGON,
         ):
             return
+        if chain == ChainType.ROBINHOOD:
+            pytest.skip(f"{chain.value} is not in {ADDRESS_FILE_URL}")
 
         contracts_by_chain = self._get_contracts()
         if chain == ChainType.ETHEREUM:

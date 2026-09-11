@@ -253,6 +253,29 @@ def test_chain_id_round_trip_known_networks() -> None:
         assert ct.value == name
 
 
+@pytest.mark.parametrize(
+    "chain",
+    [
+        chain
+        for chain in chain_config.ChainType
+        if chain not in (chain_config.ChainType.CUSTOM, chain_config.ChainType.SOLANA)
+    ],
+)
+def test_evm_chain_resolves_without_env(
+    chain: chain_config.ChainType, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Every EVM chain resolves its chain ID, default RPC and service registry."""
+
+    monkeypatch.delenv(chain.rpc_env_name, raising=False)
+    monkeypatch.setattr(chain_config, "_PUBLIC_RPC_FALLBACK_WARNED", set())
+
+    chain_id = chain.id
+    assert chain_id is not None
+    assert chain_config.ChainType.from_id(chain_id) is chain
+    assert chain_config.ChainConfigs.get(chain).rpc is not None
+    assert chain_config.ContractConfigs.service_registry.contracts[chain] is not None
+
+
 @skip_docker_tests
 @pytest.mark.usefixtures("registries_scope_class")
 def test_dynamic_contract_addresses() -> None:

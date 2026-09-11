@@ -26,6 +26,9 @@ autonomy fetch [OPTIONS] PUBLIC_ID_OR_HASH_OR_TOKEN_ID
 `--help`
 :   Show the help message and exit.
 
+`--use-robinhood`
+:   Use the `Robinhood` chain profile to find the token with the given token ID.
+
 `--use-celo`                      
 :   Use the `Celo` chain profile to find the token with the given token ID.
 

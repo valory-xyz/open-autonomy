@@ -175,6 +175,22 @@ CHAIN_PROFILES = {
         "staking_factory": "0x75D529FAe220bC8db714F0202193726b46881B76",  # nosec
         "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",  # nosec
     },
+    "robinhood": {
+        "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
+        "service_registry_token_utility": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",  # nosec
+        "operator_whitelist": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
+        "gnosis_safe_proxy_factory": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",
+        "safe_multisig_with_recovery_module": "0xb09CcF0Dbf0C178806Aaee28956c74bd66d21f73",
+        "gnosis_safe_same_address_multisig": "0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB",
+        "recovery_module": "0xE43d4F4103b623B61E095E8bEA34e1bc8979e168",
+        "staking_token": "0x87c511c8aE3fAF0063b3F3CF9C6ab96c4AA5C60c",  # nosec
+        "staking_verifier": "0x75D529FAe220bC8db714F0202193726b46881B76",
+        "staking_factory": "0x1BD1505B711Fb58C54ca3712e6BEf47A133892d9",
+        "complementary_service_metadata": "0xD1155408D58293BE0743225bcDe28b9FD0C12378",
+        "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",
+        "erc8004_identity_registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+        "erc8004_identity_registry_bridger": "0xE49CB081e8d96920C38aA7AB90cb0294ab4Bc8EA",
+    },
     "custom_chain": {
         "component_registry": cast(
             str, os.environ.get("CUSTOM_COMPONENT_REGISTRY_ADDRESS")
@@ -235,6 +251,7 @@ CHAIN_NAME_TO_CHAIN_ID = {
     "base": 8453,
     "celo": 42220,
     "mode": 34443,
+    "robinhood": 4663,
 }
 CHAIN_ID_TO_CHAIN_NAME = {
     chain_id: chain_name for chain_name, chain_id in CHAIN_NAME_TO_CHAIN_ID.items()
@@ -249,6 +266,7 @@ CHAIN_ID_TO_DEFAULT_PUBLIC_RPC = {
     8453: "https://mainnet.base.org",
     42220: "https://forno.celo.org",
     34443: "https://mainnet.mode.network",
+    4663: "https://rpc.mainnet.chain.robinhood.com",
 }
 # Contract PublicIds
 COMPONENT_REGISTRY_CONTRACT = PublicId.from_str("valory/component_registry")
@@ -310,6 +328,7 @@ SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS = (
     8453,  # base
     42220,  # celo
     34443,  # mode
+    4663,
     # Testnets / dev
     31337,  # hardhat local
     10200,  # chiado (gnosis testnet)

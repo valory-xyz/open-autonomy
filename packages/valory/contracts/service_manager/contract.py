@@ -42,6 +42,7 @@ SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS = (
     8453,  # base
     42220,  # celo
     34443,  # mode
+    4663,
     # Testnets / dev
     31337,  # hardhat local
     10200,  # chiado (gnosis testnet)

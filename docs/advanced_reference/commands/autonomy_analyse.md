@@ -368,6 +368,9 @@ autonomy analyse service [OPTIONS]
 `--public-id PUBLIC_ID_OR_HASH`
 :   Public ID of the AI agent
 
+`--use-robinhood`
+:   To use `robinhood` chain profile to interact with the contracts
+
 `--use-celo`                      
 :   To use `celo` chain profile to interact with the contracts
 
