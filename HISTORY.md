@@ -9,7 +9,7 @@ Feature additions:
 Chores:
 
 - Fixes `generate_contract_list.py`, which failed with `KeyError: 'arbitrumOne'` after autonolas-registries renamed the chain to `arbitrum`.
-- Re-pins `test_addresses_match` from autonolas-registries tag `v1.3.0`, which predates Robinhood, to commit `db414b79`, the latest revision of `docs/configuration.json`, and maps the chain and contract names upstream renamed or added since. The newer file exposed a stale Celo `staking_verifier`, now `0x4aba1Cf7a39a51D75cBa789f5f21cf4882162519` as returned on-chain by Celo's `StakingFactory.verifier()`. Also adds `complementary_service_metadata` for Arbitrum One, Optimism, Celo and Mode, and checksums the Arbitrum One and Base `erc8004_identity_registry_bridger` addresses.
+- Re-pins `test_addresses_match` from autonolas-registries tag `v1.3.0`, which predates Robinhood, to tag `v1.3.4` and maps the chain and contract names upstream renamed or added since. The newer file exposed a stale Celo `staking_verifier`, now `0x4aba1Cf7a39a51D75cBa789f5f21cf4882162519` as returned on-chain by Celo's `StakingFactory.verifier()`. Also adds `complementary_service_metadata` for Arbitrum One, Optimism, Celo and Mode, and checksums the Arbitrum One and Base `erc8004_identity_registry_bridger` addresses.
 
 # 0.21.28 (2026-08-27)
 

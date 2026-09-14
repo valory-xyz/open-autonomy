@@ -36,7 +36,7 @@ from autonomy.chain.constants import CHAIN_PROFILES
 
 from tests.utils.live_fetch import fetch_upstream_or_skip
 
-ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/db414b79ca2de712702ab97a3edc565a7d6038f6/docs/configuration.json"
+ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/refs/tags/v1.3.4/docs/configuration.json"
 
 UPSTREAM_CHAIN_NAMES = {
     ChainType.ETHEREUM: "mainnet",
