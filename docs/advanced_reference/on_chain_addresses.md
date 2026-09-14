@@ -84,3 +84,15 @@
 | `Recovery Module` | `CUSTOM_RECOVERY_MODULE_ADDRESS` | [`0x1d79e0a600B61FAC1B8F40c27347e48962Ed2f23`](https://modescan.io/address/0x1d79e0a600B61FAC1B8F40c27347e48962Ed2f23) |
 | `Safe Multisig With Recovery Module` | `CUSTOM_SAFE_MULTISIG_WITH_RECOVERY_MODULE_ADDRESS` | [`0x7Fd1F4b764fA41d19fe3f63C85d12bf64d2bbf68`](https://modescan.io/address/0x7Fd1F4b764fA41d19fe3f63C85d12bf64d2bbf68) |
 | `Multisend` | `CUSTOM_MULTISEND_ADDRESS` | [`0x40A2aCCbd92BCA938b02010E17A5b8929b49130D`](https://modescan.io/address/0x40A2aCCbd92BCA938b02010E17A5b8929b49130D) |
+
+## Robinhood (4663)
+| Name | Environment Variable | Address |
+| ---- | -------------------- | ------- |
+| `Service Registry L 2` | `CUSTOM_SERVICE_REGISTRY_ADDRESS` | [`0xE3607b00E75f6405248323A9417ff6b39B244b50`](https://robinhoodchain.blockscout.com/address/0xE3607b00E75f6405248323A9417ff6b39B244b50) |
+| `Service Registry Token Utility` | `CUSTOM_SERVICE_REGISTRY_TOKEN_UTILITY_ADDRESS` | [`0x3d77596beb0f130a4415df3D2D8232B3d3D31e44`](https://robinhoodchain.blockscout.com/address/0x3d77596beb0f130a4415df3D2D8232B3d3D31e44) |
+| `Service Manager` | `CUSTOM_SERVICE_MANAGER_ADDRESS` | [`0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b`](https://robinhoodchain.blockscout.com/address/0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b) |
+| `Gnosis Safe Multisig` | `CUSTOM_GNOSIS_SAFE_PROXY_FACTORY_ADDRESS` | [`0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac`](https://robinhoodchain.blockscout.com/address/0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac) |
+| `Gnosis Safe Same Address Multisig` | `CUSTOM_GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_ADDRESS` | [`0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB`](https://robinhoodchain.blockscout.com/address/0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB) |
+| `Recovery Module` | `CUSTOM_RECOVERY_MODULE_ADDRESS` | [`0xE43d4F4103b623B61E095E8bEA34e1bc8979e168`](https://robinhoodchain.blockscout.com/address/0xE43d4F4103b623B61E095E8bEA34e1bc8979e168) |
+| `Safe Multisig With Recovery Module` | `CUSTOM_SAFE_MULTISIG_WITH_RECOVERY_MODULE_ADDRESS` | [`0xb09CcF0Dbf0C178806Aaee28956c74bd66d21f73`](https://robinhoodchain.blockscout.com/address/0xb09CcF0Dbf0C178806Aaee28956c74bd66d21f73) |
+| `Multisend` | `CUSTOM_MULTISEND_ADDRESS` | [`0x40A2aCCbd92BCA938b02010E17A5b8929b49130D`](https://robinhoodchain.blockscout.com/address/0x40A2aCCbd92BCA938b02010E17A5b8929b49130D) |

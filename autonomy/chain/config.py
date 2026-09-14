@@ -102,6 +102,7 @@ class ChainType(Enum):
     BASE = "base"
     CELO = "celo"
     MODE = "mode"
+    ROBINHOOD = "robinhood"
     SOLANA = "solana"
 
     @property

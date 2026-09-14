@@ -36,7 +36,22 @@ from autonomy.chain.constants import CHAIN_PROFILES
 
 from tests.utils.live_fetch import fetch_upstream_or_skip
 
-ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/refs/tags/v1.3.0/docs/configuration.json"
+ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/refs/tags/v1.3.4/docs/configuration.json"
+
+UPSTREAM_CHAIN_NAMES = {
+    ChainType.ETHEREUM: "mainnet",
+    ChainType.ARBITRUM_ONE: "arbitrum",
+}
+UPSTREAM_TO_PROFILE_KEY = {
+    "gnosis_safe_multisig": "gnosis_safe_proxy_factory",
+    "identity_registry_bridger_proxy": "erc8004_identity_registry_bridger",
+}
+UNTRACKED_CONTRACTS = (
+    "service_manager",
+    "service_manager_token",
+    "identity_registry_bridger",
+    "hash_checkpoint",
+)
 
 # Transport-level errors from the chain RPC call inside DynamicContract.
 # Other web3 exceptions (e.g. InvalidAddress, ContractLogicError) are real
@@ -113,14 +128,11 @@ class TestAddresses:
             return
 
         contracts_by_chain = self._get_contracts()
-        if chain == ChainType.ETHEREUM:
-            contracts = contracts_by_chain["mainnet"]
-        else:
-            contracts = contracts_by_chain[chain.value]
+        contracts = contracts_by_chain[UPSTREAM_CHAIN_NAMES.get(chain, chain.value)]
 
         for contract in contracts:
             name = _camel_case_to_snake_case(contract["name"]).replace("_l2", "")
-            if name in ("service_manager", "service_manager_token"):
+            if name in UNTRACKED_CONTRACTS:
                 continue
 
             address = contract["address"]
@@ -133,12 +145,10 @@ class TestAddresses:
                     # surface once the RPC returns, because this same lookup
                     # happens at agent runtime.
                     pytest.skip(f"chain RPC unreachable for {chain.value}: {exc}")
-            elif name == "gnosis_safe_multisig":
-                constant_address = CHAIN_PROFILES[chain.value][
-                    "gnosis_safe_proxy_factory"
-                ]
             else:
-                constant_address = CHAIN_PROFILES[chain.value][name]
+                constant_address = CHAIN_PROFILES[chain.value][
+                    UPSTREAM_TO_PROFILE_KEY.get(name, name)
+                ]
             assert (
                 address == constant_address
             ), f"Constant value and remote value does not match for `{name}`"

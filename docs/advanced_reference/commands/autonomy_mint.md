@@ -11,6 +11,9 @@ This command group consists of a number of functionalities to mint components, a
 `--dry-run`
 : Perform a dry run for the transaction.
 
+`--use-robinhood`
+:   Use the `Robinhood` chain profile to interact with the Autonolas Protocol registry contracts.
+
 `--use-celo`                      
 :   Use the `Celo` chain profile to interact with the Autonolas Protocol registry contracts.
 

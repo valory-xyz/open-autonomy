@@ -1,5 +1,16 @@
 # Release History - `open-autonomy`
 
+# 0.21.29 (2026-09-11)
+
+Feature additions:
+
+- Adds Robinhood Chain (chain ID `4663`) support: `ChainType.ROBINHOOD`, its registry contract profile from autonolas-registries `docs/configuration.json`, a default public RPC (`https://rpc.mainnet.chain.robinhood.com`, overridable with `ROBINHOOD_CHAIN_RPC`), a `--use-robinhood` flag on `mint`, `service`, `fetch`, `analyse` and `deploy`, and `4663` in `SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS`.
+
+Chores:
+
+- Fixes `generate_contract_list.py`, which failed with `KeyError: 'arbitrumOne'` after autonolas-registries renamed the chain to `arbitrum`.
+- Re-pins `test_addresses_match` from autonolas-registries tag `v1.3.0`, which predates Robinhood, to tag `v1.3.4` and maps the chain and contract names upstream renamed or added since. The newer file exposed a stale Celo `staking_verifier`, now `0x4aba1Cf7a39a51D75cBa789f5f21cf4882162519` as returned on-chain by Celo's `StakingFactory.verifier()`. Also adds `complementary_service_metadata` for Arbitrum One, Optimism, Celo and Mode, and checksums the Arbitrum One and Base `erc8004_identity_registry_bridger` addresses.
+
 # 0.21.28 (2026-08-27)
 
 Autonomy:

@@ -41,7 +41,7 @@ CONTRACT_TO_SLUG = {
     "RecoveryModule": "RECOVERY_MODULE",
 }
 BLOCKSCAN_URLS = {
-    "arbitrumOne": "https://arbiscan.io/address/",
+    "arbitrum": "https://arbiscan.io/address/",
     "base": "https://basescan.org/address/",
     "celo": "https://celoscan.io/address/",
     "gnosis": "https://gnosisscan.io/address/",
@@ -49,6 +49,7 @@ BLOCKSCAN_URLS = {
     "optimism": "https://optimistic.etherscan.io/address/",
     "polygon": "https://polygonscan.com/address/",
     "polygonMumbai": "https://mumbai.polygonscan.com/address/",
+    "robinhood": "https://robinhoodchain.blockscout.com/address/",
 }
 
 

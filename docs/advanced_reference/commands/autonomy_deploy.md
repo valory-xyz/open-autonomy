@@ -301,6 +301,9 @@ autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
 `--no-deploy`
 :   If set to true, the deployment won't run automatically
 
+`--use-robinhood`
+:   To use `robinhood` chain profile to interact with the contracts
+
 `--use-celo`                      
 :   To use `celo` chain profile to interact with the contracts
 

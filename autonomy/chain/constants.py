@@ -111,9 +111,10 @@ CHAIN_PROFILES = {
         "staking_token": "0x04b0007b2aFb398015B76e5f22993a1fddF83644",  # nosec
         "staking_verifier": "0x7Fd1F4b764fA41d19fe3f63C85d12bf64d2bbf68",
         "staking_factory": "0xEB5638eefE289691EcE01943f768EDBF96258a80",  # nosec
+        "complementary_service_metadata": "0x02C26437B292D86c5F4F21bbCcE0771948274f84",
         "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",
         "erc8004_identity_registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
-        "erc8004_identity_registry_bridger": "0x22be6fdcd3e29851b29b512f714c328a00a96b83",
+        "erc8004_identity_registry_bridger": "0x22bE6fDcd3e29851B29b512F714C328A00A96B83",
     },
     "optimism": {
         "service_registry": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",  # nosec
@@ -126,6 +127,7 @@ CHAIN_PROFILES = {
         "staking_token": "0x63C2c53c09dE534Dd3bc0b7771bf976070936bAC",  # nosec
         "staking_verifier": "0x526E064cB694E8f5B7DB299158e17F33055B3943",
         "staking_factory": "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",  # nosec
+        "complementary_service_metadata": "0x11949cBC85d8793B360029E26b18ae759708e28b",
         "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",
         "erc8004_identity_registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
         "erc8004_identity_registry_bridger": "0x7fc0ddf4DFB61CfA5519db2A5eE7B2Eb02De0140",
@@ -144,7 +146,7 @@ CHAIN_PROFILES = {
         "complementary_service_metadata": "0x28C1edC7CEd549F7f80B732fDC19f0370160707d",
         "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",
         "erc8004_identity_registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
-        "erc8004_identity_registry_bridger": "0x67722c823010ceb4bed5325fe109196c0f67d053",
+        "erc8004_identity_registry_bridger": "0x67722c823010CEb4BED5325fE109196C0f67D053",
     },
     "celo": {
         "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
@@ -155,8 +157,9 @@ CHAIN_PROFILES = {
         "gnosis_safe_same_address_multisig": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",  # Same address multisig WITHOUT recovery module
         "recovery_module": "0x24F792D51b398928459Dfbb4181bDb4D5d2CD472",  # Same address multisig WITH recovery module
         "staking_token": "0xe1E1B286EbE95b39F785d8069f2248ae9C41b7a9",  # nosec
-        "staking_verifier": "0xc40C79C275F3fA1F3f4c723755C81ED2D53A8D81",  # nosec
+        "staking_verifier": "0x4aba1Cf7a39a51D75cBa789f5f21cf4882162519",  # nosec
         "staking_factory": "0x1c2cD884127b080F940b7546c1e9aaf525b1FA55",  # nosec
+        "complementary_service_metadata": "0xc096362fa6f4A4B1a9ea68b1043416f3381ce300",
         "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",  # nosec
         "erc8004_identity_registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",  # nosec
         "erc8004_identity_registry_bridger": "0x7fc0ddf4DFB61CfA5519db2A5eE7B2Eb02De0140",  # nosec
@@ -173,7 +176,24 @@ CHAIN_PROFILES = {
         "staking_native_token": "0x88DE734655184a09B70700aE4F72364d1ad23728",  # nosec
         "staking_verifier": "0x87c511c8aE3fAF0063b3F3CF9C6ab96c4AA5C60c",  # nosec
         "staking_factory": "0x75D529FAe220bC8db714F0202193726b46881B76",  # nosec
+        "complementary_service_metadata": "0x24F792D51b398928459Dfbb4181bDb4D5d2CD472",
         "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",  # nosec
+    },
+    "robinhood": {
+        "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
+        "service_registry_token_utility": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",  # nosec
+        "operator_whitelist": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
+        "gnosis_safe_proxy_factory": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",
+        "safe_multisig_with_recovery_module": "0xb09CcF0Dbf0C178806Aaee28956c74bd66d21f73",
+        "gnosis_safe_same_address_multisig": "0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB",
+        "recovery_module": "0xE43d4F4103b623B61E095E8bEA34e1bc8979e168",
+        "staking_token": "0x87c511c8aE3fAF0063b3F3CF9C6ab96c4AA5C60c",  # nosec
+        "staking_verifier": "0x75D529FAe220bC8db714F0202193726b46881B76",
+        "staking_factory": "0x1BD1505B711Fb58C54ca3712e6BEf47A133892d9",
+        "complementary_service_metadata": "0xD1155408D58293BE0743225bcDe28b9FD0C12378",
+        "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",
+        "erc8004_identity_registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+        "erc8004_identity_registry_bridger": "0xE49CB081e8d96920C38aA7AB90cb0294ab4Bc8EA",
     },
     "custom_chain": {
         "component_registry": cast(
@@ -235,6 +255,7 @@ CHAIN_NAME_TO_CHAIN_ID = {
     "base": 8453,
     "celo": 42220,
     "mode": 34443,
+    "robinhood": 4663,
 }
 CHAIN_ID_TO_CHAIN_NAME = {
     chain_id: chain_name for chain_name, chain_id in CHAIN_NAME_TO_CHAIN_ID.items()
@@ -249,6 +270,7 @@ CHAIN_ID_TO_DEFAULT_PUBLIC_RPC = {
     8453: "https://mainnet.base.org",
     42220: "https://forno.celo.org",
     34443: "https://mainnet.mode.network",
+    4663: "https://rpc.mainnet.chain.robinhood.com",
 }
 # Contract PublicIds
 COMPONENT_REGISTRY_CONTRACT = PublicId.from_str("valory/component_registry")
@@ -310,6 +332,7 @@ SERVICE_MANAGER_TOKEN_COMPATIBLE_CHAINS = (
     8453,  # base
     42220,  # celo
     34443,  # mode
+    4663,
     # Testnets / dev
     31337,  # hardhat local
     10200,  # chiado (gnosis testnet)
