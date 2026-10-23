@@ -1,5 +1,13 @@
 # Release History - `open-autonomy`
 
+# 0.21.30 (2026-10-24)
+
+Framework / dependency bumps:
+
+- Bumps `open-aea` `2.2.9` → `2.2.10`: nested model-arg env vars resolve per leaf instead of to the whole collapsed JSON value, and `connection/valory/p2p_libp2p` is synced with open-acn. Package hashes regenerated; `ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH` resynced.
+- Requires `certifi>=2026.10.19` (`setup.py`, `pyproject.toml`, tox), replacing the Windows test pin `certifi==2021.10.8`, and relocks it to `2026.10.23`. Older bundles trust the root behind the compromised eMudhra intermediate CAs. Downstream projects pinning an older `certifi` must bump it to install this release; images built from `autonomy-user` pick up the new `certifi` on rebuild.
+- Moves the `open-autonomy-tendermint` image from `alpine:3.20` to `alpine:3.24`, whose `ca-certificates` drops the same root; `alpine:3.20` cannot get the fix. Tendermint stays `0.34.19`.
+
 # 0.21.29 (2026-09-11)
 
 Feature additions:
