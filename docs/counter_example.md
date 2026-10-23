@@ -25,7 +25,7 @@ you have followed the [setup instructions](guides/set_up.md#set-up-the-framework
 
 2. Use the CLI to download the `valory/counter` AI agent.
     ```bash
-    autonomy fetch valory/counter:0.1.0:bafybeicpyssnq37ukjjwzsmbg4bu5rcn3jnbueybktjbqvb7zn3r4ue6z4 --remote --service
+    autonomy fetch valory/counter:0.1.0:bafybeier5v7tl4pyowwy4fnlsigbxojr73p2bhx2ygokdzsidp2tprjroe --remote --service
     cd counter
     ```
 
@@ -284,7 +284,7 @@ First, open a terminal to the root of this repository,
 and fetch the `counter_client` agent:
 
 ```bash
-autonomy fetch valory/counter_client:0.1.0:bafybeie2l7742uqghasr4wauppu64rddgdfodrsrlaq55scgl7u4ua226i --remote
+autonomy fetch valory/counter_client:0.1.0:bafybeihtectbujeffp2ld6bxo2ibyqd76xk2ki4xp7lgwf2jc3356piifq --remote
 ```
 
 This will copy the agent blueprint project in the `counter_client` directory.
