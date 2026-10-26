@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "open-autonomy"
-version = "0.21.29"
+version = "0.21.30"
 description = "Open Autonomy Framework"
 authors = ["developer-valory <develope@valory.xyz>"]
 license = "Apache-2.0"
@@ -27,10 +27,10 @@ include = [
 # metadata. Declare runtime deps here.
 python = ">=3.10,<3.15"
 # Core runtime
-open-aea = { version = "==2.2.9", extras = ["all"] }
+open-aea = { version = "==2.2.10", extras = ["all"] }
 # CLI deps. `click`, `pytest`, `coverage` come transitively via
 # `open-aea[all]`; only the IPFS CLI plugin is autonomy-specific.
-open-aea-cli-ipfs = "==2.2.9"
+open-aea-cli-ipfs = "==2.2.10"
 # Optional plugins — declared via extras below.
 # [hwi], [docker] and [solana] are intentionally kept out of [all]:
 #   * HWI's transitive chain (ledgerwallet -> hidapi + Pillow) has
@@ -43,9 +43,9 @@ open-aea-cli-ipfs = "==2.2.9"
 #     `open-aea-test-autonomy` pins `open-autonomy[all,docker]`, which
 #     would otherwise reimpose the cap on every downstream test env.
 #     Revisit when the plugin accepts `solana>=0.36.2`.
-open-aea-ledger-ethereum = {version = "==2.2.9", optional = true}
-open-aea-ledger-ethereum-hwi = {version = "==2.2.9", optional = true}
-open-aea-ledger-solana = {version = "==2.2.9", optional = true}
+open-aea-ledger-ethereum = {version = "==2.2.10", optional = true}
+open-aea-ledger-ethereum-hwi = {version = "==2.2.10", optional = true}
+open-aea-ledger-solana = {version = "==2.2.10", optional = true}
 docker = {version = "==7.1.0", optional = true}
 
 # ---------------------------------------------------------------------------
@@ -64,7 +64,7 @@ docker = {version = "==7.1.0", optional = true}
 #     correctness. Such ranges must stay in sync with the
 #     corresponding package YAML.
 # ---------------------------------------------------------------------------
-open-aea-ledger-cosmos = "==2.2.9"
+open-aea-ledger-cosmos = "==2.2.10"
 # `open-aea-ledger-solana` is deliberately NOT in this group: it is
 # kept optional above to avoid the `websockets<12` cap, and reaches
 # users through the [solana] extra. Do not move it here.
@@ -72,12 +72,12 @@ web3 = "*"
 requests = "*"
 grpcio = "==1.78.0"
 aiohttp = ">=3.8.5,<4.0.0"
-certifi = "*"
+certifi = ">=2026.10.19"
 multidict = "*"
 asn1crypto = ">=1.4.0,<1.5.0"
 ecdsa = "*"
 # Clears GHSA-mrfv-m5wm-5w6w / CVE-2025-69277. The floor backtracks
-# `cosmpy 0.11.2 -> 0.11.1` within `open-aea-ledger-cosmos 2.2.9`'s
+# `cosmpy 0.11.2 -> 0.11.1` within `open-aea-ledger-cosmos 2.2.10`'s
 # range, because `0.11.2` hard-pins `pynacl==1.6.0` while `0.11.1`
 # has no pynacl pin. Inert here — no runtime code imports cosmpy.
 PyNaCl = ">=1.6.2"
@@ -117,8 +117,8 @@ autonomy = "autonomy.cli:cli"
 [tool.poetry.group.dev.dependencies]
 tomte = { version = "==0.7.0", extras = ["tox", "docs"] }
 mkdocs-monorepo-plugin = "^1.0.5"
-open-aea-ci-helpers = "==2.2.9"
-open-aea-dev-helpers = "==2.2.9"
+open-aea-ci-helpers = "==2.2.10"
+open-aea-dev-helpers = "==2.2.10"
 # Local CI/release tooling — used by `make generators`, `tox -e
 # fix-doc-hashes`, etc. Not imported by any runtime code.
 open-aea-helpers = { path = "plugins/aea-helpers", develop = true }
