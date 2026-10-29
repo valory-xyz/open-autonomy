@@ -23,7 +23,7 @@
 | contract/valory/erc8004_identity_registry_bridger/0.1.0       | `bafybeifqdzzrrf7odqrwjnhdruwd7bjihgiig22hmjorq4lwn7sb4ncpmm` |
 | contract/valory/staking_activity_checker/0.1.0                | `bafybeia6p2tjyzbdghbfvldqr265yih5watqhekodx36ncydxaxq3nrtbi` |
 | contract/valory/staking_token/0.1.0                           | `bafybeid244fhqroiyu573xnjbfzfokwyovkjlb56uczzvaiocssngvvw3a` |
-| contract/valory/agent_mech/0.1.0                              | `bafybeic3oixev5nonyeq7rfxn4kcsqwzqri2kn64as7ushhvhj5autbzhi` |
+| contract/valory/agent_mech/0.1.0                              | `bafybeieizugi64z7c2xugjug7a34zmrvminkglqicagewdckxxmxmlxfdm` |
 | contract/valory/mech_marketplace/0.1.0                        | `bafybeidk67435jzze4pyrqjixspubbsb2rvpe7jobnhttxavi3s3upu7ne` |
 | connection/valory/abci/0.1.0                                  | `bafybeiafvaguchnkp2fmhf6gtayc3gpnxkglagghb4ukbqtouni5tveigi` |
 | connection/valory/ipfs/0.1.0                                  | `bafybeihje5ipbqoasjmqlqf2ei3uqzvxh2qsf5pjq5txlihe2xif7o5gme` |

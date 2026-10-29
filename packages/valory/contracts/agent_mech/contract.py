@@ -142,7 +142,7 @@ class AgentMech(Contract):
         **kwargs: Any,
     ) -> JSONLike:
         """
-        Process the request receipt to get the requestId and the given data from the `Request` event's logs.
+        Process the request receipt to get the requestIds and their data from the `MarketplaceRequest` event's logs.
 
         :param ledger_api: the ledger apis.
         :param contract_address: the contract address.
@@ -161,6 +161,7 @@ class AgentMech(Contract):
             expected_logs,
             "MarketplaceRequest",
             "requestIds",
+            "requestDatas",
             "numRequests",
         )
 
