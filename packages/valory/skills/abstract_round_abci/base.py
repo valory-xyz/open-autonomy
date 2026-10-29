@@ -3268,6 +3268,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
     def __init__(self, context: SkillContext, abci_app_cls: Type[AbciApp]):
         """Initialize the round."""
         self._blockchain = Blockchain()
+        # blocks received while the local blockchain waits for an `init_chain` after a reset
+        self._blocks_before_init: List[Block] = []
         self._syncing_up = True
         self._context = context
         self._block_construction_phase = (
@@ -3575,6 +3577,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         """Init chain."""
         # reduce `initial_height` by 1 to get block count offset as per Tendermint protocol
         self._blockchain = Blockchain(initial_height - 1)
+        self._blocks_before_init = []
 
     def _track_tm_offences(
         self, evidences: Evidences, last_commit_info: LastCommitInfo
@@ -3729,6 +3732,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
                 self.abci_app.logger.warning(
                     f"Received block with height {block.header.height} before the blockchain was initialized."
                 )
+                self._blocks_before_init.append(block)
             # The ABCI app now waits again for the next block
             self._block_construction_phase = (
                 RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
@@ -3748,6 +3752,24 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
                 RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
             )
         self._blockchain = Blockchain(is_init=is_init)
+        self._blocks_before_init = []
+
+    def restore_blockchain(self, blockchain: Blockchain) -> None:
+        """
+        Restore the blockchain after a failed Tendermint reset.
+
+        Tendermint may keep committing blocks while the reset request is in flight.
+        These blocks are added to the restored blockchain, so that it follows Tendermint's height.
+        If Tendermint has initialized a new chain in the meantime, the node was reset, so the new chain is kept.
+
+        :param blockchain: the blockchain before the reset.
+        """
+        if not self._blockchain.is_init:
+            for block in self._blocks_before_init:
+                if block.header.height > blockchain.height:
+                    blockchain.add_block(block)
+            self._blockchain = blockchain
+        self._blocks_before_init = []
 
     def _get_round_result(
         self,

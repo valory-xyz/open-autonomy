@@ -1969,9 +1969,10 @@ class BaseBehaviour(
             backup_blockchain = self.round_sequence.blockchain
             self.round_sequence.reset_blockchain()
             reset_params = self._get_reset_params(on_startup)
+            reset_url = self.params.tendermint_com_url + "/hard_reset"
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
-                self.params.tendermint_com_url + "/hard_reset",
+                reset_url,
                 parameters=reset_params,
             )
             result = yield from self._do_request(request_message, http_dialogue)
@@ -2011,15 +2012,17 @@ class BaseBehaviour(
 
                 else:
                     msg = response.get("message")
-                    self.round_sequence.blockchain = backup_blockchain
+                    self.round_sequence.restore_blockchain(backup_blockchain)
                     self.context.logger.error(f"Error resetting: {msg}")
                     yield from self.sleep(self.params.sleep_time)
                     return False
             except json.JSONDecodeError:
                 self.context.logger.error(
-                    "Error communicating with tendermint com server."
+                    f"Error communicating with tendermint com server at {reset_url}: "
+                    f"status_code={result.status_code}, "
+                    f"body={result.body[:200].decode(errors='replace')!r}"
                 )
-                self.round_sequence.blockchain = backup_blockchain
+                self.round_sequence.restore_blockchain(backup_blockchain)
                 yield from self.sleep(self.params.sleep_time)
                 return False
 

@@ -2689,6 +2689,17 @@ def test_reset_blockchain(is_replay: bool) -> None
 
 Test `reset_blockchain` method.
 
+<a id="packages.valory.skills.abstract_round_abci.tests.test_base.TestRoundSequence.test_restore_blockchain"></a>
+
+#### test`_`restore`_`blockchain
+
+```python
+@pytest.mark.parametrize("tm_reset", (True, False))
+def test_restore_blockchain(tm_reset: bool) -> None
+```
+
+Test `restore_blockchain` method.
+
 <a id="packages.valory.skills.abstract_round_abci.tests.test_base.TestRoundSequence.last_round_values_updated"></a>
 
 #### last`_`round`_`values`_`updated

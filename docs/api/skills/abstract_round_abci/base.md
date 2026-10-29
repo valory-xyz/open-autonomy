@@ -3297,6 +3297,24 @@ Reset blockchain after tendermint reset.
 - `is_replay`: whether we are resetting the blockchain while replaying blocks.
 - `is_init`: whether to process blocks before receiving an init_chain req from tendermint.
 
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.restore_blockchain"></a>
+
+#### restore`_`blockchain
+
+```python
+def restore_blockchain(blockchain: Blockchain) -> None
+```
+
+Restore the blockchain after a failed Tendermint reset.
+
+Tendermint may keep committing blocks while the reset request is in flight.
+These blocks are added to the restored blockchain, so that it follows Tendermint's height.
+If Tendermint has initialized a new chain in the meantime, the node was reset, so the new chain is kept.
+
+**Arguments**:
+
+- `blockchain`: the blockchain before the reset.
+
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.reset_state"></a>
 
 #### reset`_`state
