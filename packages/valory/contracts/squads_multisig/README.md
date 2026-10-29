@@ -5,7 +5,7 @@
 Contract package for interacting with [Squads Multisig Program](https://github.com/Squads-Protocol/v4). This contract package provides functionalities to perform transactions on `solana` via a multisig program. To make a transaction you will have to go through following steps
 
 1. Define transaction index (`SquadsMultisig.next_tx_index`)
-2. Create a transaction [PDA](https://solanacookbook.com/core-concepts/pdas.html#facts) using the index (`SquadsMultisig.get_tx_pda`)
+2. Create a transaction [PDA](https://solana.com/docs/core/pda) using the index (`SquadsMultisig.get_tx_pda`)
 3. Create a transaction (`SquadsMultisig.create_transaction_ix`)
 4. Attach instructions (`SquadsMultisig.add_instruction_ix`)
 5. Activate transaction (`SquadsMultisig.activate_transaction_ix`)

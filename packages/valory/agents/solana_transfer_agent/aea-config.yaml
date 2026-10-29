@@ -19,7 +19,7 @@ connections:
 - valory/p2p_libp2p_client:0.1.0:bafybeielj3jso3wvrarp5n5rq7llpw4vgxybqiyensgjalb5ubfiawwhhu
 contracts:
 - valory/service_registry:0.1.0:bafybeicdonzmb3hfltzil27ylfu6tdiiftixbquosfyamzgpkilfoh5fkm
-- valory/squads_multisig:0.1.0:bafybeieqhaaubkl5ihan6bbsr6dkhyp6tfqvkbktlseyy5xgybqddntwa4
+- valory/squads_multisig:0.1.0:bafybeihzcaameoy2utu3w2bu3xdqkqbdxnjm3nnp5pxx4psrp5kgpnisam
 protocols:
 - open_aea/signing:1.0.0:bafybeifsjmldwyki3beqyvdt5lzenrg6wyrqaar5plc5rpnvtc4zlentye
 - valory/abci:0.1.0:bafybeiak4pwac3pwjtd7weskxdhkrcopckr32vtazfbuteu6yqjkwarpte
@@ -34,8 +34,8 @@ skills:
 - valory/abstract_round_abci:0.1.0:bafybeidqa766hex6mnd672a7c73hkslx27mrcmj3eo4jnbk5fnpf3kfbua
 - valory/registration_abci:0.1.0:bafybeihlxc5bduvn3gbsrjue22s4umyrob53xjwffqdwll2fcrx2a3fyom
 - valory/reset_pause_abci:0.1.0:bafybeiczdpd5tga2mgywnlrvambot25d54gyl2mpu4vraw65yjlnr4enla
-- valory/squads_transaction_settlement_abci:0.1.0:bafybeifyrlbjupdwyuhl2djbxe6c4zugs7tto7i7icnmde4thp4miuyx44
-- valory/test_solana_tx_abci:0.1.0:bafybeihpkecutzvrjfmglil2cb7fyhqdq65mycwumm7kakqzidpeqbimte
+- valory/squads_transaction_settlement_abci:0.1.0:bafybeid4sxol2ag6nvqv5tdtqv5cnj3lpuuqgq5vms7ldgjhfesjvsxdha
+- valory/test_solana_tx_abci:0.1.0:bafybeig6zxyj4zicgxw6tsrcsec63wgejs55cum6nsstdtaeliv2itvnia
 default_ledger: solana
 required_ledgers:
 - solana
