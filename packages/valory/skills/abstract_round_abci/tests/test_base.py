@@ -3007,6 +3007,32 @@ class TestRoundSequence:
             )
         assert self.round_sequence._blockchain.height == 0
 
+    @pytest.mark.parametrize("tm_reset", (True, False))
+    def test_restore_blockchain(self, tm_reset: bool) -> None:
+        """Test `restore_blockchain` method."""
+        backup = Blockchain()
+        for height in (1, 2):
+            backup.add_block(Block(MagicMock(height=height), []))
+        self.round_sequence.reset_blockchain()
+        for height in (2, 3):
+            self.round_sequence.begin_block(
+                MagicMock(height=height), MagicMock(), MagicMock()
+            )
+            self.round_sequence.end_block()
+            self.round_sequence.commit()
+        if tm_reset:
+            self.round_sequence.init_chain(initial_height=1)
+
+        self.round_sequence.restore_blockchain(backup)
+
+        if tm_reset:
+            assert self.round_sequence.blockchain is not backup
+            assert self.round_sequence.height == 0
+        else:
+            assert self.round_sequence.blockchain is backup
+            assert self.round_sequence.height == 3
+        assert self.round_sequence._blocks_before_init == []
+
     def last_round_values_updated(self, any_: bool = True) -> bool:
         """Check if the values for the last round-related attributes have been updated."""
         seq = self.round_sequence
