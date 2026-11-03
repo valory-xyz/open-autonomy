@@ -139,30 +139,36 @@ class AgentMech(Contract):
         contract_address: str,
         tx_hash: str,
         expected_logs: int = 1,
+        include_request_datas: bool = False,
         **kwargs: Any,
     ) -> JSONLike:
         """
-        Process the request receipt to get the requestIds and their data from the `MarketplaceRequest` event's logs.
+        Process the request receipt to get the requestIds from the `MarketplaceRequest` event's logs.
 
         :param ledger_api: the ledger apis.
         :param contract_address: the contract address.
         :param tx_hash: the hash of a request tx to be processed.
         :param expected_logs: the number of logs expected.
+        :param include_request_datas: whether to also return each event's `requestDatas`, paired by index with its `requestIds`.
         :return: a dictionary with a key named `results`
-        which contains a list of dictionaries (as many as the expected logs) containing the request id and the data.
+        which contains a list of dictionaries (as many as the expected logs) containing the request ids and the number of requests,
+        and also the request datas if `include_request_datas` is set.
         """
         ledger_api = cast(EthereumApi, ledger_api)
         contract_address = ledger_api.api.to_checksum_address(contract_address)
         contract_instance = cls.get_instance(ledger_api, contract_address)
+        event_args = (
+            ("requestIds", "requestDatas", "numRequests")
+            if include_request_datas
+            else ("requestIds", "numRequests")
+        )
         res = cls._process_event(
             ledger_api,
             contract_instance,
             tx_hash,
             expected_logs,
             "MarketplaceRequest",
-            "requestIds",
-            "requestDatas",
-            "numRequests",
+            *event_args,
         )
 
         return res
