@@ -3765,10 +3765,19 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         :param blockchain: the blockchain before the reset.
         """
         if not self._blockchain.is_init:
+            blocks_added = False
             for block in self._blocks_before_init:
                 if block.header.height > blockchain.height:
                     blockchain.add_block(block)
+                    blocks_added = True
             self._blockchain = blockchain
+            # A block still being built is handled by its own commit
+            if (
+                blocks_added
+                and self._block_construction_phase
+                == RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
+            ):
+                self._update_round()
         self._blocks_before_init = []
 
     def _get_round_result(

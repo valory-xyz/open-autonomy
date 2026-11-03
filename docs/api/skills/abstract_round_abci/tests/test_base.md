@@ -2700,6 +2700,37 @@ def test_restore_blockchain(tm_reset: bool) -> None
 
 Test `restore_blockchain` method.
 
+<a id="packages.valory.skills.abstract_round_abci.tests.test_base.TestRoundSequence.test_restore_blockchain_updates_round"></a>
+
+#### test`_`restore`_`blockchain`_`updates`_`round
+
+```python
+def test_restore_blockchain_updates_round() -> None
+```
+
+Test that `restore_blockchain` applies a round completed by the added blocks.
+
+<a id="packages.valory.skills.abstract_round_abci.tests.test_base.TestRoundSequence.test_restore_blockchain_block_in_progress"></a>
+
+#### test`_`restore`_`blockchain`_`block`_`in`_`progress
+
+```python
+def test_restore_blockchain_block_in_progress() -> None
+```
+
+Test that `restore_blockchain` leaves the round update to the commit of a block in progress.
+
+<a id="packages.valory.skills.abstract_round_abci.tests.test_base.TestRoundSequence.test_restore_blockchain_no_round_update"></a>
+
+#### test`_`restore`_`blockchain`_`no`_`round`_`update
+
+```python
+@pytest.mark.parametrize("tm_reset", (True, False))
+def test_restore_blockchain_no_round_update(tm_reset: bool) -> None
+```
+
+Test that `restore_blockchain` does not update the round when no block is added.
+
 <a id="packages.valory.skills.abstract_round_abci.tests.test_base.TestRoundSequence.last_round_values_updated"></a>
 
 #### last`_`round`_`values`_`updated
