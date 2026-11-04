@@ -1558,6 +1558,50 @@ def test_reset_tendermint_with_wait(build_http_request_message_mock: mock.Mock,
 
 Test tendermint reset.
 
+<a id="packages.valory.skills.abstract_round_abci.tests.test_behaviours_utils.TestBaseBehaviour.test_reset_tendermint_with_wait_failure_keeps_blockchain"></a>
+
+#### test`_`reset`_`tendermint`_`with`_`wait`_`failure`_`keeps`_`blockchain
+
+```python
+@mock.patch.object(BaseBehaviour, "_start_reset")
+@mock.patch.object(BaseBehaviour, "_is_timeout_expired", return_value=False)
+@mock.patch.object(BaseBehaviour,
+                   "_build_http_request_message",
+                   return_value=(None, None))
+@pytest.mark.parametrize(
+    "reset_response_body, tm_reset, heights_during_request, next_height",
+    (
+        (b'{"message": "Reset failed.", "status": false}', False,
+         (4, 5, 6), 7),
+        (b"<html>Not Found</html>", False, (4, 5, 6), 7),
+        (b"<html>Not Found</html>", True, (1, 2), 3),
+    ),
+)
+def test_reset_tendermint_with_wait_failure_keeps_blockchain(
+        _build_http_request_message: mock.Mock, _is_timeout_expired: mock.Mock,
+        _start_reset: mock.Mock, reset_response_body: bytes, tm_reset: bool,
+        heights_during_request: Tuple[int, ...], next_height: int) -> None
+```
+
+Test that a failed reset keeps the local blockchain in sync with the blocks Tendermint committed.
+
+<a id="packages.valory.skills.abstract_round_abci.tests.test_behaviours_utils.TestBaseBehaviour.test_reset_tendermint_with_wait_non_json_response_log"></a>
+
+#### test`_`reset`_`tendermint`_`with`_`wait`_`non`_`json`_`response`_`log
+
+```python
+@mock.patch.object(BaseBehaviour, "_start_reset")
+@mock.patch.object(BaseBehaviour, "_is_timeout_expired", return_value=False)
+@mock.patch.object(BaseBehaviour,
+                   "_build_http_request_message",
+                   return_value=(None, None))
+def test_reset_tendermint_with_wait_non_json_response_log(
+        _build_http_request_message: mock.Mock, _is_timeout_expired: mock.Mock,
+        _start_reset: mock.Mock, caplog: LogCaptureFixture) -> None
+```
+
+Test that a non-JSON `/hard_reset` response logs the URL, status code, and a truncated body.
+
 <a id="packages.valory.skills.abstract_round_abci.tests.test_behaviours_utils.TestBaseBehaviour.test_fuzz_submit_tx"></a>
 
 #### test`_`fuzz`_`submit`_`tx
