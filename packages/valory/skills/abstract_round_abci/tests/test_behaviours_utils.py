@@ -73,6 +73,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     DegenerateRound,
     LEDGER_API_ADDRESS,
     OK_CODE,
+    RoundSequence,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
@@ -99,6 +100,7 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState,
     TendermintRecoveryParams,
 )
+from packages.valory.skills.abstract_round_abci.test_tools.abci_app import AbciAppTest
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
 _DEFAULT_REQUEST_TIMEOUT = 10.0
@@ -2376,6 +2378,111 @@ class TestBaseBehaviour:
                     assert not self.behaviour._is_healthy
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")
+
+    @mock.patch.object(BaseBehaviour, "_start_reset")
+    @mock.patch.object(BaseBehaviour, "_is_timeout_expired", return_value=False)
+    @mock.patch.object(
+        BaseBehaviour, "_build_http_request_message", return_value=(None, None)
+    )
+    @pytest.mark.parametrize(
+        "reset_response_body, tm_reset, heights_during_request, next_height",
+        (
+            (b'{"message": "Reset failed.", "status": false}', False, (4, 5, 6), 7),
+            (b"<html>Not Found</html>", False, (4, 5, 6), 7),
+            (b"<html>Not Found</html>", True, (1, 2), 3),
+        ),
+    )
+    def test_reset_tendermint_with_wait_failure_keeps_blockchain(
+        self,
+        _build_http_request_message: mock.Mock,
+        _is_timeout_expired: mock.Mock,
+        _start_reset: mock.Mock,
+        reset_response_body: bytes,
+        tm_reset: bool,
+        heights_during_request: Tuple[int, ...],
+        next_height: int,
+    ) -> None:
+        """Test that a failed reset keeps the local blockchain in sync with the blocks Tendermint committed."""
+        round_sequence = RoundSequence(context=MagicMock(), abci_app_cls=AbciAppTest)
+        round_sequence.setup(MagicMock(), logging.getLogger())
+        # stay in the current round, as no transactions are delivered
+        round_sequence.current_round.end_block = MagicMock(return_value=None)  # type: ignore
+        self.context_mock.state.round_sequence = round_sequence
+
+        def commit_block(height: int) -> None:
+            """Process a block the way the ABCI handlers do."""
+            round_sequence.begin_block(
+                MagicMock(height=height), MagicMock(), MagicMock()
+            )
+            round_sequence.tm_height = height
+            round_sequence.end_block()
+            round_sequence.commit()
+
+        for height in (1, 2, 3):
+            commit_block(height)
+
+        def dummy_do_request(*_: Any) -> Generator[None, None, MagicMock]:
+            """Tendermint keeps committing blocks while `/hard_reset` is in flight."""
+            yield
+            if tm_reset:
+                round_sequence.init_chain(initial_height=1)
+            for height in heights_during_request:
+                commit_block(height)
+            return MagicMock(body=reset_response_body, status_code=200)
+
+        with mock.patch.object(
+            BaseBehaviour, "_do_request", new_callable=lambda *_: dummy_do_request
+        ), mock.patch.object(
+            BaseBehaviour, "sleep", new_callable=lambda *_: dummy_generator_wrapper()
+        ):
+            reset = self.behaviour.reset_tendermint_with_wait(on_startup=True)
+            with pytest.raises(StopIteration) as stop:
+                while True:
+                    next(reset)
+        assert stop.value.value is False
+
+        commit_block(next_height)
+        assert round_sequence.height == next_height
+
+    @mock.patch.object(BaseBehaviour, "_start_reset")
+    @mock.patch.object(BaseBehaviour, "_is_timeout_expired", return_value=False)
+    @mock.patch.object(
+        BaseBehaviour, "_build_http_request_message", return_value=(None, None)
+    )
+    def test_reset_tendermint_with_wait_non_json_response_log(
+        self,
+        _build_http_request_message: mock.Mock,
+        _is_timeout_expired: mock.Mock,
+        _start_reset: mock.Mock,
+        caplog: LogCaptureFixture,
+    ) -> None:
+        """Test that a non-JSON `/hard_reset` response logs the URL, status code, and a truncated body."""
+        self.behaviour.context.params.tendermint_com_url = "http://localhost:8080"
+        body = b"<html>stale server</html>" + b"x" * 300
+
+        def dummy_do_request(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_do_request` method."""
+            yield
+            return MagicMock(body=body, status_code=404)
+
+        with mock.patch.object(
+            BaseBehaviour, "_do_request", new_callable=lambda *_: dummy_do_request
+        ), mock.patch.object(
+            BaseBehaviour, "sleep", new_callable=lambda *_: dummy_generator_wrapper()
+        ), caplog.at_level(
+            logging.ERROR
+        ):
+            reset = self.behaviour.reset_tendermint_with_wait(on_startup=True)
+            with pytest.raises(StopIteration):
+                while True:
+                    next(reset)
+
+        assert (
+            "Error communicating with tendermint com server at "
+            "http://localhost:8080/hard_reset: status_code=404, "
+            f"body={body[:200].decode()!r}"
+        ) in caplog.text
+        assert "x" * 200 not in caplog.text
 
     @given(st.binary())
     def test_fuzz_submit_tx(self, input_bytes: bytes) -> None:

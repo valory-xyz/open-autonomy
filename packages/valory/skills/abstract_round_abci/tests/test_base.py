@@ -3007,6 +3007,88 @@ class TestRoundSequence:
             )
         assert self.round_sequence._blockchain.height == 0
 
+    @pytest.mark.parametrize("tm_reset", (True, False))
+    def test_restore_blockchain(self, tm_reset: bool) -> None:
+        """Test `restore_blockchain` method."""
+        backup = Blockchain()
+        for height in (1, 2):
+            backup.add_block(Block(MagicMock(height=height), []))
+        self.round_sequence.reset_blockchain()
+        for height in (2, 3):
+            self.round_sequence.begin_block(
+                MagicMock(height=height), MagicMock(), MagicMock()
+            )
+            self.round_sequence.end_block()
+            self.round_sequence.commit()
+        if tm_reset:
+            self.round_sequence.init_chain(initial_height=1)
+
+        self.round_sequence.restore_blockchain(backup)
+
+        if tm_reset:
+            assert self.round_sequence.blockchain is not backup
+            assert self.round_sequence.height == 0
+        else:
+            assert self.round_sequence.blockchain is backup
+            assert self.round_sequence.height == 3
+        assert self.round_sequence._blocks_before_init == []
+
+    def test_restore_blockchain_updates_round(self) -> None:
+        """Test that `restore_blockchain` applies a round completed by the added blocks."""
+        backup = Blockchain()
+        backup.add_block(Block(MagicMock(height=1), []))
+        self.round_sequence.reset_blockchain()
+        self.round_sequence.begin_block(MagicMock(height=2), MagicMock(), MagicMock())
+        self.round_sequence.end_block()
+        self.round_sequence.commit()
+        round_result, event = MagicMock(), ConcreteEvents.B
+
+        with mock.patch.object(
+            self.round_sequence.current_round,
+            "end_block",
+            return_value=(round_result, event),
+        ):
+            self.round_sequence.restore_blockchain(backup)
+
+        assert isinstance(self.round_sequence.current_round, ConcreteRoundB)
+        assert self.round_sequence.abci_app._round_results[-1] == round_result
+
+    def test_restore_blockchain_block_in_progress(self) -> None:
+        """Test that `restore_blockchain` leaves the round update to the commit of a block in progress."""
+        backup = Blockchain()
+        backup.add_block(Block(MagicMock(height=1), []))
+        self.round_sequence.reset_blockchain()
+        self.round_sequence.begin_block(MagicMock(height=2), MagicMock(), MagicMock())
+        self.round_sequence.end_block()
+        self.round_sequence.commit()
+        self.round_sequence.begin_block(MagicMock(height=3), MagicMock(), MagicMock())
+
+        with mock.patch.object(self.round_sequence, "_update_round") as update_mock:
+            self.round_sequence.restore_blockchain(backup)
+            update_mock.assert_not_called()
+            self.round_sequence.end_block()
+            self.round_sequence.commit()
+
+        update_mock.assert_called_once_with()
+        assert self.round_sequence.height == 3
+
+    @pytest.mark.parametrize("tm_reset", (True, False))
+    def test_restore_blockchain_no_round_update(self, tm_reset: bool) -> None:
+        """Test that `restore_blockchain` does not update the round when no block is added."""
+        backup = Blockchain()
+        backup.add_block(Block(MagicMock(height=1), []))
+        self.round_sequence.reset_blockchain()
+        self.round_sequence.begin_block(MagicMock(height=1), MagicMock(), MagicMock())
+        self.round_sequence.end_block()
+        self.round_sequence.commit()
+        if tm_reset:
+            self.round_sequence.init_chain(initial_height=1)
+
+        with mock.patch.object(self.round_sequence, "_update_round") as update_mock:
+            self.round_sequence.restore_blockchain(backup)
+
+        update_mock.assert_not_called()
+
     def last_round_values_updated(self, any_: bool = True) -> bool:
         """Check if the values for the last round-related attributes have been updated."""
         seq = self.round_sequence
