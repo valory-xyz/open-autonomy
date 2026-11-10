@@ -24,12 +24,20 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+import yaml
 from web3 import Web3
 
 from packages.valory.contracts.service_manager.contract import SERVICE_MANAGER_BUILD
 
-BUILD_DIR = Path(__file__).parent.parent / "build"
-BUILD_FILES = (SERVICE_MANAGER_BUILD, "ServiceManagerToken.json")
+PACKAGE_DIR = Path(__file__).parent.parent
+BUILD_DIR = PACKAGE_DIR / "build"
+CONTRACT_CONFIG = yaml.safe_load(
+    (PACKAGE_DIR / "contract.yaml").read_text(encoding="utf-8")
+)
+SERVICE_MANAGER_TOKEN_BUILD = Path(
+    CONTRACT_CONFIG["contract_interface_paths"]["ethereum"]
+).name
+BUILD_FILES = (SERVICE_MANAGER_BUILD, SERVICE_MANAGER_TOKEN_BUILD)
 
 SERVICE_ID = 7
 AGENT_INSTANCES = [
@@ -83,3 +91,19 @@ def test_unbond_calldata_is_unchanged(build_file: str) -> None:
         "unbond", kwargs={"serviceId": SERVICE_ID}
     )
     assert calldata == UNBOND_CALLDATA
+
+
+@pytest.mark.parametrize("build_file", BUILD_FILES)
+def test_build_file_describes_only_its_abi(build_file: str) -> None:
+    """No key left over from an older compile contradicts the build file's ABI."""
+    build = json.loads((BUILD_DIR / build_file).read_text(encoding="utf-8"))
+    contract = Web3().eth.contract(abi=build["abi"])
+    abi_selectors = {
+        f"{fn.abi['name']}({','.join(i['type'] for i in fn.abi['inputs'])})"
+        for fn in contract.all_functions()
+    }
+    assert set(build.get("methodIdentifiers", {})) <= abi_selectors
+    assert "metadata" not in build and "rawMetadata" not in build
+    # The 1.3.0 bytecode is not published yet; pre-1.3.0 bytecode must not pose as it.
+    assert build["bytecode"] == "0x"
+    assert build["deployedBytecode"] == "0x"
