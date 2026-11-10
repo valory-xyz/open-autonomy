@@ -8,7 +8,7 @@
 | contract/valory/component_registry/0.1.0                      | `bafybeihqgablwvcyhcspxhijbnyfstmuc7exxq5luklbggnll42i3srucy` |
 | contract/valory/agent_registry/0.1.0                          | `bafybeiaf5tfymnq6brtn3bzf2eg52uro7fzgkjcbwcypfbvlkghsozsqau` |
 | contract/valory/registries_manager/0.1.0                      | `bafybeidqxxu4r2brpthksp6kfpw466ntxgjdqiljpfpw3qbhi6pm6aj65q` |
-| contract/valory/service_manager/0.1.0                         | `bafybeicd55luyyla4lxomtjxaotjjn42gslhkxfuctdkge35kwzmrbldiu` |
+| contract/valory/service_manager/0.1.0                         | `bafybeifzoth3eba7wl2ucagyu62p6xu2aa3gtjyx3fryynoqsjpph6lnei` |
 | contract/valory/service_registry/0.1.0                        | `bafybeicdonzmb3hfltzil27ylfu6tdiiftixbquosfyamzgpkilfoh5fkm` |
 | contract/valory/gnosis_safe/0.1.0                             | `bafybeifv2ajl76hvtpdtcv2alkislkqr5t7jcyspd5cimmnkfhnyemeux4` |
 | contract/valory/multisend/0.1.0                               | `bafybeibyx4c6bpkragj5j2augv27til6xrdlnpgyrlttg5dsccxje4yis4` |
@@ -22,7 +22,7 @@
 | contract/valory/erc8004_identity_registry/0.1.0               | `bafybeidxgrtsrp3irxodaqryca57df324iio2kw3tl5arasunl67f6xsmi` |
 | contract/valory/erc8004_identity_registry_bridger/0.1.0       | `bafybeifqdzzrrf7odqrwjnhdruwd7bjihgiig22hmjorq4lwn7sb4ncpmm` |
 | contract/valory/staking_activity_checker/0.1.0                | `bafybeia6p2tjyzbdghbfvldqr265yih5watqhekodx36ncydxaxq3nrtbi` |
-| contract/valory/staking_token/0.1.0                           | `bafybeid244fhqroiyu573xnjbfzfokwyovkjlb56uczzvaiocssngvvw3a` |
+| contract/valory/staking_token/0.1.0                           | `bafybeiepk6a7qtak35er62xlt6tu4a5oq2bczwlkpwpk7lwivypocfdzxu` |
 | contract/valory/agent_mech/0.1.0                              | `bafybeiadbxqpmgndakgnu6wy2ayn2nx2paf6exiqmxo7yrbthbpcuq2bti` |
 | contract/valory/mech_marketplace/0.1.0                        | `bafybeidk67435jzze4pyrqjixspubbsb2rvpe7jobnhttxavi3s3upu7ne` |
 | connection/valory/abci/0.1.0                                  | `bafybeiafvaguchnkp2fmhf6gtayc3gpnxkglagghb4ukbqtouni5tveigi` |
@@ -45,7 +45,7 @@
 | skill/valory/offend_slash_abci/0.1.0                          | `bafybeia2mv5mqfdlmg4git6fg374l2w5xxgze6gxhf7ed7gweqgxc7pdn4` |
 | skill/valory/squads_transaction_settlement_abci/0.1.0         | `bafybeiaxrukagqmfpsu76mht4mqsugavkxtrbllhy4na7nsz2pfy6alfrm` |
 | skill/valory/test_solana_tx_abci/0.1.0                        | `bafybeiaznhwzz45xkbckvjzea6bvjsxhbn47trguaseinyjmrj72mgmfpa` |
-| skill/valory/identify_service_owner_abci/0.1.0                | `bafybeie6ci322sfwtsloysele3fbrhptel3xsfai46n3e7l5hsqu22g3ta` |
+| skill/valory/identify_service_owner_abci/0.1.0                | `bafybeifxwb3c6bqp5zpxv5tm4buhk3ysyyyo4cfaa4wobotm7om3ns674y` |
 | skill/valory/funds_forwarder_abci/0.1.0                       | `bafybeifqtbrqaujhbkknftuexnpbto3wkiocsja4rcwgq3xxqyrgaisb2u` |
 | agent/valory/test_ipfs/0.1.0                                  | `bafybeiaqki6klxfysxjy5q7rapqh6vkk77bgaixlbruesjzgh25dzkksra` |
 | agent/valory/abstract_abci/0.1.0                              | `bafybeibtk2dzxhni33ggvpawgmms3dxxzdhl5q2go6f4awyiymricskz5a` |
