@@ -12,7 +12,7 @@ fingerprint:
   contract.py: bafybeih3xeiqrk5owaajw4lhnkpqsvppljlbuyyjsxvvknvsvbw5mtos7q
   tests/__init__.py: bafybeifehip3omosjvpq3uqvxomtgrmqjoqdttyzhvu2qysybjf6btwkpi
   tests/test_contract.py: bafybeicdnkuccj37zytma6dunb6kwqmptxavg5fbv7phxoqzom6nietzju
-  tests/test_encoding.py: bafybeih5yxbmp4qa2f6ikk2vybgw3quhcevknsnjwpkc5uxct52nd7pz2y
+  tests/test_encoding.py: bafybeieb7nszdwsvh7kx5eqyzyz5ybie52xrl6t6qgooshd7altoiv2c6a
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: ServiceManagerContract

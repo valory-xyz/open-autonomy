@@ -26,8 +26,10 @@ from typing import Any
 import pytest
 from web3 import Web3
 
+from packages.valory.contracts.service_manager.contract import SERVICE_MANAGER_BUILD
+
 BUILD_DIR = Path(__file__).parent.parent / "build"
-BUILD_FILES = ("ServiceManager.json", "ServiceManagerToken.json")
+BUILD_FILES = (SERVICE_MANAGER_BUILD, "ServiceManagerToken.json")
 
 SERVICE_ID = 7
 AGENT_INSTANCES = [
@@ -64,7 +66,12 @@ def _service_manager(build_file: str) -> Any:
 def test_register_agents_calldata_is_unchanged(build_file: str) -> None:
     """`registerAgents(uint256,address[],uint32[])` encodes as before 1.3.0."""
     calldata = _service_manager(build_file).encode_abi(
-        "registerAgents", args=[SERVICE_ID, AGENT_INSTANCES, AGENT_IDS]
+        "registerAgents",
+        kwargs={
+            "serviceId": SERVICE_ID,
+            "agentInstances": AGENT_INSTANCES,
+            "agentIds": AGENT_IDS,
+        },
     )
     assert calldata == REGISTER_AGENTS_CALLDATA
 
@@ -72,5 +79,7 @@ def test_register_agents_calldata_is_unchanged(build_file: str) -> None:
 @pytest.mark.parametrize("build_file", BUILD_FILES)
 def test_unbond_calldata_is_unchanged(build_file: str) -> None:
     """`unbond(uint256)` encodes as before 1.3.0."""
-    calldata = _service_manager(build_file).encode_abi("unbond", args=[SERVICE_ID])
+    calldata = _service_manager(build_file).encode_abi(
+        "unbond", kwargs={"serviceId": SERVICE_ID}
+    )
     assert calldata == UNBOND_CALLDATA
