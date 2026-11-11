@@ -5,6 +5,10 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
+## `v0.21.30` to `v0.21.31`
+
+This release goes with Proposal 17. `CHAIN_PROFILES` now points `gnosis_safe_proxy_factory` at the new `GnosisSafeMultisig` and `staking_token` at the StakingToken 0.4.0 implementation, so services deployed with it create their multisig through the new contract; only deploy on chains where Proposal 17 has been executed. Code calling `ServiceManagerToken`'s `chainId()`, `name()`, `version()`, `domainSeparator()` or the pre-1.3.0 signed `registerAgentsWithSignature` / `unbondWithSignature` through the `service_manager` package must move to the 1.3.0 ABI. Otherwise, repin the framework and re-pull package hashes.
+
 ## `v0.21.29` to `v0.21.30`
 
 This release bumps `open-aea` to `2.2.10` and `certifi` to `>=2026.10.19`. No API or wire-format changes; downstream apps only need to repin the framework, re-pull package hashes, and rebuild their images so they pick up the new `certifi`.
