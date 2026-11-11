@@ -108,9 +108,7 @@ class StakingTokenContract(Contract):
     ) -> JSONLike:
         """Get the next checkpoint opportunity: the earliest time `checkpoint()` can be called.
 
-        It does not promise a reward payment. On StakingToken v0.4 it returns the
-        current block timestamp while a rebaseline is pending, otherwise
-        `tsCheckpoint + livenessPeriod`.
+        It does not promise a reward payment.
 
         :param ledger_api: the ledger API.
         :param contract_address: the staking contract address.

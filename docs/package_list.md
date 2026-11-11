@@ -22,7 +22,7 @@
 | contract/valory/erc8004_identity_registry/0.1.0               | `bafybeidxgrtsrp3irxodaqryca57df324iio2kw3tl5arasunl67f6xsmi` |
 | contract/valory/erc8004_identity_registry_bridger/0.1.0       | `bafybeifqdzzrrf7odqrwjnhdruwd7bjihgiig22hmjorq4lwn7sb4ncpmm` |
 | contract/valory/staking_activity_checker/0.1.0                | `bafybeia6p2tjyzbdghbfvldqr265yih5watqhekodx36ncydxaxq3nrtbi` |
-| contract/valory/staking_token/0.1.0                           | `bafybeiepk6a7qtak35er62xlt6tu4a5oq2bczwlkpwpk7lwivypocfdzxu` |
+| contract/valory/staking_token/0.1.0                           | `bafybeibrhyljtgxdee5g3ancmsdi2t72djwd47nn7pzp5ru3bf7glhg44i` |
 | contract/valory/agent_mech/0.1.0                              | `bafybeiadbxqpmgndakgnu6wy2ayn2nx2paf6exiqmxo7yrbthbpcuq2bti` |
 | contract/valory/mech_marketplace/0.1.0                        | `bafybeidk67435jzze4pyrqjixspubbsb2rvpe7jobnhttxavi3s3upu7ne` |
 | connection/valory/abci/0.1.0                                  | `bafybeiafvaguchnkp2fmhf6gtayc3gpnxkglagghb4ukbqtouni5tveigi` |
@@ -45,7 +45,7 @@
 | skill/valory/offend_slash_abci/0.1.0                          | `bafybeia2mv5mqfdlmg4git6fg374l2w5xxgze6gxhf7ed7gweqgxc7pdn4` |
 | skill/valory/squads_transaction_settlement_abci/0.1.0         | `bafybeiaxrukagqmfpsu76mht4mqsugavkxtrbllhy4na7nsz2pfy6alfrm` |
 | skill/valory/test_solana_tx_abci/0.1.0                        | `bafybeiaznhwzz45xkbckvjzea6bvjsxhbn47trguaseinyjmrj72mgmfpa` |
-| skill/valory/identify_service_owner_abci/0.1.0                | `bafybeifxwb3c6bqp5zpxv5tm4buhk3ysyyyo4cfaa4wobotm7om3ns674y` |
+| skill/valory/identify_service_owner_abci/0.1.0                | `bafybeidcf3ls3p5u3uugni2zp5j3sq542unucdsbaxur2n6jm63gk3yiva` |
 | skill/valory/funds_forwarder_abci/0.1.0                       | `bafybeifqtbrqaujhbkknftuexnpbto3wkiocsja4rcwgq3xxqyrgaisb2u` |
 | agent/valory/test_ipfs/0.1.0                                  | `bafybeiaqki6klxfysxjy5q7rapqh6vkk77bgaixlbruesjzgh25dzkksra` |
 | agent/valory/abstract_abci/0.1.0                              | `bafybeibtk2dzxhni33ggvpawgmms3dxxzdhl5q2go6f4awyiymricskz5a` |
