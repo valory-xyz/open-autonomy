@@ -19,6 +19,7 @@
 
 """Verify the on-chain addresses against the defined constants."""
 
+import json
 import typing as t
 
 import pytest
@@ -34,6 +35,7 @@ from web3.exceptions import (
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import CHAIN_PROFILES
 
+from tests.conftest import DATA_DIR
 from tests.utils.live_fetch import fetch_upstream_or_skip
 
 ADDRESS_FILE_URL = "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/refs/tags/v1.3.4/docs/configuration.json"
@@ -56,6 +58,9 @@ REPLACED_CONTRACTS_GLOBALS_KEYS = {
     "gnosis_safe_multisig": "gnosisSafeMultisigImplementationAddress",
     "staking_token": "stakingTokenAddress",
 }
+# The two keys of DEPLOYMENT_GLOBALS_FILES' globals at the same commit, checked in so every chain is
+# checked offline (the live test skips Polygon and any chain whose fetch fails).
+PINNED_DEPLOYMENT_GLOBALS = DATA_DIR / "registries_proposal_17_globals.json"
 DEPLOYMENT_GLOBALS_FILES = {
     ChainType.ETHEREUM: ("globals_mainnet.json", "l2/globals_eth_mainnet.json"),
     ChainType.POLYGON: ("l2/globals_polygon_mainnet.json",),
@@ -135,6 +140,7 @@ class TestAddresses:
         return cls._contracts
 
     _deployment_globals: t.Dict[ChainType, t.Dict[str, str]] = {}
+    _deployment_globals_failed: t.Set[ChainType] = set()
 
     @classmethod
     def _get_deployment_globals(cls, chain: ChainType) -> t.Dict[str, str]:
@@ -145,12 +151,20 @@ class TestAddresses:
         :param chain: the chain whose globals to fetch.
         :return: the merged globals of the chain's files.
         """
+        if chain in cls._deployment_globals_failed:
+            pytest.skip(
+                f"deployment globals for {chain.value} already failed in this run"
+            )
         if chain not in cls._deployment_globals:
             merged: t.Dict[str, str] = {}
-            for path in DEPLOYMENT_GLOBALS_FILES[chain]:
-                merged.update(
-                    fetch_upstream_or_skip(REGISTRIES_DEPLOYMENT_URL + path).json()
-                )
+            try:
+                for path in DEPLOYMENT_GLOBALS_FILES[chain]:
+                    merged.update(
+                        fetch_upstream_or_skip(REGISTRIES_DEPLOYMENT_URL + path).json()
+                    )
+            except pytest.skip.Exception:
+                cls._deployment_globals_failed.add(chain)
+                raise
             cls._deployment_globals[chain] = merged
         return cls._deployment_globals[chain]
 
@@ -197,3 +211,17 @@ class TestAddresses:
             assert (
                 address == constant_address
             ), f"Constant value and remote value does not match for `{name}`"
+
+
+@pytest.mark.parametrize(argnames="chain", argvalues=list(DEPLOYMENT_GLOBALS_FILES))
+def test_replaced_contracts_match_pinned_globals(chain: ChainType) -> None:
+    """The Proposal 17 replacements match the pinned registries globals, offline."""
+    pinned = json.loads(PINNED_DEPLOYMENT_GLOBALS.read_text())[chain.value]
+    profile = CHAIN_PROFILES[chain.value]
+    assert {
+        "gnosis_safe_proxy_factory": profile["gnosis_safe_proxy_factory"],
+        "staking_token": profile["staking_token"],
+    } == {
+        "gnosis_safe_proxy_factory": pinned["gnosisSafeMultisigImplementationAddress"],
+        "staking_token": pinned["stakingTokenAddress"],
+    }
