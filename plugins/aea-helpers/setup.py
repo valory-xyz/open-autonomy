@@ -40,12 +40,12 @@ base_deps = [
     # on 3.10 we fall back to `tomli`, which arrives transitively via
     # `pytest` (declared by `open-aea[all]` with a
     # `python_version < "3.11"` marker).
-    "open-autonomy>=0.21.0rc0,<0.22.0",
+    "open-autonomy>=0.21.0,<0.22.0",
 ]
 
 setup(
     name="open-aea-helpers",
-    version="0.21.31rc2",
+    version="0.21.31",
     author="Valory AG",
     license="Apache-2.0",
     description="CLI helpers for CI and dependency management in AEA-based projects.",
