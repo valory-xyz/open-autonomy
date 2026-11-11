@@ -38,12 +38,12 @@ base_deps = [
     #     `[all]` extra's `open-aea-ledger-ethereum`
     #   * `docker`, `docker.models.containers`, `docker.errors` —
     #     via the `[docker]` extra
-    "open-autonomy[all,docker]>=0.21.0,<0.22.0",
+    "open-autonomy[all,docker]>=0.21.0rc0,<0.22.0",
 ]
 
 setup(
     name="open-aea-test-autonomy",
-    version="0.21.30",
+    version="0.21.31rc2",
     author="Valory AG",
     license="Apache-2.0",
     description="Plugin containing test tools for open-autonomy packages.",
