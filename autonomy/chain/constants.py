@@ -56,11 +56,11 @@ CHAIN_PROFILES = {
         "service_registry": "0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA",
         "service_registry_token_utility": "0x3Fb926116D454b95c669B6Bf2E7c3bad8d19affA",  # nosec
         "operator_whitelist": "0x42042799B0DE38AdD2a70dc996f69f98E1a85260",
-        "gnosis_safe_proxy_factory": "0x46C0D07F55d4F9B5Eed2Fc9680B5953e5fd7b461",  # Multisig WITHOUT recovery module
+        "gnosis_safe_proxy_factory": "0x48BE9146eBe74Af8f9BbC42A0EB68B484AC8Df31",  # Multisig WITHOUT recovery module
         "safe_multisig_with_recovery_module": "0xCb728aefD88FCA806d638EAEeEAcFC03Dd985d70",  # Multisig WITH recovery module
         "gnosis_safe_same_address_multisig": "0xfa517d01DaA100cB1932FA4345F68874f7E7eF46",  # Same address multisig WITHOUT recovery module
         "recovery_module": "0x69D97b5c4F35fd3A72FA83b6B1eB911c6A8a2e3c",  # Same address multisig WITH recovery module
-        "staking_token": "0x0Dc23eEf3bC64CF3cbd8f9329B57AE4C4f28d5d2",  # nosec
+        "staking_token": "0x3A8867A5A31c5E26e6b8c740c1E1Aa920802d4BA",  # nosec
         "staking_verifier": "0x4503b79d468e81Ad2d4bd6Db991810da269bA777",
         "staking_factory": "0xEBdde456EA288b49f7D5975E7659bA1Ccf607efc",
         "complementary_service_metadata": "0x0561cE39A1ab785B02DE0D9903125702559993A1",
@@ -71,13 +71,13 @@ CHAIN_PROFILES = {
     "polygon": {
         "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
         "service_registry_token_utility": "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",  # nosec
-        "gnosis_safe_proxy_factory": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",  # Multisig WITHOUT recovery module
+        "gnosis_safe_proxy_factory": "0x87E6a97bD97D41904B1125A014B16bec50C6A89D",  # Multisig WITHOUT recovery module
         "safe_multisig_with_recovery_module": "0x1a0bFCC27051BCcDDc444578f56A4F5920e0E083",  # Multisig WITH recovery module
         "poly_safe_creator_with_recovery_module": "0xA749f605D93B3efcc207C54270d83C6E8fa70fF8",  # Poly Safe multisig WITH recovery module
         "gnosis_safe_same_address_multisig": "0xd8BCC126ff31d2582018715d5291A508530587b0",  # Same address multisig WITHOUT recovery module
         "recovery_module": "0x02C26437B292D86c5F4F21bbCcE0771948274f84",  # Same address multisig WITH recovery module
         "operator_whitelist": "0x526E064cB694E8f5B7DB299158e17F33055B3943",
-        "staking_token": "0x4aba1Cf7a39a51D75cBa789f5f21cf4882162519",  # nosec
+        "staking_token": "0x980b47e2B78403fBeDd59fbd6C7f8bF93d2E6B10",  # nosec
         "staking_verifier": "0x8Bc0a5c5B1612A16983B01ecd7ae130E728390CB",
         "staking_factory": "0x46C0D07F55d4F9B5Eed2Fc9680B5953e5fd7b461",
         "sign_message_lib": "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",
@@ -88,11 +88,11 @@ CHAIN_PROFILES = {
         "service_registry": "0x9338b5153AE39BB89f50468E608eD9d764B755fD",
         "service_registry_token_utility": "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",  # nosec
         "operator_whitelist": "0x526E064cB694E8f5B7DB299158e17F33055B3943",
-        "gnosis_safe_proxy_factory": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",  # Multisig WITHOUT recovery module
+        "gnosis_safe_proxy_factory": "0x3835C338Fe82abEc60DB21dB2f22E251A26D071F",  # Multisig WITHOUT recovery module
         "safe_multisig_with_recovery_module": "0xB4eB492bbfDcE5ccc11d675797cCF090eB0bCbd6",  # Multisig WITH recovery module
         "gnosis_safe_same_address_multisig": "0x6e7f594f680f7aBad18b7a63de50F0FeE47dfD06",  # Same address multisig WITHOUT recovery module
         "recovery_module": "0x0Cb12457ed26d572c5e4A50f30b6f7A904662a72",  # Same address multisig WITH recovery module
-        "staking_token": "0xEa00be6690a871827fAfD705440D20dd75e67AB1",  # nosec
+        "staking_token": "0x5777C44C8926085C2d7cF33735F57f2f05A90a1a",  # nosec
         "staking_verifier": "0x1D59DadE4FAeA7771eC7221420012d413175404C",
         "staking_factory": "0xb0228CA253A88Bc8eb4ca70BCAC8f87b381f4700",
         "complementary_service_metadata": "0x0598081D48FB80B0A7E52FAD2905AE9beCd6fC69",
@@ -104,11 +104,11 @@ CHAIN_PROFILES = {
         "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
         "service_registry_token_utility": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",  # nosec
         "operator_whitelist": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
-        "gnosis_safe_proxy_factory": "0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b",  # Multisig WITHOUT recovery module
+        "gnosis_safe_proxy_factory": "0xeED0000fE94d7cfeF4Dc0CA86a223f0F603A61B8",  # Multisig WITHOUT recovery module
         "safe_multisig_with_recovery_module": "0x17B2198872216D8469AdeBC1227D0d4824940821",  # Multisig WITH recovery module
         "gnosis_safe_same_address_multisig": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",  # Same address multisig WITHOUT recovery module
         "recovery_module": "0xD0863340f947bE329c67e196e192705e53A1338f",  # Same address multisig WITH recovery module
-        "staking_token": "0x04b0007b2aFb398015B76e5f22993a1fddF83644",  # nosec
+        "staking_token": "0x887A511e3DfE4dDa77c0b1783c01d9920351A83D",  # nosec
         "staking_verifier": "0x7Fd1F4b764fA41d19fe3f63C85d12bf64d2bbf68",
         "staking_factory": "0xEB5638eefE289691EcE01943f768EDBF96258a80",  # nosec
         "complementary_service_metadata": "0x02C26437B292D86c5F4F21bbCcE0771948274f84",
@@ -120,11 +120,11 @@ CHAIN_PROFILES = {
         "service_registry": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",  # nosec
         "service_registry_token_utility": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",  # nosec
         "operator_whitelist": "0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b",
-        "gnosis_safe_proxy_factory": "0x5953f21495BD9aF1D78e87bb42AcCAA55C1e896C",  # Multisig WITHOUT recovery module
+        "gnosis_safe_proxy_factory": "0xe15Eb6549484F7f8F45D0707EA05AA39DBDd65Ce",  # Multisig WITHOUT recovery module
         "safe_multisig_with_recovery_module": "0x4be7A91e67be963806FeFA9C1FD6C53DfC358d94",  # Multisig WITH recovery module
         "gnosis_safe_same_address_multisig": "0xb09CcF0Dbf0C178806Aaee28956c74bd66d21f73",  # Same address multisig WITHOUT recovery module
         "recovery_module": "0x6e7f594f680f7aBad18b7a63de50F0FeE47dfD06",  # Same address multisig WITH recovery module
-        "staking_token": "0x63C2c53c09dE534Dd3bc0b7771bf976070936bAC",  # nosec
+        "staking_token": "0x28C1edC7CEd549F7f80B732fDC19f0370160707d",  # nosec
         "staking_verifier": "0x526E064cB694E8f5B7DB299158e17F33055B3943",
         "staking_factory": "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",  # nosec
         "complementary_service_metadata": "0x11949cBC85d8793B360029E26b18ae759708e28b",
@@ -136,11 +136,11 @@ CHAIN_PROFILES = {
         "service_registry": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
         "service_registry_token_utility": "0x34C895f302D0b5cf52ec0Edd3945321EB0f83dd5",  # nosec
         "operator_whitelist": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",  # nosec
-        "gnosis_safe_proxy_factory": "0x22bE6fDcd3e29851B29b512F714C328A00A96B83",  # Multisig WITHOUT recovery module
+        "gnosis_safe_proxy_factory": "0x25c980328762a03F70c2649ef4Be691b811B690A",  # Multisig WITHOUT recovery module
         "safe_multisig_with_recovery_module": "0x8c534420Db046d6801A1A8bE6fb602cC8F257453",  # Multisig WITH recovery module
         "gnosis_safe_same_address_multisig": "0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB",  # Same address multisig WITHOUT recovery module
         "recovery_module": "0x359d53C326388D24037b3b1590d217fdb5EEE74c",  # Same address multisig WITH recovery module
-        "staking_token": "0xEB5638eefE289691EcE01943f768EDBF96258a80",  # nosec
+        "staking_token": "0x67C48a1cdCBCC311CA6484560F8c5066F3655b6e",  # nosec
         "staking_verifier": "0x10c5525F77F13b28f42c5626240c001c2D57CAd4",
         "staking_factory": "0x1cEe30D08943EB58EFF84DD1AB44a6ee6FEff63a",
         "complementary_service_metadata": "0x28C1edC7CEd549F7f80B732fDC19f0370160707d",
@@ -152,11 +152,11 @@ CHAIN_PROFILES = {
         "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
         "service_registry_token_utility": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",  # nosec
         "operator_whitelist": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
-        "gnosis_safe_proxy_factory": "0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b",  # Multisig WITHOUT recovery module
+        "gnosis_safe_proxy_factory": "0xaaFBeef195BDAb1Bb6f3Dc9cEbA875Cd72499230",  # Multisig WITHOUT recovery module
         "safe_multisig_with_recovery_module": "0x379451B13e4900C7005Bf57467770b2EE4e62a86",  # Multisig WITH recovery module
         "gnosis_safe_same_address_multisig": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",  # Same address multisig WITHOUT recovery module
         "recovery_module": "0x24F792D51b398928459Dfbb4181bDb4D5d2CD472",  # Same address multisig WITH recovery module
-        "staking_token": "0xe1E1B286EbE95b39F785d8069f2248ae9C41b7a9",  # nosec
+        "staking_token": "0xf78b3C22A204Da5d9a0B080C5D3d695AF4918886",  # nosec
         "staking_verifier": "0x4aba1Cf7a39a51D75cBa789f5f21cf4882162519",  # nosec
         "staking_factory": "0x1c2cD884127b080F940b7546c1e9aaf525b1FA55",  # nosec
         "complementary_service_metadata": "0xc096362fa6f4A4B1a9ea68b1043416f3381ce300",
@@ -168,11 +168,11 @@ CHAIN_PROFILES = {
         "service_registry": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
         "service_registry_token_utility": "0x34C895f302D0b5cf52ec0Edd3945321EB0f83dd5",  # nosec
         "operator_whitelist": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",  # nosec
-        "gnosis_safe_proxy_factory": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",  # Multisig WITHOUT recovery module
+        "gnosis_safe_proxy_factory": "0x22bE6fDcd3e29851B29b512F714C328A00A96B83",  # Multisig WITHOUT recovery module
         "safe_multisig_with_recovery_module": "0x7Fd1F4b764fA41d19fe3f63C85d12bf64d2bbf68",  # Multisig WITH recovery module
         "gnosis_safe_same_address_multisig": "0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB",  # Same address multisig WITHOUT recovery module
         "recovery_module": "0x1d79e0a600B61FAC1B8F40c27347e48962Ed2f23",  # Same address multisig WITH recovery module
-        "staking_token": "0xE49CB081e8d96920C38aA7AB90cb0294ab4Bc8EA",  # nosec
+        "staking_token": "0x5add592ce0a1B5DceCebB5Dcac086Cd9F9e3eA5C",  # nosec
         "staking_native_token": "0x88DE734655184a09B70700aE4F72364d1ad23728",  # nosec
         "staking_verifier": "0x87c511c8aE3fAF0063b3F3CF9C6ab96c4AA5C60c",  # nosec
         "staking_factory": "0x75D529FAe220bC8db714F0202193726b46881B76",  # nosec
@@ -183,11 +183,11 @@ CHAIN_PROFILES = {
         "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
         "service_registry_token_utility": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",  # nosec
         "operator_whitelist": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
-        "gnosis_safe_proxy_factory": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",
+        "gnosis_safe_proxy_factory": "0x22bE6fDcd3e29851B29b512F714C328A00A96B83",
         "safe_multisig_with_recovery_module": "0xb09CcF0Dbf0C178806Aaee28956c74bd66d21f73",
         "gnosis_safe_same_address_multisig": "0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB",
         "recovery_module": "0xE43d4F4103b623B61E095E8bEA34e1bc8979e168",
-        "staking_token": "0x87c511c8aE3fAF0063b3F3CF9C6ab96c4AA5C60c",  # nosec
+        "staking_token": "0x5add592ce0a1B5DceCebB5Dcac086Cd9F9e3eA5C",  # nosec
         "staking_verifier": "0x75D529FAe220bC8db714F0202193726b46881B76",
         "staking_factory": "0x1BD1505B711Fb58C54ca3712e6BEf47A133892d9",
         "complementary_service_metadata": "0xD1155408D58293BE0743225bcDe28b9FD0C12378",

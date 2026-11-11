@@ -46,6 +46,27 @@ UPSTREAM_TO_PROFILE_KEY = {
     "gnosis_safe_multisig": "gnosis_safe_proxy_factory",
     "identity_registry_bridger_proxy": "erc8004_identity_registry_bridger",
 }
+# Contracts Proposal 17 replaced. autonolas-registries#343 publishes the new ones in its deployment
+# globals; its ``docs/configuration.json`` still lists the replaced ones.
+REGISTRIES_DEPLOYMENT_URL = (
+    "https://raw.githubusercontent.com/valory-xyz/autonolas-registries/"
+    "5d5b1f1c366d25890126e7d534d9a61b8dc21ae8/scripts/deployment/"
+)
+REPLACED_CONTRACTS_GLOBALS_KEYS = {
+    "gnosis_safe_multisig": "gnosisSafeMultisigImplementationAddress",
+    "staking_token": "stakingTokenAddress",
+}
+DEPLOYMENT_GLOBALS_FILES = {
+    ChainType.ETHEREUM: ("globals_mainnet.json", "l2/globals_eth_mainnet.json"),
+    ChainType.POLYGON: ("l2/globals_polygon_mainnet.json",),
+    ChainType.GNOSIS: ("l2/globals_gnosis_mainnet.json",),
+    ChainType.ARBITRUM_ONE: ("l2/globals_arbitrum_mainnet.json",),
+    ChainType.OPTIMISM: ("l2/globals_optimism_mainnet.json",),
+    ChainType.BASE: ("l2/globals_base_mainnet.json",),
+    ChainType.CELO: ("l2/globals_celo_mainnet.json",),
+    ChainType.MODE: ("l2/globals_mode_mainnet.json",),
+    ChainType.ROBINHOOD: ("l2/globals_robinhood_mainnet.json",),
+}
 UNTRACKED_CONTRACTS = (
     "service_manager",
     "service_manager_token",
@@ -113,6 +134,26 @@ class TestAddresses:
             }
         return cls._contracts
 
+    _deployment_globals: t.Dict[ChainType, t.Dict[str, str]] = {}
+
+    @classmethod
+    def _get_deployment_globals(cls, chain: ChainType) -> t.Dict[str, str]:
+        """Fetch (or return cached) the chain's registries deployment globals.
+
+        Calls ``pytest.skip`` inside the current test if they are unreachable.
+
+        :param chain: the chain whose globals to fetch.
+        :return: the merged globals of the chain's files.
+        """
+        if chain not in cls._deployment_globals:
+            merged: t.Dict[str, str] = {}
+            for path in DEPLOYMENT_GLOBALS_FILES[chain]:
+                merged.update(
+                    fetch_upstream_or_skip(REGISTRIES_DEPLOYMENT_URL + path).json()
+                )
+            cls._deployment_globals[chain] = merged
+        return cls._deployment_globals[chain]
+
     @pytest.mark.parametrize(argnames="chain", argvalues=list(ChainType))
     def test_addresses_match(
         self, chain: ChainType, monkeypatch: pytest.MonkeyPatch
@@ -136,6 +177,10 @@ class TestAddresses:
                 continue
 
             address = contract["address"]
+            if name in REPLACED_CONTRACTS_GLOBALS_KEYS:
+                address = self._get_deployment_globals(chain)[
+                    REPLACED_CONTRACTS_GLOBALS_KEYS[name]
+                ]
             if name == "service_manager_proxy":
                 monkeypatch.setenv(f"{chain.value.upper()}_CHAIN_RPC", chain.rpc)
                 try:
