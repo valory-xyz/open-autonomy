@@ -82,6 +82,10 @@ UNSUPPORTED_CONTRACT_CASES = {  # TODO: check with Jose
         ChainType.ETHEREUM,
         "gnosis_safe_proxy_factory",
     ): "Ethereum deploys a GnosisSafeMultisig wrapper at this address, not the gnosis_safe_proxy_factory package ABI.",
+    (
+        ChainType.ETHEREUM,
+        "staking_token",
+    ): "This slot is the StakingToken 0.4.0 implementation new staking contracts are created from; the staking_token package ABI stays pre-0.4 for the existing instances.",
 }
 
 

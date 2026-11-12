@@ -7,11 +7,12 @@ license: Apache-2.0
 aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   __init__.py: bafybeiao4aiyvkvg75zfi2nf34hidx2uzcbqibc2bukyutisg5zhxskhlq
-  build/ServiceManager.json: bafybeigswf722ao2uu2zp7r2wlhv37wdbbawwx3evn3mxp6qdsjfbejdza
-  build/ServiceManagerToken.json: bafybeig77qi2tyo3uw2wxocpxonhdteo33thyu5ycn75h6m7cu3ku2hygy
+  build/ServiceManager.json: bafybeiflkborltskswk7au5yccyag6oh3gj7nd7dfdr6kandjzqvk3rsyi
+  build/ServiceManagerToken.json: bafybeicss4a4zlbzuonuefxu7s2gbugfagz6gkpveondh4lovchd5fbuvu
   contract.py: bafybeih3xeiqrk5owaajw4lhnkpqsvppljlbuyyjsxvvknvsvbw5mtos7q
   tests/__init__.py: bafybeifehip3omosjvpq3uqvxomtgrmqjoqdttyzhvu2qysybjf6btwkpi
   tests/test_contract.py: bafybeicdnkuccj37zytma6dunb6kwqmptxavg5fbv7phxoqzom6nietzju
+  tests/test_encoding.py: bafybeihckk72pl2vzzegm5l4m4llptvylb55qxhfxqkoaolhfwjea4nele
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: ServiceManagerContract

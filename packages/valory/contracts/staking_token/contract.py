@@ -106,7 +106,14 @@ class StakingTokenContract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
     ) -> JSONLike:
-        """Get the next checkpoint's timestamp."""
+        """Get the next checkpoint opportunity: the earliest time `checkpoint()` can be called.
+
+        It does not promise a reward payment.
+
+        :param ledger_api: the ledger API.
+        :param contract_address: the staking contract address.
+        :return: the timestamp, under the `data` key.
+        """
         contract = cls.get_instance(ledger_api, contract_address)
         ts = contract.functions.getNextRewardCheckpointTimestamp().call()
         return dict(data=ts)

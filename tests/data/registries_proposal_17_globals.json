@@ -1,0 +1,38 @@
+{
+  "ethereum": {
+    "gnosisSafeMultisigImplementationAddress": "0x48BE9146eBe74Af8f9BbC42A0EB68B484AC8Df31",
+    "stakingTokenAddress": "0x3A8867A5A31c5E26e6b8c740c1E1Aa920802d4BA"
+  },
+  "polygon": {
+    "gnosisSafeMultisigImplementationAddress": "0x87E6a97bD97D41904B1125A014B16bec50C6A89D",
+    "stakingTokenAddress": "0x980b47e2B78403fBeDd59fbd6C7f8bF93d2E6B10"
+  },
+  "gnosis": {
+    "gnosisSafeMultisigImplementationAddress": "0x3835C338Fe82abEc60DB21dB2f22E251A26D071F",
+    "stakingTokenAddress": "0x5777C44C8926085C2d7cF33735F57f2f05A90a1a"
+  },
+  "arbitrum_one": {
+    "gnosisSafeMultisigImplementationAddress": "0xeED0000fE94d7cfeF4Dc0CA86a223f0F603A61B8",
+    "stakingTokenAddress": "0x887A511e3DfE4dDa77c0b1783c01d9920351A83D"
+  },
+  "optimism": {
+    "gnosisSafeMultisigImplementationAddress": "0xe15Eb6549484F7f8F45D0707EA05AA39DBDd65Ce",
+    "stakingTokenAddress": "0x28C1edC7CEd549F7f80B732fDC19f0370160707d"
+  },
+  "base": {
+    "gnosisSafeMultisigImplementationAddress": "0x25c980328762a03F70c2649ef4Be691b811B690A",
+    "stakingTokenAddress": "0x67C48a1cdCBCC311CA6484560F8c5066F3655b6e"
+  },
+  "celo": {
+    "gnosisSafeMultisigImplementationAddress": "0xaaFBeef195BDAb1Bb6f3Dc9cEbA875Cd72499230",
+    "stakingTokenAddress": "0xf78b3C22A204Da5d9a0B080C5D3d695AF4918886"
+  },
+  "mode": {
+    "gnosisSafeMultisigImplementationAddress": "0x22bE6fDcd3e29851B29b512F714C328A00A96B83",
+    "stakingTokenAddress": "0x5add592ce0a1B5DceCebB5Dcac086Cd9F9e3eA5C"
+  },
+  "robinhood": {
+    "gnosisSafeMultisigImplementationAddress": "0x22bE6fDcd3e29851B29b512F714C328A00A96B83",
+    "stakingTokenAddress": "0x5add592ce0a1B5DceCebB5Dcac086Cd9F9e3eA5C"
+  }
+}
