@@ -5,12 +5,6 @@ Below, we describe the additional manual steps required to upgrade between diffe
 
 # Open Autonomy
 
-## `v0.21.30` to `v0.21.31`
-
-This release goes with Proposal 17. `CHAIN_PROFILES` now points `gnosis_safe_proxy_factory` at the new `GnosisSafeMultisig` and `staking_token` at the StakingToken 0.4.0 implementation, so services deployed with it create their multisig through the new contract; only deploy on chains where Proposal 17 has been executed. Code calling `ServiceManagerToken`'s `chainId()`, `name()`, `version()`, `domainSeparator()` or the pre-1.3.0 signed `registerAgentsWithSignature` / `unbondWithSignature` through the `service_manager` package must move to the 1.3.0 ABI. Otherwise, repin the framework and re-pull package hashes.
-
-On Robinhood, Proposal 17 also revokes the same-address adapter (`gnosis_safe_same_address_multisig`, `0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB`). `autonomy service deploy --reuse-multisig` on its own redeploys through that adapter, so once the revocation is live on Robinhood it no longer works there. To reuse a service's Safe on Robinhood, pass `--reuse-multisig --use-recovery-module`, which redeploys through the `RecoveryModule`; the Safe must have that recovery module enabled.
-
 ## `v0.21.29` to `v0.21.30`
 
 This release bumps `open-aea` to `2.2.10` and `certifi` to `>=2026.10.19`. No API or wire-format changes; downstream apps only need to repin the framework, re-pull package hashes, and rebuild their images so they pick up the new `certifi`.

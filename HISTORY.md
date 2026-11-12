@@ -1,22 +1,5 @@
 # Release History - `open-autonomy`
 
-# 0.21.31 (2026-11-11)
-
-Autonomy:
-
-- Points `CHAIN_PROFILES` at the contracts Proposal 17 enables, on all nine chains: `gnosis_safe_proxy_factory` is now the new `GnosisSafeMultisig` and `staking_token` the StakingToken 0.4.0 implementation, as published in autonolas-registries#343. Services deployed with this version create their multisig through the new `GnosisSafeMultisig`, which only works on a chain where Proposal 17 has been executed. `gnosis_safe_same_address_multisig` is unchanged. `docs/advanced_reference/on_chain_addresses.md` lists the new addresses. #2549
-
-Packages:
-
-- Refreshes the `valory/service_manager` ABIs (`ServiceManager.json`, `ServiceManagerToken.json`) to ServiceManager 1.3.0. `chainId()`, `name()`, `version()` and `domainSeparator()` are gone from `ServiceManagerToken`, and the pre-1.3.0 `registerAgentsWithSignature` / `unbondWithSignature` and their hash getters are replaced by the 1.3.0 shapes. The calldata of `registerAgents` and `unbond` is unchanged and now pinned by tests. The build files carry no bytecode until the 1.3.0 compiler output is published; the package never deploys these contracts. #2549
-- Corrects the `valory/staking_token` `get_next_checkpoint_ts` docstring: it returns the earliest time `checkpoint()` can be called, not a promise of a reward payment. #2549
-- `abstract_round_abci` keeps the local blockchain in sync after a failed Tendermint hard reset: blocks committed while the reset was in flight are added back, so the agent no longer stops with `AddBlockError`. A non-JSON response from the Tendermint com server is now logged with the reset URL and status code. #2547
-- `AgentMech.process_request_event` accepts `include_request_datas` (default `False`) to also return each `MarketplaceRequest`'s `requestDatas`. The default result is unchanged. #2546
-
-Chores:
-
-- Removes the Snyk workflow; code scanning runs through CodeQL. #2548
-
 # 0.21.30 (2026-10-24)
 
 Framework / dependency bumps:
