@@ -1769,14 +1769,28 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "filelock"
-version = "3.29.5"
+version = "4.1.0"
 description = "A platform independent file lock."
 optional = false
 python-versions = ">=3.10"
 groups = ["main", "dev"]
+markers = "python_version == \"3.10\""
 files = [
-    {file = "filelock-3.29.5-py3-none-any.whl", hash = "sha256:8af830889ba3a0ffcefbd6c7d2af8a54012058103771f2e10848222f476a1693"},
-    {file = "filelock-3.29.5.tar.gz", hash = "sha256:6e6034c57a00a020e767f2614a5539863f056de7e7991d6d1473aef7ff73f156"},
+    {file = "filelock-4.1.0-py3-none-any.whl", hash = "sha256:2ce9818e3e2d8f284c1a964414447ef148d42a5fd5e2a477a7118e574b293ec1"},
+    {file = "filelock-4.1.0.tar.gz", hash = "sha256:ad7f724afef953e731b1cc39bcd3a09166d72ed7fcdf29e6e88b1c3235c6715d"},
+]
+
+[[package]]
+name = "filelock"
+version = "4.2.12"
+description = "A platform independent file lock."
+optional = false
+python-versions = ">=3.11"
+groups = ["main", "dev"]
+markers = "python_version >= \"3.11\""
+files = [
+    {file = "filelock-4.2.12-py3-none-any.whl", hash = "sha256:21decfec02f116ed4c954433cdb31f28c3b346b784543177b6d7059da2702ee9"},
+    {file = "filelock-4.2.12.tar.gz", hash = "sha256:7e7da24d3ac39268b0f156e56870001de44886318f092f9d851e692f7114d6dd"},
 ]
 
 [[package]]
@@ -3158,14 +3172,14 @@ url = "plugins/aea-test-autonomy"
 
 [[package]]
 name = "packaging"
-version = "26.2"
+version = "26.3"
 description = "Core utilities for Python packages"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["main", "dev"]
 files = [
-    {file = "packaging-26.2-py3-none-any.whl", hash = "sha256:5fc45236b9446107ff2415ce77c807cee2862cb6fac22b8a73826d0693b0980e"},
-    {file = "packaging-26.2.tar.gz", hash = "sha256:ff452ff5a3e828ce110190feff1178bb1f2ea2281fa2075aadb987c2fb221661"},
+    {file = "packaging-26.3-py3-none-any.whl", hash = "sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c"},
+    {file = "packaging-26.3.tar.gz", hash = "sha256:94edc256424af38762eb31306eed28beb9f0efc50a8837492c9d6fd6004aed79"},
 ]
 
 [[package]]
@@ -3969,23 +3983,18 @@ six = ">=1.5"
 
 [[package]]
 name = "python-discovery"
-version = "1.4.2"
+version = "1.9.6"
 description = "Python interpreter discovery"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["main", "dev"]
 files = [
-    {file = "python_discovery-1.4.2-py3-none-any.whl", hash = "sha256:475803f53b7b2ed6e490e27373f9d8340f7d2eebf9acdaf645d7d714c97bb500"},
-    {file = "python_discovery-1.4.2.tar.gz", hash = "sha256:8f3746c4b4968d22afbb97d36e1a0e5b66e6c0f297290f2e95f05b9b8bf18690"},
+    {file = "python_discovery-1.9.6-py3-none-any.whl", hash = "sha256:93b10b90363d4151964cdeee2ec6601f3041b17fc2b253a1c3da7d6e7ddd8337"},
+    {file = "python_discovery-1.9.6.tar.gz", hash = "sha256:383aa67858d73a9585a843a37a4383c6be98e4d86a981a031328e393a6eb2632"},
 ]
 
 [package.dependencies]
-filelock = ">=3.15.4"
-platformdirs = ">=4.3.6,<5"
-
-[package.extras]
-docs = ["furo (>=2025.12.19)", "sphinx (>=9.1)", "sphinx-autodoc-typehints (>=3.6.3)", "sphinxcontrib-mermaid (>=2)", "sphinxcontrib-towncrier (>=0.4)", "towncrier (>=25.8)"]
-testing = ["covdefaults (>=2.3)", "coverage (>=7.5.4)", "pytest (>=8.3.5)", "pytest-mock (>=3.14)", "setuptools (>=75.1)"]
+filelock = ">=3.16.1"
 
 [[package]]
 name = "python-slugify"
@@ -4936,22 +4945,23 @@ zstd = ["backports-zstd (>=1.0.0) ; python_version < \"3.14\""]
 
 [[package]]
 name = "virtualenv"
-version = "21.5.1"
+version = "21.15.8"
 description = "Virtual Python Environment builder"
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
 files = [
-    {file = "virtualenv-21.5.1-py3-none-any.whl", hash = "sha256:55aa670b67bbfb991b03fda39bd3276d92c419d702376e98c5df1c9989a26783"},
-    {file = "virtualenv-21.5.1.tar.gz", hash = "sha256:dca3bf98275a59c652b69d68e73433e597d977c2da9198882479d1a7188009c8"},
+    {file = "virtualenv-21.15.8-py3-none-any.whl", hash = "sha256:e4cb274633d6f3ddb19f535a3be7539ce8fe34fc7aa2b0c417ff6e96c3cf67dc"},
+    {file = "virtualenv-21.15.8.tar.gz", hash = "sha256:cfa97e12996373ea030ccbae8eda23cae9cfdbe74aa7b627621b6a0bd03cd7d4"},
 ]
 
 [package.dependencies]
-distlib = ">=0.3.7,<1"
-filelock = {version = ">=3.24.2,<4", markers = "python_version >= \"3.10\""}
-platformdirs = ">=3.9.1,<5"
-python-discovery = ">=1.4.2"
-typing-extensions = {version = ">=4.13.2", markers = "python_version < \"3.11\""}
+distlib = ">=0.4.3,<1"
+filelock = {version = ">=3.24.2,<5", markers = "python_version >= \"3.10\""}
+packaging = ">=26.3"
+platformdirs = ">=4.4,<5"
+python-discovery = ">=1.6.1"
+typing-extensions = {version = ">=4.16", markers = "python_version < \"3.11\""}
 
 [[package]]
 name = "watchdog"
@@ -5377,4 +5387,4 @@ solana = ["open-aea-ledger-solana"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "0bed496c725ccdba9ac39ccf533969980db54a176545a5a62f4421f33f9d8500"
+content-hash = "6d410ab794c97b2b010e9dd524161dc22d86a96bad79f1d0d1a5727a96ec33dd"
