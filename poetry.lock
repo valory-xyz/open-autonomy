@@ -1769,15 +1769,15 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "filelock"
-version = "4.1.0"
+version = "3.29.5"
 description = "A platform independent file lock."
 optional = false
 python-versions = ">=3.10"
 groups = ["main", "dev"]
 markers = "python_version == \"3.10\""
 files = [
-    {file = "filelock-4.1.0-py3-none-any.whl", hash = "sha256:2ce9818e3e2d8f284c1a964414447ef148d42a5fd5e2a477a7118e574b293ec1"},
-    {file = "filelock-4.1.0.tar.gz", hash = "sha256:ad7f724afef953e731b1cc39bcd3a09166d72ed7fcdf29e6e88b1c3235c6715d"},
+    {file = "filelock-3.29.5-py3-none-any.whl", hash = "sha256:8af830889ba3a0ffcefbd6c7d2af8a54012058103771f2e10848222f476a1693"},
+    {file = "filelock-3.29.5.tar.gz", hash = "sha256:6e6034c57a00a020e767f2614a5539863f056de7e7991d6d1473aef7ff73f156"},
 ]
 
 [[package]]
@@ -5387,4 +5387,4 @@ solana = ["open-aea-ledger-solana"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "6d410ab794c97b2b010e9dd524161dc22d86a96bad79f1d0d1a5727a96ec33dd"
+content-hash = "c9ebfa4f2b1d2dd43a147a5b13b3cc54b3668929440e7e83dad6f1d10ffba21d"

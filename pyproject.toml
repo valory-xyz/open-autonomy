@@ -134,10 +134,11 @@ hypothesis = "*"
 # tox invocations on re-lock). Revisit once 9.x is validated end-to-end.
 pytest = ">=8,<9"
 pytest-asyncio = "*"
-# Patched for SFTY-20261017-72390; no fixed release supports 3.10.
+# Patched for SFTY-20261017-72390 on >=3.11; no fixed release supports 3.10,
+# where 3.29.5 avoids the further advisories in 4.x (e.g. GHSA-2g95-wg33-c5x2).
 filelock = [
     { version = ">=4.2.1", python = ">=3.11" },
-    { version = "*", python = "<3.11" },
+    { version = "==3.29.5", python = "<3.11" },
 ]
 # Used by the docker-compose tendermint sidecar
 # (`deployments/Dockerfiles/tendermint/app.py`) and a legacy test helper
